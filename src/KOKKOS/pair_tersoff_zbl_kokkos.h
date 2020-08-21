@@ -155,7 +155,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
     params_ters(){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
           bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;Z_i=0;Z_j=0;ZBLcut=0;ZBLexpscale=0;};
     KOKKOS_INLINE_FUNCTION
-    params_ters(int i){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
+    params_ters(int /*i*/){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
           bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;Z_i=0;Z_j=0;ZBLcut=0;ZBLexpscale=0;};
     F_FLOAT powerm, gamma, lam3, c, d, h, powern, beta, lam2, bigb, bigr,
       bigd, lam1, biga, cutsq, c1, c2, c3, c4, Z_i, Z_j, ZBLcut, ZBLexpscale;

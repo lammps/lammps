@@ -51,7 +51,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEDIP::PairEDIP(LAMMPS *lmp) : Pair(lmp)
+PairEDIP::PairEDIP(LAMMPS *lmp) :
+  Pair(lmp), preInvR_ij(NULL), preExp3B_ij(NULL), preExp3BDerived_ij(NULL),
+  preExp2B_ij(NULL), preExp2BDerived_ij(NULL), prePow2B_ij(NULL),
+  preForceCoord(NULL), cutoffFunction(NULL), cutoffFunctionDerived(NULL),
+  pow2B(NULL), exp2B(NULL), exp3B(NULL),  qFunctionGrid(NULL),
+  expMinusBetaZeta_iZeta_iGrid(NULL), tauFunctionGrid(NULL),
+  tauFunctionDerivedGrid(NULL)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -503,6 +509,8 @@ void PairEDIP::allocateGrids(void)
   double maxArgumentExpMinusBetaZeta_iZeta_i;
   double const leftLimitToZero = -DBL_MIN * 1000.0;
 
+  deallocateGrids();
+
   // tauFunctionGrid
 
   maxArgumentTauFunctionGrid = leadDimInteractionList;
@@ -561,6 +569,7 @@ void PairEDIP::allocatePreLoops(void)
 {
   int nthreads = comm->nthreads;
 
+  deallocatePreLoops();
   memory->create(preInvR_ij,nthreads*leadDimInteractionList,"edip:preInvR_ij");
   memory->create(preExp3B_ij,nthreads*leadDimInteractionList,"edip:preExp3B_ij");
   memory->create(preExp3BDerived_ij,nthreads*leadDimInteractionList,

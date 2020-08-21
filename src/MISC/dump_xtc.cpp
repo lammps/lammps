@@ -555,7 +555,7 @@ static int sizeofint(const int size)
   unsigned int num = 1;
   int num_of_bits = 0;
 
-  while (size >= num && num_of_bits < 32) {
+  while (size >= (int) num && num_of_bits < 32) {
     num_of_bits++;
     num <<= 1;
   }
@@ -596,7 +596,7 @@ static int sizeofints( const int num_of_ints, unsigned int sizes[])
   }
   num = 1;
   num_of_bytes--;
-  while (bytes[num_of_bytes] >= num) {
+  while ((int)bytes[num_of_bytes] >= num) {
     num_of_bits++;
     num *= 2;
   }
@@ -650,13 +650,13 @@ static void sendints(int buf[], const int num_of_ints, const int num_of_bits,
     }
     num_of_bytes = bytecnt;
   }
-  if (num_of_bits >= num_of_bytes * 8) {
-    for (i = 0; i < num_of_bytes; i++) {
+  if (num_of_bits >= (int)num_of_bytes * 8) {
+    for (i = 0; i < (int)num_of_bytes; i++) {
       sendbits(buf, 8, bytes[i]);
     }
     sendbits(buf, num_of_bits - num_of_bytes * 8, 0);
   } else {
-    for (i = 0; i < num_of_bytes-1; i++) {
+    for (i = 0; i < (int)num_of_bytes-1; i++) {
       sendbits(buf, 8, bytes[i]);
     }
     sendbits(buf, num_of_bits- (num_of_bytes -1) * 8, bytes[i]);
@@ -691,7 +691,7 @@ static int receivebits(int buf[], int num_of_bits)
     num_of_bits -=8;
   }
   if (num_of_bits > 0) {
-    if (lastbits < num_of_bits) {
+    if ((int)lastbits < num_of_bits) {
       lastbits += 8;
       lastbyte = (lastbyte << 8) | cbuf[cnt++];
     }
@@ -931,11 +931,11 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     lip = ip;
     luip = (unsigned int *) ip;
     smallidx = FIRSTIDX;
-    while (smallidx < LASTIDX && magicints[smallidx] < mindiff) {
+    while (smallidx < (int)LASTIDX && magicints[smallidx] < mindiff) {
       smallidx++;
     }
     xdr_int(xdrs, &smallidx);
-    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN((int)LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
     smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;
@@ -1111,7 +1111,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     }
 
     xdr_int(xdrs, &smallidx);
-    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN((int)LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
     smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;

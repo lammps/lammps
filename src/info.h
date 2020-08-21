@@ -48,6 +48,7 @@ class Info : protected Pointers {
   static std::string get_os_info();
   static std::string get_compiler_info();
   static std::string get_openmp_info();
+  static std::string get_mpi_vendor();
   static std::string get_mpi_info(int &, int &);
   static std::string get_cxx_info();
 

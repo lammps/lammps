@@ -42,21 +42,24 @@ using namespace MathConst;
 
 enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
 enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
+
 /* ---------------------------------------------------------------------- */
 
-MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
-  ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
-  nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
-  nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
-  active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL), peratom_allocate_flag(0),
-  levels(0), world_levels(NULL), qgrid(NULL), egrid(NULL), v0grid(NULL), v1grid(NULL),
-  v2grid(NULL), v3grid(NULL), v4grid(NULL), v5grid(NULL), g_direct(NULL),
-  v0_direct(NULL), v1_direct(NULL), v2_direct(NULL), v3_direct(NULL), v4_direct(NULL),
-  v5_direct(NULL), g_direct_top(NULL), v0_direct_top(NULL), v1_direct_top(NULL),
-  v2_direct_top(NULL), v3_direct_top(NULL), v4_direct_top(NULL), v5_direct_top(NULL),
-  phi1d(NULL), dphi1d(NULL), procneigh_levels(NULL), cg(NULL), cg_peratom(NULL),
-  cg_all(NULL), cg_peratom_all(NULL), part2grid(NULL), boxlo(NULL)
+MSM::MSM(LAMMPS *lmp)
+  : KSpace(lmp),
+    factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
+    ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
+    nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
+    nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
+    active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL),
+    peratom_allocate_flag(0),levels(0),world_levels(NULL),qgrid(NULL),egrid(NULL),
+    v0grid(NULL), v1grid(NULL),v2grid(NULL),v3grid(NULL),v4grid(NULL),v5grid(NULL),
+    g_direct(NULL),v0_direct(NULL),v1_direct(NULL),v2_direct(NULL),v3_direct(NULL),
+    v4_direct(NULL),v5_direct(NULL),g_direct_top(NULL),v0_direct_top(NULL),
+    v1_direct_top(NULL),v2_direct_top(NULL),v3_direct_top(NULL),v4_direct_top(NULL),
+    v5_direct_top(NULL),phi1d(NULL),dphi1d(NULL),procneigh_levels(NULL),gcall(NULL),
+    gc(NULL),gcall_buf1(NULL),gcall_buf2(NULL),gc_buf1(NULL),gc_buf2(NULL),
+    ngc_buf1(NULL),ngc_buf2(NULL),part2grid(NULL),boxlo(NULL)
 {
   msmflag = 1;
 
@@ -117,6 +120,7 @@ MSM::~MSM()
   delete [] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
+  deallocate_levels();
   memory->destroy(part2grid);
   memory->destroy(g_direct);
   memory->destroy(g_direct_top);
@@ -132,7 +136,6 @@ MSM::~MSM()
   memory->destroy(v3_direct_top);
   memory->destroy(v4_direct_top);
   memory->destroy(v5_direct_top);
-  deallocate_levels();
 }
 
 /* ----------------------------------------------------------------------
@@ -397,17 +400,6 @@ void MSM::setup()
   // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
-
-  // setup commgrid
-
-  cg_all->ghost_notify();
-  cg_all->setup();
-  for (int n=0; n<levels; n++) {
-    if (!active_flag[n]) continue;
-    cg[n]->ghost_notify();
-    cg[n]->setup();
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -448,16 +440,7 @@ void MSM::compute(int eflag, int vflag)
 
   // invoke allocate_peratom() if needed for first time
 
-  if (vflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom_all->ghost_notify();
-    cg_peratom_all->setup();
-    for (int n=0; n<levels; n++) {
-      if (!active_flag[n]) continue;
-      cg_peratom[n]->ghost_notify();
-      cg_peratom[n]->setup();
-    }
-  }
+  if (vflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // convert atoms from box to lamda coords
 
@@ -483,7 +466,8 @@ void MSM::compute(int eflag, int vflag)
   // to fully sum contribution in their 3d grid
 
   current_level = 0;
-  cg_all->reverse_comm(this,REVERSE_RHO);
+  gcall->reverse_comm_kspace(this,1,sizeof(double),REVERSE_RHO,
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
@@ -491,8 +475,8 @@ void MSM::compute(int eflag, int vflag)
   for (int n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
-    cg[n]->forward_comm(this,FORWARD_RHO);
-
+    gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
   }
@@ -503,11 +487,18 @@ void MSM::compute(int eflag, int vflag)
   if (active_flag[levels-1]) {
     if (domain->nonperiodic) {
       current_level = levels-1;
-      cg[levels-1]->forward_comm(this,FORWARD_RHO);
+      gc[levels-1]->
+        forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
-      cg[levels-1]->reverse_comm(this,REVERSE_AD);
+      gc[levels-1]->
+        reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
-        cg_peratom[levels-1]->reverse_comm(this,REVERSE_AD_PERATOM);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+
     } else {
       // Here using MPI_Allreduce is cheaper than using commgrid
       grid_swap_forward(levels-1,qgrid[levels-1]);
@@ -515,7 +506,9 @@ void MSM::compute(int eflag, int vflag)
       grid_swap_reverse(levels-1,egrid[levels-1]);
       current_level = levels-1;
       if (vflag_atom)
-        cg_peratom[levels-1]->reverse_comm(this,REVERSE_AD_PERATOM);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
 
@@ -527,24 +520,28 @@ void MSM::compute(int eflag, int vflag)
     prolongation(n);
 
     current_level = n;
-    cg[n]->reverse_comm(this,REVERSE_AD);
+    gc[n]->reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
-      cg_peratom[n]->reverse_comm(this,REVERSE_AD_PERATOM);
+      gc[n]->reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                                 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-  cg_all->forward_comm(this,FORWARD_AD);
+  gcall->forward_comm_kspace(this,1,sizeof(double),FORWARD_AD,
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    cg_peratom_all->forward_comm(this,FORWARD_AD_PERATOM);
+    gcall->forward_comm_kspace(this,6,sizeof(double),FORWARD_AD_PERATOM,
+                               gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
 
@@ -603,8 +600,7 @@ void MSM::compute(int eflag, int vflag)
 
   // convert atoms back from lamda to box coords
 
-  if (triclinic)
-    domain->lamda2x(atom->nlocal);
+  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -621,15 +617,18 @@ void MSM::allocate()
 
   // commgrid using all processors for finest grid level
 
-  int (*procneigh_all)[2] = comm->procneigh;
+  gcall = new GridComm(lmp,world,1,nx_msm[0],ny_msm[0],nz_msm[0],
+                       nxlo_in[0],nxhi_in[0],nylo_in[0],
+                       nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                       nxlo_out_all,nxhi_out_all,nylo_out_all,
+                       nyhi_out_all,nzlo_out_all,nzhi_out_all,
+                       nxlo_out[0],nxhi_out[0],nylo_out[0],
+                       nyhi_out[0],nzlo_out[0],nzhi_out[0]);
 
-
-  cg_all = new GridComm(lmp,world,1,1,
-                    nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
-                    nxlo_out_all,nxhi_out_all,nylo_out_all,nyhi_out_all,nzlo_out_all,nzhi_out_all,
-                    nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
-                    procneigh_all[0][0],procneigh_all[0][1],procneigh_all[1][0],
-                    procneigh_all[1][1],procneigh_all[2][0],procneigh_all[2][1]);
+  gcall->setup(ngcall_buf1,ngcall_buf2);
+  npergrid = 1;
+  memory->create(gcall_buf1,npergrid*ngcall_buf1,"msm:gcall_buf1");
+  memory->create(gcall_buf2,npergrid*ngcall_buf2,"msm:gcall_buf2");
 
   // allocate memory for each grid level
 
@@ -644,12 +643,23 @@ void MSM::allocate()
 
     if (active_flag[n]) {
       int **procneigh = procneigh_levels[n];
-      cg[n] = new GridComm(lmp,world_levels[n],1,1,
-                        nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                        nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
-                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-    } else cg[n] = nullptr;
+      gc[n] = new GridComm(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
+                           nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
+                           nzlo_in[n],nzhi_in[n],
+                           nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],
+                           nzlo_out[n],nzhi_out[n],
+                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+
+      gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
+      npergrid = 1;
+      memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
+      memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
+
+    } else {
+      gc[n] = nullptr;
+      gc_buf1[n] = gc_buf2[n] = nullptr;
+    }
   }
 }
 
@@ -662,8 +672,11 @@ void MSM::deallocate()
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
-  if (cg_all) delete cg_all;
-  cg_all = nullptr;
+  if (gcall) delete gcall;
+  memory->destroy(gcall_buf1);
+  memory->destroy(gcall_buf2);
+  gcall = nullptr;
+  gcall_buf1 = gcall_buf2 = nullptr;
 
   for (int n=0; n<levels; n++) {
     if (qgrid[n])
@@ -676,10 +689,13 @@ void MSM::deallocate()
       if (world_levels[n] != MPI_COMM_NULL)
           MPI_Comm_free(&world_levels[n]);
 
-    if (cg) {
-      if (cg[n]) {
-        delete cg[n];
-        cg[n] = nullptr;
+    if (gc) {
+      if (gc[n]) {
+        delete gc[n];
+        memory->destroy(gc_buf1[n]);
+        memory->destroy(gc_buf2[n]);
+        gc[n] = nullptr;
+        gc_buf1[n] = gc_buf2[n] = nullptr;
       }
     }
   }
@@ -695,15 +711,11 @@ void MSM::allocate_peratom()
 
   // create commgrid object for per-atom virial using all processors
 
-  int (*procneigh_all)[2] = comm->procneigh;
-
-  cg_peratom_all =
-    new GridComm(lmp,world,6,6,
-                 nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
-                 nxlo_out_all,nxhi_out_all,nylo_out_all,nyhi_out_all,nzlo_out_all,nzhi_out_all,
-                 nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
-                 procneigh_all[0][0],procneigh_all[0][1],procneigh_all[1][0],
-                 procneigh_all[1][1],procneigh_all[2][0],procneigh_all[2][1]);
+  npergrid = 6;
+  memory->destroy(gcall_buf1);
+  memory->destroy(gcall_buf2);
+  memory->create(gcall_buf1,npergrid*ngcall_buf1,"pppm:gcall_buf1");
+  memory->create(gcall_buf2,npergrid*ngcall_buf2,"pppm:gcall_buf2");
 
   // allocate memory for each grid level
 
@@ -724,13 +736,11 @@ void MSM::allocate_peratom()
     // create commgrid object for per-atom virial
 
     if (active_flag[n]) {
-      int **procneigh = procneigh_levels[n];
-      cg_peratom[n] =
-        new GridComm(lmp,world_levels[n],6,6,
-                     nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                     nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
-                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+      npergrid = 6;
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
+      memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"pppm:gc_buf1");
+      memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"pppm:gc_buf2");
     }
   }
 }
@@ -742,8 +752,6 @@ void MSM::allocate_peratom()
 void MSM::deallocate_peratom()
 {
   peratom_allocate_flag = 0;
-
-  if (cg_peratom_all) delete cg_peratom_all;
 
   for (int n=0; n<levels; n++) {
     if (v0grid[n])
@@ -758,9 +766,6 @@ void MSM::deallocate_peratom()
       memory->destroy3d_offset(v4grid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     if (v5grid[n])
       memory->destroy3d_offset(v5grid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (cg_peratom)
-      if (cg_peratom[n]) delete cg_peratom[n];
   }
 }
 
@@ -772,8 +777,11 @@ void MSM::allocate_levels()
 {
   ngrid = new int[levels];
 
-  cg = new GridComm*[levels];
-  cg_peratom = new GridComm*[levels];
+  gc = new GridComm*[levels];
+  gc_buf1 = new double*[levels];
+  gc_buf2 = new double*[levels];
+  ngc_buf1 = new int[levels];
+  ngc_buf2 = new int[levels];
 
   memory->create(procneigh_levels,levels,3,2,"msm:procneigh_levels");
   world_levels = new MPI_Comm[levels];
@@ -819,9 +827,8 @@ void MSM::allocate_levels()
   v5grid = new double***[levels];
 
   for (int n=0; n<levels; n++) {
-    cg[n] = NULL;
+    gc[n] = NULL;
     world_levels[n] = MPI_COMM_NULL;
-    cg_peratom[n] = NULL;
 
     qgrid[n] = NULL;
     egrid[n] = NULL;
@@ -833,7 +840,6 @@ void MSM::allocate_levels()
     v4grid[n] = NULL;
     v5grid[n] = NULL;
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -842,15 +848,18 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
-  if (cg) deallocate();
   delete [] ngrid;
   ngrid = nullptr;
 
   memory->destroy(procneigh_levels);
   delete [] world_levels;
   delete [] active_flag;
-  delete [] cg;
-  delete [] cg_peratom;
+
+  delete [] gc;
+  delete [] gc_buf1;
+  delete [] gc_buf2;
+  delete [] ngc_buf1;
+  delete [] ngc_buf2;
 
   delete [] alpha;
   delete [] betax;
@@ -893,8 +902,8 @@ void MSM::deallocate_levels()
 
   world_levels = nullptr;
   active_flag = nullptr;
-  cg = nullptr;
-  cg_peratom = nullptr;
+  gc = nullptr;
+  gc_buf1 = gc_buf2 = nullptr;
 
   alpha = nullptr;
   betax = nullptr;
@@ -1377,7 +1386,7 @@ void MSM::set_proc_grid(int n)
 
   // define a new MPI communicator for this grid level that only includes active procs
 
-  if(world_levels[n] != MPI_COMM_NULL) MPI_Comm_free(&world_levels[n]);
+  if (world_levels[n] != MPI_COMM_NULL) MPI_Comm_free(&world_levels[n]);
   MPI_Comm_split(world,color,me,&world_levels[n]);
 
   if (!active_flag[n]) return;
@@ -2434,6 +2443,7 @@ void MSM::prolongation(int n)
    be cheaper than using nearest-neighbor communication (commgrid), right
    now only works for periodic boundary conditions
 ------------------------------------------------------------------------- */
+
 void MSM::grid_swap_forward(int n, double*** &gridn)
 {
   double ***gridn_tmp;
@@ -2533,32 +2543,31 @@ void MSM::grid_swap_reverse(int n, double*** &gridn)
    pack own values to buf to send to another proc (used by commgrid)
 ------------------------------------------------------------------------- */
 
-void MSM::pack_forward(int flag, double *buf, int nlist, int *list)
+void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  double *buf = (double *) vbuf;
+
   int n = current_level;
-
-  double ***qgridn = qgrid[n];
-  double ***egridn = egrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
   int k = 0;
 
   if (flag == FORWARD_RHO) {
+    double ***qgridn = qgrid[n];
     double *qsrc = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++) {
       buf[k++] = qsrc[list[i]];
     }
   } else if (flag == FORWARD_AD) {
+    double ***egridn = egrid[n];
     double *src = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
   } else if (flag == FORWARD_AD_PERATOM) {
+    double ***v0gridn = v0grid[n];
+    double ***v1gridn = v1grid[n];
+    double ***v2gridn = v2grid[n];
+    double ***v3gridn = v3grid[n];
+    double ***v4gridn = v4grid[n];
+    double ***v5gridn = v5grid[n];
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2580,32 +2589,31 @@ void MSM::pack_forward(int flag, double *buf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void MSM::unpack_forward(int flag, double *buf, int nlist, int *list)
+void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  double *buf = (double *) vbuf;
+
   int n = current_level;
-
-  double ***qgridn = qgrid[n];
-  double ***egridn = egrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
   int k = 0;
 
   if (flag == FORWARD_RHO) {
+  double ***qgridn = qgrid[n];
     double *dest = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++) {
       dest[list[i]] = buf[k++];
     }
   } else if (flag == FORWARD_AD) {
+    double ***egridn = egrid[n];
     double *dest = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[k++];
   } else if (flag == FORWARD_AD_PERATOM) {
+    double ***v0gridn = v0grid[n];
+    double ***v1gridn = v1grid[n];
+    double ***v2gridn = v2grid[n];
+    double ***v3gridn = v3grid[n];
+    double ***v4gridn = v4grid[n];
+    double ***v5gridn = v5grid[n];
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2627,32 +2635,31 @@ void MSM::unpack_forward(int flag, double *buf, int nlist, int *list)
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void MSM::pack_reverse(int flag, double *buf, int nlist, int *list)
+void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  double *buf = (double *) vbuf;
+
   int n = current_level;
-
-  double ***qgridn = qgrid[n];
-  double ***egridn = egrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
   int k = 0;
 
   if (flag == REVERSE_RHO) {
+    double ***qgridn = qgrid[n];
     double *qsrc = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++) {
       buf[k++] = qsrc[list[i]];
     }
   } else if (flag == REVERSE_AD) {
+    double ***egridn = egrid[n];
     double *src = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
   } else if (flag == REVERSE_AD_PERATOM) {
+    double ***v0gridn = v0grid[n];
+    double ***v1gridn = v1grid[n];
+    double ***v2gridn = v2grid[n];
+    double ***v3gridn = v3grid[n];
+    double ***v4gridn = v4grid[n];
+    double ***v5gridn = v5grid[n];
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2674,32 +2681,31 @@ void MSM::pack_reverse(int flag, double *buf, int nlist, int *list)
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
+void MSM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  double *buf = (double *) vbuf;
+
   int n = current_level;
-
-  double ***qgridn = qgrid[n];
-  double ***egridn = egrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
   int k = 0;
 
   if (flag == REVERSE_RHO) {
+    double ***qgridn = qgrid[n];
     double *dest = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++) {
       dest[list[i]] += buf[k++];
     }
   } else if (flag == REVERSE_AD) {
+    double ***egridn = egrid[n];
     double *dest = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[k++];
   } else if (flag == REVERSE_AD_PERATOM) {
+    double ***v0gridn = v0grid[n];
+    double ***v1gridn = v1grid[n];
+    double ***v2gridn = v2grid[n];
+    double ***v3gridn = v3grid[n];
+    double ***v4gridn = v4grid[n];
+    double ***v5gridn = v5grid[n];
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -3415,4 +3421,25 @@ void MSM::get_virial_direct_top(int n)
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local arrays
+------------------------------------------------------------------------- */
+
+double MSM::memory_usage()
+{
+  double bytes = 0;
+
+  // NOTE: Stan, fill in other memory allocations here
+
+  // all GridComm bufs
+
+  bytes += (ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
+
+  for (int n=0; n<levels; n++)
+    if (active_flag[n])
+      bytes += (ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
+
+  return bytes;
 }

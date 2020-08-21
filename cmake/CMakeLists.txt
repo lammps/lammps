@@ -72,7 +72,7 @@ endif()
 # we require C++11 without extensions
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 
 ########################################################################
 # User input options                                                   #
@@ -747,6 +747,12 @@ if (${_index} GREATER -1)
 endif()
 message(STATUS "<<< Linker flags: >>>")
 message(STATUS "Executable name:  ${LAMMPS_BINARY}")
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+  get_target_property(OPTIONS lammps LINK_OPTIONS)
+  if(OPTIONS)
+    message(STATUS "Linker options:   ${OPTIONS}")
+  endif()
+endif()
 if(CMAKE_EXE_LINKER_FLAGS)
   message(STATUS "Executable linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
 endif()

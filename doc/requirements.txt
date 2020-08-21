@@ -1,0 +1,4 @@
+Sphinx
+sphinxcontrib-spelling
+breathe
+Pygments

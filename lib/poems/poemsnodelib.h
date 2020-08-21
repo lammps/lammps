@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: poemsnodelib.h                                          *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -23,7 +23,7 @@
 using namespace std;
 
 
-TreeNode *GetTreeNode(int item,TreeNode *lptr = NULL,TreeNode *rptr =NULL); 
+TreeNode *GetTreeNode(int item,TreeNode *lptr = NULL,TreeNode *rptr =NULL);
 
 void FreeTreeNode(TreeNode *p);
 
@@ -45,26 +45,26 @@ void PrintTree (TreeNode *t, int level);
 // postorder recursive scan of the nodes in a tree
 void Postorder (TreeNode *t, void visit(TreeNode* &t))
 {
-	// the recursive scan terminates on a empty subtree
-	if (t != NULL)
-	{
-		Postorder(t->Left(), visit);	// descend left
-		Postorder(t->Right(), visit);	// descend right
-		visit(t);					// visit the node
-	}
+        // the recursive scan terminates on a empty subtree
+        if (t != NULL)
+        {
+                Postorder(t->Left(), visit);    // descend left
+                Postorder(t->Right(), visit);   // descend right
+                visit(t);                                       // visit the node
+        }
 }
 
 
 // preorder recursive scan of the nodes in a tree
 void Preorder (TreeNode *t, void visit(TreeNode* &t))
 {
-	// the recursive scan terminates on a empty subtree
-	if (t != NULL)
-	{
-		visit(t);				// visit the node
-		Preorder(t->Left(), visit);		// descend left
-		Preorder(t->Right(), visit);	// descend right			
-	}
+        // the recursive scan terminates on a empty subtree
+        if (t != NULL)
+        {
+                visit(t);                               // visit the node
+                Preorder(t->Left(), visit);             // descend left
+                Preorder(t->Right(), visit);    // descend right
+        }
 }
 
 
@@ -72,21 +72,21 @@ void Preorder (TreeNode *t, void visit(TreeNode* &t))
 // The pointers have default value NULL
 TreeNode *GetTreeNode(int item,TreeNode *lptr,TreeNode *rptr)
 {
-	TreeNode *p;
+        TreeNode *p;
 
-	// call new to allocate the new node
-	// pass parameters lptr and rptr to the function
-	p = new TreeNode(item, lptr, rptr);
+        // call new to allocate the new node
+        // pass parameters lptr and rptr to the function
+        p = new TreeNode(item, lptr, rptr);
 
-	// if insufficient memory, terminatewith an error message
-	if (p == NULL)
-	{
-		cerr << "Memory allocation failure!\n";
-		exit(1);
-	}
+        // if insufficient memory, terminatewith an error message
+        if (p == NULL)
+        {
+                cerr << "Memory allocation failure!\n";
+                exit(1);
+        }
 
-	// return the pointer to the system generated memory
-	return p;
+        // return the pointer to the system generated memory
+        return p;
 }
 
 
@@ -94,7 +94,7 @@ TreeNode *GetTreeNode(int item,TreeNode *lptr,TreeNode *rptr)
 
 void FreeTreeNode(TreeNode *p)
 {
-	delete p;
+        delete p;
 }
 
 
@@ -102,61 +102,61 @@ void FreeTreeNode(TreeNode *p)
 // tests whether the node is a leaf node
 void CountLeaf (TreeNode *t, int& count)
 {
-	//use postorder descent
-	if(t !=NULL)
-	{
-		CountLeaf(t->Left(), count); // descend left
-		CountLeaf(t->Right(), count); // descend right
+        //use postorder descent
+        if(t !=NULL)
+        {
+                CountLeaf(t->Left(), count); // descend left
+                CountLeaf(t->Right(), count); // descend right
 
-		// check if node t is a leaf node (no descendants)
-		// if so, increment the variable count
-		if (t->Left() == NULL && t->Right() == NULL)
-			count++;
-	}
+                // check if node t is a leaf node (no descendants)
+                // if so, increment the variable count
+                if (t->Left() == NULL && t->Right() == NULL)
+                        count++;
+        }
 }
 
 
 // the function uses the postorder scan. it computes the
-// depth of the left and right subtrees of a node and 
+// depth of the left and right subtrees of a node and
 // returns the depth as 1 + max(depthLeft,depthRight).
 // the depth of an empty tree is -1
 int Depth (TreeNode *t)
 {
-	int depthLeft, depthRight, depthval;
+        int depthLeft, depthRight, depthval;
 
-	if (t == NULL)
-		depthval = -1;
-	else
-	{
-		depthLeft = Depth(t->Left());
-		depthRight = Depth(t->Right());
-		depthval = 1+(depthLeft > depthRight?depthLeft:depthRight);
-	}
-	return depthval;
+        if (t == NULL)
+                depthval = -1;
+        else
+        {
+                depthLeft = Depth(t->Left());
+                depthRight = Depth(t->Right());
+                depthval = 1+(depthLeft > depthRight?depthLeft:depthRight);
+        }
+        return depthval;
 }
 
 void IndentBlanks(int num)
 {
-//	const int indentblock = 6;
+//      const int indentblock = 6;
 
-	for(int i = 0; i < num; i++)
-		cout << " ";
+        for(int i = 0; i < num; i++)
+                cout << " ";
 }
 
 void PrintTree (TreeNode *t, int level)
 {
-	//print tree with root t, as long as t!=NULL
-	if (t != NULL)
-	{
-		int indentUnit = 5;
-		// print right branch of tree t
-		PrintTree(t->Right(),level + 1);
-		// indent to current level; output node data
-		IndentBlanks(indentUnit*level);
-		cout << t->GetData() << endl;
-		// print left branch of tree t
-		PrintTree(t->Left(),level + 1);
-	}
+        //print tree with root t, as long as t!=NULL
+        if (t != NULL)
+        {
+                int indentUnit = 5;
+                // print right branch of tree t
+                PrintTree(t->Right(),level + 1);
+                // indent to current level; output node data
+                IndentBlanks(indentUnit*level);
+                cout << t->GetData() << endl;
+                // print left branch of tree t
+                PrintTree(t->Left(),level + 1);
+        }
 }
 #endif
 

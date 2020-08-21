@@ -21,13 +21,32 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using ::testing::Eq;
 using ::testing::EndsWith;
+using ::testing::Eq;
+using ::testing::StrEq;
+
+TEST(Utils, trim)
+{
+    auto trimmed = utils::trim("\t some text");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("some text \r\n");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("\v some text \f");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("   some\t text    ");
+    ASSERT_THAT(trimmed, StrEq("some\t text"));
+
+    trimmed = utils::trim("  \t\n   ");
+    ASSERT_THAT(trimmed, StrEq(""));
+}
 
 TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");
-    ASSERT_THAT(trimmed, Eq("some text "));
+    ASSERT_THAT(trimmed, StrEq("some text "));
 }
 
 TEST(Utils, count_words)
@@ -59,24 +78,36 @@ TEST(Utils, split_words_simple)
 {
     std::vector<std::string> list = utils::split_words("one two three");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
 }
 
 TEST(Utils, split_words_quoted)
 {
     std::vector<std::string> list = utils::split_words("one 'two' \"three\"");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
 }
 
 TEST(Utils, split_words_escaped)
 {
     std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("1\\'"));
+    ASSERT_THAT(list[1], StrEq("\"two\""));
+    ASSERT_THAT(list[2], StrEq("3\\\""));
 }
 
 TEST(Utils, split_words_quote_in_quoted)
 {
     std::vector<std::string> list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("t\\'wo"));
+    ASSERT_THAT(list[2], StrEq("th\\\"ree"));
 }
 
 TEST(Utils, valid_integer1)
@@ -334,13 +365,13 @@ TEST(Utils, strmatch_whitespace_nonwhitespace)
 TEST(Utils, guesspath)
 {
     char buf[256];
-    FILE *fp = fopen("test_guesspath.txt","w");
+    FILE *fp = fopen("test_guesspath.txt", "w");
 #if defined(__linux__)
-    const char *path = utils::guesspath(buf,sizeof(buf),fp);
-    ASSERT_THAT(path,EndsWith("test_guesspath.txt"));
+    const char *path = utils::guesspath(buf, sizeof(buf), fp);
+    ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
 #else
-    const char *path = utils::guesspath(buf,sizeof(buf),fp);
-    ASSERT_THAT(path,EndsWith("(unknown)"));
+    const char *path = utils::guesspath(buf, sizeof(buf), fp);
+    ASSERT_THAT(path, EndsWith("(unknown)"));
 #endif
     fclose(fp);
 }
@@ -430,4 +461,19 @@ TEST(Utils, unit_conversion)
     ASSERT_DOUBLE_EQ(factor, 23.060549);
     factor = utils::get_conversion_factor(utils::ENERGY, utils::REAL2METAL);
     ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
+}
+
+TEST(Utils, timespec2seconds_ss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("45"), 45.0);
+}
+
+TEST(Utils, timespec2seconds_mmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("10:45"), 645.0);
+}
+
+TEST(Utils, timespec2seconds_hhmmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
 }

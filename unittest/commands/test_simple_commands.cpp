@@ -30,6 +30,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
@@ -37,11 +43,19 @@ using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 class SimpleCommandsTest : public ::testing::Test {
@@ -68,10 +82,7 @@ protected:
 
 TEST_F(SimpleCommandsTest, UnknownCommand)
 {
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("XXX one two three"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Unknown command.*"));
+    TEST_FAILURE(".*ERROR: Unknown command.*", lmp->input->one("XXX one two"););
 }
 
 TEST_F(SimpleCommandsTest, Echo)
@@ -103,15 +114,8 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 1);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("echo"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("echo xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
+    TEST_FAILURE(".*ERROR: Illegal echo command.*", lmp->input->one("echo"););
+    TEST_FAILURE(".*ERROR: Illegal echo command.*", lmp->input->one("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -154,24 +158,20 @@ TEST_F(SimpleCommandsTest, Log)
     in.close();
     remove("simple_command_test.log");
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("log"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal log command.*"));
+    TEST_FAILURE(".*ERROR: Illegal log command.*", lmp->input->one("log"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)
 {
     ::testing::internal::CaptureStdout();
     lmp->input->one("echo none");
-    TEST_FAILURE(lmp->input->one("quit xxx"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
+    ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Expected integer .*", lmp->input->one("quit xxx"););
 
-#if !defined(OMPI_MAJOR_VERSION) // this stalls with OpenMPI. skip.
+    // the following tests must be skipped with OpenMPI due to using threads
+    if (have_openmpi) GTEST_SKIP();
     ASSERT_EXIT(lmp->input->one("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(lmp->input->one("quit 9"), ExitedWithCode(9), "");
-#endif
 }
 
 TEST_F(SimpleCommandsTest, ResetTimestep)
@@ -188,25 +188,10 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->ntimestep, 0);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_timestep -10"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Timestep must be >= 0.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_timestep"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_timestep 10 10"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_timestep xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
+    TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", lmp->input->one("reset_timestep -10"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", lmp->input->one("reset_timestep"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", lmp->input->one("reset_timestep 10 10"););
+    TEST_FAILURE(".*ERROR: Expected integer .*", lmp->input->one("reset_timestep xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Suffix)
@@ -215,10 +200,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix, nullptr);
     ASSERT_EQ(lmp->suffix2, nullptr);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("suffix on"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: May only enable suffixes after defining one.*"));
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*",
+                 lmp->input->one("suffix on"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("suffix one");
@@ -247,20 +230,9 @@ TEST_F(SimpleCommandsTest, Suffix)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->suffix_enable, 1);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("suffix"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("suffix hybrid"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("suffix hybrid one"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix"););
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix hybrid"););
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix hybrid one"););
 }
 
 TEST_F(SimpleCommandsTest, Thermo)
@@ -284,20 +256,9 @@ TEST_F(SimpleCommandsTest, Thermo)
     ASSERT_EQ(lmp->output->thermo_every, 10);
     ASSERT_EQ(lmp->output->var_thermo, nullptr);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("thermo"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("thermo -1"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("thermo xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer.*"));
+    TEST_FAILURE(".*ERROR: Illegal thermo command.*", lmp->input->one("thermo"););
+    TEST_FAILURE(".*ERROR: Illegal thermo command.*", lmp->input->one("thermo -1"););
+    TEST_FAILURE(".*ERROR: Expected integer.*", lmp->input->one("thermo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, TimeStep)
@@ -324,15 +285,8 @@ TEST_F(SimpleCommandsTest, TimeStep)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->dt, -0.1);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("timestep"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal timestep command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("timestep xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected floating point.*"));
+    TEST_FAILURE(".*ERROR: Illegal timestep command.*", lmp->input->one("timestep"););
+    TEST_FAILURE(".*ERROR: Expected floating point.*", lmp->input->one("timestep xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Units)
@@ -343,7 +297,7 @@ TEST_F(SimpleCommandsTest, Units)
     ASSERT_EQ(num, sizeof(dt) / sizeof(double));
 
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
-    for (int i = 0; i < num; ++i) {
+    for (std::size_t i = 0; i < num; ++i) {
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp->input->one(fmt::format("units {}", names[i]));
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -356,10 +310,7 @@ TEST_F(SimpleCommandsTest, Units)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("units unknown"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal units command.*"));
+    TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
 }
 } // namespace LAMMPS_NS
 
@@ -367,6 +318,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

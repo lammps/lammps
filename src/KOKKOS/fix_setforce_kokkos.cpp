@@ -73,7 +73,7 @@ void FixSetForceKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixSetForceKokkos<DeviceType>::post_force(int vflag)
+void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | MASK_MASK);
 
@@ -184,7 +184,7 @@ void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceNonConstant, const 
 
 namespace LAMMPS_NS {
 template class FixSetForceKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixSetForceKokkos<LMPHostType>;
 #endif
 }

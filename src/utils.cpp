@@ -82,7 +82,7 @@ using namespace LAMMPS_NS;
  *  even with char * type variables.
  *  Example: utils::strmatch(text, std::string("^") + charptr)
  */
-bool utils::strmatch(std::string text, std::string pattern)
+bool utils::strmatch(const std::string &text, const std::string &pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
@@ -349,6 +349,19 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string & line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
+}
+
+/* ----------------------------------------------------------------------
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
@@ -436,6 +449,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
   const char *buf = text.c_str();
   std::size_t beg = 0;
   std::size_t len = 0;
+  std::size_t add = 0;
   char c = *buf;
 
   while (c) {
@@ -452,8 +466,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
 
     // handle single quote
     if (c == '\'') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '\'') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '\''))) {
         if ((c == '\\') && (buf[1] == '\'')) {
@@ -463,13 +478,14 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '\'') ++len;
       c = *++buf;
-      ++len;
 
       // handle double quote
     } else if (c == '"') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '"') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '"'))) {
         if ((c == '\\') && (buf[1] == '"')) {
@@ -479,8 +495,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '"') ++len;
       c = *++buf;
-      ++len;
     }
 
     // unquoted
@@ -496,7 +512,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
           || (c == '\f') || (c == '\0')) {
           list.push_back(text.substr(beg,len));
-          beg += len;
+          beg += len + add;
           break;
       }
       c = *++buf;
@@ -687,6 +703,38 @@ double utils::get_conversion_factor(const int property, const int conversion)
     }
   }
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   convert a timespec ([[HH:]MM:]SS) to seconds
+   the strings "off" and "unlimited" result in -1.0;
+------------------------------------------------------------------------- */
+
+double utils::timespec2seconds(const std::string & timespec)
+{
+  double vals[3];
+  int i = 0;
+
+  // first handle allowed textual inputs
+  if (timespec == "off") return -1.0;
+  if (timespec == "unlimited") return -1.0;
+
+  vals[0] = vals[1] = vals[2] = 0;
+
+  ValueTokenizer values(timespec, ":");
+
+  try {
+    for (i = 0; i < 3; i++) {
+      if (!values.has_next()) break;
+      vals[i] = values.next_int();
+    }
+  } catch (TokenizerException & e) {
+    return -1.0;
+  }
+
+  if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
+  else if (i == 2) return vals[0]*60 + vals[1];
+  return vals[0];
 }
 
 /* ------------------------------------------------------------------ */

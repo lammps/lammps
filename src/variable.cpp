@@ -541,6 +541,22 @@ void Variable::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   convenience function to allow defining a variable from a single string
+------------------------------------------------------------------------- */
+
+void Variable::set(const std::string &setcmd)
+{
+  std::vector<std::string> args = utils::split_words(setcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  set(args.size(),newarg);
+  delete[] newarg;
+}
+
+/* ----------------------------------------------------------------------
    INDEX variable created by command-line argument
    make it INDEX rather than STRING so cannot be re-defined in input script
 ------------------------------------------------------------------------- */
@@ -562,13 +578,14 @@ void Variable::set(char *name, int narg, char **arg)
    called via library interface, so external programs can set variables
 ------------------------------------------------------------------------- */
 
-int Variable::set_string(char *name, char *str)
+int Variable::set_string(const char *name, const char *str)
 {
   int ivar = find(name);
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  copy(1,&str,data[ivar]);
+  data[ivar][0] = new char[strlen(str)+1];
+  strcpy(data[ivar][0],str);
   return 0;
 }
 
@@ -752,9 +769,9 @@ int Variable::next(int narg, char **arg)
    return index or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Variable::find(char *name)
+int Variable::find(const char *name)
 {
-  if(name==NULL) return -1;
+  if (name == nullptr) return -1;
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;
@@ -864,7 +881,7 @@ int Variable::internalstyle(int ivar)
      caller must respond
 ------------------------------------------------------------------------- */
 
-char *Variable::retrieve(char *name)
+char *Variable::retrieve(const char *name)
 {
   int ivar = find(name);
   if (ivar < 0) return NULL;
@@ -2771,8 +2788,8 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = MAXBIGINT;
-    } else tree->value = MAXBIGINT;
+      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT;
+    } else tree->value = (double) MAXBIGINT;
     return tree->value;
   }
 
@@ -3105,8 +3122,8 @@ double Variable::eval_tree(Tree *tree, int i)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = MAXBIGINT;
-    } else arg = MAXBIGINT;
+      if (arg > ivalue2) arg = (double) MAXBIGINT;
+    } else arg = (double) MAXBIGINT;
     return arg;
   }
 
@@ -3682,8 +3699,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       else if (update->ntimestep < ivalue2) {
         int offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = MAXBIGINT;
-      } else value = MAXBIGINT;
+        if (value > ivalue2) value = (double) MAXBIGINT;
+      } else value = (double) MAXBIGINT;
       argstack[nargstack++] = value;
     }
 
@@ -4205,12 +4222,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       if (eval_in_progress[ivar])
         print_var_error(FLERR,"Variable has circular dependency",ivar);
 
-      if ((method == AVE) && (nvec == 0))
-        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
-
       double *vec;
       nvec = compute_vector(ivar,&vec);
       nstride = 1;
+
+      if ((method == AVE) && (nvec == 0))
+        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
+
 
     } else print_var_error(FLERR,"Invalid special function in "
                            "variable formula",ivar);

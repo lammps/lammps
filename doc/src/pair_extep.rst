@@ -33,7 +33,7 @@ none
 Related commands
 """"""""""""""""
 
-"pair_tersoff" pair_tersoff.html
+`pair_tersoff <pair tersoff>`
 
 **Default:** none
 

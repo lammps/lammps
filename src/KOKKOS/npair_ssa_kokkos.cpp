@@ -525,7 +525,8 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 
 
 template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int me, int workPhase) const
+KOKKOS_INLINE_FUNCTION
+void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int /*me*/, int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
@@ -616,8 +617,8 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
         }
       }
     }
-    int len = inum - inum_start;
 #ifdef DEBUG_SSA_BUILD_LOCALS
+    int len = inum - inum_start;
     if (len != d_ssa_itemLen(workPhase, workItem + skippedItems)) {
 fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen = %4d%s\n"
   ,me
@@ -661,6 +662,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
 
 
 template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
@@ -753,7 +755,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
 
 namespace LAMMPS_NS {
 template class NPairSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairSSAKokkos<LMPHostType>;
 #endif
 }

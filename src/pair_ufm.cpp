@@ -53,7 +53,6 @@ PairUFM::~PairUFM()
     memory->destroy(uf1);
     memory->destroy(uf2);
     memory->destroy(uf3);
-    memory->destroy(uf4);
     memory->destroy(offset);
   }
 }
@@ -154,7 +153,6 @@ void PairUFM::allocate()
   memory->create(uf1,n+1,n+1,"pair:uf1");
   memory->create(uf2,n+1,n+1,"pair:uf2");
   memory->create(uf3,n+1,n+1,"pair:uf3");
-  memory->create(uf4,n+1,n+1,"pair:uf4");
   memory->create(offset,n+1,n+1,"pair:offset");
 }
 
@@ -225,12 +223,12 @@ double PairUFM::init_one(int i, int j)
                                sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    scale[i][j] = 1.0;
   }
 
   uf1[i][j] = 2.0 * epsilon[i][j] / pow(sigma[i][j],2.0);
   uf2[i][j] = 1.0 / pow(sigma[i][j],2.0);
   uf3[i][j] = epsilon[i][j];
-  uf4[i][j] = sigma[i][j];
 
   if (offset_flag) {
     double ratio = pow(cut[i][j] / sigma[i][j],2.0);
@@ -240,7 +238,6 @@ double PairUFM::init_one(int i, int j)
   uf1[j][i] = uf1[i][j];
   uf2[j][i] = uf2[i][j];
   uf3[j][i] = uf3[i][j];
-  uf4[j][i] = uf4[i][j];
   scale[j][i] = scale[i][j];
   offset[j][i] = offset[i][j];
 
@@ -263,7 +260,8 @@ void PairUFM::write_restart(FILE *fp)
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
-         }
+        fwrite(&scale[i][j],sizeof(double),1,fp);
+      }
     }
 }
 
@@ -287,10 +285,12 @@ void PairUFM::read_restart(FILE *fp)
           utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&scale[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }

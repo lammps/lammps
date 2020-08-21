@@ -3,13 +3,13 @@
 // -------------------------------------------------------------
 // $Revision: 3572$
 // $Date: 2010-11-23 13:04:43 -0700 (Tue, 23 Nov 2010) $
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 #ifndef __CUDPP_PLAN_H__
 #define __CUDPP_PLAN_H__
- 
+
 typedef void* KernelPointer;
 
 extern "C" size_t getNumCTAs(KernelPointer kernel);
@@ -30,10 +30,10 @@ void computeNumCTAs(T kernel, unsigned int bytesDynamicSharedMem, size_t threads
 /** @brief Base class for CUDPP Plan data structures
   *
   * CUDPPPlan and its subclasses provide the internal (i.e. not visible to the
-  * library user) infrastructure for planning algorithm execution.  They 
+  * library user) infrastructure for planning algorithm execution.  They
   * own intermediate storage for CUDPP algorithms as well as, in some cases,
   * information about optimal execution configuration for the present hardware.
-  * 
+  *
   */
 class CUDPPPlan
 {
@@ -91,7 +91,7 @@ public:
 
     CUDPPScanPlan *m_scanPlan;         //!< @internal Compact performs a scan of type unsigned int using this plan
     unsigned int* m_d_outputIndices; //!< @internal Output address of compacted elements; this is the result of scan
-    
+
 };
 
 class CUDPPRadixSortPlan : public CUDPPPlan
@@ -99,7 +99,7 @@ class CUDPPRadixSortPlan : public CUDPPPlan
 public:
     CUDPPRadixSortPlan(CUDPPConfiguration config, size_t numElements);
     virtual ~CUDPPRadixSortPlan();
-	
+        
     bool           m_bKeysOnly;
     bool           m_bManualCoalesce;
     bool           m_bUsePersistentCTAs;
@@ -123,22 +123,22 @@ class CUDPPSparseMatrixVectorMultiplyPlan : public CUDPPPlan
 public:
     CUDPPSparseMatrixVectorMultiplyPlan(CUDPPConfiguration config, size_t numNZElts,
                                         const void         *A,
-                                        const unsigned int *rowindx, 
+                                        const unsigned int *rowindx,
                                         const unsigned int *indx, size_t numRows);
     virtual ~CUDPPSparseMatrixVectorMultiplyPlan();
 
     CUDPPSegmentedScanPlan *m_segmentedScanPlan; //!< @internal Performs a segmented scan of type T using this plan
     void             *m_d_prod;  //!< @internal Vector of products (of an element in A and its corresponding (thats is
-                                 //!            belongs to the same row) element in x; this is the input and output of 
+                                 //!            belongs to the same row) element in x; this is the input and output of
                                  //!            segmented scan
     unsigned int     *m_d_flags; //!< @internal Vector of flags where a flag is set if an element of A is the first element
                                  //!            of its row; this is the flags vector for segmented scan
     unsigned int     *m_d_rowFinalIndex; //!< @internal Vector of row end indices, which for each row specifies an index in A
-                                         //!            which is the last element of that row. Resides in GPU memory. 
+                                         //!            which is the last element of that row. Resides in GPU memory.
     unsigned int     *m_d_rowIndex; //!< @internal Vector of row end indices, which for each row specifies an index in A
-                                    //!            which is the first element of that row. Resides in GPU memory. 
-    unsigned int     *m_d_index;    //!<@internal Vector of column numbers one for each element in A 
-    void             *m_d_A;        //!<@internal The A matrix 
+                                    //!            which is the first element of that row. Resides in GPU memory.
+    unsigned int     *m_d_index;    //!<@internal Vector of column numbers one for each element in A
+    void             *m_d_A;        //!<@internal The A matrix
     unsigned int     *m_rowFinalIndex; //!< @internal Vector of row end indices, which for each row specifies an index in A
                                        //!            which is the last element of that row. Resides in CPU memory.
     size_t           m_numRows; //!< Number of rows

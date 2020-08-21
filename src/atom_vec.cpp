@@ -1096,8 +1096,9 @@ void AtomVec::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
@@ -1165,8 +1166,9 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];

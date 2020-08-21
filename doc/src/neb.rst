@@ -392,14 +392,20 @@ barrier.
 
 To illustrate, here are images from the final snapshot produced by the
 neb_combine.py script run on the dump files produced by the two
-example input scripts in examples/neb.  Click on them to see a larger
-image.
+example input scripts in examples/neb.
 
-.. image:: JPG/hop1_small.jpg
-   :target: JPG/hop1.jpg
 
-.. image:: JPG/hop2_small.jpg
-   :target: JPG/hop2.jpg
+.. |neb1| image:: img/hop1.jpg
+   :width: 48%
+
+.. |neb2| image:: img/hop2.jpg
+   :width: 48%
+
+|neb1|  |neb2|
+
+.. raw:: html
+
+   Click on them to see a larger image.
 
 ----------
 

@@ -81,7 +81,7 @@ PPPMDipoleSpin::~PPPMDipoleSpin()
   fft1 = NULL;
   fft2 = NULL;
   remap = NULL;
-  cg_dipole = NULL;
+  gc_dipole = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -175,9 +175,7 @@ void PPPMDipoleSpin::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  int (*procneigh)[2] = comm->procneigh;
-
-  GridComm *cgtmp = NULL;
+  GridComm *gctmp = NULL;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -190,24 +188,24 @@ void PPPMDipoleSpin::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    cgtmp = new GridComm(lmp,world,1,1,
+    gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-    cgtmp->ghost_notify();
-    if (!cgtmp->ghost_overlap()) break;
-    delete cgtmp;
+                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+    int tmp1,tmp2;
+    gctmp->setup(tmp1,tmp2);
+    if (gctmp->ghost_adjacent()) break;
+    delete gctmp;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
-  if (!overlap_allowed && cgtmp->ghost_overlap())
+  if (!overlap_allowed && !gctmp->ghost_adjacent())
     error->all(FLERR,"PPPMDipoleSpin grid stencil extends "
                "beyond nearest neighbor processor");
-  if (cgtmp) delete cgtmp;
+  if (gctmp) delete gctmp;
 
   // adjust g_ewald
 
@@ -241,8 +239,6 @@ void PPPMDipoleSpin::init()
   // don't invoke allocate peratom(), will be allocated when needed
 
   allocate();
-  cg_dipole->ghost_notify();
-  cg_dipole->setup();
 
   // pre-compute Green's function denominator expansion
   // pre-compute 1d charge distribution coefficients
@@ -270,11 +266,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
     error->all(FLERR,"Cannot (yet) compute per-atom virial "
                        "with kspace style pppm/dipole/spin");
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom_dipole->ghost_notify();
-    cg_peratom_dipole->setup();
-  }
+  if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
@@ -309,7 +301,8 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg_dipole->reverse_comm(this,REVERSE_MU);
+  gc_dipole->reverse_comm_kspace(this,3,sizeof(FFT_SCALAR),REVERSE_MU,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
   // compute potential gradient on my FFT grid and
@@ -322,13 +315,14 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  cg_dipole->forward_comm(this,FORWARD_MU);
+  gc_dipole->forward_comm_kspace(this,9,sizeof(FFT_SCALAR),FORWARD_MU,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
-  if (evflag_atom) {
-    cg_peratom_dipole->forward_comm(this,FORWARD_MU_PERATOM);
-  }
+  if (evflag_atom)
+    gc->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_MU_PERATOM,
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 

@@ -34,6 +34,8 @@ class FixTempCSLD : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
   virtual double compute_scalar();
+  void write_restart(FILE *);
+  void restart(char *buf);
   virtual void *extract(const char *, int &);
 
  private:

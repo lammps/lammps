@@ -1,0 +1,9 @@
+.wy-nav-content {
+    max-width: 100% !important;
+}
+
+.lammps_version {
+    text-align: center;
+    display: block;
+    margin-bottom: 0.809em;
+}

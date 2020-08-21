@@ -13,7 +13,7 @@ Syntax
 Examples
 """"""""
 
-.. code-blocK:: LAMMPS
+.. code-block:: LAMMPS
 
    bond_style none
 

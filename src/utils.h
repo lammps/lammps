@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
      *  \param pattern the search pattern, which may contain regexp markers
      *  \return true if the pattern matches, false if not
      */
-    bool strmatch(std::string text, std::string pattern);
+    bool strmatch(const std::string &text, const std::string &pattern);
 
     /** \brief Send message to screen and logfile, if available
      *
@@ -144,11 +144,18 @@ namespace LAMMPS_NS {
                     bool do_abort, LAMMPS *lmp);
 
     /**
+     * \brief Trim leading and trailing whitespace. Like TRIM() in Fortran.
+     * \param line string that should be trimmed
+     * \return new string without whitespace (string)
+     */
+    std::string trim(const std::string &line);
+
+    /**
      * \brief Trim anything from '#' onward
      * \param line string that should be trimmed
      * \return new string without comment (string)
      */
-    std::string trim_comment(const std::string & line);
+    std::string trim_comment(const std::string &line);
 
     /**
      * \brief Count words in string
@@ -284,6 +291,14 @@ namespace LAMMPS_NS {
      * \return conversion factor
      */
     double get_conversion_factor(const int property, const int conversion);
+
+    /**
+     * \brief Convert a time string to seconds
+     *        The strings "off" and "unlimited" result in -1
+     * \param timespec a string in the following format: ([[HH:]MM:]SS)
+     * \return total in seconds
+     */
+    double timespec2seconds(const std::string & timespec);
   }
 }
 

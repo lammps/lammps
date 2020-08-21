@@ -55,6 +55,8 @@ public:
   typedef Kokkos::View<SNAcomplex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<SNAcomplex*****, DeviceType> t_sna_5c;
 
+  typedef Kokkos::View<CayleyKleinPack**, DeviceType> t_sna_2ckp;
+
 inline
   SNAKokkos() {};
   KOKKOS_INLINE_FUNCTION
@@ -78,6 +80,9 @@ inline
 
   // functions for bispectrum coefficients, GPU only
   KOKKOS_INLINE_FUNCTION
+  void compute_cayley_klein(const int&, const int&, const double&, const double&,
+                            const double&, const double&, const double&);
+  KOKKOS_INLINE_FUNCTION
   void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,const int&,const int&); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int); // ForceSNAP
@@ -97,8 +102,6 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_zi_cpu(const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void zero_yi_cpu(const int&,const int&,const int&); // ForceSNAP
-  KOKKOS_INLINE_FUNCTION
   void compute_yi_cpu(int,
    const Kokkos::View<F_FLOAT**, DeviceType> &beta); // ForceSNAP
     KOKKOS_INLINE_FUNCTION
@@ -117,6 +120,8 @@ inline
   double compute_sfac(double, double); // add_uarraytot, compute_duarray
   KOKKOS_INLINE_FUNCTION
   double compute_dsfac(double, double); // compute_duarray
+  KOKKOS_INLINE_FUNCTION
+  void compute_s_dsfac(const double, const double, double&, double&); // compute_cayley_klein
 
   // efficient complex FMA
   // efficient caxpy (i.e., y += a x)
@@ -140,6 +145,9 @@ inline
 
   //per sna class instance for OMP use
 
+  // Alternative to rij, wj, rcutij...
+  // just calculate everything up front
+  t_sna_2ckp cayleyklein;
 
   // Per InFlight Particle
   t_sna_3d rij;
@@ -156,6 +164,7 @@ inline
 
   t_sna_3d_ll blist;
   t_sna_3c_ll ulisttot;
+  t_sna_3c_ll ulisttot_full; // un-folded ulisttot, cpu only
   t_sna_3c_ll zlist;
 
   t_sna_3c_ll ulist;
@@ -173,7 +182,7 @@ inline
   t_sna_4d_ll ylist_pack_re; // split real,
   t_sna_4d_ll ylist_pack_im; // imag AoSoA layout
 
-  int idxcg_max, idxu_max, idxz_max, idxb_max;
+  int idxcg_max, idxu_max, idxu_half_max, idxu_cache_max, idxz_max, idxb_max;
 
   // Chem snap counts
   int nelements;
@@ -188,7 +197,13 @@ private:
   Kokkos::View<int*[10], DeviceType> idxz;
   Kokkos::View<int*[3], DeviceType> idxb;
   Kokkos::View<int***, DeviceType> idxcg_block;
+
+public:
   Kokkos::View<int*, DeviceType> idxu_block;
+  Kokkos::View<int*, DeviceType> idxu_half_block;
+  Kokkos::View<int*, DeviceType> idxu_cache_block;
+
+private:
   Kokkos::View<int***, DeviceType> idxz_block;
   Kokkos::View<int***, DeviceType> idxb_block;
 

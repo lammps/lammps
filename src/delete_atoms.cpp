@@ -282,8 +282,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int group1bit = group->bitmask[igroup1];
   int group2bit = group->bitmask[igroup2];
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for delete_atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"System init for delete_atoms ...\n");
 
   // request a full neighbor list for use by this command
 

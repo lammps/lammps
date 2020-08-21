@@ -435,10 +435,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::select3(int k, int n, int ii) con
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int ncount, int ii, int ineigh) const
+void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int /*ncount*/, int ii, int ineigh) const
 {
-  const int i = d_ilist[ii + chunk_offset];
-
   const double r0 = d_rlist(ii,ineigh,0);
   const double r1 = d_rlist(ii,ineigh,1);
   const double r2 = d_rlist(ii,ineigh,2);

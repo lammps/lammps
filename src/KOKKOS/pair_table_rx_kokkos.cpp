@@ -70,11 +70,11 @@ void getMixingWeights(
   nTotal = 0.0;
   nTotalOld = 0.0;
   assert(id >= 0);
-  assert(id < dvector.extent(1));
+  assert(id < (int)dvector.extent(1));
   for (int ispecies = 0; ispecies < nspecies; ++ispecies){
-    assert(ispecies < dvector.extent(0));
+    assert(ispecies < (int)dvector.extent(0));
     nTotal += dvector(ispecies,id);
-    assert(ispecies+nspecies < dvector.extent(0));
+    assert(ispecies+nspecies < (int)dvector.extent(0));
     nTotalOld += dvector(ispecies+nspecies,id);
   }
 
@@ -654,7 +654,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   const int ntotal = atom->nlocal + atom->nghost;
-  if (ntotal > mixWtSite1.extent(0)) {
+  if (ntotal > (int)mixWtSite1.extent(0)) {
     mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
     mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
     mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
@@ -847,21 +847,21 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j<h_table->rsq.extent(1); j++)
+    for(int j = 0; j < (int)h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.extent(1); j++)
+    for(int j = 0; j < (int)h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j<h_table->e.extent(1); j++)
+    for(int j = 0; j < (int)h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.extent(1); j++)
+    for(int j = 0; j < (int)h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.extent(1); j++)
+    for(int j = 0; j < (int)h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.extent(1); j++)
+    for(int j = 0; j < (int)h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.extent(1); j++)
+    for(int j = 0; j < (int)h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.extent(1); j++)
+    for(int j = 0; j < (int)h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 
@@ -1173,7 +1173,7 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 
 template<class DeviceType>
 double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+                                             double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   int itable;

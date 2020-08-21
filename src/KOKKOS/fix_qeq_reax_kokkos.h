@@ -140,7 +140,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
     KOKKOS_INLINE_FUNCTION
     params_qeq(){chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
-    params_qeq(int i){chi=0;eta=0;gamma=0;};
+    params_qeq(int /*i*/){chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };
 
@@ -267,8 +267,7 @@ struct FixQEqReaxKokkosComputeHFunctor {
 
   FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
                                   int _atoms_per_team, int _vector_length)
-      : c(*c_ptr), atoms_per_team(_atoms_per_team),
-        vector_length(_vector_length) {
+    : atoms_per_team(_atoms_per_team), vector_length(_vector_length), c(*c_ptr)  {
     c.cleanup_copy();
   };
 
@@ -283,7 +282,7 @@ struct FixQEqReaxKokkosComputeHFunctor {
     c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
   }
 
-  size_t team_shmem_size(int team_size) const {
+  size_t team_shmem_size(int /*team_size*/) const {
     size_t shmem_size =
         Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
             atoms_per_team) + // s_ilist

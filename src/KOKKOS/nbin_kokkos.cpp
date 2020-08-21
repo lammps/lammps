@@ -67,14 +67,14 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
 template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > k_bins.d_view.extent(0)) {
+  if (mbins > (int)k_bins.d_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
     k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
   }
-  if (nall > k_atom2bin.d_view.extent(0)) {
+  if (nall > (int)k_atom2bin.d_view.extent(0)) {
     k_atom2bin = DAT::tdual_int_1d("Neighbor::d_atom2bin",nall);
     atom2bin = k_atom2bin.view<DeviceType>();
   }
@@ -138,7 +138,7 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 
   atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
-  if(ac < bins.extent(1)) {
+  if(ac < (int)bins.extent(1)) {
     bins(ibin, ac) = i;
   } else {
     d_resize() = 1;

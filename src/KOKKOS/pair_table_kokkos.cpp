@@ -304,21 +304,21 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j<h_table->rsq.extent(1); j++)
+    for(int j = 0; j < (int) h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.extent(1); j++)
+    for(int j = 0; j < (int) h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j<h_table->e.extent(1); j++)
+    for(int j = 0; j < (int) h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.extent(1); j++)
+    for(int j = 0; j < (int) h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.extent(1); j++)
+    for(int j = 0; j < (int) h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.extent(1); j++)
+    for(int j = 0; j < (int) h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.extent(1); j++)
+    for(int j = 0; j < (int) h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.extent(1); j++)
+    for(int j = 0; j < (int) h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 

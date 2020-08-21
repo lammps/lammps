@@ -151,7 +151,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
 
   const F_FLOAT r = sqrt(rsq);
   const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
@@ -171,7 +172,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
 
   const F_FLOAT r = sqrt(rsq);
   const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);

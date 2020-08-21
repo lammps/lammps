@@ -78,7 +78,7 @@ class AtomKokkos : public Atom {
 };
 
 template<class ViewType, class IndexView>
-class SortFunctor {
+struct SortFunctor {
   typedef typename ViewType::device_type device_type;
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
@@ -100,19 +100,19 @@ class SortFunctor {
     dest(i) = source(index(i));
   }
   void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
+    for(int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
   void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
-    for(int k=0;k<source.extent(2);k++)
-      dest(i,j,k) = source(index(i),j,k);
+    for(int j=0; j < (int)source.extent(1); j++)
+      for(int k=0; k < (int)source.extent(2); k++)
+        dest(i,j,k) = source(index(i),j,k);
   }
   void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
-    for(int k=0;k<source.extent(2);k++)
-    for(int l=0;l<source.extent(3);l++)
-      dest(i,j,k,l) = source(index(i),j,k,l);
+    for(int j=0; j < (int)source.extent(1); j++)
+      for(int k=0; k < (int)source.extent(2); k++)
+        for(int l=0; l < (int)source.extent(3); l++)
+          dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };
 

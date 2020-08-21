@@ -173,7 +173,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
@@ -200,7 +200,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
   const F_FLOAT r2inv = 1.0/rsq;

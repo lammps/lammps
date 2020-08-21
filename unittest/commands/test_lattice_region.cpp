@@ -105,6 +105,7 @@ TEST_F(LatticeRegionTest, lattice_none)
     lmp->input->one("units lj");
     lmp->input->one("lattice none 1.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+    lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->xlattice, 1.0);
     ASSERT_EQ(lattice->ylattice, 1.0);
     ASSERT_EQ(lattice->zlattice, 1.0);
@@ -170,6 +171,7 @@ TEST_F(LatticeRegionTest, lattice_sc)
     lmp->input->one("units lj");
     lmp->input->one("lattice sc 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+    lattice = lmp->domain->lattice;
     ASSERT_DOUBLE_EQ(lattice->xlattice, pow(0.5, 1.0 / 3.0));
     ASSERT_DOUBLE_EQ(lattice->ylattice, pow(0.5, 1.0 / 3.0));
     ASSERT_DOUBLE_EQ(lattice->zlattice, pow(0.5, 1.0 / 3.0));

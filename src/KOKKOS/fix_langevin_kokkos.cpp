@@ -168,7 +168,7 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::post_force(int vflag)
+void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // sync the device views which might have been modified on host
   atomKK->sync(execution_space,datamask_read);
@@ -873,7 +873,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
    ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   h_franprev(j,0) = h_franprev(i,0);
   h_franprev(j,1) = h_franprev(i,1);

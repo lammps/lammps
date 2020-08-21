@@ -67,7 +67,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
+void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
 {
   if (mbins > (int) k_bins.h_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);

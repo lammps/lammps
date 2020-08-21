@@ -98,7 +98,7 @@ FixEOStableRXKokkos<DeviceType>::~FixEOStableRXKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
+void FixEOStableRXKokkos<DeviceType>::setup(int /*vflag*/)
 {
   if (update_table)
     create_kokkos_tables();
@@ -411,7 +411,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   HAT::t_efloat_1d h_uChem = atomKK->k_uChem.h_view;

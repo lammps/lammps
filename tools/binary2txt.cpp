@@ -158,7 +158,7 @@ int main(int narg, char **arg)
           delete [] unit_style;
           unit_style = new char[len+1];
           fread(unit_style, sizeof(char), len, fp);
-          unit_style[len+1] = '\0';
+          unit_style[len] = '\0';
           fprintf(fptxt, "ITEM: UNITS\n");
           fprintf(fptxt, "%s\n", unit_style);
         }
@@ -176,7 +176,7 @@ int main(int narg, char **arg)
         delete [] columns;
         columns = new char[len+1];
         fread(columns, sizeof(char), len, fp);
-        columns[len+1] = '\0';
+        columns[len] = '\0';
       }
 
       fread(&nchunk,sizeof(int),1,fp);

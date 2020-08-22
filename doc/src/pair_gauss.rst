@@ -99,7 +99,8 @@ is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
@@ -172,7 +173,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style coul/diel <pair_coul_diel>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Lenart2:
 

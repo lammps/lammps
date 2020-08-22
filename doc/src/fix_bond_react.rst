@@ -510,7 +510,8 @@ local command.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
 These values are associated with the reaction name (react-ID).

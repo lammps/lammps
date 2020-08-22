@@ -64,4 +64,7 @@ Related commands
 :doc:`bond_harmonic <bond_harmonic>`,
 :doc:`bond_style harmonic/shift <bond_harmonic_shift>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -74,7 +74,10 @@ Related commands
 
 :doc:`fix nve <fix_nve>` :doc:`fix eos/cv <fix_eos_cv>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

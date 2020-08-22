@@ -48,4 +48,7 @@ Related commands
 
 :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair_style thole <pair_thole>`
 
-**Default:** None
+Default
+"""""""
+
+none

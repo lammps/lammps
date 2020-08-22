@@ -203,7 +203,8 @@ are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
@@ -241,7 +242,10 @@ Related commands
 :doc:`compute snav/atom <compute_sna_atom>`,
 :doc:`compute snap <compute_sna_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

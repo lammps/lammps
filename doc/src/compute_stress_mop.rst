@@ -67,7 +67,8 @@ NOTE 1: The configurational stress is computed considering all pairs of atoms wh
 NOTE 2: The local stress does not include any Lennard-Jones tail
 corrections to the pressure added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the global system pressure.
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *stress/mop* calculates a global vector (indices starting at 1), with 3
 values for each declared keyword (in the order the keywords have been
@@ -105,7 +106,10 @@ Related commands
 
 :doc:`compute stress/atom <compute_stress_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -102,4 +102,7 @@ Related commands
 
 :doc:`dihedral_style <dihedral_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

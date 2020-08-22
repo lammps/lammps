@@ -1187,7 +1187,8 @@ Vectors" discussion above.
 
 ----------
 
-**Immediate Evaluation of Variables:**
+Immediate Evaluation of Variables
+"""""""""""""""""""""""""""""""""
 
 If you want an equal-style variable to be evaluated immediately, it
 may be the case that you do not need to define a variable at all.  See
@@ -1262,7 +1263,8 @@ will occur when the formula for "vratio" is evaluated later.
 
 ----------
 
-**Variable Accuracy:**
+Variable Accuracy
+"""""""""""""""""
 
 Obviously, LAMMPS attempts to evaluate variables containing formulas
 (\ *equal* and *atom* style variables) accurately whenever the
@@ -1410,4 +1412,7 @@ Related commands
 :doc:`next <next>`, :doc:`jump <jump>`, :doc:`include <include>`,
 :doc:`temper <temper>`, :doc:`fix print <fix_print>`, :doc:`print <print>`
 
-**Default:** none
+Default
+"""""""
+
+none

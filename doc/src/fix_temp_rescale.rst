@@ -124,7 +124,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the cumulative global energy change to :doc:`binary
 restart files <restart>`.  See the :doc:`read_restart <read_restart>`
@@ -164,4 +165,7 @@ Related commands
 :doc:`fix langevin <fix_langevin>`, :doc:`fix nvt <fix_nh>`,
 :doc:`fix_modify <fix_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none

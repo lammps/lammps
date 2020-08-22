@@ -194,4 +194,7 @@ Related commands
 :doc:`fix rx <fix_rx>`,
 :doc:`pair dpd/fdt <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

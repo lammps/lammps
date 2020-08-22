@@ -204,4 +204,7 @@ Related commands
 
 :doc:`variable <variable>`, :doc:`print <print>`
 
-**Default:** none
+Default
+"""""""
+
+none

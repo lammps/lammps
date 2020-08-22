@@ -48,4 +48,7 @@ Related commands
 
 :doc:`smd/plastic_strain <compute_smd_plastic_strain>`, :doc:`smd/tlsph_stress <compute_smd_tlsph_stress>`
 
-**Default:** none
+Default
+"""""""
+
+none

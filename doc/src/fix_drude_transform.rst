@@ -182,7 +182,8 @@ to add a *fix momentum* command:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -198,7 +199,10 @@ Related commands
 :doc:`compute temp/drude <compute_temp_drude>`,
 :doc:`pair_style thole <pair_thole>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -125,7 +125,8 @@ headings) the following commands could be included in an input script:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the pair_modify mix, shift, table, and
 tail options.
@@ -162,7 +163,11 @@ Related commands
 :doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,
 :doc:`pair_style pair_coul_shield <pair_coul_shield>`.
 
-**Default:** tap_flag = 1
+Default
+"""""""
+
+tap_flag = 1
+
 
 ----------
 

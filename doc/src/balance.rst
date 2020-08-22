@@ -548,4 +548,7 @@ Related commands
 
 .. _pizza: https://pizza.sandia.gov
 
-**Default:** none
+Default
+"""""""
+
+none

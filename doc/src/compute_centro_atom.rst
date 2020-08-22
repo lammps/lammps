@@ -101,7 +101,8 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *centro/atom* style.
 
-**Output info:**
+Output info
+"""""""""""
 
 By default, this compute calculates the centrosymmetry value for each
 atom as a per-atom vector, which can be accessed by any command that

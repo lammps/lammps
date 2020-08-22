@@ -138,7 +138,8 @@ too frequently.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *mliap* evaluates a global array.
 The columns are arranged into

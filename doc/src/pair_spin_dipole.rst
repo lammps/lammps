@@ -108,4 +108,7 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`kspace_style <kspace_style>`
 :doc:`fix nve/spin <fix_nve_spin>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -54,4 +54,7 @@ Related commands
 :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`,
 :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>`
 
-**Default:** none
+Default
+"""""""
+
+none

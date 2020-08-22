@@ -62,4 +62,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_style cosine/squared <angle_cosine_squared>`
 
-**Default:** none
+Default
+"""""""
+
+none

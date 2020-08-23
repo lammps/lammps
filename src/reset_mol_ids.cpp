@@ -116,7 +116,7 @@ void ResetMolIDs::command(int narg, char **arg)
 
   // create computes
 
-  create_computes(NULL,groupid);
+  create_computes("COMMAND",groupid);
 
   // reset molecule IDs
 

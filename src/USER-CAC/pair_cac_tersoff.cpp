@@ -776,7 +776,6 @@ int distanceflag=0;
         cluster_neighbors[l+1][cluster_neighbor_counts[l+1]++] = j;
     }
     for (int j = 0; j < neigh_max_outer; j++) {
-      if(short_scan==j) continue;
       scan_position2[0] = outer_neighbor_coords[j][0];
       scan_position2[1] = outer_neighbor_coords[j][1];
       scan_position2[2] = outer_neighbor_coords[j][2];

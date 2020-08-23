@@ -168,19 +168,18 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) { // default
-        delete reset_mol_ids;
-        reset_mol_ids = new ResetMolIDs(lmp);
-        reset_mol_ids->create_computes(id,group->names[igroup]);
-        iarg += 2;
-      }
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        reset_mol_ids_flag = 0;
-        iarg += 2;
-      }
+      if (strcmp(arg[iarg+1],"yes") == 0) ; // default
+      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
     } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
+  }
+
+  if (reset_mol_ids_flag) {
+    delete reset_mol_ids;
+    reset_mol_ids = new ResetMolIDs(lmp);
+    reset_mol_ids->create_computes(id,group->names[igroup]);
   }
 
   // set up common variables as vectors of length 'nreacts'
@@ -245,7 +244,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     int n = strlen(arg[iarg]) + 1;
     if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
-    strncpy(rxn_name[rxn],arg[iarg++],n);
+    strcpy(rxn_name[rxn],arg[iarg++]);
 
     int groupid = group->find(arg[iarg++]);
     if (groupid == -1) error->all(FLERR,"Could not find fix group ID");

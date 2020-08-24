@@ -113,7 +113,10 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_hybrid <angle_hybrid>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

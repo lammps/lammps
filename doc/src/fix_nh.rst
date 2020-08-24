@@ -572,7 +572,8 @@ the various ways to do this.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These fixes writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the

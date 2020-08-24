@@ -63,7 +63,10 @@ Related commands
 
 :doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix_npt <fix_nh>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Okabe2:
 

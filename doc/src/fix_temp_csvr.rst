@@ -125,7 +125,16 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+These fixes write the cumulative global energy change and the
+random number generator states to :doc:`binary restart files <restart>`.
+See the :doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file,
+so that the selected fix continues in an uninterrupted fashion.  The
+random number generator state can only be restored when the number
+of processors remains unchanged from what is recorded in the restart file.
 
 These fixes write the cumulative global energy change and the
 random number generator states to :doc:`binary restart files <restart>`.
@@ -174,7 +183,10 @@ Related commands
 :doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix temp/berendsen <fix_temp_berendsen>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

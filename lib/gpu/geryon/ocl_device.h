@@ -625,9 +625,9 @@ int UCL_Device::set_platform_accelerator(int pid) {
     for (int n=0; n<_num_platforms; n++) {
       set_platform(n);
       for (int i=0; i<num_devices(); i++) {
-        if (_properties[i].device_type==CL_DEVICE_TYPE_CPU ||
-            _properties[i].device_type==CL_DEVICE_TYPE_GPU ||
-            _properties[i].device_type==CL_DEVICE_TYPE_ACCELERATOR) {
+        if ((_properties[i].device_type & CL_DEVICE_TYPE_CPU) ||
+            (_properties[i].device_type & CL_DEVICE_TYPE_GPU) ||
+            (_properties[i].device_type & CL_DEVICE_TYPE_ACCELERATOR)) {
           found = 1;
           break;
         }

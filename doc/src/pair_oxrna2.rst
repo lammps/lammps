@@ -125,7 +125,9 @@ Related commands
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

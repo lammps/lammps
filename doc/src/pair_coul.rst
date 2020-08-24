@@ -324,7 +324,8 @@ command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
@@ -363,7 +364,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

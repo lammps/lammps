@@ -161,7 +161,8 @@ pair.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
@@ -181,7 +182,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`,
 :doc:`pair_style buck <pair_buck>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

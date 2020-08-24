@@ -40,7 +40,8 @@ This command can be used with all the Peridynamic pair styles.
 The damage value will be 0.0 for atoms not in the specified compute
 group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -61,4 +62,7 @@ Related commands
 :doc:`compute dilatation/atom <compute_dilatation_atom>`,
 :doc:`compute plasticity/atom <compute_plasticity_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

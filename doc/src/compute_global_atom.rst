@@ -205,7 +205,8 @@ assignment of global values to atoms.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 If a single input is specified this compute produces a per-atom
 vector.  If multiple inputs are specified, this compute produces a
@@ -228,4 +229,7 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`,
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`compute reduce <compute_reduce>`
 
-**Default:** none
+Default
+"""""""
+
+none

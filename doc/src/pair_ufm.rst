@@ -92,7 +92,8 @@ of a run:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients and cutoff
 distance for this pair style can be mixed. The default mix value is *geometric*\ .  See the
@@ -123,7 +124,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _PL1:
 

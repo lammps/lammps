@@ -88,7 +88,8 @@ in the graphs below:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing is not supported for this style.
 
@@ -115,7 +116,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style lj/cut <pair_lj>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _CKD:
 

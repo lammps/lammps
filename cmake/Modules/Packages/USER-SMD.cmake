@@ -9,8 +9,8 @@ if(DOWNLOAD_EIGEN3)
   message(STATUS "Eigen3 download requested - we will build our own")
   include(ExternalProject)
   ExternalProject_Add(Eigen3_build
-    URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
-    URL_MD5 f2a417d083fe8ca4b8ed2bc613d20f07
+    URL https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
+    URL_MD5 9e30f67e8531477de4117506fe44669b
     CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
   )
   ExternalProject_get_property(Eigen3_build SOURCE_DIR)
@@ -18,9 +18,6 @@ if(DOWNLOAD_EIGEN3)
   set_target_properties(LAMMPS::EIGEN3 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}")
   target_link_libraries(lammps PRIVATE LAMMPS::EIGEN3)
   add_dependencies(LAMMPS::EIGEN3 Eigen3_build)
-  if(NOT BUILD_SHARED_LIBS)
-    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
-  endif()
 else()
   find_package(Eigen3 NO_MODULE)
   mark_as_advanced(Eigen3_DIR)

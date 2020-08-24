@@ -281,7 +281,8 @@ ignored. The lines with the even numbers are treated as follows:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These fixes write the state of the electronic subsystem and the energy
 exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
@@ -334,7 +335,10 @@ Related commands
 
 :doc:`fix langevin <fix_langevin>`, :doc:`fix dt/reset <fix_dt_reset>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

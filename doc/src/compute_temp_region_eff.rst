@@ -35,7 +35,8 @@ The operation of this compute is exactly like that described by the
 the formula for the temperature itself includes the radial electron
 velocity contributions, as discussed by the :doc:`compute temp/eff <compute_temp_eff>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -60,4 +61,7 @@ Related commands
 
 :doc:`compute temp/region <compute_temp_region>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

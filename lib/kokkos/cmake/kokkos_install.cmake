@@ -1,3 +1,4 @@
+INCLUDE(CMakePackageConfigHelpers)
 IF (NOT KOKKOS_HAS_TRILINOS)
   INCLUDE(GNUInstallDirs)
 
@@ -11,7 +12,6 @@ IF (NOT KOKKOS_HAS_TRILINOS)
     "${Kokkos_BINARY_DIR}/KokkosConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake)
 
-  INCLUDE(CMakePackageConfigHelpers)
   CONFIGURE_PACKAGE_CONFIG_FILE(
 	  cmake/KokkosConfigCommon.cmake.in
 	  "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
@@ -35,6 +35,13 @@ ELSE()
   CONFIGURE_FILE(cmake/KokkosTrilinosConfig.cmake.in ${Kokkos_BINARY_DIR}/KokkosTrilinosConfig.cmake @ONLY)
   file(READ ${Kokkos_BINARY_DIR}/KokkosTrilinosConfig.cmake KOKKOS_TRILINOS_CONFIG)
   file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/KokkosConfig_install.cmake" "${KOKKOS_TRILINOS_CONFIG}")
+
+  WRITE_BASIC_PACKAGE_VERSION_FILE("${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake"
+      VERSION "${Kokkos_VERSION}"
+      COMPATIBILITY SameMajorVersion)
+
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake
+      DESTINATION "${${PROJECT_NAME}_INSTALL_LIB_DIR}/cmake/${PACKAGE_NAME}")
 ENDIF()
 
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h DESTINATION ${KOKKOS_HEADER_DIR})

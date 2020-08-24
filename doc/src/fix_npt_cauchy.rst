@@ -466,7 +466,8 @@ of the underlying non-Hamiltonian equations of motion.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the

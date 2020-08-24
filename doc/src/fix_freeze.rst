@@ -40,7 +40,8 @@ using :doc:`fix setforce <fix_setforce>`.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -70,4 +71,7 @@ Related commands
 
 :doc:`atom_style sphere <atom_style>`, :doc:`fix setforce <fix_setforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

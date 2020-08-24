@@ -1440,6 +1440,8 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order==((1<<1)|(1<<6)))
     error->warning(FLERR,
                    "Using largest cutoff for pair_style lj/long/tip4p/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (!((ewald_order^ewald_off)&(1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
@@ -1532,6 +1534,7 @@ void PairLJLongTIP4PLong::write_restart_settings(FILE *fp)
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1554,6 +1557,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
     utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -1569,6 +1573,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

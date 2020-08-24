@@ -92,6 +92,8 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
     error->warning(FLERR,"Using largest cutoff for lj/long/coul/long");
   if (!*(++arg))
     error->all(FLERR,"Cutoffs missing in pair_style lj/long/coul/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (!((ewald_order^ewald_off) & (1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/coul/long");
@@ -386,6 +388,7 @@ void PairLJLongCoulLong::write_restart_settings(FILE *fp)
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -402,6 +405,7 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
     utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -410,6 +414,7 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

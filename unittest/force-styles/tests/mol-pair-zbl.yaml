@@ -1,7 +1,7 @@
 ---
 lammps_version: 21 Jul 2020
 date_generated: Sat Aug  1 14:40:56 202
-epsilon: 1e-12
+epsilon: 2e-12
 prerequisites: ! |
   atom full
   pair zbl

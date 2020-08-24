@@ -6,7 +6,7 @@ prerequisites: ! |
   pair nb3b/harmonic
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
   variable units delete
   variable units index real
 post_commands: ! |

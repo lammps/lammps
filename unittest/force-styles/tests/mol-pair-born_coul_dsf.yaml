@@ -1,7 +1,7 @@
 ---
 lammps_version: 21 Jul 2020
 date_generated: Sat Aug  1 16:17:46 202
-epsilon: 5e-14
+epsilon: 7.5e-14
 prerequisites: ! |
   atom full
   pair born/coul/dsf

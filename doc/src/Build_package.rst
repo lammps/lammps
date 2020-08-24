@@ -136,10 +136,7 @@ src directory.
 .. _cmake_presets:
 
 CMake presets for installing many packages
-<<<<<<< HEAD
-=======
 """"""""""""""""""""""""""""""""""""""""""
->>>>>>> upstream/master
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.

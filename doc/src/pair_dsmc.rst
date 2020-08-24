@@ -104,7 +104,8 @@ as in the following:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -147,7 +148,10 @@ Related commands
 :doc:`neigh_modify <neigh_modify>`, :doc:`neighbor <neighbor>`,
 :doc:`comm_modify <comm_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -70,4 +70,7 @@ Related commands
 :doc:`bond_style table <bond_table>`,
 :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

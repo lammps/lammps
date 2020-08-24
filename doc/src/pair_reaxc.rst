@@ -297,7 +297,8 @@ angle_info: 1 prints angles in the trajectory file (default = 0)
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.

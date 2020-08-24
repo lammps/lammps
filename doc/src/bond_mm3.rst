@@ -55,7 +55,10 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

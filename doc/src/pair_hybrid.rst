@@ -364,7 +364,8 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Any pair potential settings made via the
 :doc:`pair_modify <pair_modify>` command are passed along to all
@@ -412,5 +413,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:**
+Default
+"""""""
+
 none

@@ -594,7 +594,8 @@ atom types.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
@@ -684,7 +685,8 @@ Default
 For the *pair_coeff* settings: *damping viscoelastic*\ , *rolling none*\ ,
 *twisting none*\ .
 
-**References:**
+References
+""""""""""
 
 .. _Brill1996:
 

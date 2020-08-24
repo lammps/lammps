@@ -160,7 +160,8 @@ pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -196,7 +197,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style buck <pair_buck>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

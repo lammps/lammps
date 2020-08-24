@@ -103,7 +103,8 @@ LAMMPS was built with that package. See the :doc:`Build package
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 None of these pair styles support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -138,4 +139,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
-**Default:** none
+Default
+"""""""
+
+none

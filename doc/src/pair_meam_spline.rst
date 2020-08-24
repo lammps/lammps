@@ -121,7 +121,8 @@ MEAM files.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -151,7 +152,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -265,7 +265,8 @@ For each cations (metal):
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info:**
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -280,7 +281,8 @@ This pair style can only be used via the *pair* keyword of the
 
 ----------
 
-**Restriction:**
+Restrictions
+""""""""""""
 
 This pair style is part of the USER-SMTBQ package and is only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -296,7 +298,8 @@ directory) are parameterized for metal :doc:`units <units>`.
 
 ----------
 
-**Citing this work:**
+Citing this work
+""""""""""""""""
 
 Please cite related publication: N. Salles, O. Politano, E. Amzallag
 and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189

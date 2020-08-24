@@ -279,7 +279,8 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3 which contains the
 energy difference ( :math:`U_1-U_0` ) as c_ID[1], the

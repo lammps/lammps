@@ -123,7 +123,8 @@ Coulombic cutoff specified in the pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, and rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/sdk pair styles *cannot* be mixed,
@@ -162,7 +163,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`angle_style sdk <angle_sdk>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

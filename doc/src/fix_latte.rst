@@ -104,7 +104,8 @@ larger system sizes and longer time scales
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -159,9 +160,16 @@ doing 99% or more of the work to compute quantum-accurate forces.
    be run on a single MPI task.  For details, see the :doc:`neb <neb>`
    command doc page and the :doc:`-partition command-line switch <Run_options>`
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

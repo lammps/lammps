@@ -57,7 +57,8 @@ for the aggregate force on the group of atoms, not a per-atom force.
 If :math:`R_{G0}` is specified as NULL, then the RG of the group is computed at
 the time the fix is specified, and that value is used as the target.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the currently used reference RG (:math:`R_{G0}`) to
 :doc:`binary restart files <restart>`.  See the :doc:`read_restart
@@ -90,4 +91,7 @@ Related commands
 :doc:`fix spring <fix_spring>`, :doc:`fix spring/self <fix_spring_self>`
 :doc:`fix drag <fix_drag>`, :doc:`fix smd <fix_smd>`
 
-**Default:** none
+Default
+"""""""
+
+none

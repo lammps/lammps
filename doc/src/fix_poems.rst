@@ -104,7 +104,8 @@ body contribution to the pressure virial is also accounted for.  The
 latter is only correct if forces within the bodies have been turned
 off, and there is only a single fix poems defined.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -131,7 +132,10 @@ Related commands
 :doc:`fix rigid <fix_rigid>`, :doc:`delete_bonds <delete_bonds>`,
 :doc:`neigh_modify <neigh_modify>` exclude
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

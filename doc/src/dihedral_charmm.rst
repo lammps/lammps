@@ -73,7 +73,7 @@ or :doc:`read_restart <read_restart>` commands:
 The weighting factor is required to correct for double counting
 pairwise non-bonded Lennard-Jones interactions in cyclic systems or
 when using the CHARMM dihedral style with non-CHARMM force fields.
-With the CHARMM dihedral style, interactions between the 1st and 4th
+With the CHARMM dihedral style, interactions between the first and fourth
 atoms in a dihedral are skipped during the normal non-bonded force
 computation and instead evaluated as part of the dihedral using
 special epsilon and sigma values specified with the
@@ -93,7 +93,7 @@ which applies to all 1-4 interactions in the system.  For CHARMM force
 fields, the special_bonds 1-4 interaction scaling factor should be set
 to 0.0. Since the corresponding 1-4 non-bonded interactions are
 computed with the dihedral.  This means that if any of the weighting
-factors defined as dihedral coefficients (4th coeff above) are
+factors defined as dihedral coefficients (fourth coeff above) are
 non-zero, then you must use a pair style with "lj/charmm" and set the
 special_bonds 1-4 scaling factor to 0.0 (which is the
 default). Otherwise 1-4 non-bonded interactions in dihedrals will be
@@ -115,7 +115,7 @@ details.
 
 Note that for AMBER force fields, which use pair styles with "lj/cut",
 the special_bonds 1-4 scaling factor should be set to the AMBER
-defaults (1/2 and 5/6) and all the dihedral weighting factors (4th
+defaults (1/2 and 5/6) and all the dihedral weighting factors (fourth
 coeff above) must be set to 0.0. In this case, you can use any pair
 style you wish, since the dihedral does not need any Lennard-Jones
 parameter information and will not compute any 1-4 non-bonded
@@ -125,23 +125,7 @@ computed.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 

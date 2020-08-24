@@ -331,13 +331,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j].x -= f_ij[0];
-      f[j].y -= f_ij[1];
-      f[j].z -= f_ij[2];
-
       f[i].x += f_ij[0];
       f[i].y += f_ij[1];
       f[i].z += f_ij[2];
+
+      f[j].x -= f_ij[0];
+      f[j].y -= f_ij[1];
+      f[j].z -= f_ij[2];
 
       // potential energy
 
@@ -460,13 +460,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ij[1] = forceModCoord_ij * dr_ij[1];
         f_ij[2] = forceModCoord_ij * dr_ij[2];
 
-        f[j].x -= f_ij[0];
-        f[j].y -= f_ij[1];
-        f[j].z -= f_ij[2];
+        f[i].x -= f_ij[0];
+        f[i].y -= f_ij[1];
+        f[i].z -= f_ij[2];
 
-        f[i].x += f_ij[0];
-        f[i].y += f_ij[1];
-        f[i].z += f_ij[2];
+        f[j].x += f_ij[0];
+        f[j].y += f_ij[1];
+        f[j].z += f_ij[2];
 
         // potential energy
 

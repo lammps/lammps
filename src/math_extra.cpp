@@ -258,7 +258,7 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
   // obtain phi, cosines and sines
 
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
+  if (inertia[k-1] == 0.0) phi = 0.0;
   else phi /= 4.0 * inertia[k-1];
   c_phi = cos(dt * phi);
   s_phi = sin(dt * phi);
@@ -638,7 +638,7 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
+ Build rotation matrix for a small angle rotation around the Z axis
  ------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)

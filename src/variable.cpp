@@ -41,6 +41,7 @@
 #include "info.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -268,7 +269,8 @@ void Variable::set(int narg, char **arg)
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
       if (fp == NULL)
-        error->one(FLERR,"Cannot open temporary file for world counter.");
+        error->one(FLERR,"Cannot open temporary file for world counter: "
+                   + utils::getsyserror());
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
       fp = NULL;
@@ -531,13 +533,27 @@ void Variable::set(int narg, char **arg)
   strcpy(names[nvar],arg[0]);
 
   for (int i = 0; i < n-1; i++)
-    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_') {
-      char errmsg[128];
-      snprintf(errmsg,128,"Variable name '%s' must have only alphanumeric "
-              "characters or underscore",names[nvar]);
-      error->all(FLERR,errmsg);
-    }
+    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
+      error->all(FLERR,fmt::format("Variable name '{}' must have only "
+                                   "alphanumeric characters or underscores",
+                                   names[nvar]));
   nvar++;
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow defining a variable from a single string
+------------------------------------------------------------------------- */
+
+void Variable::set(const std::string &setcmd)
+{
+  std::vector<std::string> args = utils::split_words(setcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  set(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -562,13 +578,14 @@ void Variable::set(char *name, int narg, char **arg)
    called via library interface, so external programs can set variables
 ------------------------------------------------------------------------- */
 
-int Variable::set_string(char *name, char *str)
+int Variable::set_string(const char *name, const char *str)
 {
   int ivar = find(name);
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  copy(1,&str,data[ivar]);
+  data[ivar][0] = new char[strlen(str)+1];
+  strcpy(data[ivar][0],str);
   return 0;
 }
 
@@ -589,11 +606,9 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar < 0) {
-      char errmsg[128];
-      snprintf(errmsg,128,"Invalid variable '%s' in next command",arg[iarg]);
-      error->all(FLERR,errmsg);
-    }
+    if (ivar < 0)
+      error->all(FLERR,fmt::format("Invalid variable '{}' in next command",
+                                   arg[iarg]));
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -661,6 +676,8 @@ int Variable::next(int narg, char **arg)
 
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
+    RanMars *random = nullptr;
+
     uloop_again:
 
     // wait until lock file can be created and owned by proc 0 of this world
@@ -674,7 +691,7 @@ int Variable::next(int narg, char **arg)
     int nextindex = -1;
     if (me == 0) {
       int seed = 12345 + universe->me + which[find(arg[0])];
-      RanMars *random = new RanMars(lmp,seed);
+      if (!random) random = new RanMars(lmp,seed);
       int delay = (int) (1000000*random->uniform());
       usleep(delay);
       while (1) {
@@ -682,7 +699,6 @@ int Variable::next(int narg, char **arg)
         delay = (int) (1000000*random->uniform());
         usleep(delay);
       }
-      delete random;
 
       // if the file cannot be found, we may have a race with some
       // other MPI rank that has called rename at the same time
@@ -706,6 +722,9 @@ int Variable::next(int narg, char **arg)
         delay = (int) (1000000*random->uniform());
         usleep(delay);
       }
+      delete random;
+      random = nullptr;
+
       if (nextindex < 0)
         error->one(FLERR,"Unexpected error while incrementing uloop "
                    "style variable. Please contact LAMMPS developers.");
@@ -750,9 +769,9 @@ int Variable::next(int narg, char **arg)
    return index or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Variable::find(char *name)
+int Variable::find(const char *name)
 {
-  if(name==NULL) return -1;
+  if (name == nullptr) return -1;
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;
@@ -862,7 +881,7 @@ int Variable::internalstyle(int ivar)
      caller must respond
 ------------------------------------------------------------------------- */
 
-char *Variable::retrieve(char *name)
+char *Variable::retrieve(const char *name)
 {
   int ivar = find(name);
   if (ivar < 0) return NULL;
@@ -914,11 +933,9 @@ char *Variable::retrieve(char *name)
     str = data[ivar][1];
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
-    if (ifunc < 0) {
-      char errmsg[128];
-      snprintf(errmsg,128,"Python variable '%s' does not match Python function",name);
-      error->all(FLERR,errmsg);
-    }
+    if (ifunc < 0)
+      error->all(FLERR,fmt::format("Python variable '{}' does not match "
+                                   "Python function", name));
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -1332,7 +1349,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           std::string mesg = "Invalid compute ID '";
           mesg += (word+2);
           mesg += "' in variable formula";
-          print_var_error(FLERR,mesg.c_str(),ivar);
+          print_var_error(FLERR,mesg,ivar);
         }
         Compute *compute = modify->compute[icompute];
 
@@ -1633,12 +1650,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (word[0] == 'F') lowercase = 0;
 
         int ifix = modify->find_fix(word+2);
-        if (ifix < 0) {
-          std::string mesg = "Invalid fix ID '";
-          mesg += (word+2);
-          mesg += "' in variable formula";
-          print_var_error(FLERR,mesg.c_str(),ivar);
-        }
+        if (ifix < 0)
+          print_var_error(FLERR,fmt::format("Invalid fix ID '{}' in variable"
+                                            " formula",word+2),ivar);
         Fix *fix = modify->fix[ifix];
 
         // parse zero or one or two trailing brackets
@@ -2069,12 +2083,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                                   argstack,nargstack,ivar));
           else if (special_function(word,contents,tree,treestack,ntreestack,
                                     argstack,nargstack,ivar));
-          else {
-            char msg[128];
-            snprintf(msg,128,"Invalid math/group/special function '%s()'"
-                     "in variable formula", word);
-            print_var_error(FLERR,msg,ivar);
-          }
+          else print_var_error(FLERR,fmt::format("Invalid math/group/special "
+                                                 "function '{}()'in variable "
+                                                 "formula", word),ivar);
           delete [] contents;
 
         // ----------------
@@ -2129,11 +2140,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                             "simulation box is defined",ivar);
 
           int flag = output->thermo->evaluate_keyword(word,&value1);
-          if (flag) {
-            char msg[128];
-            snprintf(msg,128,"Invalid thermo keyword '%s' in variable formula",word);
-            print_var_error(FLERR,msg,ivar);
-          }
+          if (flag)
+            print_var_error(FLERR,fmt::format("Invalid thermo keyword '{}' in "
+                                              "variable formula",word),ivar);
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
@@ -2779,8 +2788,8 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = MAXBIGINT;
-    } else tree->value = MAXBIGINT;
+      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT;
+    } else tree->value = (double) MAXBIGINT;
     return tree->value;
   }
 
@@ -3113,8 +3122,8 @@ double Variable::eval_tree(Tree *tree, int i)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = MAXBIGINT;
-    } else arg = MAXBIGINT;
+      if (arg > ivalue2) arg = (double) MAXBIGINT;
+    } else arg = (double) MAXBIGINT;
     return arg;
   }
 
@@ -3690,8 +3699,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       else if (update->ntimestep < ivalue2) {
         int offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = MAXBIGINT;
-      } else value = MAXBIGINT;
+        if (value > ivalue2) value = (double) MAXBIGINT;
+      } else value = (double) MAXBIGINT;
       argstack[nargstack++] = value;
     }
 
@@ -3827,7 +3836,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     std::string mesg = "Group ID '";
     mesg += args[0];
     mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg.c_str(),ivar);
+    print_var_error(FLERR,mesg,ivar);
   }
 
   // match word to group function
@@ -4040,7 +4049,7 @@ int Variable::region_function(char *id, int ivar)
     std::string mesg = "Region ID '";
     mesg += id;
     mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg.c_str(),ivar);
+    print_var_error(FLERR,mesg,ivar);
   }
 
   // init region in case sub-regions have been deleted
@@ -4065,7 +4074,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack,
                                double *argstack, int &nargstack, int ivar)
 {
-  bigint sx,sxx;
+  double sx,sxx;
   double value,sy,sxy;
 
   // word not a match to any special function
@@ -4122,7 +4131,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         std::string mesg = "Invalid compute ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
-        print_var_error(FLERR,mesg.c_str(),ivar);
+        print_var_error(FLERR,mesg,ivar);
       }
       compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
@@ -4167,7 +4176,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         std::string mesg = "Invalid fix ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
-        print_var_error(FLERR,mesg.c_str(),ivar);
+        print_var_error(FLERR,mesg,ivar);
       }
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
@@ -4175,7 +4184,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           std::string mesg = "Fix with ID '";
           mesg += (args[0]+2);
           mesg += "' in variable formula not computed at compatible time";
-          print_var_error(FLERR,mesg.c_str(),ivar);
+          print_var_error(FLERR,mesg,ivar);
         }
         nvec = fix->size_vector;
         nstride = 1;
@@ -4217,14 +4226,15 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       nvec = compute_vector(ivar,&vec);
       nstride = 1;
 
+      if ((method == AVE) && (nvec == 0))
+        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
+
+
     } else print_var_error(FLERR,"Invalid special function in "
                            "variable formula",ivar);
 
     value = 0.0;
-    if (method == SLOPE) {
-      sx = sxx = 0;
-      sy = sxy = 0.0;
-    }
+    if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
     else if (method == XMIN) value = BIG;
     else if (method == XMAX) value = -BIG;
 
@@ -4243,10 +4253,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += vec[j];
-          sxx += i*i;
-          sxy += i*vec[j];
+          sxx += (double)i * (double)i;
+          sxy += (double)i * vec[j];
         }
         j += nstride;
       }
@@ -4264,10 +4274,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) {
@@ -4289,10 +4299,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double) i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
@@ -4387,7 +4397,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       std::string mesg = "Variable ID '";
       mesg += args[0];
       mesg += "' in variable formula does not exist";
-      print_var_error(FLERR,mesg.c_str(),ivar);
+      print_var_error(FLERR,mesg,ivar);
     }
 
     // SCALARFILE has single current value, read next one
@@ -4768,13 +4778,11 @@ char *Variable::find_next_comma(char *str)
    helper routine for printing variable name with error message
 ------------------------------------------------------------------------- */
 
-void Variable::print_var_error(const char *srcfile, int lineno,
-                               const char *errmsg, int ivar, int global)
+void Variable::print_var_error(const std::string &srcfile, const int lineno,
+                               const std::string &errmsg, int ivar, int global)
 {
   if ((ivar >= 0) && (ivar < nvar)) {
-    char msg[128];
-
-    snprintf(msg,128,"Variable %s: %s",names[ivar],errmsg);
+    std::string msg = fmt::format("Variable {}: ",names[ivar]) + errmsg;
     if (global)
       error->all(srcfile,lineno,msg);
     else
@@ -5068,11 +5076,9 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open file variable file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open file variable file {}: {}",
+                                   file, utils::getsyserror()));
   }
 
   // if atomfile-style variable, must store per-atom values read from file
@@ -5085,24 +5091,16 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
   if (style == ATOMFILE) {
     if (atom->map_style == 0)
-      error->all(FLERR,
-                 "Cannot use atomfile-style variable unless atom map exists");
+      error->all(FLERR,"Cannot use atomfile-style "
+                 "variable unless an atom map exists");
 
-    int n = strlen(name) + strlen("_VARIABLE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,name);
-    strcat(id_fix,"_VARIABLE_STORE");
+    std::string cmd = name + std::string("_VARIABLE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
 
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "0";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
 
     buffer = new char[CHUNK*MAXLINE];
   }

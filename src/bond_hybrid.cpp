@@ -34,6 +34,9 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;
+  nbondlist = nullptr;
+  maxbond = nullptr;
+  bondlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +107,18 @@ void BondHybrid::compute(int eflag, int vflag)
   // accumulate sub-style global/peratom energy/virial in hybrid
 
   ev_init(eflag,vflag);
+
+  // need to clear per-thread storage once here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];

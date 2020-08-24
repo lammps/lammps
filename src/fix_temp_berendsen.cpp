@@ -13,6 +13,7 @@
 
 #include "fix_temp_berendsen.h"
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -24,6 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,6 +43,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // Berendsen thermostat should be applied every step
 
+  restart_global = 1;
   dynamic_group_allow = 1;
   nevery = 1;
   scalar_flag = 1;
@@ -70,17 +73,12 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string cmd = id + std::string("_temp");
+  id_temp = new char[cmd.size()+1];
+  strcpy(id_temp,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  cmd += fmt::format(" {} temp",group->names[igroup]);
+  modify->add_compute(cmd);
   tflag = 1;
 
   energy = 0;
@@ -242,6 +240,34 @@ void FixTempBerendsen::reset_target(double t_new)
 double FixTempBerendsen::compute_scalar()
 {
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempBerendsen::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = energy;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempBerendsen::restart(char *buf)
+{
+  double *list = (double *) buf;
+
+  energy = list[0];
 }
 
 /* ----------------------------------------------------------------------

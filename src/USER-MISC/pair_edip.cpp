@@ -35,6 +35,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +51,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEDIP::PairEDIP(LAMMPS *lmp) : Pair(lmp)
+PairEDIP::PairEDIP(LAMMPS *lmp) :
+  Pair(lmp), preInvR_ij(NULL), preExp3B_ij(NULL), preExp3BDerived_ij(NULL),
+  preExp2B_ij(NULL), preExp2BDerived_ij(NULL), prePow2B_ij(NULL),
+  preForceCoord(NULL), cutoffFunction(NULL), cutoffFunctionDerived(NULL),
+  pow2B(NULL), exp2B(NULL), exp3B(NULL),  qFunctionGrid(NULL),
+  expMinusBetaZeta_iZeta_iGrid(NULL), tauFunctionGrid(NULL),
+  tauFunctionDerivedGrid(NULL)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -502,6 +509,8 @@ void PairEDIP::allocateGrids(void)
   double maxArgumentExpMinusBetaZeta_iZeta_i;
   double const leftLimitToZero = -DBL_MIN * 1000.0;
 
+  deallocateGrids();
+
   // tauFunctionGrid
 
   maxArgumentTauFunctionGrid = leadDimInteractionList;
@@ -560,6 +569,7 @@ void PairEDIP::allocatePreLoops(void)
 {
   int nthreads = comm->nthreads;
 
+  deallocatePreLoops();
   memory->create(preInvR_ij,nthreads*leadDimInteractionList,"edip:preInvR_ij");
   memory->create(preExp3B_ij,nthreads*leadDimInteractionList,"edip:preExp3B_ij");
   memory->create(preExp3BDerived_ij,nthreads*leadDimInteractionList,
@@ -905,7 +915,7 @@ void PairEDIP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -924,7 +934,7 @@ void PairEDIP::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -956,6 +966,11 @@ void PairEDIP::read_file(char *file)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;

@@ -109,20 +109,28 @@ PairLJCutTIP4PLongGPU::~PairLJCutTIP4PLongGPU()
 
 void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
-
+  ev_init(eflag,vflag);
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = ljtip4p_long_gpu_compute_n(neighbor->ago, inum, nall,
-        atom->x, atom->type, domain->sublo,
-        domain->subhi,
+        atom->x, atom->type, sublo,
+        subhi,
         atom->tag, atom->get_map_array(), atom->get_map_size(),
         atom->sametag, atom->get_max_same(),
         atom->nspecial,

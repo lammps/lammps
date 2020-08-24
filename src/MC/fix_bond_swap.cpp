@@ -86,17 +86,11 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string cmd = id + std::string("_temp");
+  id_temp = new char[cmd.size()+1];
+  strcpy(id_temp,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  modify->add_compute(cmd + " all temp");
   tflag = 1;
 
   // initialize atom list

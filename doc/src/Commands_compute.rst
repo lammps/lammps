@@ -42,7 +42,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`com <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
-   * :doc:`coord/atom <compute_coord_atom>`
+   * :doc:`coord/atom (k) <compute_coord_atom>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`
@@ -79,9 +79,8 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
-   * :doc:`meso/e/atom <compute_meso_e_atom>`
-   * :doc:`meso/rho/atom <compute_meso_rho_atom>`
-   * :doc:`meso/t/atom <compute_meso_t_atom>`
+   * :doc:`mesont <compute_mesont>`
+   * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
@@ -124,6 +123,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
    * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`
    * :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>`
+   * :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>`
    * :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>`
    * :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>`
    * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>`
@@ -133,6 +133,9 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`sna/atom <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
+   * :doc:`sph/e/atom <compute_sph_e_atom>`
+   * :doc:`sph/rho/atom <compute_sph_rho_atom>`
+   * :doc:`sph/t/atom <compute_sph_t_atom>`
    * :doc:`spin <compute_spin>`
    * :doc:`stress/atom <compute_stress_atom>`
    * :doc:`stress/mop <compute_stress_mop>`
@@ -161,5 +164,6 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`torque/chunk <compute_torque_chunk>`
    * :doc:`vacf <compute_vacf>`
    * :doc:`vcm/chunk <compute_vcm_chunk>`
+   * :doc:`viscosity/cos <compute_viscosity_cos>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`

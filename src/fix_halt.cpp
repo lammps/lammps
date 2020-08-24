@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "force.h"
 #include "input.h"
@@ -25,6 +26,7 @@
 #include "comm.h"
 #include "timer.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -224,15 +226,13 @@ void FixHalt::end_of_step()
   // soft/continue halt -> trigger timer to break from run loop
   // print message with ID of fix halt in case multiple instances
 
-  char str[128];
-  sprintf(str,"Fix halt condition for fix-id %s met on step "
-          BIGINT_FORMAT " with value %g",
-          id, update->ntimestep, attvalue);
-
+  std::string message = fmt::format("Fix halt condition for fix-id {} met on "
+                                    "step {} with value {}",
+                                    id, update->ntimestep, attvalue);
   if (eflag == HARD) {
-    error->all(FLERR,str);
+    error->all(FLERR,message);
   } else if (eflag == SOFT || eflag == CONTINUE) {
-    if (comm->me == 0 && msgflag == YESMSG) error->message(FLERR,str);
+    if (comm->me == 0 && msgflag == YESMSG) error->message(FLERR,message);
     timer->force_timeout();
   }
 }
@@ -306,12 +306,12 @@ double FixHalt::tlimit()
 /* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
-#if defined(__linux) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <sys/statvfs.h>
 #endif
 double FixHalt::diskfree()
 {
-#if defined(__linux) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
   struct statvfs fs;
   double disk_free = -1.0;
 
@@ -319,9 +319,9 @@ double FixHalt::diskfree()
     disk_free = 1.0e100;
     int rv = statvfs(dlimit_path,&fs);
     if (rv == 0) {
-#if defined(__linux)
+#if defined(__linux__)
       disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
       disk_free = fs.f_bavail*fs.f_frsize/1048576.0;
 #endif
     } else

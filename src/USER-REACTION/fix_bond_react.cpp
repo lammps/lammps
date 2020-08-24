@@ -19,6 +19,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -41,6 +42,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "error.h"
 #include "input.h"
 #include "variable.h"
+#include "fmt/format.h"
 
 #include <algorithm>
 
@@ -62,7 +64,7 @@ static const char cite_fix_bond_react[] =
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 10 // max # of arguments for any type of constraint + rxnID
+#define MAXCONARGS 14 // max # of arguments for any type of constraint + rxnID
 #define NUMVARVALS 4 // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
@@ -575,17 +577,11 @@ FixBondReact::~FixBondReact()
   delete [] set;
 
   if (group) {
-    char **newarg;
-    newarg = new char*[2];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "delete";
-    group->assign(2,newarg);
+    group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
-      newarg[0] = exclude_group;
-      group->assign(2,newarg);
+      group->assign(std::string(exclude_group) + " delete");
       delete [] exclude_group;
     }
-    delete [] newarg;
   }
 }
 
@@ -608,59 +604,38 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
+  int len;
   // let's add the limit_tags per-atom property fix
-  int len = strlen("bond_react_props_internal") + 1;
-  id_fix2 = new char[len];
-  strcpy(id_fix2,"bond_react_props_internal");
+  std::string cmd = std::string("bond_react_props_internal");
+  id_fix2 = new char[cmd.size()+1];
+  strcpy(id_fix2,cmd.c_str());
 
   int ifix = modify->find_fix(id_fix2);
   if (ifix == -1) {
-    char **newarg = new char*[7];
-    newarg[0] = (char *) "bond_react_props_internal";
-    newarg[1] = (char *) "all"; // group ID is ignored
-    newarg[2] = (char *) "property/atom";
-    newarg[3] = (char *) "i_limit_tags";
-    newarg[4] = (char *) "i_react_tags";
-    newarg[5] = (char *) "ghost";
-    newarg[6] = (char *) "yes";
-    modify->add_fix(7,newarg);
-    delete [] newarg;
+    cmd += std::string(" all property/atom i_limit_tags i_react_tags ghost yes");
+    modify->add_fix(cmd);
   }
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
   group->find_or_create(master_group);
-  char **newarg;
-  newarg = new char*[5];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "dynamic";
-  newarg[2] = (char *) "all";
-  newarg[3] = (char *) "property";
-  newarg[4] = (char *) "limit_tags";
-  group->assign(5,newarg);
-  delete [] newarg;
+  cmd = fmt::format("{} dynamic all property limit_tags",master_group);
+  group->assign(cmd);
 
   if (stabilization_flag == 1) {
     int igroup = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
     if (igroup == -1 || group->dynamic[igroup] == 0) {
       // create stabilization per-atom property
-      len = strlen("bond_react_stabilization_internal") + 1;
-      id_fix3 = new char[len];
-      strcpy(id_fix3,"bond_react_stabilization_internal");
+      cmd = std::string("bond_react_stabilization_internal");
+      id_fix3 = new char[cmd.size()+1];
+      strcpy(id_fix3,cmd.c_str());
 
       ifix = modify->find_fix(id_fix3);
       if (ifix == -1) {
-        char **newarg = new char*[6];
-        newarg[0] = (char *) id_fix3;
-        newarg[1] = (char *) "all"; // group ID is ignored
-        newarg[2] = (char *) "property/atom";
-        newarg[3] = (char *) "i_statted_tags";
-        newarg[4] = (char *) "ghost";
-        newarg[5] = (char *) "yes";
-        modify->add_fix(6,newarg);
+        cmd += std::string(" all property/atom i_statted_tags ghost yes");
+        modify->add_fix(cmd);
         fix3 = modify->fix[modify->nfix-1];
-        delete [] newarg;
       }
 
       len = strlen("statted_tags") + 1;
@@ -680,16 +655,11 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      char **newarg;
-      newarg = new char*[5];
-      newarg[0] = exclude_group;
-      newarg[1] = (char *) "dynamic";
-      if (igroup == -1) newarg[2] = (char *) "all";
-      else newarg[2] = (char *) exclude_PARENT_group;
-      newarg[3] = (char *) "property";
-      newarg[4] = (char *) "statted_tags";
-      group->assign(5,newarg);
-      delete [] newarg;
+      if (igroup == -1)
+        cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
+      else
+        cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
+      group->assign(cmd);
       delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
@@ -737,21 +707,16 @@ void FixBondReact::post_constructor()
 
 
     // let's create a new nve/limit fix to limit newly reacted atoms
-    len = strlen("bond_react_MASTER_nve_limit") + 1;
-    id_fix1 = new char[len];
-    strcpy(id_fix1,"bond_react_MASTER_nve_limit");
+    cmd = std::string("bond_react_MASTER_nve_limit");
+    id_fix1 = new char[cmd.size()+1];
+    strcpy(id_fix1,cmd.c_str());
 
     ifix = modify->find_fix(id_fix1);
 
     if (ifix == -1) {
-      char **newarg = new char*[4];
-      newarg[0] = id_fix1;
-      newarg[1] = master_group;
-      newarg[2] = (char *) "nve/limit";
-      newarg[3] = nve_limit_xmax;
-      modify->add_fix(4,newarg);
+      cmd += fmt::format(" {} nve/limit  {}",master_group,nve_limit_xmax);
+      modify->add_fix(cmd);
       fix1 = modify->fix[modify->nfix-1];
-      delete [] newarg;
     }
   }
 }
@@ -1756,7 +1721,7 @@ evaluate constraints: return 0 if any aren't satisfied
 
 int FixBondReact::check_constraints()
 {
-  tagint atom1,atom2,atom3,atom4;
+  double x1[3],x2[3],x3[3],x4[3];
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
@@ -1766,36 +1731,37 @@ int FixBondReact::check_constraints()
   double s,phi;
   int ANDgate;
 
+  tagint atom1,atom2;
   double **x = atom->x;
 
   for (int i = 0; i < nconstraints; i++) {
     if (constraints[i][0] == rxnID) {
       if (constraints[i][1] == DISTANCE) {
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        delx = x[atom1][0] - x[atom2][0];
-        dely = x[atom1][1] - x[atom2][1];
-        delz = x[atom1][2] - x[atom2][2];
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        delx = x1[0] - x2[0];
+        dely = x1[1] - x2[1];
+        delz = x1[2] - x2[2];
         domain->minimum_image(delx,dely,delz); // ghost location fix
         rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq < constraints[i][4] || rsq > constraints[i][5]) return 0;
+        if (rsq < constraints[i][6] || rsq > constraints[i][7]) return 0;
       } else if (constraints[i][1] == ANGLE) {
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        get_IDcoords((int) constraints[i][6], (int) constraints[i][7], x3);
 
         // 1st bond
-        delx1 = x[atom1][0] - x[atom2][0];
-        dely1 = x[atom1][1] - x[atom2][1];
-        delz1 = x[atom1][2] - x[atom2][2];
+        delx1 = x1[0] - x2[0];
+        dely1 = x1[1] - x2[1];
+        delz1 = x1[2] - x2[2];
         domain->minimum_image(delx1,dely1,delz1); // ghost location fix
         rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
         r1 = sqrt(rsq1);
 
         // 2nd bond
-        delx2 = x[atom3][0] - x[atom2][0];
-        dely2 = x[atom3][1] - x[atom2][1];
-        delz2 = x[atom3][2] - x[atom2][2];
+        delx2 = x3[0] - x2[0];
+        dely2 = x3[1] - x2[1];
+        delz2 = x3[2] - x2[2];
         domain->minimum_image(delx2,dely2,delz2); // ghost location fix
         rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
         r2 = sqrt(rsq2);
@@ -1805,22 +1771,22 @@ int FixBondReact::check_constraints()
         c /= r1*r2;
         if (c > 1.0) c = 1.0;
         if (c < -1.0) c = -1.0;
-        if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+        if (acos(c) < constraints[i][8] || acos(c) > constraints[i][9]) return 0;
       } else if (constraints[i][1] == DIHEDRAL) {
         // phi calculation from dihedral style harmonic
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
-        atom4 = atom->map(glove[(int) constraints[i][5]-1][1]);
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        get_IDcoords((int) constraints[i][6], (int) constraints[i][7], x3);
+        get_IDcoords((int) constraints[i][8], (int) constraints[i][9], x4);
 
-        vb1x = x[atom1][0] - x[atom2][0];
-        vb1y = x[atom1][1] - x[atom2][1];
-        vb1z = x[atom1][2] - x[atom2][2];
+        vb1x = x1[0] - x2[0];
+        vb1y = x1[1] - x2[1];
+        vb1z = x1[2] - x2[2];
         domain->minimum_image(vb1x,vb1y,vb1z);
 
-        vb2x = x[atom3][0] - x[atom2][0];
-        vb2y = x[atom3][1] - x[atom2][1];
-        vb2z = x[atom3][2] - x[atom2][2];
+        vb2x = x3[0] - x2[0];
+        vb2y = x3[1] - x2[1];
+        vb2z = x3[2] - x2[2];
         domain->minimum_image(vb2x,vb2y,vb2z);
 
         vb2xm = -vb2x;
@@ -1828,9 +1794,9 @@ int FixBondReact::check_constraints()
         vb2zm = -vb2z;
         domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
-        vb3x = x[atom4][0] - x[atom3][0];
-        vb3y = x[atom4][1] - x[atom3][1];
-        vb3z = x[atom4][2] - x[atom3][2];
+        vb3x = x4[0] - x3[0];
+        vb3y = x4[1] - x3[1];
+        vb3z = x4[2] - x3[2];
         domain->minimum_image(vb3x,vb3y,vb3z);
 
         ax = vb1y*vb2zm - vb1z*vb2ym;
@@ -1858,15 +1824,15 @@ int FixBondReact::check_constraints()
         phi = atan2(s,c);
 
         ANDgate = 0;
-        if (constraints[i][6] < constraints[i][7]) {
-          if (phi > constraints[i][6] && phi < constraints[i][7]) ANDgate = 1;
+        if (constraints[i][10] < constraints[i][11]) {
+          if (phi > constraints[i][10] && phi < constraints[i][11]) ANDgate = 1;
         } else {
-          if (phi > constraints[i][6] || phi < constraints[i][7]) ANDgate = 1;
+          if (phi > constraints[i][10] || phi < constraints[i][11]) ANDgate = 1;
         }
-        if (constraints[i][8] < constraints[i][9]) {
-          if (phi > constraints[i][8] && phi < constraints[i][9]) ANDgate = 1;
+        if (constraints[i][12] < constraints[i][13]) {
+          if (phi > constraints[i][12] && phi < constraints[i][13]) ANDgate = 1;
         } else {
-          if (phi > constraints[i][8] || phi < constraints[i][9]) ANDgate = 1;
+          if (phi > constraints[i][12] || phi < constraints[i][13]) ANDgate = 1;
         }
         if (ANDgate != 1) return 0;
       } else if (constraints[i][1] == ARRHENIUS) {
@@ -1902,6 +1868,42 @@ int FixBondReact::check_constraints()
   }
 
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+return pre-reaction atom or fragment location
+fragment: given pre-reacted molID (onemol) and fragID,
+          return geometric center (of mapped simulation atoms)
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_IDcoords(int mode, int myID, double *center)
+{
+  double **x = atom->x;
+  if (mode == 1) {
+    int iatom = atom->map(glove[myID-1][1]);
+    for (int i = 0; i < 3; i++)
+      center[i] = x[iatom][i];
+  } else {
+    int iref = -1; // choose first atom as reference
+    int iatom;
+    int nfragatoms = 0;
+    for (int i = 0; i < 3; i++)
+      center[i] = 0;
+
+    for (int i = 0; i < onemol->natoms; i++) {
+      if (onemol->fragmentmask[myID][i]) {
+        if (iref == -1)
+          iref = atom->map(glove[i][1]);
+        iatom = atom->map(glove[i][1]);
+        iatom = domain->closest_image(iref,iatom);
+        for (int j = 0; j < 3; j++)
+          center[j] += x[iatom][j];
+        nfragatoms++;
+      }
+    }
+    for (int i = 0; i < 3; i++)
+      center[i] /= nfragatoms;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3255,48 +3257,43 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 void FixBondReact::Constraints(char *line, int myrxn)
 {
   double tmp[MAXCONARGS];
-  int n = strlen("distance") + 1;
-  char *constraint_type = new char[n];
+  char **strargs;
+  memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
+  char *constraint_type = new char[MAXLINE];
   for (int i = 0; i < nconstr; i++) {
     readline(line);
     sscanf(line,"%s",constraint_type);
     constraints[nconstraints][0] = myrxn;
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[nconstraints][1] = DISTANCE;
-      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
-      constraints[nconstraints][5] = tmp[3]*tmp[3];
+      sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      // cutoffs
+      constraints[nconstraints][6] = tmp[0]*tmp[0]; // using square of distance
+      constraints[nconstraints][7] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints][1] = ANGLE;
-      sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms || tmp[2] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2];
-      constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
-      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+      sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      readID(strargs[2], nconstraints, 6, 7);
+      constraints[nconstraints][8] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints][9] = tmp[1]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"dihedral") == 0) {
       constraints[nconstraints][1] = DIHEDRAL;
-      tmp[6] = 181.0; // impossible range
-      tmp[7] = 182.0;
-      sscanf(line,"%*s %lg %lg %lg %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],
-             &tmp[2],&tmp[3],&tmp[4],&tmp[5],&tmp[6],&tmp[7]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms ||
-          tmp[2] > onemol->natoms || tmp[3] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2];
-      constraints[nconstraints][5] = tmp[3];
-      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
-      constraints[nconstraints][7] = tmp[5]/180.0 * MY_PI;
-      constraints[nconstraints][8] = tmp[6]/180.0 * MY_PI;
-      constraints[nconstraints][9] = tmp[7]/180.0 * MY_PI;
+      tmp[2] = 181.0; // impossible range
+      tmp[3] = 182.0;
+      sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
+             strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      readID(strargs[2], nconstraints, 6, 7);
+      readID(strargs[3], nconstraints, 8, 9);
+      constraints[nconstraints][10] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints][11] = tmp[1]/180.0 * MY_PI;
+      constraints[nconstraints][12] = tmp[2]/180.0 * MY_PI;
+      constraints[nconstraints][13] = tmp[3]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[nconstraints][1] = ARRHENIUS;
       constraints[nconstraints][2] = narrhenius++;
@@ -3310,6 +3307,27 @@ void FixBondReact::Constraints(char *line, int myrxn)
     nconstraints++;
   }
   delete [] constraint_type;
+  memory->destroy(strargs);
+}
+
+/* ----------------------------------------------------------------------
+if ID starts with character, assume it is a pre-reaction molecule fragment ID
+otherwise, it is a pre-reaction atom ID
+---------------------------------------------------------------------- */
+
+void FixBondReact::readID(char *strarg, int iconstr, int mode, int myID)
+{
+  if (isalpha(strarg[0])) {
+    constraints[iconstr][mode] = 0; // fragment vs. atom ID flag
+    int ifragment = onemol->findfragment(strarg);
+    if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
+    constraints[iconstr][myID] = ifragment;
+  } else {
+    constraints[iconstr][mode] = 1; // fragment vs. atom ID flag
+    int iatom = atoi(strarg);
+    if (iatom > onemol->natoms) error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
+    constraints[iconstr][myID] = iatom;
+  }
 }
 
 void FixBondReact::open(char *file)

@@ -138,10 +138,10 @@ For Intel Xeon Phi co-processors (Offload):
 
 **Required hardware/software:**
 
+When using Intel compilers version 16.0 or later is required.
+
 In order to use offload to co-processors, an Intel Xeon Phi
-co-processor and an Intel compiler are required. For this, the
-recommended version of the Intel compiler is 14.0.1.106 or
-versions 15.0.2.044 and higher.
+co-processor and an Intel compiler are required.
 
 Although any compiler can be used with the USER-INTEL package,
 currently, vectorization directives are disabled by default when

@@ -26,6 +26,8 @@
 #include "group.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -47,7 +49,7 @@ void ChangeBox::command(int narg, char **arg)
     error->all(FLERR,"Change_box command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal change_box command");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Changing box ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Changing box ...\n");
 
   // group
 
@@ -388,12 +390,10 @@ void ChangeBox::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Lost atoms via change_box: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->warning(FLERR,str);
-  }
+  if (natoms != atom->natoms && comm->me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms via change_box: "
+                                     "original {} current {}",
+                                     atom->natoms,natoms));
 }
 
 /* ----------------------------------------------------------------------

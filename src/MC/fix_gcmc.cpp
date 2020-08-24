@@ -493,11 +493,7 @@ void FixGCMC::init()
     }
   }
 
-  if (full_flag) {
-    char *id_pe = (char *) "thermo_pe";
-    int ipe = modify->find_compute(id_pe);
-    c_pe = modify->compute[ipe];
-  }
+  if (full_flag) c_pe = modify->compute[modify->find_compute("thermo_pe")];
 
   int *type = atom->type;
 
@@ -580,18 +576,12 @@ void FixGCMC::init()
   // skip if already exists from previous init()
 
   if (full_flag && !exclusion_group_bit) {
-    char **group_arg = new char*[4];
 
     // create unique group name for atoms to be excluded
 
-    int len = strlen(id) + 30;
-    group_arg[0] = new char[len];
-    sprintf(group_arg[0],"FixGCMC:gcmc_exclusion_group:%s",id);
-    group_arg[1] = (char *) "subtract";
-    group_arg[2] = (char *) "all";
-    group_arg[3] = (char *) "all";
-    group->assign(4,group_arg);
-    exclusion_group = group->find(group_arg[0]);
+    auto group_id = std::string("FixGCMC:gcmc_exclusion_group:") + id;
+    group->assign(group_id + " subtract all all");
+    exclusion_group = group->find(group_id);
     if (exclusion_group == -1)
       error->all(FLERR,"Could not find fix gcmc exclusion group ID");
     exclusion_group_bit = group->bitmask[exclusion_group];
@@ -603,34 +593,25 @@ void FixGCMC::init()
     char **arg = new char*[narg];;
     arg[0] = (char *) "exclude";
     arg[1] = (char *) "group";
-    arg[2] = group_arg[0];
+    arg[2] = (char *) group_id.c_str();
     arg[3] = (char *) "all";
     neighbor->modify_params(narg,arg);
-    delete [] group_arg[0];
-    delete [] group_arg;
     delete [] arg;
   }
 
   // create a new group for temporary use with selected molecules
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL) {
-    char **group_arg = new char*[3];
+
     // create unique group name for atoms to be rotated
-    int len = strlen(id) + 30;
-    group_arg[0] = new char[len];
-    sprintf(group_arg[0],"FixGCMC:rotation_gas_atoms:%s",id);
-    group_arg[1] = (char *) "molecule";
-    char digits[12];
-    sprintf(digits,"%d",-1);
-    group_arg[2] = digits;
-    group->assign(3,group_arg);
-    molecule_group = group->find(group_arg[0]);
+
+    auto group_id = std::string("FixGCMC:rotation_gas_atoms:") + id;
+    group->assign(group_id + " molecule -1");
+    molecule_group = group->find(group_id);
     if (molecule_group == -1)
       error->all(FLERR,"Could not find fix gcmc rotation group ID");
     molecule_group_bit = group->bitmask[molecule_group];
     molecule_group_inversebit = molecule_group_bit ^ ~0;
-    delete [] group_arg[0];
-    delete [] group_arg;
   }
 
   // get all of the needed molecule data if exchanging

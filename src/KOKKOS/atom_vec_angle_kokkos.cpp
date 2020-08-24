@@ -98,7 +98,7 @@ void AtomVecAngleKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_angle_atom3,atomKK->angle_atom3,nmax,atomKK->angle_per_atom,
                       "atom:angle_atom3");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -110,7 +110,7 @@ void AtomVecAngleKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecAngleKokkos::grow_reset()
+void AtomVecAngleKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

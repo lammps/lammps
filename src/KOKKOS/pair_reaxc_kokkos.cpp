@@ -87,8 +87,8 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 
   // deallocate views of views in serial to prevent race condition in profiling tools
 
-  for (int i = 0; i < k_LR.extent(0); i++) {
-    for (int j = 0; j < k_LR.extent(1); j++) {
+  for (int i = 0; i < (int)k_LR.extent(0); i++) {
+    for (int j = 0; j < (int)k_LR.extent(1); j++) {
       k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
       k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
       k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
@@ -199,6 +199,8 @@ void PairReaxCKokkos<DeviceType>::setup()
   hbond_parameters *hbp;
 
   for (i = 1; i <= n; i++) {
+    if (map[i] == -1) continue;
+
     // general
     k_params_sing.h_view(i).mass = system->reax_param.sbp[map[i]].mass;
 
@@ -229,6 +231,8 @@ void PairReaxCKokkos<DeviceType>::setup()
     k_params_sing.h_view(i).p_hbond = system->reax_param.sbp[map[i]].p_hbond;
 
     for (j = 1; j <= n; j++) {
+      if (map[j] == -1) continue;
+
       twbp = &(system->reax_param.tbp[map[i]][map[j]]);
 
       // vdW
@@ -270,6 +274,8 @@ void PairReaxCKokkos<DeviceType>::setup()
       k_params_twbp.h_view(i,j).p_ovun1 = twbp->p_ovun1;
 
       for (k = 1; k <= n; k++) {
+        if (map[k] == -1) continue;
+
         // Angular
         thbh = &(system->reax_param.thbp[map[i]][map[j]][map[k]]);
         thbp = &(thbh->prm[0]);
@@ -290,6 +296,8 @@ void PairReaxCKokkos<DeviceType>::setup()
         k_params_hbp.h_view(i,j,k).r0_hb = hbp->r0_hb;
 
         for (m = 1; m <= n; m++) {
+          if (map[m] == -1) continue;
+
           // Torsion
           fbh = &(system->reax_param.fbp[map[i]][map[j]][map[k]][map[m]]);
           fbp = &(fbh->prm[0]);
@@ -377,7 +385,9 @@ void PairReaxCKokkos<DeviceType>::init_md()
     d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
+      if (map[i] == -1) continue;
       for (int j = i; j <= ntypes; ++j) {
+        if (map[j] == -1) continue;
         int n = LR[i][j].n;
         if (n == 0) continue;
         k_LR.h_view(i,j).dx     = LR[i][j].dx;
@@ -539,7 +549,9 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
   ntypes = atom->ntypes;
 
   for( i = 0; i <= ntypes; ++i ) {
-    for( j = i; j <= ntypes; ++j )
+    if (map[i] == -1) continue;
+    for( j = i; j <= ntypes; ++j ) {
+      if (map[i] == -1) continue;
       if (LR[i][j].n) {
         sfree( control->error_ptr, LR[i][j].y, "LR[i,j].y" );
         sfree( control->error_ptr, LR[i][j].H, "LR[i,j].H" );
@@ -548,6 +560,7 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
         sfree( control->error_ptr, LR[i][j].ele, "LR[i,j].ele" );
         sfree( control->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
+    }
     sfree( control->error_ptr, LR[i], "LR[i]" );
   }
   sfree( control->error_ptr, LR, "LR" );
@@ -1597,7 +1610,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
-  const tagint itag = tag(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
@@ -1622,7 +1634,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
-    const tagint jtag = tag(j);
 
     d_bo_first[j] = j*maxbo;
     d_hb_first[j] = j*maxhb;
@@ -1812,7 +1823,6 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) const {
 
-  F_FLOAT delij[3];
   F_FLOAT exp_p1i, exp_p2i, exp_p1j, exp_p2j, f1, f2, f3, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
   F_FLOAT f4, f5, exp_f4, exp_f5, f4f5, Cf45_ij, Cf45_ji;
   F_FLOAT A0_ij, A1_ij, A2_ij, A3_ij, A2_ji, A3_ji;
@@ -1822,10 +1832,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
 
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-
   const F_FLOAT val_i = paramssing(itype).valency;
 
   d_total_bo[i] = 0.0;
@@ -1834,11 +1840,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsq);
     const int jtype = type(j);
     const int j_index = jj - j_start;
     const int i_index = maxbo+j_index;
@@ -2642,7 +2643,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
 
         // dcos_jil
         const F_FLOAT inv_distjl = 1.0 / (rij * rjl);
-        const F_FLOAT inv_distjl3 = pow( inv_distjl, 3.0 );
         const F_FLOAT cos_jil_tmp = cos_jil / ((rij*rjl)*(rij*rjl));
 
         for( int d = 0; d < 3; d++ ) {
@@ -2885,7 +2885,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const tagint itag = tag(i);
 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -3072,7 +3071,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  F_FLOAT delij[3];
   F_FLOAT p_be1, p_be2, De_s, De_p, De_pp, pow_BOs_be2, exp_be12, CEbo, ebond;
 
   const int i = d_ilist[ii];
@@ -3082,7 +3080,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   const int itype = type(i);
   const tagint itag = tag(i);
   const F_FLOAT imass = paramssing(itype).mass;
-  const F_FLOAT val_i = paramssing(itype).valency;
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
 
@@ -3106,26 +3103,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const int jtype = type(j);
     const int j_index = jj - j_start;
     const F_FLOAT jmass = paramssing(jtype).mass;
-
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsq);
-
-    const int k_start = d_bo_first[j];
-    const int k_end = k_start + d_bo_num[j];
-
-    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
-    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
-    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
-    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
-    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
-    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
-    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
-    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
     // bond energy (nlocal only)
     p_be1 = paramstwbp(itype,jtype).p_be1;
@@ -3217,10 +3194,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
   const tagint itag = tag(i);
-  const F_FLOAT imass = paramssing(itype).mass;
-  const F_FLOAT val_i = paramssing(itype).valency;
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
 
@@ -3243,17 +3217,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
       if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
     }
 
-    const int jtype = type(j);
     const int j_index = jj - j_start;
-    const F_FLOAT jmass = paramssing(jtype).mass;
     F_FLOAT CdDelta_j = d_CdDelta[j];
 
     delij[0] = x(j,0) - xtmp;
     delij[1] = x(j,1) - ytmp;
     delij[2] = x(j,2) - ztmp;
-
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsq);
 
     const int k_start = d_bo_first[j];
     const int k_end = k_start + d_bo_num[j];
@@ -3473,7 +3442,7 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX &ev, const int &i, const int &j,
+void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i, const int &j,
       const F_FLOAT &epair) const
 {
 
@@ -3495,7 +3464,7 @@ void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX &ev, const int &i, const
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX &ev, const int &i,
+void PairReaxCKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX & /*ev*/, const int &i,
       const F_FLOAT &epair) const
 {
   // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -3632,8 +3601,9 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
-        F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const
+void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i, const int & /*j*/,
+                                                const int & /*k*/, F_FLOAT *fj, F_FLOAT *fk,
+                                                F_FLOAT *drji, F_FLOAT *drjk) const
 {
   F_FLOAT v[6];
 
@@ -3657,33 +3627,6 @@ void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i,
     d_vatom(i,0) += v[0]; d_vatom(i,1) += v[1]; d_vatom(i,2) += v[2];
     d_vatom(i,3) += v[3]; d_vatom(i,4) += v[4]; d_vatom(i,5) += v[5];
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
-{
-  dim = 1;
-  if (strcmp(str,"chi") == 0 && chi) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) chi[i] = system->reax_param.sbp[map[i]].chi;
-      else chi[i] = 0.0;
-    return (void *) chi;
-  }
-  if (strcmp(str,"eta") == 0 && eta) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) eta[i] = system->reax_param.sbp[map[i]].eta;
-      else eta[i] = 0.0;
-    return (void *) eta;
-  }
-  if (strcmp(str,"gamma") == 0 && gamma) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) gamma[i] = system->reax_param.sbp[map[i]].gamma;
-      else gamma[i] = 0.0;
-    return (void *) gamma;
-  }
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -3910,7 +3853,7 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
 
-  if (nmax > k_tmpid.extent(0)) {
+  if (nmax > (int)k_tmpid.extent(0)) {
     memoryKK->destroy_kokkos(k_tmpid,tmpid);
     memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
     memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
@@ -3972,7 +3915,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
 }
 
 template class PairReaxCKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairReaxCKokkos<LMPHostType>;
 #endif
 }

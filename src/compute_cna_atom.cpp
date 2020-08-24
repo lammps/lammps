@@ -30,6 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -184,11 +185,9 @@ void ComputeCNAAtom::compute_peratom()
 
   int nerrorall;
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many neighbors in CNA for %d atoms",nerrorall);
-    error->warning(FLERR,str,0);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,fmt::format("Too many neighbors in CNA for {} "
+                                     "atoms",nerrorall),0);
 
   // compute CNA for each atom in group
   // only performed if # of nearest neighbors = 12 or 14 (fcc,hcp)
@@ -345,11 +344,9 @@ void ComputeCNAAtom::compute_peratom()
   // warning message
 
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many common neighbors in CNA %d times",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,fmt::format("Too many common neighbors in CNA {} "
+                                     "times", nerrorall));
 }
 
 /* ----------------------------------------------------------------------

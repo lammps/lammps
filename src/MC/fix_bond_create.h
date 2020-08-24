@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixBondCreate : public Fix {
  public:
   FixBondCreate(class LAMMPS *, int, char **);
-  ~FixBondCreate();
+  virtual ~FixBondCreate();
   int setmask();
   void init();
   void init_list(int, class NeighList *);
@@ -46,15 +46,18 @@ class FixBondCreate : public Fix {
   double compute_vector(int);
   double memory_usage();
 
- private:
+ protected:
   int me;
   int iatomtype,jatomtype;
   int btype,seed;
   int imaxbond,jmaxbond;
   int inewtype,jnewtype;
+  int constrainflag,constrainpass;
+  double amin,amax;
   double cutsq,fraction;
   int atype,dtype,itype;
   int angleflag,dihedralflag,improperflag;
+
   int overflow;
   tagint lastcheck;
 
@@ -83,6 +86,8 @@ class FixBondCreate : public Fix {
   void create_dihedrals(int);
   void create_impropers(int);
   int dedup(int, int, tagint *);
+
+  virtual int constrain(int, int, double, double) {return 1;}
 
   // DEBUG
 

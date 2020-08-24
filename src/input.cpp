@@ -50,6 +50,7 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -226,11 +227,8 @@ void Input::file()
 
     // execute the command
 
-    if (execute_command()) {
-      char *str = new char[maxline+32];
-      sprintf(str,"Unknown command: %s",line);
-      error->all(FLERR,str);
-    }
+    if (execute_command() && line)
+      error->all(FLERR,fmt::format("Unknown command: {}",line));
   }
 }
 
@@ -250,11 +248,10 @@ void Input::file(const char *filename)
       error->one(FLERR,"Too many nested levels of input scripts");
 
     infile = fopen(filename,"r");
-    if (infile == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open input script %s",filename);
-      error->one(FLERR,str);
-    }
+    if (infile == NULL)
+      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                   filename, utils::getsyserror()));
+
     infiles[nfile++] = infile;
   }
 
@@ -275,11 +272,11 @@ void Input::file(const char *filename)
    return command name to caller
 ------------------------------------------------------------------------- */
 
-char *Input::one(const char *single)
+char *Input::one(const std::string &single)
 {
-  int n = strlen(single) + 1;
+  int n = single.size() + 1;
   if (n > maxline) reallocate(line,maxline,n);
-  strcpy(line,single);
+  strcpy(line,single.c_str());
 
   // echo the command unless scanning for label
 
@@ -300,11 +297,8 @@ char *Input::one(const char *single)
 
   // execute the command and return its name
 
-  if (execute_command()) {
-    char *str = new char[maxline+32];
-    sprintf(str,"Unknown command: %s",line);
-    error->all(FLERR,str);
-  }
+  if (execute_command())
+    error->all(FLERR,fmt::format("Unknown command: {}",line));
 
   return command;
 }
@@ -312,11 +306,11 @@ char *Input::one(const char *single)
 /* ----------------------------------------------------------------------
    Send text to active echo file pointers
 ------------------------------------------------------------------------- */
-void Input::write_echo(const char *txt)
+void Input::write_echo(const std::string &txt)
 {
   if (me == 0) {
-    if (echo_screen && screen) fputs(txt,screen);
-    if (echo_log && logfile) fputs(txt,logfile);
+    if (echo_screen && screen) fputs(txt.c_str(),screen);
+    if (echo_log && logfile) fputs(txt.c_str(),logfile);
   }
 }
 
@@ -547,11 +541,10 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         value = variable->retrieve(var);
       }
 
-      if (value == NULL) {
-        char str[128];
-        snprintf(str,128,"Substitution for illegal variable %s",var);
-        error->one(FLERR,str);
-      }
+      if (value == NULL)
+        error->one(FLERR,fmt::format("Substitution for illegal "
+                                     "variable {}",var));
+
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
 
@@ -860,7 +853,7 @@ int Input::execute_command()
   // invoke commands added via style_command.h
 
   if (command_map->find(command) != command_map->end()) {
-    CommandCreator command_creator = (*command_map)[command];
+    CommandCreator &command_creator = (*command_map)[command];
     command_creator(lmp,narg,arg);
     return 0;
   }
@@ -1040,11 +1033,10 @@ void Input::include()
       error->one(FLERR,"Too many nested levels of input scripts");
 
     infile = fopen(arg[0],"r");
-    if (infile == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open input script %s",arg[0]);
-      error->one(FLERR,str);
-    }
+    if (infile == NULL)
+      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                   arg[0], utils::getsyserror()));
+
     infiles[nfile++] = infile;
   }
 
@@ -1075,11 +1067,10 @@ void Input::jump()
     else {
       if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
-      if (infile == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open input script %s",arg[0]);
-        error->one(FLERR,str);
-      }
+      if (infile == NULL)
+        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                     arg[0], utils::getsyserror()));
+
       infiles[nfile-1] = infile;
     }
   }
@@ -1105,7 +1096,7 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg > 2) error->all(FLERR,"Illegal log command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command");
 
   int appendflag = 0;
   if (narg == 2) {
@@ -1120,11 +1111,10 @@ void Input::log()
       if (appendflag) logfile = fopen(arg[0],"a");
       else logfile = fopen(arg[0],"w");
 
-      if (logfile == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open logfile %s",arg[0]);
-        error->one(FLERR,str);
-      }
+      if (logfile == NULL)
+        error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
+                                     arg[0], utils::getsyserror()));
+
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
   }
@@ -1199,11 +1189,9 @@ void Input::print()
         if (fp != NULL) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open print file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == NULL)
+          error->one(FLERR,fmt::format("Cannot open print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
@@ -1255,10 +1243,10 @@ void Input::quit()
 
 char *shell_failed_message(const char* cmd, int errnum)
 {
-  const char *errmsg = strerror(errnum);
-  int len = strlen(cmd)+strlen(errmsg)+64;
-  char *msg = new char[len];
-  sprintf(msg,"Shell command '%s' failed with error '%s'", cmd, errmsg);
+  std::string errmsg = fmt::format("Shell command '{}' failed with error '{}'",
+                                   cmd, strerror(errnum));
+  char *msg = new char[errmsg.size()+1];
+  strcpy(msg, errmsg.c_str());
   return msg;
 }
 
@@ -1740,13 +1728,9 @@ void Input::package()
     if (!modify->check_package("GPU"))
       error->all(FLERR,"Package gpu command without GPU package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_gpu";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "GPU";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_gpu all GPU";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
     if (lmp->kokkos == NULL || lmp->kokkos->kokkos_exists == 0)
@@ -1759,26 +1743,18 @@ void Input::package()
       error->all(FLERR,
                  "Package omp command without USER-OMP package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_omp";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "OMP";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_omp all OMP";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
       error->all(FLERR,
                  "Package intel command without USER-INTEL package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_intel";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "INTEL";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_intel all INTEL";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   } else error->all(FLERR,"Illegal package command");
 }
@@ -1812,18 +1788,15 @@ void Input::pair_style()
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (force->pair) {
+    std::string style = arg[0];
     int match = 0;
-    if (strcmp(arg[0],force->pair_style) == 0) match = 1;
+    if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      char estyle[256];
-      if (lmp->suffix) {
-        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
-        if (strcmp(estyle,force->pair_style) == 0) match = 1;
-      }
-      if (lmp->suffix2) {
-        snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
-        if (strcmp(estyle,force->pair_style) == 0) match = 1;
-      }
+      if (lmp->suffix)
+        if (style + "/" + lmp->suffix == force->pair_style) match = 1;
+
+      if (lmp->suffix2)
+        if (style + "/" + lmp->suffix2 == force->pair_style) match = 1;
     }
     if (match) {
       force->pair->settings(narg-1,&arg[1]);
@@ -1919,12 +1892,16 @@ void Input::suffix()
   if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
-  else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
-  else {
+  else if (strcmp(arg[0],"on") == 0) {
+    if (!lmp->suffix)
+      error->all(FLERR,"May only enable suffixes after defining one");
+    lmp->suffix_enable = 1;
+  } else {
     lmp->suffix_enable = 1;
 
     delete [] lmp->suffix;
     delete [] lmp->suffix2;
+    lmp->suffix = lmp->suffix2 = nullptr;
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");

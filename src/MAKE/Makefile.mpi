@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O3
-LIB =
+LIB = 
 SIZE =		size
 
 ARCHIVE =	ar
@@ -28,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 3.5 of the manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64  # -DLAMMPS_CXX98
 
 # MPI library
 # see discussion in Section 3.4 of the manual
@@ -92,6 +92,7 @@ $(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
 # Library targets
 
 $(ARLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	@rm -f ../$(ARLIB)
 	$(ARCHIVE) $(ARFLAGS) ../$(ARLIB) $(OBJ)
 	@rm -f $(ARLIB)
 	@ln -s ../$(ARLIB) $(ARLIB)

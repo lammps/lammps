@@ -44,6 +44,7 @@ page gives those details.
    * :ref:`MC <PKG-MC>`
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
+   * :ref:`MLIAP <PKG-MLIAP>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -81,6 +82,7 @@ page gives those details.
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
+   * :ref:`USER-MESONT <PKG-USER-MESONT>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
@@ -304,7 +306,8 @@ gpu" or "-suffix gpu" :doc:`command-line switches <Run_options>`.  See
 also the :ref:`KOKKOS <PKG-KOKKOS>` package, which has GPU-enabled styles.
 
 **Authors:** Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
-(Northwestern U) while at ORNL.
+(Northwestern U) while at ORNL and later. AMD HIP support by Evgeny
+Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
@@ -489,7 +492,7 @@ interactions.  These include Ewald, particle-particle particle-mesh
 
 Building with this package requires a 1d FFT library be present on
 your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, 3rd party libraries like FFTW, or a
+library provided with LAMMPS, third party libraries like FFTW, or a
 vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` doc page for details on how to select
 different FFT options for your LAMPMS build.
 
@@ -648,6 +651,29 @@ listing, "ls src/MISC", to see the list of commands.
 * examples/VISCOSITY
 * https://lammps.sandia.gov/pictures.html#ttm
 * https://lammps.sandia.gov/movies.html#evaporation
+
+----------
+
+.. _PKG-MLIAP:
+
+MLIAP package
+-------------
+
+**Contents:**
+
+A general interface for machine-learning interatomic potentials.
+
+**Install:**
+
+To use this package, also the :ref:`SNAP package<PKG-SNAP>` needs to be installed.
+
+**Author:** Aidan Thompson (Sandia).
+
+**Supporting info:**
+
+* src/MLIAP: filenames -> commands
+* :doc:`pair_style mliap <pair_mliap>`
+* examples/mliap
 
 ----------
 
@@ -1712,6 +1738,56 @@ algorithm.
 * examples/USER/mesodpd
 * https://lammps.sandia.gov/movies.html#mesodpd
 
+* examples/USER/meso
+* http://lammps.sandia.gov/movies.html#mesodpd
+
+----------
+
+.. _PKG-USER-MESONT:
+
+USER-MESONT package
+-------------------
+
+**Contents:**
+
+USER-MESONT is a LAMMPS package for simulation of nanomechanics of
+nanotubes (NTs). The model is based on a coarse-grained representation
+of NTs as "flexible cylinders" consisting of a variable number of
+segments. Internal interactions within a NT and the van der Waals
+interaction between the tubes are described by a mesoscopic force field
+designed and parameterized based on the results of atomic-level
+molecular dynamics simulations. The description of the force field is
+provided in the papers listed below. This package contains two
+independent implementations of this model: :doc:`pair_style mesocnt
+<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
+mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
+implementation based on a Fortran library in the ``lib/mesont`` folder.
+
+**Download of potential files:**
+
+The potential files for these pair styles are *very* large and thus
+are not included in the regular downloaded packages of LAMMPS or the
+git repositories.  Instead, they will be automatically downloaded
+from a web server when the package is installed for the first time.
+
+**Authors of the *mesont* styles:**
+
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+
+**Author of the *mesocnt* pair style:**
+Philipp Kloza (U Cambridge)
+
+**Supporting info:**
+
+* src/USER-MESONT: filenames -> commands
+* src/USER-MESONT/README
+* :doc:`atom_style mesont <atom_style>`
+* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
+* :doc:`compute mesont <compute_mesont>`
+* :doc:`pair_style mesocnt <pair_mesocnt>`
+* examples/USER/mesont
+* tools/mesont
+
 ----------
 
 .. _PKG-USER-MOFFF:
@@ -2064,7 +2140,7 @@ molecules, and chiral-sensitive reactions.
 * examples/USER/reaction
 * `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
-* disarmmd.org
+* reacter.org
 
 ----------
 

@@ -209,7 +209,7 @@ double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
 
 /* ---------------------------------------------------------------------- */
 
-void *BondMorse::extract(char *str, int &dim )
+void *BondMorse::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"r0")==0) return (void*) r0;

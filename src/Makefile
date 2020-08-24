@@ -14,7 +14,7 @@ SHLIB =  liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
 TMPNAME= tmp_$@_name
-LMPLINK=$(shell echo $(ARLIB) | sed -e 's,lib\([+0-9a-z_-]\+\)\.a$$,-L. -l\1,')
+LMPLINK= -L. -llammps_$@
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
@@ -48,12 +48,12 @@ endif
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc message misc \
-	  molecule mpiio mscg opt peri poems \
+	  mliap molecule mpiio mscg opt peri poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mesodpd \
+	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
 	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
@@ -63,11 +63,11 @@ PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
 	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
-	  user-smd user-vtk
+	  user-smd user-vtk user-mesont
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
 
 PACKEXT = kim latte mscg voronoi \
 	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
@@ -75,13 +75,18 @@ PACKEXT = kim latte mscg voronoi \
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
-PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
-PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
+# Helper GNU make function for conversion to upper case without using shell commands
+uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
+uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(wordlist 2,$(words $1),$1),$2)),$2)
+uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
-YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
-NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
-LIBDIR = $(shell echo $(@:lib-%=%))
-LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
+PACKAGEUC = $(call uppercase,$(PACKAGE))
+PACKUSERUC = $(call uppercase,$(PACKUSER))
+
+YESDIR = $(call uppercase,$(@:yes-%=%))
+NODIR  = $(call uppercase,$(@:no-%=%))
+LIBDIR = $($(@:lib-%=%))
+LIBUSERDIR = $($(@:lib-user-%=%))
 
 # List of all targets
 
@@ -280,7 +285,7 @@ install-python:
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/Depend.sh src/Install.sh \
+	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
@@ -369,6 +374,7 @@ yes-%:
 	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
 		$(SHELL) Depend.sh $(YESDIR) 1; \
 	fi;
+	@$(SHELL) Fetch.sh $(YESDIR)
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \

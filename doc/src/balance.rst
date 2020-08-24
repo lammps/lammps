@@ -177,16 +177,16 @@ volume (area in 2d) assigned to each processor, as in the following 2d
 diagram where processor sub-domains are shown and particles are
 colored by the processor that owns them.
 
-.. list-table::
+.. |balance1| image:: img/balance_uniform.jpg
+   :width: 32%
 
-   * - .. figure:: JPG/balance_uniform_small.jpg
-          :target: JPG/balance_uniform.jpg
+.. |balance2| image:: img/balance_nonuniform.jpg
+   :width: 32%
 
-     - .. figure:: JPG/balance_nonuniform_small.jpg
-          :target: JPG/balance_nonuniform.jpg
+.. |balance3| image:: img/balance_rcb.jpg
+   :width: 32%
 
-     - .. figure:: JPG/balance_rcb_small.jpg
-          :target: JPG/balance_rcb.jpg
+|balance1|  |balance2|  |balance3|
 
 The leftmost diagram is the default partitioning of the simulation box
 across processors (one sub-box for each of 16 processors); the middle

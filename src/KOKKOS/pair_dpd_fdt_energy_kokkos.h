@@ -90,7 +90,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
     KOKKOS_INLINE_FUNCTION
     params_dpd(){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    params_dpd(int /*i*/){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     F_FLOAT cut,a0,sigma,kappa,alpha;
   };
 

@@ -65,7 +65,7 @@ void PairCoulDSF::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
-  double r,rsq,r2inv,forcecoul,factor_coul;
+  double r,rsq,forcecoul,factor_coul;
   double prefactor,erfcc,erfcd,t;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -112,17 +112,16 @@ void PairCoulDSF::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_coulsq) {
-        r2inv = 1.0/rsq;
-
         r = sqrt(rsq);
         prefactor = qqrd2e*qtmp*q[j]/r;
         erfcd = exp(-alpha*alpha*rsq);
         t = 1.0 / (1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+
         forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                  r*f_shift) * r;
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-        fpair = forcecoul * r2inv;
+        fpair = forcecoul / rsq;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -296,29 +295,28 @@ double PairCoulDSF::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
                            double factor_coul, double /*factor_lj*/,
                            double &fforce)
 {
-  double r2inv,r,erfcc,erfcd,prefactor,t;
+  double r,erfcc,erfcd,prefactor,t;
   double forcecoul,phicoul;
 
-  r2inv = 1.0/rsq;
-
-  double eng = 0.0;
+  forcecoul = phicoul = 0.0;
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
-    prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
     erfcd = exp(-alpha*alpha*rsq);
     t = 1.0 / (1.0 + EWALD_P*alpha*r);
     erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
 
     forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS*erfcd +
-      r*f_shift) * r;
+                             r*f_shift) * r;
+    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
-    eng += phicoul;
-  } else forcecoul = 0.0;
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+  }
 
-  fforce = forcecoul * r2inv;
+  fforce = forcecoul / rsq;
 
-  return eng;
+  return phicoul;
 }
 
 /* ---------------------------------------------------------------------- */

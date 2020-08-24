@@ -109,7 +109,6 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     } else {
         command("variable newton_pair index off");
     }
-
     command("variable input_dir index " + INPUT_FOLDER);
 
     for (auto &pre_command : cfg.pre_commands) {
@@ -124,6 +123,8 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     for (auto &pair_coeff : cfg.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
+    command("pair_modify table 0");
+    command("pair_modify table/disp 0");
 
     for (auto &post_command : cfg.post_commands) {
         command(post_command);
@@ -793,6 +794,118 @@ TEST(PairStyle, omp)
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
+TEST(PairStyle, gpu)
+{
+    if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};
+
+    char **argv = (char **)args;
+    int argc    = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(argc, argv, test_config, false);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /gpu suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // skip over tests using tabulated coulomb
+    if ((lmp->force->pair->ncoultablebits > 0) || (lmp->force->pair->ndisptablebits > 0)) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    // relax error a bit for GPU package
+    double epsilon = 7.5 * test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ErrorStats stats;
+
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+    stats.reset();
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
+
+    auto pair   = lmp->force->pair;
+    auto stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
+    if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    f   = lmp->atom->f;
+    tag = lmp->atom->tag;
+    stats.reset();
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5 * epsilon);
+    }
+    if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
+
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+
+    stats.reset();
+    auto id     = lmp->modify->find_compute("sum");
+    auto energy = lmp->modify->compute[id]->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+    if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
+
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();

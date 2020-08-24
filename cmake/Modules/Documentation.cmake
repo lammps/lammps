@@ -15,6 +15,7 @@ if(BUILD_DOC)
     endif()
     set(VIRTUALENV ${Python3_EXECUTABLE} -m virtualenv -p ${Python3_EXECUTABLE})
   endif()
+  find_package(Doxygen 1.8.10 REQUIRED)
 
   file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
@@ -51,31 +52,56 @@ if(BUILD_DOC)
       "${CMAKE_CURRENT_BINARY_DIR}/html/_static/polyfill.js")
   endif()
 
+  # set up doxygen and add targets to run it
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
+  set(DOXYGEN_XML_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen/xml)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/lammps-logo.png
+    DEPENDS ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png
+    COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png ${CMAKE_BINARY_DIR}/doxygen/lammps-logo.png
+  )
+  configure_file(${LAMMPS_DOC_DIR}/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile)
+  get_target_property(LAMMPS_SOURCES lammps SOURCES)
+  # need to update timestamps on pg_*.rst files after running doxygen to have sphinx re-read them
+  file(GLOB PG_SOURCES ${LAMMPS_DOC_DIR}/src/pg_*.rst)
+  add_custom_command(
+    OUTPUT ${DOXYGEN_XML_DIR}/index.xml
+    DEPENDS ${DOC_SOURCES} ${LAMMPS_SOURCES}
+    COMMAND Doxygen::doxygen ${CMAKE_CURRENT_BINARY_DIR}/doxygen/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doxygen
+    COMMAND ${CMAKE_COMMAND} -E touch ${DOXYGEN_XML_DIR}/run.stamp
+  )
+
   # note, this may run in parallel with other tasks, so we must not use multiple processes here
+  file(COPY ${LAMMPS_DOC_DIR}/utils/sphinx-config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/utils)
+  file(COPY ${LAMMPS_DOC_DIR}/src DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  configure_file(${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py)
+  if(EXISTS ${DOXYGEN_XML_DIR}/run.stamp)
+    set(SPHINX_EXTRA_OPTS "-E")
+  else()
+    set(SPHINX_EXTRA_OPTS "")
+  endif()
   add_custom_command(
     OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv requirements.txt
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
+    DEPENDS ${DOC_SOURCES} docenv requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${CMAKE_CURRENT_BINARY_DIR}/utils/sphinx-config/conf.py
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build ${SPHINX_EXTRA_OPTS} -b html -c ${CMAKE_BINARY_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
     COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${DOXYGEN_XML_DIR}/run.stamp
   )
 
   # copy selected image files to html output tree
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/html/JPG)
-  set(HTML_EXTRA_IMAGES balance_nonuniform.jpg balance_rcb.jpg
-    balance_uniform.jpg bow_tutorial_01.png bow_tutorial_02.png
-    bow_tutorial_03.png bow_tutorial_04.png bow_tutorial_05.png
-    dump1.jpg dump2.jpg examples_mdpd.gif gran_funnel.png gran_mixer.png
-    hop1.jpg hop2.jpg saed_ewald_intersect.jpg saed_mesh.jpg
-    screenshot_atomeye.jpg screenshot_gl.jpg screenshot_pymol.jpg
-    screenshot_vmd.jpg sinusoid.jpg xrd_mesh.jpg)
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/html/_images/wsl_tutorial)
+  file(GLOB HTML_EXTRA_IMAGES RELATIVE ${LAMMPS_DOC_DIR}/src/img/
+          ${LAMMPS_DOC_DIR}/src/img/[^.]*.jpg
+          ${LAMMPS_DOC_DIR}/src/img/[^.]*.gif
+          ${LAMMPS_DOC_DIR}/src/img/[^.]*.png
+          ${LAMMPS_DOC_DIR}/src/img/wsl_tutorial/[^.]*.png)
   set(HTML_IMAGE_TARGETS "")
   foreach(_IMG ${HTML_EXTRA_IMAGES})
-    string(PREPEND _IMG JPG/)
-    list(APPEND HTML_IMAGE_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}")
+    list(APPEND HTML_IMAGE_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/html/_images/${_IMG}")
     add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}
-      DEPENDS ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_CURRENT_BINARY_DIR}/html/JPG
-      COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_BINARY_DIR}/html/${_IMG}
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/html/_images/${_IMG}
+      DEPENDS ${LAMMPS_DOC_DIR}/src/img/${_IMG} ${CMAKE_CURRENT_BINARY_DIR}/html/_images
+      COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/src/img/${_IMG} ${CMAKE_BINARY_DIR}/html/_images/${_IMG}
     )
   endforeach()
 

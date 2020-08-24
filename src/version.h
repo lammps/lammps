@@ -1,1 +1,1 @@
-#define LAMMPS_VERSION "21 Aug 2020"
+#define LAMMPS_VERSION "24 Aug 2020"

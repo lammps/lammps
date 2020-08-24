@@ -145,8 +145,6 @@ Required hardware/software
 
 When using Intel compilers version 16.0 or later is required.
 
-When using Intel compilers version 16.0 or later is required.
-
 In order to use offload to co-processors, an Intel Xeon Phi
 co-processor and an Intel compiler are required.
 

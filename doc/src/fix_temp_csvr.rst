@@ -136,14 +136,6 @@ so that the selected fix continues in an uninterrupted fashion.  The
 random number generator state can only be restored when the number
 of processors remains unchanged from what is recorded in the restart file.
 
-These fixes write the cumulative global energy change and the
-random number generator states to :doc:`binary restart files <restart>`.
-See the :doc:`read_restart <read_restart>` command for info on how to
-re-specify a fix in an input script that reads a restart file,
-so that the selected fix continues in an uninterrupted fashion.  The
-random number generator state can only be restored when the number
-of processors remains unchanged from what is recorded in the restart file.
-
 No information about these fixes are written to :doc:`binary restart files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by these

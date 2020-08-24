@@ -375,15 +375,24 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   rk = ra/K3[itype][jtype];
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
   ir3k = 1.0/(rk*rk*rk);
+ 
+  // BS model
+  Jex = 4.0*J1_mag[itype][jtype]*r2j;
+  Jex *= (1.0-J2[itype][jtype]*r2j);
+  Jex *= exp(-r2j);
+
+  Kex = 4.0*K1_mag[itype][jtype]*r2k;
+  Kex *= (1.0-K2[itype][jtype]*r2k);
+  Kex *= exp(-r2k);
   
   // modified Yukawa
-  Jex = (1.0-J2[itype][jtype]*r2j);
-  Jex *= J1_mag[itype][jtype]*ir3j;
-  Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
-  
-  Kex = (1.0-K2[itype][jtype]*r2k);
-  Kex *= K1_mag[itype][jtype]*ir3k;
-  Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
+  // Jex = (1.0-J2[itype][jtype]*r2j);
+  // Jex *= J1_mag[itype][jtype]*ir3j;
+  // Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
+  // 
+  // Kex = (1.0-K2[itype][jtype]*r2k);
+  // Kex *= K1_mag[itype][jtype]*ir3k;
+  // Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
  
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
@@ -402,28 +411,48 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, double rsq
   int *type = atom->type;
   int itype,jtype;
   double Jex,Jex_mech,Kex,Kex_mech,ra,sdots;
-  double rj,rk,r2j,r2k,ir3j,ir3k;
+  // double rj,rk,r2j,r2k,ir3j,ir3k;
+  double rja,rka,rjr,rkr,iJ3,iK3;
   itype = type[i];
   jtype = type[j];
 
-  ra = sqrt(rsq);
-  rj = ra/J3[itype][jtype];
-  r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  ir3j = 1.0/(rj*rj*rj);
-  rk = ra/K3[itype][jtype];
-  r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
-  ir3k = 1.0/(rk*rk*rk);
+  // ra = sqrt(rsq);
+  // rj = ra/J3[itype][jtype];
+  // r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
+  // ir3j = 1.0/(rj*rj*rj);
+  // rk = ra/K3[itype][jtype];
+  // r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
+  // ir3k = 1.0/(rk*rk*rk);
   
-  // modified Yukawa
-  Jex_mech = J2[itype][jtype]*2.0*ra/(J3[itype][jtype]*J3[itype][jtype]);
-  Jex_mech += (3.0/ra+1.0/J3[itype][jtype])*(1.0-J2[itype][jtype]*r2j);
-  Jex_mech *= -J1_mech[itype][jtype]*ir3j;
-  Jex_mech *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
+  Jex = J1_mech[itype][jtype];
+  iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
+  Kex = K1_mech[itype][jtype];
+  iK3 = 1.0/(K3[itype][jtype]*K3[itype][jtype]);
+  
+  rja = rsq*iJ3;
+  rjr = sqrt(rsq)*iJ3;
+  rka = rsq*iK3;
+  rkr = sqrt(rsq)*iK3;
+ 
+  // BS model
+  Jex_mech = 1.0-rja-J2[itype][jtype]*rja*(2.0-rja);
+  Jex_mech *= 8.0*Jex*rjr*exp(-rja);
+  Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
+  
+  Kex_mech = 1.0-rka-K2[itype][jtype]*rka*(2.0-rka);
+  Kex_mech *= 8.0*Kex*rkr*exp(-rka);
+  Kex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  Kex_mech = K2[itype][jtype]*2.0*ra/(K3[itype][jtype]*K3[itype][jtype]);
-  Kex_mech += (3.0/ra+1.0/K3[itype][jtype])*(1.0-K2[itype][jtype]*r2k);
-  Kex_mech *= -K1_mech[itype][jtype]*ir3k;
-  Kex_mech *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
+  // modified Yukawa
+  // Jex_mech = J2[itype][jtype]*2.0*ra/(J3[itype][jtype]*J3[itype][jtype]);
+  // Jex_mech += (3.0/ra+1.0/J3[itype][jtype])*(1.0-J2[itype][jtype]*r2j);
+  // Jex_mech *= -J1_mech[itype][jtype]*ir3j;
+  // Jex_mech *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
+
+  // Kex_mech = K2[itype][jtype]*2.0*ra/(K3[itype][jtype]*K3[itype][jtype]);
+  // Kex_mech += (3.0/ra+1.0/K3[itype][jtype])*(1.0-K2[itype][jtype]*r2k);
+  // Kex_mech *= -K1_mech[itype][jtype]*ir3k;
+  // Kex_mech *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
   
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
@@ -454,15 +483,24 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   rk = ra/K3[itype][jtype];
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
   ir3k = 1.0/(rk*rk*rk);
-  
+ 
+  // BS model 
+  Jex = 4.0*J1_mech[itype][jtype]*r2j;
+  Jex *= (1.0-J2[itype][jtype]*r2j);
+  Jex *= exp(-r2j);
+
+  Kex = 4.0*K1_mech[itype][jtype]*r2k;
+  Kex *= (1.0-K2[itype][jtype]*r2k);
+  Kex *= exp(-r2k);
+
   // modified Yukawa
-  Jex = (1.0-J2[itype][jtype]*r2j);
-  Jex *= J1_mech[itype][jtype]*ir3j;
-  Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
-  
-  Kex = (1.0-K2[itype][jtype]*r2k);
-  Kex *= K1_mech[itype][jtype]*ir3k;
-  Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
+  // Jex = (1.0-J2[itype][jtype]*r2j);
+  // Jex *= J1_mech[itype][jtype]*ir3j;
+  // Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
+  // 
+  // Kex = (1.0-K2[itype][jtype]*r2k);
+  // Kex *= K1_mech[itype][jtype]*ir3k;
+  // Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
 

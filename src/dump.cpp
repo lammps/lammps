@@ -116,6 +116,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   // check file suffixes
   //   if ends in .bin = binary file
   //   else if ends in .gz = gzipped text file
+  //   else if ends in .zst = Zstd compressed text file
   //   else ASCII text file
 
   fp = NULL;
@@ -153,6 +154,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (suffix > filename && strcmp(suffix,".bin") == 0) binary = 1;
   suffix = filename + strlen(filename) - strlen(".gz");
   if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
+  suffix = filename + strlen(filename) - strlen(".zst");
+  if (suffix > filename && strcmp(suffix,".zst") == 0) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */

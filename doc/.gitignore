@@ -15,3 +15,5 @@
 /utils/sphinx-config/conf.py
 /doxygen/Doxyfile
 *.el
+/utils/sphinx-config/_static/mathjax
+/utils/sphinx-config/_static/polyfill.js

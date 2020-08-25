@@ -4,11 +4,11 @@ SHELL          = /bin/bash
 BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
-MATHJAX        = $(BUILDDIR)/mathjax
-POLYFILL       = $(BUILDDIR)/mathjax/polyfill.js
 TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
+MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
+POLYFILL       = $(SPHINXCONFIG)/_static/polyfill.js
 
 PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
@@ -106,9 +106,6 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@mkdir -p html/JPG
 	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target: JPG' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
-	@mkdir -p html/_static/mathjax
-	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
-	@cp $(POLYFILL) html/_static/
 	@echo "Build finished. The HTML pages are in doc/html."
 
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
@@ -125,7 +122,6 @@ epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
-	@cp src/JPG/lammps-logo.png epub/
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\

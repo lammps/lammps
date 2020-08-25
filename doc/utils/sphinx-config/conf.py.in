@@ -23,11 +23,16 @@ try:
 except:
     pass
 
+LAMMPS_DOC_DIR = '@LAMMPS_DOC_DIR@'
+LAMMPS_SOURCE_DIR = '@LAMMPS_SOURCE_DIR@'
+LAMMPS_PYTHON_DIR = '@LAMMPS_PYTHON_DIR@'
+LAMMPS_DOXYGEN_XML_DIR = '@DOXYGEN_XML_DIR@'
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.join('@LAMMPS_DOC_DIR@', 'src', '_ext'))
+sys.path.append(os.path.join(LAMMPS_DOC_DIR, 'src', '_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -74,7 +79,7 @@ copyright = '2003-2020 Sandia Corporation'
 def get_lammps_version():
     import os
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join('@LAMMPS_SOURCE_DIR@', 'version.h'), 'r') as f:
+    with open(os.path.join(LAMMPS_SOURCE_DIR, 'version.h'), 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)
@@ -167,7 +172,7 @@ html_title = "LAMMPS documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'lammps-logo.png'
+html_logo = '_static/lammps-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -328,7 +333,7 @@ texinfo_documents = [
 
 epub_title = 'LAMMPS Documentation - ' + get_lammps_version()
 
-epub_cover = ('lammps-logo.png', '')
+epub_cover = ('_static/lammps-logo.png', '')
 
 epub_description = """
 This is the Manual for the LAMMPS software package.
@@ -363,7 +368,7 @@ from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
 
-sys.path.append('@LAMMPS_PYTHON_DIR@')
+sys.path.append(LAMMPS_PYTHON_DIR)
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'
@@ -375,7 +380,7 @@ autodoc_member_order = 'bysource'
 
 # breathe configuration
 
-breathe_projects = { 'progguide' : '@DOXYGEN_XML_DIR@' }
+breathe_projects = { 'progguide' : LAMMPS_DOXYGEN_XML_DIR }
 breathe_default_project = 'progguide'
 breathe_show_define_initializer = True
 breathe_domain_by_extension = { 'h'   : 'cpp',

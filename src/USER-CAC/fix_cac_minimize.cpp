@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include "fix_cac_minimize.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
@@ -93,6 +94,10 @@ void FixCACMinimize::add_vector(int n)
         for(int ix = 0; ix < peratom[nvector]; ix++)
         nodal_vectors[nvector][ecount][ipoly][inode][ix] = 0;
   }
+
+  //boost max exchange variables for communication buffer
+  atom->avec->maxexchange += n*atom->nodes_per_element*atom->maxpoly;
+
   nvector++;
 }
 

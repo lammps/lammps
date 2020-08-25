@@ -855,7 +855,6 @@ int distanceflag=0;
       if (rsq2 >= params[ijkparam].cutsq) continue;
       attractive(&params[ijkparam],prefactor,
                   rsq1,rsq2,delr1,delr2,fi,fj,fk);
-      quadrature_energy += energy_contribution/3;
 
       force_densityx += fi[0];
       force_densityy += fi[1];
@@ -927,7 +926,6 @@ int distanceflag=0;
       if (rsq2 >= params[ijkparam].cutsq) continue;
       attractive(&params[ijkparam],prefactor,
                   rsq1,rsq2,ndelr1,delr2,fj,fi,fk);
-      quadrature_energy += energy_contribution/3;
       force_densityx += fi[0];
       force_densityy += fi[1];
       force_densityz += fi[2];
@@ -1008,7 +1006,6 @@ int distanceflag=0;
       //compute three body contribution to quadrature site
       attractive(&params[ijkparam],prefactor,
                   rsq2,rsq3,delr2,delr3,fj,fk,fi);
-      quadrature_energy += energy_contribution/3;
       force_densityx += fi[0];
       force_densityy += fi[1];
       force_densityz += fi[2];

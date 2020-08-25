@@ -103,8 +103,6 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@rm -rf html/USER
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
-	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target: JPG' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 

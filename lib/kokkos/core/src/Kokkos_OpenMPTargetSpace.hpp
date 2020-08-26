@@ -98,8 +98,8 @@ namespace Experimental {
 class OpenMPTargetSpace {
  public:
   //! Tag this class as a kokkos memory space
-  typedef OpenMPTargetSpace memory_space;
-  typedef size_t size_type;
+  using memory_space = OpenMPTargetSpace;
+  using size_type    = size_t;
 
   /// \typedef execution_space
   /// \brief Default execution space for this memory space.
@@ -107,10 +107,10 @@ class OpenMPTargetSpace {
   /// Every memory space has a default execution space.  This is
   /// useful for things like initializing a View (which happens in
   /// parallel using the View's default execution space).
-  typedef Kokkos::Experimental::OpenMPTarget execution_space;
+  using execution_space = Kokkos::Experimental::OpenMPTarget;
 
   //! This memory space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /*--------------------------------*/
 
@@ -149,7 +149,7 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
  private:
   friend Kokkos::Experimental::OpenMPTargetSpace;
 
-  typedef SharedAllocationRecord<void, void> RecordBase;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;

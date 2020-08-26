@@ -111,10 +111,10 @@ struct RandomProperties {
 
 template <class GeneratorPool, class Scalar>
 struct test_random_functor {
-  typedef typename GeneratorPool::generator_type rnd_type;
+  using rnd_type = typename GeneratorPool::generator_type;
 
-  typedef RandomProperties value_type;
-  typedef typename GeneratorPool::device_type device_type;
+  using value_type  = RandomProperties;
+  using device_type = typename GeneratorPool::device_type;
 
   GeneratorPool rand_pool;
   const double mean;
@@ -125,12 +125,12 @@ struct test_random_functor {
   // implementations might violate this upper bound, due to rounding
   // error.  Just in case, we leave an extra space at the end of each
   // dimension, in the View types below.
-  typedef Kokkos::View<int[HIST_DIM1D + 1], typename GeneratorPool::device_type>
-      type_1d;
+  using type_1d =
+      Kokkos::View<int[HIST_DIM1D + 1], typename GeneratorPool::device_type>;
   type_1d density_1d;
-  typedef Kokkos::View<int[HIST_DIM3D + 1][HIST_DIM3D + 1][HIST_DIM3D + 1],
-                       typename GeneratorPool::device_type>
-      type_3d;
+  using type_3d =
+      Kokkos::View<int[HIST_DIM3D + 1][HIST_DIM3D + 1][HIST_DIM3D + 1],
+                   typename GeneratorPool::device_type>;
   type_3d density_3d;
 
   test_random_functor(GeneratorPool rand_pool_, type_1d d1d, type_3d d3d)
@@ -200,9 +200,9 @@ struct test_random_functor {
 
 template <class DeviceType>
 struct test_histogram1d_functor {
-  typedef RandomProperties value_type;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
+  using value_type      = RandomProperties;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
 
   // NOTE (mfh 03 Nov 2014): Kokkos::rand::max() is supposed to define
   // an exclusive upper bound on the range of random numbers that
@@ -210,7 +210,7 @@ struct test_histogram1d_functor {
   // implementations might violate this upper bound, due to rounding
   // error.  Just in case, we leave an extra space at the end of each
   // dimension, in the View type below.
-  typedef Kokkos::View<int[HIST_DIM1D + 1], memory_space> type_1d;
+  using type_1d = Kokkos::View<int[HIST_DIM1D + 1], memory_space>;
   type_1d density_1d;
   double mean;
 
@@ -219,7 +219,7 @@ struct test_histogram1d_functor {
 
   KOKKOS_INLINE_FUNCTION void operator()(
       const typename memory_space::size_type i, RandomProperties& prop) const {
-    typedef typename memory_space::size_type size_type;
+    using size_type    = typename memory_space::size_type;
     const double count = density_1d(i);
     prop.mean += count;
     prop.variance += 1.0 * (count - mean) * (count - mean);
@@ -234,9 +234,9 @@ struct test_histogram1d_functor {
 
 template <class DeviceType>
 struct test_histogram3d_functor {
-  typedef RandomProperties value_type;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
+  using value_type      = RandomProperties;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
 
   // NOTE (mfh 03 Nov 2014): Kokkos::rand::max() is supposed to define
   // an exclusive upper bound on the range of random numbers that
@@ -244,9 +244,9 @@ struct test_histogram3d_functor {
   // implementations might violate this upper bound, due to rounding
   // error.  Just in case, we leave an extra space at the end of each
   // dimension, in the View type below.
-  typedef Kokkos::View<int[HIST_DIM3D + 1][HIST_DIM3D + 1][HIST_DIM3D + 1],
-                       memory_space>
-      type_3d;
+  using type_3d =
+      Kokkos::View<int[HIST_DIM3D + 1][HIST_DIM3D + 1][HIST_DIM3D + 1],
+                   memory_space>;
   type_3d density_3d;
   double mean;
 
@@ -255,7 +255,7 @@ struct test_histogram3d_functor {
 
   KOKKOS_INLINE_FUNCTION void operator()(
       const typename memory_space::size_type i, RandomProperties& prop) const {
-    typedef typename memory_space::size_type size_type;
+    using size_type    = typename memory_space::size_type;
     const double count = density_3d(
         i / (HIST_DIM3D * HIST_DIM3D),
         (i % (HIST_DIM3D * HIST_DIM3D)) / HIST_DIM3D, i % HIST_DIM3D);
@@ -276,7 +276,7 @@ struct test_histogram3d_functor {
 //
 template <class RandomGenerator, class Scalar>
 struct test_random_scalar {
-  typedef typename RandomGenerator::generator_type rnd_type;
+  using rnd_type = typename RandomGenerator::generator_type;
 
   int pass_mean, pass_var, pass_covar;
   int pass_hist1d_mean, pass_hist1d_var, pass_hist1d_covar;
@@ -294,7 +294,7 @@ struct test_random_scalar {
       cout << " -- Testing randomness properties" << endl;
 
       RandomProperties result;
-      typedef test_random_functor<RandomGenerator, Scalar> functor_type;
+      using functor_type = test_random_functor<RandomGenerator, Scalar>;
       parallel_reduce(num_draws / 1024,
                       functor_type(pool, density_1d, density_3d), result);
 
@@ -325,8 +325,8 @@ struct test_random_scalar {
       cout << " -- Testing 1-D histogram" << endl;
 
       RandomProperties result;
-      typedef test_histogram1d_functor<typename RandomGenerator::device_type>
-          functor_type;
+      using functor_type =
+          test_histogram1d_functor<typename RandomGenerator::device_type>;
       parallel_reduce(HIST_DIM1D, functor_type(density_1d, num_draws), result);
 
       double tolerance   = 6 * std::sqrt(1.0 / HIST_DIM1D);
@@ -357,8 +357,8 @@ struct test_random_scalar {
       cout << " -- Testing 3-D histogram" << endl;
 
       RandomProperties result;
-      typedef test_histogram3d_functor<typename RandomGenerator::device_type>
-          functor_type;
+      using functor_type =
+          test_histogram3d_functor<typename RandomGenerator::device_type>;
       parallel_reduce(HIST_DIM1D, functor_type(density_3d, num_draws), result);
 
       double tolerance   = 6 * std::sqrt(1.0 / HIST_DIM1D);

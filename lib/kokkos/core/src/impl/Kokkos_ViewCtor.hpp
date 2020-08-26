@@ -141,7 +141,7 @@ struct ViewCtorProp<typename std::enable_if<
   ViewCtorProp(const ViewCtorProp &) = default;
   ViewCtorProp &operator=(const ViewCtorProp &) = default;
 
-  typedef P type;
+  using type = P;
 
   ViewCtorProp(const type &) {}
 
@@ -156,7 +156,7 @@ struct ViewCtorProp<typename std::enable_if<is_view_label<Label>::value>::type,
   ViewCtorProp(const ViewCtorProp &) = default;
   ViewCtorProp &operator=(const ViewCtorProp &) = default;
 
-  typedef std::string type;
+  using type = std::string;
 
   ViewCtorProp(const type &arg) : value(arg) {}
   ViewCtorProp(type &&arg) : value(arg) {}
@@ -173,7 +173,7 @@ struct ViewCtorProp<typename std::enable_if<
   ViewCtorProp(const ViewCtorProp &) = default;
   ViewCtorProp &operator=(const ViewCtorProp &) = default;
 
-  typedef Space type;
+  using type = Space;
 
   ViewCtorProp(const type &arg) : value(arg) {}
 
@@ -186,7 +186,7 @@ struct ViewCtorProp<void, T *> {
   ViewCtorProp(const ViewCtorProp &) = default;
   ViewCtorProp &operator=(const ViewCtorProp &) = default;
 
-  typedef T *type;
+  using type = T *;
 
   KOKKOS_INLINE_FUNCTION
   ViewCtorProp(const type arg) : value(arg) {}
@@ -194,20 +194,49 @@ struct ViewCtorProp<void, T *> {
   type value;
 };
 
+// For some reason I don't understand I needed this specialization explicitly
+// for NVCC/MSVC
+template <typename T>
+struct ViewCtorProp<T *> {
+  ViewCtorProp()                     = default;
+  ViewCtorProp(const ViewCtorProp &) = default;
+  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+
+  using type = T *;
+
+  KOKKOS_INLINE_FUNCTION
+  ViewCtorProp(const type arg) : value(arg) {}
+
+  enum { has_pointer = true };
+  using pointer_type = type;
+  type value;
+};
+
+// If we use `ViewCtorProp<Args...>` and `ViewCtorProp<void, Args>...` directly
+// in the parameter lists and base class initializers, respectively, as far as
+// we can tell MSVC 16.5.5+CUDA 10.2 thinks that `ViewCtorProp` refers to the
+// current instantiation, not the template itself, and gets all kinds of
+// confused. To work around this, we just use a couple of alias templates that
+// amount to the same thing.
+template <typename... Args>
+using view_ctor_prop_args = ViewCtorProp<Args...>;
+
+template <typename Arg>
+using view_ctor_prop_base = ViewCtorProp<void, Arg>;
+
 template <typename... P>
 struct ViewCtorProp : public ViewCtorProp<void, P>... {
  private:
-  typedef Kokkos::Impl::has_condition<void, Kokkos::Impl::is_memory_space, P...>
-      var_memory_space;
+  using var_memory_space =
+      Kokkos::Impl::has_condition<void, Kokkos::Impl::is_memory_space, P...>;
 
-  typedef Kokkos::Impl::has_condition<void, Kokkos::Impl::is_execution_space,
-                                      P...>
-      var_execution_space;
+  using var_execution_space =
+      Kokkos::Impl::has_condition<void, Kokkos::Impl::is_execution_space, P...>;
 
   struct VOIDDUMMY {};
 
-  typedef Kokkos::Impl::has_condition<VOIDDUMMY, std::is_pointer, P...>
-      var_pointer;
+  using var_pointer =
+      Kokkos::Impl::has_condition<VOIDDUMMY, std::is_pointer, P...>;
 
  public:
   /* Flags for the common properties */
@@ -220,9 +249,9 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
     initialize = !Kokkos::Impl::has_type<WithoutInitializing_t, P...>::value
   };
 
-  typedef typename var_memory_space::type memory_space;
-  typedef typename var_execution_space::type execution_space;
-  typedef typename var_pointer::type pointer_type;
+  using memory_space    = typename var_memory_space::type;
+  using execution_space = typename var_execution_space::type;
+  using pointer_type    = typename var_pointer::type;
 
   /*  Copy from a matching argument list.
    *  Requires  std::is_same< P , ViewCtorProp< void , Args >::value ...
@@ -236,10 +265,20 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
         ViewCtorProp<void, typename ViewCtorProp<void, Args>::type>(args)... {}
 
   /* Copy from a matching property subset */
+  KOKKOS_INLINE_FUNCTION ViewCtorProp(pointer_type arg0)
+      : ViewCtorProp<void, pointer_type>(arg0) {}
+
+  // If we use `ViewCtorProp<Args...>` and `ViewCtorProp<void, Args>...` here
+  // directly, MSVC 16.5.5+CUDA 10.2 appears to think that `ViewCtorProp` refers
+  // to the current instantiation, not the template itself, and gets all kinds
+  // of confused. To work around this, we just use a couple of alias templates
+  // that amount to the same thing.
   template <typename... Args>
-  ViewCtorProp(ViewCtorProp<Args...> const &arg)
-      : ViewCtorProp<void, Args>(
-            static_cast<ViewCtorProp<void, Args> const &>(arg))... {
+  ViewCtorProp(view_ctor_prop_args<Args...> const &arg)
+      : view_ctor_prop_base<Args>(
+            static_cast<view_ctor_prop_base<Args> const &>(arg))... {
+    // Suppress an unused argument warning that (at least at one point) would
+    // show up if sizeof...(Args) == 0
     (void)arg;
   }
 };

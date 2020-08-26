@@ -45,8 +45,7 @@
 #ifndef KOKKOS_HIP_ATOMIC_HPP
 #define KOKKOS_HIP_ATOMIC_HPP
 
-#ifdef KOKKOS_ENABLE_HIP_ATOMICS
-
+#if defined(KOKKOS_ENABLE_HIP_ATOMICS)
 namespace Kokkos {
 // HIP can do:
 // Types int/unsigned int
@@ -91,7 +90,7 @@ __inline__ __device__ T atomic_exchange(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T &>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
 
   type tmp = atomicExch(reinterpret_cast<type *>(const_cast<T *>(dest)),
                         *reinterpret_cast<type *>(const_cast<T *>(&val)));
@@ -141,7 +140,7 @@ __inline__ __device__ void atomic_assign(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T &>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
   atomicExch(reinterpret_cast<type *>(const_cast<T *>(dest)),
              *reinterpret_cast<type *>(const_cast<T *>(&val)));
 }

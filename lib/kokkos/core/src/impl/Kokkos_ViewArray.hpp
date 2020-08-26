@@ -51,21 +51,21 @@ namespace Kokkos {
 namespace Impl {
 
 template <class DataType, class ArrayLayout, class V, size_t N, class P>
-struct ViewDataAnalysis<DataType, ArrayLayout, Kokkos::Array<V, N, P> > {
+struct ViewDataAnalysis<DataType, ArrayLayout, Kokkos::Array<V, N, P>> {
  private:
-  typedef ViewArrayAnalysis<DataType> array_analysis;
+  using array_analysis = ViewArrayAnalysis<DataType>;
 
   static_assert(std::is_same<P, void>::value, "");
   static_assert(std::is_same<typename array_analysis::non_const_value_type,
-                             Kokkos::Array<V, N, P> >::value,
+                             Kokkos::Array<V, N, P>>::value,
                 "");
   static_assert(std::is_scalar<V>::value,
                 "View of Array type must be of a scalar type");
 
  public:
-  typedef Kokkos::Array<> specialize;
+  using specialize = Kokkos::Array<>;
 
-  typedef typename array_analysis::dimension dimension;
+  using dimension = typename array_analysis::dimension;
 
  private:
   enum {
@@ -73,29 +73,29 @@ struct ViewDataAnalysis<DataType, ArrayLayout, Kokkos::Array<V, N, P> > {
                             typename array_analysis::const_value_type>::value
   };
 
-  typedef typename dimension::template append<N>::type array_scalar_dimension;
+  using array_scalar_dimension = typename dimension::template append<N>::type;
 
-  typedef typename std::conditional<is_const, const V, V>::type scalar_type;
-  typedef V non_const_scalar_type;
-  typedef const V const_scalar_type;
+  using scalar_type = typename std::conditional<is_const, const V, V>::type;
+  using non_const_scalar_type = V;
+  using const_scalar_type     = const V;
 
  public:
-  typedef typename array_analysis::value_type value_type;
-  typedef typename array_analysis::const_value_type const_value_type;
-  typedef typename array_analysis::non_const_value_type non_const_value_type;
+  using value_type           = typename array_analysis::value_type;
+  using const_value_type     = typename array_analysis::const_value_type;
+  using non_const_value_type = typename array_analysis::non_const_value_type;
 
-  typedef typename ViewDataType<value_type, dimension>::type type;
-  typedef typename ViewDataType<const_value_type, dimension>::type const_type;
-  typedef typename ViewDataType<non_const_value_type, dimension>::type
-      non_const_type;
+  using type       = typename ViewDataType<value_type, dimension>::type;
+  using const_type = typename ViewDataType<const_value_type, dimension>::type;
+  using non_const_type =
+      typename ViewDataType<non_const_value_type, dimension>::type;
 
-  typedef typename ViewDataType<scalar_type, array_scalar_dimension>::type
-      scalar_array_type;
-  typedef typename ViewDataType<const_scalar_type, array_scalar_dimension>::type
-      const_scalar_array_type;
-  typedef
-      typename ViewDataType<non_const_scalar_type, array_scalar_dimension>::type
-          non_const_scalar_array_type;
+  using scalar_array_type =
+      typename ViewDataType<scalar_type, array_scalar_dimension>::type;
+  using const_scalar_array_type =
+      typename ViewDataType<const_scalar_type, array_scalar_dimension>::type;
+  using non_const_scalar_array_type =
+      typename ViewDataType<non_const_scalar_type,
+                            array_scalar_dimension>::type;
 };
 
 }  // namespace Impl
@@ -109,31 +109,28 @@ namespace Impl {
 
 /** \brief  View mapping for non-specialized data type and standard layout */
 template <class Traits>
-class ViewMapping<Traits, Kokkos::Array<> > {
+class ViewMapping<Traits, Kokkos::Array<>> {
  private:
   template <class, class...>
   friend class ViewMapping;
   template <class, class...>
   friend class Kokkos::View;
 
-  typedef ViewOffset<typename Traits::dimension, typename Traits::array_layout,
-                     void>
-      offset_type;
+  using offset_type = ViewOffset<typename Traits::dimension,
+                                 typename Traits::array_layout, void>;
 
-  typedef typename Traits::value_type::pointer handle_type;
+  using handle_type = typename Traits::value_type::pointer;
 
   handle_type m_impl_handle;
   offset_type m_impl_offset;
   size_t m_stride;
 
-  typedef typename Traits::value_type::value_type scalar_type;
+  using scalar_type = typename Traits::value_type::value_type;
 
-  typedef Kokkos::Array<scalar_type, KOKKOS_INVALID_INDEX,
-                        Kokkos::Array<>::contiguous>
-      contiguous_reference;
-  typedef Kokkos::Array<scalar_type, KOKKOS_INVALID_INDEX,
-                        Kokkos::Array<>::strided>
-      strided_reference;
+  using contiguous_reference = Kokkos::Array<scalar_type, (~std::size_t(0)),
+                                             Kokkos::Array<>::contiguous>;
+  using strided_reference =
+      Kokkos::Array<scalar_type, (~std::size_t(0)), Kokkos::Array<>::strided>;
 
   enum {
     is_contiguous_reference =
@@ -232,11 +229,11 @@ class ViewMapping<Traits, Kokkos::Array<> > {
     return m_impl_offset.span_is_contiguous();
   }
 
-  typedef
+  using reference_type =
       typename std::conditional<is_contiguous_reference, contiguous_reference,
-                                strided_reference>::type reference_type;
+                                strided_reference>::type;
 
-  typedef handle_type pointer_type;
+  using pointer_type = handle_type;
 
   /** \brief  If data references are lvalue_reference than can query pointer to
    * memory */
@@ -377,31 +374,33 @@ class ViewMapping<Traits, Kokkos::Array<> > {
   Kokkos::Impl::SharedAllocationRecord<> *allocate_shared(
       Kokkos::Impl::ViewCtorProp<P...> const &arg_prop,
       typename Traits::array_layout const &arg_layout) {
-    typedef Kokkos::Impl::ViewCtorProp<P...> alloc_prop;
+    using alloc_prop = Kokkos::Impl::ViewCtorProp<P...>;
 
-    typedef typename alloc_prop::execution_space execution_space;
-    typedef typename Traits::memory_space memory_space;
-    typedef ViewValueFunctor<execution_space, scalar_type> functor_type;
-    typedef Kokkos::Impl::SharedAllocationRecord<memory_space, functor_type>
-        record_type;
+    using execution_space = typename alloc_prop::execution_space;
+    using memory_space    = typename Traits::memory_space;
+    using functor_type    = ViewValueFunctor<execution_space, scalar_type>;
+    using record_type =
+        Kokkos::Impl::SharedAllocationRecord<memory_space, functor_type>;
 
     // Query the mapping for byte-size of allocation.
-    typedef std::integral_constant<
-        unsigned, alloc_prop::allow_padding ? sizeof(scalar_type) : 0>
-        padding;
+    using padding = std::integral_constant<
+        unsigned int, alloc_prop::allow_padding ? sizeof(scalar_type) : 0>;
 
     m_impl_offset = offset_type(padding(), arg_layout);
 
     const size_t alloc_size =
         (m_impl_offset.span() * Array_N * MemorySpanSize + MemorySpanMask) &
         ~size_t(MemorySpanMask);
-
+    const auto &alloc_name =
+        static_cast<Kokkos::Impl::ViewCtorProp<void, std::string> const &>(
+            arg_prop)
+            .value;
     // Allocate memory from the memory space and create tracking record.
     record_type *const record = record_type::allocate(
-        ((Kokkos::Impl::ViewCtorProp<void, memory_space> const &)arg_prop)
+        static_cast<Kokkos::Impl::ViewCtorProp<void, memory_space> const &>(
+            arg_prop)
             .value,
-        ((Kokkos::Impl::ViewCtorProp<void, std::string> const &)arg_prop).value,
-        alloc_size);
+        alloc_name, alloc_size);
 
     if (alloc_size) {
       m_impl_handle =
@@ -410,10 +409,11 @@ class ViewMapping<Traits, Kokkos::Array<> > {
       if (alloc_prop::initialize) {
         // The functor constructs and destroys
         record->m_destroy = functor_type(
-            ((Kokkos::Impl::ViewCtorProp<void, execution_space> const &)
-                 arg_prop)
+            static_cast<Kokkos::Impl::ViewCtorProp<void, execution_space> const
+                            &>(arg_prop)
                 .value,
-            (pointer_type)m_impl_handle, m_impl_offset.span() * Array_N);
+            (pointer_type)m_impl_handle, m_impl_offset.span() * Array_N,
+            alloc_name);
 
         record->m_destroy.construct_shared_allocation();
       }
@@ -438,7 +438,7 @@ class ViewMapping<
                       Kokkos::LayoutRight>::value ||
          std::is_same<typename DstTraits::array_layout,
                       Kokkos::LayoutStride>::value) &&
-        std::is_same<typename SrcTraits::specialize, Kokkos::Array<> >::value &&
+        std::is_same<typename SrcTraits::specialize, Kokkos::Array<>>::value &&
         (std::is_same<typename SrcTraits::array_layout,
                       Kokkos::LayoutLeft>::value ||
          std::is_same<typename SrcTraits::array_layout,
@@ -462,16 +462,16 @@ class ViewMapping<
                      typename SrcTraits::array_layout>::value
   };
 
-  typedef Kokkos::Impl::SharedAllocationTracker TrackType;
-  typedef ViewMapping<DstTraits, void> DstType;
-  typedef ViewMapping<SrcTraits, Kokkos::Array<> > SrcType;
+  using TrackType = Kokkos::Impl::SharedAllocationTracker;
+  using DstType   = ViewMapping<DstTraits, void>;
+  using SrcType   = ViewMapping<SrcTraits, Kokkos::Array<>>;
 
   KOKKOS_INLINE_FUNCTION
   static void assign(DstType &dst, const SrcType &src,
                      const TrackType & /*src_track*/) {
     static_assert(is_assignable, "Can only convert to array_type");
 
-    typedef typename DstType::offset_type dst_offset_type;
+    using dst_offset_type = typename DstType::offset_type;
 
     // Array dimension becomes the last dimension.
     // Arguments beyond the destination rank are ignored.
@@ -496,9 +496,8 @@ class ViewMapping<
               (7 < SrcType::Rank ? src.dimension_7()
                                  : SrcTraits::value_type::size())));
     } else {  // is padded
-      typedef std::integral_constant<
-          unsigned, sizeof(typename SrcTraits::value_type::value_type)>
-          padded;
+      using padded = std::integral_constant<
+          unsigned int, sizeof(typename SrcTraits::value_type::value_type)>;
 
       dst.m_impl_offset = dst_offset_type(
           padded(), typename DstTraits::array_layout(
@@ -530,7 +529,7 @@ class ViewMapping<
 template <class SrcTraits, class... Args>
 struct ViewMapping<
     typename std::enable_if<(
-        std::is_same<typename SrcTraits::specialize, Kokkos::Array<> >::value &&
+        std::is_same<typename SrcTraits::specialize, Kokkos::Array<>>::value &&
         (std::is_same<typename SrcTraits::array_layout,
                       Kokkos::LayoutLeft>::value ||
          std::is_same<typename SrcTraits::array_layout,
@@ -580,26 +579,20 @@ struct ViewMapping<
   };
 
   // Subview's layout
-  typedef typename std::conditional<
-      (            /* Same array layout IF */
-       (rank == 0) /* output rank zero */
-       ||
-       // OutputRank 1 or 2, InputLayout Left, Interval 0
-       // because single stride one or second index has a stride.
-       (rank <= 2 && R0 &&
-        std::is_same<typename SrcTraits::array_layout,
-                     Kokkos::LayoutLeft>::value) ||
-       // OutputRank 1 or 2, InputLayout Right, Interval [InputRank-1]
-       // because single stride one or second index has a stride.
-       (rank <= 2 && R0_rev &&
-        std::is_same<typename SrcTraits::array_layout,
-                     Kokkos::LayoutRight>::value)),
-      typename SrcTraits::array_layout, Kokkos::LayoutStride>::type
-      array_layout;
+  using array_layout =
+      typename std::conditional<((rank == 0) ||
+                                 (rank <= 2 && R0 &&
+                                  std::is_same<typename SrcTraits::array_layout,
+                                               Kokkos::LayoutLeft>::value) ||
+                                 (rank <= 2 && R0_rev &&
+                                  std::is_same<typename SrcTraits::array_layout,
+                                               Kokkos::LayoutRight>::value)),
+                                typename SrcTraits::array_layout,
+                                Kokkos::LayoutStride>::type;
 
-  typedef typename SrcTraits::value_type value_type;
+  using value_type = typename SrcTraits::value_type;
 
-  typedef typename std::conditional<
+  using data_type = typename std::conditional<
       rank == 0, value_type,
       typename std::conditional<
           rank == 1, value_type *,
@@ -616,25 +609,24 @@ struct ViewMapping<
                               typename std::conditional<
                                   rank == 7, value_type *******,
                                   value_type ********>::type>::type>::type>::
-                      type>::type>::type>::type>::type data_type;
+                      type>::type>::type>::type>::type;
 
  public:
-  typedef Kokkos::ViewTraits<data_type, array_layout,
-                             typename SrcTraits::device_type,
-                             typename SrcTraits::memory_traits>
-      traits_type;
+  using traits_type = Kokkos::ViewTraits<data_type, array_layout,
+                                         typename SrcTraits::device_type,
+                                         typename SrcTraits::memory_traits>;
 
-  typedef Kokkos::View<data_type, array_layout, typename SrcTraits::device_type,
-                       typename SrcTraits::memory_traits>
-      type;
+  using type =
+      Kokkos::View<data_type, array_layout, typename SrcTraits::device_type,
+                   typename SrcTraits::memory_traits>;
 
   KOKKOS_INLINE_FUNCTION
   static void assign(ViewMapping<traits_type, void> &dst,
                      ViewMapping<SrcTraits, void> const &src, Args... args) {
-    typedef ViewMapping<traits_type, void> DstType;
+    using DstType = ViewMapping<traits_type, void>;
 
-    typedef typename DstType::offset_type dst_offset_type;
-    typedef typename DstType::handle_type dst_handle_type;
+    using dst_offset_type = typename DstType::offset_type;
+    using dst_handle_type = typename DstType::handle_type;
 
     const SubviewExtents<SrcTraits::rank, rank> extents(src.m_impl_offset.m_dim,
                                                         args...);

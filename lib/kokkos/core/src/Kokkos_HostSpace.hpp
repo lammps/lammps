@@ -103,8 +103,8 @@ namespace Kokkos {
 class HostSpace {
  public:
   //! Tag this class as a kokkos memory space
-  typedef HostSpace memory_space;
-  typedef size_t size_type;
+  using memory_space = HostSpace;
+  using size_type    = size_t;
 
   /// \typedef execution_space
   /// \brief Default execution space for this memory space.
@@ -113,26 +113,26 @@ class HostSpace {
   /// useful for things like initializing a View (which happens in
   /// parallel using the View's default execution space).
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
-  typedef Kokkos::OpenMP execution_space;
+  using execution_space = Kokkos::OpenMP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
-  typedef Kokkos::Threads execution_space;
+  using execution_space = Kokkos::Threads;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
-  typedef Kokkos::Experimental::HPX execution_space;
+  using execution_space = Kokkos::Experimental::HPX;
 #elif defined(KOKKOS_ENABLE_OPENMP)
-  typedef Kokkos::OpenMP execution_space;
+  using execution_space = Kokkos::OpenMP;
 #elif defined(KOKKOS_ENABLE_THREADS)
-  typedef Kokkos::Threads execution_space;
+  using execution_space = Kokkos::Threads;
 #elif defined(KOKKOS_ENABLE_HPX)
-  typedef Kokkos::Experimental::HPX execution_space;
+  using execution_space = Kokkos::Experimental::HPX;
 #elif defined(KOKKOS_ENABLE_SERIAL)
-  typedef Kokkos::Serial execution_space;
+  using execution_space = Kokkos::Serial;
 #else
 #error \
     "At least one of the following host execution spaces must be defined: Kokkos::OpenMP, Kokkos::Threads, or Kokkos::Serial.  You might be seeing this message if you disabled the Kokkos::Serial device explicitly using the Kokkos_ENABLE_Serial:BOOL=OFF CMake option, but did not enable any of the other host execution space devices."
 #endif
 
   //! This memory space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /**\brief  Default memory space instance */
   HostSpace();
@@ -156,9 +156,14 @@ class HostSpace {
 
   /**\brief  Allocate untracked memory in the space */
   void* allocate(const size_t arg_alloc_size) const;
+  void* allocate(const char* arg_label, const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const;
 
   /**\brief  Deallocate untracked memory in the space */
   void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
+  void deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                  const size_t arg_alloc_size,
+                  const size_t arg_logical_size = 0) const;
 
   /**\brief Return Name of the MemorySpace */
   static constexpr const char* name() { return m_name; }
@@ -201,16 +206,13 @@ struct HostMirror {
   };
 
  public:
-  typedef typename std::conditional<
-      keep_exe && keep_mem /* Can keep whole space */
-      ,
-      S,
+  using Space = typename std::conditional<
+      keep_exe && keep_mem, S,
       typename std::conditional<
-          keep_mem /* Can keep memory space, use default Host execution space */
-          ,
+          keep_mem,
           Kokkos::Device<Kokkos::HostSpace::execution_space,
                          typename S::memory_space>,
-          Kokkos::HostSpace>::type>::type Space;
+          Kokkos::HostSpace>::type>::type;
 };
 
 }  // namespace Impl
@@ -229,7 +231,7 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
  private:
   friend Kokkos::HostSpace;
 
-  typedef SharedAllocationRecord<void, void> RecordBase;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;

@@ -45,6 +45,9 @@
 #ifndef KOKKOS_WORKGRAPHPOLICY_HPP
 #define KOKKOS_WORKGRAPHPOLICY_HPP
 
+#include <impl/Kokkos_AnalyzePolicy.hpp>
+#include <Kokkos_Crs.hpp>
+
 namespace Kokkos {
 namespace Impl {
 
@@ -243,6 +246,10 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
 #ifdef KOKKOS_ENABLE_CUDA
 #include "Cuda/Kokkos_Cuda_WorkGraphPolicy.hpp"
+#endif
+
+#ifdef KOKKOS_ENABLE_HIP
+#include "HIP/Kokkos_HIP_WorkGraphPolicy.hpp"
 #endif
 
 #ifdef KOKKOS_ENABLE_THREADS

@@ -91,11 +91,11 @@ struct FunctorReduce {
 };
 }  // namespace
 
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE> policy_type;
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >
-    policy_type_128_8;
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >
-    policy_type_1024_2;
+using policy_type = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+using policy_type_128_8 =
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >;
+using policy_type_1024_2 =
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >;
 
 template <class T, int N, class PolicyType, int S>
 void test_team_policy_max_recommended_static_size(int scratch_size) {

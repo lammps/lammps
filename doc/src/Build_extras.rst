@@ -361,9 +361,12 @@ be specified in uppercase.
    *  - AMDAVX
       - HOST
       - AMD 64-bit x86 CPU (AVX 1)
-   *  - EPYC
+   *  - ZEN
       - HOST
-      - AMD EPYC Zen class CPU (AVX 2)
+      - AMD Zen class CPU (AVX 2)
+   *  - ZEN2
+      - HOST
+      - AMD Zen2 class CPU (AVX 2)
    *  - ARMV80
       - HOST
       - ARMv8.0 Compatible CPU

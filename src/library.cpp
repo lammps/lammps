@@ -425,7 +425,7 @@ void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Process a block of LAMMPS input commands from a single string.
+/** Process a block of LAMMPS input commands from a single string.
  *
 \verbatim embed:rst
 
@@ -2531,7 +2531,7 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
 // Library functions for accessing LAMMPS configuration
 // ----------------------------------------------------------------------
 
-/** \brief Check if a specific package has been included in LAMMPS
+/** Check if a specific package has been included in LAMMPS
  *
 \verbatim embed:rst
 This function checks if the LAMMPS library in use includes the
@@ -2547,7 +2547,7 @@ int lammps_config_has_package(char * name) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Count the number of installed packages in the LAMMPS library.
+/** Count the number of installed packages in the LAMMPS library.
  *
 \verbatim embed:rst
 This function counts how many :doc:`LAMMPS packages <Packages>` are
@@ -2566,7 +2566,7 @@ int lammps_config_package_count() {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Get the name of a package in the list of installed packages in the LAMMPS library.
+/** Get the name of a package in the list of installed packages in the LAMMPS library.
  *
 \verbatim embed:rst
 This function copies the name of the package with the index *idx* into the
@@ -2594,7 +2594,7 @@ int lammps_config_package_name(int idx, char * buffer, int buf_size) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check if a specific style has been included in LAMMPS
+/** Check if a specific style has been included in LAMMPS
  *
 \verbatim embed:rst
 This function checks if the LAMMPS library in use includes the
@@ -2617,7 +2617,7 @@ int lammps_has_style(void * handle, char * category, char * name) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Count the number of styles of category in the LAMMPS library.
+/** Count the number of styles of category in the LAMMPS library.
  *
 \verbatim embed:rst
 This function counts how many styles in the provided *category*
@@ -2638,7 +2638,7 @@ int lammps_style_count(void * handle, char * category) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
+/** Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
  *
 \verbatim embed:rst
 This function copies the name of the package with the index *idx* into the
@@ -2688,7 +2688,7 @@ int lammps_config_has_mpi_support()
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check if the LAMMPS library supports compressed files via a pipe to gzip
+/** Check if the LAMMPS library supports compressed files via a pipe to gzip
 
 \verbatim embed:rst
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
@@ -2707,7 +2707,7 @@ int lammps_config_has_gzip_support() {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check if the LAMMPS library supports writing PNG format images
+/** Check if the LAMMPS library supports writing PNG format images
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
@@ -2726,7 +2726,7 @@ int lammps_config_has_png_support() {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check if the LAMMPS library supports writing JPEG format images
+/** Check if the LAMMPS library supports writing JPEG format images
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
@@ -2744,7 +2744,7 @@ int lammps_config_has_jpeg_support() {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
+/** Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
@@ -2762,7 +2762,7 @@ int lammps_config_has_ffmpeg_support() {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Check whether LAMMPS errors will throw a C++ exception
+/** Check whether LAMMPS errors will throw a C++ exception
  *
 \verbatim embed:rst
 In case of errors LAMMPS will either abort or throw a C++ exception.
@@ -2779,7 +2779,7 @@ int lammps_config_has_exceptions() {
 // Library functions for accessing neighbor lists
 // ----------------------------------------------------------------------
 
-/** \brief Find neighbor list index of pair style neighbor list
+/** Find neighbor list index of pair style neighbor list
  *
  * Try finding pair instance that matches style. If exact is set, the pair must
  * match style exactly. If exact is 0, style must only be contained. If pair is
@@ -2820,7 +2820,7 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Find neighbor list index of fix neighbor list
+/** Find neighbor list index of fix neighbor list
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id       Identifier of fix instance
@@ -2857,7 +2857,7 @@ int lammps_find_fix_neighlist(void* handle, char * id, int request) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Find neighbor list index of compute neighbor list
+/** Find neighbor list index of compute neighbor list
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id       Identifier of fix instance
@@ -2894,7 +2894,7 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Return the number of entries in the neighbor list with given index
+/** Return the number of entries in the neighbor list with given index
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param idx      neighbor list index
@@ -2915,7 +2915,7 @@ int lammps_neighlist_num_elements(void * handle, int idx) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Return atom local index, number of neighbors, and array of neighbor local
+/** Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
  *
  * \param handle          pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -3025,7 +3025,7 @@ void lammps_decode_image_flags(imageint image, int *flags)
 // Library functions for error handling with exceptions enabled
 // ----------------------------------------------------------------------
 
-/** \brief Check if there is a (new) error message available
+/** Check if there is a (new) error message available
 
 \verbatim embed:rst
 This function can be used to query if an error inside of LAMMPS
@@ -3055,7 +3055,7 @@ int lammps_has_error(void *handle) {
 
 /* ---------------------------------------------------------------------- */
 
-/** \brief Copy the last error message into the provided buffer
+/** Copy the last error message into the provided buffer
 
 \verbatim embed:rst
 This function can be used to retrieve the error message that was set

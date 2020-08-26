@@ -155,6 +155,8 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   return (void *) lmp;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Variant of ``lammps_open()`` that implicitly uses ``MPI_COMM_WORLD``.
  *
 \verbatim embed:rst
@@ -181,6 +183,8 @@ void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
   return lammps_open(argc,argv,MPI_COMM_WORLD,ptr);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Variant of ``lammps_open()`` using a Fortran MPI communicator.
  *
@@ -209,6 +213,8 @@ void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr)
   return lammps_open(argc, argv, c_comm, ptr);
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Delete a LAMMPS instance created by lammps_open() or its variants.
  *
 \verbatim embed:rst
@@ -228,6 +234,8 @@ void lammps_close(void *handle)
   LAMMPS *lmp = (LAMMPS *) handle;
   delete lmp;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Ensure the MPI environment is initialized.
  *
@@ -254,6 +262,8 @@ void lammps_mpi_init()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Shut down the MPI infrastructure.
  *
 \verbatim embed:rst
@@ -273,6 +283,8 @@ void lammps_mpi_finalize()
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Free memory buffer allocated by LAMMPS.
  *
@@ -329,6 +341,8 @@ void lammps_file(void *handle, const char *filename)
   END_CAPTURE
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Process a single LAMMPS input command from a string.
  *
 \verbatim embed:rst
@@ -366,6 +380,8 @@ char *lammps_command(void *handle, const char *cmd)
 
   return result;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Process multiple LAMMPS input commands from list of strings.
  *
@@ -406,6 +422,8 @@ void lammps_commands_list(void *handle, int ncmd, const char **cmds)
   lammps_commands_string(handle,str);
   lmp->memory->sfree(str);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Process a block of LAMMPS input commands from a single string.
  *
@@ -493,6 +511,8 @@ int lammps_version(void *handle)
   return atoi(lmp->universe->num_ver);
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Return the total number of atoms in the system.
  *
 \verbatim embed:rst
@@ -524,6 +544,8 @@ double lammps_get_natoms(void *handle)
   return natoms;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Get current value of a thermo keyword.
  *
 \verbatim embed:rst
@@ -552,6 +574,8 @@ double lammps_get_thermo(void *handle, char *keyword)
 
   return dval;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Extract simulation box parameters.
  *
@@ -618,6 +642,8 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
   END_CAPTURE
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Reset simulation box parameters.
  *
 \verbatim embed:rst
@@ -666,6 +692,8 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
   }
   END_CAPTURE
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Query LAMMPS about global settings.
  *
@@ -750,6 +778,8 @@ int lammps_extract_setting(void * handle, char *name)
 
   return -1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Get pointer to internal global LAMMPS variables or arrays.
  *
@@ -1052,6 +1082,8 @@ void *lammps_extract_global(void *handle, char *name)
   return NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Get pointer to a LAMMPS per-atom property.
  *
 \verbatim embed:rst
@@ -1083,6 +1115,8 @@ void *lammps_extract_atom(void *handle, char *name)
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Create N atoms from list of coordinates
  *
@@ -1397,6 +1431,8 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
   return NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Get pointer to data from a LAMMPS fix.
  *
 \verbatim embed:rst
@@ -1579,6 +1615,8 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
   return NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Get pointer to data from a LAMMPS variable.
  *
 \verbatim embed:rst
@@ -1660,6 +1698,8 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
 
   return NULL;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Set the value of a string-style variable.
  *
@@ -2505,6 +2545,8 @@ int lammps_config_has_package(char * name) {
   return Info::has_package(name) ? 1 : 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Count the number of installed packages in the LAMMPS library.
  *
 \verbatim embed:rst
@@ -2521,6 +2563,8 @@ int lammps_config_package_count() {
   }
   return i;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Get the name of a package in the list of installed packages in the LAMMPS library.
  *
@@ -2548,6 +2592,8 @@ int lammps_config_package_name(int idx, char * buffer, int buf_size) {
   return 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Check if a specific style has been included in LAMMPS
  *
 \verbatim embed:rst
@@ -2569,6 +2615,8 @@ int lammps_has_style(void * handle, char * category, char * name) {
   return info.has_style(category, name) ? 0 : 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Count the number of styles of category in the LAMMPS library.
  *
 \verbatim embed:rst
@@ -2587,6 +2635,8 @@ int lammps_style_count(void * handle, char * category) {
   Info info(lmp);
   return info.get_available_styles(category).size();
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
  *
@@ -2620,6 +2670,8 @@ int lammps_style_name(void* handle, char * category, int idx, char * buffer, int
   return 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** This function is used to query whether LAMMPS was compiled with
  *  a real MPI library or in serial.
  *
@@ -2633,6 +2685,8 @@ int lammps_config_has_mpi_support()
   return 1;
 #endif
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Check if the LAMMPS library supports compressed files via a pipe to gzip
 
@@ -2651,6 +2705,8 @@ int lammps_config_has_gzip_support() {
   return Info::has_gzip_support() ? 1 : 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Check if the LAMMPS library supports writing PNG format images
 
 \verbatim embed:rst
@@ -2668,6 +2724,8 @@ int lammps_config_has_png_support() {
   return Info::has_png_support() ? 1 : 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Check if the LAMMPS library supports writing JPEG format images
 
 \verbatim embed:rst
@@ -2684,6 +2742,8 @@ int lammps_config_has_jpeg_support() {
   return Info::has_jpeg_support() ? 1 : 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
 
 \verbatim embed:rst
@@ -2699,6 +2759,8 @@ It does **not** check whether the ``ffmpeg`` itself is installed and usable.
 int lammps_config_has_ffmpeg_support() {
   return Info::has_ffmpeg_support() ? 1 : 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Check whether LAMMPS errors will throw a C++ exception
  *
@@ -2756,6 +2818,8 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
   return -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Find neighbor list index of fix neighbor list
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -2790,6 +2854,8 @@ int lammps_find_fix_neighlist(void* handle, char * id, int request) {
   }
   return -1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Find neighbor list index of compute neighbor list
  *
@@ -2826,6 +2892,8 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
   return -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** \brief Return the number of entries in the neighbor list with given index
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -2844,6 +2912,8 @@ int lammps_neighlist_num_elements(void * handle, int idx) {
   NeighList * list = neighbor->lists[idx];
   return list->inum;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
@@ -2920,6 +2990,8 @@ imageint lammps_encode_image_flags(int ix, int iy, int iz)
   return image;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Decode a single image flag integer into three regular integers
  *
 \verbatim embed:rst
@@ -2977,6 +3049,8 @@ int lammps_has_error(void *handle) {
   Error * error = lmp->error;
   return (error->get_last_error().empty()) ? 0 : 1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** \brief Copy the last error message into the provided buffer
 

@@ -129,11 +129,11 @@ void DumpAtomZstd::write_header(bigint ndump)
   if ((multiproc) || (!multiproc && me == 0)) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      header = fmt::format("ITEM: UNITS\n%s\n",update->unit_style);
+      header = fmt::format("ITEM: UNITS\n{}\n",update->unit_style);
     }
 
     if (time_flag) {
-      header += fmt::format("ITEM: TIME\n%.16g\n", compute_time());
+      header += fmt::format("ITEM: TIME\n{0:.16g}\n", compute_time());
     }
 
     header += fmt::format("ITEM: TIMESTEP\n{}\n", update->ntimestep);

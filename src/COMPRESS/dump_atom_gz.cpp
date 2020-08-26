@@ -127,14 +127,14 @@ void DumpAtomGZ::write_header(bigint ndump)
     gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic == 0) {
       gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      gzprintf(gzFp,"%g %g\n",boxxlo,boxxhi);
-      gzprintf(gzFp,"%g %g\n",boxylo,boxyhi);
-      gzprintf(gzFp,"%g %g\n",boxzlo,boxzhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
     } else {
       gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      gzprintf(gzFp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-      gzprintf(gzFp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-      gzprintf(gzFp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
     }
     gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
   }

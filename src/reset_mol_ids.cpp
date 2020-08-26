@@ -41,14 +41,17 @@ ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
   compressflag = 1;
   singleflag = 0;
   offset = -1;
+
+  idfrag.clear();
+  idchunk.clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
 ResetMolIDs::~ResetMolIDs()
 {
-  modify->delete_compute(idfrag);
-  if (compressflag) modify->delete_compute(idchunk);
+  if (!idfrag.empty()) modify->delete_compute(idfrag);
+  if (compressflag && !idchunk.empty()) modify->delete_compute(idchunk);
 }
 
 /* ----------------------------------------------------------------------

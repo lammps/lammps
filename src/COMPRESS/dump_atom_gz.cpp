@@ -27,7 +27,7 @@ DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
 {
   gzFp = NULL;
 
-  compression_level = 9;
+  compression_level = Z_BEST_COMPRESSION;
 
   if (!compressed)
     error->all(FLERR,"Dump atom/gz only writes compressed files");
@@ -171,8 +171,10 @@ int DumpAtomGZ::modify_param(int narg, char **arg)
   if(consumed == 0) {
     if (strcmp(arg[0],"compression_level") == 0) {
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-      compression_level = force->inumeric(FLERR,arg[1]);
-      if (compression_level <= 0) error->all(FLERR,"Illegal dump_modify command");
+      int min_level = Z_DEFAULT_COMPRESSION;
+      int max_level = Z_BEST_COMPRESSION;
+      if (compression_level < 0 || compression_level > max_level)
+        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
       return 2;
     }
   }

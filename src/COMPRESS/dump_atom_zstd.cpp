@@ -201,7 +201,10 @@ int DumpAtomZstd::modify_param(int narg, char **arg)
     } else if (strcmp(arg[0],"compression_level") == 0) {
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
       compression_level = force->inumeric(FLERR,arg[1]);
-      if (compression_level <= 0) error->all(FLERR,"Illegal dump_modify command");
+      int min_level = ZSTD_minCLevel();
+      int max_level = ZSTD_maxCLevel();
+      if (compression_level < min_level || compression_level > max_level)
+        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
       return 2;
     }
   }

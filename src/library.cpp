@@ -3025,8 +3025,6 @@ void lammps_decode_image_flags(imageint image, int *flags)
 // Library functions for error handling with exceptions enabled
 // ----------------------------------------------------------------------
 
-#ifdef LAMMPS_EXCEPTIONS
-
 /** \brief Check if there is a (new) error message available
 
 \verbatim embed:rst
@@ -3035,19 +3033,24 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note:
 
-   This function is only available when the LAMMPS library has been
-   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions. You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
+   This function will always report "no error" when the LAMMPS library
+   has been compiled without ``-DLAMMPS_EXCEPTIONS`` which turns fatal
+   errors aborting LAMMPS into a C++ exceptions. You can use the library
+   function :cpp:func:`lammps_config_has_exceptions` to check if this is
+   the case.
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \return 0 on no error, 1 on error.
  */
 int lammps_has_error(void *handle) {
+#ifdef LAMMPS_EXCEPTIONS
   LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
   return (error->get_last_error().empty()) ? 0 : 1;
+#else
+  return 0;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3068,8 +3071,8 @@ the failing MPI ranks to send messages.
 
 .. note:
 
-   This function is only available when the LAMMPS library has been
-   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
+   This function will do nothing when the LAMMPS library has been
+   compiled without ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
    LAMMPS into a C++ exceptions.  You can use the library function
    :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
 \endverbatim
@@ -3080,6 +3083,7 @@ the failing MPI ranks to send messages.
  * \return 1 when all ranks had the error, 1 on a single rank error.
  */
 int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
+#ifdef LAMMPS_EXCEPTIONS
   LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
 
@@ -3089,10 +3093,9 @@ int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
     error->set_last_error("", ERROR_NONE);
     return error_type;
   }
+#endif
   return 0;
 }
-
-#endif
 
 // Local Variables:
 // fill-column: 72

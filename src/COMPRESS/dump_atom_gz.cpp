@@ -15,8 +15,10 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
+#include "force.h"
 
 #include <cstring>
+#include <fmt/format.h>
 
 using namespace LAMMPS_NS;
 
@@ -24,6 +26,8 @@ DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpAtom(lmp, narg, arg)
 {
   gzFp = NULL;
+
+  compression_level = 9;
 
   if (!compressed)
     error->all(FLERR,"Dump atom/gz only writes compressed files");
@@ -89,11 +93,14 @@ void DumpAtomGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
+    std::string mode;
     if (append_flag) {
-      gzFp = gzopen(filecurrent,"ab9");
+      mode = fmt::format("ab{}", compression_level);
     } else {
-      gzFp = gzopen(filecurrent,"wb9");
+      mode = fmt::format("wb{}", compression_level);
     }
+
+    gzFp = gzopen(filecurrent, mode.c_str());
 
     if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
   } else gzFp = NULL;
@@ -156,3 +163,18 @@ void DumpAtomGZ::write()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+int DumpAtomGZ::modify_param(int narg, char **arg)
+{
+  int consumed = DumpAtom::modify_param(narg, arg);
+  if(consumed == 0) {
+    if (strcmp(arg[0],"compression_level") == 0) {
+      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      compression_level = force->inumeric(FLERR,arg[1]);
+      if (compression_level <= 0) error->all(FLERR,"Illegal dump_modify command");
+      return 2;
+    }
+  }
+  return consumed;
+}

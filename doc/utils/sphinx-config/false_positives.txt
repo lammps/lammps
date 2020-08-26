@@ -437,6 +437,7 @@ Colvars
 COLVARS
 comID
 Commun
+compositing
 compressibility
 compressive
 Comput

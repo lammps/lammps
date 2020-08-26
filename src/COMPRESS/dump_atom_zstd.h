@@ -32,6 +32,9 @@ class DumpAtomZstd : public DumpAtom {
   virtual ~DumpAtomZstd();
 
  protected:
+  int compression_level;
+  int checksum_flag;
+
   ZSTD_CCtx * cctx;
   FILE * zstdFp;
   char * out_buffer;
@@ -41,6 +44,8 @@ class DumpAtomZstd : public DumpAtom {
   virtual void write_header(bigint);
   virtual void write_data(int, double *);
   virtual void write();
+
+  virtual int modify_param(int, char **);
 
   void zstd_write(const void * buffer, size_t length);
   void zstd_flush();

@@ -15,6 +15,7 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
+#include "force.h"
 
 #include <fmt/format.h>
 #include <cstring>
@@ -29,6 +30,9 @@ DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) :
   fp = nullptr;
   out_buffer_size = ZSTD_CStreamOutSize();
   out_buffer = new char[out_buffer_size];
+
+  checksum_flag = 1;
+  compression_level = 0; // = default
 
   if (!compressed)
     error->all(FLERR,"Dump atom/zstd only writes compressed files");
@@ -97,14 +101,16 @@ void DumpAtomZstd::openfile()
 
   if (filewriter) {
     if (append_flag) {
-      zstdFp = fopen(filecurrent,"ab9");
+      zstdFp = fopen(filecurrent,"ab");
     } else {
-      zstdFp = fopen(filecurrent,"wb9");
+      zstdFp = fopen(filecurrent,"wb");
     }
 
     if (zstdFp == nullptr) error->one(FLERR,"Cannot open dump file");
 
     cctx = ZSTD_createCCtx();
+    ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, compression_level);
+    ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, checksum_flag);
 
     if (cctx == nullptr) error->one(FLERR,"Cannot create Zstd context");
   } else zstdFp = nullptr;
@@ -180,7 +186,32 @@ void DumpAtomZstd::write()
   }
 }
 
-void DumpAtomZstd::zstd_write(const void * buffer, size_t length) {
+/* ---------------------------------------------------------------------- */
+
+int DumpAtomZstd::modify_param(int narg, char **arg)
+{
+  int consumed = DumpAtom::modify_param(narg, arg);
+  if(consumed == 0) {
+    if (strcmp(arg[0],"checksum") == 0) {
+      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[1],"yes") == 0) checksum_flag = 1;
+      else if (strcmp(arg[1],"no") == 0) checksum_flag = 0;
+      else error->all(FLERR,"Illegal dump_modify command");
+      return 2;
+    } else if (strcmp(arg[0],"compression_level") == 0) {
+      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      compression_level = force->inumeric(FLERR,arg[1]);
+      if (compression_level <= 0) error->all(FLERR,"Illegal dump_modify command");
+      return 2;
+    }
+  }
+  return consumed;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtomZstd::zstd_write(const void * buffer, size_t length)
+{
   ZSTD_inBuffer input = { buffer, length, 0 };
   ZSTD_EndDirective mode = ZSTD_e_continue;
   
@@ -203,7 +234,10 @@ void DumpAtomZstd::zstd_flush() {
   } while(remaining);
 }
 
-void DumpAtomZstd::zstd_close() {
+/* ---------------------------------------------------------------------- */
+
+void DumpAtomZstd::zstd_close()
+{
   size_t remaining;
   ZSTD_inBuffer input = { nullptr, 0, 0 };
   ZSTD_EndDirective mode = ZSTD_e_end;

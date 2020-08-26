@@ -55,7 +55,8 @@ namespace Impl {
 
 struct HIPTraits {
   static int constexpr WarpSize       = 64;
-  static int constexpr WarpIndexShift = 6; /* WarpSize == 1 << WarpShift*/
+  static int constexpr WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
+  static int constexpr WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
 
   static int constexpr ConstantMemoryUsage        = 0x008000; /* 32k bytes */
   static int constexpr ConstantMemoryUseThreshold = 0x000200; /* 512 bytes */
@@ -65,6 +66,7 @@ struct HIPTraits {
 
 HIP::size_type hip_internal_maximum_warp_count();
 HIP::size_type hip_internal_maximum_grid_count();
+HIP::size_type hip_internal_multiprocessor_count();
 
 HIP::size_type *hip_internal_scratch_space(const HIP::size_type size);
 HIP::size_type *hip_internal_scratch_flags(const HIP::size_type size);
@@ -84,7 +86,9 @@ class HIPInternal {
   unsigned m_multiProcCount;
   unsigned m_maxWarpCount;
   unsigned m_maxBlock;
+  unsigned m_maxBlocksPerSM;
   unsigned m_maxSharedWords;
+  int m_regsPerSM;
   int m_shmemPerSM;
   int m_maxShmemPerBlock;
   int m_maxThreadsPerSM;
@@ -93,11 +97,13 @@ class HIPInternal {
   size_type m_scratchFlagsCount;
   size_type *m_scratchSpace;
   size_type *m_scratchFlags;
+  uint32_t *m_scratchConcurrentBitset = nullptr;
+
+  hipDeviceProp_t m_deviceProp;
 
   hipStream_t m_stream;
 
-  static int was_initialized;
-  static int was_finalized;
+  bool was_finalized = false;
 
   static HIPInternal &singleton();
 
@@ -107,10 +113,12 @@ class HIPInternal {
     return m_hipDev >= 0;
   }  // 0 != m_scratchSpace && 0 != m_scratchFlags ; }
 
-  void initialize(int hip_device_id);
+  void initialize(int hip_device_id, hipStream_t stream = 0);
   void finalize();
 
   void print_configuration(std::ostream &) const;
+
+  void fence() const;
 
   ~HIPInternal();
 
@@ -128,7 +136,8 @@ class HIPInternal {
         m_scratchSpaceCount(0),
         m_scratchFlagsCount(0),
         m_scratchSpace(0),
-        m_scratchFlags(0) {}
+        m_scratchFlags(0),
+        m_stream(0) {}
 
   size_type *scratch_space(const size_type size);
   size_type *scratch_flags(const size_type size);

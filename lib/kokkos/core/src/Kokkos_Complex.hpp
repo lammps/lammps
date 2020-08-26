@@ -47,7 +47,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_NumericTraits.hpp>
 #include <complex>
-#include <iostream>
+#include <iosfwd>
 
 namespace Kokkos {
 
@@ -219,10 +219,7 @@ class
     // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
     // If the real part is +/-Inf and the imaginary part is -/+Inf,
     // this won't change the result.
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-    using std::fabs;
-#endif
-    const RealType s = fabs(y.real()) + fabs(y.imag());
+    const RealType s = std::fabs(y.real()) + std::fabs(y.imag());
 
     // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
     // In that case, the relation x/y == (x/s) / (y/s) doesn't hold,
@@ -250,10 +247,7 @@ class
     // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
     // If the real part is +/-Inf and the imaginary part is -/+Inf,
     // this won't change the result.
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-    using std::fabs;
-#endif
-    const RealType s = fabs(y.real()) + fabs(y.imag());
+    const RealType s = std::fabs(y.real()) + std::fabs(y.imag());
 
     // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
     // In that case, the relation x/y == (x/s) / (y/s) doesn't hold,
@@ -698,43 +692,27 @@ KOKKOS_INLINE_FUNCTION RealType real(const complex<RealType>& x) noexcept {
 //! Absolute value (magnitude) of a complex number.
 template <class RealType>
 KOKKOS_INLINE_FUNCTION RealType abs(const complex<RealType>& x) {
-#if !defined(__CUDA_ARCH__) && \
-    !defined(__HIP_DEVICE_COMPILE__)  // FIXME_CUDA FIXME_HIP
-  using std::hypot;
-#endif
-  return hypot(x.real(), x.imag());
+  return std::hypot(x.real(), x.imag());
 }
 
 //! Power of a complex number
 template <class RealType>
 KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> pow(const complex<RealType>& x,
                                                      const RealType& e) {
-  RealType r = abs(x);
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-  using std::atan;
-  using std::cos;
-  using std::pow;
-  using std::sin;
-#endif
-  using ::pow;
-  RealType phi = atan(x.imag() / x.real());
-  return pow(r, e) * Kokkos::complex<RealType>(cos(phi * e), sin(phi * e));
+  RealType r   = abs(x);
+  RealType phi = std::atan(x.imag() / x.real());
+  return std::pow(r, e) *
+         Kokkos::complex<RealType>(std::cos(phi * e), std::sin(phi * e));
 }
 
 //! Square root of a complex number.
 template <class RealType>
 KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> sqrt(
     const complex<RealType>& x) {
-  RealType r = abs(x);
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-  using std::atan;
-  using std::cos;
-  using std::sin;
-  using std::sqrt;
-#endif
-  using ::sqrt;
-  RealType phi = atan(x.imag() / x.real());
-  return sqrt(r) * Kokkos::complex<RealType>(cos(phi * 0.5), sin(phi * 0.5));
+  RealType r   = abs(x);
+  RealType phi = std::atan(x.imag() / x.real());
+  return std::sqrt(r) *
+         Kokkos::complex<RealType>(std::cos(phi * 0.5), std::sin(phi * 0.5));
 }
 
 //! Conjugate of a complex number.
@@ -747,14 +725,8 @@ KOKKOS_INLINE_FUNCTION complex<RealType> conj(
 //! Exponential of a complex number.
 template <class RealType>
 KOKKOS_INLINE_FUNCTION complex<RealType> exp(const complex<RealType>& x) {
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-  using std::cos;
-  using std::exp;
-  using std::sin;
-#else
-  using ::exp;
-#endif
-  return exp(x.real()) * complex<RealType>(cos(x.imag()), sin(x.imag()));
+  return std::exp(x.real()) *
+         complex<RealType>(std::cos(x.imag()), std::sin(x.imag()));
 }
 
 /// This function cannot be called in a CUDA device function,
@@ -787,12 +759,9 @@ KOKKOS_INLINE_FUNCTION
   // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
   // If the real part is +/-Inf and the imaginary part is -/+Inf,
   // this won't change the result.
-#if !defined(__HIP_DEVICE_COMPILE__)  // FIXME_HIP
-  using std::fabs;
-#endif
-  typedef
-      typename std::common_type<RealType1, RealType2>::type common_real_type;
-  const common_real_type s = fabs(real(y)) + fabs(imag(y));
+  using common_real_type =
+      typename std::common_type<RealType1, RealType2>::type;
+  const common_real_type s = std::fabs(real(y)) + std::fabs(imag(y));
 
   // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
   // In that case, the relation x/y == (x/s) / (y/s) doesn't hold,
@@ -838,7 +807,7 @@ std::istream& operator>>(std::istream& is, complex<RealType>& x) {
 
 template <class T>
 struct reduction_identity<Kokkos::complex<T> > {
-  typedef reduction_identity<T> t_red_ident;
+  using t_red_ident = reduction_identity<T>;
   KOKKOS_FORCEINLINE_FUNCTION constexpr static Kokkos::complex<T>
   sum() noexcept {
     return Kokkos::complex<T>(t_red_ident::sum(), t_red_ident::sum());

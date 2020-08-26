@@ -49,8 +49,8 @@ namespace Test {
 
 template <class Device, class WorkSpec = size_t>
 struct TestScan {
-  typedef Device execution_space;
-  typedef int64_t value_type;
+  using execution_space = Device;
+  using value_type      = int64_t;
 
   Kokkos::View<int, Device, Kokkos::MemoryTraits<Kokkos::Atomic> > errors;
 
@@ -76,7 +76,8 @@ struct TestScan {
         int fail = errors()++;
 
         if (fail < 20) {
-          printf("TestScan(%d,%ld) != %ld\n", iwork, update, answer);
+          printf("TestScan(%d,%ld) != %ld\n", iwork, static_cast<long>(update),
+                 static_cast<long>(answer));
         }
       }
     }
@@ -108,7 +109,7 @@ struct TestScan {
   }
 
   TestScan(const WorkSpec& Start, const WorkSpec& N) {
-    typedef Kokkos::RangePolicy<execution_space> exec_policy;
+    using exec_policy = Kokkos::RangePolicy<execution_space>;
 
     Kokkos::View<int, Device> errors_a("Errors");
     Kokkos::deep_copy(errors_a, 0);
@@ -143,8 +144,8 @@ TEST(TEST_CATEGORY, scan) {
 
 /*TEST( TEST_CATEGORY, scan_small )
 {
-  typedef TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall >
-TestScanFunctor;
+  using TestScanFunctor =
+      TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall >;
 
   for ( int i = 0; i < 1000; ++i ) {
     TestScanFunctor( 10 );

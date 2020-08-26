@@ -45,9 +45,7 @@
 #ifndef KOKKOS_CUDA_TEAM_HPP
 #define KOKKOS_CUDA_TEAM_HPP
 
-#include <iostream>
 #include <algorithm>
-#include <stdio.h>
 
 #include <Kokkos_Macros.hpp>
 
@@ -62,10 +60,8 @@
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <Kokkos_Vectorization.hpp>
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
-#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -75,7 +71,7 @@ namespace Impl {
 
 template <typename Type>
 struct CudaJoinFunctor {
-  typedef Type value_type;
+  using value_type = Type;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -104,8 +100,8 @@ struct CudaJoinFunctor {
  */
 class CudaTeamMember {
  public:
-  typedef Kokkos::Cuda execution_space;
-  typedef execution_space::scratch_memory_space scratch_memory_space;
+  using execution_space      = Kokkos::Cuda;
+  using scratch_memory_space = execution_space::scratch_memory_space;
 
  private:
   mutable void* m_team_reduce;
@@ -357,8 +353,8 @@ class CudaTeamMember {
                     int const shmem_size) {
 #ifdef __CUDA_ARCH__
 
-    typedef typename ReducerType::value_type value_type;
-    typedef value_type volatile* pointer_type;
+    using value_type   = typename ReducerType::value_type;
+    using pointer_type = value_type volatile*;
 
     // Number of shared memory entries for the reduction:
     const int nsh = shmem_size / sizeof(value_type);
@@ -563,7 +559,7 @@ namespace Impl {
 
 template <typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const CudaTeamMember& member;
   const iType start;
   const iType end;
@@ -580,7 +576,7 @@ struct TeamThreadRangeBoundariesStruct<iType, CudaTeamMember> {
 
 template <typename iType>
 struct TeamVectorRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const CudaTeamMember& member;
   const iType start;
   const iType end;
@@ -598,7 +594,7 @@ struct TeamVectorRangeBoundariesStruct<iType, CudaTeamMember> {
 
 template <typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const index_type start;
   const index_type end;
 
@@ -634,7 +630,7 @@ template <typename iType1, typename iType2>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::CudaTeamMember>
 TeamThreadRange(const Impl::CudaTeamMember& thread, iType1 begin, iType2 end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamThreadRangeBoundariesStruct<iType, Impl::CudaTeamMember>(
       thread, iType(begin), iType(end));
 }
@@ -652,7 +648,7 @@ KOKKOS_INLINE_FUNCTION Impl::TeamVectorRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::CudaTeamMember>
 TeamVectorRange(const Impl::CudaTeamMember& thread, const iType1& begin,
                 const iType2& end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamVectorRangeBoundariesStruct<iType, Impl::CudaTeamMember>(
       thread, iType(begin), iType(end));
 }

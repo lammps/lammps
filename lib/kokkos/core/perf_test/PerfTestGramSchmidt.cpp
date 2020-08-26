@@ -58,7 +58,7 @@ namespace Test {
 // PostProcess : R(j,j) = result ; inv = 1 / result ;
 template <class VectorView, class ValueView>
 struct InvNorm2 : public Kokkos::DotSingle<VectorView> {
-  typedef typename Kokkos::DotSingle<VectorView>::value_type value_type;
+  using value_type = typename Kokkos::DotSingle<VectorView>::value_type;
 
   ValueView Rjj;
   ValueView inv;
@@ -69,10 +69,7 @@ struct InvNorm2 : public Kokkos::DotSingle<VectorView> {
 
   KOKKOS_INLINE_FUNCTION
   void final(value_type& result) const {
-#ifndef KOKKOS_ENABLE_HIP  // FIXME_HIP
-    using std::sqrt;
-#endif
-    result = sqrt(result);
+    result = std::sqrt(result);
     Rjj()  = result;
     inv()  = (0 < result) ? 1.0 / result : 0;
   }
@@ -88,7 +85,7 @@ inline void invnorm2(const VectorView& x, const ValueView& r,
 // PostProcess : tmp = - ( R(j,k) = result );
 template <class VectorView, class ValueView>
 struct DotM : public Kokkos::Dot<VectorView> {
-  typedef typename Kokkos::Dot<VectorView>::value_type value_type;
+  using value_type = typename Kokkos::Dot<VectorView>::value_type;
 
   ValueView Rjk;
   ValueView tmp;
@@ -113,16 +110,16 @@ inline void dot_neg(const VectorView& x, const VectorView& y,
 
 template <typename Scalar, class DeviceType>
 struct ModifiedGramSchmidt {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
-  typedef Kokkos::View<Scalar**, Kokkos::LayoutLeft, execution_space>
-      multivector_type;
+  using multivector_type =
+      Kokkos::View<Scalar**, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::View<Scalar*, Kokkos::LayoutLeft, execution_space>
-      vector_type;
+  using vector_type =
+      Kokkos::View<Scalar*, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::View<Scalar, Kokkos::LayoutLeft, execution_space> value_view;
+  using value_view = Kokkos::View<Scalar, Kokkos::LayoutLeft, execution_space>;
 
   multivector_type Q;
   multivector_type R;
@@ -243,9 +240,9 @@ TEST(default_exec, gramschmidt) {
   int exp_end    = 20;
   int num_trials = 5;
 
-  if (command_line_num_args() > 1) exp_beg = atoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = atoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = atoi(command_line_arg(3));
+  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
+  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
+  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
 
   EXPECT_NO_THROW(run_test_gramschmidt<Kokkos::DefaultExecutionSpace>(
       exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));

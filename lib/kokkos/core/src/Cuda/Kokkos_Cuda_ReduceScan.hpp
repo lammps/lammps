@@ -140,10 +140,10 @@ __device__ bool cuda_inter_block_reduction(
     Cuda::size_type* const m_scratch_flags,
     const int max_active_thread = blockDim.y) {
 #ifdef __CUDA_ARCH__
-  typedef typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type
-      pointer_type;
-  typedef
-      typename FunctorValueTraits<FunctorType, ArgTag>::value_type value_type;
+  using pointer_type =
+      typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type;
+  using value_type =
+      typename FunctorValueTraits<FunctorType, ArgTag>::value_type;
 
   // Do the intra-block reduction with shfl operations and static shared memory
   cuda_intra_block_reduction(value, join, max_active_thread);
@@ -255,7 +255,7 @@ __device__ inline
     cuda_intra_warp_reduction(const ReducerType& reducer,
                               typename ReducerType::value_type& result,
                               const uint32_t max_active_thread = blockDim.y) {
-  typedef typename ReducerType::value_type ValueType;
+  using ValueType = typename ReducerType::value_type;
 
   unsigned int shift = 1;
 
@@ -278,7 +278,7 @@ __device__ inline
     cuda_inter_warp_reduction(const ReducerType& reducer,
                               typename ReducerType::value_type value,
                               const int max_active_thread = blockDim.y) {
-  typedef typename ReducerType::value_type ValueType;
+  using ValueType = typename ReducerType::value_type;
 
 #define STEP_WIDTH 4
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
@@ -336,8 +336,8 @@ __device__ inline
                                Cuda::size_type* const m_scratch_flags,
                                const int max_active_thread = blockDim.y) {
 #ifdef __CUDA_ARCH__
-  typedef typename ReducerType::value_type* pointer_type;
-  typedef typename ReducerType::value_type value_type;
+  using pointer_type = typename ReducerType::value_type*;
+  using value_type   = typename ReducerType::value_type;
 
   // Do the intra-block reduction with shfl operations and static shared memory
   cuda_intra_block_reduction(reducer, max_active_thread);
@@ -450,12 +450,12 @@ struct CudaReductionsFunctor;
 
 template <class FunctorType, class ArgTag>
 struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
-  typedef FunctorValueInit<FunctorType, ArgTag> ValueInit;
-  typedef FunctorValueOps<FunctorType, ArgTag> ValueOps;
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::value_type Scalar;
+  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
+  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
+  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
+  using pointer_type = typename ValueTraits::pointer_type;
+  using Scalar       = typename ValueTraits::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       const FunctorType& functor,
@@ -533,8 +533,12 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
     __threadfence();
     __syncthreads();
     unsigned int num_teams_done = 0;
+    // The cast in the atomic call is necessary to find matching call with
+    // MSVC/NVCC
     if (threadIdx.x + threadIdx.y == 0) {
-      num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
+      num_teams_done =
+          Kokkos::atomic_fetch_add(global_flags, static_cast<unsigned int>(1)) +
+          1;
     }
     bool is_last_block = false;
     if (__syncthreads_or(num_teams_done == gridDim.x)) {
@@ -555,12 +559,12 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
 
 template <class FunctorType, class ArgTag>
 struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
-  typedef FunctorValueInit<FunctorType, ArgTag> ValueInit;
-  typedef FunctorValueOps<FunctorType, ArgTag> ValueOps;
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::value_type Scalar;
+  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
+  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
+  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
+  using pointer_type = typename ValueTraits::pointer_type;
+  using Scalar       = typename ValueTraits::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       const FunctorType& functor,
@@ -635,8 +639,12 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
     __syncthreads();
 
     unsigned int num_teams_done = 0;
+    // The cast in the atomic call is necessary to find matching call with
+    // MSVC/NVCC
     if (threadIdx.x + threadIdx.y == 0) {
-      num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
+      num_teams_done =
+          Kokkos::atomic_fetch_add(global_flags, static_cast<unsigned int>(1)) +
+          1;
     }
     bool is_last_block = false;
     if (__syncthreads_or(num_teams_done == gridDim.x)) {
@@ -677,10 +685,10 @@ __device__ void cuda_intra_block_reduce_scan(
     const FunctorType& functor,
     const typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type
         base_data) {
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
+  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
 
-  typedef typename ValueTraits::pointer_type pointer_type;
+  using pointer_type = typename ValueTraits::pointer_type;
 
   const unsigned value_count   = ValueTraits::value_count(functor);
   const unsigned BlockSizeMask = blockDim.y - 1;
@@ -855,13 +863,13 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
     const FunctorType& functor, const Cuda::size_type block_id,
     const Cuda::size_type block_count, Cuda::size_type* const shared_data,
     Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
-  typedef Cuda::size_type size_type;
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
-  typedef FunctorValueInit<FunctorType, ArgTag> ValueInit;
-  typedef FunctorValueOps<FunctorType, ArgTag> ValueOps;
+  using size_type   = Cuda::size_type;
+  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
+  using ValueInit   = FunctorValueInit<FunctorType, ArgTag>;
+  using ValueOps    = FunctorValueOps<FunctorType, ArgTag>;
 
-  typedef typename ValueTraits::pointer_type pointer_type;
+  using pointer_type = typename ValueTraits::pointer_type;
 
   // '__ffs' = position of the least significant bit set to 1.
   // 'blockDim.y' is guaranteed to be a power of two so this
@@ -950,8 +958,8 @@ __device__ bool cuda_single_inter_block_reduce_scan(
     const FunctorType& functor, const Cuda::size_type block_id,
     const Cuda::size_type block_count, Cuda::size_type* const shared_data,
     Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  if (!DoScan && ValueTraits::StaticValueSize)
+  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
+  if (!DoScan && ValueTraits::StaticValueSize > 0)
     return Kokkos::Impl::CudaReductionsFunctor<
         FunctorType, ArgTag, false, (ValueTraits::StaticValueSize > 16)>::
         scalar_inter_block_reduction(functor, block_id, block_count,

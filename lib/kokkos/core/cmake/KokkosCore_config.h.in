@@ -6,7 +6,8 @@
 #if !defined(KOKKOS_FOR_SIERRA)
 
 #if !defined(KOKKOS_MACROS_HPP) || defined(KOKKOS_CORE_CONFIG_H)
-#error "Don't include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
+#error \
+    "Don't include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
 #else
 #define KOKKOS_CORE_CONFIG_H
 #endif
@@ -25,8 +26,8 @@
 #cmakedefine KOKKOS_ENABLE_DEBUG
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
-#cmakedefine KOKKOS_ENABLE_PROFILING
 #cmakedefine KOKKOS_ENABLE_PROFILING_LOAD_PRINT
+#cmakedefine KOKKOS_ENABLE_TUNING
 
 #cmakedefine KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION
 
@@ -38,7 +39,8 @@
 // any value of KOKKOS_USE_CUDA_UVM here.  Doing this should prevent build
 // warnings like this one:
 //
-// packages/kokkos/core/src/KokkosCore_config.h:13:1: warning: "KOKKOS_USE_CUDA_UVM" redefined
+// packages/kokkos/core/src/KokkosCore_config.h:13:1: warning:
+// "KOKKOS_USE_CUDA_UVM" redefined
 //
 // At some point, we should edit the test-build scripts in
 // Trilinos/cmake/ctest/drivers/perseus/, and take
@@ -100,4 +102,4 @@
 #cmakedefine KOKKOS_USING_DEPRECATED_VIEW
 #cmakedefine KOKKOS_ENABLE_CXX11
 
-#endif // !defined(KOKKOS_FOR_SIERRA)
+#endif  // !defined(KOKKOS_FOR_SIERRA)

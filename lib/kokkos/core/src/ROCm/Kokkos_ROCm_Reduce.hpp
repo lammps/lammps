@@ -49,8 +49,6 @@
 #if !defined(KOKKOS_ROCM_AMP_REDUCE_INL)
 #define KOKKOS_ROCM_AMP_REDUCE_INL
 
-#include <iostream>
-
 #include <algorithm>
 #include <numeric>
 #include <cmath>
@@ -90,21 +88,21 @@ void reduce_enqueue(const int szElements,  // size of the extent
                     int const shared_size = 0) {
   using namespace hc;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value, F,
-                             ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value, F,
+                         ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using TagFwd =
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  Tag, void>::type TagFwd;
+                                  Tag, void>::type;
 
-  typedef Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, TagFwd> ValueTraits;
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, TagFwd> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, TagFwd> ValueJoin;
-  typedef Kokkos::Impl::FunctorFinal<ReducerTypeFwd, TagFwd> ValueFinal;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, TagFwd>;
+  using ValueInit   = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, TagFwd>;
+  using ValueJoin   = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, TagFwd>;
+  using ValueFinal  = Kokkos::Impl::FunctorFinal<ReducerTypeFwd, TagFwd>;
 
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::reference_type reference_type;
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using reference_type = typename ValueTraits::reference_type;
 
   if (output_length < 1) return;
 

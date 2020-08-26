@@ -48,9 +48,9 @@ namespace TestCXX11 {
 
 template <class DeviceType>
 struct FunctorAddTest {
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef DeviceType execution_space;
-  typedef typename Kokkos::TeamPolicy<execution_space>::member_type team_member;
+  using view_type       = Kokkos::View<double**, DeviceType>;
+  using execution_space = DeviceType;
+  using team_member = typename Kokkos::TeamPolicy<execution_space>::member_type;
 
   view_type a_, b_;
 
@@ -81,7 +81,7 @@ struct FunctorAddTest {
 
 template <class DeviceType, bool PWRTest>
 double AddTestFunctor() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
 
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
   Kokkos::View<double**, DeviceType> b("B", 100, 5);
@@ -142,8 +142,8 @@ double AddTestLambda() {
           b(i, 4) = a(i, 3) + a(i, 4);
         });
   } else {
-    typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-    typedef typename policy_type::member_type team_member;
+    using policy_type = Kokkos::TeamPolicy<DeviceType>;
+    using team_member = typename policy_type::member_type;
 
     policy_type policy(25, Kokkos::AUTO);
 
@@ -180,10 +180,10 @@ double AddTestLambda() {
 
 template <class DeviceType>
 struct FunctorReduceTest {
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef DeviceType execution_space;
-  typedef double value_type;
-  typedef typename Kokkos::TeamPolicy<execution_space>::member_type team_member;
+  using view_type       = Kokkos::View<double**, DeviceType>;
+  using execution_space = DeviceType;
+  using value_type      = double;
+  using team_member = typename Kokkos::TeamPolicy<execution_space>::member_type;
 
   view_type a_;
 
@@ -223,10 +223,10 @@ struct FunctorReduceTest {
 
 template <class DeviceType, bool PWRTest>
 double ReduceTestFunctor() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>
-      unmanaged_result;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using view_type   = Kokkos::View<double**, DeviceType>;
+  using unmanaged_result =
+      Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
@@ -255,10 +255,10 @@ double ReduceTestFunctor() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double ReduceTestLambda() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>
-      unmanaged_result;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using view_type   = Kokkos::View<double**, DeviceType>;
+  using unmanaged_result =
+      Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
@@ -284,7 +284,7 @@ double ReduceTestLambda() {
         },
         unmanaged_result(&result));
   } else {
-    typedef typename policy_type::member_type team_member;
+    using team_member = typename policy_type::member_type;
     Kokkos::parallel_reduce(
         policy_type(25, Kokkos::AUTO),
         KOKKOS_LAMBDA(const team_member& dev, double& sum) {

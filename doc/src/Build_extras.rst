@@ -448,12 +448,18 @@ be specified in uppercase.
    *  - TURING75
       - GPU
       - NVIDIA Turing generation CC 7.5 GPU
+   *  - AMPERE80
+      - GPU
+      - NVIDIA Ampere generation CC 8.0 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
    *  - VEGA906
       - GPU
       - AMD GPU MI50/MI60 GFX906
+   *  - INTEL_GEN
+      - GPU
+      - Intel GPUs Gen9+
 
 Basic CMake build settings:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

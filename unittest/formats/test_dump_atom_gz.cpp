@@ -97,6 +97,135 @@ TEST_F(DumpAtomGZTest, compressed_run0)
     delete_file(converted_file);
 }
 
+TEST_F(DumpAtomGZTest, compressed_with_units_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_with_units_run0.melt";
+    auto compressed_file = "dump_compressed_with_units_run0.melt.gz";
+
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "scale no units yes", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpAtomGZTest, compressed_with_time_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_with_time_run0.melt";
+    auto compressed_file = "dump_compressed_with_time_run0.melt.gz";
+
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "scale no time yes", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpAtomGZTest, compressed_triclinic_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_tri_run0.melt";
+    auto compressed_file = "dump_compressed_tri_run0.melt.gz";
+
+    enable_triclinic();
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpAtomGZTest, compressed_triclinic_with_units_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_tri_with_units_run0.melt";
+    auto compressed_file = "dump_compressed_tri_with_units_run0.melt.gz";
+
+    enable_triclinic();
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "scale no units yes", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpAtomGZTest, compressed_triclinic_with_time_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_tri_with_time_run0.melt";
+    auto compressed_file = "dump_compressed_tri_with_time_run0.melt.gz";
+
+    enable_triclinic();
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "scale no time yes", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpAtomGZTest, compressed_triclinic_with_image_run0)
+{
+    if(!GZIP_BINARY) GTEST_SKIP();
+
+    auto text_file = "dump_text_tri_with_image_run0.melt";
+    auto compressed_file = "dump_compressed_tri_with_image_run0.melt.gz";
+
+    enable_triclinic();
+    generate_text_and_compressed_dump(text_file, compressed_file, "atom/gz", "image yes", 0);
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
 
 int main(int argc, char **argv)
 {

@@ -69,9 +69,9 @@ enum _LMP_TYPE_CONST {
 extern "C" {
 #endif
 
-// ----------------------------------------------------------------------
-// Library functions to create/destroy an instance of LAMMPS
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions to create/destroy an instance of LAMMPS
+ * ---------------------------------------------------------------------- */
 
 #if !defined(LAMMPS_LIB_NO_MPI)
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
@@ -83,9 +83,9 @@ void  lammps_mpi_init();
 void  lammps_mpi_finalize();
 void  lammps_free(void *ptr);
 
-// ----------------------------------------------------------------------
-// Library functions to process commands
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions to process commands
+ * ---------------------------------------------------------------------- */
 
 void  lammps_file(void *handle, const char *file);
 
@@ -93,9 +93,9 @@ char *lammps_command(void *handle, const char *cmd);
 void  lammps_commands_list(void *handle, int ncmd, const char **cmds);
 void  lammps_commands_string(void *handle, const char *str);
 
-// -----------------------------------------------------------------------
-// Library functions to extract info from LAMMPS or set data in LAMMPS
-// -----------------------------------------------------------------------
+/* -----------------------------------------------------------------------
+ * Library functions to extract info from LAMMPS or set data in LAMMPS
+ * ----------------------------------------------------------------------- */
 
 int    lammps_version(void *handle);
 double lammps_get_natoms(void *handle);
@@ -119,18 +119,18 @@ int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
                            double *x, double *v, int64_t* image, int bexpand);
 #endif
 
-// ----------------------------------------------------------------------
-// Library functions to access data from computes, fixes, variables in LAMMPS
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions to access data from computes, fixes, variables in LAMMPS
+ * ---------------------------------------------------------------------- */
 
 void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, char *, char *);
 int   lammps_set_variable(void *, char *, char *);
 
-// ----------------------------------------------------------------------
-// Library functions for scatter/gather operations of data
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions for scatter/gather operations of data
+ * ---------------------------------------------------------------------- */
 
 void lammps_gather_atoms(void *, char *, int, int, void *);
 void lammps_gather_atoms_concat(void *, char *, int, int, void *);
@@ -138,9 +138,9 @@ void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
-// ----------------------------------------------------------------------
-// Library functions for retrieving configuration information
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions for retrieving configuration information
+ * ---------------------------------------------------------------------- */
 
 int lammps_config_has_mpi_support();
 int lammps_config_has_package(char *);
@@ -156,9 +156,9 @@ int lammps_has_style(void *, char *, char *);
 int lammps_style_count(void *, char *);
 int lammps_style_name(void *, char *, int, char *, int);
 
-// ----------------------------------------------------------------------
-// Library functions for accessing neighbor lists
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Library functions for accessing neighbor lists
+ * ---------------------------------------------------------------------- */
 
 int lammps_find_pair_neighlist(void*, char *, int, int, int);
 int lammps_find_fix_neighlist(void*, char *, int);
@@ -166,9 +166,9 @@ int lammps_find_compute_neighlist(void*, char *, int);
 int lammps_neighlist_num_elements(void*, int);
 void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
-// ----------------------------------------------------------------------
-// Utility functions
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Utility functions
+ * ---------------------------------------------------------------------- */
 
 #if !defined(LAMMPS_BIGBIG)
 int lammps_encode_image_flags(int ix, int iy, int iz);

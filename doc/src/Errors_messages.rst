@@ -502,7 +502,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: Unknown section in map file*
    Please ensure reaction map files are properly formatted.
 
-*Bond/react: Atom affected by reaction too close to template edge*
+*Bond/react: Atom type affected by reaction too close to template edge*
+*Bond/react: Bond type affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
    reaction is too close to an 'edge' atom defined in the map
    file. This could cause incorrect assignment of bonds, angle, etc.

@@ -2173,7 +2173,7 @@ double SNAKokkos<DeviceType>::memory_usage()
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
-    
+
     auto natom_pad = (natom+32-1)/32;
 
     bytes += natom * idxu_half_max * nelements * sizeof(double);     // ulisttot_re

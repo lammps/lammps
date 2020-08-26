@@ -31,11 +31,18 @@ set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS
 
 if (PKG_COMPRESS)
     find_program(GZIP_BINARY NAMES gzip REQUIRED)
+
     add_executable(test_dump_atom_gz test_dump_atom_gz.cpp)
     target_link_libraries(test_dump_atom_gz PRIVATE lammps GTest::GMock GTest::GTest)
     add_test(NAME DumpAtomGZ COMMAND test_dump_atom_gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
     set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
+
+    add_executable(test_dump_custom_gz test_dump_custom_gz.cpp)
+    target_link_libraries(test_dump_custom_gz PRIVATE lammps GTest::GMock GTest::GTest)
+    add_test(NAME DumpCustomGZ COMMAND test_dump_custom_gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+    set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
 
     find_program(ZSTD_BINARY NAMES zstd)
 

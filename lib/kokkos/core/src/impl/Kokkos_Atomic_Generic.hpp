@@ -250,8 +250,10 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   *dest        = op.apply(return_val, val);
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
@@ -268,8 +270,10 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = op.apply(return_val, val);
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -318,8 +322,10 @@ atomic_oper_fetch(const Oper& op, volatile T* const dest,
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = op.apply(*dest, val);
   *dest        = return_val;
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
@@ -336,8 +342,10 @@ atomic_oper_fetch(const Oper& op, volatile T* const dest,
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = op.apply(*dest, val);
         *dest      = return_val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }

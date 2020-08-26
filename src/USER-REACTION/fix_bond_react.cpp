@@ -33,6 +33,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
+#include "reset_mol_ids.h"
 #include "molecule.h"
 #include "group.h"
 #include "citeme.h"
@@ -92,6 +93,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix1 = NULL;
   fix2 = NULL;
   fix3 = NULL;
+  reset_mol_ids = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -144,7 +146,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   stabilization_flag = 0;
-  int num_common_keywords = 1;
+  reset_mol_ids_flag = 1;
+  int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
       if (strcmp(arg[iarg+1],"no") == 0) {
@@ -162,9 +165,21 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
       }
+    } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'reset_mol_ids' keyword has too few arguments");
+      if (strcmp(arg[iarg+1],"yes") == 0) ; // default
+      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
     } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
+  }
+
+  if (reset_mol_ids_flag) {
+    delete reset_mol_ids;
+    reset_mol_ids = new ResetMolIDs(lmp);
+    reset_mol_ids->create_computes(id,group->names[igroup]);
   }
 
   // set up common variables as vectors of length 'nreacts'
@@ -229,11 +244,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     int n = strlen(arg[iarg]) + 1;
     if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
-    strncpy(rxn_name[rxn],arg[iarg++],n);
+    strcpy(rxn_name[rxn],arg[iarg++]);
 
-    int igroup = group->find(arg[iarg++]);
-    if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
-    groupbits[rxn] = group->bitmask[igroup];
+    int groupid = group->find(arg[iarg++]);
+    if (groupid == -1) error->all(FLERR,"Could not find fix group ID");
+    groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
       n = strlen(&arg[iarg][2]) + 1;
@@ -499,6 +514,8 @@ FixBondReact::~FixBondReact()
   }
   delete [] random;
 
+  delete reset_mol_ids;
+
   memory->destroy(partner);
   memory->destroy(finalpartner);
   memory->destroy(ncreate);
@@ -623,9 +640,9 @@ void FixBondReact::post_constructor()
   group->assign(cmd);
 
   if (stabilization_flag == 1) {
-    int igroup = group->find(exclude_group);
+    int groupid = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
-    if (igroup == -1 || group->dynamic[igroup] == 0) {
+    if (groupid == -1 || group->dynamic[groupid] == 0) {
       // create stabilization per-atom property
       cmd = std::string("bond_react_stabilization_internal");
       id_fix3 = new char[cmd.size()+1];
@@ -655,7 +672,7 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      if (igroup == -1)
+      if (groupid == -1)
         cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
       else
         cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
@@ -2061,7 +2078,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   for (int i = 0; i < twomol->natoms; i++) {
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
       char str[128];
-      snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+      snprintf(str,128,"Bond/react: Atom type affected by reaction %s too close to template edge",rxn_name[myrxn]);
       error->all(FLERR,str);
     }
   }
@@ -2080,7 +2097,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
                 char str[128];
-                snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                 error->all(FLERR,str);
               }
             }
@@ -2092,7 +2109,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
                   char str[128];
-                  snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                  snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                   error->all(FLERR,str);
                 }
               }
@@ -2503,7 +2520,7 @@ void FixBondReact::ghost_glovecast()
 }
 
 /* ----------------------------------------------------------------------
-update charges, types, special lists and all topology
+update molecule IDs, charges, types, special lists and all topology
 ------------------------------------------------------------------------- */
 
 void FixBondReact::update_everything()
@@ -3041,6 +3058,9 @@ void FixBondReact::update_everything()
 
   atom->natoms -= ndel;
   // done deleting atoms
+
+  // reset mol ids
+  if (reset_mol_ids_flag) reset_mol_ids->reset();
 
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG

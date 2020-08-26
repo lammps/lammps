@@ -1,6 +1,7 @@
 
 #if !defined(KOKKOS_MACROS_HPP) || defined(KOKKOS_CORE_CONFIG_H)
-#error "Do not include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
+#error \
+    "Do not include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
 #else
 #define KOKKOS_CORE_CONFIG_H
 #endif
@@ -9,7 +10,6 @@
 // KOKKOS_VERSION / 100 % 100 is the minor version
 // KOKKOS_VERSION / 10000 is the major version
 #cmakedefine KOKKOS_VERSION @KOKKOS_VERSION@
-
 
 /* Execution Spaces */
 #cmakedefine KOKKOS_ENABLE_SERIAL
@@ -47,10 +47,9 @@
 #cmakedefine KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_ENABLE_COMPILER_WARNINGS
-#cmakedefine KOKKOS_ENABLE_PROFILING
 #cmakedefine KOKKOS_ENABLE_PROFILING_LOAD_PRINT
+#cmakedefine KOKKOS_ENABLE_TUNING
 #cmakedefine KOKKOS_ENABLE_DEPRECATED_CODE
-#cmakedefine KOKKOS_ENABLE_ETI
 #cmakedefine KOKKOS_ENABLE_LARGE_MEM_TESTS
 #cmakedefine KOKKOS_ENABLE_DUALVIEW_MODIFY_CHECK
 #cmakedefine KOKKOS_ENABLE_COMPLEX_ALIGN
@@ -60,7 +59,7 @@
 #cmakedefine KOKKOS_ENABLE_HWLOC
 #cmakedefine KOKKOS_USE_LIBRT
 #cmakedefine KOKKOS_ENABLE_HWBSPACE
-
+#cmakedefine KOKKOS_ENABLE_LIBDL
 #cmakedefine KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
 
 #cmakedefine KOKKOS_COMPILER_CUDA_VERSION @KOKKOS_COMPILER_CUDA_VERSION@
@@ -95,4 +94,6 @@
 #cmakedefine KOKKOS_ARCH_VOLTA70
 #cmakedefine KOKKOS_ARCH_VOLTA72
 #cmakedefine KOKKOS_ARCH_TURING75
-#cmakedefine KOKKOS_ARCH_AMD_EPYC
+#cmakedefine KOKKOS_ARCH_AMPERE80
+#cmakedefine KOKKOS_ARCH_AMD_ZEN
+#cmakedefine KOKKOS_ARCH_AMD_ZEN2

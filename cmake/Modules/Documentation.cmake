@@ -15,8 +15,10 @@ if(BUILD_DOC)
     endif()
     set(VIRTUALENV ${Python3_EXECUTABLE} -m virtualenv -p ${Python3_EXECUTABLE})
   endif()
+  find_package(Doxygen 1.8.10 REQUIRED)
 
   file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
+
 
   add_custom_command(
     OUTPUT docenv
@@ -24,66 +26,82 @@ if(BUILD_DOC)
   )
 
   set(DOCENV_BINARY_DIR ${CMAKE_BINARY_DIR}/docenv/bin)
+  set(DOCENV_REQUIREMENTS_FILE ${LAMMPS_DOC_DIR}/utils/requirements.txt)
+
+  set(SPHINX_CONFIG_DIR ${LAMMPS_DOC_DIR}/utils/sphinx-config)
+  set(SPHINX_CONFIG_FILE_TEMPLATE ${SPHINX_CONFIG_DIR}/conf.py.in)
+  set(SPHINX_STATIC_DIR  ${SPHINX_CONFIG_DIR}/_static)
+
+  # configuration and static files are copied to binary dir to avoid collisions with parallel builds
+  set(DOC_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/doc)
+  set(DOC_BUILD_CONFIG_FILE ${DOC_BUILD_DIR}/conf.py)
+  set(DOC_BUILD_STATIC_DIR ${DOC_BUILD_DIR}/_static)
+  set(DOXYGEN_BUILD_DIR ${DOC_BUILD_DIR}/doxygen)
+  set(DOXYGEN_XML_DIR ${DOXYGEN_BUILD_DIR}/xml)
+
+  # copy entire configuration folder to doc build directory
+  # files in _static are automatically copied during sphinx-build, so no need to copy them individually
+  file(COPY ${SPHINX_CONFIG_DIR}/ DESTINATION ${DOC_BUILD_DIR})
+
+  # configure paths in conf.py, since relative paths change when file is copied
+  configure_file(${SPHINX_CONFIG_FILE_TEMPLATE} ${DOC_BUILD_CONFIG_FILE})
 
   add_custom_command(
-    OUTPUT requirements.txt
-    DEPENDS docenv
-    COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/utils/requirements.txt requirements.txt
+    OUTPUT ${DOC_BUILD_DIR}/requirements.txt
+    DEPENDS docenv ${DOCENV_REQUIREMENTS_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy ${DOCENV_REQUIREMENTS_FILE} ${DOC_BUILD_DIR}/requirements.txt
+    COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade pip
     COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
-    COMMAND ${DOCENV_BINARY_DIR}/pip install --use-feature=2020-resolver -r requirements.txt --upgrade
+    COMMAND ${DOCENV_BINARY_DIR}/pip install --use-feature=2020-resolver -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
   )
 
   # download mathjax distribution and unpack to folder "mathjax"
-  if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5)
+  if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
     file(DOWNLOAD "https://github.com/mathjax/MathJax/archive/3.0.5.tar.gz"
       "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
       EXPECTED_MD5 5d9d3799cce77a1a95eee6be04eb68e7)
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${CMAKE_CURRENT_BINARY_DIR}/mathjax)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
   endif()
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax)
-  file(COPY ${CMAKE_CURRENT_BINARY_DIR}/mathjax/es5 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/)
 
   # for increased browser compatibility
-  if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/html/_static/polyfill.js)
+  if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/polyfill.js)
     file(DOWNLOAD "https://polyfill.io/v3/polyfill.min.js?features=es6"
-      "${CMAKE_CURRENT_BINARY_DIR}/html/_static/polyfill.js")
+      "${DOC_BUILD_STATIC_DIR}/polyfill.js")
   endif()
 
-  # note, this may run in parallel with other tasks, so we must not use multiple processes here
+  # set up doxygen and add targets to run it
+  file(MAKE_DIRECTORY ${DOXYGEN_BUILD_DIR})
+  file(COPY ${LAMMPS_DOC_DIR}/doxygen/lammps-logo.png DESTINATION ${DOXYGEN_BUILD_DIR}/lammps-logo.png)
+  configure_file(${LAMMPS_DOC_DIR}/doxygen/Doxyfile.in ${DOXYGEN_BUILD_DIR}/Doxyfile)
+  get_target_property(LAMMPS_SOURCES lammps SOURCES)
   add_custom_command(
-    OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv requirements.txt
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build -b html -c ${LAMMPS_DOC_DIR}/utils/sphinx-config -d ${CMAKE_BINARY_DIR}/doctrees ${LAMMPS_DOC_DIR}/src html
-    COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
+    OUTPUT ${DOXYGEN_XML_DIR}/index.xml
+    DEPENDS ${DOC_SOURCES} ${LAMMPS_SOURCES}
+    COMMAND Doxygen::doxygen ${DOXYGEN_BUILD_DIR}/Doxyfile WORKING_DIRECTORY ${DOXYGEN_BUILD_DIR}
+    COMMAND ${CMAKE_COMMAND} -E touch ${DOXYGEN_XML_DIR}/run.stamp
   )
 
-  # copy selected image files to html output tree
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/html/JPG)
-  set(HTML_EXTRA_IMAGES balance_nonuniform.jpg balance_rcb.jpg
-    balance_uniform.jpg bow_tutorial_01.png bow_tutorial_02.png
-    bow_tutorial_03.png bow_tutorial_04.png bow_tutorial_05.png
-    dump1.jpg dump2.jpg examples_mdpd.gif gran_funnel.png gran_mixer.png
-    hop1.jpg hop2.jpg saed_ewald_intersect.jpg saed_mesh.jpg
-    screenshot_atomeye.jpg screenshot_gl.jpg screenshot_pymol.jpg
-    screenshot_vmd.jpg sinusoid.jpg xrd_mesh.jpg)
-  set(HTML_IMAGE_TARGETS "")
-  foreach(_IMG ${HTML_EXTRA_IMAGES})
-    string(PREPEND _IMG JPG/)
-    list(APPEND HTML_IMAGE_TARGETS "${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}")
-    add_custom_command(
-      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/html/${_IMG}
-      DEPENDS ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_CURRENT_BINARY_DIR}/html/JPG
-      COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/src/${_IMG} ${CMAKE_BINARY_DIR}/html/${_IMG}
-    )
-  endforeach()
+  if(EXISTS ${DOXYGEN_XML_DIR}/run.stamp)
+    set(SPHINX_EXTRA_OPTS "-E")
+  else()
+    set(SPHINX_EXTRA_OPTS "")
+  endif()
+  add_custom_command(
+    OUTPUT html
+    DEPENDS ${DOC_SOURCES} docenv ${DOC_BUILD_DIR}/requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${BUILD_DOC_CONFIG_FILE}
+    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build ${SPHINX_EXTRA_OPTS} -b html -c ${DOC_BUILD_DIR} -d ${DOC_BUILD_DIR}/doctrees ${LAMMPS_DOC_DIR}/src ${DOC_BUILD_DIR}/html
+    COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${DOC_BUILD_DIR}/html/index.html
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DOC_DIR}/src/PDF ${DOC_BUILD_DIR}/html/PDF
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${DOXYGEN_XML_DIR}/run.stamp
+  )
 
   add_custom_target(
     doc ALL
-    DEPENDS html ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax/es5 ${HTML_IMAGE_TARGETS}
+    DEPENDS html ${DOC_BUILD_STATIC_DIR}/mathjax/es5
     SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
   )
 
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_DOCDIR})
+  install(DIRECTORY ${DOC_BUILD_DIR}/html DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif()

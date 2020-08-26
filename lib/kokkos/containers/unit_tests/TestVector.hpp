@@ -55,14 +55,17 @@ namespace Impl {
 
 template <typename Scalar, class Device>
 struct test_vector_insert {
-  typedef Scalar scalar_type;
-  typedef Device execution_space;
+  using scalar_type     = Scalar;
+  using execution_space = Device;
 
   template <typename Vector>
   void run_test(Vector& a) {
     int n = a.size();
 
     auto it = a.begin();
+    if (n > 0) {
+      ASSERT_EQ(a.data(), &a[0]);
+    }
     it += 15;
     ASSERT_EQ(*it, scalar_type(1));
 
@@ -173,11 +176,42 @@ struct test_vector_insert {
 };
 
 template <typename Scalar, class Device>
-struct test_vector_combinations {
-  typedef test_vector_combinations<Scalar, Device> self_type;
+struct test_vector_allocate {
+  using self_type = test_vector_allocate<Scalar, Device>;
 
-  typedef Scalar scalar_type;
-  typedef Device execution_space;
+  using scalar_type     = Scalar;
+  using execution_space = Device;
+
+  bool result = false;
+
+  template <typename Vector>
+  Scalar run_me(unsigned int n) {
+    {
+      Vector v1;
+      if (v1.is_allocated() == true) return false;
+
+      v1 = Vector(n, 1);
+      Vector v2(v1);
+      Vector v3(n, 1);
+
+      if (v1.is_allocated() == false) return false;
+      if (v2.is_allocated() == false) return false;
+      if (v3.is_allocated() == false) return false;
+    }
+    return true;
+  }
+
+  test_vector_allocate(unsigned int size) {
+    result = run_me<Kokkos::vector<Scalar, Device> >(size);
+  }
+};
+
+template <typename Scalar, class Device>
+struct test_vector_combinations {
+  using self_type = test_vector_combinations<Scalar, Device>;
+
+  using scalar_type     = Scalar;
+  using execution_space = Device;
 
   Scalar reference;
   Scalar result;
@@ -231,7 +265,14 @@ void test_vector_combinations(unsigned int size) {
   ASSERT_EQ(test.reference, test.result);
 }
 
+template <typename Scalar, typename Device>
+void test_vector_allocate(unsigned int size) {
+  Impl::test_vector_allocate<Scalar, Device> test(size);
+  ASSERT_TRUE(test.result);
+}
+
 TEST(TEST_CATEGORY, vector_combination) {
+  test_vector_allocate<int, TEST_EXECSPACE>(10);
   test_vector_combinations<int, TEST_EXECSPACE>(10);
   test_vector_combinations<int, TEST_EXECSPACE>(3057);
 }

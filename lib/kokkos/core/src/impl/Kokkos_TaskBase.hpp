@@ -148,7 +148,7 @@ class TaskBase {
   using queue_type = TaskQueueBase;
 
   using function_type = void (*)(TaskBase*, void*);
-  typedef void (*destroy_type)(TaskBase*);
+  using destroy_type  = void (*)(TaskBase*);
 
   // sizeof(TaskBase) == 48
 

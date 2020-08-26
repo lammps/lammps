@@ -116,7 +116,8 @@ where "thermo_temp" is the ID of a similarly defined compute of style
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the pressure) and a global
 vector of length 6 (pressure tensor), which can be accessed by indices
@@ -138,7 +139,10 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
 :doc:`thermo_style <thermo_style>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

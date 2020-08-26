@@ -60,8 +60,7 @@ struct FixWallLJ93KokkosFunctor  {
 
   FixWallLJ93Kokkos<DeviceType> c;
   FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<DeviceType>* c_ptr):
-    c(*c_ptr),
-    value_count(c_ptr->m+1) {}
+    value_count(c_ptr->m+1), c(*c_ptr) {}
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, value_type ewall) const {
     c.wall_particle_item(i,ewall);

@@ -149,4 +149,7 @@ Related commands
 :doc:`jump <jump>`, :doc:`include <include>`, :doc:`shell <shell>`,
 :doc:`variable <variable>`,
 
-**Default:** none
+Default
+"""""""
+
+none

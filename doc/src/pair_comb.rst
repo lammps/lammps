@@ -147,7 +147,8 @@ has not yet been implemented, it can only set polar_off at present.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -188,7 +189,10 @@ Related commands
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`fix qeq/comb <fix_qeq_comb>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

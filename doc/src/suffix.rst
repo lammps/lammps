@@ -106,4 +106,7 @@ Related commands
 
 :doc:`-suffix command-line switch <Run_options>`
 
-**Default:** none
+Default
+"""""""
+
+none

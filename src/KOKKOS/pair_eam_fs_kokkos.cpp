@@ -427,8 +427,9 @@ void PairEAMFSKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                          int iswap_in, DAT::tdual_xfloat_1d &buf,
+                                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
@@ -464,7 +465,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSUnpackForwardComm, cons
 
 template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
 
@@ -1001,7 +1002,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];

@@ -71,7 +71,7 @@ struct s_CounterType
 };
 typedef struct s_CounterType CounterType;
 
-template <typename DeviceType>
+template <class DeviceType>
 class FixRxKokkos : public FixRX {
  public:
   typedef ArrayTypes<DeviceType> AT;

@@ -123,7 +123,7 @@ void SNAKokkos<DeviceType>::build_indexlist()
   idxu_max = idxu_count;
   Kokkos::deep_copy(idxu_block,h_idxu_block);
 
-  // index list for half uarray 
+  // index list for half uarray
   idxu_half_block = Kokkos::View<int*, DeviceType>("SNAKokkos::idxu_half_block",jdim);
   auto h_idxu_half_block = Kokkos::create_mirror_view(idxu_half_block);
 
@@ -319,7 +319,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 
 /* ----------------------------------------------------------------------
    Precompute the Cayley-Klein parameters and the derivatives thereof.
-   This routine better exploits parallelism than the GPU ComputeUi and 
+   This routine better exploits parallelism than the GPU ComputeUi and
    ComputeFusedDeidrj, which are one warp per atom-neighbor pair.
 ------------------------------------------------------------------------- */
 
@@ -342,7 +342,7 @@ void SNAKokkos<DeviceType>::compute_cayley_klein(const int& iatom, const int& jn
   const double dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
   //const double wj_local = wj(iatom, jnbor);
-  double sfac, dsfac; 
+  double sfac, dsfac;
   compute_s_dsfac(r, rcut, sfac, dsfac);
   sfac *= wj_local;
   dsfac *= wj_local;
@@ -602,14 +602,18 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
       int jju2 = idxu_block[j2] + (j2+1)*mb2max;
       int icgb = mb1min*(j2+1) + mb2max;
 
+      #ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
+      #endif
       for(int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min*(j2+1) + ma2max;
 
+        #ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
+        #endif
         for(int ia = 0; ia < na; ia++) {
           const SNAcomplex utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
           const SNAcomplex utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
@@ -642,7 +646,7 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
 /* ----------------------------------------------------------------------
    compute Bi by summing conj(Ui)*Zi
    AoSoA data layout to take advantage of coalescing, avoiding warp
-   divergence. 
+   divergence.
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -770,14 +774,18 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
       int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
       int icgb = mb1min * (j2 + 1) + mb2max;
 
+      #ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
+      #endif
       for (int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min*(j2+1) + ma2max;
 
+        #ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
+        #endif
         for (int ia = 0; ia < na; ia++) {
           const SNAcomplex utot1 = ulisttot_pack(iatom_mod,jju1+ma1,elem1,iatom_div);
           const SNAcomplex utot2 = ulisttot_pack(iatom_mod,jju2+ma2,elem2,iatom_div);
@@ -1409,7 +1417,7 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
       for(int ma = 0; ma <= j; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
-        sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re + 
+        sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,1).im * ylist(jju_half,jelem,iatom).im;
         sum_tmp.z += dulist(jju_cache,iatom,jnbor,2).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,2).im * ylist(jju_half,jelem,iatom).im;
@@ -1424,9 +1432,9 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
       for(int ma = 0; ma < mb; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
-        sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re + 
+        sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,1).im * ylist(jju_half,jelem,iatom).im;
-        sum_tmp.z += dulist(jju_cache,iatom,jnbor,2).re * ylist(jju_half,jelem,iatom).re + 
+        sum_tmp.z += dulist(jju_cache,iatom,jnbor,2).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,2).im * ylist(jju_half,jelem,iatom).im;
         jju_half++; jju_cache++;
       }
@@ -1434,9 +1442,9 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
       //int ma = mb;
       sum_tmp.x += (dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                     dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im)*0.5;
-      sum_tmp.y += (dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re + 
+      sum_tmp.y += (dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
                     dulist(jju_cache,iatom,jnbor,1).im * ylist(jju_half,jelem,iatom).im)*0.5;
-      sum_tmp.z += (dulist(jju_cache,iatom,jnbor,2).re * ylist(jju_half,jelem,iatom).re + 
+      sum_tmp.z += (dulist(jju_cache,iatom,jnbor,2).re * ylist(jju_half,jelem,iatom).re +
                     dulist(jju_cache,iatom,jnbor,2).im * ylist(jju_half,jelem,iatom).im)*0.5;
     } // end if jeven
 

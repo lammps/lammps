@@ -284,7 +284,7 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_npartner.template sync<LMPHostType>();
   k_partner.template sync<LMPHostType>();

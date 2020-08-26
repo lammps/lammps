@@ -197,7 +197,8 @@ This can also be done for more complex systems.  Please see the
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing of potential parameters has to be handled inside the provided
 python module. The python pair style simply assumes that force and
@@ -230,4 +231,7 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`,
 :doc:`pair style table <pair_table>`
 
-**Default:** none
+Default
+"""""""
+
+none

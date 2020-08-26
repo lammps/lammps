@@ -347,7 +347,8 @@ used.
 
 ----------
 
-**Mixing, shift, tail correction, restart info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The different versions of the *lj/cut/soft* pair styles support mixing.  For
 atom type pairs I,J and I != J, the :math:`\epsilon` and :math:`\sigma`
@@ -412,7 +413,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

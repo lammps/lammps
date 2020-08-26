@@ -438,14 +438,14 @@ void EwaldOMP::eik_dot_r_triclinic()
 #pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
-    
+
     int i,ifrom,ito,k,l,m,n,ic,tid;
     double cstr1,sstr1;
     double sqk,clpm,slpm;
     double unitk_lamda[3];
 
     loop_setup_thr(ifrom,ito,tid,nlocal,nthreads);
-    
+
     double max_kvecs[3];
     max_kvecs[0] = kxmax;
     max_kvecs[1] = kymax;

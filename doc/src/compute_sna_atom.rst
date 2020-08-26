@@ -310,7 +310,8 @@ are not both set or not both unset.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *sna/atom* calculates a per-atom array, each column
 corresponding to a particular bispectrum component.  The total number

@@ -53,7 +53,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
   datamask_modify = Q_MASK | X_MASK;
 
-  nmax = nmax = m_cap = 0;
+  nmax = m_cap = 0;
   allocated_flag = 0;
   nprev = 4;
 
@@ -183,7 +183,7 @@ void FixQEqReaxKokkos<DeviceType>::setup_pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
+void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
@@ -780,7 +780,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
   int loop;
   const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
@@ -919,7 +919,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
   int loop;
   const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
@@ -1364,7 +1364,7 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q_item(int ii) const
 
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
 
@@ -1473,7 +1473,7 @@ void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_s_hist.template sync<LMPHostType>();
   k_t_hist.template sync<LMPHostType>();

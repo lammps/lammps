@@ -562,7 +562,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 
 
 template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
+void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -716,7 +716,7 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
 

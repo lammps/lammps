@@ -217,7 +217,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   int* map_array_host = atom->get_map_array();
   int map_size = atom->get_map_size();
   int map_maxarray = atom->get_map_maxarray();
-  if (map_maxarray > k_map_array.extent(0))
+  if (map_maxarray > (int)k_map_array.extent(0))
     k_map_array = DAT::tdual_int_1d("NeighBond:map_array",map_maxarray);
   for (int i=0; i<map_size; i++)
     k_map_array.h_view[i] = map_array_host[i];
@@ -226,7 +226,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   map_array = k_map_array.view<DeviceType>();
 
   int* sametag_host = atomKK->sametag;
-  if (nmax > k_sametag.extent(0))
+  if (nmax > (int)k_sametag.extent(0))
     k_sametag = DAT::tdual_int_1d("NeighBond:sametag",nmax);
   for (int i=0; i<nall; i++)
     k_sametag.h_view[i] = sametag_host[i];

@@ -42,7 +42,6 @@ typedef double FFT_SCALAR;
 
 namespace LAMMPS_NS {
 
-
 #define EWALD_MAXORDER  6
 #define EWALD_FUNCS     4
 
@@ -190,15 +189,14 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   FFT_SCALAR *work1,*work2;
   FFT_SCALAR *work1_6, *work2_6;
 
-
   class FFT3d *fft1,*fft2 ;
-  class FFT3d *fft1_6, *fft2_6;
-  class Remap *remap;
-  class Remap *remap_6;
-  class GridComm *cg;
-  class GridComm *cg_peratom;
-  class GridComm *cg_6;
-  class GridComm *cg_peratom_6;
+  class FFT3d *fft1_6,*fft2_6;
+  class Remap *remap,*remap_6;
+  class GridComm *gc,*gc6;
+
+  FFT_SCALAR *gc_buf1,*gc_buf2,*gc6_buf1,*gc6_buf2;
+  int ngc_buf1,ngc_buf2,npergrid;
+  int ngc6_buf1,ngc6_buf2,npergrid6;
 
   int **part2grid;             // storage for particle -> grid mapping
   int **part2grid_6;
@@ -257,7 +255,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   void compute_gf_denom(double*, int);
   double gf_denom(double, double, double, double*, int);
 
-
   void compute_sf_precoeff(int, int, int, int,
                            int, int, int,
                            int, int, int,
@@ -267,7 +264,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   void compute_sf_coeff();
   void compute_gf_6();
   void compute_sf_coeff_6();
-
 
   virtual void particle_map(double, double, double,
                              double, int **, int, int,
@@ -295,8 +291,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                           int, int, int, double&, double *,
                           double *, double *, double *,
                           double *, double *, double *,
-                          FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, double *, double **, double **,
-                          FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                          FFT_SCALAR ***, FFT_SCALAR ***,
+			  FFT_SCALAR ***, double *, double **, double **,
+                          FFT_SCALAR ***, FFT_SCALAR ***,
+			  FFT_SCALAR ***, FFT_SCALAR ***,
                           FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_ad(FFT_SCALAR*, FFT_SCALAR*,
@@ -317,14 +315,18 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void poisson_2s_ik(FFT_SCALAR *, FFT_SCALAR *,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+			     FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+			     FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
   virtual void poisson_2s_ad(FFT_SCALAR *, FFT_SCALAR *,
-                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+			     FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                             FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+			     FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_2s_peratom(FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
@@ -339,9 +341,11 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void poisson_none_ik(int, int, FFT_SCALAR *, FFT_SCALAR *,
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
+                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
+			       FFT_SCALAR ****,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
-  virtual void poisson_none_peratom(int, int, FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+  virtual void poisson_none_peratom(int, int,
+				    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
@@ -369,10 +373,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
 
   // grid communication
 
-  void pack_forward(int, FFT_SCALAR *, int, int *);
-  void unpack_forward(int, FFT_SCALAR *, int, int *);
-  void pack_reverse(int, FFT_SCALAR *, int, int *);
-  void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
 };
 
 }

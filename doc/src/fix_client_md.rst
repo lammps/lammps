@@ -66,7 +66,8 @@ LAMMPS and another code in tandem to perform a coupled simulation.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -102,4 +103,7 @@ Related commands
 
 :doc:`message <message>`, :doc:`server <server>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -228,7 +228,8 @@ type. Valid chemical symbols for compute saed are:
 If the *echo* keyword is specified, compute saed will provide extra
 reporting information to the screen.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector.  The length of the vector is
 the number of reciprocal lattice nodes that are explored by the mesh.

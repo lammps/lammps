@@ -387,10 +387,9 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
 KOKKOS_INLINE_FUNCTION
-int FixRxKokkos<DeviceType>::k_rkf45_h0
-                    (const int neq, const double t, const double t_stop,
-                     const double hmin, const double hmax,
-                     double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const
+int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
+                                         const double hmin, const double hmax,
+                                         double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const
 {
    // Set lower and upper bounds on h0, and take geometric mean as first trial value.
    // Exit with this value if the bounds cross each other.
@@ -707,10 +706,9 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
 }
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rkf45_h0
-                    (const int neq, const double t, const double t_stop,
-                     const double hmin, const double hmax,
-                     double& h0, double y[], double rwk[], void* v_params) const
+int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const double /*t_stop*/,
+                                      const double hmin, const double hmax,
+                                      double& h0, double y[], double rwk[], void* v_params) const
 {
    // Set lower and upper bounds on h0, and take geometric mean as first trial value.
    // Exit with this value if the bounds cross each other.
@@ -920,7 +918,7 @@ int FixRxKokkos<DeviceType>::rhs(double t, const double *y, double *dydt, void *
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, void *params) const
+int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dydt, void *params) const
 {
   UserRHSData *userData = (UserRHSData *) params;
 
@@ -959,7 +957,7 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt, void *v_params) const
+int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
    UserRHSData *userData = (UserRHSData *) v_params;
 
@@ -1068,7 +1066,7 @@ int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dy
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
 KOKKOS_INLINE_FUNCTION
-int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
+int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
   #define rxnRateLaw (userData.rxnRateLaw)
   #define kFor       (userData.kFor      )
@@ -1110,7 +1108,7 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorTy
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
 KOKKOS_INLINE_FUNCTION
-int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
+int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
    #define kFor         (userData.kFor)
    #define kRev         (NULL)
@@ -1430,7 +1428,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreForce)
+void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool isPreForce)
 {
   //printf("Inside FixRxKokkos<DeviceType>::solve_reactions localTempFlag= %d isPreForce= %s\n", localTempFlag, isPreForce ? "True" : "false");
 
@@ -1439,7 +1437,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   if (update_kinetics_data)
     create_kinetics_data();
 
-  TimerType timer_start = getTimeStamp();
+  //TimerType timer_start = getTimeStamp();
 
   //const int nlocal = atom->nlocal;
   this->nlocal = atom->nlocal;
@@ -1462,30 +1460,33 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
     const int neighflag = lmp->kokkos->neighflag;
 
-#define _template_switch(_wtflag, _localTempFlag) { \
-       if (neighflag == HALF) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , HALF> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, HALF> (); \
-       else if (neighflag == HALFTHREAD) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
-       else if (neighflag == FULL) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> (); \
+#define _template_switch(_wtflag, _localTempFlag) {                               \
+      if (neighflag == HALF) {                                                    \
+        if (newton_pair) {                                                        \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , HALF> ();       \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, HALF> ();       \
+        }                                                                         \
+      } else if (neighflag == HALFTHREAD) {                                       \
+        if (newton_pair) {                                                        \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
+        }                                                                         \
+      } else if (neighflag == FULL) {                                             \
+        if (newton_pair)  {                                                       \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> ();       \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> ();       \
+        }                                                                         \
+      }                                                                           \
     }
 
     // Are there is no other options than wtFlag = (0)LUCY and localTempFlag = NONE : HARMONIC?
     if (localTempFlag == HARMONIC) {
-       _template_switch(LUCY, HARMONIC)
-    }
-    else {
-       _template_switch(LUCY, NONE)
+      _template_switch(LUCY, HARMONIC)
+    } else {
+      _template_switch(LUCY, NONE)
     }
 #undef _template_switch
   }
@@ -1674,7 +1675,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
   atomKK->modified ( Host, DVECTOR_MASK );
 
-  TimerType timer_stop = getTimeStamp();
+  //TimerType timer_stop = getTimeStamp();
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
@@ -2032,7 +2033,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     const int ntypes = atom->ntypes;
 
     //memoryKK->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
-    if (ntypes+1 > k_cutsq.extent(0)) {
+    if (ntypes+1 > (int) k_cutsq.extent(0)) {
       memoryKK->destroy_kokkos (k_cutsq);
       memoryKK->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
       d_cutsq = k_cutsq.template view<DeviceType>();
@@ -2053,7 +2054,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
 
   //memoryKK->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  if (sumWeightsCt > k_sumWeights.template view<DeviceType>().extent(0)) {
+  if (sumWeightsCt > (int)k_sumWeights.template view<DeviceType>().extent(0)) {
     memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
     memoryKK->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
     d_sumWeights = k_sumWeights.template view<DeviceType>();
@@ -2196,7 +2197,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   //printf("inside FixRxKokkos::pack_forward_comm %d\n", comm->me);
 

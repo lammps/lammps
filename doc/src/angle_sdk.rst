@@ -73,4 +73,7 @@ Related commands
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_style harmonic <angle_harmonic>`, :doc:`pair_style lj/sdk <pair_sdk>`,
 :doc:`pair_style lj/sdk/coul/long <pair_sdk>`
 
-**Default:** none
+Default
+"""""""
+
+none

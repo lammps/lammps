@@ -1560,7 +1560,7 @@ void FixWallGran::unpack_restart(int nlocal, int nth)
 
   // skip to Nth set of extra values
   // unpack the Nth first values this way because other fixes pack them
-  
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;

@@ -54,4 +54,7 @@ Related commands
 :doc:`dump <dump>`,
 :doc:`fix nvt/uef <fix_nh_uef>`
 
-**Default:** none
+Default
+"""""""
+
+none

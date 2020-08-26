@@ -395,7 +395,8 @@ The *group* keyword adds all inserted atoms to the
 adds all inserted atoms of the specified type to the
 :doc:`group <group>` of the group-ID value.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges,  the number

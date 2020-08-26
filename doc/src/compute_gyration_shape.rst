@@ -63,7 +63,8 @@ is bounded between zero (if all points are spherically symmetric) and one
    atom.  You can reset the image flags (e.g. to 0) before invoking this
    compute by using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of
 length 6, which can be accessed by indices 1-6. The first three values are the
@@ -87,7 +88,10 @@ Related commands
 
 :doc:`compute gyration <compute_gyration>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

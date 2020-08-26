@@ -33,6 +33,12 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define LMP_KOKKOS_GPU
 #endif
 
+#if defined(LMP_KOKKOS_GPU)
+#define KOKKOS_GPU_ARG(x) x
+#else
+#define KOKKOS_GPU_ARG(x)
+#endif
+
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
@@ -1121,6 +1127,12 @@ struct alignas(32) CayleyKleinPack {
 #define LAMMPS_LAMBDA [=] __device__
 #else
 #define LAMMPS_LAMBDA [=]
+#endif
+
+#ifdef LMP_KOKKOS_GPU
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#define LMP_KK_DEVICE_COMPILE
+#endif
 #endif
 
 #endif

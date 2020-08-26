@@ -37,7 +37,7 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   // skip if this list is already long enough to store nmax atoms
   //  and maxneighs neighbors
 
-  if (nmax <= maxatoms && d_neighbors.extent(1) >= maxneighs) return;
+  if (nmax <= maxatoms && (int)d_neighbors.extent(1) >= maxneighs) return;
   maxatoms = nmax;
 
   k_ilist = DAT::tdual_int_1d("neighlist:ilist",maxatoms);

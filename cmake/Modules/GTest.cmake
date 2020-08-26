@@ -7,9 +7,11 @@ else()
 endif()
 
 include(ExternalProject)
+set(GTEST_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz" CACHE STRING "URL for GTest tarball")
+mark_as_advanced(GTEST_URL)
 ExternalProject_Add(googletest
-                    GIT_REPOSITORY  https://github.com/google/googletest.git
-                    GIT_TAG         release-1.10.0
+                    URL ${GTEST_URL}
+                    URL_MD5         ecd1fa65e7de707cd5c00bdac56022cd
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/gtest-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/gtest-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_GTEST_OPTS}

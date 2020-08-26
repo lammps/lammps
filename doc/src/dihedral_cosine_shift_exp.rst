@@ -73,4 +73,7 @@ Related commands
 :doc:`dihedral_coeff <dihedral_coeff>`,
 :doc:`angle_style cosine/shift/exp <angle_cosine_shift_exp>`
 
-**Default:** none
+Default
+"""""""
+
+none

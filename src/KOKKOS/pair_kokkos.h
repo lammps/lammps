@@ -51,8 +51,7 @@ struct DoCoul<1> {
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>
-class PairComputeFunctor  {
- public:
+struct PairComputeFunctor  {
   typedef typename PairStyle::device_type device_type ;
   typedef ArrayTypes<device_type> AT;
 
@@ -712,7 +711,10 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<!((NE
 }
 
 template<class FunctorStyle>
-int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
+int GetTeamSize(FunctorStyle& KOKKOS_GPU_ARG(functor), int KOKKOS_GPU_ARG(inum),
+                int KOKKOS_GPU_ARG(reduce_flag), int team_size, int KOKKOS_GPU_ARG(vector_length)) {
+
+#ifdef LMP_KOKKOS_GPU
     int team_size_max;
 
     if (reduce_flag)
@@ -720,7 +722,6 @@ int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size,
     else
       team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
 
-#ifdef LMP_KOKKOS_GPU
     if(team_size*vector_length > team_size_max)
       team_size = team_size_max/vector_length;
 #else

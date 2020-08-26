@@ -51,4 +51,7 @@ Related commands
 :doc:`fix nvt/uef <fix_nh_uef>`,
 :doc:`compute pressure/uef <compute_pressure_uef>`
 
-**Default:** none
+Default
+"""""""
+
+none

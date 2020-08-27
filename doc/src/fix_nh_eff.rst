@@ -105,7 +105,8 @@ to the temperature or kinetic energy from the electron radial velocity.
    the user must allow for these degrees of freedom to equilibrate
    (i.e. equi-partitioning of energy) through time integration.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 See the doc page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands
 for details.

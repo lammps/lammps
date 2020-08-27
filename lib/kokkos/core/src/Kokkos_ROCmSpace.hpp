@@ -64,11 +64,11 @@ namespace Experimental {
 class ROCmSpace {
  public:
   //! Tag this class as a kokkos memory space
-  typedef ROCmSpace memory_space;
-  typedef Kokkos::Experimental::ROCm execution_space;
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using memory_space    = ROCmSpace;
+  using execution_space = Kokkos::Experimental::ROCm;
+  using device_type     = Kokkos::Device<execution_space, memory_space>;
 
-  typedef unsigned int size_type;
+  using size_type = unsigned int;
 
   /*--------------------------------*/
 
@@ -157,10 +157,10 @@ class ROCmHostPinnedSpace {
  public:
   //! Tag this class as a kokkos memory space
   /** \brief  Memory is in HostSpace so use the HostSpace::execution_space */
-  typedef HostSpace::execution_space execution_space;
-  typedef ROCmHostPinnedSpace memory_space;
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
-  typedef unsigned int size_type;
+  using execution_space = HostSpace::execution_space;
+  using memory_space    = ROCmHostPinnedSpace;
+  using device_type     = Kokkos::Device<execution_space, memory_space>;
+  using size_type       = unsigned int;
 
   /*--------------------------------*/
 
@@ -530,7 +530,7 @@ template <>
 class SharedAllocationRecord<Kokkos::Experimental::ROCmSpace, void>
     : public SharedAllocationRecord<void, void> {
  private:
-  typedef SharedAllocationRecord<void, void> RecordBase;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
@@ -581,7 +581,7 @@ template <>
 class SharedAllocationRecord<Kokkos::Experimental::ROCmHostPinnedSpace, void>
     : public SharedAllocationRecord<void, void> {
  private:
-  typedef SharedAllocationRecord<void, void> RecordBase;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;

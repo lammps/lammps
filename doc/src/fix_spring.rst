@@ -97,7 +97,8 @@ last example holds the ion a distance 5 away from the pore axis
    spring connecting two groups or a group and the tether point can cross
    a periodic boundary and its length be calculated correctly.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -149,4 +150,7 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix spring/self <fix_spring_self>`,
 :doc:`fix spring/rg <fix_spring_rg>`, :doc:`fix smd <fix_smd>`
 
-**Default:** none
+Default
+"""""""
+
+none

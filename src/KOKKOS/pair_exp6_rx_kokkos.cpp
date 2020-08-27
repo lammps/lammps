@@ -814,7 +814,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   }
 
   int tid = 0;
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
@@ -1156,7 +1156,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   t_uCG(tid,i) += uCG_i;
   t_uCGnew(tid,i) += uCGnew_i;
 
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
   unique_token.release(tid);
 #endif
 }
@@ -1189,7 +1189,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
 
   int tid = 0;
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
@@ -1624,7 +1624,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     t_uCGnew(tid,i) += uCGnew_i;
   }
 
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
   unique_token.release(tid);
 #endif
 }
@@ -2129,7 +2129,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 
 /* ---------------------------------------------------------------------- */
 
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
 template<class DeviceType>
   template<class ArrayT>
 void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,

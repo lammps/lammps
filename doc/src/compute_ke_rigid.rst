@@ -37,7 +37,8 @@ compute command is ignored.  The kinetic energy of all the rigid
 bodies defined by the fix rigid command in included in the
 calculation.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the summed KE of all the
 rigid bodies).  This value can be used by any command that uses a
@@ -58,4 +59,7 @@ Related commands
 
 :doc:`compute erotate/rigid <compute_erotate_rigid>`
 
-**Default:** none
+Default
+"""""""
+
+none

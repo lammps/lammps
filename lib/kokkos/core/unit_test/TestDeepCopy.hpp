@@ -6,13 +6,13 @@ namespace Test {
 namespace Impl {
 template <class MemorySpaceA, class MemorySpaceB>
 struct TestDeepCopy {
-  typedef Kokkos::View<double*, Kokkos::LayoutRight, MemorySpaceA> a_base_t;
-  typedef Kokkos::View<double*, Kokkos::LayoutRight, MemorySpaceB> b_base_t;
-  typedef Kokkos::View<char*, Kokkos::LayoutRight, MemorySpaceA> a_char_t;
-  typedef Kokkos::View<char*, Kokkos::LayoutRight, MemorySpaceB> b_char_t;
+  using a_base_t = Kokkos::View<double*, Kokkos::LayoutRight, MemorySpaceA>;
+  using b_base_t = Kokkos::View<double*, Kokkos::LayoutRight, MemorySpaceB>;
+  using a_char_t = Kokkos::View<char*, Kokkos::LayoutRight, MemorySpaceA>;
+  using b_char_t = Kokkos::View<char*, Kokkos::LayoutRight, MemorySpaceB>;
 
-  typedef Kokkos::RangePolicy<typename MemorySpaceA::execution_space> policyA_t;
-  typedef Kokkos::RangePolicy<typename MemorySpaceB::execution_space> policyB_t;
+  using policyA_t = Kokkos::RangePolicy<typename MemorySpaceA::execution_space>;
+  using policyB_t = Kokkos::RangePolicy<typename MemorySpaceB::execution_space>;
 
   static void reset_a_copy_and_b(
       Kokkos::View<char*, Kokkos::LayoutRight, MemorySpaceA> a_char_copy,
@@ -213,8 +213,6 @@ TEST(TEST_CATEGORY, deep_copy_alignment) {
 }
 #endif
 
-// KOKKOS_IMPL_HIP_CLANG_WORKAROUND
-#ifndef KOKKOS_ENABLE_HIP
 namespace Impl {
 template <class Scalar1, class Scalar2, class Layout1, class Layout2>
 struct TestDeepCopyScalarConversion {
@@ -355,5 +353,4 @@ TEST(TEST_CATEGORY, deep_copy_conversion) {
   Impl::TestDeepCopyScalarConversion<double, float, right, stride>().run_tests(
       N0, N1);
 }
-#endif
 }  // namespace Test

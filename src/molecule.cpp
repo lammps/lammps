@@ -879,7 +879,7 @@ void Molecule::masses(char *line)
 
 void Molecule::bonds(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2;
   int newton_bond = force->newton_bond;
 
@@ -947,7 +947,7 @@ void Molecule::bonds(int flag, char *line)
 
 void Molecule::angles(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3;
   int newton_bond = force->newton_bond;
 
@@ -1031,7 +1031,7 @@ void Molecule::angles(int flag, char *line)
 
 void Molecule::dihedrals(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 
@@ -1131,7 +1131,7 @@ void Molecule::dihedrals(int flag, char *line)
 
 void Molecule::impropers(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 

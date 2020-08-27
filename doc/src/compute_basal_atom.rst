@@ -44,7 +44,8 @@ which computes this quantity.
 An example input script that uses this compute is provided
 in examples/USER/misc/basal.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 3 columns, which can be
 accessed by indices 1-3 by any command that uses per-atom values from
@@ -69,7 +70,10 @@ Related commands
 
 :doc:`compute centro/atom <compute_centro_atom>`, :doc:`compute ackland/atom <compute_ackland_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

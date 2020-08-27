@@ -31,8 +31,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`bond_style zero <bond_zero>`
 
-**Default:** none
+Default
+"""""""
+
+none

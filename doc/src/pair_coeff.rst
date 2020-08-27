@@ -161,4 +161,7 @@ Related commands
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`,
 :doc:`pair_write <pair_write>`
 
-**Default:** none
+Default
+"""""""
+
+none

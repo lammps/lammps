@@ -130,7 +130,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This angle style writes the settings for the "angle_style table"
 command to :doc:`binary restart files <restart>`, so a angle_style
@@ -152,4 +153,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

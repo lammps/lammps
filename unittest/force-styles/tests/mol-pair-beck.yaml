@@ -1,6 +1,6 @@
 ---
-lammps_version: 21 Jul 2020
-date_generated: Sat Aug  1 06:07:46 202
+lammps_version: 24 Aug 2020
+date_generated: Thu Aug 27 17:07:12 202
 epsilon: 5e-14
 prerequisites: ! |
   atom full
@@ -28,7 +28,7 @@ pair_coeff: ! |
   5 5 279437.56732576 78.2341704275754 3.13943017396948 5.20120131244272 1.00000000000006e-08 
 extract: ! ""
 natoms: 29
-init_vdwl: 1878.87161628876
+init_vdwl: 190.036082315631
 init_coul: 0
 init_stress: ! |2-
    3.9653395125210380e+02  4.0062392946132519e+02  6.5568989225726875e+02 -8.0274562500806340e+01  3.9101921977574932e+01  7.1424156350717041e+01

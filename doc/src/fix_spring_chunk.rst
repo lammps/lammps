@@ -48,7 +48,8 @@ chunk.  Note that *K* thus represents the spring constant for the
 total force on each chunk of atoms, not for a spring applied to each
 atom.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the locations of the initial per-chunk center of mass
 coordinates to :doc:`binary restart files <restart>`.  See the
@@ -98,4 +99,7 @@ Related commands
 :doc:`fix spring <fix_spring>`, :doc:`fix spring/self <fix_spring_self>`,
 :doc:`fix spring/rg <fix_spring_rg>`
 
-**Default:** none
+Default
+"""""""
+
+none

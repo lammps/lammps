@@ -122,7 +122,8 @@ timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all internal variables to :doc:`binary
 restart files <restart>`.  See the :doc:`read_restart <read_restart>`

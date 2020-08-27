@@ -134,7 +134,8 @@ thermostatting.  Using this compute in conjunction with a
 thermostatting fix, as explained there, will effectively implement a
 profile-unbiased thermostat (PUT), as described in :ref:`(Evans) <Evans1>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature).  Depending
 on the setting of the *out* keyword, it also calculates a global

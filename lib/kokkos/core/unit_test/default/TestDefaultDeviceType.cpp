@@ -52,10 +52,10 @@
 namespace Test {
 
 TEST(TEST_CATEGORY, host_space_access) {
-  typedef Kokkos::HostSpace::execution_space host_exec_space;
-  typedef Kokkos::Device<host_exec_space, Kokkos::HostSpace> device_space;
-  typedef Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space
-      mirror_space;
+  using host_exec_space = Kokkos::HostSpace::execution_space;
+  using device_space    = Kokkos::Device<host_exec_space, Kokkos::HostSpace>;
+  using mirror_space =
+      Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space;
 
   static_assert(Kokkos::Impl::SpaceAccessibility<host_exec_space,
                                                  Kokkos::HostSpace>::accessible,

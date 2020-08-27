@@ -184,7 +184,8 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to keeping the constraints to the
@@ -217,9 +218,16 @@ degrees (e.g. linear CO2 molecule).  This causes numeric difficulties.
 You can use :doc:`fix rigid or fix rigid/small <fix_rigid>` instead to
 make a linear molecule rigid.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

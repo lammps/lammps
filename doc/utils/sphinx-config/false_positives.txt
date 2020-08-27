@@ -43,6 +43,7 @@ Afshar
 agilio
 Agilio
 agni
+Agnolin
 Ai
 Aidan
 aij
@@ -436,6 +437,7 @@ Colvars
 COLVARS
 comID
 Commun
+compositing
 compressibility
 compressive
 Comput
@@ -599,6 +601,7 @@ Dequidt
 der
 dereference
 derekt
+Deresiewicz
 Derjagin
 Derjaguin
 Derlet
@@ -2219,6 +2222,7 @@ oxdna
 oxrna
 oxDNA
 oxRNA
+packings
 padua
 Padua
 palegoldenrod

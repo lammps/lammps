@@ -709,7 +709,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  __local int red_acc[BLOCK_PAIR];
+  __local int ijnum_shared[BLOCK_PAIR];
 
   __syncthreads();
 
@@ -789,14 +789,14 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
-          red_acc[m] = ijnum;
+          ijnum_shared[m] = ijnum;
           break;
         }
       }
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      if (ijnum < 0) ijnum = red_acc[m];
+      if (ijnum < 0) ijnum = ijnum_shared[m];
 
       // idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
       int idx = ijnum;

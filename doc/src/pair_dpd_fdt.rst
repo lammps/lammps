@@ -177,7 +177,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -126,4 +126,7 @@ Related commands
 :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
 :doc:`write_data <write_data>`
 
-**Default:** none
+Default
+"""""""
+
+none

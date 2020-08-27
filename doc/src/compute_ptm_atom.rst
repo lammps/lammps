@@ -84,7 +84,8 @@ too frequently or to have multiple compute/dump commands, each with a
 unless the optional *group2-ID* argument is given, then only members
 of that group are considered as neighbors.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -120,7 +121,10 @@ Related commands
 :doc:`compute centro/atom <compute_centro_atom>`
 :doc:`compute cna/atom <compute_cna_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

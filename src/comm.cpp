@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
 #include "fmt/format.h"
 
 #ifdef _OPENMP
@@ -103,12 +104,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Bcast(&nthreads,1,MPI_INT,0,world);
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-    if (logfile)
-      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  using {} OpenMP thread(s) per MPI task\n",nthreads));
 #endif
 
 }
@@ -563,20 +560,12 @@ void Comm::set_proc_grid(int outflag)
   // print 3d grid info to screen and logfile
 
   if (outflag && me == 0) {
-    if (screen) {
-      fprintf(screen,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(screen,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
-    if (logfile) {
-      fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(logfile,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
+    auto mesg = fmt::format("  {} by {} by {} MPI processor grid\n",
+                            procgrid[0],procgrid[1],procgrid[2]);
+    if (gridflag == NUMA || gridflag == TWOLEVEL)
+      mesg += fmt::format("  {} by {} by {} core grid within node\n",
+                          coregrid[0],coregrid[1],coregrid[2]);
+    utils::logmesg(lmp,mesg);
   }
 
   // print 3d grid details to outfile
@@ -1223,42 +1212,42 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
   int mbytes = 1024*1024;
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Rendezvous balance and memory info: (tot,ave,max,min) \n");
-      fmt::print(screen,"  input datum count: {} {} {} {}\n",
-                 size_in_all/insize,1.0*size_in_all/nprocs/insize,
-                 size_in_max/insize,size_in_min/insize);
-      fprintf(screen,"  input data (MB): %g %g %g %g\n",
-              1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
-              1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
-      if (outsize)
-        fmt::print(screen,"  output datum count: {} {} {} {}\n",
-                   size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
-                   size_out_max/outsize,size_out_min/outsize);
-      else
-        fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output data (MB): %g %g %g %g\n",
-              1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
-              1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
-      fmt::print(screen,"  input rvous datum count: {} {} {} {}\n",
-                 size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
-                 size_inrvous_max/insize,size_inrvous_min/insize);
-      fprintf(screen,"  input rvous data (MB): %g %g %g %g\n",
-              1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
-              1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
-      if (outsize)
-        fmt::print(screen,"  output rvous datum count: {} {} {} {}\n",
-                   size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
-                   size_outrvous_max/outsize,size_outrvous_min/outsize);
-      else
-        fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
-              1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
-              1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
-      fprintf(screen,"  rvous comm (MB): %g %g %g %g\n",
-              1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
-              1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
-    }
+    std::string mesg = "Rendezvous balance and memory info: (tot,ave,max,min) \n";
+    mesg += fmt::format("  input datum count: {} {} {} {}\n",
+                        size_in_all/insize,1.0*size_in_all/nprocs/insize,
+                        size_in_max/insize,size_in_min/insize);
+    mesg += fmt::format("  input data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
+                        1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output datum count: {} {} {} {}\n",
+                          size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+                          size_out_max/outsize,size_out_min/outsize);
+    else
+      mesg += fmt::format("  output datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+
+    mesg += fmt::format("  output data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
+                        1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
+    mesg += fmt::format("  input rvous datum count: {} {} {} {}\n",
+                        size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+                        size_inrvous_max/insize,size_inrvous_min/insize);
+    mesg += fmt::format("  input rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
+                        1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output rvous datum count: {} {} {} {}\n",
+                          size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+                          size_outrvous_max/outsize,size_outrvous_min/outsize);
+    else
+      mesg += fmt::format("  output rvous datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+    mesg += fmt::format("  output rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
+                        1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
+    mesg += fmt::format("  rvous comm (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
+                        1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
+    utils::logmesg(lmp,mesg);
   }
 }
 

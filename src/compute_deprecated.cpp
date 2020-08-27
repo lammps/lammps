@@ -31,6 +31,5 @@ ComputeDeprecated::ComputeDeprecated(LAMMPS *lmp, int narg, char **arg) :
       utils::logmesg(lmp,"\nCompute style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-
-  lmp->error->all(FLERR,"This compute style is no longer available");
+  error->all(FLERR,"This compute style is no longer available");
 }

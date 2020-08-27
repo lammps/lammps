@@ -53,19 +53,13 @@
 #include <immintrin.h>
 #endif
 
-#if defined(__HCC_ACCELERATOR__)
-#include <hc.hpp>
-#endif
-
 namespace Kokkos {
 
 KOKKOS_FORCEINLINE_FUNCTION
 int log2(unsigned i) {
   enum : int { shift = sizeof(unsigned) * CHAR_BIT - 1 };
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   return shift - __clz(i);
-#elif defined(__HCC_ACCELERATOR__)
-  return (int)hc::__firstbit_u32_u32(i);
 #elif defined(KOKKOS_COMPILER_INTEL)
   return _bit_scan_reverse(i);
 #elif defined(KOKKOS_COMPILER_IBM)
@@ -94,10 +88,8 @@ KOKKOS_FORCEINLINE_FUNCTION
 int bit_first_zero(unsigned i) noexcept {
   enum : unsigned { full = ~0u };
 
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   return full != i ? __ffs(~i) - 1 : -1;
-#elif defined(__HCC_ACCELERATOR__)
-  return full != i ? (int)hc::__firstbit_u32_u32(~i) : -1;
 #elif defined(KOKKOS_COMPILER_INTEL)
   return full != i ? _bit_scan_forward(~i) : -1;
 #elif defined(KOKKOS_COMPILER_IBM)
@@ -118,10 +110,8 @@ int bit_first_zero(unsigned i) noexcept {
 
 KOKKOS_FORCEINLINE_FUNCTION
 int bit_scan_forward(unsigned i) {
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   return __ffs(i) - 1;
-#elif defined(__HCC_ACCELERATOR__)
-  return (int)hc::__firstbit_u32_u32(i);
 #elif defined(KOKKOS_COMPILER_INTEL)
   return _bit_scan_forward(i);
 #elif defined(KOKKOS_COMPILER_IBM)
@@ -143,10 +133,8 @@ int bit_scan_forward(unsigned i) {
 /// Count the number of bits set.
 KOKKOS_FORCEINLINE_FUNCTION
 int bit_count(unsigned i) {
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   return __popc(i);
-#elif defined(__HCC_ACCELERATOR__)
-  return (int)hc::__popcount_u32_b32(i);
 #elif defined(__INTEL_COMPILER)
   return _popcnt32(i);
 #elif defined(KOKKOS_COMPILER_IBM)

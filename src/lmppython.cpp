@@ -80,7 +80,7 @@ void Python::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int Python::find(char *name)
+int Python::find(const char *name)
 {
   init();
   return impl->find(name);
@@ -88,7 +88,7 @@ int Python::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int Python::variable_match(char *name, char *varname, int numeric)
+int Python::variable_match(const char *name, const char *varname, int numeric)
 {
   init();
   return impl->variable_match(name, varname, numeric);

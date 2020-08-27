@@ -38,6 +38,7 @@ PairLJClass2CoulLongCS::PairLJClass2CoulLongCS(LAMMPS *lmp) : PairLJClass2CoulLo
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 0;  // TODO: r-RESPA handling is inconsistent and thus disabled until fixed
+  single_enable = 0; // TODO: single function does not match compute
   writedata = 1;
   ftable = NULL;
 }

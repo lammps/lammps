@@ -503,4 +503,7 @@ Related commands
 :doc:`create_box <create_box>`, :doc:`create_atoms <create_atoms>`,
 :doc:`read_data <read_data>`
 
-**Default:** none
+Default
+"""""""
+
+none

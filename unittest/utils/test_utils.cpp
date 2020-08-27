@@ -21,17 +21,42 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
+using ::testing::EndsWith;
 using ::testing::Eq;
+using ::testing::StrEq;
+
+TEST(Utils, trim)
+{
+    auto trimmed = utils::trim("\t some text");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("some text \r\n");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("\v some text \f");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("   some\t text    ");
+    ASSERT_THAT(trimmed, StrEq("some\t text"));
+
+    trimmed = utils::trim("  \t\n   ");
+    ASSERT_THAT(trimmed, StrEq(""));
+}
 
 TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");
-    ASSERT_THAT(trimmed, Eq("some text "));
+    ASSERT_THAT(trimmed, StrEq("some text "));
 }
 
 TEST(Utils, count_words)
 {
     ASSERT_EQ(utils::count_words("some text # comment"), 4);
+}
+
+TEST(Utils, count_words_string)
+{
+    ASSERT_EQ(utils::count_words(std::string("some text # comment")), 4);
 }
 
 TEST(Utils, count_words_non_default)
@@ -53,18 +78,36 @@ TEST(Utils, split_words_simple)
 {
     std::vector<std::string> list = utils::split_words("one two three");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
 }
 
 TEST(Utils, split_words_quoted)
 {
     std::vector<std::string> list = utils::split_words("one 'two' \"three\"");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
 }
 
 TEST(Utils, split_words_escaped)
 {
     std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
     ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("1\\'"));
+    ASSERT_THAT(list[1], StrEq("\"two\""));
+    ASSERT_THAT(list[2], StrEq("3\\\""));
+}
+
+TEST(Utils, split_words_quote_in_quoted)
+{
+    std::vector<std::string> list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("t\\'wo"));
+    ASSERT_THAT(list[2], StrEq("th\\\"ree"));
 }
 
 TEST(Utils, valid_integer1)
@@ -272,9 +315,65 @@ TEST(Utils, strmatch_char_range)
     ASSERT_TRUE(utils::strmatch("rigid", "^[ip-s]+gid"));
 }
 
+TEST(Utils, strmatch_notchar_range)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", "^[^a-g]+gid"));
+}
+
+TEST(Utils, strmatch_backslash)
+{
+    ASSERT_TRUE(utils::strmatch("\\rigid", "^\\W\\w+gid"));
+}
+
 TEST(Utils, strmatch_opt_range)
 {
-    ASSERT_TRUE(utils::strmatch("rigid", "^[0-9]*[p-s]igid"));
+    ASSERT_TRUE(utils::strmatch("rigid", "^[0-9]*[\\Wp-s]igid"));
+}
+
+TEST(Utils, strmatch_opt_char)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", "^r?igid"));
+    ASSERT_TRUE(utils::strmatch("igid", "^r?igid"));
+}
+
+TEST(Utils, strmatch_dot)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", ".igid"));
+    ASSERT_TRUE(utils::strmatch("Rigid", ".igid"));
+}
+
+TEST(Utils, strmatch_digit_nondigit)
+{
+    ASSERT_TRUE(utils::strmatch(" 5  angles\n", "^\\s*\\d+\\s+\\D+\\s"));
+}
+
+TEST(Utils, strmatch_integer_noninteger)
+{
+    ASSERT_TRUE(utils::strmatch(" -5  angles\n", "^\\s*\\i+\\s+\\I+\\s"));
+}
+
+TEST(Utils, strmatch_float_nonfloat)
+{
+    ASSERT_TRUE(utils::strmatch(" 5.0  angls\n", "^\\s*\\f+\\s+\\F+\\s"));
+}
+
+TEST(Utils, strmatch_whitespace_nonwhitespace)
+{
+    ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
+}
+
+TEST(Utils, guesspath)
+{
+    char buf[256];
+    FILE *fp = fopen("test_guesspath.txt", "w");
+#if defined(__linux__)
+    const char *path = utils::guesspath(buf, sizeof(buf), fp);
+    ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
+#else
+    const char *path = utils::guesspath(buf, sizeof(buf), fp);
+    ASSERT_THAT(path, EndsWith("(unknown)"));
+#endif
+    fclose(fp);
 }
 
 TEST(Utils, path_join)
@@ -352,7 +451,7 @@ TEST(Utils, unit_conversion)
     flag = utils::get_supported_conversions(utils::ENERGY);
     ASSERT_EQ(flag, utils::METAL2REAL | utils::REAL2METAL);
 
-    factor = utils::get_conversion_factor(utils::UNKNOWN, 1 << 30 - 1);
+    factor = utils::get_conversion_factor(utils::UNKNOWN, (1 << 30) - 1);
     ASSERT_DOUBLE_EQ(factor, 0.0);
     factor = utils::get_conversion_factor(utils::UNKNOWN, utils::NOCONVERT);
     ASSERT_DOUBLE_EQ(factor, 0.0);
@@ -362,4 +461,19 @@ TEST(Utils, unit_conversion)
     ASSERT_DOUBLE_EQ(factor, 23.060549);
     factor = utils::get_conversion_factor(utils::ENERGY, utils::REAL2METAL);
     ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
+}
+
+TEST(Utils, timespec2seconds_ss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("45"), 45.0);
+}
+
+TEST(Utils, timespec2seconds_mmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("10:45"), 645.0);
+}
+
+TEST(Utils, timespec2seconds_hhmmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
 }

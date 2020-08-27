@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -153,24 +154,16 @@ void ImproperClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 3; i++) {
       if (costheta[i] == -1.0) {
-        int me;
-        MPI_Comm_rank(world,&me);
+        int me = comm->me;
         if (screen) {
-          char str[128];
-          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT,
-                  me,update->ntimestep,
-                  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-          error->warning(FLERR,str,0);
-          fprintf(screen,"  1st atom: %d %g %g %g\n",
-                  me,x[i1][0],x[i1][1],x[i1][2]);
-          fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                  me,x[i2][0],x[i2][1],x[i2][2]);
-          fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                  me,x[i3][0],x[i3][1],x[i3][2]);
-          fprintf(screen,"  4th atom: %d %g %g %g\n",
-                  me,x[i4][0],x[i4][1],x[i4][2]);
+          error->warning(FLERR,fmt::format("Improper problem: {} {} {} {} {} {}",
+                                           me,update->ntimestep,
+                                           atom->tag[i1],atom->tag[i2],
+                                           atom->tag[i3],atom->tag[i4]));
+          fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1][0],x[i1][1],x[i1][2]);
+          fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2][0],x[i2][1],x[i2][2]);
+          fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3][0],x[i3][1],x[i3][2]);
+          fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4][0],x[i4][1],x[i4][2]);
         }
       }
     }

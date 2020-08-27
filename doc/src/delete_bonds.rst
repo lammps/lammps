@@ -155,4 +155,7 @@ Related commands
 :doc:`neigh_modify <neigh_modify>` exclude,
 :doc:`special_bonds <special_bonds>`, :doc:`fix shake <fix_shake>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -285,6 +285,7 @@ void PairBuckMDF::write_restart(FILE *fp)
         fwrite(&rho[i][j],sizeof(double),1,fp);
         fwrite(&c[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut_inner[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -311,11 +312,13 @@ void PairBuckMDF::read_restart(FILE *fp)
           utils::sfread(FLERR,&rho[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&c[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -327,6 +330,7 @@ void PairBuckMDF::read_restart(FILE *fp)
 void PairBuckMDF::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&tail_flag,sizeof(int),1,fp);
@@ -340,11 +344,13 @@ void PairBuckMDF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,NULL,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);

@@ -114,7 +114,8 @@ thermostatting.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 7, which can be accessed by indices 1-7.

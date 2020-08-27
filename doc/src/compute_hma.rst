@@ -155,7 +155,8 @@ An example input script that uses this compute is included in
 examples/USER/hma/ along with corresponding LAMMPS output showing that the HMA
 properties fluctuate less than the corresponding conventional properties.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector that includes the n properties
 requested as arguments to the command (the potential energy, pressure and/or heat
@@ -182,7 +183,10 @@ Related commands
 formulation of the hessian provided by Pair's single_hessian, which is used by
 this compute.
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

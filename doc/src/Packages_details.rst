@@ -306,7 +306,8 @@ gpu" or "-suffix gpu" :doc:`command-line switches <Run_options>`.  See
 also the :ref:`KOKKOS <PKG-KOKKOS>` package, which has GPU-enabled styles.
 
 **Authors:** Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
-(Northwestern U) while at ORNL.
+(Northwestern U) while at ORNL and later. AMD HIP support by Evgeny
+Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 

@@ -44,3 +44,4 @@
 
 #include <openmp/TestOpenMP_Category.hpp>
 #include <TestViewLayoutStrideAssignment.hpp>
+#include <TestIrregularLayout.hpp>

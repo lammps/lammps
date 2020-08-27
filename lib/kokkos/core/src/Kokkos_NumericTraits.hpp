@@ -45,6 +45,7 @@
 #ifndef KOKKOS_NUMERICTRAITS_HPP
 #define KOKKOS_NUMERICTRAITS_HPP
 
+#include <Kokkos_Macros.hpp>
 #include <climits>
 #include <cfloat>
 

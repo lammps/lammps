@@ -113,7 +113,8 @@ cutoff is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
@@ -144,4 +145,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style tri/lj <pair_tri_lj>`
 
-**Default:** none
+Default
+"""""""
+
+none

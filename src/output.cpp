@@ -568,7 +568,7 @@ void Output::add_dump(int narg, char **arg)
   // create the Dump
 
   if (dump_map->find(arg[2]) != dump_map->end()) {
-    DumpCreator dump_creator = (*dump_map)[arg[2]];
+    DumpCreator &dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 

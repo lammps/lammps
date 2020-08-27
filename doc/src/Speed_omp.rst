@@ -8,18 +8,21 @@ improper), several Kspace styles, and a few fix styles.  It uses
 the OpenMP interface for multi-threading, but can also be compiled
 without OpenMP support, providing optimized serial styles in that case.
 
-**Required hardware/software:**
+Required hardware/software
+""""""""""""""""""""""""""
 
 To enable multi-threading, your compiler must support the OpenMP interface.
 You should have one or more multi-core CPUs, as multiple threads can only be
 launched by each MPI task on the local node (using shared memory).
 
-**Building LAMMPS with the USER-OMP package:**
+Building LAMMPS with the USER-OMP package
+"""""""""""""""""""""""""""""""""""""""""
 
 See the :ref:`Build extras <user-omp>` doc page for
 instructions.
 
-**Run with the USER-OMP package from the command line:**
+Run with the USER-OMP package from the command line
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These examples assume one or more 16-core nodes.
 
@@ -52,7 +55,8 @@ details, including the default values used if it is not specified.  It
 also gives more details on how to set the number of threads via the
 OMP_NUM_THREADS environment variable.
 
-**Or run with the USER-OMP package by editing an input script:**
+Or run with the USER-OMP package by editing an input script
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The discussion above for the mpirun/mpiexec command, MPI tasks/node,
 and threads/MPI task is the same.
@@ -70,7 +74,8 @@ per MPI task to use.  The command doc page explains other options and
 how to set the number of threads via the OMP_NUM_THREADS environment
 variable.
 
-**Speed-ups to expect:**
+Speed-up to expect
+""""""""""""""""""
 
 Depending on which styles are accelerated, you should look for a
 reduction in the "Pair time", "Bond time", "KSpace time", and "Loop
@@ -92,7 +97,8 @@ sub-section.
 A description of the multi-threading strategy used in the USER-OMP
 package and some performance examples are `presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_
 
-**Guidelines for best performance:**
+Guidelines for best performance
+"""""""""""""""""""""""""""""""
 
 For many problems on current generation CPUs, running the USER-OMP
 package with a single thread/task is faster than running with multiple

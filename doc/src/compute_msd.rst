@@ -95,7 +95,8 @@ solids undergoing thermal motion.
    with subsequent positions as if they were from a single sample,
    instead of many, which will change the values of msd somewhat.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values

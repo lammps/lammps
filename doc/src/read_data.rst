@@ -93,7 +93,8 @@ The use of the *fix* keyword is discussed below.
 
 ----------
 
-**Reading multiple data files**
+Reading multiple data files
+"""""""""""""""""""""""""""
 
 The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
@@ -215,7 +216,8 @@ files you read.
 
 ----------
 
-**Format of a data file**
+Format of a data file
+"""""""""""""""""""""
 
 The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
@@ -260,7 +262,8 @@ the 2 words in "Bond Coeffs", is not valid.
 
 ----------
 
-**Format of the header of a data file**
+Format of the header of a data file
+"""""""""""""""""""""""""""""""""""
 
 These are the recognized header keywords.  Header lines can come in
 any order.  The value(s) are read from the beginning of the line.
@@ -432,7 +435,8 @@ are point particles.  See the discussion of ellipsoidflag and the
 
 ----------
 
-**Format of the body of a data file**
+Format of the body of a data file
+"""""""""""""""""""""""""""""""""
 
 These are the section keywords for the body of the file.
 

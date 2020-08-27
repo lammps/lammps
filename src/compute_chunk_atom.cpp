@@ -64,6 +64,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 
   peratom_flag = 1;
+  scalar_flag = 1;
+  extscalar = 0;
   size_peratom_cols = 0;
   create_attribute = 1;
 
@@ -637,6 +639,20 @@ void ComputeChunkAtom::compute_peratom()
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) chunk[i] = ichunk[i];
+}
+
+
+/* ----------------------------------------------------------------------
+   to return the number of chunks, we first need to make certain
+   that compute_peratom() has been called.
+------------------------------------------------------------------------- */
+double ComputeChunkAtom::compute_scalar()
+{
+  if (invoked_peratom != update->ntimestep)
+    compute_peratom();
+  invoked_scalar = update->ntimestep;
+
+  return (scalar = nchunk);
 }
 
 /* ----------------------------------------------------------------------

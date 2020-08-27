@@ -35,8 +35,6 @@ PairMorseSmoothLinearOMP::PairMorseSmoothLinearOMP(LAMMPS *lmp) :
   respa_enable = 0;
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 
 void PairMorseSmoothLinearOMP::compute(int eflag, int vflag)
@@ -75,8 +73,6 @@ void PairMorseSmoothLinearOMP::compute(int eflag, int vflag)
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
-
-
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
@@ -129,7 +125,7 @@ void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
         dexp = exp(-alpha[itype][jtype] * dr);
 
         fpartial = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-        fpair = factor_lj * ( fpartial - der_at_cutoff[itype][jtype] / r);
+        fpair = factor_lj * ( fpartial + der_at_cutoff[itype][jtype] / r);
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -143,7 +139,7 @@ void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EFLAG) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
                   offset[itype][jtype];
-          evdwl += ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
+          evdwl -= ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }
 

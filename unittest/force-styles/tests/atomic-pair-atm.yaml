@@ -1,7 +1,7 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Tue May 26 18:19:54 202
-epsilon: 5.0e-12
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:20 202
+epsilon: 5e-12
 prerequisites: ! |
   pair atm
 pre_commands: ! |

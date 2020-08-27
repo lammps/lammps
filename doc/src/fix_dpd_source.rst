@@ -64,7 +64,8 @@ cuboid domain to apply the source flux to.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -87,7 +88,10 @@ Related commands
 :doc:`pair_style edpd <pair_mesodpd>`, :doc:`pair_style tdpd <pair_mesodpd>`,
 :doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`, :doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

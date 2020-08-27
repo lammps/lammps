@@ -782,7 +782,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    BinCreator bin_creator = binclass[flag-1];
+    BinCreator &bin_creator = binclass[flag-1];
     neigh_bin[nbin] = bin_creator(lmp);
     neigh_bin[nbin]->post_constructor(requests[i]);
     neigh_bin[nbin]->istyle = flag;
@@ -803,7 +803,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    StencilCreator stencil_creator = stencilclass[flag-1];
+    StencilCreator &stencil_creator = stencilclass[flag-1];
     neigh_stencil[nstencil] = stencil_creator(lmp);
     neigh_stencil[nstencil]->post_constructor(requests[i]);
     neigh_stencil[nstencil]->istyle = flag;
@@ -828,7 +828,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    PairCreator pair_creator = pairclass[flag-1];
+    PairCreator &pair_creator = pairclass[flag-1];
     lists[i]->np = neigh_pair[i] = pair_creator(lmp);
     neigh_pair[i]->post_constructor(requests[i]);
     neigh_pair[i]->istyle = flag;
@@ -1438,7 +1438,7 @@ void Neighbor::init_topology()
 
 void Neighbor::print_pairwise_info()
 {
-  int i,m;
+  int i;
   NeighRequest *rq;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);
@@ -1466,10 +1466,10 @@ void Neighbor::print_pairwise_info()
                      every,delay,dist_check ? "yes" : "no");
   out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
                      oneatom, pgsize);
-  out += fmt::format("  master list distance cutoff = {}\n",cutneighmax);
-  out += fmt::format("  ghost atom cutoff = {}\n",cutghost);
+  out += fmt::format("  master list distance cutoff = {:.8g}\n",cutneighmax);
+  out += fmt::format("  ghost atom cutoff = {:.8g}\n",cutghost);
   if (style != Neighbor::NSQ)
-    out += fmt::format("  binsize = {}, bins = {} {} {}\n",binsize,
+    out += fmt::format("  binsize = {:.8g}, bins = {:g} {:g} {:g}\n",binsize,
                        ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
                        ceil(bbox[2]/binsize));
 
@@ -2078,6 +2078,7 @@ void Neighbor::build(int topoflag)
   //   leading to errors or even a crash
 
   if (style != Neighbor::NSQ) {
+    if (last_setup_bins < 0) setup_bins();
     for (int i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();

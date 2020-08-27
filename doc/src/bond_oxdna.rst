@@ -108,7 +108,9 @@ Related commands
 :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

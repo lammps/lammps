@@ -131,7 +131,8 @@ Those styles can be combined within one single command line.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 By default, the energy associated to this fix is not added to the potential
 energy of the system.
@@ -165,7 +166,9 @@ Related commands
 
 :doc:`atom_style spin <atom_style>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

@@ -196,7 +196,8 @@ values are desired, this compute can be accessed by the :doc:`thermo_style custo
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
@@ -222,4 +223,7 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -446,7 +446,7 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 namespace LAMMPS_NS {
 template class AngleCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class AngleCharmmKokkos<LMPHostType>;
 #endif
 }

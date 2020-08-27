@@ -51,6 +51,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <impl/Kokkos_Error.hpp>
+#include <Cuda/Kokkos_Cuda_Error.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -156,4 +157,19 @@ void traceback_callstack(std::ostream &msg) {
 }
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_CUDA
+namespace Experimental {
+
+void CudaRawMemoryAllocationFailure::append_additional_error_information(
+    std::ostream &o) const {
+  if (m_error_code != cudaSuccess) {
+    o << "  The Cuda allocation returned the error code \"\""
+      << cudaGetErrorName(m_error_code) << "\".";
+  }
+}
+
+}  // end namespace Experimental
+#endif
+
 }  // namespace Kokkos

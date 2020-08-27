@@ -96,16 +96,20 @@ class PPPM : public KSpace {
   double sf_coeff[6];          // coefficients for calculating ad self-forces
   double **acons;
 
+  // FFTs and grid communication
+
+  class FFT3d *fft1,*fft2;
+  class Remap *remap;
+  class GridComm *gc;
+
+  FFT_SCALAR *gc_buf1,*gc_buf2;
+  int ngc_buf1,ngc_buf2,npergrid;
+
   // group-group interactions
 
   int group_allocate_flag;
   FFT_SCALAR ***density_A_brick,***density_B_brick;
   FFT_SCALAR *density_A_fft,*density_B_fft;
-
-  class FFT3d *fft1,*fft2;
-  class Remap *remap;
-  class GridComm *cg;
-  class GridComm *cg_peratom;
 
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
@@ -160,10 +164,10 @@ class PPPM : public KSpace {
 
   // grid communication
 
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void pack_reverse(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  virtual void pack_forward_grid(int, void *, int, int *);
+  virtual void unpack_forward_grid(int, void *, int, int *);
+  virtual void pack_reverse_grid(int, void *, int, int *);
+  virtual void unpack_reverse_grid(int, void *, int, int *);
 
   // triclinic
 

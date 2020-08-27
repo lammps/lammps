@@ -14,6 +14,7 @@
 #include "hyper.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "domain.h"
 #include "region.h"
@@ -31,6 +32,8 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -100,13 +103,8 @@ void Hyper::command(int narg, char **arg)
 
   // create FixEventHyper class to store event and pre-quench states
 
-  char **args = new char*[3];
-  args[0] = (char *) "hyper_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/HYPER";
-  modify->add_fix(3,args);
+  modify->add_fix("hyper_event all EVENT/HYPER");
   fix_event = (FixEventHyper *) modify->fix[modify->nfix-1];
-  delete [] args;
 
   // create Finish for timing output
 
@@ -247,10 +245,7 @@ void Hyper::command(int narg, char **arg)
 
   update->nsteps = nsteps;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"Final hyper stats ...\n\n");
-    if (logfile) fprintf(logfile,"Final hyper stats ...\n\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"Final hyper stats ...\n\n");
 
   // subset of quantities also available in fix hyper output
   // set t_hyper to no-boost value when hyperenable is not set
@@ -298,55 +293,47 @@ void Hyper::command(int narg, char **arg)
   }
 
   if (me == 0) {
-    FILE *out;
-    for (int iout = 0; iout < 2; iout++) {
-      if (iout == 0) out = screen;
-      if (iout == 1) out = logfile;
-      if (!out) continue;
-      fprintf(out,"Cummulative quantities for fix hyper:\n");
-      fprintf(out,"  hyper time = %g\n",t_hyper);
-      if (hyperenable)
-        fprintf(out,"  time boost factor = %g\n", t_hyper /
-                ((update->ntimestep-fix_hyper->ntimestep_initial)*update->dt));
-      else fprintf(out,"  time boost factor = 1\n");
-      fprintf(out,"  event timesteps = %d\n",nevent_running);
-      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms_running);
-      fprintf(out,"Quantities for this hyper run:\n");
-      fprintf(out,"  event timesteps = %d\n",nevent);
-      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms);
-      fprintf(out,"  max length of any bond = %g\n",maxbondlen);
-      fprintf(out,"  max drift distance of any atom = %g\n",maxdrift);
-      fprintf(out,"  fraction of biased bonds with zero bias = %g\n",fraczero);
-      fprintf(out,"  fraction of biased bonds with negative strain = %g\n",
-              fracneg);
-      fprintf(out,"Current quantities:\n");
-      fprintf(out,"  ave bonds/atom = %g\n",avebonds);
+    std::string mesg = "Cummulative quantities for fix hyper:\n";
+    mesg += fmt::format("  hyper time = {}\n",t_hyper);
+    if (hyperenable)
+      mesg += fmt::format("  time boost factor = {}\n", t_hyper /
+                          ((update->ntimestep -fix_hyper->ntimestep_initial)*update->dt));
+    else mesg += "  time boost factor = 1\n";
+    mesg += fmt::format("  event timesteps = {}\n",nevent_running);
+    mesg += fmt::format("  # of atoms in events = {}\n",nevent_atoms_running);
+    mesg += "Quantities for this hyper run:\n";
+    mesg += fmt::format("  event timesteps = {}\n",nevent);
+    mesg += fmt::format("  # of atoms in events = {}\n",nevent_atoms);
+    mesg += fmt::format("  max length of any bond = {}\n",maxbondlen);
+    mesg += fmt::format("  max drift distance of any atom = {}\n",maxdrift);
+    mesg += fmt::format("  fraction of biased bonds with zero bias = {}\n",fraczero);
+    mesg += fmt::format("  fraction of biased bonds with negative strain = {}\n",fracneg);
+    mesg += "Current quantities:\n";
+    mesg += fmt::format("  ave bonds/atom = {}\n",avebonds);
 
-      if (hyperstyle == LOCAL) {
-        fprintf(out,"Cummulative quantities specific to fix hyper/local:\n");
-        fprintf(out,"  # of new bonds formed = %g\n",nnewbond);
-        fprintf(out,"  max bonds/atom = %g\n",maxbondperatom);
-        fprintf(out,"Quantities for this hyper run specific to "
-                "fix hyper/local:\n");
-        fprintf(out,"  ave boost for all bonds/step = %g\n",aveboost);
-        fprintf(out,"  ave biased bonds/step = %g\n",avenbias);
-        fprintf(out,"  ave bias coeff of all bonds = %g\n",avebiascoeff);
-        fprintf(out,"  min bias coeff of any bond = %g\n",minbiascoeff);
-        fprintf(out,"  max bias coeff of any bond = %g\n",maxbiascoeff);
-        fprintf(out,"  max dist from my subbox of any "
-                "non-maxstrain bond ghost atom = %g\n",rmaxever);
-        fprintf(out,"  max dist from my box of any bond ghost atom = %g\n",
-                rmaxeverbig);
-        fprintf(out,"  count of bond ghost neighbors "
-                "not found on reneighbor steps = %g\n",allghost_toofar);
-        fprintf(out,"  bias overlaps = %g\n",biasoverlap);
-        fprintf(out,"  CPU time for bond builds = %g\n",tbondbuild);
-        fprintf(out,"Current quantities specific to fix hyper/local:\n");
-        fprintf(out,"  neighbor bonds/bond = %g\n",neighbondperbond);
-        fprintf(out,"  ave boost coeff for all bonds = %g\n",avebiasnow);
-      }
-      fprintf(out,"\n");
+    if (hyperstyle == LOCAL) {
+      mesg += "Cummulative quantities specific to fix hyper/local:\n";
+      mesg += fmt::format("  # of new bonds formed = {}\n",nnewbond);
+      mesg += fmt::format("  max bonds/atom = {}\n",maxbondperatom);
+      mesg += "Quantities for this hyper run specific to fix hyper/local:\n";
+      mesg += fmt::format("  ave boost for all bonds/step = {}\n",aveboost);
+      mesg += fmt::format("  ave biased bonds/step = {}\n",avenbias);
+      mesg += fmt::format("  ave bias coeff of all bonds = {}\n",avebiascoeff);
+      mesg += fmt::format("  min bias coeff of any bond = {}\n",minbiascoeff);
+      mesg += fmt::format("  max bias coeff of any bond = {}\n",maxbiascoeff);
+      mesg += fmt::format("  max dist from my subbox of any "
+                          "non-maxstrain bond ghost atom = {}\n",rmaxever);
+      mesg += fmt::format("  max dist from my box of any bond ghost atom = {}\n",
+                          rmaxeverbig);
+      mesg += fmt::format("  count of bond ghost neighbors "
+                          "not found on reneighbor steps = {}\n",allghost_toofar);
+      mesg += fmt::format("  bias overlaps = {}\n",biasoverlap);
+      mesg += fmt::format("  CPU time for bond builds = {}\n",tbondbuild);
+      mesg += "Current quantities specific to fix hyper/local:\n";
+      mesg += fmt::format("  neighbor bonds/bond = {}\n",neighbondperbond);
+      mesg += fmt::format("  ave boost coeff for all bonds = {}\n",avebiasnow);
     }
+    utils::logmesg(lmp, mesg);
   }
 
   // timing stats

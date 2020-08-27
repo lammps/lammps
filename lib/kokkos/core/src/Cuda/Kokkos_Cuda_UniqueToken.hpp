@@ -59,7 +59,7 @@ namespace Experimental {
 // both global and instance Unique Tokens are implemented in the same way
 template <>
 class UniqueToken<Cuda, UniqueTokenScope::Global> {
- private:
+ protected:
   uint32_t volatile* m_buffer;
   uint32_t m_count;
 
@@ -67,14 +67,7 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
   using execution_space = Cuda;
   using size_type       = int32_t;
 
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE)
-  explicit UniqueToken(execution_space const&);
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken() : m_buffer(0), m_count(0) {}
-#else
   explicit UniqueToken(execution_space const& = execution_space());
-#endif
 
   KOKKOS_DEFAULTED_FUNCTION
   UniqueToken(const UniqueToken&) = default;
@@ -101,7 +94,7 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
 
     if (result.first < 0) {
       Kokkos::abort(
-          "UniqueToken<Cuda> failure to release tokens, no tokens available");
+          "UniqueToken<Cuda> failure to acquire tokens, no tokens available");
     }
 
     return result.first;
@@ -117,14 +110,20 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
 template <>
 class UniqueToken<Cuda, UniqueTokenScope::Instance>
     : public UniqueToken<Cuda, UniqueTokenScope::Global> {
+ private:
+  Kokkos::View<uint32_t*, ::Kokkos::CudaSpace> m_buffer_view;
+
  public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  explicit UniqueToken(execution_space const& arg)
-      : UniqueToken<Cuda, UniqueTokenScope::Global>(arg) {}
-#else
   explicit UniqueToken(execution_space const& arg = execution_space())
       : UniqueToken<Cuda, UniqueTokenScope::Global>(arg) {}
-#endif
+
+  UniqueToken(size_type max_size, execution_space const& = execution_space())
+      : m_buffer_view(
+            "UniqueToken::m_buffer_view",
+            ::Kokkos::Impl::concurrent_bitset::buffer_bound(max_size)) {
+    m_buffer = m_buffer_view.data();
+    m_count  = max_size;
+  }
 };
 
 }  // namespace Experimental

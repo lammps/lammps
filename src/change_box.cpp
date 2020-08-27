@@ -49,7 +49,7 @@ void ChangeBox::command(int narg, char **arg)
     error->all(FLERR,"Change_box command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal change_box command");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Changing box ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Changing box ...\n");
 
   // group
 

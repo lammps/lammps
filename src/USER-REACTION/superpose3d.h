@@ -75,8 +75,8 @@ public:
   ///         optionally scale transformations) to superimpose two point clouds.
   ///
   /// @details
-  /// This function takes two lists of xyz coordinates (of the same length) and 
-  /// attempts to superimpose them using rotations, translations, and 
+  /// This function takes two lists of xyz coordinates (of the same length) and
+  /// attempts to superimpose them using rotations, translations, and
   /// (optionally) scale transformations.  These transformations are applied to
   /// to the coordinates in the "aaXm_orig" array (the "mobile" point cloud)
   /// in order to minimize the root-mean-squared-distance (RMSD) between the
@@ -91,7 +91,7 @@ public:
   /// and "w_i" are optional weights (represented by "aWeights" in the code).
   /// This function implements a more general variant of the method from:
   /// @verbatim
-  /// R. Diamond, (1988) "A Note on the Rotational Superposition Problem", 
+  /// R. Diamond, (1988) "A Note on the Rotational Superposition Problem",
   /// Acta Cryst. A44, pp. 211-216
   /// @endverbatim
   ///
@@ -398,22 +398,22 @@ Alloc(size_t N) {
   aWeights = new Scalar [N];
   for (size_t i = 0; i < N; i++)
     aWeights[i] = 1.0 / N;
-  Alloc2D(3, 3, &R);
-  Alloc2D(N, 3, &aaXf_shifted);
-  Alloc2D(N, 3, &aaXm_shifted);
+  MathEigen::Alloc2D(3, 3, &R);
+  MathEigen::Alloc2D(N, 3, &aaXf_shifted);
+  MathEigen::Alloc2D(N, 3, &aaXm_shifted);
 }
 
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Dealloc() {
   if (R)
-    Dealloc2D(&R);
+    MathEigen::Dealloc2D(&R);
   if (aWeights)
     delete [] aWeights;
   if (aaXf_shifted)
-    Dealloc2D(&aaXf_shifted);
+    MathEigen::Dealloc2D(&aaXf_shifted);
   if (aaXm_shifted)
-    Dealloc2D(&aaXm_shifted);
+    MathEigen::Dealloc2D(&aaXm_shifted);
 }
 
 // memory management: copy and move constructor, swap, and assignment operator:

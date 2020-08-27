@@ -36,7 +36,7 @@ import sys
 LAMMPS_INT    = 0
 LAMMPS_INT2D  = 1
 LAMMPS_DOUBLE = 2
-LAMMPS_DBLE2D = 3
+LAMMPS_DOUBLE2D = 3
 LAMMPS_BIGINT = 4
 LAMMPS_TAGINT = 5
 LAMMPS_STRING = 6
@@ -734,7 +734,7 @@ class lammps(object):
     the result, the type has to be provided as an argument.  For
     that purpose the :py:mod:`lammps` module contains the constants
     ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,
-    and ``LAMMPS_DBLE2D``.
+    and ``LAMMPS_DOUBLE2D``.
     This function returns ``None`` if either the keyword is not
     recognized, or an invalid data type constant is used.
 
@@ -764,7 +764,7 @@ class lammps(object):
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
     elif type == LAMMPS_DOUBLE:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)
-    elif type == LAMMPS_DBLE2D:
+    elif type == LAMMPS_DOUBLE2D:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp,name)

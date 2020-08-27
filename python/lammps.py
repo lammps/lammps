@@ -421,17 +421,17 @@ class lammps(object):
             c_int_type = c_int
 
           if dim == 1:
-            raw_ptr = self.lmp.extract_atom(name, 0)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT)
           else:
-            raw_ptr = self.lmp.extract_atom(name, 1)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT2D)
 
           return self.iarray(c_int_type, raw_ptr, nelem, dim)
 
         def extract_atom_darray(self, name, nelem, dim=1):
           if dim == 1:
-            raw_ptr = self.lmp.extract_atom(name, 2)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE)
           else:
-            raw_ptr = self.lmp.extract_atom(name, 3)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE2D)
 
           return self.darray(raw_ptr, nelem, dim)
 

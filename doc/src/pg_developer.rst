@@ -113,8 +113,131 @@ care has to be taken, that suitable communicators are used to not
 create conflicts between different instances.
 
 The LAMMPS class currently holds instances of 19 classes representing
-different core functionalities
-There are a handful of virtual parent classes in LAMMPS that define
-what LAMMPS calls ``styles``.  They are shaded red in Fig
-\ref{fig:classes}.  Each of these are parents of a number of child
-classes that implement the interface defined by the parent class.
+different core functionalities There are a handful of virtual parent
+classes in LAMMPS that define what LAMMPS calls ``styles``.  They are
+shaded red in the :ref:`class-topology` figure.  Each of these are
+parents of a number of child classes that implement the interface
+defined by the parent class.  There are two main categories of these
+``styles``: some may only have one instance active at a time (e.g. atom,
+pair, bond, angle, dihedral, improper, kspace, comm) and there is a
+dedicated pointer variable in the composite class that manages them.
+Setups that require a mix of different such styles have to use a
+*hybrid* class that manages and forwards calls to the corresponding
+sub-styles for the designated subset of atoms or data. or the composite
+class may have lists of class instances, e.g. Modify handles lists of
+compute and fix styles, while Output handles dumps class instances.
+
+The exception to this scheme are the ``command`` style classes. These
+implement specific commands that can be invoked before, after, or between
+runs or are commands which launch a simulation.  For these an instance
+of the class is created, its command() method called and then, after
+completion, the class instance deleted.  Examples for this are the
+create_box, create_atoms, minimize, run, or velocity command styles.
+
+For all those ``styles`` certain naming conventions are employed: for
+the fix nve command the class is called FixNVE and the files are
+``fix_nve.h`` and ``fix_nve.cpp``. Similarly for fix ave/time we have
+FixAveTime and ``fix_ave_time.h`` and ``fix_ave_time.cpp``. Style names
+are lower case and without spaces or special characters. A suffix or
+multiple appended with a forward slash '/' denotes a variant of the
+corresponding class without the suffix. To connect the style name and
+the class name, LAMMPS uses macros like the following ATOM\_CLASS,
+PAIR\_CLASS, BOND\_CLASS, REGION\_CLASS, FIX\_CLASS, COMPUTE\_CLASS,
+or DUMP\_CLASS in the corresponding header file.  During compilation
+files with the pattern ``style_name.h`` are created that contain include
+statements including all headers of all styles of a given type that
+are currently active (or "installed).
+
+
+More details on individual classes in :ref:`class-topology` are as
+follows:
+
+#. The Memory class handles allocation of all large vectors and arrays.
+
+#. The Error class prints all error and warning messages.
+
+#. The Universe class sets up partitions of processors so that multiple
+   simulations can be run, each on a subset of the processors allocated
+   for a run, e.g. by the mpirun command.
+
+#. The Input class reads and processes input input strings and files,
+   stores variables, and invokes :doc:`commands <Commands_all>`.
+
+#. As discussed above, command style classes are directly derived from
+   the Pointers class. They provide input script commands that perform
+   one-time operations before/after/between simulations or which invoke
+   a simulation.  They are instantiated from within the Input class,
+   invoked, then immediately destructed.
+
+#. The Finish class is instantiated to print statistics to the
+   screen after a simulation is performed, by commands like run and
+   minimize.
+
+#. The Special class walks the bond topology of a molecular system
+   to find first, second, third neighbors of each atom.  It is invoked by
+   several commands, like :doc:`read_data <read_data>`,
+   :doc:`read_restart <read_restart>`, or  :doc:`replicate <replicate>`.
+
+#. The Atom class stores per-atom properties associated with atom
+   styles.  More precisely, they are allocated and managed by a class
+   derived from the AtomVec class, and the Atom class simply stores
+   pointers to them.  The classes derived from AtomVec represent the
+   different atom styles and they are instantiated through the
+   :doc:`atom_style <atom_style>` command.
+
+#. The Update class holds instances of an integrator and a minimizer
+   class.  The Integrate class is a parent style for the Verlet and
+   r-RESPA time integrators, as defined by the :doc:`run_style
+   <run_style>` command.  The Min class is a parent style for various
+   energy minimizers.
+
+#. The Neighbor class builds and stores neighbor lists.  The NeighList
+   class stores a single list (for all atoms).  A NeighRequest class
+   instance is created by pair, fix, or compute styles when they need a
+   particular kind of neighbor list and use the NeighRequest properties
+   to select the neighbor list settings for the given request. There can
+   be multiple instances of the NeighRequest class and the Neighbor
+   class will try to optimize how they are computed by creating copies
+   or sub-lists where possible.
+
+#. The Comm class performs inter-processor communication, typically of
+   ghost atom information.  This usually involves MPI message exchanges
+   with 6 neighboring processors in the 3d logical grid of processors
+   mapped to the simulation box. There are two :doc:`communication
+   styles <comm_style>` enabling different ways to do the domain
+   decomposition.  Sometimes the Irregular class is used, when atoms may
+   migrate to arbitrary processors.
+
+#. The Domain class stores the simulation box geometry, as well as
+   geometric Regions and any user definition of a Lattice.  The latter
+   are defined by the :doc:`region <region>` and :doc:`lattice <lattice>`
+   commands in an input script.
+
+#. The Force class computes various forces between atoms.  The Pair
+   parent class is for non-bonded or pair-wise forces, which in LAMMPS
+   also includes many-body forces such as the Tersoff 3-body potential
+   if those are computed by walking pairwise neighbor lists.  The Bond,
+   Angle, Dihedral, Improper parent classes are styles for bonded
+   interactions within a static molecular topology.  The KSpace parent
+   class is for computing long-range Coulombic interactions.  One of its
+   child classes, PPPM, uses the FFT3D and Remap classes to redistribute
+   and communicate grid-based information across the parallel
+   processors.
+
+#. The Modify class stores lists of class instances derived from the
+   :doc:`Fix <fix>` and :doc:`Compute <compute>` base classes.
+
+#. The Group class manipulates groups that atoms are assigned to
+   via the :doc:`group <group>` command.  It also has functions to
+   compute various attributes of groups of atoms.
+
+#. The Output class is used to generate 3 kinds of output from a
+   LAMMPS simulation: thermodynamic information printed to the screen
+   and log file, dump file snapshots, and restart files.  These
+   correspond to the Thermo, Dump, and WriteRestart classes
+   respectively.  The Dump class is a base class with several
+   derived classes implementing dump style variants.
+
+#. The Timer class logs timing information, output at the end
+   of a run.
+

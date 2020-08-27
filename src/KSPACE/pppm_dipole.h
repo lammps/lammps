@@ -50,10 +50,10 @@ class PPPMDipole : public PPPM {
 
   // grid communication
 
-  void pack_forward(int, FFT_SCALAR *, int, int *);
-  void unpack_forward(int, FFT_SCALAR *, int, int *);
-  void pack_reverse(int, FFT_SCALAR *, int, int *);
-  void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
 
   // dipole
 
@@ -69,10 +69,12 @@ class PPPMDipole : public PPPM {
   FFT_SCALAR ***v3z_brick_dipole,***v4z_brick_dipole,***v5z_brick_dipole;
   FFT_SCALAR *work3,*work4;
   FFT_SCALAR *densityx_fft_dipole,*densityy_fft_dipole,*densityz_fft_dipole;
-  class GridComm *cg_dipole;
-  class GridComm *cg_peratom_dipole;
+
+  class GridComm *gc_dipole;
+
   int only_dipole_flag;
   double musum,musqsum,mu2;
+
   double find_gewald_dipole(double, double, bigint, double, double);
   double newton_raphson_f_dipole(double, double, bigint, double, double);
   double derivf_dipole(double, double, bigint, double, double);
@@ -87,7 +89,6 @@ class PPPMDipole : public PPPM {
   void fieldforce_peratom_dipole();
   double final_accuracy_dipole();
   void musum_musq();
-
 };
 
 }

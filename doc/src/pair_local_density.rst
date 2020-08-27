@@ -196,7 +196,8 @@ and potential.  In general, blank lines anywhere are ignored.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 This pair style does not support automatic mixing. For atom type pairs
 :math:`\alpha`, :math:`\beta` and :math:`\alpha` != :math:`\beta`, even
 if LD potentials of type (:math:`\alpha`, :math:`\alpha`) and
@@ -227,7 +228,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

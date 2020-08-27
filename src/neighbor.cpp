@@ -782,7 +782,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    BinCreator bin_creator = binclass[flag-1];
+    BinCreator &bin_creator = binclass[flag-1];
     neigh_bin[nbin] = bin_creator(lmp);
     neigh_bin[nbin]->post_constructor(requests[i]);
     neigh_bin[nbin]->istyle = flag;
@@ -803,7 +803,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    StencilCreator stencil_creator = stencilclass[flag-1];
+    StencilCreator &stencil_creator = stencilclass[flag-1];
     neigh_stencil[nstencil] = stencil_creator(lmp);
     neigh_stencil[nstencil]->post_constructor(requests[i]);
     neigh_stencil[nstencil]->istyle = flag;
@@ -828,7 +828,7 @@ int Neighbor::init_pair()
       continue;
     }
 
-    PairCreator pair_creator = pairclass[flag-1];
+    PairCreator &pair_creator = pairclass[flag-1];
     lists[i]->np = neigh_pair[i] = pair_creator(lmp);
     neigh_pair[i]->post_constructor(requests[i]);
     neigh_pair[i]->istyle = flag;
@@ -2078,6 +2078,7 @@ void Neighbor::build(int topoflag)
   //   leading to errors or even a crash
 
   if (style != Neighbor::NSQ) {
+    if (last_setup_bins < 0) setup_bins();
     for (int i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();

@@ -183,7 +183,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   columns[0] = '\0';
   for (int iarg = 0; iarg < nfield; iarg++) {
     strcat(columns,earg[iarg]);
-    strcat(columns," ");
+    if (iarg+1 < nfield) strcat(columns," ");
   }
 }
 
@@ -302,7 +302,7 @@ void DumpCustom::init_style()
       strcpy(vformat[i],ptr);
     }
 
-    vformat[i] = strcat(vformat[i]," ");
+    if (i+1 < size_one) vformat[i] = strcat(vformat[i]," ");
   }
 
   // setup boundary string
@@ -381,8 +381,83 @@ void DumpCustom::write_header(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::format_magic_string_binary()
+{
+  // use negative ntimestep as marker for new format
+  bigint fmtlen = strlen(MAGIC_STRING);
+  bigint marker = -fmtlen;
+  fwrite(&marker, sizeof(bigint), 1, fp);
+  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::format_endian_binary()
+{
+  int endian = ENDIAN;
+  fwrite(&endian, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::format_revision_binary()
+{
+  int revision = FORMAT_REVISION;
+  fwrite(&revision, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_unit_style_binary()
+{
+  int len = 0;
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    len = strlen(update->unit_style);
+    fwrite(&len, sizeof(int), 1, fp);
+    fwrite(update->unit_style, sizeof(char), len, fp);
+  } else {
+    fwrite(&len, sizeof(int), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_columns_binary()
+{
+  int len = strlen(columns);
+  fwrite(&len, sizeof(int), 1, fp);
+  fwrite(columns, sizeof(char), len, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_time_binary()
+{
+  char flag = time_flag ? 1 : 0;
+  fwrite(&flag, sizeof(char), 1, fp);
+
+  if (time_flag) {
+    double t = compute_time();
+    fwrite(&t, sizeof(double), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_format_binary()
+{
+  format_magic_string_binary();
+  format_endian_binary();
+  format_revision_binary();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::header_binary(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -394,6 +469,11 @@ void DumpCustom::header_binary(bigint ndump)
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }
@@ -402,6 +482,8 @@ void DumpCustom::header_binary(bigint ndump)
 
 void DumpCustom::header_binary_triclinic(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -416,6 +498,11 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }

@@ -335,7 +335,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       delete [] suffix2;
-      suffix2 = NULL;
+      suffix = suffix2 = NULL;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
@@ -854,9 +854,6 @@ void LAMMPS::destroy()
   delete neighbor;
   neighbor = NULL;
 
-  delete comm;
-  comm = NULL;
-
   delete force;
   force = NULL;
 
@@ -869,6 +866,10 @@ void LAMMPS::destroy()
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
   modify = NULL;
+
+  delete comm;            // comm must come after modify
+                          //   since fix destructors may access comm
+  comm = NULL;
 
   delete domain;          // domain must come after modify
                           //   since fix destructors access domain

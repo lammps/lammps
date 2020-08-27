@@ -29,7 +29,8 @@ particles interacting via the Total-Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector of vectors (tensors),
 which can be accessed by any command that uses per-particle values
@@ -57,4 +58,7 @@ Related commands
 
 :doc:`compute smd/tlsph/strain <compute_smd_tlsph_strain>`, :doc:`cmopute smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
 
-**Default:** none
+Default
+"""""""
+
+none

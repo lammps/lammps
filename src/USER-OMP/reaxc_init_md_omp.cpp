@@ -36,6 +36,7 @@
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
 #include "error.h"
+#include "fmt/format.h"
 
 // Functions defined in reaxc_init_md.cpp
 extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);
@@ -55,37 +56,38 @@ int Init_ListsOMP(reax_system *system, control_params *control,
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
+  LAMMPS_NS::Error *error = system->error_ptr;
 
-  bond_top = (int*) calloc( system->total_cap, sizeof(int) );
-  hb_top = (int*) calloc( system->local_cap, sizeof(int) );
-  Estimate_Storages( system, control, lists,
-                     &Htop, hb_top, bond_top, &num_3body );
+  bond_top = (int*) calloc(system->total_cap, sizeof(int));
+  hb_top = (int*) calloc(system->local_cap, sizeof(int));
+  Estimate_Storages(system, control, lists,
+                     &Htop, hb_top, bond_top, &num_3body);
 
   if (control->hbond_cut > 0) {
     /* init H indexes */
     total_hbonds = 0;
-    for( i = 0; i < system->n; ++i ) {
+    for(i = 0; i < system->n; ++i) {
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
     total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-    if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
-                    *lists+HBONDS ) ) {
-      system->error_ptr->one( FLERR, "Not enough space for hbonds list. Terminating!" );
+    if(!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
+                    *lists+HBONDS)) {
+      error->one(FLERR, "Not enough space for hbonds list. Terminating!");
     }
   }
 
   total_bonds = 0;
-  for( i = 0; i < system->N; ++i ) {
+  for(i = 0; i < system->N; ++i) {
     system->my_atoms[i].num_bonds = bond_top[i];
     total_bonds += bond_top[i];
   }
-  bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
+  bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-  if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
-                  *lists+BONDS ) ) {
-    system->error_ptr->one( FLERR, "Not enough space for bonds list. Terminating!\n" );
+  if(!Make_List(system->total_cap, bond_cap, TYP_BOND,
+                  *lists+BONDS)) {
+    error->one(FLERR, "Not enough space for bonds list. Terminating!\n");
   }
 
   int nthreads = control->nthreads;
@@ -93,18 +95,18 @@ int Init_ListsOMP(reax_system *system, control_params *control,
 
   for (i = 0; i < bonds->num_intrs; ++i)
     bonds->select.bond_list[i].bo_data.CdboReduction =
-      (double*) smalloc(system->error_ptr, sizeof(double)*nthreads, "CdboReduction");
+      (double*) smalloc(error, sizeof(double)*nthreads, "CdboReduction");
 
   /* 3bodies list */
-  cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
-  if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
-                  *lists+THREE_BODIES ) ){
+  cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
+  if(!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
+                  *lists+THREE_BODIES)){
 
-    system->error_ptr->one( FLERR, "Problem in initializing angles list. Terminating!" );
+    error->one(FLERR, "Problem in initializing angles list. Terminating!");
   }
 
-  free( hb_top );
-  free( bond_top );
+  free(hb_top);
+  free(bond_top);
 
   return SUCCESS;
 }
@@ -112,60 +114,43 @@ int Init_ListsOMP(reax_system *system, control_params *control,
 /* ---------------------------------------------------------------------- */
 
 // The only difference with the MPI-only function is calls to Init_ListsOMP and Init_Force_FunctionsOMP().
-void InitializeOMP( reax_system *system, control_params *control,
+void InitializeOMP(reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
                  reax_list **lists, output_controls *out_control,
-                 mpi_datatypes *mpi_data, MPI_Comm comm )
+                 mpi_datatypes *mpi_data, MPI_Comm comm)
 {
   char msg[MAX_STR];
-  char errmsg[512];
+  LAMMPS_NS::Error *error = system->error_ptr;
 
+  if (Init_MPI_Datatypes(system,workspace,mpi_data,comm,msg) == FAILURE)
+    error->one(FLERR,"init_mpi_datatypes: could not create datatypes. "
+               "Mpi_data could not be initialized! Terminating.");
 
-  if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
-    system->error_ptr->one( FLERR, "init_mpi_datatypes: could not create datatypes. "
-    "Mpi_data couldn't be initialized! Terminating.");
-  }
+  if (Init_System(system,control,msg) == FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. System could not be "
+                                  "initialized! Terminating.",msg));
 
-  if (Init_System(system, control, msg) == FAILURE) {
-    snprintf( errmsg, 512, "Error on: %s. "
-    "System could not be initialized! Terminating.", msg );
-    system->error_ptr->one(FLERR, errmsg);
-  }
+  if (Init_Simulation_Data(system,control,data,msg) == FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
+                                  "initialized! Terminating.",msg));
 
-  if (Init_Simulation_Data( system, control, data, msg ) == FAILURE) {
-    snprintf( errmsg, 512, "Error on: %s. "
-    "Sim_data couldn't be initialized! Terminating.", msg );
-    system->error_ptr->one(FLERR, errmsg);
-  }
+  if (Init_Workspace(system,control,workspace,msg) == FAILURE)
+    error->one(FLERR,"init_workspace: not enough memory. "
+               "Workspace could not be initialized. Terminating.");
 
-  if (Init_Workspace( system, control, workspace, msg ) ==
-      FAILURE) {
-    system->error_ptr->one(FLERR, "init_workspace: not enough memory. "
-    "Workspace couldn't be initialized! Terminating.");
-  }
+  if (Init_ListsOMP(system,control,data,workspace,lists,mpi_data,msg) == FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. System could not be "
+                                  "initialized. Terminating.",msg));
 
-  if (Init_ListsOMP( system, control, data, workspace, lists, mpi_data, msg ) ==
-      FAILURE) {
-      snprintf( errmsg, 512, "Error on: %s. "
-      "System could not be initialized! Terminating.", msg );
-      system->error_ptr->one(FLERR, errmsg);
-    }
+  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
+                                  "Terminating.",msg));
 
-  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
-    snprintf( errmsg, 512, "Error on: %s"
-    "Could not open output files! Terminating.", msg );
-    system->error_ptr->one(FLERR, errmsg);
-  }
+  if (control->tabulate)
+    if (Init_Lookup_Tables(system,control,workspace,mpi_data,msg) == FAILURE)
+      error->one(FLERR,fmt::format("Error on: {}. Could not create lookup "
+                                    "table. Terminating.",msg));
 
-  if (control->tabulate) {
-    if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
-      snprintf( errmsg, 512, "Error on: %s."
-      " Couldn't create lookup table! Terminating.", msg );
-      system->error_ptr->one(FLERR, errmsg);
-    }
-  }
-
-
-  Init_Force_FunctionsOMP( control );
+  Init_Force_FunctionsOMP(control);
 }
 

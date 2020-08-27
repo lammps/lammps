@@ -62,7 +62,7 @@
 // Simple functor for computing/storing the product of indices in a View v
 template <class ViewType>
 struct MDFunctor {
-  typedef long value_type;
+  using value_type = long;
 
   ViewType v;
   size_t size;
@@ -105,16 +105,16 @@ int main(int argc, char* argv[]) {
   // Bound(s) for MDRangePolicy
   const int n = 100;
 
-  // ViewType typedefs for Rank<2>, Rank<3> for example usage
-  typedef double ScalarType;
-  typedef typename Kokkos::View<ScalarType**> ViewType_2D;
-  typedef typename Kokkos::View<ScalarType***> ViewType_3D;
+  // ViewType aliases for Rank<2>, Rank<3> for example usage
+  using ScalarType  = double;
+  using ViewType_2D = typename Kokkos::View<ScalarType**>;
+  using ViewType_3D = typename Kokkos::View<ScalarType***>;
 
   /////////////////////////////////////////////////////////////////////////////
   // Explanation of MDRangePolicy usage, template parameters, constructor
   // arguments
   //
-  // MDRangePolicy typedefs for Rank<2>, Rank<3> cases
+  // MDRangePolicy aliases for Rank<2>, Rank<3> cases
   // Required template parameters:
   //   Kokkos::Rank<N>: where N=rank
   //
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
   //   tiles;
   //     defaults based on the execution space similar to Kokkos::Layout
   //
-  //   e.g. typedef Rank<2, Iterate::Left, Iterate::Left> rank2ll;
+  //   e.g. using rank2ll = Rank<2, Iterate::Left, Iterate::Left>;
   //
   //
   // Optional template parameters to MDRangePolicy:
@@ -160,9 +160,8 @@ int main(int argc, char* argv[]) {
   long incorrect_count_2d = 0;
   {
     // Rank<2> Case: Rank is provided, all other parameters are default
-    typedef typename Kokkos::Experimental::MDRangePolicy<
-        Kokkos::Experimental::Rank<2> >
-        MDPolicyType_2D;
+    using MDPolicyType_2D = typename Kokkos::Experimental::MDRangePolicy<
+        Kokkos::Experimental::Rank<2> >;
 
     // Construct 2D MDRangePolicy: lower and upper bounds provided, tile dims
     // defaulted
@@ -186,10 +185,9 @@ int main(int argc, char* argv[]) {
   long incorrect_count_3d = 0;
   {
     // Rank<3> Case: Rank, inner iterate pattern, outer iterate pattern provided
-    typedef typename Kokkos::Experimental::MDRangePolicy<
+    using MDPolicyType_3D = typename Kokkos::Experimental::MDRangePolicy<
         Kokkos::Experimental::Rank<3, Kokkos::Experimental::Iterate::Left,
-                                   Kokkos::Experimental::Iterate::Left> >
-        MDPolicyType_3D;
+                                   Kokkos::Experimental::Iterate::Left> >;
 
     // Construct 3D MDRangePolicy: lower, upper bounds, tile dims provided
     MDPolicyType_3D mdpolicy_3d({{0, 0, 0}}, {{n, n, n}}, {{4, 4, 4}});

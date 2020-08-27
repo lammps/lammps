@@ -213,9 +213,9 @@ void rocm_assign(T& x, const U& y) restrict(cpu, amp) {
 template <class T>
 struct tile_type {
 #if defined(ROCM15)
-  typedef T type;
+  using type = T;
 #else
-  typedef __attribute__((address_space(3))) T type;
+  using type = __attribute__((address_space(3))) T;
 #endif
 };
 
@@ -260,8 +260,8 @@ struct single_action {
 template <class T>
 struct tile_buffer : array_view<typename tile_type<T>::type>,
                      single_action<tile_buffer<T>, T> {
-  typedef typename tile_type<T>::type element_type;
-  typedef array_view<element_type> base;
+  using element_type = typename tile_type<T>::type;
+  using base         = array_view<element_type>;
 
   using base::base;
 
@@ -273,8 +273,8 @@ struct tile_buffer : array_view<typename tile_type<T>::type>,
 
 template <class T>
 struct tile_buffer<T[]> {
-  typedef typename tile_type<T>::type element_type;
-  typedef typename tile_type<char>::type tchar_type;
+  using element_type = typename tile_type<T>::type;
+  using tchar_type   = typename tile_type<char>::type;
   element_type* element_data;
   std::size_t n, m;
 
@@ -434,9 +434,9 @@ hc::completion_future tile_for(tile_desc td, F f) {
   return parallel_for_each(
       grid, [=](hc::tiled_index<1> t_idx) [[hc]] {
 #if defined(ROCM15)
-        typedef T group_t;
+        using group_t = T;
 #else
-        typedef __attribute__((address_space(3))) T group_t;
+        using group_t = __attribute__((address_space(3))) T;
 #endif
         group_t* buffer =
             (group_t*)hc::get_dynamic_group_segment_base_pointer();

@@ -206,8 +206,6 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-  int idxu_max = snaKK.idxu_max;
-
   while (chunk_offset < inum) { // chunk up loop to prevent running out of memory
 
     EV_FLOAT ev_tmp;
@@ -246,6 +244,13 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for("ComputeUiCPU",policy_ui_cpu,*this);
       }
 
+      {
+        // Expand ulisttot -> ulisttot_full
+        // Zero out ylist
+        typename Kokkos::MDRangePolicy<DeviceType, Kokkos::IndexType<int>, Kokkos::Rank<2, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, TagPairSNAPTransformUiCPU> policy_transform_ui_cpu({0,0},{twojmax+1,chunk_size});
+        Kokkos::parallel_for("TransformUiCPU",policy_transform_ui_cpu,*this);
+      }
+
       //Compute bispectrum
       if (quadraticflag || eflag) {
         //ComputeZi
@@ -261,19 +266,11 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for("ComputeBiCPU",policy_bi_cpu,*this);
       }
 
-      //ZeroYi,ComputeYi
+      //ComputeYi
       {
-        int vector_length = vector_length_default;
-        int team_size = team_size_default;
-
         //Compute beta = dE_i/dB_i for all i in list
         typename Kokkos::RangePolicy<DeviceType,TagPairSNAPBetaCPU> policy_beta(0,chunk_size);
         Kokkos::parallel_for("ComputeBetaCPU",policy_beta,*this);
-
-        //ZeroYi
-        check_team_size_for<TagPairSNAPZeroYiCPU>(chunk_size,team_size,vector_length);
-        typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPZeroYiCPU> policy_zero_yi(((idxu_max+team_size-1)/team_size)*chunk_size,team_size,vector_length);
-        Kokkos::parallel_for("ZeroYiCPU",policy_zero_yi,*this);
 
         //ComputeYi
         int idxz_max = snaKK.idxz_max;
@@ -294,9 +291,10 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
         Kokkos::parallel_for("ComputeDeidrjCPU",policy_deidrj_cpu,*this);
       }
+
     } else { // GPU
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
       //PreUi
       {
         int vector_length = vector_length_default;
@@ -313,10 +311,10 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         int team_size = 4; // need to cap b/c of shared memory reqs
         check_team_size_for<TagPairSNAPComputeUi>(chunk_size,team_size,vector_length);
 
-        // scratch size: 2 * team_size * (twojmax+1)^2, to cover all `m1`,`m2` values
+        // scratch size: 2 * team_size * (twojmax+1)^2, to cover all `m1`,`m2` values, div 2 for symmetry
         //   2 is for double buffer
 
-        const int tile_size = (twojmax+1)*(twojmax+1);
+        const int tile_size = (twojmax+1)*(twojmax/2+1);
         typedef Kokkos::View< SNAcomplex*,
                               Kokkos::DefaultExecutionSpace::scratch_memory_space,
                               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
@@ -329,7 +327,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for("ComputeUi",policy_ui,*this);
 
         //Transform data layout of ulisttot to AoSoA, zero ylist
-        typename Kokkos::MDRangePolicy<DeviceType, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, TagPairSNAPTransformUi> policy_transform_ui({0,0,0},{32,idxu_max,(chunk_size + 32 - 1) / 32},{32,4,1});
+        typename Kokkos::MDRangePolicy<DeviceType, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, TagPairSNAPTransformUi> policy_transform_ui({0,0,0},{32,twojmax+1,(chunk_size + 32 - 1) / 32},{32,4,1});
         Kokkos::parallel_for("TransformUi",policy_transform_ui,*this);
 
       }
@@ -367,7 +365,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for("ComputeYi",policy_compute_yi,*this);
 
         //Transform data layout of ylist out of AoSoA
-        typename Kokkos::MDRangePolicy<DeviceType, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, TagPairSNAPTransformYi> policy_transform_yi({0,0,0},{32,idxu_max,(chunk_size + 32 - 1) / 32},{32,4,1});
+        const int idxu_half_max = snaKK.idxu_half_max;
+        typename Kokkos::MDRangePolicy<DeviceType, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, TagPairSNAPTransformYi> policy_transform_yi({0,0,0},{32,idxu_half_max,(chunk_size + 32 - 1) / 32},{32,4,1});
         Kokkos::parallel_for("TransformYi",policy_transform_yi,*this);
 
       }
@@ -397,7 +396,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         }
       }
 
-#endif // KOKKOS_ENABLE_CUDA
+#endif // LMP_KOKKOS_GPU
 
     }
 
@@ -405,7 +404,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     {
       int team_size = team_size_default;
       int vector_length = vector_length_default;
-      if (eflag) {
+      if (evflag) {
         if (neighflag == HALF) {
           check_team_size_reduce<TagPairSNAPComputeForce<HALF,1> >(chunk_size,team_size,vector_length);
           typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<HALF,1> > policy_force(chunk_size,team_size,vector_length);
@@ -608,12 +607,21 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typen
 
     if ( rsq < rnd_cutsq(itype,jtype) ) {
       if (final) {
-        my_sna.rij(ii,offset,0) = dx;
-        my_sna.rij(ii,offset,1) = dy;
-        my_sna.rij(ii,offset,2) = dz;
+#ifdef LMP_KOKKOS_GPU
+        if (!host_flag) {
+          my_sna.compute_cayley_klein(ii, offset, dx, dy, dz, (radi + d_radelem[elem_j])*rcutfac,
+                                      d_wjelem[elem_j]);
+        } else {
+#endif
+          my_sna.rij(ii,offset,0) = dx;
+          my_sna.rij(ii,offset,1) = dy;
+          my_sna.rij(ii,offset,2) = dz;
+          my_sna.wj(ii,offset) = d_wjelem[elem_j];
+          my_sna.rcutij(ii,offset) = (radi + d_radelem[elem_j])*rcutfac;
+#ifdef LMP_KOKKOS_GPU
+        }
+#endif
         my_sna.inside(ii,offset) = j;
-        my_sna.wj(ii,offset) = d_wjelem[elem_j];
-        my_sna.rcutij(ii,offset) = (radi + d_radelem[elem_j])*rcutfac;
         if (chemflag)
           my_sna.element(ii,offset) = elem_j;
         else
@@ -704,27 +712,54 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUi,const typename
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUi,const int iatom_mod, const int idxu, const int iatom_div) const {
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUi,const int iatom_mod, const int j, const int iatom_div) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * 32;
   if (iatom >= chunk_size) return;
 
-  if (idxu >= my_sna.idxu_max) return;
+  if (j > twojmax) return;
 
   int elem_count = chemflag ? nelements : 1;
 
   for (int ielem = 0; ielem < elem_count; ielem++) {
+    const int jju_half = my_sna.idxu_half_block(j);
+    const int jju = my_sna.idxu_block(j);
 
-    const auto utot_re = my_sna.ulisttot_re(idxu, ielem, iatom);
-    const auto utot_im = my_sna.ulisttot_im(idxu, ielem, iatom);
+    for (int mb = 0; 2*mb <= j; mb++) {
+      for (int ma = 0; ma <= j; ma++) {
+        // Extract top half
 
-    my_sna.ulisttot_pack(iatom_mod, idxu, ielem, iatom_div) = { utot_re, utot_im };
+        const int idxu_shift = mb * (j + 1) + ma;
+        const int idxu_half = jju_half + idxu_shift;
+        const int idxu = jju + idxu_shift;
 
-    my_sna.ylist_pack_re(iatom_mod, idxu, ielem, iatom_div) = 0.;
-    my_sna.ylist_pack_im(iatom_mod, idxu, ielem, iatom_div) = 0.;
+        auto utot_re = my_sna.ulisttot_re(idxu_half, ielem, iatom);
+        auto utot_im = my_sna.ulisttot_im(idxu_half, ielem, iatom);
+
+        // Store
+        my_sna.ulisttot_pack(iatom_mod, idxu, ielem, iatom_div) = { utot_re, utot_im };
+
+        // Also zero yi
+        my_sna.ylist_pack_re(iatom_mod, idxu_half, ielem, iatom_div) = 0.;
+        my_sna.ylist_pack_im(iatom_mod, idxu_half, ielem, iatom_div) = 0.;
+
+        // Symmetric term
+        const int sign_factor = (((ma+mb)%2==0)?1:-1);
+        const int idxu_flip = jju + (j + 1 - mb) * (j + 1) - (ma + 1);
+
+        if (sign_factor == 1) {
+          utot_im = -utot_im;
+        } else {
+          utot_re = -utot_re;
+        }
+
+        my_sna.ulisttot_pack(iatom_mod, idxu_flip, ielem, iatom_div) = { utot_re, utot_im };
+
+        // No need to zero symmetrized ylist
+      }
+    }
   }
-
 }
 
 template<class DeviceType>
@@ -742,20 +777,20 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeYi,const int iato
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformYi,const int iatom_mod, const int idxu, const int iatom_div) const {
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformYi,const int iatom_mod, const int idxu_half, const int iatom_div) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * 32;
   if (iatom >= chunk_size) return;
 
-  if (idxu >= my_sna.idxu_max) return;
+  if (idxu_half >= my_sna.idxu_half_max) return;
 
   int elem_count = chemflag ? nelements : 1;
   for (int ielem = 0; ielem < elem_count; ielem++) {
-    const auto y_re = my_sna.ylist_pack_re(iatom_mod, idxu, ielem, iatom_div);
-    const auto y_im = my_sna.ylist_pack_im(iatom_mod, idxu, ielem, iatom_div);
+    const auto y_re = my_sna.ylist_pack_re(iatom_mod, idxu_half, ielem, iatom_div);
+    const auto y_im = my_sna.ylist_pack_im(iatom_mod, idxu_half, ielem, iatom_div);
 
-    my_sna.ylist(idxu, ielem, iatom) = { y_re, y_im };
+    my_sna.ylist(idxu_half, ielem, iatom) = { y_re, y_im };
   }
 
 }
@@ -904,22 +939,52 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeUiCPU,const typen
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPZeroYiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPZeroYiCPU>::member_type& team) const {
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUiCPU, const int j, const int iatom) const {
   SNAKokkos<DeviceType> my_sna = snaKK;
 
-  // Extract the quantum number
-  const int idx = team.team_rank() + team.team_size() * (team.league_rank() % ((my_sna.idxu_max+team.team_size()-1)/team.team_size()));
-  if (idx >= my_sna.idxu_max) return;
+  if (iatom >= chunk_size) return;
 
-  // Extract the atomic index
-  const int ii = team.league_rank() / ((my_sna.idxu_max+team.team_size()-1)/team.team_size());
-  if (ii >= chunk_size) return;
+  if (j > twojmax) return;
 
-  if (chemflag)
-    for(int ielem = 0; ielem < nelements; ielem++)
-      my_sna.zero_yi_cpu(idx,ii,ielem);
-  else
-    my_sna.zero_yi_cpu(idx,ii,0);
+  int elem_count = chemflag ? nelements : 1;
+
+  // De-symmetrize ulisttot
+  for (int ielem = 0; ielem < elem_count; ielem++) {
+
+    const int jju_half = my_sna.idxu_half_block(j);
+    const int jju = my_sna.idxu_block(j);
+
+    for (int mb = 0; 2*mb <= j; mb++) {
+      for (int ma = 0; ma <= j; ma++) {
+        // Extract top half
+
+        const int idxu_shift = mb * (j + 1) + ma;
+        const int idxu_half = jju_half + idxu_shift;
+        const int idxu = jju + idxu_shift;
+
+        // Load ulist
+        auto utot = my_sna.ulisttot(idxu_half, ielem, iatom);
+
+        // Store
+        my_sna.ulisttot_full(idxu, ielem, iatom) = utot;
+
+        // Zero Yi
+        my_sna.ylist(idxu_half, ielem, iatom) = {0., 0.};
+
+        // Symmetric term
+        const int sign_factor = (((ma+mb)%2==0)?1:-1);
+        const int idxu_flip = jju + (j + 1 - mb) * (j + 1) - (ma + 1);
+
+        if (sign_factor == 1) {
+          utot.im = -utot.im;
+        } else {
+          utot.re = -utot.re;
+        }
+
+        my_sna.ulisttot_full(idxu_flip, ielem, iatom) = utot;
+      }
+    }
+  }
 }
 
 template<class DeviceType>
@@ -991,8 +1056,8 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,E
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
@@ -1105,8 +1170,8 @@ void PairSNAPKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
 {
   // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const E_FLOAT v0 = delx*fx;
   const E_FLOAT v1 = dely*fy;

@@ -32,6 +32,7 @@ class MSM : public KSpace {
   void setup();
   virtual void settings(int, char **);
   virtual void compute(int, int);
+  virtual double memory_usage();
 
  protected:
   int me,nprocs;
@@ -79,16 +80,21 @@ class MSM : public KSpace {
   int procgrid[3];                  // procs assigned in each dim of 3d grid
   int myloc[3];                     // which proc I am in each dim
   int ***procneigh_levels;          // my 6 neighboring procs, 0/1 = left/right
-  class GridComm **cg;
-  class GridComm **cg_peratom;
-  class GridComm *cg_all;
-  class GridComm *cg_peratom_all;
+
+  class GridComm *gcall;       // GridComm class for finest level grid
+  class GridComm **gc;         // GridComm classes for each hierarchical level
+
+  double *gcall_buf1,*gcall_buf2;
+  double **gc_buf1,**gc_buf2;
+  int ngcall_buf1,ngcall_buf2,npergrid;
+  int *ngc_buf1,*ngc_buf2;
 
   int current_level;
 
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
 
+  int triclinic;
   double *boxlo;
 
   void set_grid_global();
@@ -126,15 +132,12 @@ class MSM : public KSpace {
   void get_g_direct_top(int);
   void get_virial_direct_top(int);
 
-  // triclinic
-
-  int triclinic;
-
   // grid communication
-  void pack_forward(int, double *, int, int *);
-  void unpack_forward(int, double *, int, int *);
-  void pack_reverse(int, double *, int, int *);
-  void unpack_reverse(int, double *, int, int *);
+
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
 };
 
 }

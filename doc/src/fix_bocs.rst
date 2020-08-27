@@ -94,7 +94,8 @@ example, the ID of the fix bocs command is 1 ).
 This fix is part of the USER-BOCS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-**Related:**
+Further information
+"""""""""""""""""""
 
 For more details about the pressure correction and the entire BOCS software
 package, visit the `BOCS package on GitHub <bocsgithub_>`_ and read the release

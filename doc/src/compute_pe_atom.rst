@@ -84,7 +84,8 @@ in the last 2 columns of thermo output:
    corrections to the energy added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
    global system energy.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -101,7 +102,10 @@ Related commands
 
 :doc:`compute pe <compute_pe>`, :doc:`compute stress/atom <compute_stress_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

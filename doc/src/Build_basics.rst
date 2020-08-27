@@ -193,14 +193,17 @@ compiler and any :doc:`accelerator packages <Speed_packages>` you have
 included in the build.
 
 You can tell CMake to look for a specific compiler with setting CMake
-variable during configuration.  For a few common choices, there are also
-presets in the ``cmake/presets`` folder.  For convenience, there is a
-``CMAKE_TUNE_FLAGS`` variable that can be set to apply global compiler
-options.  More on that below, but you can also specify the corresponding
-``CMAKE_*_FLAGS`` variables individually if you want to experiment with
-alternate optimization flags.  You should specify all 3 compilers, so
-that the (few) LAMMPS source files written in C or Fortran are built
-with a compiler consistent with the one used for the C++ files:
+variables (listed below) during configuration.  For a few common
+choices, there are also presets in the ``cmake/presets`` folder.  For
+convenience, there is a ``CMAKE_TUNE_FLAGS`` variable that can be set to
+apply global compiler options (applied to compilation only), to be used
+for adding compiler or host specific optimization flags in addition to
+the "flags" variables listed below. You may also specify the
+corresponding ``CMAKE_*_FLAGS`` variables individually, if you want to
+experiment with alternate optimization flags.  You should specify all 3
+compilers, so that the (few) LAMMPS source files written in C or Fortran
+are built with a compiler consistent with the one used for the C++
+files:
 
 .. code-block:: bash
 
@@ -229,11 +232,7 @@ can be loaded with `-C ../cmake/presets/clang.cmake`.  Similarly,
 
 In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
 compiler flags to tune for optimal performance on given hosts. By
-default these are initialized to some compiler specific flags, to
-optimize the LAMMPS executable with optimizations and instructions
-available on the host where LAMMPS is compiled. For example, for Intel
-compilers this would be ``-xHost`` and for GNU compilers this would be
-``-march=native``. To turn these flags off, do ``-D CMAKE_TUNE_FLAGS=``.
+default this variable is empty.
 
 .. note::
 

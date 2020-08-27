@@ -310,7 +310,7 @@ void KSpace::qsum_qsq(int warning_flag)
 
   if (fabs(qsum) > SMALL) {
     std::string message = fmt::format("System is not charge neutral, net "
-                                      "charge = {}",qsum);
+                                      "charge = {:.8}",qsum);
     if (!warn_nonneutral) error->all(FLERR,message);
     if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;

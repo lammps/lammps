@@ -651,7 +651,7 @@ void Image::draw_cylinder(double *x, double *y,
       double c = surface[0] * surface[0] + surface[1] * surface[1] - radsq;
 
       double partial = b*b - 4*a*c;
-      if (partial < 0) continue;
+      if ((partial < 0.0) || (a == 0.0)) continue;
       partial = sqrt (partial);
 
       double t = (-b + partial) / (2*a);

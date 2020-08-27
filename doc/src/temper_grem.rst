@@ -112,7 +112,10 @@ Related commands
 
 :doc:`fix grem <fix_grem>`, :doc:`temper <temper>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _KimStraub:
 

@@ -82,7 +82,7 @@ using namespace LAMMPS_NS;
  *  even with char * type variables.
  *  Example: utils::strmatch(text, std::string("^") + charptr)
  */
-bool utils::strmatch(std::string text, std::string pattern)
+bool utils::strmatch(const std::string &text, const std::string &pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
@@ -109,14 +109,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
- *
- *  \param buf  storage buffer for pathname. output will be truncated if not large enough
- *  \param len  size of storage buffer. output will be truncated to this length - 1
- *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
- *  \return pointer to the storage buffer, i.e. buf
+/*
+ * On Linux the folder /proc/self/fd holds symbolic links to the actual
+ * pathnames associated with each open file descriptor of the current process.
  */
-static const char *guesspath(char *buf, int len, FILE *fp)
+const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
   memset(buf,0,len);
 
@@ -124,9 +121,9 @@ static const char *guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   // get pathname from /proc or copy (unknown)
   if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
-    strcpy(buf,"(unknown)");
+    strncpy(buf,"(unknown)",len-1);
 #else
-  strcpy(buf,"(unknown)");
+  strncpy(buf,"(unknown)",len-1);
 #endif
   return buf;
 }
@@ -352,10 +349,23 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string &line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
+}
+
+/* ----------------------------------------------------------------------
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
-std::string utils::trim_comment(const std::string & line) {
+std::string utils::trim_comment(const std::string &line) {
   auto end = line.find_first_of("#");
   if (end != std::string::npos) {
     return line.substr(0, end);
@@ -367,7 +377,7 @@ std::string utils::trim_comment(const std::string & line) {
    return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const char * text) {
+size_t utils::count_words(const char *text) {
   size_t count = 0;
   const char * buf = text;
   char c = *buf;
@@ -396,7 +406,7 @@ size_t utils::count_words(const char * text) {
    return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const std::string & text) {
+size_t utils::count_words(const std::string &text) {
   return utils::count_words(text.c_str());
 }
 
@@ -404,7 +414,7 @@ size_t utils::count_words(const std::string & text) {
    Return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const std::string & text, const std::string & separators) {
+size_t utils::count_words(const std::string &text, const std::string &separators) {
   size_t count = 0;
   size_t start = text.find_first_not_of(separators);
 
@@ -425,7 +435,7 @@ size_t utils::count_words(const std::string & text, const std::string & separato
    Trim comment from string and return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::trim_and_count_words(const std::string & text, const std::string & separators) {
+size_t utils::trim_and_count_words(const std::string &text, const std::string &separators) {
   return utils::count_words(utils::trim_comment(text), separators);
 }
 
@@ -439,6 +449,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
   const char *buf = text.c_str();
   std::size_t beg = 0;
   std::size_t len = 0;
+  std::size_t add = 0;
   char c = *buf;
 
   while (c) {
@@ -455,8 +466,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
 
     // handle single quote
     if (c == '\'') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '\'') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '\''))) {
         if ((c == '\\') && (buf[1] == '\'')) {
@@ -466,13 +478,14 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '\'') ++len;
       c = *++buf;
-      ++len;
 
       // handle double quote
     } else if (c == '"') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '"') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '"'))) {
         if ((c == '\\') && (buf[1] == '"')) {
@@ -482,8 +495,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '"') ++len;
       c = *++buf;
-      ++len;
     }
 
     // unquoted
@@ -499,7 +512,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
           || (c == '\f') || (c == '\0')) {
           list.push_back(text.substr(beg,len));
-          beg += len;
+          beg += len + add;
           break;
       }
       c = *++buf;
@@ -513,7 +526,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
    Return whether string is a valid integer number
 ------------------------------------------------------------------------- */
 
-bool utils::is_integer(const std::string & str) {
+bool utils::is_integer(const std::string &str) {
   if (str.size() == 0) {
     return false;
   }
@@ -529,7 +542,7 @@ bool utils::is_integer(const std::string & str) {
    Return whether string is a valid floating-point number
 ------------------------------------------------------------------------- */
 
-bool utils::is_double(const std::string & str) {
+bool utils::is_double(const std::string &str) {
   if (str.size() == 0) {
     return false;
   }
@@ -547,7 +560,7 @@ bool utils::is_double(const std::string & str) {
    strip off leading part of path, return just the filename
 ------------------------------------------------------------------------- */
 
-std::string utils::path_basename(const std::string & path) {
+std::string utils::path_basename(const std::string &path) {
 #if defined(_WIN32)
   size_t start = path.find_last_of("/\\");
 #else
@@ -567,7 +580,7 @@ std::string utils::path_basename(const std::string & path) {
    join two paths
 ------------------------------------------------------------------------- */
 
-std::string utils::path_join(const std::string & a, const std::string & b) {
+std::string utils::path_join(const std::string &a, const std::string &b) {
   #if defined(_WIN32)
     return fmt::format("{}\\{}", a, b);
   #else
@@ -579,7 +592,7 @@ std::string utils::path_join(const std::string & a, const std::string & b) {
    try to open file for reading
 ------------------------------------------------------------------------- */
 
-bool utils::file_is_readable(const std::string & path) {
+bool utils::file_is_readable(const std::string &path) {
   FILE * fp = fopen(path.c_str(), "r");
   if(fp) {
     fclose(fp);
@@ -594,7 +607,7 @@ bool utils::file_is_readable(const std::string & path) {
    specified
 ------------------------------------------------------------------------- */
 
-std::string utils::get_potential_file_path(const std::string& path) {
+std::string utils::get_potential_file_path(const std::string &path) {
   std::string filepath = path;
   std::string filename = utils::path_basename(path);
 
@@ -621,7 +634,7 @@ std::string utils::get_potential_file_path(const std::string& path) {
    if it has a DATE field, return the following word
 ------------------------------------------------------------------------- */
 
-std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
+std::string utils::get_potential_date(const std::string &path, const std::string &potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
 
@@ -644,7 +657,7 @@ std::string utils::get_potential_date(const std::string & path, const std::strin
    if it has UNITS field, return following word
 ------------------------------------------------------------------------- */
 
-std::string utils::get_potential_units(const std::string & path, const std::string & potential_name) {
+std::string utils::get_potential_units(const std::string &path, const std::string &potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
 
@@ -690,6 +703,38 @@ double utils::get_conversion_factor(const int property, const int conversion)
     }
   }
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   convert a timespec ([[HH:]MM:]SS) to seconds
+   the strings "off" and "unlimited" result in -1.0;
+------------------------------------------------------------------------- */
+
+double utils::timespec2seconds(const std::string &timespec)
+{
+  double vals[3];
+  int i = 0;
+
+  // first handle allowed textual inputs
+  if (timespec == "off") return -1.0;
+  if (timespec == "unlimited") return -1.0;
+
+  vals[0] = vals[1] = vals[2] = 0;
+
+  ValueTokenizer values(timespec, ":");
+
+  try {
+    for (i = 0; i < 3; i++) {
+      if (!values.has_next()) break;
+      vals[i] = values.next_int();
+    }
+  } catch (TokenizerException &e) {
+    return -1.0;
+  }
+
+  if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
+  else if (i == 2) return vals[0]*60 + vals[1];
+  return vals[0];
 }
 
 /* ------------------------------------------------------------------ */

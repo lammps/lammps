@@ -90,7 +90,8 @@ fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the current status of the colvars module into
 :doc:`binary restart files <restart>`. This is in addition to the text

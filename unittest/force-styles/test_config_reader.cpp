@@ -40,6 +40,8 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
     consumers["run_stress"]     = &TestConfigReader::run_stress;
     consumers["init_forces"]    = &TestConfigReader::init_forces;
     consumers["run_forces"]     = &TestConfigReader::run_forces;
+    consumers["run_pos"]        = &TestConfigReader::run_pos;
+    consumers["run_vel"]        = &TestConfigReader::run_vel;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -47,6 +49,9 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
     consumers["init_coul"]  = &TestConfigReader::init_coul;
     consumers["run_vdwl"]   = &TestConfigReader::run_vdwl;
     consumers["run_coul"]   = &TestConfigReader::run_coul;
+
+    consumers["global_scalar"] = &TestConfigReader::global_scalar;
+    consumers["global_vector"] = &TestConfigReader::global_vector;
 
     consumers["bond_style"]  = &TestConfigReader::bond_style;
     consumers["bond_coeff"]  = &TestConfigReader::bond_coeff;
@@ -176,6 +181,36 @@ void TestConfigReader::run_forces(const yaml_event_t &event)
     }
 }
 
+void TestConfigReader::run_pos(const yaml_event_t &event)
+{
+    config.run_pos.clear();
+    config.run_pos.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_pos[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_vel(const yaml_event_t &event)
+{
+    config.run_vel.clear();
+    config.run_vel.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_vel[tag] = xyz;
+    }
+}
+
 void TestConfigReader::pair_style(const yaml_event_t &event)
 {
     config.pair_style = (char *)event.data.scalar.value;
@@ -266,4 +301,22 @@ void TestConfigReader::init_energy(const yaml_event_t &event)
 void TestConfigReader::run_energy(const yaml_event_t &event)
 {
     config.run_energy = atof((char *)event.data.scalar.value);
+}
+
+void TestConfigReader::global_scalar(const yaml_event_t &event)
+{
+    config.global_scalar = atof((char *)event.data.scalar.value);
+}
+
+void TestConfigReader::global_vector(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.global_vector.clear();
+    double value;
+    std::size_t num;
+    data >> num;
+    for (std::size_t i = 0; i < num; ++i) {
+        data >> value;
+        config.global_vector.push_back(value);
+    }
 }

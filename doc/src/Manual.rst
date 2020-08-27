@@ -60,6 +60,19 @@ every LAMMPS command.
    Errors
    Manual_build
 
+.. _programmer_documentation:
+.. toctree::
+   :maxdepth: 2
+   :numbered: 3
+   :caption: Programmer Documentation
+   :name: progdoc
+   :includehidden:
+
+   pg_developer
+..   pg_library
+..   pg_modify
+..   pg_base
+
 .. toctree::
    :caption: Index
    :name: index

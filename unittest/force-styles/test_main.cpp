@@ -102,13 +102,16 @@ int main(int argc, char **argv)
         if (strcmp(argv[iarg], "-g") == 0) {
             if (iarg + 1 < argc) {
                 generate_yaml_file(argv[iarg + 1], test_config);
+                MPI_Finalize();
                 return 0;
             } else {
                 usage(std::cerr, argv[0]);
+                MPI_Finalize();
                 return 1;
             }
         } else if (strcmp(argv[iarg], "-u") == 0) {
             generate_yaml_file(argv[1], test_config);
+            MPI_Finalize();
             return 0;
         } else if (strcmp(argv[iarg], "-d") == 0) {
             if (iarg + 1 < argc) {
@@ -116,6 +119,7 @@ int main(int argc, char **argv)
                 iarg += 2;
             } else {
                 usage(std::cerr, argv[0]);
+                MPI_Finalize();
                 return 1;
             }
         } else if (strcmp(argv[iarg], "-s") == 0) {
@@ -127,6 +131,7 @@ int main(int argc, char **argv)
         } else {
             std::cerr << "unknown option: " << argv[iarg] << "\n\n";
             usage(std::cerr, argv[0]);
+            MPI_Finalize();
             return 1;
         }
     }

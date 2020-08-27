@@ -2,6 +2,7 @@ SET(Kokkos_DEVICES @KOKKOS_ENABLED_DEVICES@)
 SET(Kokkos_OPTIONS @KOKKOS_ENABLED_OPTIONS@)
 SET(Kokkos_TPLS @KOKKOS_ENABLED_TPLS@)
 SET(Kokkos_ARCH @KOKKOS_ENABLED_ARCH_LIST@)
+SET(Kokkos_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
 
 # These are needed by KokkosKernels
 FOREACH(DEV ${Kokkos_DEVICES})
@@ -38,7 +39,7 @@ include(FindPackageHandleStandardArgs)
 #   kokkos_check(
 #     [DEVICES <devices>...]   # Set of backends (e.g. "OpenMP" and/or "Cuda")
 #     [ARCH <archs>...]        # Target architectures (e.g. "Power9" and/or "Volta70")
-#     [OPTIONS <options>...]   # Optional settings (e.g. "PROFILING")
+#     [OPTIONS <options>...]   # Optional settings (e.g. "TUNING")
 #     [TPLS <tpls>...]         # Third party libraries
 #     [RETURN_VALUE <result>]  # Set a variable that indicates the result of the
 #                              # check instead of a fatal error

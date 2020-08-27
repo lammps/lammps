@@ -125,3 +125,14 @@ TEST(ValueTokenizer, valid_double_with_exponential)
     ValueTokenizer values("3.14e22");
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14e22);
 }
+
+TEST(ValueTokenizer, contains) {
+    ValueTokenizer values("test word");
+    ASSERT_TRUE(values.contains("test"));
+    ASSERT_TRUE(values.contains("word"));
+}
+
+TEST(ValueTokenizer, not_contains) {
+    ValueTokenizer values("test word");
+    ASSERT_FALSE(values.contains("test2"));
+}

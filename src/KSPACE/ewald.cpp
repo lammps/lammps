@@ -185,10 +185,10 @@ void Ewald::init()
   // stats
 
   if (comm->me == 0) {
-    std::string mesg = fmt::format("  G vector (1/distance) = {}\n",g_ewald);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
-    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
     mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
                         kcount,kmax,kmax3d);

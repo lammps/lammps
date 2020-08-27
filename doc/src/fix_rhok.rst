@@ -56,7 +56,10 @@ Related commands
 
 :doc:`thermo_style <thermo_style>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

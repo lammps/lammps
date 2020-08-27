@@ -44,3 +44,4 @@
 
 #include <hpx/TestHPX_Category.hpp>
 #include <TestViewLayoutStrideAssignment.hpp>
+#include <TestIrregularLayout.hpp>

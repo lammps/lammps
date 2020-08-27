@@ -80,7 +80,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   fp = NULL;
 
   // customize for new sections
-  // pointers to atom styles that store extra info
+  // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
@@ -414,7 +414,7 @@ void ReadData::command(int narg, char **arg)
     // open file on proc 0
 
     if (me == 0) {
-      if (firstpass && screen) fprintf(screen,"Reading data file ...\n");
+      if (firstpass) utils::logmesg(lmp,"Reading data file ...\n");
       open(arg[0]);
     } else fp = NULL;
 

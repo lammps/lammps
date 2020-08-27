@@ -63,6 +63,9 @@ class AtomVecBody : public AtomVec {
   void pack_data_pre(int);
   void pack_data_post(int);
 
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
+
   // methods used by other classes to query/set body info
 
   double radius_body(int, int, int *, double *);

@@ -32,9 +32,7 @@ public:
   void settings(int, char **);
   virtual void coeff(int, char **);
   void e_tally(int, double);
-  void v_tally(int, int,
-               double, double, double,
-               double, double, double);
+  void v_tally(int, int, double*, double*);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();
@@ -43,13 +41,9 @@ public:
 protected:
   virtual void allocate();
 
-  double** beta;                // betas for all atoms in list
-  double** descriptors;         // descriptors for all atoms in list
-  int ndescriptors;             // number of descriptors
-  int beta_max;                 // number of atoms allocated for beta, descriptors
-
   class MLIAPModel* model;
   class MLIAPDescriptor* descriptor;
+  class MLIAPData *data;
 };
 
 }

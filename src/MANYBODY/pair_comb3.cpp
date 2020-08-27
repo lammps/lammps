@@ -316,7 +316,7 @@ void PairComb3::read_lib()
 
   if (comm->me == 0) {
     try {
-      PotentialFileReader reader(lmp, "lib.comb3", "COMB3");
+      PotentialFileReader reader(lmp, "lib.comb3", "comb3");
       reader.next_dvector(ccutoff, 6);
       reader.next_dvector(ch_a, 7);
 
@@ -559,6 +559,11 @@ void PairComb3::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;

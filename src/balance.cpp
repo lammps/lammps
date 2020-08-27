@@ -113,7 +113,7 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 
@@ -387,20 +387,20 @@ void Balance::command(int narg, char **arg)
                                    MPI_Wtime()-start_time);
     mesg += fmt::format("  iteration count = {}\n",niter);
     for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
-    mesg += fmt::format("  initial/final maximal load/proc = {} {}\n"
-                        "  initial/final imbalance factor  = {:.6g} {:.6g}\n",
+    mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
+                        "  initial/final imbalance factor  = {:.8} {:.8}\n",
                         maxinit,maxfinal,imbinit,imbfinal);
 
     if (style != BISECTION) {
       mesg += "  x cuts:";
       for (int i = 0; i <= comm->procgrid[0]; i++)
-        mesg += fmt::format(" {}",comm->xsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->xsplit[i]);
       mesg += "\n  y cuts:";
       for (int i = 0; i <= comm->procgrid[1]; i++)
-        mesg += fmt::format(" {}",comm->ysplit[i]);
+        mesg += fmt::format(" {:.8}",comm->ysplit[i]);
       mesg += "\n  z cuts:";
       for (int i = 0; i <= comm->procgrid[2]; i++)
-        mesg += fmt::format(" {}",comm->zsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->zsplit[i]);
       mesg += "\n";
     }
 
@@ -569,15 +569,24 @@ int *Balance::bisection(int sortflag)
 {
   if (!rcb) rcb = new RCB(lmp);
 
-  // NOTE: this logic is specific to orthogonal boxes, not triclinic
-
   int dim = domain->dimension;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *prd = domain->prd;
+  int triclinic = domain->triclinic;
+
+  double *boxlo,*boxhi,*prd;
+
+  if (triclinic == 0) {
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    prd = domain->prd;
+  } else {
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    prd = domain->prd_lamda;
+  }
 
   // shrink-wrap simulation box around atoms for input to RCB
   // leads to better-shaped sub-boxes when atoms are far from box boundaries
+  // if triclinic, do this in lamda coords
 
   double shrink[6],shrinkall[6];
 
@@ -586,6 +595,9 @@ int *Balance::bisection(int sortflag)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
+
+  if (triclinic) domain->x2lamda(nlocal);
+
   for (int i = 0; i < nlocal; i++) {
     shrink[0] = MIN(shrink[0],x[i][0]);
     shrink[1] = MIN(shrink[1],x[i][1]);
@@ -621,8 +633,9 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // if triclinic, RCB operates on lamda coords
   // NOTE: (3/2017) can remove undocumented "old" option at some point
-  //       ditto in rcb.cpp
+  //       ditto in rcb.cpp, or make it an option
 
   if (oldrcb) {
     if (wtflag) {
@@ -635,6 +648,8 @@ int *Balance::bisection(int sortflag)
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
     } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   }
+
+  if (triclinic) domain->lamda2x(nlocal);
 
   rcb->invert(sortflag);
 
@@ -1270,6 +1285,9 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   else if (bdim[idim] == Z) dim = "Z";
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
+  fprintf(stderr,"  Count:");
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",count[i]);
+  fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
   for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");

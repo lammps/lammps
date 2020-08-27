@@ -1,7 +1,7 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Tue May 26 19:30:51 202
-epsilon: 1.0e-12
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:24 202
+epsilon: 1e-12
 prerequisites: ! |
   pair comb
 pre_commands: ! |

@@ -40,7 +40,7 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.1 2.8 3.0 3.2
 
-   pair_style buck 2.5 3.0
+   pair_style buck/mdf 2.5 3.0
    pair_coeff * * 100.0 1.5 200.0
    pair_coeff * * 100.0 1.5 200.0 3.0 3.5
 
@@ -139,7 +139,8 @@ given or both left out:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the :math:`\epsilon` and
 :math:`\sigma` coefficients and cutoff distances for the lj/mdf pair
@@ -172,7 +173,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

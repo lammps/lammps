@@ -103,7 +103,7 @@ void ReadRestart::command(int narg, char **arg)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    if (screen) fprintf(screen,"Reading restart file ...\n");
+    utils::logmesg(lmp,"Reading restart file ...\n");
     std::string hfile = file;
     if (multiproc) {
       hfile.replace(hfile.find("%"),1,"base");
@@ -620,10 +620,9 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_string();
-      if (me == 0) {
-        if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
-                            version,universe->version);
-      }
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
+                                       version,universe->version));
       delete [] version;
 
       // we have no forward compatibility, thus exit with error
@@ -884,6 +883,14 @@ void ReadRestart::header()
       atom->extra_improper_per_atom = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+    } else if (flag == NELLIPSOIDS) {
+      atom->nellipsoids = read_bigint();
+    } else if (flag == NLINES) {
+      atom->nlines = read_bigint();
+    } else if (flag == NTRIS) {
+      atom->ntris = read_bigint();
+    } else if (flag == NBODIES) {
+      atom->nbodies = read_bigint();
 
       // for backward compatibility
     } else if (flag == EXTRA_SPECIAL_PER_ATOM) {

@@ -1,0 +1,28 @@
+# Kob and Andersen model Phys. Rev. E 51, 4626 (1995)
+
+units           lj
+atom_style      atomic
+
+pair_style      lj/cut 2.5
+pair_modify     shift yes
+
+read_data       data.widom.lj
+
+pair_coeff      1 1 1.0 1.0 2.5
+pair_coeff      1 2 1.5 0.8 2.0 
+pair_coeff      2 2 0.5 0.88 2.2
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 5 check yes
+
+fix             mywidom all widom 10 100000 2 29494 0.75
+
+fix             1 all langevin 0.75 0.75 0.1 48279 zero yes
+fix             2 all nve
+
+timestep        0.002
+
+thermo_style    custom step temp pe etotal press vol density f_mywidom[1] f_mywidom[2] f_mywidom[3]
+thermo          10
+
+run             100

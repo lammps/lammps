@@ -43,6 +43,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // Berendsen thermostat should be applied every step
 
+  restart_global = 1;
   dynamic_group_allow = 1;
   nevery = 1;
   scalar_flag = 1;
@@ -239,6 +240,34 @@ void FixTempBerendsen::reset_target(double t_new)
 double FixTempBerendsen::compute_scalar()
 {
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempBerendsen::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = energy;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempBerendsen::restart(char *buf)
+{
+  double *list = (double *) buf;
+
+  energy = list[0];
 }
 
 /* ----------------------------------------------------------------------

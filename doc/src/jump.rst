@@ -145,4 +145,7 @@ Related commands
 :doc:`variable <variable>`, :doc:`include <include>`, :doc:`label <label>`,
 :doc:`next <next>`
 
-**Default:** none
+Default
+"""""""
+
+none

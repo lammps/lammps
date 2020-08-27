@@ -360,7 +360,8 @@ The rest of the table has the same structure as the previous section (see above)
 
 ----------
 
-**Mixing, shift, table tail correction, restart**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.

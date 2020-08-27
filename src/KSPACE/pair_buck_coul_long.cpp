@@ -43,7 +43,17 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   writedata = 1;
-  ftable = NULL;
+  ftable = nullptr;
+  cut_lj = nullptr;
+  cut_ljsq = nullptr;
+  a = nullptr;
+  rho = nullptr;
+  c = nullptr;
+  rhoinv = nullptr;
+  buck1 = nullptr;
+  buck2 = nullptr;
+  offset = nullptr;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

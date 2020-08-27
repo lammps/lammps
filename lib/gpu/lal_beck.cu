@@ -103,7 +103,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -205,7 +205,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

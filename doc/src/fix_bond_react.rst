@@ -441,14 +441,15 @@ The constraint of type 'RMSD' has the following syntax:
 where 'RMSD' is the required keyword, and *RMSDmax* is the maximum
 root-mean-square deviation between atom positions of the pre-reaction
 template and the local reaction site, after optimal translation and
-rotation of the pre-reaction template. Optionally, a molecule fragment
-(of the pre-reaction template) can be specified by *molfragment*\ .
-Only atoms that are part of this molecule fragment are used to
-determine the RMSD. A molecule fragment must have been defined in the
-:doc:`molecule <molecule>` command for the pre-reaction template. For
-example, the molecule fragment could consist of only the backbone
-atoms of a polymer chain. This constraint can be used to enforce a
-specific relative position and orientation between reacting molecules.
+rotation of the pre-reaction template. Optionally, the name of a
+molecule fragment (of the pre-reaction template) can be specified by
+*molfragment*\ . If a molecule fragment is specified, only atoms that
+are part of this molecule fragment are used to determine the RMSD. A
+molecule fragment must have been defined in the :doc:`molecule
+<molecule>` command for the pre-reaction template. For example, the
+molecule fragment could consist of only the backbone atoms of a
+polymer chain. This constraint can be used to enforce a specific
+relative position and orientation between reacting molecules.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the

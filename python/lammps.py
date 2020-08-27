@@ -56,6 +56,8 @@ LMP_SIZE_COLS    = 5
 LMP_VAR_EQUAL = 0
 LMP_VAR_ATOM  = 1
 
+# -------------------------------------------------------------------------
+
 def get_ctypes_int(size):
   if size == 4:
     return c_int32
@@ -63,12 +65,16 @@ def get_ctypes_int(size):
     return c_int64
   return c_int
 
+# -------------------------------------------------------------------------
+
 class MPIAbortException(Exception):
   def __init__(self, message):
     self.message = message
 
   def __str__(self):
     return repr(self.message)
+
+# -------------------------------------------------------------------------
 
 class NeighList:
     """This is a wrapper class that exposes the contents of a neighbor list.
@@ -121,6 +127,9 @@ class NeighList:
         for ii in range(inum):
             yield self.get(ii)
 
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
 class lammps(object):
   """Create an instance of the LAMMPS Python class.
 
@@ -148,7 +157,8 @@ class lammps(object):
   :type  comm: MPI_Comm
   """
 
-  # create instance of LAMMPS
+  # -------------------------------------------------------------------------
+  # create an instance of LAMMPS
 
   def __init__(self,name='',cmdargs=None,ptr=None,comm=None):
     self.comm = comm
@@ -376,12 +386,15 @@ class lammps(object):
     self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, py_object]
     self.lib.lammps_set_fix_external_callback.restype = None
 
+  # -------------------------------------------------------------------------
   # shut-down LAMMPS instance
 
   def __del__(self):
     if self.lmp and self.opened:
       self.lib.lammps_close(self.lmp)
       self.opened = 0
+
+  # -------------------------------------------------------------------------
 
   @property
   def numpy(self):
@@ -447,6 +460,8 @@ class lammps(object):
       self._numpy = LammpsNumpyWrapper(self)
     return self._numpy
 
+  # -------------------------------------------------------------------------
+
   def close(self):
     """Explicitly delete a LAMMPS instance through the C-library interface.
 
@@ -456,6 +471,8 @@ class lammps(object):
     self.lmp = None
     self.opened = 0
 
+  # -------------------------------------------------------------------------
+
   def finalize(self):
     """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
     """
@@ -463,6 +480,8 @@ class lammps(object):
     self.lmp = None
     self.opened = 0
     self.lib.lammps_finalize()
+
+  # -------------------------------------------------------------------------
 
   def version(self):
     """Return a numerical representation of the LAMMPS version in use.
@@ -473,6 +492,8 @@ class lammps(object):
     :rtype:  int
     """
     return self.lib.lammps_version(self.lmp)
+
+  # -------------------------------------------------------------------------
 
   def file(self,file):
     """Read LAMMPS commands from a file.
@@ -487,6 +508,8 @@ class lammps(object):
     if file: file = file.encode()
     else: return
     self.lib.lammps_file(self.lmp,file)
+
+  # -------------------------------------------------------------------------
 
   def command(self,cmd):
     """Process a single LAMMPS input command from a string.
@@ -510,6 +533,8 @@ class lammps(object):
         raise MPIAbortException(error_msg)
       raise Exception(error_msg)
 
+  # -------------------------------------------------------------------------
+
   def commands_list(self,cmdlist):
     """Process multiple LAMMPS input commands from a list of strings.
 
@@ -526,6 +551,8 @@ class lammps(object):
     self.lib.lammps_commands_list.argtypes = [c_void_p, c_int, c_char_p * narg]
     self.lib.lammps_commands_list(self.lmp,narg,args)
 
+  # -------------------------------------------------------------------------
+
   def commands_string(self,multicmd):
     """Process a block of LAMMPS input commands from a string.
 
@@ -539,6 +566,8 @@ class lammps(object):
     if type(multicmd) is str: multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
 
+  # -------------------------------------------------------------------------
+
   def get_natoms(self):
     """Get the total number of atoms in the LAMMPS instance.
 
@@ -549,6 +578,8 @@ class lammps(object):
     :rtype: float
     """
     return self.lib.lammps_get_natoms(self.lmp)
+
+  # -------------------------------------------------------------------------
 
   def extract_box(self):
     """Extract simulation box parameters
@@ -582,6 +613,8 @@ class lammps(object):
 
     return boxlo,boxhi,xy,yz,xz,periodicity,box_change
 
+  # -------------------------------------------------------------------------
+
   def reset_box(self,boxlo,boxhi,xy,yz,xz):
     """Reset simulation box parameters
 
@@ -603,6 +636,8 @@ class lammps(object):
     cboxhi = (3*c_double)(*boxhi)
     self.lib.lammps_reset_box(self.lmp,cboxlo,cboxhi,xy,yz,xz)
 
+  # -------------------------------------------------------------------------
+
   def get_thermo(self,name):
     """Get current value of a thermo keyword
 
@@ -618,6 +653,8 @@ class lammps(object):
     else: return None
     self.lib.lammps_get_thermo.restype = c_double
     return self.lib.lammps_get_thermo(self.lmp,name)
+
+  # -------------------------------------------------------------------------
 
   def extract_setting(self, name):
     """Query LAMMPS about global settings that can be expressed as an integer.
@@ -636,6 +673,7 @@ class lammps(object):
     self.lib.lammps_extract_setting.restype = c_int
     return int(self.lib.lammps_extract_setting(self.lmp,name))
 
+  # -------------------------------------------------------------------------
   # extract global info
 
   def extract_global(self, name, type):
@@ -681,6 +719,7 @@ class lammps(object):
     if ptr: return ptr[0]
     else: return None
 
+  # -------------------------------------------------------------------------
   # extract per-atom info
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
@@ -732,6 +771,8 @@ class lammps(object):
     if ptr: return ptr
     else:   return None
 
+
+  # -------------------------------------------------------------------------
 
   def extract_compute(self,id,style,type):
     """Retrieve data from a LAMMPS compute
@@ -797,6 +838,7 @@ class lammps(object):
 
     return None
 
+  # -------------------------------------------------------------------------
   # extract fix info
   # in case of global data, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
@@ -884,6 +926,7 @@ class lammps(object):
     else:
       return None
 
+  # -------------------------------------------------------------------------
   # extract variable info
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector
@@ -935,6 +978,8 @@ class lammps(object):
       return result
     return None
 
+  # -------------------------------------------------------------------------
+
   def set_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
@@ -953,6 +998,8 @@ class lammps(object):
     if value: value = str(value).encode()
     else: return -1
     return self.lib.lammps_set_variable(self.lmp,name,value)
+
+  # -------------------------------------------------------------------------
 
   # return vector of atom properties gathered across procs
   # 3 variants to match src/library.cpp
@@ -974,6 +1021,8 @@ class lammps(object):
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
     else: return None
     return data
+
+  # -------------------------------------------------------------------------
 
   def gather_atoms_concat(self,name,type,count):
     if name: name = name.encode()
@@ -998,6 +1047,8 @@ class lammps(object):
     else: return None
     return data
 
+  # -------------------------------------------------------------------------
+
   # scatter vector of atom properties across procs
   # 2 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
@@ -1011,10 +1062,14 @@ class lammps(object):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
+  # -------------------------------------------------------------------------
+
   def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
 
+
+  # -------------------------------------------------------------------------
 
   def encode_image_flags(self,ix,iy,iz):
     """ convert 3 integers with image flags for x-, y-, and z-direction
@@ -1035,6 +1090,8 @@ class lammps(object):
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
     return self.lib.lammps_encode_image_flags(ix,iy,iz)
 
+  # -------------------------------------------------------------------------
+
   def decode_image_flags(self,image):
     """ Convert encoded image flag integer into list of three regular integers.
 
@@ -1053,6 +1110,7 @@ class lammps(object):
 
     return [int(i) for i in flags]
 
+  # -------------------------------------------------------------------------
   # create N atoms on all procs
   # N = global number of atoms
   # id = ID of each atom (optional, can be None)
@@ -1149,6 +1207,8 @@ class lammps(object):
                                      POINTER(self.c_imageint*n), c_int]
     return self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x_lmp,v_lmp,img_lmp,se_lmp)
 
+  # -------------------------------------------------------------------------
+
   @property
   def has_mpi_support(self):
     """ Report whether the LAMMPS shared library was compiled with a
@@ -1161,6 +1221,8 @@ class lammps(object):
     :rtype: bool
     """
     return self.lib.lammps_config_has_mpi_support() != 0
+
+  # -------------------------------------------------------------------------
 
   @property
   def has_exceptions(self):
@@ -1175,6 +1237,8 @@ class lammps(object):
     """
     return self.lib.lammps_config_has_exceptions() != 0
 
+  # -------------------------------------------------------------------------
+
   @property
   def has_gzip_support(self):
     """ Report whether the LAMMPS shared library was compiled with support
@@ -1187,6 +1251,8 @@ class lammps(object):
     :rtype: bool
     """
     return self.lib.lammps_config_has_gzip_support() != 0
+
+  # -------------------------------------------------------------------------
 
   @property
   def has_png_support(self):
@@ -1201,6 +1267,8 @@ class lammps(object):
     """
     return self.lib.lammps_config_has_png_support() != 0
 
+  # -------------------------------------------------------------------------
+
   @property
   def has_jpeg_support(self):
     """ Report whether the LAMMPS shared library was compiled with support
@@ -1214,6 +1282,8 @@ class lammps(object):
     """
     return self.lib.lammps_config_has_jpeg_support() != 0
 
+  # -------------------------------------------------------------------------
+
   @property
   def has_ffmpeg_support(self):
     """ State of support for writing movies with ``ffmpeg`` in the LAMMPS shared library
@@ -1225,6 +1295,8 @@ class lammps(object):
     :rtype: bool
     """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
+
+  # -------------------------------------------------------------------------
 
   @property
   def installed_packages(self):
@@ -1244,6 +1316,8 @@ class lammps(object):
         self._installed_packages.append(sb.value.decode())
     return self._installed_packages
 
+  # -------------------------------------------------------------------------
+
   def has_style(self, category, name):
     """Returns whether a given style name is available in a given category
 
@@ -1259,6 +1333,8 @@ class lammps(object):
     :rtype:  bool
     """
     return self.lib.lammps_has_style(self.lmp, category.encode(), name.encode()) != 0
+
+  # -------------------------------------------------------------------------
 
   def available_styles(self, category):
     """Returns a list of styles available for a given category
@@ -1284,8 +1360,11 @@ class lammps(object):
         self._available_styles[category].append(sb.value.decode())
     return self._available_styles[category]
 
+  # -------------------------------------------------------------------------
+
   def set_fix_external_callback(self, fix_name, callback, caller=None):
     import numpy as np
+
     def _ctype_to_numpy_int(ctype_int):
           if ctype_int == c_int32:
             return np.int32
@@ -1305,6 +1384,8 @@ class lammps(object):
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
 
+  # -------------------------------------------------------------------------
+
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
 
@@ -1316,6 +1397,8 @@ class lammps(object):
     if idx < 0:
         return None
     return NeighList(self, idx)
+
+  # -------------------------------------------------------------------------
 
   def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
     """Find neighbor list index of pair style neighbor list
@@ -1345,6 +1428,8 @@ class lammps(object):
     idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
     return self.get_neighlist(idx)
 
+  # -------------------------------------------------------------------------
+
   def find_fix_neighlist(self, fixid, request=0):
     """Find neighbor list index of fix neighbor list
 
@@ -1358,6 +1443,8 @@ class lammps(object):
     fixid = fixid.encode()
     idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
     return self.get_neighlist(idx)
+
+  # -------------------------------------------------------------------------
 
   def find_compute_neighlist(self, computeid, request=0):
     """Find neighbor list index of compute neighbor list
@@ -1373,6 +1460,8 @@ class lammps(object):
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
     return self.get_neighlist(idx)
 
+  # -------------------------------------------------------------------------
+
   def get_neighlist_size(self, idx):
     """Return the number of elements in neighbor list with the given index
 
@@ -1382,6 +1471,8 @@ class lammps(object):
     :rtype:  int
      """
     return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
+
+  # -------------------------------------------------------------------------
 
   def get_neighlist_element_neighbors(self, idx, element):
     """Return data of neighbor list entry
@@ -1443,6 +1534,7 @@ class OutputCapture(object):
   def output(self):
     return self.read_pipe(self.stdout_pipe_read)
 
+# -------------------------------------------------------------------------
 
 class Variable(object):
   def __init__(self, lammps_wrapper_instance, name, style, definition):
@@ -1462,6 +1554,7 @@ class Variable(object):
       except ValueError:
         return value
 
+# -------------------------------------------------------------------------
 
 class AtomList(object):
   def __init__(self, lammps_wrapper_instance):
@@ -1474,6 +1567,7 @@ class AtomList(object):
         return Atom2D(self.lmp, index + 1)
     return Atom(self.lmp, index + 1)
 
+# -------------------------------------------------------------------------
 
 class Atom(object):
   def __init__(self, lammps_wrapper_instance, index):
@@ -1530,6 +1624,7 @@ class Atom(object):
   def charge(self):
     return self.lmp.eval("q[%d]" % self.index)
 
+# -------------------------------------------------------------------------
 
 class Atom2D(Atom):
   def __init__(self, lammps_wrapper_instance, index):
@@ -1560,6 +1655,7 @@ class Atom2D(Atom):
     return (self.lmp.eval("fx[%d]" % self.index),
             self.lmp.eval("fy[%d]" % self.index))
 
+# -------------------------------------------------------------------------
 
 class variable_set:
     def __init__(self, name, variable_dict):
@@ -1584,6 +1680,7 @@ class variable_set:
     def __repr__(self):
         return self.__str__()
 
+# -------------------------------------------------------------------------
 
 def get_thermo_data(output):
     """ traverse output of runs and extract thermo data columns """
@@ -1630,6 +1727,9 @@ def get_thermo_data(output):
                   pass
 
     return runs
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 class PyLammps(object):
   """

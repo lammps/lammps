@@ -1865,7 +1865,6 @@ int FixBondReact::check_constraints()
         double **xmobile; // coordinates for the "mobile" molecule
         int ifragment = constraints[i][3];
         if (ifragment >= 0) {
-          printf("made it\n" );
           for (int j = 0; j < onemol->natoms; j++)
             if (onemol->fragmentmask[ifragment][j]) n2superpose++;
           memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
@@ -1893,7 +1892,6 @@ int FixBondReact::check_constraints()
         }
         Superpose3D<double, double **> superposer(n2superpose);
         double rmsd = superposer.Superpose(xfrozen, xmobile);
-        printf("rmsd %g %d\n", rmsd,n2superpose);
         if (rmsd > constraints[i][2]) return 0;
         memory->destroy(xfrozen);
         memory->destroy(xmobile);

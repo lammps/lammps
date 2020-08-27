@@ -79,7 +79,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};

@@ -13,7 +13,7 @@ plane of atoms - e.g.
 
 .. code-block:: LAMMPS
 
-   :doc:`create box <create_box>` 1 -10 10 -10 10 -0.25 0.25
+   create box 1 -10 10 -10 10 -0.25 0.25
 
 If using the :doc:`read data <read_data>` command to read in a file of
 atom coordinates, set the "zlo zhi" values to be finite but narrow,

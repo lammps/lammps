@@ -27,11 +27,11 @@ executable itself can be placed elsewhere.
 
 As LAMMPS runs it prints info to the screen and a logfile named
 *log.lammps*\ .  More info about output is given on the
-:doc:`Run output <Run_output>` doc page.
+:doc:`Screen and logfile output <Run_output>` doc page.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See the :doc:`Errors <Errors>` doc page for a
+message and continue.  See the :doc:`Common Problems <Errors>` doc page for a
 discussion of the various kinds of errors LAMMPS can or can't detect,
 a list of all ERROR and WARNING messages, and what to do about them.
 
@@ -75,7 +75,7 @@ variable OMP_NUM_THREADS, before you launch LAMMPS:
 This can also be done via the :doc:`package <package>` command or via
 the :doc:`-pk command-line switch <Run_options>` which invokes the
 package command.  See the :doc:`package <package>` command or
-:doc:`Speed <Speed>` doc pages for more details about which accelerator
+the :doc:`doc pages on accelerating performance <Speed>` for more details about which accelerator
 packages and which commands support multi-threading.
 
 ----------

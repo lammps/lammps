@@ -42,7 +42,7 @@ particles.
 DPD thermostatting alters pairwise interactions in a manner analogous
 to the per-particle thermostatting of :doc:`fix langevin <fix_langevin>`.
 
-Any of the thermostatting fixes can use :doc:`temperature computes <Howto_thermostat>` that remove bias which has two
+Any of the thermostatting fixes can use :doc:`temperature computes <compute_temp>` that remove bias which has two
 effects.  First, the current calculated temperature, which is compared
 to the requested target temperature, is calculated with the velocity
 bias removed.  Second, the thermostat adjusts only the thermal

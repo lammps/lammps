@@ -235,7 +235,7 @@ development headers and the curl-config tool.
 
 If you would like to use the :doc:`kim_property <kim_commands>`
 command, you need to build LAMMPS with the Python 3.6 or later package
-installed. See the :doc:`Python <python>` doc page for more info on building
+installed. See the :doc:`Python <Python_head>` doc page for more info on building
 LAMMPS with the version of Python on your system.
 After successfully building LAMMPS with Python, you need to
 install the kim-property Python package, which can be easily done using
@@ -1095,7 +1095,7 @@ USER-PLUMED package
 
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
-from LAMMPS using the generic `plumed installation instructions <plumedinstall_>`_.
+from LAMMPS using the generic `PLUMED installation instructions <plumedinstall_>`_.
 The USER-PLUMED package has been tested to work with Plumed versions
 2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
 with a different version of the Plumed kernel.
@@ -1262,7 +1262,7 @@ To build with this package, you must choose which hardware you want to
 build for, either x86 CPUs or Intel KNLs in offload mode.  You should
 also typically :ref:`install the USER-OMP package <user-omp>`, as it can be
 used in tandem with the USER-INTEL package to good effect, as explained
-on the :doc:`Speed intel <Speed_intel>` doc page.
+on the :doc:`USER-INTEL package <Speed_intel>` doc page.
 
 When using Intel compilers version 16.0 or later is required.  You can
 also use the GNU or Clang compilers and they will provide performance

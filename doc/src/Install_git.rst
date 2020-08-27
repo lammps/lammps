@@ -51,7 +51,8 @@ Or they can be generated from the content provided in doc/src by
 typing "make html" from the doc directory.
 
 After initial cloning, as bug fixes and new features are added to
-LAMMPS, as listed on :doc:`this page <Errors_bugs>`, you can stay
+LAMMPS, according to the instructions listed on 
+:doc:`this page <Errors_bugs>`, you can stay
 up-to-date by typing the following git commands from within the
 "mylammps" directory:
 
@@ -95,7 +96,7 @@ changed.  To do this, you should cd to the src directory and type:
    $ make package-update    # sync package files with src files
    $ make foo               # re-build for your machine (mpi, serial, etc)
 
-just as described on the :doc:`Install patch <Install_patch>` doc page,
+just as described on the :doc:`Apply patch <Install_patch>` doc page,
 after a patch has been installed.
 
 .. warning::

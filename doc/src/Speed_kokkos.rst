@@ -9,7 +9,7 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_.
+Kokkos, see `the kokkos GitHub page <https://github.com/kokkos/kokkos>`_.
 
 The LAMMPS KOKKOS package contains versions of pair, fix, and atom
 styles that use data structures and macros provided by the Kokkos

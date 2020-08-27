@@ -27,7 +27,7 @@ which removes several restrictions (e.g. there can be multiple instances
 in hybrid pair styles) and allows for some optimizations leading
 to better performance.  The new pair style :doc:`meam/c <pair_meamc>` has
 the exact same syntax as the old "meam" pair style and thus pair style
-:doc:`meam <pair_meamc>` is an alias to the new style and backward
+meam is an alias to the new style and backward
 compatibility of old inputs is preserved.
 
 REAX package

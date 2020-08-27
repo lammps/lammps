@@ -37,7 +37,7 @@ enable (or "install") them first, as discussed on the :doc:`Build
 package <Build_package>` doc page.  If a packages requires (provided or
 external) libraries, you must configure and build those libraries
 **before** building LAMMPS itself and especially **before** enabling
-such a package with ``make yes-<package>``.  Building :doc:`LAMMPS with
+such a package with ``make yes-<package>``.  :doc:`Building LAMMPS with
 CMake <Build_cmake>` can automate much of this for many types of
 machines, especially workstations, desktops, and laptops, so we suggest
 you try it first when building LAMMPS in those cases.

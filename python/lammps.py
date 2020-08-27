@@ -281,6 +281,8 @@ class lammps(object):
     self.lib.lammps_get_last_error_message.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_get_last_error_message.restype = c_int
 
+    self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
+
     # detect if Python is using version of mpi4py that can pass a communicator
 
     self.has_mpi4py = False

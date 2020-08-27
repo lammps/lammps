@@ -11,29 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
 #include "dump_atom_zstd.h"
 #include "domain.h"
 #include "error.h"
 #include "update.h"
 #include "force.h"
 
-#include <fmt/format.h>
 #include <cstring>
+#include <fmt/format.h>
 
 using namespace LAMMPS_NS;
 
 DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) :
   DumpAtom(lmp, narg, arg)
 {
-  cctx = nullptr;
-  zstdFp = nullptr;
-  fp = nullptr;
-  out_buffer_size = ZSTD_CStreamOutSize();
-  out_buffer = new char[out_buffer_size];
-
-  checksum_flag = 1;
-  compression_level = 0; // = default
-
   if (!compressed)
     error->all(FLERR,"Dump atom/zstd only writes compressed files");
 }
@@ -42,11 +37,6 @@ DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) :
 
 DumpAtomZstd::~DumpAtomZstd()
 {
-  if(cctx && zstdFp) zstd_close();
-
-  delete [] out_buffer;
-  out_buffer = nullptr;
-  out_buffer_size = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -101,19 +91,15 @@ void DumpAtomZstd::openfile()
 
   if (filewriter) {
     if (append_flag) {
-      zstdFp = fopen(filecurrent,"ab");
-    } else {
-      zstdFp = fopen(filecurrent,"wb");
+      error->one(FLERR, "dump/zstd currently doesn't support append");
     }
 
-    if (zstdFp == nullptr) error->one(FLERR,"Cannot open dump file");
-
-    cctx = ZSTD_createCCtx();
-    ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, compression_level);
-    ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, checksum_flag);
-
-    if (cctx == nullptr) error->one(FLERR,"Cannot create Zstd context");
-  } else zstdFp = nullptr;
+    try {
+      writer.open(filecurrent);
+    } catch (FileWriterException & e) {
+      error->one(FLERR, e.what());
+    }
+  }
 
   // delete string with timestep replaced
 
@@ -151,7 +137,7 @@ void DumpAtomZstd::write_header(bigint ndump)
     }
     header += fmt::format("ITEM: ATOMS {}\n", columns);
 
-    zstd_write(header.c_str(), header.length());
+    writer.write(header.c_str(), header.length());
   }
 }
 
@@ -159,14 +145,7 @@ void DumpAtomZstd::write_header(bigint ndump)
 
 void DumpAtomZstd::write_data(int n, double *mybuf)
 {
-  ZSTD_inBuffer input = { mybuf, (size_t)n, 0 };
-  ZSTD_EndDirective mode = ZSTD_e_continue;
-
-  do {
-      ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-      size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
-      fwrite(out_buffer, sizeof(char), output.pos, zstdFp);
-  } while(input.pos < input.size);
+  writer.write(mybuf, n);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,11 +155,10 @@ void DumpAtomZstd::write()
   DumpAtom::write();
   if (filewriter) {
     if (multifile) {
-      zstd_close();
+      writer.close();
     } else {
-      if (flush_flag && zstdFp) {
-        zstd_flush();
-        fflush(zstdFp);
+      if (flush_flag && writer.isopen()) {
+        writer.flush();
       }
     }
   }
@@ -192,67 +170,22 @@ int DumpAtomZstd::modify_param(int narg, char **arg)
 {
   int consumed = DumpAtom::modify_param(narg, arg);
   if(consumed == 0) {
-    if (strcmp(arg[0],"checksum") == 0) {
-      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[1],"yes") == 0) checksum_flag = 1;
-      else if (strcmp(arg[1],"no") == 0) checksum_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
-      return 2;
-    } else if (strcmp(arg[0],"compression_level") == 0) {
-      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-      compression_level = force->inumeric(FLERR,arg[1]);
-      int min_level = ZSTD_minCLevel();
-      int max_level = ZSTD_maxCLevel();
-      if (compression_level < min_level || compression_level > max_level)
-        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
-      return 2;
+    try {
+      if (strcmp(arg[0],"checksum") == 0) {
+        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
+        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
+        else error->all(FLERR,"Illegal dump_modify command");
+        return 2;
+      } else if (strcmp(arg[0],"compression_level") == 0) {
+        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+        int compression_level = force->inumeric(FLERR,arg[1]);
+        writer.setCompressionLevel(compression_level);
+        return 2;
+      }
+    } catch (FileWriterException & e) {
+      error->one(FLERR, e.what());
     }
   }
   return consumed;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpAtomZstd::zstd_write(const void * buffer, size_t length)
-{
-  ZSTD_inBuffer input = { buffer, length, 0 };
-  ZSTD_EndDirective mode = ZSTD_e_continue;
-  
-  do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-    size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
-    fwrite(out_buffer, sizeof(char), output.pos, zstdFp);
-  } while(input.pos < input.size);
-}
-
-void DumpAtomZstd::zstd_flush() {
-  size_t remaining;
-  ZSTD_inBuffer input = { nullptr, 0, 0 };
-  ZSTD_EndDirective mode = ZSTD_e_flush;
-
-  do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-    remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
-    fwrite(out_buffer, sizeof(char), output.pos, zstdFp);
-  } while(remaining);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpAtomZstd::zstd_close()
-{
-  size_t remaining;
-  ZSTD_inBuffer input = { nullptr, 0, 0 };
-  ZSTD_EndDirective mode = ZSTD_e_end;
-
-  do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-    remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
-    fwrite(out_buffer, sizeof(char), output.pos, zstdFp);
-  } while(remaining);
-
-  ZSTD_freeCCtx(cctx);
-  cctx = nullptr;
-  if (zstdFp) fclose(zstdFp);
-  zstdFp = nullptr;
 }

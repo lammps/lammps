@@ -79,8 +79,8 @@ TEST_F(DumpAtomZSTDTest, compressed_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_run0.melt";
-    auto compressed_file = "dump_compressed_run0.melt.zst";
+    auto text_file = "dump_zstd_text_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_run0.melt.zst";
 
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "", 0);
 
@@ -92,7 +92,7 @@ TEST_F(DumpAtomZSTDTest, compressed_run0)
 
     auto converted_file = convert_compressed_to_text(compressed_file);
 
-    ASSERT_THAT(converted_file, Eq("dump_compressed_run0.melt"));
+    ASSERT_THAT(converted_file, Eq("dump_zstd_compressed_run0.melt"));
     ASSERT_FILE_EXISTS(converted_file);
     ASSERT_FILE_EQUAL(text_file, converted_file);
     delete_file(text_file);
@@ -104,8 +104,8 @@ TEST_F(DumpAtomZSTDTest, compressed_with_units_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_with_units_run0.melt";
-    auto compressed_file = "dump_compressed_with_units_run0.melt.zst";
+    auto text_file = "dump_zstd_text_with_units_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_with_units_run0.melt.zst";
 
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "scale no units yes", 0);
 
@@ -128,8 +128,8 @@ TEST_F(DumpAtomZSTDTest, compressed_with_time_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_with_time_run0.melt";
-    auto compressed_file = "dump_compressed_with_time_run0.melt.zst";
+    auto text_file = "dump_zstd_text_with_time_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_with_time_run0.melt.zst";
 
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "scale no time yes", 0);
 
@@ -152,8 +152,8 @@ TEST_F(DumpAtomZSTDTest, compressed_triclinic_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_run0.melt";
-    auto compressed_file = "dump_compressed_tri_run0.melt.zst";
+    auto text_file = "dump_zstd_text_tri_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_tri_run0.melt.zst";
 
     enable_triclinic();
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "", 0);
@@ -177,8 +177,8 @@ TEST_F(DumpAtomZSTDTest, compressed_triclinic_with_units_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_units_run0.melt";
-    auto compressed_file = "dump_compressed_tri_with_units_run0.melt.zst";
+    auto text_file = "dump_zstd_text_tri_with_units_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_tri_with_units_run0.melt.zst";
 
     enable_triclinic();
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "scale no units yes", 0);
@@ -202,8 +202,8 @@ TEST_F(DumpAtomZSTDTest, compressed_triclinic_with_time_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_time_run0.melt";
-    auto compressed_file = "dump_compressed_tri_with_time_run0.melt.zst";
+    auto text_file = "dump_zstd_text_tri_with_time_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_tri_with_time_run0.melt.zst";
 
     enable_triclinic();
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "scale no time yes", 0);
@@ -227,8 +227,8 @@ TEST_F(DumpAtomZSTDTest, compressed_triclinic_with_image_run0)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_image_run0.melt";
-    auto compressed_file = "dump_compressed_tri_with_image_run0.melt.zst";
+    auto text_file = "dump_zstd_text_tri_with_image_run0.melt";
+    auto compressed_file = "dump_zstd_compressed_tri_with_image_run0.melt.zst";
 
     enable_triclinic();
     generate_text_and_compressed_dump(text_file, compressed_file, "atom/zstd", "image yes", 0);

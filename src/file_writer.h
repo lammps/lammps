@@ -1,3 +1,4 @@
+
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -15,49 +16,38 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifdef DUMP_CLASS
+#ifndef LMP_FILE_WRITER_H
+#define LMP_FILE_WRITER_H
 
-DumpStyle(atom/zstd,DumpAtomZstd)
-
-#else
-
-#ifndef LMP_DUMP_ATOM_ZSTD_H
-#define LMP_DUMP_ATOM_ZSTD_H
-
-#include "dump_atom.h"
-#include "zstd_file_writer.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
-class DumpAtomZstd : public DumpAtom {
- public:
-  DumpAtomZstd(class LAMMPS *, int, char **);
-  virtual ~DumpAtomZstd();
+class FileWriter {
+public:
+    FileWriter() = default;
+    virtual ~FileWriter() = default;
+    virtual void open(const std::string & path) = 0;
+    virtual void close() = 0;
+    virtual void flush() = 0;
+    virtual size_t write(const void * buffer, size_t length) = 0;
+    virtual bool isopen() const = 0;
+};
 
- protected:
-  ZstdFileWriter writer;
+class FileWriterException : public std::exception {
+  std::string message;
+public:
+  FileWriterException(const std::string & msg) : message(msg) {
+  }
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  ~FileWriterException() throw() {
+  }
 
-  virtual int modify_param(int, char **);
+  virtual const char * what() const throw() {
+      return message.c_str();
+  }
 };
 
 }
 
 #endif
-#endif
-
-/* ERROR/WARNING messages:
-
-E: Dump atom/zstd only writes compressed files
-
-The dump atom/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

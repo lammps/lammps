@@ -73,11 +73,13 @@ TEST_F(DumpCustomZstdTest, compressed_run1)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_custom_text_run1.melt";
-    auto compressed_file = "dump_custom_compressed_run1.melt.zst";
+    auto text_file = "dump_custom_zstd_text_run1.melt";
+    auto compressed_file = "dump_custom_zstd_compressed_run1.melt.zst";
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
     generate_text_and_compressed_dump(text_file, compressed_file, "custom/zstd", fields, "units yes", 1);
+
+    TearDown();
 
     ASSERT_FILE_EXISTS(text_file);
     ASSERT_FILE_EXISTS(compressed_file);
@@ -95,13 +97,15 @@ TEST_F(DumpCustomZstdTest, compressed_triclinic_run1)
 {
     if(!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_custom_tri_text_run1.melt";
-    auto compressed_file = "dump_custom_tri_compressed_run1.melt.zst";
+    auto text_file = "dump_custom_zstd_tri_text_run1.melt";
+    auto compressed_file = "dump_custom_zstd_tri_compressed_run1.melt.zst";
     auto fields = "id type proc x y z xs ys zs xsu ysu zsu vx vy vz fx fy fz";
     
     enable_triclinic();
 
     generate_text_and_compressed_dump(text_file, compressed_file, "custom/zstd", fields, "units yes", 1);
+
+    TearDown();
 
     ASSERT_FILE_EXISTS(text_file);
     ASSERT_FILE_EXISTS(compressed_file);

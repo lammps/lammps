@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef DUMP_CLASS
 
 DumpStyle(custom/zstd,DumpCustomZstd)
@@ -21,7 +25,7 @@ DumpStyle(custom/zstd,DumpCustomZstd)
 #define LMP_DUMP_CUSTOM_ZSTD_H
 
 #include "dump_custom.h"
-#include <zstd.h>
+#include "zstd_file_writer.h"
 #include <stdio.h>
 
 namespace LAMMPS_NS {
@@ -32,13 +36,7 @@ class DumpCustomZstd : public DumpCustom {
   virtual ~DumpCustomZstd();
 
  protected:
-  int compression_level;
-  int checksum_flag;
-
-  ZSTD_CCtx * cctx;
-  FILE * zstdFp;
-  char * out_buffer;
-  size_t out_buffer_size;
+  ZstdFileWriter writer;
 
   virtual void openfile();
   virtual void write_header(bigint);
@@ -46,10 +44,6 @@ class DumpCustomZstd : public DumpCustom {
   virtual void write();
 
   virtual int modify_param(int, char **);
-
-  void zstd_write(const void * buffer, size_t length);
-  void zstd_flush();
-  void zstd_close();
 };
 
 }

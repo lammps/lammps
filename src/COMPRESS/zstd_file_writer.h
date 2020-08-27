@@ -15,49 +15,38 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifdef DUMP_CLASS
+#ifndef LMP_ZSTD_FILE_WRITER_H
+#define LMP_ZSTD_FILE_WRITER_H
 
-DumpStyle(atom/zstd,DumpAtomZstd)
-
-#else
-
-#ifndef LMP_DUMP_ATOM_ZSTD_H
-#define LMP_DUMP_ATOM_ZSTD_H
-
-#include "dump_atom.h"
-#include "zstd_file_writer.h"
+#include "file_writer.h"
+#include <string>
+#include <zstd.h>
+#include <exception>
 
 namespace LAMMPS_NS {
 
-class DumpAtomZstd : public DumpAtom {
- public:
-  DumpAtomZstd(class LAMMPS *, int, char **);
-  virtual ~DumpAtomZstd();
+class ZstdFileWriter : public FileWriter {
+  int compression_level;
+  int checksum_flag;
 
- protected:
-  ZstdFileWriter writer;
+  ZSTD_CCtx * cctx;
+  FILE * fp;
+  char * out_buffer;
+  size_t out_buffer_size;
+public:
+    ZstdFileWriter();
+    virtual ~ZstdFileWriter();
+    virtual void open(const std::string & path) override;
+    virtual void close() override;
+    virtual void flush() override;
+    virtual size_t write(const void * buffer, size_t length) override;
+    virtual bool isopen() const override;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
-
-  virtual int modify_param(int, char **);
+    void setCompressionLevel(int level);
+    void setChecksum(bool enabled);
 };
+
 
 }
 
 #endif
-#endif
-
-/* ERROR/WARNING messages:
-
-E: Dump atom/zstd only writes compressed files
-
-The dump atom/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

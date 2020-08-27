@@ -110,7 +110,8 @@ corresponds to about 10 KB.
 
 For the meaning of the additional optional keywords, see the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Contrary to :doc:`fix ave/correlate <fix_ave_correlate>` this fix
 does **not** provide access to its internal data to various output
@@ -134,7 +135,10 @@ Related commands
 
 :doc:`fix ave/correlate <fix_ave_correlate>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults for keywords that are also keywords for the :doc:`fix ave/correlate <fix_ave_correlate>` command are as follows: type =
 auto, start = 0, no file output, title 1,2 = strings as described on

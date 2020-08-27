@@ -328,7 +328,7 @@ void DihedralCharmmfsw::allocate()
   int n = atom->ndihedraltypes;
 
   memory->create(k,n+1,"dihedral:k");
-  memory->create(multiplicity,n+1,"dihedral:k");
+  memory->create(multiplicity,n+1,"dihedral:multiplicity");
   memory->create(shift,n+1,"dihedral:shift");
   memory->create(cos_shift,n+1,"dihedral:cos_shift");
   memory->create(sin_shift,n+1,"dihedral:sin_shift");

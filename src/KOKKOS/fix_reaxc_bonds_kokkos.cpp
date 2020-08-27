@@ -60,7 +60,7 @@ void FixReaxCBondsKokkos::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
+void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint /*ntimestep*/, FILE * /*fp*/)
 
 {
   int nbuf_local;

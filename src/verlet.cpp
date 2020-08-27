@@ -87,7 +87,7 @@ void Verlet::init()
 void Verlet::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up Verlet run ...\n");
+    fputs("Setting up Verlet run ...\n",screen);
     if (flag) {
       fmt::print(screen,"  Unit style    : {}\n"
                         "  Current step  : {}\n"

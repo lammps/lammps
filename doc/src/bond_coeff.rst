@@ -87,4 +87,7 @@ Related commands
 
 :doc:`bond_style <bond_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

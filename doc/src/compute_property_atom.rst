@@ -160,7 +160,8 @@ floating-point properties that have been added to each atom via the
 command is used specific names are given to each attribute which are
 what is specified as the "name" portion of *i_name* or *d_name*.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector or per-atom array depending
 on the number of input values.  If a single input is specified, a
@@ -189,4 +190,7 @@ Related commands
 :doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
 :doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

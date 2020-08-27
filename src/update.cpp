@@ -331,7 +331,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
       sflag = 1;
       std::string estyle = style + std::string("/") + lmp->suffix;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -341,7 +341,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
       sflag = 2;
       std::string estyle = style + std::string("/") + lmp->suffix2;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -350,7 +350,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
   sflag = 0;
   if (integrate_map->find(style) != integrate_map->end()) {
-    IntegrateCreator integrate_creator = (*integrate_map)[style];
+    IntegrateCreator &integrate_creator = (*integrate_map)[style];
     integrate = integrate_creator(lmp, narg, arg);
     return;
   }
@@ -402,7 +402,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
       sflag = 1;
       std::string estyle = style + std::string("/") + lmp->suffix;
       if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator minimize_creator = (*minimize_map)[estyle];
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
         return;
       }
@@ -412,7 +412,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
       sflag = 2;
       std::string estyle = style + std::string("/") + lmp->suffix2;
       if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator minimize_creator = (*minimize_map)[estyle];
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
         return;
       }
@@ -421,7 +421,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
 
   sflag = 0;
   if (minimize_map->find(style) != minimize_map->end()) {
-    MinimizeCreator minimize_creator = (*minimize_map)[style];
+    MinimizeCreator &minimize_creator = (*minimize_map)[style];
     minimize = minimize_creator(lmp);
     return;
   }

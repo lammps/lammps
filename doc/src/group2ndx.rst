@@ -65,4 +65,7 @@ Related commands
 
 :doc:`group <group>`, :doc:`dump <dump>`, :doc:`fix colvars <fix_colvars>`
 
-**Default:** none
+Default
+"""""""
+
+none

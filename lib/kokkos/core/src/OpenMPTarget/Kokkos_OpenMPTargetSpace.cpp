@@ -193,9 +193,9 @@ void *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
 SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
     *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                             void>::get_record(void *alloc_ptr) {
-  typedef SharedAllocationHeader Header;
-  typedef SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
-      RecordHost;
+  using Header = SharedAllocationHeader;
+  using RecordHost =
+      SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>;
 
   if (alloc_ptr) {
     Header head;

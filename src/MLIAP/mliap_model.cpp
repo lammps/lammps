@@ -22,6 +22,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,9 +33,13 @@ using namespace LAMMPS_NS;
 
 MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 {
-  nelements = 0;
   coeffelem = NULL;
-  read_coeffs(coefffilename);
+  if (coefffilename) read_coeffs(coefffilename);
+  else {
+    nparams = 0;
+    nelements = 0;
+    ndescriptors = 0;
+  }
   nonlinearflag = 0;
 }
 
@@ -53,6 +58,24 @@ void MLIAPModel::init()
 {
 }
 
+/* ----------------------------------------------------------------------
+   set number of elements
+   ---------------------------------------------------------------------- */
+
+void MLIAPModel::set_nelements(int nelements_in)
+{
+  nelements = nelements_in;
+}
+
+/* ----------------------------------------------------------------------
+   set number of descriptors
+   ---------------------------------------------------------------------- */
+
+void MLIAPModel::set_ndescriptors(int ndescriptors_in)
+{
+  ndescriptors = ndescriptors_in;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void MLIAPModel::read_coeffs(char *coefffilename)
@@ -63,11 +86,9 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   FILE *fpcoeff;
   if (comm->me == 0) {
     fpcoeff = force->open_potential(coefffilename);
-    if (fpcoeff == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open MLIAPModel coefficient file %s",coefffilename);
-      error->one(FLERR,str);
-    }
+    if (fpcoeff == NULL)
+      error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
+                                   coefffilename,utils::getsyserror()));
   }
 
   char line[MAXLINE],*ptr;
@@ -143,7 +164,6 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   }
 
   if (comm->me == 0) fclose(fpcoeff);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -154,9 +174,7 @@ double MLIAPModel::memory_usage()
 {
   double bytes = 0;
 
-  int n = atom->ntypes+1;
   bytes += nelements*nparams*sizeof(double);  // coeffelem
-
   return bytes;
 }
 

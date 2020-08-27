@@ -201,14 +201,6 @@ void PairMorseSmoothLinear::coeff(int narg, char **arg)
       alpha[i][j] = alpha_one;
       r0[i][j] = r0_one;
       cut[i][j] = cut_one;
-
-      morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
-
-      double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-
-      offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
-      der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
-
       setflag[i][j] = 1;
       count++;
     }
@@ -227,6 +219,9 @@ double PairMorseSmoothLinear::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
+  double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
+  offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
+  der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
 
   d0[j][i] = d0[i][j];
   alpha[j][i] = alpha[i][j];

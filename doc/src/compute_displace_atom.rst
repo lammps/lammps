@@ -121,7 +121,8 @@ would be empty.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 4 columns, which can be
 accessed by indices 1-4 by any command that uses per-atom values from
@@ -143,4 +144,7 @@ Related commands
 
 :doc:`compute msd <compute_msd>`, :doc:`dump custom <dump>`, :doc:`fix store/state <fix_store_state>`
 
-**Default:** none
+Default
+"""""""
+
+none

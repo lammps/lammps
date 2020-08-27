@@ -16,6 +16,7 @@
 
 #include "random_mars.h"
 #include <cmath>
+#include <cstring>
 #include "error.h"
 #include "math_const.h"
 
@@ -36,6 +37,7 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp),
 
   save = 0;
   u = new double[97+1];
+  memset(u,0,98*sizeof(double));
 
   ij = (seed-1)/30082;
   kl = (seed-1) - 30082*ij;
@@ -181,7 +183,7 @@ double RanMars::besselexp(double theta, double alpha, double cp)
 void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 {
   int mode,index,oldindex,newvalue,nflip,which,niter;
-  int active[2],first[2],last[2];
+  int active[2],first[2];
   int newactive[2],newfirst[2],newlast[2];
   bigint nmark,nflipall;
   bigint activeall[2],bsum[3],bsumall[3];
@@ -191,8 +193,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
   active[1] = 0;
   first[0] = 0;
   first[1] = -1;
-  last[0] = nmine-1;
-  last[1] = -1;
 
   bigint bnmine = nmine;
   bigint bnall;
@@ -266,8 +266,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
       active[1] = newactive[1];
       first[0] = newfirst[0];
       first[1] = newfirst[1];
-      last[0] = newlast[0];
-      last[1] = newlast[1];
     }
 
     // update nmark and activeall
@@ -290,4 +288,32 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     //if (comm->me == 0) printf("%d %ld %ld %g %ld\n",
     //                          niter,nmark,nactiveall,thresh,nflipall);
   }
+}
+
+/* ----------------------------------------------------------------------
+   store state in buffer
+------------------------------------------------------------------------- */
+
+void RanMars::get_state(double *state)
+{
+  for (int i=0; i < 98; ++i) state[i] = u[i];
+  state[98] = i97;
+  state[99] = j97;
+  state[100]= c;
+  state[101]= cd;
+  state[102]= cm;
+}
+
+/* ----------------------------------------------------------------------
+   restore state from buffer
+------------------------------------------------------------------------- */
+
+void RanMars::set_state(double *state)
+{
+  for (int i=0; i < 98; ++i) u[i] = state[i];
+  i97 = state[98];
+  j97 = state[99];
+  c   = state[100];
+  cd  = state[101];
+  cm  = state[102];
 }

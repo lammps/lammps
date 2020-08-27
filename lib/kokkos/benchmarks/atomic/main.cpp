@@ -69,13 +69,13 @@ int main(int argc, char* argv[]) {
       return 0;
     }
 
-    int L    = atoi(argv[1]);
-    int N    = atoi(argv[2]);
-    int M    = atoi(argv[3]);
-    int D    = atoi(argv[4]);
-    int K    = atoi(argv[5]);
-    int R    = atoi(argv[6]);
-    int type = atoi(argv[7]);
+    int L    = std::stoi(argv[1]);
+    int N    = std::stoi(argv[2]);
+    int M    = std::stoi(argv[3]);
+    int D    = std::stoi(argv[4]);
+    int K    = std::stoi(argv[5]);
+    int R    = std::stoi(argv[6]);
+    int type = std::stoi(argv[7]);
 
     Kokkos::View<int*> offsets("Offsets", L, M);
     Kokkos::Random_XorShift64_Pool<> pool(12371);

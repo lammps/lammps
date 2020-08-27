@@ -57,10 +57,10 @@ namespace Test {
 template <class ExecSpace>
 struct Hierarchical_Red_C {
   void run(const int pN, const int sX, const int sY) {
-    typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-    typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+    using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
-    typedef Kokkos::View<SCALAR_TYPE *, ExecSpace> viewDataType;
+    using viewDataType = Kokkos::View<SCALAR_TYPE *, ExecSpace>;
     viewDataType v("Vector", pN);
 
     Kokkos::parallel_for(

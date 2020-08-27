@@ -120,7 +120,7 @@ void ReadDump::command(int narg, char **arg)
 
   // find the snapshot and read/bcast/process header info
 
-  if (me == 0 && screen) fprintf(screen,"Scanning dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
 
   bigint ntimestep = seek(nstep,1);
   if (ntimestep < 0)
@@ -135,8 +135,7 @@ void ReadDump::command(int narg, char **arg)
 
   // read in the snapshot and reset system
 
-  if (me == 0 && screen)
-    fprintf(screen,"Reading snapshot from dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
 
   bigint natoms_prev = atom->natoms;
   atoms();

@@ -209,7 +209,8 @@ result. I.e. the last 2 columns of thermo output will be the same:
    corrections to the pressure added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
    global system pressure.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute *stress/atom* calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from
@@ -238,7 +239,10 @@ Related commands
 
 :doc:`compute pe <compute_pe>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -543,7 +543,7 @@ void PairADP::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "ADP");
+    PotentialFileReader reader(lmp, filename, "adp");
 
     try {
       reader.skip_line();

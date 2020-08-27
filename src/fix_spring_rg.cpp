@@ -19,6 +19,7 @@
 #include "fix_spring_rg.h"
 #include <cstring>
 #include "atom.h"
+#include "comm.h"
 #include "update.h"
 #include "group.h"
 #include "respa.h"
@@ -41,6 +42,9 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[4],"NULL") == 0) rg0_flag = 1;
   else rg0 = force->numeric(FLERR,arg[4]);
 
+  restart_global = 1;
+  scalar_flag = 1;
+  restart_global = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
@@ -143,4 +147,44 @@ void FixSpringRG::post_force(int /*vflag*/)
 void FixSpringRG::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixSpringRG::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = rg0;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixSpringRG::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  rg0 = list[n++];
+  rg0_flag = 0;
+}
+
+
+/* ----------------------------------------------------------------------
+   return reference radius of gyration
+------------------------------------------------------------------------- */
+
+double FixSpringRG::compute_scalar()
+{
+  return rg0;
 }

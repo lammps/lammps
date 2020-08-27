@@ -136,6 +136,7 @@ src directory.
 .. _cmake_presets:
 
 CMake presets for installing many packages
+""""""""""""""""""""""""""""""""""""""""""
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -168,7 +169,8 @@ one of them as a starting point and customize it to your needs.
    in a single cmake run, or change settings incrementally by running
    cmake with new flags.
 
-**Example:**
+Example
+"""""""
 
 .. code-block:: bash
 

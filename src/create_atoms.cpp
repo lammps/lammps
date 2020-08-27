@@ -71,6 +71,20 @@ void CreateAtoms::command(int narg, char **arg)
     error->all(FLERR,"Cannot create_atoms after "
                "reading restart file with per-atom info");
 
+  // check for compatible lattice
+
+  int latsty = domain->lattice->style;
+  if (domain->dimension == 2) {
+    if (latsty == Lattice::SC || latsty == Lattice::BCC
+        || latsty == Lattice::FCC || latsty == Lattice::HCP
+        || latsty == Lattice::DIAMOND)
+      error->all(FLERR,"Lattice style incompatible with simulation dimension");
+  } else {
+    if (latsty == Lattice::SQ ||latsty == Lattice::SQ2
+        || latsty == Lattice::HEX)
+      error->all(FLERR,"Lattice style incompatible with simulation dimension");
+  }
+
   // parse arguments
 
   if (narg < 2) error->all(FLERR,"Illegal create_atoms command");

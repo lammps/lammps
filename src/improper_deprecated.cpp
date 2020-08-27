@@ -45,8 +45,7 @@ void ImproperDeprecated::settings(int, char **)
       utils::logmesg(lmp,"\nImproper style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-
-  lmp->error->all(FLERR,"This improper style is no longer available");
+  error->all(FLERR,"This improper style is no longer available");
 }
 
 

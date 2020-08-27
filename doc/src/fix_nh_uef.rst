@@ -171,7 +171,8 @@ See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute pressure/ue
 that the IDs of the new computes are the fix-ID + underscore + "temp"
 or fix_ID + underscore + "press".
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix writes the state of all the thermostat and barostat variables,
 as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command

@@ -161,11 +161,11 @@ Examples
 
    pair_style coul/long/soft 1.0 10.0 9.5
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style morse/soft 4 0.9 10.0
    pair_coeff * * 100.0 2.0 1.5 1.0
@@ -284,7 +284,9 @@ core.  Hence, if used by themselves, there will be no repulsion to keep two
 oppositely charged particles from overlapping each other. In this case, if
 :math:`\lambda = 1`, a singularity may occur.  These sub-styles are suitable to
 represent charges embedded in the Lennard-Jones radius of another site (for
-example hydrogen atoms in several water models).
+example hydrogen atoms in several water models). The :math:`\lambda` must
+be defined for each pair, and *coul/cut/soft* can accept an optional cutoff as
+the second coefficient.
 
 .. note::
 
@@ -341,28 +343,12 @@ used.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script by
-including their suffix, or you can use the :doc:`-suffix command-line switch
-<Run_options>` when you invoke LAMMPS, or you can use the :doc:`suffix <suffix>`
-command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, tail correction, restart info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The different versions of the *lj/cut/soft* pair styles support mixing.  For
 atom type pairs I,J and I != J, the :math:`\epsilon` and :math:`\sigma`
@@ -427,7 +413,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

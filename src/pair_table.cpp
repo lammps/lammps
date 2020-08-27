@@ -70,7 +70,6 @@ void PairTable::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,factor_lj,fraction,value,a,b;
-  char estr[128];
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
@@ -459,25 +458,25 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror)
-    error->warning(FLERR,fmt::format("{} of {} force values in table are "
+    error->warning(FLERR,fmt::format("{} of {} force values in table {} are "
                                      "inconsistent with -dE/dr.\n  Should "
                                      "only be flagged at inflection points",
-                                     ferror,tb->ninput));
+                                     ferror,tb->ninput,keyword));
 
   // warn if re-computed distance values differ from file values
 
   if (rerror)
-    error->warning(FLERR,fmt::format("{} of {} distance values in table with "
-                                     "relative error\n  over {} to "
+    error->warning(FLERR,fmt::format("{} of {} distance values in table {} "
+                                     "with relative error\n  over {} to "
                                      "re-computed values",
-                                     rerror,tb->ninput,EPSILONR));
+                                     rerror,tb->ninput,EPSILONR,keyword));
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror)
-    error->warning(FLERR,fmt::format("{} of {} lines in table were "
+    error->warning(FLERR,fmt::format("{} of {} lines in table {} were "
                                      "incomplete\n  or could not be parsed "
-                                     "completely",cerror,tb->ninput));
+                                     "completely",cerror,tb->ninput,keyword));
 }
 
 /* ----------------------------------------------------------------------
@@ -1033,11 +1032,15 @@ void *PairTable::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") != 0) return NULL;
   if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  double cut_coul = tables[0].cut;
-  for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
-  dim = 0;
-  return &tables[0].cut;
+  // only check for cutoff consistency if claiming to be KSpace compatible
+
+  if (ewaldflag || pppmflag || msmflag || dispersionflag || tip4pflag) {
+    double cut_coul = tables[0].cut;
+    for (int m = 1; m < ntables; m++)
+      if (tables[m].cut != cut_coul)
+        error->all(FLERR,
+                   "Pair table cutoffs must all be equal to use with KSpace");
+    dim = 0;
+    return &tables[0].cut;
+  } else return NULL;
 }

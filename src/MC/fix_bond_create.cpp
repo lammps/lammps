@@ -27,9 +27,11 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define DELTA 16
@@ -79,6 +81,11 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int seed = 12345;
   atype = dtype = itype = 0;
 
+  constrainflag = 0;
+  constrainpass = 0;
+  amin = 0;
+  amax = 180;
+
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
@@ -120,6 +127,22 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       itype = force->inumeric(FLERR,arg[iarg+1]);
       if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
+        strcmp(style,"bond/create/angle") == 0) {
+      if (iarg+3 > narg)
+          error->all(FLERR,"Illegal fix bond/create/angle command");
+      amin = force->numeric(FLERR,arg[iarg+1]);
+      amax = force->inumeric(FLERR,arg[iarg+2]);
+      if (amin  >= amax)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (amin < 0 || amin > 180)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (amax < 0 || amax > 180)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      amin = (MY_PI/180.0) * amin;
+      amax = (MY_PI/180.0) * amax;
+      constrainflag = 1;
+      iarg += 3;
     } else error->all(FLERR,"Illegal fix bond/create command");
   }
 
@@ -434,6 +457,11 @@ void FixBondCreate::post_integrate()
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
 
+      if (constrainflag) {
+        constrainpass = constrain(i,j,amin,amax);
+        if (!constrainpass) continue;
+      }
+
       if (rsq < distsq[i]) {
         partner[i] = tag[j];
         distsq[i] = rsq;
@@ -442,6 +470,7 @@ void FixBondCreate::post_integrate()
         partner[j] = tag[i];
         distsq[j] = rsq;
       }
+
     }
   }
 

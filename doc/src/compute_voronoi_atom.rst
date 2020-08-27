@@ -188,7 +188,8 @@ Voro++ software in the src/VORONOI/README file.
    simulation box for 2d simulations when using the
    :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 
-**Output info:**
+Output info
+"""""""""""
 
 By default, this compute calculates a per-atom array with 2
 columns. In regular dynamic tessellation mode the first column is the
@@ -235,4 +236,8 @@ Related commands
 
 :doc:`dump custom <dump>`, :doc:`dump local <dump>`
 
-**Default:** *neighbors* no, *peratom* yes
+Default
+"""""""
+
+*neighbors* no, *peratom* yes
+

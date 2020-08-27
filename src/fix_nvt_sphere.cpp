@@ -13,6 +13,7 @@
 
 #include "fix_nvt_sphere.h"
 #include <cstring>
+#include <string>
 #include "group.h"
 #include "modify.h"
 #include "error.h"

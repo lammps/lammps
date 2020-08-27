@@ -50,14 +50,14 @@ namespace Impl {
 
 template <class Tag, class F, class TransformIndex>
 void scan_enqueue(const int len, const F& f, TransformIndex transform_index) {
-  typedef Kokkos::Impl::FunctorValueTraits<F, Tag> ValueTraits;
-  typedef Kokkos::Impl::FunctorValueInit<F, Tag> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<F, Tag> ValueJoin;
-  typedef Kokkos::Impl::FunctorValueOps<F, Tag> ValueOps;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<F, Tag>;
+  using ValueInit   = Kokkos::Impl::FunctorValueInit<F, Tag>;
+  using ValueJoin   = Kokkos::Impl::FunctorValueJoin<F, Tag>;
+  using ValueOps    = Kokkos::Impl::FunctorValueOps<F, Tag>;
 
-  typedef typename ValueTraits::value_type value_type;
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::reference_type reference_type;
+  using value_type     = typename ValueTraits::value_type;
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using reference_type = typename ValueTraits::reference_type;
 
   const auto td = get_tile_desc<value_type>(len);
   std::vector<value_type> result_cpu(td.num_tiles);
@@ -148,14 +148,14 @@ void scan_enqueue(const int len, const F& f, TransformIndex transform_index) {
 template <class Tag, class ReturnType, class F, class TransformIndex>
 void scan_enqueue(const int len, const F& f, ReturnType& return_val,
                   TransformIndex transform_index) {
-  typedef Kokkos::Impl::FunctorValueTraits<F, Tag> ValueTraits;
-  typedef Kokkos::Impl::FunctorValueInit<F, Tag> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<F, Tag> ValueJoin;
-  typedef Kokkos::Impl::FunctorValueOps<F, Tag> ValueOps;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<F, Tag>;
+  using ValueInit   = Kokkos::Impl::FunctorValueInit<F, Tag>;
+  using ValueJoin   = Kokkos::Impl::FunctorValueJoin<F, Tag>;
+  using ValueOps    = Kokkos::Impl::FunctorValueOps<F, Tag>;
 
-  typedef typename ValueTraits::value_type value_type;
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::reference_type reference_type;
+  using value_type     = typename ValueTraits::value_type;
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using reference_type = typename ValueTraits::reference_type;
 
   const auto td = get_tile_desc<value_type>(len);
   std::vector<value_type> result_cpu(td.num_tiles);

@@ -36,6 +36,8 @@ public:
     void run_stress(const yaml_event_t &event);
     void init_forces(const yaml_event_t &event);
     void run_forces(const yaml_event_t &event);
+    void run_pos(const yaml_event_t &event);
+    void run_vel(const yaml_event_t &event);
     void pair_style(const yaml_event_t &event);
     void pair_coeff(const yaml_event_t &event);
     void bond_style(const yaml_event_t &event);
@@ -49,6 +51,8 @@ public:
     void run_coul(const yaml_event_t &event);
     void init_energy(const yaml_event_t &event);
     void run_energy(const yaml_event_t &event);
+    void global_scalar(const yaml_event_t &event);
+    void global_vector(const yaml_event_t &event);
 };
 
 #endif

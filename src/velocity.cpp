@@ -67,7 +67,7 @@ void Velocity::command(int narg, char **arg)
 
   // check if velocities of atoms in rigid bodies are updated
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit) && (comm->me == 0))
     error->warning(FLERR,"Changing velocities of atoms in rigid bodies. "
                      "This has no effect unless rigid bodies are rebuild");
 
@@ -200,7 +200,7 @@ void Velocity::create(double t_desired, int seed)
   // initialize temperature computation(s)
   // warn if groups don't match
 
-  if (igroup != temperature->igroup && comm->me == 0)
+  if ((igroup != temperature->igroup) && (comm->me == 0))
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
   temperature->setup();
@@ -596,7 +596,7 @@ void Velocity::scale(int /*narg*/, char **arg)
   // initialize temperature computation
   // warn if groups don't match
 
-  if (igroup != temperature->igroup && comm->me == 0)
+  if ((igroup != temperature->igroup) && (comm->me == 0))
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
   temperature->setup();

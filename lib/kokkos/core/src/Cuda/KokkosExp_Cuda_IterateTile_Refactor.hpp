@@ -48,9 +48,7 @@
 #include <Kokkos_Macros.hpp>
 #if defined(__CUDACC__) && defined(KOKKOS_ENABLE_CUDA)
 
-#include <iostream>
 #include <algorithm>
-#include <cstdio>
 
 #include <utility>
 
@@ -60,10 +58,8 @@
 // type is not allowed use existing Kokkos functionality, e.g. max blocks, once
 // resolved
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
-#endif
 
 namespace Kokkos {
 namespace Impl {

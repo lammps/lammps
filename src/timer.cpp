@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -31,32 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-// convert a timespec ([[HH:]MM:]SS) to seconds
-// the strings "off" and "unlimited" result in -1;
-
-static double timespec2seconds(char *timespec)
-{
-  double vals[3];
-  char *num;
-  int i = 0;
-
-  // first handle allowed textual inputs
-  if (strcmp(timespec,"off") == 0) return -1;
-  if (strcmp(timespec,"unlimited") == 0) return -1;
-
-  vals[0] = vals[1] = vals[2] = 0;
-
-  num = strtok(timespec,":");
-  while ((num != NULL) && (i < 3)) {
-    vals[i] = atoi(num);
-    ++i;
-    num = strtok(NULL,":");
-  }
-
-  if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
-  else if (i == 2) return vals[0]*60 + vals[1];
-  else return vals[0];
-}
 
 // Return the CPU time for the current process in seconds very
 // much in the same way as MPI_Wtime() returns the wall time.
@@ -297,7 +272,7 @@ void Timer::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"timeout") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _timeout = timespec2seconds(arg[iarg]);
+        _timeout = utils::timespec2seconds(arg[iarg]);
       } else error->all(FLERR,"Illegal timers command");
     } else if (strcmp(arg[iarg],"every") == 0) {
       ++iarg;

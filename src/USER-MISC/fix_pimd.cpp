@@ -794,6 +794,7 @@ int FixPIMD::pack_restart(int i, double *buf)
 {
   int offset=0;
   int pos = i * 3;
+  // pack buf[0] this way because other fixes unpack it
   buf[offset++] = size_peratom_cols+1;
 
   memcpy(buf+offset, nhc_eta[pos],        nhc_size_one_1); offset += nhc_offset_one_1;
@@ -811,6 +812,7 @@ void FixPIMD::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i=0; i<nth; i++) m += static_cast<int> (extra[nlocal][m]);

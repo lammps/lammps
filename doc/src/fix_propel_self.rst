@@ -57,7 +57,8 @@ on through the *types* keyword.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -93,4 +94,8 @@ Eur. Phys. J. B 15, 105-113, 2000.
 
 **(Fily)** Y. Fily and M.C. Marchetti, Phys. Rev. Lett. 108, 235702, 2012.
 
-**Default:** types
+Default
+"""""""
+
+types
+

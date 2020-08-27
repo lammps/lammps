@@ -1536,7 +1536,7 @@ been issued.
 .. note::
 
    LAMMPS cannot easily check if it is valid to access the data, so it
-   may fail with an error.  The caller has avoid such an error.
+   may fail with an error.  The caller has to avoid such an error.
 
 \endverbatim
  *

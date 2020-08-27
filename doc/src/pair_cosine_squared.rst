@@ -107,7 +107,7 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *cosine/squared* style is part of the "USER-MISC" package. It is only
+The *cosine/squared* style is part of the USER-MISC package. It is only
 enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

@@ -149,95 +149,152 @@ statements including all headers of all styles of a given type that
 are currently active (or "installed).
 
 
-More details on individual classes in :ref:`class-topology` are as
+More details on individual classes in the :ref:`class-topology` are as
 follows:
 
-#. The Memory class handles allocation of all large vectors and arrays.
+- The Memory class handles allocation of all large vectors and arrays.
 
-#. The Error class prints all error and warning messages.
+- The Error class prints all error and warning messages.
 
-#. The Universe class sets up partitions of processors so that multiple
-   simulations can be run, each on a subset of the processors allocated
-   for a run, e.g. by the mpirun command.
+- The Universe class sets up partitions of processors so that multiple
+  simulations can be run, each on a subset of the processors allocated
+  for a run, e.g. by the mpirun command.
 
-#. The Input class reads and processes input input strings and files,
-   stores variables, and invokes :doc:`commands <Commands_all>`.
+- The Input class reads and processes input input strings and files,
+  stores variables, and invokes :doc:`commands <Commands_all>`.
 
-#. As discussed above, command style classes are directly derived from
-   the Pointers class. They provide input script commands that perform
-   one-time operations before/after/between simulations or which invoke
-   a simulation.  They are instantiated from within the Input class,
-   invoked, then immediately destructed.
+- As discussed above, command style classes are directly derived from
+  the Pointers class. They provide input script commands that perform
+  one-time operations before/after/between simulations or which invoke a
+  simulation.  They are instantiated from within the Input class,
+  invoked, then immediately destructed.
 
-#. The Finish class is instantiated to print statistics to the
-   screen after a simulation is performed, by commands like run and
-   minimize.
+- The Finish class is instantiated to print statistics to the screen
+  after a simulation is performed, by commands like run and minimize.
 
-#. The Special class walks the bond topology of a molecular system
-   to find first, second, third neighbors of each atom.  It is invoked by
-   several commands, like :doc:`read_data <read_data>`,
-   :doc:`read_restart <read_restart>`, or  :doc:`replicate <replicate>`.
+- The Special class walks the bond topology of a molecular system to
+  find first, second, third neighbors of each atom.  It is invoked by
+  several commands, like :doc:`read_data <read_data>`,
+  :doc:`read_restart <read_restart>`, or :doc:`replicate <replicate>`.
 
-#. The Atom class stores per-atom properties associated with atom
-   styles.  More precisely, they are allocated and managed by a class
-   derived from the AtomVec class, and the Atom class simply stores
-   pointers to them.  The classes derived from AtomVec represent the
-   different atom styles and they are instantiated through the
-   :doc:`atom_style <atom_style>` command.
+- The Atom class stores per-atom properties associated with atom styles.
+  More precisely, they are allocated and managed by a class derived from
+  the AtomVec class, and the Atom class simply stores pointers to them.
+  The classes derived from AtomVec represent the different atom styles
+  and they are instantiated through the :doc:`atom_style <atom_style>`
+  command.
 
-#. The Update class holds instances of an integrator and a minimizer
-   class.  The Integrate class is a parent style for the Verlet and
-   r-RESPA time integrators, as defined by the :doc:`run_style
-   <run_style>` command.  The Min class is a parent style for various
-   energy minimizers.
+- The Update class holds instances of an integrator and a minimizer
+  class.  The Integrate class is a parent style for the Verlet and
+  r-RESPA time integrators, as defined by the :doc:`run_style
+  <run_style>` command.  The Min class is a parent style for various
+  energy minimizers.
 
-#. The Neighbor class builds and stores neighbor lists.  The NeighList
-   class stores a single list (for all atoms).  A NeighRequest class
-   instance is created by pair, fix, or compute styles when they need a
-   particular kind of neighbor list and use the NeighRequest properties
-   to select the neighbor list settings for the given request. There can
-   be multiple instances of the NeighRequest class and the Neighbor
-   class will try to optimize how they are computed by creating copies
-   or sub-lists where possible.
+- The Neighbor class builds and stores neighbor lists.  The NeighList
+  class stores a single list (for all atoms).  A NeighRequest class
+  instance is created by pair, fix, or compute styles when they need a
+  particular kind of neighbor list and use the NeighRequest properties
+  to select the neighbor list settings for the given request. There can
+  be multiple instances of the NeighRequest class and the Neighbor class
+  will try to optimize how they are computed by creating copies or
+  sub-lists where possible.
 
-#. The Comm class performs inter-processor communication, typically of
-   ghost atom information.  This usually involves MPI message exchanges
-   with 6 neighboring processors in the 3d logical grid of processors
-   mapped to the simulation box. There are two :doc:`communication
-   styles <comm_style>` enabling different ways to do the domain
-   decomposition.  Sometimes the Irregular class is used, when atoms may
-   migrate to arbitrary processors.
+- The Comm class performs inter-processor communication, typically of
+  ghost atom information.  This usually involves MPI message exchanges
+  with 6 neighboring processors in the 3d logical grid of processors
+  mapped to the simulation box. There are two :doc:`communication styles
+  <comm_style>` enabling different ways to do the domain decomposition.
+  Sometimes the Irregular class is used, when atoms may migrate to
+  arbitrary processors.
 
-#. The Domain class stores the simulation box geometry, as well as
-   geometric Regions and any user definition of a Lattice.  The latter
-   are defined by the :doc:`region <region>` and :doc:`lattice <lattice>`
-   commands in an input script.
+- The Domain class stores the simulation box geometry, as well as
+  geometric Regions and any user definition of a Lattice.  The latter
+  are defined by the :doc:`region <region>` and :doc:`lattice <lattice>`
+  commands in an input script.
 
-#. The Force class computes various forces between atoms.  The Pair
-   parent class is for non-bonded or pair-wise forces, which in LAMMPS
-   also includes many-body forces such as the Tersoff 3-body potential
-   if those are computed by walking pairwise neighbor lists.  The Bond,
-   Angle, Dihedral, Improper parent classes are styles for bonded
-   interactions within a static molecular topology.  The KSpace parent
-   class is for computing long-range Coulombic interactions.  One of its
-   child classes, PPPM, uses the FFT3D and Remap classes to redistribute
-   and communicate grid-based information across the parallel
-   processors.
+- The Force class computes various forces between atoms.  The Pair
+  parent class is for non-bonded or pair-wise forces, which in LAMMPS
+  also includes many-body forces such as the Tersoff 3-body potential if
+  those are computed by walking pairwise neighbor lists.  The Bond,
+  Angle, Dihedral, Improper parent classes are styles for bonded
+  interactions within a static molecular topology.  The KSpace parent
+  class is for computing long-range Coulombic interactions.  One of its
+  child classes, PPPM, uses the FFT3D and Remap classes to redistribute
+  and communicate grid-based information across the parallel processors.
 
-#. The Modify class stores lists of class instances derived from the
-   :doc:`Fix <fix>` and :doc:`Compute <compute>` base classes.
+- The Modify class stores lists of class instances derived from the
+  :doc:`Fix <fix>` and :doc:`Compute <compute>` base classes.
 
-#. The Group class manipulates groups that atoms are assigned to
-   via the :doc:`group <group>` command.  It also has functions to
-   compute various attributes of groups of atoms.
+- The Group class manipulates groups that atoms are assigned to via the
+  :doc:`group <group>` command.  It also has functions to compute
+  various attributes of groups of atoms.
 
-#. The Output class is used to generate 3 kinds of output from a
-   LAMMPS simulation: thermodynamic information printed to the screen
-   and log file, dump file snapshots, and restart files.  These
-   correspond to the Thermo, Dump, and WriteRestart classes
-   respectively.  The Dump class is a base class with several
-   derived classes implementing dump style variants.
+- The Output class is used to generate 3 kinds of output from a LAMMPS
+  simulation: thermodynamic information printed to the screen and log
+  file, dump file snapshots, and restart files.  These correspond to the
+  :doc:`Thermo <thermo_style>`, :doc:`Dump <dump>`, and
+  :doc:`WriteRestart <write_restart>` classes respectively.  The Dump
+  class is a base class with several derived classes implementing
+  various dump style variants.
 
-#. The Timer class logs timing information, output at the end
-   of a run.
+- The Timer class logs timing information, output at the end
+  of a run.
+
+.. TODO section on "Spatial decomposition and parallel operations"
+..       diagram of 3d processor grid, brick vs. tiled. local vs. ghost
+..       atoms, 6-way communication with pack/unpack functions,
+..       PBC as part of the communication
+
+.. TODO section on "Fixes, Computes, and Variables"
+..      how and when data is computed and provided and how it is
+..      referenced. flags in Fix/Compute/Variable classes tell
+..      style and amount of available data.
+
+
+How a timestep works
+====================
+
+The first and most fundamental operation within LAMMPS to understand is
+how a timestep is structured.  Timestepping is performed by calling
+methods of the Integrate class instance within the Update class.  Since
+Integrate is a base class, it will point to an instance of a derived
+class corresponding to what is selected by the :doc:`run_style
+<run_style>` input script command.
+
+In this section, the timestep implemented by the Verlet class is
+described.  A similar timestep protocol is implemented by the Respa
+class, for the r-RESPA hierarchical timestepping method.
+
+The Min base class performs energy minimization, so does not perform a
+literal timestep.  But it has logic similar to what is described here,
+to compute forces and invoke fixes at each iteration of a minimization.
+Differences between time integration and minimization are highlighted at
+the end of this section.
+
+The Verlet class is encoded in the ``src/verlet.cpp`` and ``verlet.h``
+files.  It implements the velocity-Verlet timestepping algorithm.  The
+workhorse method is ``Verlet::run()``, but first we highlight several
+other methods in the class.
+
+- The ``init()`` method is called at the beginning of each dynamics
+  run.  It simply sets some internal flags, based on user settings in
+  other parts of the code.
+
+- The ``setup()`` or ``setup_minimal()`` methods are also called before
+  each run.  The velocity-Verlet method requires current forces be
+  calculated before the first timestep, so these routines compute
+  forces due to all atomic interactions, using the same logic that
+  appears in the timestepping described next.  A few fixes are also
+  invoked, using the mechanism described in the next section.  Various
+  counters are also initialized before the run begins.  The
+  ``setup_minimal()`` method is a variant that has a flag for performing
+  less setup.  This is used when runs are continued and information
+  from the previous run is still valid.  For example, if repeated
+  short LAMMPS runs are being invoked, interleaved by other commands,
+  via the *pre no* and *every* options of the run command, the
+  ``setup_minimal()`` method is used.
+
+- The ``force_clear()`` method initializes force and other arrays to
+  zero before each timestep, so that forces (torques, etc) can be
+  accumulated.
 

@@ -132,6 +132,7 @@ void PairBeck::compute(int eflag, int vflag)
           term1inv = 1.0/term1;
           evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
           evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
+          evdwl *= factor_lj;
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

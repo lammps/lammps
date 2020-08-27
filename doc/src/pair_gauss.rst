@@ -174,8 +174,8 @@ special_bonds factors, if using the default setting of 0.0, may need to
 be adjusted to some very small number (e.g. 1.0e-100), so that those
 special pairs are not completely excluded from the neighbor lists, but
 won't contribute forces or energies from styles (e.g. when used in
-combination with a :doc:`hybrid pair style <pair_hybrid>` that do apply
-those factors.
+combination with a :doc:`hybrid pair style <pair_hybrid>`) that do
+apply those factors.
 
 Related commands
 """"""""""""""""

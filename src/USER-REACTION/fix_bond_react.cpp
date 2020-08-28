@@ -3360,7 +3360,7 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[1];
       constraints[nconstraints][5] = tmp[2];
       constraints[nconstraints][6] = tmp[3];
-    } else if (strcmp(constraint_type,"RMSD") == 0) {
+    } else if (strcmp(constraint_type,"rmsd") == 0) {
       constraints[nconstraints][1] = RMSD;
       strcpy(strargs[0],"0");
       sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);

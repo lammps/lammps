@@ -1,5 +1,6 @@
 import sys,os,unittest
 from lammps import lammps, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_SCALAR
+from ctypes import c_void_p
 
 class PythonNumpy(unittest.TestCase):
     def setUp(self):
@@ -10,6 +11,9 @@ class PythonNumpy(unittest.TestCase):
 
     def tearDown(self):
         del self.lmp
+
+    def testLammpsPointer(self):
+        self.assertEqual(type(self.lmp.lmp), c_void_p)
 
     def testExtractCompute(self):
         self.lmp.command("region       box block 0 2 0 2 0 2")

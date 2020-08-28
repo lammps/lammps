@@ -340,7 +340,7 @@ class lammps(object):
         self.opened = 1
         comm_ptr = self.MPI._addressof(comm)
         comm_val = MPI_Comm.from_address(comm_ptr)
-        self.lmp = self.lib.lammps_open(narg,cargs,comm_val,None)
+        self.lmp = c_void_p(self.lib.lammps_open(narg,cargs,comm_val,None))
 
       else:
         if self.has_mpi4py and self.has_mpi_support:
@@ -355,10 +355,10 @@ class lammps(object):
           cargs = (c_char_p*narg)(*cmdargs)
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
                                                   c_void_p]
-          self.lmp = self.lib.lammps_open_no_mpi(narg,cargs,None)
+          self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
         else:
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p, c_void_p]
-          self.lmp = self.lib.lammps_open_no_mpi(0,None,None)
+          self.lmp = c_void_p(self.lib.lammps_open_no_mpi(0,None,None))
 
     else:
       # magic to convert ptr to ctypes ptr

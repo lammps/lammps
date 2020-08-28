@@ -586,6 +586,7 @@ del
 delaystep
 DeleteIDs
 deleteIDs
+delflag
 Dellago
 delocalization
 delocalized
@@ -1104,6 +1105,7 @@ gromos
 Gronbech
 Groot
 groupbig
+groupbit
 grp
 Grueneisen
 gsmooth

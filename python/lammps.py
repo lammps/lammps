@@ -211,9 +211,19 @@ class lammps(object):
         else:
           self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
 
+
     # declare all argument and return types for all library methods here.
     # exceptions are where the arguments depend on certain conditions and
     # then are defined where the functions are used.
+    self.lib.lammps_extract_setting.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_setting.restype = c_int
+
+    # set default types
+    # needed in later declarations
+    self.c_bigint = get_ctypes_int(self.extract_setting("bigint"))
+    self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
+    self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
+
     self.lib.lammps_open.restype = c_void_p
     self.lib.lammps_open_no_mpi.restype = c_void_p
     self.lib.lammps_close.argtypes = [c_void_p]
@@ -283,6 +293,35 @@ class lammps(object):
 
     self.lib.lammps_extract_global.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
+
+    self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_get_thermo.restype = c_double
+
+    self.lib.lammps_encode_image_flags.restype = self.c_imageint
+
+    self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
+
+    self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_style_count.argtypes = [c_void_p, c_char_p]
+
+    self.lib.lammps_style_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
+
+    self.lib.lammps_version.argtypes = [c_void_p]
+
+    self.lib.lammps_decode_image_flags.argtypes = [self.c_imageint, POINTER(c_int*3)]
+
+    self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
+
+    self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
+
+    self.lib.lammps_extract_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    # TODO: NOT IMPLEMENTED IN PYTHON WRAPPER
+    self.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
+    self.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
 
     # detect if Python is using version of mpi4py that can pass a communicator
 
@@ -376,10 +415,6 @@ class lammps(object):
     # optional numpy support (lazy loading)
     self._numpy = None
 
-    # set default types
-    self.c_bigint = get_ctypes_int(self.extract_setting("bigint"))
-    self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
-    self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
     self._installed_packages = None
     self._available_styles = None
 
@@ -545,19 +580,19 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def file(self,file):
+  def file(self, path):
     """Read LAMMPS commands from a file.
 
     This is a wrapper around the :cpp:func:`lammps_file` function of the C-library interface.
     It will open the file with the name/path `file` and process the LAMMPS commands line by line until
     the end. The function will return when the end of the file is reached.
 
-    :param file: Name of the file/path with LAMMPS commands
-    :type file:  string
+    :param path: Name of the file/path with LAMMPS commands
+    :type path:  string
     """
-    if file: file = file.encode()
+    if path: path = path.encode()
     else: return
-    self.lib.lammps_file(self.lmp,file)
+    self.lib.lammps_file(self.lmp, path)
 
   # -------------------------------------------------------------------------
 
@@ -701,7 +736,6 @@ class lammps(object):
     """
     if name: name = name.encode()
     else: return None
-    self.lib.lammps_get_thermo.restype = c_double
     return self.lib.lammps_get_thermo(self.lmp,name)
 
   # -------------------------------------------------------------------------
@@ -720,7 +754,6 @@ class lammps(object):
     """
     if name: name = name.encode()
     else: return None
-    self.lib.lammps_extract_setting.restype = c_int
     return int(self.lib.lammps_extract_setting(self.lmp,name))
 
   # -------------------------------------------------------------------------
@@ -1137,7 +1170,6 @@ class lammps(object):
     :return: encoded image flags
     :rtype: lammps.c_imageint
     """
-    self.lib.lammps_encode_image_flags.restype = self.c_imageint
     return self.lib.lammps_encode_image_flags(ix,iy,iz)
 
   # -------------------------------------------------------------------------
@@ -1155,7 +1187,6 @@ class lammps(object):
     """
 
     flags = (c_int*3)()
-    self.lib.lammps_decode_image_flags.argtypes = [self.c_imageint, POINTER(c_int*3)]
     self.lib.lammps_decode_image_flags(image,byref(flags))
 
     return [int(i) for i in flags]
@@ -1251,11 +1282,11 @@ class lammps(object):
     else:
       se_lmp = 0
 
-    self.lib.lammps_file.argtypes = [c_void_p, c_int, POINTER(self.c_tagint*n),
+    self.lib.lammps_create_atoms.argtypes = [c_void_p, c_int, POINTER(self.c_tagint*n),
                                      POINTER(c_int*n), POINTER(c_double*three_n),
                                      POINTER(c_double*three_n),
                                      POINTER(self.c_imageint*n), c_int]
-    return self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x_lmp,v_lmp,img_lmp,se_lmp)
+    return self.lib.lammps_create_atoms(self.lmp, n, id_lmp, type_lmp, x_lmp, v_lmp, img_lmp, se_lmp)
 
   # -------------------------------------------------------------------------
 

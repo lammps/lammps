@@ -27,8 +27,7 @@ all LAMMPS development is coordinated.
 The content for this manual is part of the LAMMPS distribution.  You
 can build a local copy of the Manual as HTML pages or a PDF file, by
 following the steps on the :doc:`Manual build <Manual_build>` doc page.
-There is also a `Developer.pdf <Developer.pdf>`_ document which gives
-a brief description of the basic code structure of LAMMPS.
+The manual is split into two parts: 1) User documentation and 2) Programmer documentation.
 
 ----------
 

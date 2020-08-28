@@ -281,6 +281,7 @@ class lammps(object):
     self.lib.lammps_get_last_error_message.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_get_last_error_message.restype = c_int
 
+    self.lib.lammps_extract_global.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
     # detect if Python is using version of mpi4py that can pass a communicator
@@ -443,7 +444,6 @@ class lammps(object):
           if style in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
             if datatype == LMP_TYPE_VECTOR:
               nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_VECTOR)
-              print("NROWS", nrows)
               return self.darray(value, nrows)
             elif datatype == LMP_TYPE_ARRAY:
               nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_ROWS)

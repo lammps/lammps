@@ -1,5 +1,5 @@
 import sys,os,unittest
-from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, LMP_SIZE_ROWS
+from lammps import lammps, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_SCALAR
 
 class PythonNumpy(unittest.TestCase):
     def setUp(self):
@@ -24,6 +24,19 @@ class PythonNumpy(unittest.TestCase):
         self.assertEqual(values[0], 2.0)
         self.assertEqual(values[1], 2.0)
         self.assertEqual(values[2], 2.5)
+
+    def testExtractComputePerAtom(self):
+        self.lmp.command("region       box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.0")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.5")
+        self.lmp.command("compute ke all ke/atom")
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,2)
+        values = self.lmp.numpy.extract_compute("ke", LMP_STYLE_ATOM, LMP_TYPE_VECTOR)
+        self.assertEqual(len(values), 2)
+        self.assertEqual(values[0], 0.0)
+        self.assertEqual(values[1], 0.0)
 
 if __name__ == "__main__":
     unittest.main()

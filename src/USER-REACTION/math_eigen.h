@@ -81,7 +81,7 @@ void Dealloc2D(Entry ***paaX);     //!< pointer to 2D multidimensional array
 /// are complex numbers.  In other words, by default, real_t<T> returns T.
 /// However real_t<std::complex<T>> returns T (not std::complex<T>).
 /// We define "real_t<T>" below using C++ template specializations:
- 
+
 template <typename T>
 struct realTypeMap {
   typedef T type;
@@ -127,7 +127,7 @@ void normalize(std::vector<T>& v);
 ///        using the Jacobi eigenvalue algorithm.  Code for the Jacobi class
 ///        (along with tests and benchmarks) is available free of copyright at
 ///        https://github.com/jewettaij/jacobi_pd
-/// @note  The "Vector" and "Matrix" type arguments can be any 
+/// @note  The "Vector" and "Matrix" type arguments can be any
 ///        C or C++ object that support indexing, including pointers or vectors.
 /// @details
 /// -- Example: --
@@ -141,7 +141,7 @@ void normalize(std::vector<T>& v);
 /// // Now create an instance of Jacobi ("eigen_calc"). This will allocate space
 /// // for storing intermediate calculations.  Once created, it can be reused
 /// // multiple times without paying the cost of allocating memory on the heap.
-/// 
+///
 /// Jacobi<double, double*, double**> eigen_calc(n);
 ///
 /// // Note:
@@ -284,7 +284,7 @@ inline constexpr T minimum_effective_decimal() {
 ///     for(int j = 0;j < n;j++) {
 ///       out[i] += M[i][j]*in[j];
 ///     }
-///   } 
+///   }
 /// };
 ///
 /// LambdaLanczos<double> engine(mv_mul, n, true);
@@ -370,8 +370,8 @@ public:
   ///        iteration (ie. during LambdaLanczos::run()).  The goal is to insure
   ///        that the correct eigenvalue is selected (the one with the maximum
   ///        magnitude).
-  /// @note  The eigevalue returned by LambdaLanczos::run() is not effected 
-  ///        because after the iteration is finished, it will subtract this 
+  /// @note  The eigevalue returned by LambdaLanczos::run() is not effected
+  ///        because after the iteration is finished, it will subtract this
   ///        number from the eigenvalue before it is returned to the caller.
   /// @note  Unless your matrix is positive definite or negative definite,
   ///        you MUST specify eigenvalue_offset.  See comment above for details.
@@ -568,7 +568,7 @@ Diagonalize(ConstMatrix mat,    // the matrix you wish to diagonalize (size n)
       for (int j = 0; j < n; j++)
         evec[i][j] = (i==j) ? 1.0 : 0.0; //Set evec equal to the identity matrix
 
-  for (int i = 0; i < n-1; i++)          //Initialize the "max_idx_row[]" array 
+  for (int i = 0; i < n-1; i++)          //Initialize the "max_idx_row[]" array
     max_idx_row[i] = MaxEntryRow(M, i);  //(which is needed by MaxEntry())
 
   // -- Iteration --
@@ -655,7 +655,7 @@ CalcRot(Scalar const *const *M,    //!< matrix
 /// where R the rotation in the i,j plane and ^T denotes the transpose.
 ///                 i         j
 ///       _                             _
-///      |  1                            | 
+///      |  1                            |
 ///      |    .                          |
 ///      |      .                        |
 ///      |        1                      |
@@ -679,7 +679,7 @@ CalcRot(Scalar const *const *M,    //!< matrix
 /// The rotation at location i,j will modify all of the matrix
 /// elements containing at least one index which is either i or j
 /// such as: M[w][i], M[i][w], M[w][j], M[j][w].
-/// Check and see whether these modified matrix elements exceed the 
+/// Check and see whether these modified matrix elements exceed the
 /// corresponding values in max_idx_row[] array for that row.
 /// If so, then update max_idx_row for that row.
 /// This is somewhat complicated by the fact that we must only consider
@@ -954,10 +954,10 @@ LambdaLanczos(std::function<void(const std::vector<T>&,
 template <typename T>
 inline int LambdaLanczos<T>::
 run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
-{ 
+{
   assert(matrix_size > 0);
   assert(0 < this->tridiag_eps_ratio && this->tridiag_eps_ratio < 1);
-  
+
   std::vector<std::vector<T>> u;     // Lanczos vectors
   std::vector<real_t<T>> alpha; // Diagonal elements of an approximated tridiagonal matrix
   std::vector<real_t<T>> beta;  // Subdiagonal elements of an approximated tridiagonal matrix
@@ -969,14 +969,14 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
   beta.reserve(this->initial_vector_size);
 
   u.emplace_back(n, 0.0); // Same as u.push_back(std::vector<T>(n, 0.0))
-  
+
   std::vector<T> vk(n, 0.0);
-  
+
   real_t<T> alphak = 0.0;
   alpha.push_back(alphak);
   real_t<T> betak = 0.0;
   beta.push_back(betak);
-  
+
   std::vector<T> uk(n);
   this->init_vector(uk);
   normalize(uk);
@@ -992,9 +992,9 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
       vk[i] = uk[i]*this->eigenvalue_offset;
     }
     this->mv_mul(uk, vk);
-    
+
     alphak = std::real(inner_prod(u.back(), vk));
-    
+
     // The inner product <uk|vk> is real.
     // Proof:
     //     <uk|vk> = <uk|A|uk>
@@ -1004,15 +1004,15 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
     //   Therefore
     //     <uk|vk> = <vk|uk>^*
     //   <uk|vk> is real.
-    
+
     alpha.push_back(alphak);
-    
+
     for(int i = 0;i < n; i++) {
       uk[i] = vk[i] - betak*u[k-1][i] - alphak*u[k][i];
     }
-    
+
     schmidt_orth(uk, u);
-    
+
     betak = l2_norm(uk);
     beta.push_back(betak);
 
@@ -1026,7 +1026,7 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
     if(betak < zero_threshold) {
       u.push_back(uk);
       // This element will never be accessed,
-      // but this "push" guarantees u to always have one more element than 
+      // but this "push" guarantees u to always have one more element than
       // alpha and beta do.
       itern = k;
       break;
@@ -1050,13 +1050,13 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
   cv[0] = 0.0;
   cv[m] = 0.0;
   cv[m-1] = 1.0;
-  
+
   beta[m-1] = 0.0;
 
   if(eigvec.size() < n) {
     eigvec.resize(n);
   }
-  
+
   for(int i = 0;i < n;i++) {
     eigvec[i] = cv[m-1]*u[m-1][i];
   }
@@ -1082,9 +1082,9 @@ inline void LambdaLanczos<T>::
 schmidt_orth(std::vector<T>& uorth, const std::vector<std::vector<T>>& u)
 {
   // Vectors in u must be normalized, but uorth doesn't have to be.
-  
+
   int n = uorth.size();
-  
+
   for(int k = 0;k < u.size();k++) {
     T innprod = inner_prod(uorth, u[k]);
     for(int i = 0;i < n;i++)
@@ -1105,7 +1105,7 @@ find_minimum_eigenvalue(const std::vector<real_t<T>>& alpha,
   real_t<T> upper = r;
   real_t<T> mid;
   int nmid; // Number of eigenvalues smaller than the "mid"
-  
+
   while(upper-lower > std::min(abs(lower), abs(upper))*eps) {
     mid = (lower+upper)/2.0;
     nmid = num_of_eigs_smaller_than(mid, alpha, beta);
@@ -1114,7 +1114,7 @@ find_minimum_eigenvalue(const std::vector<real_t<T>>& alpha,
     } else {
       lower = mid;
     }
-    
+
     if(mid == pmid) {
       break; // This avoids an infinite loop due to zero matrix
     }
@@ -1138,20 +1138,20 @@ find_maximum_eigenvalue(const std::vector<real_t<T>>& alpha,
   real_t<T> mid;
   int nmid; // Number of eigenvalues smaller than the "mid"
 
-  int m = alpha.size() - 1;  // Number of eigenvalues of the approximated 
+  int m = alpha.size() - 1;  // Number of eigenvalues of the approximated
                              // triangular matrix, which equals the rank of it
-  
-  
+
+
   while(upper-lower > std::min(abs(lower), abs(upper))*eps) {
     mid = (lower+upper)/2.0;
     nmid = num_of_eigs_smaller_than(mid, alpha, beta);
-    
+
     if(nmid < m) {
       lower = mid;
     } else {
       upper = mid;
     }
-    
+
     if(mid == pmid) {
       break; // This avoids an infinite loop due to zero matrix
     }
@@ -1159,7 +1159,7 @@ find_maximum_eigenvalue(const std::vector<real_t<T>>& alpha,
   }
 
   return lower; // The "lower" almost equals the "upper" here.
-}  
+}
 
 
 /// @brief
@@ -1175,7 +1175,7 @@ tridiagonal_eigen_limit(const std::vector<real_t<T>>& alpha,
 {
   real_t<T> r = l1_norm(alpha);
   r += 2*l1_norm(beta);
-  
+
   return r;
 }
 
@@ -1195,7 +1195,7 @@ num_of_eigs_smaller_than(real_t<T> c,
   real_t<T> q_i = 1.0;
   int count = 0;
   int m = alpha.size();
-  
+
   for(int i = 1;i < m;i++){
     q_i = alpha[i] - c - beta[i-1]*beta[i-1]/q_i;
     if(q_i < 0){
@@ -1265,19 +1265,19 @@ inline void LambdaLanczos<T>::SetFindMax(bool find_maximum) {
 
 template <typename T>
 inline void LambdaLanczos<T>::SetEvalOffset(T offset)
-{ 
+{
   this->eigenvalue_offset = offset;
 }
 
 template <typename T>
 inline void LambdaLanczos<T>::SetEpsilon(T epsilon)
-{ 
+{
   this->eps = epsilon;
 }
 
 template <typename T>
 inline void LambdaLanczos<T>::SetTriEpsRatio(T tri_eps_ratio)
-{ 
+{
   this->tridiag_eps_ratio = tri_eps_ratio;
 }
 
@@ -1333,7 +1333,7 @@ PrincipalEigen(ConstMatrix matrix,
       for(int j = 0; j < n; j++) {
         out[i] += matrix[i][j]*in[j];
       }
-    } 
+    }
   };
   auto init_vec = [&](std::vector<Scalar>& vec) {
     for(int i = 0; i < n; i++)
@@ -1343,7 +1343,7 @@ PrincipalEigen(ConstMatrix matrix,
 
   // "ll_engine" calculates the eigenvalue and eigenvector.
   LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
-  
+
   // The Lanczos algorithm selects the eigenvalue with the largest magnitude.
   // In order to insure that this is the one we want (maxima or minima), we can
   // add a constant to all of the eigenvalues by setting "eigenvalue_offset".

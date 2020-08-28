@@ -511,7 +511,7 @@ implement many things using fixes:
 
 
 All fixes are derived from the Fix base class and must have a
-constructor with the signature: ``FixMine(class LAMMPS *, int, char **)``.
+constructor with the signature: ``FixPrintVel(class LAMMPS *, int, char **)``.
 
 Every fix must be registered in LAMMPS by writing the following lines
 of code in the header before include guards:
@@ -519,18 +519,20 @@ of code in the header before include guards:
 .. code-block:: c
 
    #ifdef FIX_CLASS
-   FixStyle(mine,FixMine)
+   FixStyle(print/vel,FixPrintVel)
    #else
-   /* the definition of the FixMine class comes here */
+   /* the definition of the FixPrintVel class comes here */
    ...
    #endif
 
-Where ``mine`` is the style name of your fix in the input script and
-``FixMine`` is the name of the class. This convention allows LAMMPS to
-automatically integrate it into the executable when compiling and find
-your fix class when it parses input script.
+Where ``print/vel`` is the style name of your fix in the input script and
+``FixPrintVel`` is the name of the class. The header file would be called
+``fix_print_vel.h`` and the implementation file ``fix_print_vel.cpp``.
+These conventions allow LAMMPS to automatically integrate it into the
+executable when compiling and associate your new fix class with the designated
+keyword when it parses the input script.
 
-Let's write a simple fix which will print average velocity at the end
+Let's write a simple fix which will print the average velocity at the end
 of each timestep. First of all, implement a constructor:
 
 .. code-block:: C++
@@ -539,21 +541,21 @@ of each timestep. First of all, implement a constructor:
    : Fix(lmp, narg, arg)
    {
      if (narg < 4)
-       error->all(FLERR,"Illegal fix print command");
+       error->all(FLERR,"Illegal fix print/vel command");
 
-     nevery = atoi(arg[3]);
+     nevery = force->inumeric(FLERR,arg[3]);
      if (nevery <= 0)
-       error->all(FLERR,"Illegal fix print command");
+       error->all(FLERR,"Illegal fix print/vel command");
    }
 
 In the constructor you should parse your fix arguments which are
 specified in the script. All fixes have pretty the same syntax:
-``fix [fix_identifier] [group_name] [fix_name] [fix_arguments]``. The
+``fix <fix-ID> <fix group> <fix name> <fix arguments ...>``. The
 first 3 parameters are parsed by Fix base class constructor, while
-``[fix_arguments]`` should be parsed by you. In our case, we need to
+``<fix arguments>`` should be parsed by you. In our case, we need to
 specify how often we want to print an average velocity. For instance,
 once in 50 timesteps: ``fix 1 print/vel 50``. There is a special variable
-in Fix class called nevery which specifies how often method
+in the Fix class called ``nevery`` which specifies how often the method
 ``end_of_step()`` is called. Thus all we need to do is just set it up.
 
 The next method we need to implement is ``setmask()``:
@@ -567,23 +569,11 @@ The next method we need to implement is ``setmask()``:
      return mask;
    }
 
-Here user specifies which methods of your fix should be called during
-the execution. For instance, ``END_OF_STEP`` corresponds to the
-``end_of_step()`` method. Overall, there are 8 most important methods,
-methods are called in predefined order during the execution of the
-verlet algorithm as was mentioned in the previous section:
-
-- ``initial_integrate()``
-- ``post_integrate()``
-- ``pre_exchange()``
-- ``pre_neighbor()``
-- ``pre_force()``
-- ``post_force()``
-- ``final_integrate()``
-- ``end_of_step()``
-
-Fix developer must understand when he wants to execute his code.  In
-case if we want to write FixPrintVel, we need only end\_of\_step():
+Here the user specifies which methods of your fix should be called
+during execution. The constant ``END_OF_STEP`` corresponds to the
+``end_of_step()`` method. The most important available methods that
+are called during a timestep and the order in which they are called
+are shown in the previous section.
 
 .. code-block:: C++
 
@@ -604,22 +594,31 @@ case if we want to write FixPrintVel, we need only end\_of\_step():
      memset(globalAvgVel, 0, 4 * sizeof(double));
      MPI_Allreduce(localAvgVel, globalAvgVel, 4, MPI_DOUBLE, MPI_SUM, world);
      scale3(1.0 / globalAvgVel[3], globalAvgVel);
-     if (comm->me == 0) {
-       printf("\%e, \%e, \%e\n",
-              globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
+     if ((comm->me == 0) && screen) {
+       fmt::print(screen,"{}, {}, {}\n",
+                  globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
      }
    }
 
 In the code above, we use MathExtra routines defined in
 ``math_extra.h``.  There are bunch of math functions to work with
-arrays of doubles as with math vectors.
+arrays of doubles as with math vectors.  It is also important to note
+that LAMMPS code should always assume to be run in parallel and that
+atom data is thus distributed across the MPI ranks.  Thus you can
+only process data from local atoms directly and need to use MPI library
+calls to combine or exchange data.  For serial execution, LAMMPS
+comes bundled with the MPI STUBS library that contains the MPI library
+function calls in dummy versions that only work for a single MPI rank.
 
 In this code we use an instance of Atom class. This object is stored
-in the Pointers class (see ``pointers.h``). This object contains all
-global information about the simulation system. Data from Pointers
-class available to all classes inherited from it using protected
-inheritance. Hence when you write you own class, which is going to use
-LAMMPS data, don't forget to inherit from Pointers.  When writing
+in the Pointers class (see ``pointers.h``) which is the base class of
+the Fix base class. This object contains references to various class
+instances (the original instances are created and held by the LAMMPS
+class) with all global information about the simulation system.
+Data from the Pointers class is available to all classes inherited from
+it using protected inheritance. Hence when you write you own class,
+which is going to use LAMMPS data, don't forget to inherit from Pointers
+or pass an Pointer to it to all functions that need access. When writing
 fixes we inherit from class Fix which is inherited from Pointers so
 there is no need to inherit from it directly.
 
@@ -642,7 +641,8 @@ stored in the groupbit variable which is defined in Fix base class:
 
 Class Atom encapsulates atoms positions, velocities, forces, etc. User
 can access them using particle index. Note, that particle indexes are
-usually changed every timestep because of sorting.
+usually changed every few timesteps because of neighbor list rebuilds
+and spatial sorting (to improve cache efficiency).
 
 Let us consider another Fix example: We want to have a fix which stores
 atoms position from previous time step in your fix. The local atoms

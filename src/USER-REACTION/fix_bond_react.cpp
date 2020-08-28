@@ -44,6 +44,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "input.h"
 #include "variable.h"
 #include "fmt/format.h"
+#include "superpose3d.h"
 
 #include <algorithm>
 
@@ -78,7 +79,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
@@ -1857,6 +1858,43 @@ int FixBondReact::check_constraints()
         prrhob = constraints[i][3]*pow(t,constraints[i][4])*
           exp(-constraints[i][5]/(force->boltz*t));
         if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
+      } else if (constraints[i][1] == RMSD) {
+        // call superpose
+        int n2superpose = 0;
+        double **xfrozen; // coordinates for the "frozen" target molecule
+        double **xmobile; // coordinates for the "mobile" molecule
+        int ifragment = constraints[i][3];
+        if (ifragment >= 0) {
+          for (int j = 0; j < onemol->natoms; j++)
+            if (onemol->fragmentmask[ifragment][j]) n2superpose++;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          int myincr = 0;
+          for (int j = 0; j < onemol->natoms; j++) {
+            if (onemol->fragmentmask[ifragment][j]) {
+              for (int k = 0; k < 3; k++) {
+                xfrozen[myincr][k] = x[atom->map(glove[j][1])][k];
+                xmobile[myincr][k] = onemol->x[j][k];
+              }
+              myincr++;
+            }
+          }
+        } else {
+          n2superpose = onemol->natoms;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          for (int j = 0; j < n2superpose; j++) {
+            for (int k = 0; k < 3; k++) {
+              xfrozen[j][k] = x[atom->map(glove[j][1])][k];
+              xmobile[j][k] = onemol->x[j][k];
+            }
+          }
+        }
+        Superpose3D<double, double **> superposer(n2superpose);
+        double rmsd = superposer.Superpose(xfrozen, xmobile);
+        if (rmsd > constraints[i][2]) return 0;
+        memory->destroy(xfrozen);
+        memory->destroy(xmobile);
       }
     }
   }
@@ -3322,6 +3360,17 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[1];
       constraints[nconstraints][5] = tmp[2];
       constraints[nconstraints][6] = tmp[3];
+    } else if (strcmp(constraint_type,"rmsd") == 0) {
+      constraints[nconstraints][1] = RMSD;
+      strcpy(strargs[0],"0");
+      sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      constraints[nconstraints][2] = tmp[0]; // RMSDmax
+      constraints[nconstraints][3] = -1; // optional molecule fragment
+      if (isalpha(strargs[0][0])) {
+        int ifragment = onemol->findfragment(strargs[0]);
+        if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
+        else constraints[nconstraints][3] = ifragment;
+      }
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
     nconstraints++;

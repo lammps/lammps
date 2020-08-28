@@ -248,6 +248,7 @@ bispectrum
 Bispectrum
 bitbucket
 bitmapped
+bitmask
 bitrate
 bitrates
 Bitzek
@@ -302,6 +303,7 @@ Bryantsev
 Btarget
 btype
 buckPlusAttr
+buf
 builtin
 Bulatov
 Bureekaew
@@ -370,6 +372,7 @@ charmm
 CHARMM
 charmmfsh
 charmmfsw
+charptr
 Chaudhuri
 checkbox
 checkmark
@@ -845,6 +848,7 @@ Erhart
 erorate
 erose
 erotate
+errno
 Ertas
 ervel
 Espanol
@@ -903,6 +907,7 @@ Fc
 fcc
 fcm
 Fd
+fd
 fdotr
 fdt
 Fehlberg
@@ -927,6 +932,7 @@ ffplay
 fft
 fftbench
 fftw
+fgets
 fhg
 Fi
 Fichthorn
@@ -962,6 +968,7 @@ fmackay
 fmag
 fmass
 fmm
+fmt
 fmx
 fmy
 fmz
@@ -991,6 +998,7 @@ Fraige
 framerate
 Frauenheim
 Fraunhofer
+fread
 Freitas
 Frenkel
 Friedrichs
@@ -2256,6 +2264,8 @@ Particuology
 pastewka
 Pastewka
 pathangle
+pathname
+pathnames
 Patomtrans
 Pattnaik
 Pavese
@@ -2855,8 +2865,12 @@ strcmp
 streitz
 Streitz
 Streiz
+strerror
 strided
 strietz
+strmatch
+strncmp
+strstr
 Stukowski
 Su
 subbox
@@ -2999,6 +3013,7 @@ Tmin
 tmp
 tN
 Tobias
+tokenizer
 tokyo
 tol
 toolchain

@@ -741,6 +741,8 @@ files additional settings and functions are needed:
 - the functions ``void pack_restart(int i, double *buf)`` and
   ``void unpack_restart(int nlocal, int nth)`` need to be implemented
 
+---------------------------
+
 LAMMPS utility functions
 ========================
 
@@ -796,11 +798,85 @@ typos or issues when processing input files.
    :project: progguide
 
 
-Convenience functions
-^^^^^^^^^^^^^^^^^^^^^
+String processing functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following are functions to help with processing strings
+and parsing files or arguments.
+
+.. doxygenfunction:: trim
+   :project: progguide
+
+.. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: count_words(const char *text)
+   :project: progguide
+
+.. doxygenfunction:: count_words(const std::string &text)
+   :project: progguide
+
+.. doxygenfunction:: count_words(const std::string &text, const std::string &separators)
+   :project: progguide
+
+.. doxygenfunction:: trim_and_count_words
+   :project: progguide
+
+.. doxygenfunction:: split_words
+   :project: progguide
 
 .. doxygenfunction:: strmatch
    :project: progguide
 
+.. doxygenfunction:: is_integer
+   :project: progguide
+
+.. doxygenfunction:: is_double
+   :project: progguide
+
+Filename and path functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: guesspath
+   :project: progguide
+
+.. doxygenfunction:: path_basename
+   :project: progguide
+
+.. doxygenfunction:: path_join
+   :project: progguide
+
+.. doxygenfunction:: file_is_readable
+   :project: progguide
+
+Potential file functions
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: get_potential_file_path
+   :project: progguide
+
+.. doxygenfunction:: get_potential_date
+   :project: progguide
+
+.. doxygenfunction:: get_potential_units
+   :project: progguide
+
+.. doxygenfunction:: get_supported_conversions
+   :project: progguide
+
+.. doxygenfunction:: get_conversion_factor
+   :project: progguide
+
+Convenience functions
+^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: logmesg
+   :project: progguide
+
+.. doxygenfunction:: getsyserror
+   :project: progguide
+
 .. doxygenfunction:: check_packages_for_style
+   :project: progguide
+
+.. doxygenfunction:: timespec2seconds
    :project: progguide

@@ -71,7 +71,7 @@ using namespace LAMMPS_NS;
  *  This function is supposed to be a more safe, more specific and
  *  simple to use API to find pattern matches. The purpose is to replace
  *  uses of either strncmp() or strstr() in the code base to find
- *  substrings safely. With strncmp() finding prefixes, the number of
+ *  sub-strings safely. With strncmp() finding prefixes, the number of
  *  characters to match must be counted, which can lead to errors,
  *  while using "^pattern" will do the same with less problems.
  *  Matching for suffixes using strstr() is not as specific as 'pattern$',
@@ -88,7 +88,7 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
-/* This simplifies the repetitive task of outputting some
+/** This function simplifies the repetitive task of outputting some
  * message to both the screen and/or the log file. In combination
  * with using fmt::format(), which returns the formatted text
  * in a std::string() instance, this can be used to reduce
@@ -109,9 +109,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/*
- * On Linux the folder /proc/self/fd holds symbolic links to the actual
+/** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
+ *
+ * This function is used to provide a filename with error messages in functions
+ * where the filename is not passed as an argument, but the FILE * pointer.
  */
 const char *utils::guesspath(char *buf, int len, FILE *fp)
 {

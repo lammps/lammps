@@ -17,6 +17,7 @@ class PythonNumpy(unittest.TestCase):
 
     def testExtractComputeGlobalScalar(self):
         # TODO
+        pass
 
     def testExtractComputeGlobalVector(self):
         self.lmp.command("region       box block 0 2 0 2 0 2")
@@ -34,6 +35,7 @@ class PythonNumpy(unittest.TestCase):
 
     def testExtractComputeGlobalArray(self):
         # TODO
+        pass
 
     def testExtractComputePerAtomVector(self):
         self.lmp.command("region       box block 0 2 0 2 0 2")
@@ -50,15 +52,19 @@ class PythonNumpy(unittest.TestCase):
 
     def testExtractComputePerAtomArray(self):
         # TODO
+        pass
 
     def testExtractComputeLocalScalar(self):
         # TODO
+        pass
 
     def testExtractComputeLocalVector(self):
         # TODO
+        pass
 
     def testExtractComputeLocalArray(self):
         # TODO
+        pass
 
 if __name__ == "__main__":
     unittest.main()

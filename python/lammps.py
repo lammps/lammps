@@ -320,8 +320,8 @@ class lammps(object):
     self.lib.lammps_extract_variable.argtypes = [c_void_p, c_char_p, c_char_p]
 
     # TODO: NOT IMPLEMENTED IN PYTHON WRAPPER
-    self.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
-    self.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
+    self.lib.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
 
     # detect if Python is using version of mpi4py that can pass a communicator
 

@@ -298,9 +298,9 @@ void ImproperCvff::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  int sign_one = force->inumeric(FLERR,arg[2]);
-  int multiplicity_one = force->inumeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int sign_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int multiplicity_one = utils::inumeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

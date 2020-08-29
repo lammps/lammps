@@ -344,11 +344,11 @@ void PairBodyRoundedPolyhedron::settings(int narg, char **arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal pair_style command");
 
-  c_n = force->numeric(FLERR,arg[0]);
-  c_t = force->numeric(FLERR,arg[1]);
-  mu = force->numeric(FLERR,arg[2]);
-  A_ua = force->numeric(FLERR,arg[3]);
-  cut_inner = force->numeric(FLERR,arg[4]);
+  c_n = utils::numeric(FLERR,arg[0],false,lmp);
+  c_t = utils::numeric(FLERR,arg[1],false,lmp);
+  mu = utils::numeric(FLERR,arg[2],false,lmp);
+  A_ua = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_inner = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (A_ua < 0) A_ua = 1;
 }
@@ -367,8 +367,8 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double k_n_one = force->numeric(FLERR,arg[2]);
-  double k_na_one = force->numeric(FLERR,arg[3]);
+  double k_n_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_na_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

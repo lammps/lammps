@@ -56,10 +56,10 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 0;
 
-  cutbond = force->numeric(FLERR,arg[3]);
-  qfactor = force->numeric(FLERR,arg[4]);
-  vmax = force->numeric(FLERR,arg[5]);
-  tequil = force->numeric(FLERR,arg[6]);
+  cutbond = utils::numeric(FLERR,arg[3],false,lmp);
+  qfactor = utils::numeric(FLERR,arg[4],false,lmp);
+  vmax = utils::numeric(FLERR,arg[5],false,lmp);
+  tequil = utils::numeric(FLERR,arg[6],false,lmp);
 
   if (cutbond < 0.0 || qfactor <= 0.0 || vmax < 0.0 || tequil <= 0.0)
     error->all(FLERR,"Illegal fix hyper/global command");

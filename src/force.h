@@ -128,10 +128,6 @@ class Force : protected Pointers {
 
   void store_style(char *&, const std::string &, int);
   void set_special(int, char **);
-  double numeric(const char *, int, char *);
-  int inumeric(const char *, int, char *);
-  bigint bnumeric(const char *, int, char *);
-  tagint tnumeric(const char *, int, char *);
 
   FILE *open_potential(const char *, int *auto_convert = nullptr);
 

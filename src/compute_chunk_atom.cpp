@@ -108,12 +108,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     ncoord = 1;
     iarg = 4;
     if (iarg+6 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-    sorigin_user[0] = force->numeric(FLERR,arg[iarg]);
-    sorigin_user[1] = force->numeric(FLERR,arg[iarg+1]);
-    sorigin_user[2] = force->numeric(FLERR,arg[iarg+2]);
-    sradmin_user = force->numeric(FLERR,arg[iarg+3]);
-    sradmax_user = force->numeric(FLERR,arg[iarg+4]);
-    nsbin = force->inumeric(FLERR,arg[iarg+5]);
+    sorigin_user[0] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    sorigin_user[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    sorigin_user[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    sradmin_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    sradmax_user = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+    nsbin = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
     iarg += 6;
   } else if (strcmp(arg[3],"bin/cylinder") == 0) {
     binflag = 1;
@@ -134,12 +134,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     }
     if (iarg+5 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
     corigin_user[dim[0]] = 0.0;
-    corigin_user[cdim1] = force->numeric(FLERR,arg[iarg]);
-    corigin_user[cdim2] = force->numeric(FLERR,arg[iarg+1]);
-    cradmin_user = force->numeric(FLERR,arg[iarg+2]);
-    cradmax_user = force->numeric(FLERR,arg[iarg+3]);
+    corigin_user[cdim1] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    corigin_user[cdim2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    cradmin_user = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    cradmax_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
-    ncbin = force->inumeric(FLERR,arg[iarg+4]);
+    ncbin = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
     iarg += 5;
 
   } else if (strcmp(arg[3],"type") == 0) {
@@ -218,7 +218,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"limit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      limit = force->inumeric(FLERR,arg[iarg+1]);
+      limit = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (limit < 0) error->all(FLERR,"Illegal compute chunk/atom command");
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
@@ -261,11 +261,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
       if (minflag[idim] == COORD)
-        minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
+        minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
       if (maxflag[idim] == COORD)
-        maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
+        maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
@@ -1983,9 +1983,9 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg+1],"upper") == 0) originflag[idim] = UPPER;
   else originflag[idim] = COORD;
   if (originflag[idim] == COORD)
-    origin[idim] = force->numeric(FLERR,arg[iarg+1]);
+    origin[idim] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
-  delta[idim] = force->numeric(FLERR,arg[iarg+2]);
+  delta[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

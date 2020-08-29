@@ -163,7 +163,7 @@ void Fix::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
-      int lvl = force->inumeric(FLERR,arg[iarg+1]);
+      int lvl = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
       respa_level = lvl-1;
       iarg += 2;

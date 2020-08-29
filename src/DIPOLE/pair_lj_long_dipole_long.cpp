@@ -90,10 +90,10 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off)&(1<<3)))
     error->all(FLERR,
                "Coulombic cut not supported in pair_style lj/long/dipole/long");
-  cut_lj_global = force->numeric(FLERR,*(arg++));
+  cut_lj_global = utils::numeric(FLERR,*(arg++),false,lmp);
   if (narg == 4 && (ewald_order==74))
     error->all(FLERR,"Only one cut-off allowed when requesting all long");
-  if (narg == 4) cut_coul = force->numeric(FLERR,*(arg++));
+  if (narg == 4) cut_coul = utils::numeric(FLERR,*(arg++),false,lmp);
   else cut_coul = cut_lj_global;
 
   if (allocated) {                                      // reset explicit cuts
@@ -194,11 +194,11 @@ void PairLJLongDipoleLong::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
+  if (narg == 5) cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

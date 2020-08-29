@@ -57,7 +57,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all(FLERR,
       "Illegal fix electron/stopping command: too few arguments");
 
-  Ecut = force->numeric(FLERR, arg[3]);
+  Ecut = utils::numeric(FLERR, arg[3],false,lmp);
   if (Ecut <= 0.0) error->all(FLERR,
       "Illegal fix electron/stopping command: Ecut <= 0");
 
@@ -83,7 +83,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
       minneighflag = true;
       if (iarg+2 > narg) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh number missing");
-      minneigh = force->inumeric(FLERR, arg[iarg+1]);
+      minneigh = utils::inumeric(FLERR, arg[iarg+1],false,lmp);
       if (minneigh < 0) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh < 0");
       iarg += 2;
@@ -261,7 +261,7 @@ void FixElectronStopping::read_table(const char *file)
 
     int i = 0;
     for ( ; i < ncol && pch != NULL; i++) {
-      elstop_ranges[i][l] = force->numeric(FLERR, pch);
+      elstop_ranges[i][l] = utils::numeric(FLERR, pch,false,lmp);
       pch = strtok(NULL, " \t\n\r");
     }
 

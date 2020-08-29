@@ -57,7 +57,7 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb_spin command");
 
-  kspring = force->numeric(FLERR,arg[3]);
+  kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // optional params

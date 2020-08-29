@@ -159,7 +159,7 @@ void PairCoulDiel::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -184,12 +184,12 @@ void PairCoulDiel::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  eps_s = force->numeric(FLERR,arg[2]);
-  double rme_one =force->numeric(FLERR,arg[3]);
-  double sigmae_one = force->numeric(FLERR,arg[4]);
+  eps_s = utils::numeric(FLERR,arg[2],false,lmp);
+  double rme_one =utils::numeric(FLERR,arg[3],false,lmp);
+  double sigmae_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

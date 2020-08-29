@@ -192,8 +192,8 @@ void PairThole::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  thole_global = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  thole_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -222,11 +222,11 @@ void PairThole::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double polar_one = force->numeric(FLERR,arg[2]);
+  double polar_one = utils::numeric(FLERR,arg[2],false,lmp);
   double thole_one = thole_global;
   double cut_one = cut_global;
-  if (narg >=4) thole_one = force->numeric(FLERR,arg[3]);
-  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
+  if (narg >=4) thole_one = utils::numeric(FLERR,arg[3],false,lmp);
+  if (narg == 5) cut_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

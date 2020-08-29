@@ -184,8 +184,8 @@ void AngleMM3::coeff(int narg, char **arg)
 
   int count = 0;
 
-  double k2_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
+  double k2_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert theta0 from degrees to radians
 

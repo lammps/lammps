@@ -275,7 +275,7 @@ void PairQUIP::coeff(int narg, char **arg)
     if (strcmp(arg[i],"NULL") == 0)
       map[i-3] = -1;
     else
-      map[i-3] = force->inumeric(FLERR,arg[i]);
+      map[i-3] = utils::inumeric(FLERR,arg[i],false,lmp);
   }
 
   // clear setflag since coeff() called once with I,J = * *

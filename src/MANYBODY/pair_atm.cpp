@@ -210,8 +210,8 @@ void PairATM::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  cut_triple = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_triple = utils::numeric(FLERR,arg[1],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -228,7 +228,7 @@ void PairATM::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
   utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
-  double nu_one = force->numeric(FLERR,arg[3]);
+  double nu_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

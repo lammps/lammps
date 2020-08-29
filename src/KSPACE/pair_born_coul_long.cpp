@@ -240,9 +240,9 @@ void PairBornCoulLong::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[1]);
+  else cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -267,15 +267,15 @@ void PairBornCoulLong::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double rho_one = force->numeric(FLERR,arg[3]);
-  double sigma_one = force->numeric(FLERR,arg[4]);
+  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(FLERR,arg[5]);
-  double d_one = force->numeric(FLERR,arg[6]);
+  double c_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double d_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 8) cut_lj_one = force->numeric(FLERR,arg[7]);
+  if (narg == 8) cut_lj_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

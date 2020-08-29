@@ -40,7 +40,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 0;
 
-  double displace_dist = force->numeric(FLERR,arg[3]);
+  double displace_dist = utils::numeric(FLERR,arg[3],false,lmp);
   if (displace_dist <= 0.0)
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;

@@ -82,10 +82,10 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;         //
 
   // parse input parameters
-  u_0 = force->numeric(FLERR, arg[3]);
+  u_0 = utils::numeric(FLERR, arg[3],false,lmp);
   sign = (u_0 >= 0.0 ? 1 : -1);
-  eta = force->numeric(FLERR, arg[4]);
-  r_cut = force->numeric(FLERR, arg[5]);
+  eta = utils::numeric(FLERR, arg[4],false,lmp);
+  r_cut = utils::numeric(FLERR, arg[5],false,lmp);
 
   // read reference orientations from file
   // work on rank 0 only

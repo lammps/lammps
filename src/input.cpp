@@ -1100,7 +1100,7 @@ void Input::python()
 void Input::quit()
 {
   if (narg == 0) error->done(0); // 1 would be fully backwards compatible
-  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  if (narg == 1) error->done(utils::inumeric(FLERR,arg[0],false,lmp));
   error->all(FLERR,"Illegal quit command");
 }
 
@@ -1374,7 +1374,7 @@ void Input::compute_modify()
 void Input::dielectric()
 {
   if (narg != 1) error->all(FLERR,"Illegal dielectric command");
-  force->dielectric = force->numeric(FLERR,arg[0]);
+  force->dielectric = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1408,7 +1408,7 @@ void Input::dimension()
   if (narg != 1) error->all(FLERR,"Illegal dimension command");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
-  domain->dimension = force->inumeric(FLERR,arg[0]);
+  domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
   if (domain->dimension != 2 && domain->dimension != 3)
     error->all(FLERR,"Illegal dimension command");
 
@@ -1818,7 +1818,7 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
-  update->dt = force->numeric(FLERR,arg[0]);
+  update->dt = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ---------------------------------------------------------------------- */

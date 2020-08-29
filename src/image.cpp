@@ -1708,13 +1708,13 @@ int ColorMap::reset(int narg, char **arg)
 {
   if (!islower(arg[0][0])) {
     mlo = NUMERIC;
-    mlovalue = force->numeric(FLERR,arg[0]);
+    mlovalue = utils::numeric(FLERR,arg[0],false,lmp);
   } else if (strcmp(arg[0],"min") == 0) mlo = MINVALUE;
   else return 1;
 
   if (!islower(arg[1][0])) {
     mhi = NUMERIC;
-    mhivalue = force->numeric(FLERR,arg[1]);
+    mhivalue = utils::numeric(FLERR,arg[1],false,lmp);
   } else if (strcmp(arg[1],"max") == 0) mhi = MAXVALUE;
   else return 1;
 
@@ -1733,12 +1733,12 @@ int ColorMap::reset(int narg, char **arg)
   else return 1;
 
   if (mstyle == SEQUENTIAL) {
-    mbinsize = force->numeric(FLERR,arg[3]);
+    mbinsize = utils::numeric(FLERR,arg[3],false,lmp);
     if (mbinsize <= 0.0) return 1;
     mbinsizeinv = 1.0/mbinsize;
   }
 
-  nentry = force->inumeric(FLERR,arg[4]);
+  nentry = utils::inumeric(FLERR,arg[4],false,lmp);
   if (nentry < 1) return 1;
   delete [] mentry;
   mentry = new MapEntry[nentry];
@@ -1751,7 +1751,7 @@ int ColorMap::reset(int narg, char **arg)
       if (n+2 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].single = NUMERIC;
-        mentry[i].svalue = force->numeric(FLERR,arg[n]);
+        mentry[i].svalue = utils::numeric(FLERR,arg[n],false,lmp);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
       else return 1;
@@ -1761,13 +1761,13 @@ int ColorMap::reset(int narg, char **arg)
       if (n+3 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].lo = NUMERIC;
-        mentry[i].lvalue = force->numeric(FLERR,arg[n]);
+        mentry[i].lvalue = utils::numeric(FLERR,arg[n],false,lmp);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].lo = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].lo = MAXVALUE;
       else return 1;
       if (!islower(arg[n+1][0])) {
         mentry[i].hi = NUMERIC;
-        mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
+        mentry[i].hvalue = utils::numeric(FLERR,arg[n+1],false,lmp);
       } else if (strcmp(arg[n+1],"min") == 0) mentry[i].hi = MINVALUE;
       else if (strcmp(arg[n+1],"max") == 0) mentry[i].hi = MAXVALUE;
       else return 1;

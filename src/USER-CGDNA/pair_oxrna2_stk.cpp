@@ -894,35 +894,35 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
   if (strcmp(arg[2],"seqav")  == 0) seqdepflag = 0;
   if (strcmp(arg[2],"seqdep") == 0) seqdepflag = 1;
 
-  T = force->numeric(FLERR,arg[3]);
-  xi_st_one = force->numeric(FLERR,arg[4]);
-  kappa_st_one = force->numeric(FLERR,arg[5]);
+  T = utils::numeric(FLERR,arg[3],false,lmp);
+  xi_st_one = utils::numeric(FLERR,arg[4],false,lmp);
+  kappa_st_one = utils::numeric(FLERR,arg[5],false,lmp);
   epsilon_st_one = stacking_strength(xi_st_one, kappa_st_one, T);
 
-  a_st_one = force->numeric(FLERR,arg[6]);
-  cut_st_0_one = force->numeric(FLERR,arg[7]);
-  cut_st_c_one = force->numeric(FLERR,arg[8]);
-  cut_st_lo_one = force->numeric(FLERR,arg[9]);
-  cut_st_hi_one = force->numeric(FLERR,arg[10]);
+  a_st_one = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_st_0_one = utils::numeric(FLERR,arg[7],false,lmp);
+  cut_st_c_one = utils::numeric(FLERR,arg[8],false,lmp);
+  cut_st_lo_one = utils::numeric(FLERR,arg[9],false,lmp);
+  cut_st_hi_one = utils::numeric(FLERR,arg[10],false,lmp);
 
-  a_st5_one = force->numeric(FLERR,arg[11]);
-  theta_st5_0_one = force->numeric(FLERR,arg[12]);
-  dtheta_st5_ast_one = force->numeric(FLERR,arg[13]);
-  a_st6_one = force->numeric(FLERR,arg[14]);
-  theta_st6_0_one = force->numeric(FLERR,arg[15]);
-  dtheta_st6_ast_one = force->numeric(FLERR,arg[16]);
+  a_st5_one = utils::numeric(FLERR,arg[11],false,lmp);
+  theta_st5_0_one = utils::numeric(FLERR,arg[12],false,lmp);
+  dtheta_st5_ast_one = utils::numeric(FLERR,arg[13],false,lmp);
+  a_st6_one = utils::numeric(FLERR,arg[14],false,lmp);
+  theta_st6_0_one = utils::numeric(FLERR,arg[15],false,lmp);
+  dtheta_st6_ast_one = utils::numeric(FLERR,arg[16],false,lmp);
 
-  a_st9_one = force->numeric(FLERR,arg[17]);
-  theta_st9_0_one = force->numeric(FLERR,arg[18]);
-  dtheta_st9_ast_one = force->numeric(FLERR,arg[19]);
-  a_st10_one = force->numeric(FLERR,arg[20]);
-  theta_st10_0_one = force->numeric(FLERR,arg[21]);
-  dtheta_st10_ast_one = force->numeric(FLERR,arg[22]);
+  a_st9_one = utils::numeric(FLERR,arg[17],false,lmp);
+  theta_st9_0_one = utils::numeric(FLERR,arg[18],false,lmp);
+  dtheta_st9_ast_one = utils::numeric(FLERR,arg[19],false,lmp);
+  a_st10_one = utils::numeric(FLERR,arg[20],false,lmp);
+  theta_st10_0_one = utils::numeric(FLERR,arg[21],false,lmp);
+  dtheta_st10_ast_one = utils::numeric(FLERR,arg[22],false,lmp);
 
-  a_st1_one = force->numeric(FLERR,arg[23]);
-  cosphi_st1_ast_one = force->numeric(FLERR,arg[24]);
-  a_st2_one = force->numeric(FLERR,arg[25]);
-  cosphi_st2_ast_one = force->numeric(FLERR,arg[26]);
+  a_st1_one = utils::numeric(FLERR,arg[23],false,lmp);
+  cosphi_st1_ast_one = utils::numeric(FLERR,arg[24],false,lmp);
+  a_st2_one = utils::numeric(FLERR,arg[25],false,lmp);
+  cosphi_st2_ast_one = utils::numeric(FLERR,arg[26],false,lmp);
 
   b_st_lo_one = 2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
         2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*

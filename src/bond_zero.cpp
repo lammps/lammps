@@ -89,7 +89,7 @@ void BondZero::coeff(int narg, char **arg)
 
   double r0_one = 0.0;
   if (coeffflag && (narg == 2))
-    r0_one = force->numeric(FLERR,arg[1]);
+    r0_one = utils::numeric(FLERR,arg[1],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -333,9 +333,9 @@ void PairLJSFDipoleSF::settings(int narg, char **arg)
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(FLERR,arg[1]);
+  else cut_coul_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -364,8 +364,8 @@ void PairLJSFDipoleSF::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
@@ -373,16 +373,16 @@ void PairLJSFDipoleSF::coeff(int narg, char **arg)
   int iarg = 4;
 
   if ((narg > iarg) && (strcmp(arg[iarg],"scale") != 0)) {
-    cut_coul_one = cut_lj_one = force->numeric(FLERR,arg[iarg]);
+    cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[iarg],false,lmp);
     ++iarg;
   }
   if ((narg > iarg) && (strcmp(arg[iarg],"scale") != 0)) {
-    cut_coul_one = force->numeric(FLERR,arg[iarg]);
+    cut_coul_one = utils::numeric(FLERR,arg[iarg],false,lmp);
     ++iarg;
   }
   if (narg > iarg) {
     if (strcmp(arg[iarg],"scale") == 0) {
-      scale_one = force->numeric(FLERR,arg[iarg+1]);
+      scale_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }

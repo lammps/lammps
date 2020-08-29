@@ -795,7 +795,7 @@ void PairEffCut::settings(int narg, char **arg)
   PAULI_CORE_D[14] = 0.0;
   PAULI_CORE_E[14] = 0.0;
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   limit_eradius_flag = 0;
   pressure_with_evirials_flag = 0;
 
@@ -815,7 +815,7 @@ void PairEffCut::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"ecp") == 0) {
       iarg += 1;
       while (iarg < narg) {
-        atype = force->inumeric(FLERR,arg[iarg]);
+        atype = utils::inumeric(FLERR,arg[iarg],false,lmp);
         if (strcmp(arg[iarg+1],"C") == 0) ecp_type[atype] = 6;
         else if (strcmp(arg[iarg+1],"N") == 0) ecp_type[atype] = 7;
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
@@ -907,7 +907,7 @@ void PairEffCut::coeff(int narg, char **arg)
     utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
     double cut_one = cut_global;
-    if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+    if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
@@ -920,19 +920,19 @@ void PairEffCut::coeff(int narg, char **arg)
     if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
   } else {
     int ecp;
-    ecp = force->inumeric(FLERR,arg[0]);
+    ecp = utils::inumeric(FLERR,arg[0],false,lmp);
     if (strcmp(arg[1],"s") ==0) {
-      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(FLERR,arg[2]);
-      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(FLERR,arg[3]);
-      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(FLERR,arg[4]);
+      PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
+      PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
+      PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
       PAULI_CORE_D[ecp_type[ecp]] = 0.0;
       PAULI_CORE_E[ecp_type[ecp]] = 0.0;
     } else if (strcmp(arg[1],"p") ==0) {
-      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(FLERR,arg[2]);
-      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(FLERR,arg[3]);
-      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(FLERR,arg[4]);
-      PAULI_CORE_D[ecp_type[ecp]] = force->numeric(FLERR,arg[5]);
-      PAULI_CORE_E[ecp_type[ecp]] = force->numeric(FLERR,arg[6]);
+      PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
+      PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
+      PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
+      PAULI_CORE_D[ecp_type[ecp]] = utils::numeric(FLERR,arg[5],false,lmp);
+      PAULI_CORE_E[ecp_type[ecp]] = utils::numeric(FLERR,arg[6],false,lmp);
     } else error->all(FLERR,"Illegal pair_coeff command");
   }
 }

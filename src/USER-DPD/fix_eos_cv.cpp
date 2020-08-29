@@ -29,7 +29,7 @@ FixEOScv::FixEOScv(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix eos/cv command");
-  cvEOS = force->numeric(FLERR,arg[3]);
+  cvEOS = utils::numeric(FLERR,arg[3],false,lmp);
   if(cvEOS <= 0.0) error->all(FLERR,"EOS cv must be > 0.0");
 
   nevery = 1;

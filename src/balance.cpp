@@ -119,7 +119,7 @@ void Balance::command(int narg, char **arg)
 
   if (narg < 2) error->all(FLERR,"Illegal balance command");
 
-  thresh = force->numeric(FLERR,arg[0]);
+  thresh = utils::numeric(FLERR,arg[0],false,lmp);
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
@@ -145,7 +145,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[0]; i++)
-          user_xsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_xsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
@@ -165,7 +165,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[1]; i++)
-          user_ysplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_ysplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
@@ -185,7 +185,7 @@ void Balance::command(int narg, char **arg)
         user_zsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[2]; i++)
-          user_zsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_zsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_zsplit[procgrid[2]] = 1.0;
       }
 
@@ -195,9 +195,9 @@ void Balance::command(int narg, char **arg)
       style = SHIFT;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
-      nitermax = force->inumeric(FLERR,arg[iarg+2]);
+      nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      stopthresh = force->numeric(FLERR,arg[iarg+3]);
+      stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 

@@ -938,7 +938,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      delaystep = force->bnumeric(FLERR,arg[iarg+1]);
+      delaystep = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (delaystep >= 0) delay_flag = 1;
       else delay_flag = 0;
       iarg += 2;
@@ -956,7 +956,7 @@ void Dump::modify_params(int narg, char **arg)
         strcpy(output->var_dump[idump],&arg[iarg+1][2]);
         n = 0;
       } else {
-        n = force->inumeric(FLERR,arg[iarg+1]);
+        n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
       output->every_dump[idump] = n;
@@ -967,7 +967,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify fileper "
                    "without % in dump file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
 
       multiproc = nprocs/nper;
@@ -1048,7 +1048,7 @@ void Dump::modify_params(int narg, char **arg)
           delete[] nameslist[idx];
         delete[] nameslist;
       }
-      maxfiles = force->inumeric(FLERR,arg[iarg+1]);
+      maxfiles = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (maxfiles == 0) error->all(FLERR,"Illegal dump_modify command");
       if (maxfiles > 0) {
         nameslist = new char*[maxfiles];
@@ -1063,7 +1063,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify nfile "
                    "without % in dump file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
       nfile = MIN(nfile,nprocs);
 
@@ -1093,7 +1093,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"pad") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      padflag = force->inumeric(FLERR,arg[iarg+1]);
+      padflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
@@ -1113,7 +1113,7 @@ void Dump::modify_params(int narg, char **arg)
         sortorder = ASCEND;
       } else {
         sort_flag = 1;
-        sortcol = force->inumeric(FLERR,arg[iarg+1]);
+        sortcol = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         sortorder = ASCEND;
         if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
         if (sortcol < 0) {

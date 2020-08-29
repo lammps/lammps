@@ -41,9 +41,9 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  peratom_freq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  peratom_freq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   nvalues = narg - 6;
 

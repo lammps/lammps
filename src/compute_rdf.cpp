@@ -50,7 +50,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   extarray = 0;
 
-  nbin = force->inumeric(FLERR,arg[3]);
+  nbin = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
 
   // optional args
@@ -67,7 +67,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
-      cutoff_user = force->numeric(FLERR,arg[iarg+1]);
+      cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;

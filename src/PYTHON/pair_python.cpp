@@ -233,7 +233,7 @@ void PairPython::settings(int narg, char **arg)
   if (narg != 1)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

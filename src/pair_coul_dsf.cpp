@@ -171,8 +171,8 @@ void PairCoulDSF::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  alpha = force->numeric(FLERR,arg[0]);
-  cut_coul = force->numeric(FLERR,arg[1]);
+  alpha = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

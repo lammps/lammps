@@ -189,9 +189,9 @@ void PairMomb::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  sscale = force->numeric(FLERR,arg[1]);
-  dscale = force->numeric(FLERR,arg[2]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  sscale = utils::numeric(FLERR,arg[1],false,lmp);
+  dscale = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -218,14 +218,14 @@ void PairMomb::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double d0_one = force->numeric(FLERR,arg[2]);
-  double alpha_one = force->numeric(FLERR,arg[3]);
-  double r0_one = force->numeric(FLERR,arg[4]);
-  double c_one = force->numeric(FLERR,arg[5]);
-  double rr_one = force->numeric(FLERR,arg[6]);
+  double d0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double c_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double rr_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+  if (narg == 8) cut_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

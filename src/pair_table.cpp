@@ -216,7 +216,7 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -273,7 +273,7 @@ void PairTable::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 5) tb->cut = force->numeric(FLERR,arg[4]);
+  if (narg == 5) tb->cut = utils::numeric(FLERR,arg[4],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 

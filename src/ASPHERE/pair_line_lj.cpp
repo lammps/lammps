@@ -345,7 +345,7 @@ void PairLineLJ::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -371,14 +371,14 @@ void PairLineLJ::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double size_itype = force->numeric(FLERR,arg[2]);
-  double size_jtype = force->numeric(FLERR,arg[3]);
-  double epsilon_one = force->numeric(FLERR,arg[4]);
-  double sigma_one = force->numeric(FLERR,arg[5]);
-  double cutsub_one = force->numeric(FLERR,arg[6]);
+  double size_itype = utils::numeric(FLERR,arg[2],false,lmp);
+  double size_jtype = utils::numeric(FLERR,arg[3],false,lmp);
+  double epsilon_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double cutsub_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+  if (narg == 8) cut_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

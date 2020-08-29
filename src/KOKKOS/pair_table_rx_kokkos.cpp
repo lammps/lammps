@@ -971,7 +971,7 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -1063,7 +1063,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 7) tb->cut = force->numeric(FLERR,arg[6]);
+  if (narg == 7) tb->cut = utils::numeric(FLERR,arg[6],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 

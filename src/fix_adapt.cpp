@@ -46,7 +46,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   dynamic_group_allow = 1;
@@ -354,7 +354,7 @@ void FixAdapt::init()
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
         *cptr = '\0';
-        nsub = force->inumeric(FLERR,cptr+1);
+        nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
       if (lmp->suffix_enable) {

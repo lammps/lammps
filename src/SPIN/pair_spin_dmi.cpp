@@ -65,7 +65,7 @@ void PairSpinDmi::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_dmi_global = force->numeric(FLERR,arg[0]);
+  cut_spin_dmi_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -101,11 +101,11 @@ void PairSpinDmi::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  const double rij = force->numeric(FLERR,arg[3]);
-  const double dm = (force->numeric(FLERR,arg[4]));
-  double dmx = force->numeric(FLERR,arg[5]);
-  double dmy = force->numeric(FLERR,arg[6]);
-  double dmz = force->numeric(FLERR,arg[7]);
+  const double rij = utils::numeric(FLERR,arg[3],false,lmp);
+  const double dm = utils::numeric(FLERR,arg[4],false,lmp);
+  double dmx = utils::numeric(FLERR,arg[5],false,lmp);
+  double dmy = utils::numeric(FLERR,arg[6],false,lmp);
+  double dmz = utils::numeric(FLERR,arg[7],false,lmp);
 
   double inorm = 1.0/(dmx*dmx+dmy*dmy+dmz*dmz);
   dmx *= inorm;

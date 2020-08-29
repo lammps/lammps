@@ -59,13 +59,13 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   // apply fix every nevery timesteps
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix ehex command");
 
   // heat flux into the reservoir
 
-  heat_input = force->numeric(FLERR,arg[4]);
+  heat_input = utils::numeric(FLERR,arg[4],false,lmp);
 
   // optional args
 

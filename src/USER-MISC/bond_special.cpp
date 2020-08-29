@@ -146,8 +146,8 @@ void BondSpecial::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double factor_lj_one = force->numeric(FLERR,arg[1]);
-  double factor_coul_one = force->numeric(FLERR,arg[2]);
+  double factor_lj_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double factor_coul_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

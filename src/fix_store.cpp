@@ -52,16 +52,16 @@ vstore(NULL), astore(NULL), rbuf(NULL)
 
   if (flavor == GLOBAL) {
     restart_global = 1;
-    nrow = force->inumeric(FLERR,arg[4]);
-    ncol = force->inumeric(FLERR,arg[5]);
+    nrow = utils::inumeric(FLERR,arg[4],false,lmp);
+    ncol = utils::inumeric(FLERR,arg[5],false,lmp);
     if (nrow <= 0 || ncol <= 0)
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (ncol == 1) vecflag = 1;
   }
   if (flavor == PERATOM) {
-    restart_peratom = force->inumeric(FLERR,arg[4]);
-    nvalues = force->inumeric(FLERR,arg[5]);
+    restart_peratom = utils::inumeric(FLERR,arg[4],false,lmp);
+    nvalues = utils::inumeric(FLERR,arg[5],false,lmp);
     if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;

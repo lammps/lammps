@@ -284,9 +284,9 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
 
   double T, rhos_dh_one, qeff_dh_one;
 
-  T = force->numeric(FLERR,arg[2]);
-  rhos_dh_one = force->numeric(FLERR,arg[3]);
-  qeff_dh_one  = force->numeric(FLERR,arg[4]);
+  T = utils::numeric(FLERR,arg[2],false,lmp);
+  rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  qeff_dh_one  = utils::numeric(FLERR,arg[4],false,lmp);
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
   double b_dh_one, cut_dh_ast_one, cut_dh_c_one;

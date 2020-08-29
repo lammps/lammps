@@ -242,9 +242,9 @@ void PairNMCutCoulLong::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[1]);
+  else cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -270,13 +270,13 @@ void PairNMCutCoulLong::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double e0_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
-  double nn_one = force->numeric(FLERR,arg[4]);
-  double mm_one = force->numeric(FLERR,arg[5]);
+  double e0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double nn_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double mm_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 7) cut_lj_one = force->numeric(FLERR,arg[4]);
+  if (narg == 7) cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

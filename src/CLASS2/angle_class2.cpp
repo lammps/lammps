@@ -280,9 +280,9 @@ void AngleClass2::coeff(int narg, char **arg)
   if (strcmp(arg[1],"bb") == 0) {
     if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double bb_k_one = force->numeric(FLERR,arg[2]);
-    double bb_r1_one = force->numeric(FLERR,arg[3]);
-    double bb_r2_one = force->numeric(FLERR,arg[4]);
+    double bb_k_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double bb_r1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double bb_r2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       bb_k[i] = bb_k_one;
@@ -295,10 +295,10 @@ void AngleClass2::coeff(int narg, char **arg)
   } else if (strcmp(arg[1],"ba") == 0) {
     if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double ba_k1_one = force->numeric(FLERR,arg[2]);
-    double ba_k2_one = force->numeric(FLERR,arg[3]);
-    double ba_r1_one = force->numeric(FLERR,arg[4]);
-    double ba_r2_one = force->numeric(FLERR,arg[5]);
+    double ba_k1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double ba_k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double ba_r1_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double ba_r2_one = utils::numeric(FLERR,arg[5],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       ba_k1[i] = ba_k1_one;
@@ -312,10 +312,10 @@ void AngleClass2::coeff(int narg, char **arg)
   } else {
     if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double theta0_one = force->numeric(FLERR,arg[1]);
-    double k2_one = force->numeric(FLERR,arg[2]);
-    double k3_one = force->numeric(FLERR,arg[3]);
-    double k4_one = force->numeric(FLERR,arg[4]);
+    double theta0_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double k4_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     // convert theta0 from degrees to radians
 

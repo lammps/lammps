@@ -799,21 +799,21 @@ void Force::set_special(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = special_coul[1] = numeric(FLERR,arg[iarg+1]);
-      special_lj[2] = special_coul[2] = numeric(FLERR,arg[iarg+2]);
-      special_lj[3] = special_coul[3] = numeric(FLERR,arg[iarg+3]);
+      special_lj[1] = special_coul[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      special_lj[2] = special_coul[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      special_lj[3] = special_coul[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = numeric(FLERR,arg[iarg+1]);
-      special_lj[2] = numeric(FLERR,arg[iarg+2]);
-      special_lj[3] = numeric(FLERR,arg[iarg+3]);
+      special_lj[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      special_lj[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      special_lj[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_coul[1] = numeric(FLERR,arg[iarg+1]);
-      special_coul[2] = numeric(FLERR,arg[iarg+2]);
-      special_coul[3] = numeric(FLERR,arg[iarg+3]);
+      special_coul[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      special_coul[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      special_coul[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
@@ -834,104 +834,6 @@ void Force::set_special(int narg, char **arg)
     if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
         special_coul[i] < 0.0 || special_coul[i] > 1.0)
       error->all(FLERR,"Illegal special_bonds command");
-}
-
-/* ----------------------------------------------------------------------
-   read a floating point value from a string
-   generate an error if not a legitimate floating point value
-   called by various commands to check validity of their arguments
-------------------------------------------------------------------------- */
-
-double Force::numeric(const char *file, int line, char *str)
-{
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0)
-    error->all(file,line,"Expected floating point parameter instead of"
-               " NULL or empty string in input script or data file");
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i])) continue;
-    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
-    if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(file,line,fmt::format("Expected floating point parameter "
-               "instead of '{}' in input script or data file",str));
-  }
-
-  return atof(str);
-}
-
-/* ----------------------------------------------------------------------
-   read an integer value from a string
-   generate an error if not a legitimate integer value
-   called by various commands to check validity of their arguments
-------------------------------------------------------------------------- */
-
-int Force::inumeric(const char *file, int line, char *str)
-{
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0)
-    error->all(file,line,"Expected integer parameter instead of "
-               "NULL or empty string in input script or data file");
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,fmt::format("Expected integer parameter instead "
-               "of '{}' in input script or data file",str));
-  }
-
-  return atoi(str);
-}
-
-/* ----------------------------------------------------------------------
-   read a big integer value from a string
-   generate an error if not a legitimate integer value
-   called by various commands to check validity of their arguments
-------------------------------------------------------------------------- */
-
-bigint Force::bnumeric(const char *file, int line, char *str)
-{
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0)
-    error->all(file,line,"Expected integer parameter instead of "
-               "NULL or empty string in input script or data file");
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,fmt::format("Expected integer parameter instead "
-               "of '{}' in input script or data file",str));
-  }
-
-  return ATOBIGINT(str);
-}
-
-/* ----------------------------------------------------------------------
-   read a tag integer value from a string
-   generate an error if not a legitimate integer value
-   called by various commands to check validity of their arguments
-------------------------------------------------------------------------- */
-
-tagint Force::tnumeric(const char *file, int line, char *str)
-{
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0)
-    error->all(file,line,"Expected integer parameter instead of "
-               "NULL or empty string in input script or data file");
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,fmt::format("Expected integer parameter instead "
-               "of '{}' in input script or data file",str));
-  }
-
-  return ATOTAGINT(str);
 }
 
 /* ----------------------------------------------------------------------

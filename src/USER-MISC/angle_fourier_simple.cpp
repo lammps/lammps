@@ -195,9 +195,9 @@ void AngleFourierSimple::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double C_one = force->numeric(FLERR,arg[2]);
-  double N_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double C_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double N_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

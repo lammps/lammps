@@ -89,7 +89,7 @@ void PairZero::settings(int narg, char **arg)
   if ((narg != 1) && (narg != 2))
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 2) {
     if (strcmp("nocoeff",arg[1]) == 0) coeffflag=0;
     else error->all(FLERR,"Illegal pair_style command");
@@ -121,7 +121,7 @@ void PairZero::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (coeffflag && (narg == 3)) cut_one = force->numeric(FLERR,arg[2]);
+  if (coeffflag && (narg == 3)) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

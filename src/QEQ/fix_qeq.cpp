@@ -45,10 +45,10 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  cutoff = force->numeric(FLERR,arg[4]);
-  tolerance = force->numeric(FLERR,arg[5]);
-  maxiter = force->inumeric(FLERR,arg[6]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[4],false,lmp);
+  tolerance = utils::numeric(FLERR,arg[5],false,lmp);
+  maxiter = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -755,11 +755,11 @@ void FixQEq::read_file(char *file)
 
     utils::bounds(FLERR,words[0],1,ntypes,nlo,nhi,error);
     for (n=nlo; n <=nhi; ++n) {
-      chi[n]     = force->numeric(FLERR,words[1]);
-      eta[n]     = force->numeric(FLERR,words[2]);
-      gamma[n]   = force->numeric(FLERR,words[3]);
-      zeta[n]    = force->numeric(FLERR,words[4]);
-      zcore[n]   = force->numeric(FLERR,words[5]);
+      chi[n]     = utils::numeric(FLERR,words[1],false,lmp);
+      eta[n]     = utils::numeric(FLERR,words[2],false,lmp);
+      gamma[n]   = utils::numeric(FLERR,words[3],false,lmp);
+      zeta[n]    = utils::numeric(FLERR,words[4],false,lmp);
+      zcore[n]   = utils::numeric(FLERR,words[5],false,lmp);
       setflag[n] = 1;
     }
   }

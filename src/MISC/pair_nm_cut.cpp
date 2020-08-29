@@ -179,7 +179,7 @@ void PairNMCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -205,13 +205,13 @@ void PairNMCut::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double e0_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
-  double nn_one = force->numeric(FLERR,arg[4]);
-  double mm_one = force->numeric(FLERR,arg[5]);
+  double e0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double nn_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double mm_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 7) cut_one = force->numeric(FLERR,arg[6]);
+  if (narg == 7) cut_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

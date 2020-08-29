@@ -263,7 +263,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[NEVERY][rxn] = 1;
       delete [] str;
     } else {
-      nevery[rxn] = force->inumeric(FLERR,arg[iarg]);
+      nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "'Nevery' must be a positive integer");
     }
@@ -283,7 +283,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMIN][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
                                    "'Rmin' cannot be negative");
       cutsq[rxn][0] = cutoff*cutoff;
@@ -304,7 +304,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMAX][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
                                    "'Rmax' cannot be negative");
       cutsq[rxn][1] = cutoff*cutoff;
@@ -342,9 +342,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           delete [] str;
         } else {
           // otherwise probability should be a number
-          fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+          fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         }
-        seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
+        seed[rxn] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
           error->all(FLERR,"Illegal fix bond/react command: "
                      "probability fraction must between 0 and 1, inclusive");
@@ -354,7 +354,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'max_rxn' has too few arguments");
-        max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+        max_rxn[rxn] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
                                          "'max_rxn' cannot be negative");
         iarg += 2;
@@ -363,7 +363,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                                 "used without stabilization keyword");
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'stabilize_steps' has too few arguments");
-        limit_duration[rxn] = force->numeric(FLERR,arg[iarg+1]);
+        limit_duration[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         stabilize_steps_flag[rxn] = 1;
         iarg += 2;
       } else if (strcmp(arg[iarg],"update_edges") == 0) {

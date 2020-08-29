@@ -289,8 +289,8 @@ void DihedralQuadratic::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double phi0_one= force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double phi0_one= utils::numeric(FLERR,arg[2],false,lmp);
 
   // require k >= 0
   if (k_one < 0.0)

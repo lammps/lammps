@@ -197,9 +197,9 @@ void PairBuckCoulCut::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(FLERR,arg[1]);
+  else cut_coul_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -228,15 +228,15 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double rho_one = force->numeric(FLERR,arg[3]);
+  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(FLERR,arg[4]);
+  double c_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 6) cut_coul_one = cut_lj_one = force->numeric(FLERR,arg[5]);
-  if (narg == 7) cut_coul_one = force->numeric(FLERR,arg[6]);
+  if (narg >= 6) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
+  if (narg == 7) cut_coul_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

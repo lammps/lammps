@@ -57,9 +57,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   int n = strlen(arg[6]) + 1;
   idchunk = new char[n];
@@ -196,7 +196,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix ave/chunk command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/chunk command");
       }
       iarg += 2;
@@ -213,12 +213,12 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
-      adof = force->numeric(FLERR,arg[iarg+1]);
+      adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
-      cdof = force->numeric(FLERR,arg[iarg+1]);
+      cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"file") == 0) {

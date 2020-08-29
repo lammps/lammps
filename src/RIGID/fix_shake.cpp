@@ -95,9 +95,9 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
-  tolerance = force->numeric(FLERR,arg[3]);
-  max_iter = force->inumeric(FLERR,arg[4]);
-  output_every = force->inumeric(FLERR,arg[5]);
+  tolerance = utils::numeric(FLERR,arg[3],false,lmp);
+  max_iter = utils::inumeric(FLERR,arg[4],false,lmp);
+  output_every = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -131,25 +131,25 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     // read numeric args of b,a,t,m
 
     else if (mode == 'b') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = force->numeric(FLERR,arg[next]);
+      double massone = utils::numeric(FLERR,arg[next],false,lmp);
       if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
       if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for fix shake");

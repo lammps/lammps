@@ -667,36 +667,36 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
   if (strcmp(arg[2],"seqav")  == 0) seqdepflag = 0;
   if (strcmp(arg[2],"seqdep") == 0) seqdepflag = 1;
 
-  epsilon_hb_one = force->numeric(FLERR,arg[3]);
-  a_hb_one = force->numeric(FLERR,arg[4]);
-  cut_hb_0_one = force->numeric(FLERR,arg[5]);
-  cut_hb_c_one = force->numeric(FLERR,arg[6]);
-  cut_hb_lo_one = force->numeric(FLERR,arg[7]);
-  cut_hb_hi_one = force->numeric(FLERR,arg[8]);
+  epsilon_hb_one = utils::numeric(FLERR,arg[3],false,lmp);
+  a_hb_one = utils::numeric(FLERR,arg[4],false,lmp);
+  cut_hb_0_one = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_hb_c_one = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_hb_lo_one = utils::numeric(FLERR,arg[7],false,lmp);
+  cut_hb_hi_one = utils::numeric(FLERR,arg[8],false,lmp);
 
-  a_hb1_one = force->numeric(FLERR,arg[9]);
-  theta_hb1_0_one = force->numeric(FLERR,arg[10]);
-  dtheta_hb1_ast_one = force->numeric(FLERR,arg[11]);
+  a_hb1_one = utils::numeric(FLERR,arg[9],false,lmp);
+  theta_hb1_0_one = utils::numeric(FLERR,arg[10],false,lmp);
+  dtheta_hb1_ast_one = utils::numeric(FLERR,arg[11],false,lmp);
 
-  a_hb2_one = force->numeric(FLERR,arg[12]);
-  theta_hb2_0_one = force->numeric(FLERR,arg[13]);
-  dtheta_hb2_ast_one = force->numeric(FLERR,arg[14]);
+  a_hb2_one = utils::numeric(FLERR,arg[12],false,lmp);
+  theta_hb2_0_one = utils::numeric(FLERR,arg[13],false,lmp);
+  dtheta_hb2_ast_one = utils::numeric(FLERR,arg[14],false,lmp);
 
-  a_hb3_one = force->numeric(FLERR,arg[15]);
-  theta_hb3_0_one = force->numeric(FLERR,arg[16]);
-  dtheta_hb3_ast_one = force->numeric(FLERR,arg[17]);
+  a_hb3_one = utils::numeric(FLERR,arg[15],false,lmp);
+  theta_hb3_0_one = utils::numeric(FLERR,arg[16],false,lmp);
+  dtheta_hb3_ast_one = utils::numeric(FLERR,arg[17],false,lmp);
 
-  a_hb4_one = force->numeric(FLERR,arg[18]);
-  theta_hb4_0_one = force->numeric(FLERR,arg[19]);
-  dtheta_hb4_ast_one = force->numeric(FLERR,arg[20]);
+  a_hb4_one = utils::numeric(FLERR,arg[18],false,lmp);
+  theta_hb4_0_one = utils::numeric(FLERR,arg[19],false,lmp);
+  dtheta_hb4_ast_one = utils::numeric(FLERR,arg[20],false,lmp);
 
-  a_hb7_one = force->numeric(FLERR,arg[21]);
-  theta_hb7_0_one = force->numeric(FLERR,arg[22]);
-  dtheta_hb7_ast_one = force->numeric(FLERR,arg[23]);
+  a_hb7_one = utils::numeric(FLERR,arg[21],false,lmp);
+  theta_hb7_0_one = utils::numeric(FLERR,arg[22],false,lmp);
+  dtheta_hb7_ast_one = utils::numeric(FLERR,arg[23],false,lmp);
 
-  a_hb8_one = force->numeric(FLERR,arg[24]);
-  theta_hb8_0_one = force->numeric(FLERR,arg[25]);
-  dtheta_hb8_ast_one = force->numeric(FLERR,arg[26]);
+  a_hb8_one = utils::numeric(FLERR,arg[24],false,lmp);
+  theta_hb8_0_one = utils::numeric(FLERR,arg[25],false,lmp);
+  dtheta_hb8_ast_one = utils::numeric(FLERR,arg[26],false,lmp);
 
   b_hb_lo_one = 2*a_hb_one*exp(-a_hb_one*(cut_hb_lo_one-cut_hb_0_one))*
         2*a_hb_one*exp(-a_hb_one*(cut_hb_lo_one-cut_hb_0_one))*

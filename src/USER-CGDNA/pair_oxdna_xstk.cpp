@@ -657,35 +657,35 @@ void PairOxdnaXstk::coeff(int narg, char **arg)
   double a_xst8_one, theta_xst8_0_one, dtheta_xst8_ast_one;
   double b_xst8_one, dtheta_xst8_c_one;
 
-  k_xst_one = force->numeric(FLERR,arg[2]);
-  cut_xst_0_one = force->numeric(FLERR,arg[3]);
-  cut_xst_c_one = force->numeric(FLERR,arg[4]);
-  cut_xst_lo_one = force->numeric(FLERR,arg[5]);
-  cut_xst_hi_one = force->numeric(FLERR,arg[6]);
+  k_xst_one = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_xst_0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_xst_c_one = utils::numeric(FLERR,arg[4],false,lmp);
+  cut_xst_lo_one = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_xst_hi_one = utils::numeric(FLERR,arg[6],false,lmp);
 
-  a_xst1_one = force->numeric(FLERR,arg[7]);
-  theta_xst1_0_one = force->numeric(FLERR,arg[8]);
-  dtheta_xst1_ast_one = force->numeric(FLERR,arg[9]);
+  a_xst1_one = utils::numeric(FLERR,arg[7],false,lmp);
+  theta_xst1_0_one = utils::numeric(FLERR,arg[8],false,lmp);
+  dtheta_xst1_ast_one = utils::numeric(FLERR,arg[9],false,lmp);
 
-  a_xst2_one = force->numeric(FLERR,arg[10]);
-  theta_xst2_0_one = force->numeric(FLERR,arg[11]);
-  dtheta_xst2_ast_one = force->numeric(FLERR,arg[12]);
+  a_xst2_one = utils::numeric(FLERR,arg[10],false,lmp);
+  theta_xst2_0_one = utils::numeric(FLERR,arg[11],false,lmp);
+  dtheta_xst2_ast_one = utils::numeric(FLERR,arg[12],false,lmp);
 
-  a_xst3_one = force->numeric(FLERR,arg[13]);
-  theta_xst3_0_one = force->numeric(FLERR,arg[14]);
-  dtheta_xst3_ast_one = force->numeric(FLERR,arg[15]);
+  a_xst3_one = utils::numeric(FLERR,arg[13],false,lmp);
+  theta_xst3_0_one = utils::numeric(FLERR,arg[14],false,lmp);
+  dtheta_xst3_ast_one = utils::numeric(FLERR,arg[15],false,lmp);
 
-  a_xst4_one = force->numeric(FLERR,arg[16]);
-  theta_xst4_0_one = force->numeric(FLERR,arg[17]);
-  dtheta_xst4_ast_one = force->numeric(FLERR,arg[18]);
+  a_xst4_one = utils::numeric(FLERR,arg[16],false,lmp);
+  theta_xst4_0_one = utils::numeric(FLERR,arg[17],false,lmp);
+  dtheta_xst4_ast_one = utils::numeric(FLERR,arg[18],false,lmp);
 
-  a_xst7_one = force->numeric(FLERR,arg[19]);
-  theta_xst7_0_one = force->numeric(FLERR,arg[20]);
-  dtheta_xst7_ast_one = force->numeric(FLERR,arg[21]);
+  a_xst7_one = utils::numeric(FLERR,arg[19],false,lmp);
+  theta_xst7_0_one = utils::numeric(FLERR,arg[20],false,lmp);
+  dtheta_xst7_ast_one = utils::numeric(FLERR,arg[21],false,lmp);
 
-  a_xst8_one = force->numeric(FLERR,arg[22]);
-  theta_xst8_0_one = force->numeric(FLERR,arg[23]);
-  dtheta_xst8_ast_one = force->numeric(FLERR,arg[24]);
+  a_xst8_one = utils::numeric(FLERR,arg[22],false,lmp);
+  theta_xst8_0_one = utils::numeric(FLERR,arg[23],false,lmp);
+  dtheta_xst8_ast_one = utils::numeric(FLERR,arg[24],false,lmp);
 
 
   b_xst_lo_one = 0.25 * (cut_xst_lo_one - cut_xst_0_one) * (cut_xst_lo_one - cut_xst_0_one)/

@@ -795,8 +795,8 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
-      sortfreq = force->inumeric(FLERR,arg[iarg+1]);
-      userbinsize = force->numeric(FLERR,arg[iarg+2]);
+      sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (sortfreq < 0 || userbinsize < 0.0)
         error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname)
@@ -1576,8 +1576,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    ninteger = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
+    ndouble = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1592,9 +1592,9 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
       }
 
       for (j = 0; j < ninteger; j++)
-        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
       for (j = 0; j < ndouble; j++)
-        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+        dvalues[j] = utils::numeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
@@ -1702,7 +1702,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
   int lo,hi;
-  force->bounds(file,line,arg[0],ntypes,lo,hi);
+  utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
   if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {

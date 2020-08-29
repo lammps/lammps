@@ -459,16 +459,16 @@ void PairLubricate::settings(int narg, char **arg)
 {
   if (narg != 5 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
-  mu = force->numeric(FLERR,arg[0]);
-  flaglog = force->inumeric(FLERR,arg[1]);
-  flagfld = force->inumeric(FLERR,arg[2]);
-  cut_inner_global = force->numeric(FLERR,arg[3]);
-  cut_global = force->numeric(FLERR,arg[4]);
+  mu = utils::numeric(FLERR,arg[0],false,lmp);
+  flaglog = utils::inumeric(FLERR,arg[1],false,lmp);
+  flagfld = utils::inumeric(FLERR,arg[2],false,lmp);
+  cut_inner_global = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[4],false,lmp);
 
   flagHI = flagVF = 1;
   if (narg == 7) {
-    flagHI = force->inumeric(FLERR,arg[5]);
-    flagVF = force->inumeric(FLERR,arg[6]);
+    flagHI = utils::inumeric(FLERR,arg[5],false,lmp);
+    flagVF = utils::inumeric(FLERR,arg[6],false,lmp);
   }
 
   if (flaglog == 1 && flagHI == 0) {
@@ -507,8 +507,8 @@ void PairLubricate::coeff(int narg, char **arg)
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 4) {
-    cut_inner_one = force->numeric(FLERR,arg[2]);
-    cut_one = force->numeric(FLERR,arg[3]);
+    cut_inner_one = utils::numeric(FLERR,arg[2],false,lmp);
+    cut_one = utils::numeric(FLERR,arg[3],false,lmp);
   }
 
   int count = 0;

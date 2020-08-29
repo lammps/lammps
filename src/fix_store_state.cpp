@@ -47,7 +47,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peratom_freq = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix store/state command");
 
   // parse values until one isn't recognized

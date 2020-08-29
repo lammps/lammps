@@ -277,10 +277,10 @@ void PairLJCutCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  kappa = force->numeric(FLERR,arg[0]);
-  cut_lj_global = force->numeric(FLERR,arg[1]);
+  kappa = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(FLERR,arg[2]);
+  else cut_coul_global = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that were previously set from data file
 

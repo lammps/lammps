@@ -271,8 +271,8 @@ void ImproperCossq::coeff(int narg, char **arg)
    int ilo,ihi;
    utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-   double k_one = force->numeric(FLERR,arg[1]);
-   double chi_one = force->numeric(FLERR,arg[2]);
+   double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+   double chi_one = utils::numeric(FLERR,arg[2],false,lmp);
 
    int count = 0;
    for (int i = ilo; i <= ihi; i++) {

@@ -57,7 +57,7 @@ void Scafacos::settings(int narg, char **arg)
   int n = strlen(arg[0]) + 1;
   method = new char[n];
   strcpy(method,arg[0]);
-  tolerance = force->numeric(FLERR,arg[1]);
+  tolerance = utils::numeric(FLERR,arg[1],false,lmp);
 
   // optional ScaFaCoS library setting defaults
   // choose the correct default tolerance type for chosen method

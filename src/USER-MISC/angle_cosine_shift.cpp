@@ -177,8 +177,8 @@ void AngleCosineShift::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double umin   = force->numeric(FLERR,arg[1]);
-  double theta0 = force->numeric(FLERR,arg[2]);
+  double umin   = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0 = utils::numeric(FLERR,arg[2],false,lmp);
 
 // k=Umin/2
 

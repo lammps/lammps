@@ -62,7 +62,7 @@ void PairSpinExchange::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
+  cut_spin_exchange_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -97,10 +97,10 @@ void PairSpinExchange::coeff(int narg, char **arg)
 
   // get exchange arguments from input command
 
-  const double rc = force->numeric(FLERR,arg[3]);
-  const double j1 = force->numeric(FLERR,arg[4]);
-  const double j2 = force->numeric(FLERR,arg[5]);
-  const double j3 = force->numeric(FLERR,arg[6]);
+  const double rc = utils::numeric(FLERR,arg[3],false,lmp);
+  const double j1 = utils::numeric(FLERR,arg[4],false,lmp);
+  const double j2 = utils::numeric(FLERR,arg[5],false,lmp);
+  const double j3 = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

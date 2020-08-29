@@ -197,7 +197,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
 
   // number of additional momenta
-  ns = force->inumeric(FLERR,arg[3]);
+  ns = utils::inumeric(FLERR,arg[3],false,lmp);
   ns1sq = (ns+1)*(ns+1);
 
   // allocate GLE matrices
@@ -209,13 +209,13 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   ST = new double[ns1sq];
 
   // start temperature (t ramp)
-  t_start = force->numeric(FLERR,arg[4]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
 
   // final temperature (t ramp)
-  t_stop = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
 
   // PRNG seed
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // LOADING A matrix
   FILE *fgle = NULL;
@@ -276,7 +276,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
       if (iarg+2>narg)
         error->all(FLERR, "Did not specify interval for applying the GLE");
-      gle_every=force->inumeric(FLERR,arg[iarg+1]);
+      gle_every=utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     }
   }
 

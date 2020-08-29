@@ -57,7 +57,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   fepinitflag = 0;    // avoid init to run entirely when called by write_data
 
-  temp_fep = force->numeric(FLERR,arg[3]);
+  temp_fep = utils::numeric(FLERR,arg[3],false,lmp);
 
   // count # of perturbations
 

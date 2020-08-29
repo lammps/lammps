@@ -46,7 +46,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
   if (binary)

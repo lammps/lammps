@@ -162,8 +162,8 @@ void AngleDipole::coeff(int narg, char **arg)
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double gamma0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double gamma0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert gamma0 from degrees to radians
 

@@ -773,7 +773,7 @@ void Molecule::fragments(char *line)
 
       ValueTokenizer values(line);
 
-      if (values.count() > natoms+1)
+      if ((int)values.count() > natoms+1)
         error->one(FLERR,"Invalid atom ID in Fragments section of molecule file");
 
       fragmentnames[i] = values.next_string();

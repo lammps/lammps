@@ -752,29 +752,29 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the queried setting or -1 if unknown */
 
-int lammps_extract_setting(void * handle, char *name)
+int lammps_extract_setting(void * handle, char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
 // This can be customized by adding keywords and documenting them in the section above.
-  if (strcmp(name,"bigint") == 0) return sizeof(bigint);
-  if (strcmp(name,"tagint") == 0) return sizeof(tagint);
-  if (strcmp(name,"imageint") == 0) return sizeof(imageint);
+  if (strcmp(keyword,"bigint") == 0) return sizeof(bigint);
+  if (strcmp(keyword,"tagint") == 0) return sizeof(tagint);
+  if (strcmp(keyword,"imageint") == 0) return sizeof(imageint);
 
-  if (strcmp(name,"dimension") == 0) return lmp->domain->dimension;
-  if (strcmp(name,"box_exist") == 0) return lmp->domain->box_exist;
-  if (strcmp(name,"triclinic") == 0) return lmp->domain->triclinic;
+  if (strcmp(keyword,"dimension") == 0) return lmp->domain->dimension;
+  if (strcmp(keyword,"box_exist") == 0) return lmp->domain->box_exist;
+  if (strcmp(keyword,"triclinic") == 0) return lmp->domain->triclinic;
 
-  if (strcmp(name,"nlocal") == 0) return lmp->atom->nlocal;
-  if (strcmp(name,"nghost") == 0) return lmp->atom->nghost;
-  if (strcmp(name,"nall") == 0) return lmp->atom->nlocal+lmp->atom->nghost;
-  if (strcmp(name,"nmax") == 0) return lmp->atom->nmax;
-  if (strcmp(name,"ntypes") == 0) return lmp->atom->ntypes;
+  if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
+  if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;
+  if (strcmp(keyword,"nall") == 0) return lmp->atom->nlocal+lmp->atom->nghost;
+  if (strcmp(keyword,"nmax") == 0) return lmp->atom->nmax;
+  if (strcmp(keyword,"ntypes") == 0) return lmp->atom->ntypes;
 
-  if (strcmp(name,"molecule_flag") == 0) return lmp->atom->molecule_flag;
-  if (strcmp(name,"q_flag") == 0) return lmp->atom->q_flag;
-  if (strcmp(name,"mu_flag") == 0) return lmp->atom->mu_flag;
-  if (strcmp(name,"rmass_flag") == 0) return lmp->atom->rmass_flag;
+  if (strcmp(keyword,"molecule_flag") == 0) return lmp->atom->molecule_flag;
+  if (strcmp(keyword,"q_flag") == 0) return lmp->atom->q_flag;
+  if (strcmp(keyword,"mu_flag") == 0) return lmp->atom->mu_flag;
+  if (strcmp(keyword,"rmass_flag") == 0) return lmp->atom->rmass_flag;
 
   return -1;
 }

@@ -48,8 +48,8 @@ Some source files and classes do not have a corresponding input script
 command, e.g. ``src/force.cpp`` and the :cpp:class:`LAMMPS_NS::Force`
 class.  They are discussed in the next section.
 
-Overview of LAMMPS class topology
-=================================
+LAMMPS class topology
+=====================
 
 Though LAMMPS has a lot of source files and classes, its class topology
 is relative flat, as outlined in the :ref:`class-topology` figure.  Each
@@ -488,8 +488,8 @@ calls the ``post_run()`` method of fixes to perform operations only required
 at the end of a calculations (like freeing temporary storage or creating
 final outputs).
 
-Modifying and extending LAMMPS
-==============================
+Writing LAMMPS styles
+=====================
 
 The :doc:`Modify` section of the manual gives an overview of how LAMMPS can
 be extended by writing new classes that derive from existing
@@ -740,3 +740,143 @@ files additional settings and functions are needed:
   restart processing instead of per-atom data memory management).
 - the functions ``void pack_restart(int i, double *buf)`` and
   ``void unpack_restart(int nlocal, int nth)`` need to be implemented
+
+---------------------------
+
+LAMMPS utility functions
+========================
+
+The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
+a collection of convenience functions and utilities that perform common
+tasks that are required repeatedly throughout the LAMMPS code like
+reading or writing to files with error checking or translation of
+strings into specific types of numbers with checking for validity.  This
+reduces redundant implementations and encourages consistent behavior.
+
+I/O functions with validity check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These are wrappers around the corresponding C library calls like
+``fgets()`` or ``fread()``.  They will check if there were errors
+on reading or an unexpected end-of-file state was reached.  In that
+case, the functions will stop the calculation with an error message,
+indicating the name of the problematic file, if possible.
+
+.. doxygenfunction:: sfgets
+   :project: progguide
+
+.. doxygenfunction:: sfread
+   :project: progguide
+
+String to number conversions with validity check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These are functions equivalent to those in the ``Force`` class that
+were implemented with the aim to replace and supersede those.  Unlike
+the versions in ``Force``, these can be used in cases where only
+a single MPI rank is trying to convert strings to numbers, as you
+can select through an argument, whether ``Error->all()`` or ``Error->one()``
+should be called on improper strings.
+
+These functions are preferred over C library calls like ``atoi()`` or
+``atof()`` since they check if the **entire** provided string is a valid
+(floating-point or integer) number, and will error out instead of silently
+return the result of a partial conversion or zero in cases where the
+string is not a valid number.  This behavior allows to more easily detect
+typos or issues when processing input files.
+
+.. doxygenfunction:: numeric
+   :project: progguide
+
+.. doxygenfunction:: inumeric
+   :project: progguide
+
+.. doxygenfunction:: bnumeric
+   :project: progguide
+
+.. doxygenfunction:: tnumeric
+   :project: progguide
+
+
+String processing functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following are functions to help with processing strings
+and parsing files or arguments.
+
+.. doxygenfunction:: trim
+   :project: progguide
+
+.. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: count_words(const char *text)
+   :project: progguide
+
+.. doxygenfunction:: count_words(const std::string &text)
+   :project: progguide
+
+.. doxygenfunction:: count_words(const std::string &text, const std::string &separators)
+   :project: progguide
+
+.. doxygenfunction:: trim_and_count_words
+   :project: progguide
+
+.. doxygenfunction:: split_words
+   :project: progguide
+
+.. doxygenfunction:: strmatch
+   :project: progguide
+
+.. doxygenfunction:: is_integer
+   :project: progguide
+
+.. doxygenfunction:: is_double
+   :project: progguide
+
+Filename and path functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: guesspath
+   :project: progguide
+
+.. doxygenfunction:: path_basename
+   :project: progguide
+
+.. doxygenfunction:: path_join
+   :project: progguide
+
+.. doxygenfunction:: file_is_readable
+   :project: progguide
+
+Potential file functions
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: get_potential_file_path
+   :project: progguide
+
+.. doxygenfunction:: get_potential_date
+   :project: progguide
+
+.. doxygenfunction:: get_potential_units
+   :project: progguide
+
+.. doxygenfunction:: get_supported_conversions
+   :project: progguide
+
+.. doxygenfunction:: get_conversion_factor
+   :project: progguide
+
+Convenience functions
+^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: logmesg
+   :project: progguide
+
+.. doxygenfunction:: getsyserror
+   :project: progguide
+
+.. doxygenfunction:: check_packages_for_style
+   :project: progguide
+
+.. doxygenfunction:: timespec2seconds
+   :project: progguide

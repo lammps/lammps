@@ -150,14 +150,14 @@ namespace LAMMPS_NS {
      */
     std::string trim(const std::string &line);
 
-    /** Trim anything from '#' onward
+    /** Return string with anything from '#' onward removed
      *
      * \param line string that should be trimmed
      * \return new string without comment (string)
      */
     std::string trim_comment(const std::string &line);
 
-    /** Count words in string
+    /** Count words in string with custom choice of separating characters
      *
      * \param text string that should be searched
      * \param separators string containing characters that will be treated as whitespace
@@ -189,11 +189,11 @@ namespace LAMMPS_NS {
 
     /** Take text and split into non-whitespace words.
      *
-     * This can handle single and double quotes, escaped quotes,
-     * and escaped codes within quotes, but due to using an STL
-     * container and STL strings is rather slow because of making
-     * copies. Designed for parsing command lines and similar text
-     * and not for time critical processing. Use a tokenizer for that.
+     * This can handle strings with single and double quotes, escaped quotes,
+     * and escaped codes within quotes, but due to using an STL container and
+     * STL strings is rather slow because of making copies. Designed for parsing
+     * command lines and similar text and not for time critical processing.
+     * Use a tokenizer class for that.
      *
      * \param text string that should be split
      * \return STL vector with the words
@@ -220,7 +220,7 @@ namespace LAMMPS_NS {
      *
      *  \param buf  storage buffer for pathname. output will be truncated if not large enough
      *  \param len  size of storage buffer. output will be truncated to this length - 1
-     *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
+     *  \param fp   FILE pointer struct from STDIO library for which we want to detect the name
      *  \return pointer to the storage buffer, i.e. buf
      */
     const char *guesspath(char *buf, int len, FILE *fp);

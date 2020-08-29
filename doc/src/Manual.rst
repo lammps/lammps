@@ -54,7 +54,6 @@ every LAMMPS command.
    Howto
    Examples
    Tools
-   Modify
    Python_head
    Errors
    Manual_build
@@ -67,8 +66,9 @@ every LAMMPS command.
    :name: progdoc
    :includehidden:
 
+   pg_library
+   Modify
    pg_developer
-..   pg_library
 ..   pg_modify
 ..   pg_base
 

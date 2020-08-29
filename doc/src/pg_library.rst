@@ -91,15 +91,15 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 .. toctree::
    :maxdepth: 1
 
-..   pg_lib_create
-..   pg_lib_execute
-..   pg_lib_properties
-..   pg_lib_objects
-..   pg_lib_scatter
-..   pg_lib_neighbor
-..   pg_lib_config
-..   pg_lib_utility
-..   pg_lib_add
+   pg_lib_create
+   pg_lib_execute
+   pg_lib_properties
+   pg_lib_objects
+   pg_lib_scatter
+   pg_lib_neighbor
+   pg_lib_config
+   pg_lib_utility
+   pg_lib_add
 
 --------------------
 
@@ -153,6 +153,6 @@ The following links provide some examples and references to the C++ API.
 .. toctree::
    :maxdepth: 1
 
-..   pg_cplusplus
+   pg_cplusplus
 
 

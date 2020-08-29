@@ -65,7 +65,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
+  int nargnew = utils::expand_args(FLERR,narg-6,&arg[6],0,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;

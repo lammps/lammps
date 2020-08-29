@@ -88,7 +88,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[6],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[6],mode,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;

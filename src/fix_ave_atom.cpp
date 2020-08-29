@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -51,7 +52,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[6],1,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[6],1,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;

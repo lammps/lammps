@@ -126,7 +126,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     int expand = 0;
     char **earg;
-    int nvalues = input->expand_args(narg-1,&arg[1],0,earg);
+    int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
     line = new char[256+nvalues*64];

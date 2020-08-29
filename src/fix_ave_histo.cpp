@@ -107,7 +107,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[9],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[9],mode,earg,lmp);
 
   if (earg != &arg[9]) expand = 1;
   arg = earg;

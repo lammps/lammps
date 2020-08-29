@@ -38,7 +38,6 @@ class Input : protected Pointers {
   char *one(const std::string&); // process a single command
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
-  int expand_args(int, char **, int, char **&);  // expand args due to wildcard
   void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:

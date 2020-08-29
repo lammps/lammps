@@ -72,7 +72,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-7,&arg[7],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-7,&arg[7],1,earg,lmp);
 
   if (earg != &arg[7]) expand = 1;
   arg = earg;

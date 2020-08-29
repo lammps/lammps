@@ -29,6 +29,7 @@
 #include "error.h"
 #include "update.h"
 #include "variable.h"
+#include "utils.h"
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;
@@ -76,7 +77,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // nfield may be shrunk below if extra optional args exist
 
   expand = 0;
-  nfield = nargnew = input->expand_args(narg-5,&arg[5],1,earg);
+  nfield = nargnew = utils::expand_args(FLERR,narg-5,&arg[5],1,earg,lmp);
   if (earg != &arg[5]) expand = 1;
 
   // allocate field vectors

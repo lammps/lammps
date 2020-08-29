@@ -794,7 +794,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   double k_one = force->numeric(FLERR,arg[2]);
   double theta0_1_one = force->numeric(FLERR,arg[3]);

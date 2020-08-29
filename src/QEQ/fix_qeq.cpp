@@ -753,7 +753,7 @@ void FixQEq::read_file(char *file)
          n < 6;
          words[++n] = strtok(NULL," \t\n\r\f"));
 
-    force->bounds(FLERR,words[0],ntypes,nlo,nhi);
+    utils::bounds(FLERR,words[0],1,ntypes,nlo,nhi,error);
     for (n=nlo; n <=nhi; ++n) {
       chi[n]     = force->numeric(FLERR,words[1]);
       eta[n]     = force->numeric(FLERR,words[2]);

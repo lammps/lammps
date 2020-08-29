@@ -25,6 +25,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -143,7 +144,7 @@ void BondSpecial::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   double factor_lj_one = force->numeric(FLERR,arg[1]);
   double factor_coul_one = force->numeric(FLERR,arg[2]);

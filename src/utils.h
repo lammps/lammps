@@ -94,12 +94,12 @@ namespace LAMMPS_NS {
     /** Convert a string to a floating point number while checking
      *  if it is a valid floating point or integer number
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return double precision floating point number
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         double precision floating point number
      */
     double numeric(const char *file, int line, const char *str,
                    bool do_abort, LAMMPS *lmp);
@@ -107,12 +107,12 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (regular int)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (regular int)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (regular int)
      */
     int inumeric(const char *file, int line, const char *str,
                  bool do_abort, LAMMPS *lmp);
@@ -120,12 +120,12 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (bigint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (bigint)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (bigint)
      */
     bigint bnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
@@ -133,15 +133,93 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (tagint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (tagint)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (tagint)
      */
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
+
+    /** Compute index bounds derived from a string with a possible wildcard
+     *
+\verbatim embed:rst
+
+This functions processes the string in *str* and set the values of *nlo*
+and *nhi* according to the following five cases:
+#. a single number *i*: nlo = i; nhi = i;
+#. a single asterix *\*\ *: nlo = nmin; nhi = nmax;
+#. a single number followed by an asterix *i\*\ *: nlo = i; nhi = nmax;
+#. a single asterix followed by a number *\*\ i*: nlo = nmin; nhi = i;
+#. two numbers with an asterix in between *i\*\ j*: nlo = i; nhi = j;
+\endverbatim
+
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be processed
+     *  \param nmin     smallest possible lower bound
+     *  \param nmax     largest allowed upper bound
+     *  \param nlo      lower bound
+     *  \param nhi      upper bound
+     *  \param error    pointer to Error class for out-of-bounds error message
+     */
+    void bounds(const char *file, int line, char *str,
+                int nmin, int nmax, int &nlo, int &nhi, Error *error);
+
+    /** Compute index bounds derived from a string with a possible wildcard
+     *
+\verbatim embed:rst
+This functions processes the string in *str* and set the values of *nlo*
+and *nhi* according to the following five cases:
+#. a single number *i*: nlo = i; nhi = i;
+#. a single asterix *\*\ *: nlo = nmin; nhi = nmax;
+#. a single number followed by an asterix *i\*\ *: nlo = i; nhi = nmax;
+#. a single asterix followed by a number *\*\ i*: nlo = nmin; nhi = i;
+#. two numbers with an asterix in between *i\*\ j*: nlo = i; nhi = j;
+\endverbatim
+
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be processed
+     *  \param nmin     smallest possible lower bound
+     *  \param nmax     largest allowed upper bound
+     *  \param nlo      lower bound
+     *  \param nhi      upper bound
+     *  \param error    pointer to Error class for out-of-bounds error message
+     */
+    void boundsbig(const char *file, int line, char *str,
+                   bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
+                   Error *error);
+
+    /** Expand list of arguments when containing fix/compute wildcards
+     *
+     *  This function searches the list of arguments in *arg* for strings
+     *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+     *  Any such strings are replaced by one or more strings with the
+     *  '*' character replaced by the corresponding possible numbers as
+     *  determined from the fix or compute instance.  Other strings are
+     *  just copied. If the *mode* parameter is set to 0, expand global
+     *  vectors, but not global arrays; if it is set to 1, expand global
+     *  arrays (by column) but not global vectors.
+     *
+     *  If any expansion happens, the earg list and all its
+     *  strings are new allocations and must be freed explicitly by the
+     *  caller. Otherwise arg and earg will point to the same address
+     *  and no explicit deallocation is needed by the caller.
+     *
+     *  \param file  name of source file for error message
+     *  \param line  line number in source file for error message
+     *  \param narg  number of arguments in current list
+     *  \param arg   argument list, possibly containing wildcards
+     *  \param mode  select between global vectors(=0) and arrays (=1)
+     *  \param earg  new argument list with wildcards expanded
+     *  \param lmp   pointer to top-level LAMMPS class instance
+     *  \return      number of arguments in expanded list
+     */
+    int expand_args(const char *file, int line, int narg, char **arg,
+                    int mode, char **&earg, LAMMPS *lmp);
 
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *

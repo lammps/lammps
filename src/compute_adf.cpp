@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "error.h"
 #include "comm.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -134,9 +135,9 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     cutflag = 1;
     iarg = 4;
     for (int m = 0; m < ntriples; m++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[m],ihi[m]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[m],jhi[m]);
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[m],khi[m]);
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[m],ihi[m],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[m],jhi[m],error);
+      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,klo[m],khi[m],error);
       if (ilo[m] > ihi[m] ||
           jlo[m] > jhi[m] ||
           klo[m] > khi[m])

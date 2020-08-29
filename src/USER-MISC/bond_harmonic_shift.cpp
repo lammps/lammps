@@ -128,7 +128,7 @@ void BondHarmonicShift::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   double Umin = force->numeric(FLERR,arg[1]);   // energy at minimum
   double r0_one = force->numeric(FLERR,arg[2]); // position of minimum

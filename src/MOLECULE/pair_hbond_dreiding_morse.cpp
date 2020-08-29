@@ -30,6 +30,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -241,9 +242,9 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;

@@ -206,10 +206,10 @@ void PairZBL::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
 
   int jlo,jhi;
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   z_one = force->numeric(FLERR,arg[2]);
   z_two = force->numeric(FLERR,arg[3]);

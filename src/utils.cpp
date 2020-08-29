@@ -16,7 +16,11 @@
 #include <cstdlib>
 #include <cerrno>
 #include "lammps.h"
+#include "compute.h"
 #include "error.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
 #include "tokenizer.h"
 #include "text_file_reader.h"
 #include "fmt/format.h"
@@ -348,6 +352,216 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
   }
 
   return ATOTAGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterisk
+------------------------------------------------------------------------- */
+void utils::bounds(const char *file, int line, char *str,
+                   int nmin, int nmax, int &nlo, int &nhi, Error *error)
+{
+  char *ptr = strchr(str,'*');
+
+  nlo = nhi = -1;
+  if (ptr == NULL) {
+    nlo = nhi = atoi(str);
+  } else if (strlen(str) == 1) {
+    nlo = nmin;
+    nhi = nmax;
+  } else if (ptr == str) {
+    nlo = nmin;
+    nhi = atoi(ptr+1);
+  } else if (strlen(ptr+1) == 0) {
+    nlo = atoi(str);
+    nhi = nmax;
+  } else {
+    nlo = atoi(str);
+    nhi = atoi(ptr+1);
+  }
+
+  if (error) {
+    if (nlo < nmin)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nmax));
+    else if (nhi > nmax)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nhi,nmin,nmax));
+    else if (nlo > nhi)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nhi));
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterisk
+------------------------------------------------------------------------- */
+void utils::boundsbig(const char *file, int line, char *str,
+                      bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
+                      Error *error)
+{
+  char *ptr = strchr(str,'*');
+
+  nlo = nhi = -1;
+  if (ptr == NULL) {
+    nlo = nhi = ATOBIGINT(str);
+  } else if (strlen(str) == 1) {
+    nlo = nmin;
+    nhi = nmax;
+  } else if (ptr == str) {
+    nlo = nmin;
+    nhi = ATOBIGINT(ptr+1);
+  } else if (strlen(ptr+1) == 0) {
+    nlo = ATOBIGINT(str);
+    nhi = nmax;
+  } else {
+    nlo = ATOBIGINT(str);
+    nhi = ATOBIGINT(ptr+1);
+  }
+
+  if (error) {
+    if (nlo < nmin)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nmax));
+    else if (nhi > nmax)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nhi,nmin,nmax));
+    else if (nlo > nhi)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nhi));
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Expand list of arguments in arg to earg if arg contains wildcards
+------------------------------------------------------------------------- */
+
+int utils::expand_args(const char *file, int line, int narg, char **arg,
+                       int mode, char **&earg, LAMMPS *lmp)
+{
+  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
+  char *ptr1,*ptr2,*str;
+
+  ptr1 = NULL;
+  for (iarg = 0; iarg < narg; iarg++) {
+    ptr1 = strchr(arg[iarg],'*');
+    if (ptr1) break;
+  }
+
+  if (!ptr1) {
+    earg = arg;
+    return narg;
+  }
+
+  // maxarg should always end up equal to newarg, so caller can free earg
+
+  int maxarg = narg-iarg;
+  earg = (char **) lmp->memory->smalloc(maxarg*sizeof(char *),"input:earg");
+
+  int newarg = 0;
+  for (iarg = 0; iarg < narg; iarg++) {
+    expandflag = 0;
+
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0) {
+
+      ptr1 = strchr(&arg[iarg][2],'[');
+      if (ptr1) {
+        ptr2 = strchr(ptr1,']');
+        if (ptr2) {
+          *ptr2 = '\0';
+          if (strchr(ptr1,'*')) {
+            if (arg[iarg][0] == 'c') {
+              *ptr1 = '\0';
+              icompute = lmp->modify->find_compute(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (icompute >= 0) {
+                if (mode == 0 && lmp->modify->compute[icompute]->vector_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->compute[icompute]->array_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->peratom_flag &&
+                           lmp->modify->compute[icompute]->size_peratom_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->local_flag &&
+                           lmp->modify->compute[icompute]->size_local_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            } else if (arg[iarg][0] == 'f') {
+              *ptr1 = '\0';
+              ifix = lmp->modify->find_fix(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (ifix >= 0) {
+                if (mode == 0 && lmp->modify->fix[ifix]->vector_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->fix[ifix]->array_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->peratom_flag &&
+                           lmp->modify->fix[ifix]->size_peratom_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->local_flag &&
+                           lmp->modify->fix[ifix]->size_local_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            }
+          }
+          *ptr2 = ']';
+        }
+      }
+    }
+
+    if (expandflag) {
+      *ptr2 = '\0';
+      bounds(file,line,ptr1+1,1,nmax,nlo,nhi,lmp->error);
+      *ptr2 = ']';
+      if (newarg+nhi-nlo+1 > maxarg) {
+        maxarg += nhi-nlo+1;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      for (index = nlo; index <= nhi; index++) {
+        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+        str = earg[newarg] = new char[n];
+        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+        strcat(str,ptr2);
+        newarg++;
+      }
+
+    } else {
+      if (newarg == maxarg) {
+        maxarg++;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      n = strlen(arg[iarg]) + 1;
+      earg[newarg] = new char[n];
+      strcpy(earg[newarg],arg[iarg]);
+      newarg++;
+    }
+  }
+
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
+
+  return newarg;
 }
 
 /* ----------------------------------------------------------------------

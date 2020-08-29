@@ -589,8 +589,8 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   int ilo,ihi,jlo,jhi;
   int n;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   nspecies = atom->nspecies_dpd;
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");

@@ -224,9 +224,9 @@ void PairATM::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
   double nu_one = force->numeric(FLERR,arg[3]);
 

@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "comm.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -98,8 +99,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[ipair],ihi[ipair]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[ipair],jhi[ipair]);
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[ipair],ihi[ipair],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[ipair],jhi[ipair],error);
       if (ilo[ipair] > ihi[ipair] || jlo[ipair] > jhi[ipair])
         error->all(FLERR,"Illegal compute rdf command");
       iarg += 2;

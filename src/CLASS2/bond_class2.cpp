@@ -134,7 +134,7 @@ void BondClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   double r0_one = force->numeric(FLERR,arg[1]);
   double k2_one = force->numeric(FLERR,arg[2]);

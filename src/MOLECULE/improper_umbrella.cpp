@@ -276,7 +276,7 @@ void ImproperUmbrella::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double w_one = force->numeric(FLERR,arg[2]);

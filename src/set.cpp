@@ -633,7 +633,7 @@ void Set::selection(int n)
     if (atom->tag_enable == 0)
       error->all(FLERR,"Cannot use set atom with no atom IDs defined");
     bigint nlobig,nhibig;
-    force->boundsbig(FLERR,id,MAXTAGINT,nlobig,nhibig);
+    utils::boundsbig(FLERR,id,1,MAXTAGINT,nlobig,nhibig,error);
 
     tagint *tag = atom->tag;
     for (int i = 0; i < n; i++)
@@ -644,7 +644,7 @@ void Set::selection(int n)
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Cannot use set mol with no molecule IDs defined");
     bigint nlobig,nhibig;
-    force->boundsbig(FLERR,id,MAXTAGINT,nlobig,nhibig);
+    utils::boundsbig(FLERR,id,1,MAXTAGINT,nlobig,nhibig,error);
 
     tagint *molecule = atom->molecule;
     for (int i = 0; i < n; i++)
@@ -652,7 +652,7 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
-    force->bounds(FLERR,id,atom->ntypes,nlo,nhi);
+    utils::bounds(FLERR,id,1,atom->ntypes,nlo,nhi,error);
 
     int *type = atom->type;
     for (int i = 0; i < n; i++)

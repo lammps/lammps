@@ -150,10 +150,10 @@ namespace LAMMPS_NS {
 This functions processes the string in *str* and set the values of *nlo*
 and *nhi* according to the following five cases:
 #. a single number *i*: nlo = i; nhi = i;
-#. a single asterix *\*\ *: nlo = nmin; nhi = nmax;
-#. a single number followed by an asterix *i\*\ *: nlo = i; nhi = nmax;
-#. a single asterix followed by a number *\*\ i*: nlo = nmin; nhi = i;
-#. two numbers with an asterix in between *i\*\ j*: nlo = i; nhi = j;
+#. a single asterisk *\*\ *: nlo = nmin; nhi = nmax;
+#. a single number followed by an asterisk *i\*\ *: nlo = i; nhi = nmax;
+#. a single asterisk followed by a number *\*\ i*: nlo = nmin; nhi = i;
+#. two numbers with an asterisk in between *i\*\ j*: nlo = i; nhi = j;
 \endverbatim
 
      *  \param file     name of source file for error message
@@ -174,10 +174,10 @@ and *nhi* according to the following five cases:
 This functions processes the string in *str* and set the values of *nlo*
 and *nhi* according to the following five cases:
 #. a single number *i*: nlo = i; nhi = i;
-#. a single asterix *\*\ *: nlo = nmin; nhi = nmax;
-#. a single number followed by an asterix *i\*\ *: nlo = i; nhi = nmax;
-#. a single asterix followed by a number *\*\ i*: nlo = nmin; nhi = i;
-#. two numbers with an asterix in between *i\*\ j*: nlo = i; nhi = j;
+#. a single asterisk *\*\ *: nlo = nmin; nhi = nmax;
+#. a single number followed by an asterisk *i\*\ *: nlo = i; nhi = nmax;
+#. a single asterisk followed by a number *\*\ i*: nlo = nmin; nhi = i;
+#. two numbers with an asterisk in between *i\*\ j*: nlo = i; nhi = j;
 \endverbatim
 
      *  \param file     name of source file for error message
@@ -207,7 +207,7 @@ and *nhi* according to the following five cases:
      *  If any expansion happens, the earg list and all its
      *  strings are new allocations and must be freed explicitly by the
      *  caller. Otherwise arg and earg will point to the same address
-     *  and no explicit deallocation is needed by the caller.
+     *  and no explicit de-allocation is needed by the caller.
      *
      *  \param file  name of source file for error message
      *  \param line  line number in source file for error message
@@ -370,7 +370,7 @@ and *nhi* according to the following five cases:
     /** Open a potential file as specified by *name*
      *
 \verbatim embed:rst
-If opening the file fails, it will search for it in the folder(s)
+If opening the file directly fails, it will search for it in the folder(s)
 pointed to by the environment variable LAMMPS_POTENTIALS.
 
 If the potential file has a ``UNITS`` tag in the first line, its

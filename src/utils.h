@@ -367,6 +367,24 @@ and *nhi* according to the following five cases:
      */
     double get_conversion_factor(const int property, const int conversion);
 
+    /** Open a potential file as specified by *name*
+     *
+\verbatim embed:rst
+If opening the file fails, it will search for it in the folder(s)
+pointed to by the environment variable LAMMPS_POTENTIALS.
+
+If the potential file has a ``UNITS`` tag in the first line, its
+value is compared to the current :doc:`unit style <units>` setting.
+\endverbatim
+     *
+     *  \param name          file- or pathname of the potential file
+     *  \param lmp           pointer to top-level LAMMPS class instance
+     *  \param auto_convert  pointer to automatic unit conversion bitmask
+     *  \return              FILE pointer of the opened potential file or NULL
+     */
+    FILE *open_potential(const char *name, LAMMPS *lmp,
+                         int *auto_convert=nullptr);
+
     /** Convert a time string to seconds
      *
      * The strings "off" and "unlimited" result in -1

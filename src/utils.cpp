@@ -922,6 +922,62 @@ double utils::get_conversion_factor(const int property, const int conversion)
 }
 
 /* ----------------------------------------------------------------------
+   open a potential file as specified by name
+   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
+------------------------------------------------------------------------- */
+
+FILE *utils::open_potential(const char *name, LAMMPS *lmp, int *auto_convert)
+{
+  auto error = lmp->error;
+  auto me = lmp->comm->me;
+
+  std::string filepath = get_potential_file_path(name);
+
+  if(!filepath.empty()) {
+    std::string unit_style = lmp->update->unit_style;
+    std::string date       = get_potential_date(filepath, "potential");
+    std::string units      = get_potential_units(filepath, "potential");
+
+    if(!date.empty() && (me == 0)) {
+      logmesg(lmp, fmt::format("Reading potential file {} "
+                               "with DATE: {}\n", name, date));
+    }
+
+    if (auto_convert == nullptr) {
+      if (!units.empty() && (units != unit_style) && (me == 0)) {
+        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                      "but {} units are in use", name, units,
+                                      unit_style));
+        return nullptr;
+      }
+    } else {
+      if (units.empty() || units == unit_style) {
+        *auto_convert = NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real")
+            && (*auto_convert & METAL2REAL)) {
+          *auto_convert = METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal")
+            && (*auto_convert & REAL2METAL)) {
+          *auto_convert = REAL2METAL;
+        } else {
+          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                        "but {} units are in use", name,
+                                        units, unit_style));
+          return nullptr;
+        }
+      }
+      if ((*auto_convert != NOCONVERT) && (me == 0))
+        error->warning(FLERR, fmt::format("Converting potential file in "
+                                          "{} units to {} units",
+                                          units, unit_style));
+    }
+    return fopen(filepath.c_str(), "r");
+  }
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
    convert a timespec ([[HH:]MM:]SS) to seconds
    the strings "off" and "unlimited" result in -1.0;
 ------------------------------------------------------------------------- */

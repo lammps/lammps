@@ -148,11 +148,11 @@ namespace LAMMPS_NS {
      * This functions processes the string in *str* and set the values of *nlo*
      * and *nhi* according to the following five cases:
      * 
-     * - a single number *i*: nlo = i; nhi = i;
-     * - a single asterisk \*: nlo = nmin; nhi = nmax;
-     * - a single number followed by an asterisk *i*\*: nlo = i; nhi = nmax;
-     * - a single asterisk followed by a number \**i*: nlo = nmin; nhi = i;
-     * - two numbers with an asterisk in between *i\*j*: nlo = i; nhi = j;
+     * - a single number, i: nlo = i; nhi = i;
+     * - a single asterisk, \*: nlo = nmin; nhi = nmax;
+     * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
+     * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
+     * - two numbers with an asterisk in between. i\*j: nlo = i; nhi = j;
      *
      * \param file     name of source file for error message
      * \param line     line number in source file for error message
@@ -171,11 +171,11 @@ namespace LAMMPS_NS {
      * This functions processes the string in *str* and set the values of *nlo*
      * and *nhi* according to the following five cases:
      * 
-     * - a single number *i*: nlo = i; nhi = i;
-     * - a single asterisk \*: nlo = nmin; nhi = nmax;
-     * - a single number followed by an asterisk *i*\*: nlo = i; nhi = nmax;
-     * - a single asterisk followed by a number \**i*: nlo = nmin; nhi = i;
-     * - two numbers with an asterisk in between *i\*j*: nlo = i; nhi = j;
+     * - a single number, i: nlo = i; nhi = i;
+     * - a single asterisk, \*: nlo = nmin; nhi = nmax;
+     * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
+     * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
+     * - two numbers with an asterisk in between. i\*j: nlo = i; nhi = j;
      *
      * \param file     name of source file for error message
      * \param line     line number in source file for error message
@@ -368,7 +368,7 @@ namespace LAMMPS_NS {
      *
      * If opening the file directly fails, the function will search for
      * it in the list of folder pointed to by the environment variable
-     * LAMMPS_POTENTIALS (if it is set).
+     * ``LAMMPS_POTENTIALS`` (if it is set).
      *
      * If the potential file has a ``UNITS`` tag in the first line, the
      * tag's value is compared to the current unit style setting.
@@ -378,7 +378,7 @@ namespace LAMMPS_NS {
      * the bitmask that *auto_convert* points to is used check for
      * compatibility with possible automatic conversions by the calling
      * function.  If compatible, the bitmask is set to the required
-     * conversion or ``NOCONVERT``.
+     * conversion or ``utils::NOCONVERT``.
      *
      * \param name          file- or pathname of the potential file
      * \param lmp           pointer to top-level LAMMPS class instance

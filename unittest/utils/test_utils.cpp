@@ -25,6 +25,10 @@ using ::testing::EndsWith;
 using ::testing::Eq;
 using ::testing::StrEq;
 
+#if !defined(FLERR)
+#define FLERR __FILE__,__LINE__
+#endif
+
 TEST(Utils, trim)
 {
     auto trimmed = utils::trim("\t some text");
@@ -360,6 +364,136 @@ TEST(Utils, strmatch_float_nonfloat)
 TEST(Utils, strmatch_whitespace_nonwhitespace)
 {
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
+}
+
+TEST(Utils, bounds_case1)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "9", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,9);
+    ASSERT_EQ(nhi,9);
+    utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,1);
+    ASSERT_EQ(nhi,1);
+}
+
+TEST(Utils, bounds_case2)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, bounds_case3)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,3);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, bounds_case4)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,2);
+    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, bounds_case5)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,5);
+    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-2);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, boundsbig_case1)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::boundsbig(FLERR, "9", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,9);
+    ASSERT_EQ(nhi,9);
+    utils::boundsbig(FLERR, "1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,1);
+    ASSERT_EQ(nhi,1);
+}
+
+TEST(Utils, boundsbig_case2)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::boundsbig(FLERR, "*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,10);
+    utils::boundsbig(FLERR, "*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, boundsbig_case3)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::boundsbig(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,10);
+    utils::boundsbig(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,3);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, boundsbig_case4)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::boundsbig(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,2);
+    utils::boundsbig(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, boundsbig_case5)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::boundsbig(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,5);
+    utils::boundsbig(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-2);
+    ASSERT_EQ(nhi,3);
 }
 
 TEST(Utils, guesspath)

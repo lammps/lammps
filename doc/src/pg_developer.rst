@@ -753,8 +753,8 @@ reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
 reduces redundant implementations and encourages consistent behavior.
 
-I/O functions with validity check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I/O with status check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 These are wrappers around the corresponding C library calls like
 ``fgets()`` or ``fread()``.  They will check if there were errors
@@ -771,19 +771,21 @@ indicating the name of the problematic file, if possible.
 String to number conversions with validity check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These are functions equivalent to those in the ``Force`` class that
-were implemented with the aim to replace and supersede those.  Unlike
-the versions in ``Force``, these can be used in cases where only
-a single MPI rank is trying to convert strings to numbers, as you
-can select through an argument, whether ``Error->all()`` or ``Error->one()``
-should be called on improper strings.
-
-These functions are preferred over C library calls like ``atoi()`` or
+These functions should be used to convert strings to numbers. They are
+are strongly preferred over C library calls like ``atoi()`` or
 ``atof()`` since they check if the **entire** provided string is a valid
-(floating-point or integer) number, and will error out instead of silently
-return the result of a partial conversion or zero in cases where the
-string is not a valid number.  This behavior allows to more easily detect
-typos or issues when processing input files.
+(floating-point or integer) number, and will error out instead of
+silently returning the result of a partial conversion or zero in cases
+where the string is not a valid number.  This behavior allows to more
+easily detect typos or issues when processing input files.
+
+The *do_abort* flag should be set to ``true`` in case  this function
+is called only on a single MPI rank, as that will then trigger the
+a call to ``Error::one()`` for errors instead of ``Error::all()``
+and avoids a "hanging" calculation when run in parallel.
+
+Please also see :cpp:func:`is_integer` and :cpp:func:`is_double` for
+testing strings for compliance without conversion.
 
 .. doxygenfunction:: numeric
    :project: progguide
@@ -798,8 +800,9 @@ typos or issues when processing input files.
    :project: progguide
 
 
-String processing functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+String processing
+^^^^^^^^^^^^^^^^^
+
 The following are functions to help with processing strings
 and parsing files or arguments.
 
@@ -833,8 +836,8 @@ and parsing files or arguments.
 .. doxygenfunction:: is_double
    :project: progguide
 
-Filename and path functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File and path functions
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: guesspath
    :project: progguide
@@ -869,8 +872,8 @@ Potential file functions
 .. doxygenfunction:: open_potential
    :project: progguide
 
-Argument processing functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Argument processing
+^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: bounds
    :project: progguide

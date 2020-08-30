@@ -24,6 +24,15 @@ of the source files: the lammps.f90 file needs to be compiled first,
 since it provides the ``LIBLAMMPS`` module that is imported by the
 fortran code using the interface.
 
+.. versionadded:: 30Sep2020
+
+.. admonition:: Work in Progress
+
+   This fortran module is work in progress and only the documented
+   functionality is currently available. The final implementation should
+   cover the entire range of functionality available in the C and
+   Python library interfaces.
+
 ----------
 
 Creating or deleting a LAMMPS object

@@ -51,7 +51,7 @@ b. You can build the HTML or PDF files yourself, by typing ``make html``
 A current version of the manual (latest patch release, aka unstable branch)
 is is available online at: `https://lammps.sandia.gov/doc/Manual.html <https://lammps.sandia.gov/doc/Manual.html>`_
 A version of the manual corresponding to the ongoing development
-(aka master branch) is available online at: `https://doc.lammps.org/ <https://doc.lammps.org/>`_
+(aka master branch) is available online at: `https://docs.lammps.org/ <https://docs.lammps.org/>`_
 
 ----------
 

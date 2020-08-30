@@ -866,6 +866,21 @@ Potential file functions
 .. doxygenfunction:: get_conversion_factor
    :project: progguide
 
+.. doxygenfunction:: open_potential
+   :project: progguide
+
+Argument processing functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: bounds
+   :project: progguide
+
+.. doxygenfunction:: boundsbig
+   :project: progguide
+
+.. doxygenfunction:: expand_args
+   :project: progguide
+
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 

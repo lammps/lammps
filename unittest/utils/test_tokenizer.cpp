@@ -62,6 +62,15 @@ TEST(Tokenizer, iterate_words)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, no_separator_path)
+{
+    Tokenizer t("one", ":");
+    ASSERT_EQ(t.has_next(), true);
+    ASSERT_EQ(t.count(), 1);
+    ASSERT_THAT(t.next(), Eq("one"));
+    ASSERT_EQ(t.has_next(), false);
+}
+
 TEST(Tokenizer, unix_paths)
 {
     Tokenizer t(":one:two:three:", ":");

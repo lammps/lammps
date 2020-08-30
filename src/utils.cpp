@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include "lammps.h"
+#include "comm.h"
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
@@ -23,6 +24,7 @@
 #include "modify.h"
 #include "tokenizer.h"
 #include "text_file_reader.h"
+#include "update.h"
 #include "fmt/format.h"
 
 #if defined(__linux__)
@@ -822,6 +824,11 @@ bool utils::file_is_readable(const std::string &path) {
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
+#if defined(_WIN32)
+#define OS_PATH_VAR_SEP ";"
+#else
+#define OS_PATH_VAR_SEP ":"
+#endif
 
 std::string utils::get_potential_file_path(const std::string &path) {
   std::string filepath = path;
@@ -831,19 +838,25 @@ std::string utils::get_potential_file_path(const std::string &path) {
     return filepath;
   } else {
     // try the environment variable directory
-    const char *path = getenv("LAMMPS_POTENTIALS");
+    const char *var = getenv("LAMMPS_POTENTIALS");
 
-    if (path != nullptr){
-      std::string pot = utils::path_basename(filepath);
-      filepath = utils::path_join(path, pot);
+    if (var != nullptr){
+      Tokenizer dirs(var,OS_PATH_VAR_SEP);
 
-      if (utils::file_is_readable(filepath)) {
-        return filepath;
+      while (dirs.has_next()) {
+        auto pot = utils::path_basename(filepath);
+        auto path = dirs.next();
+        filepath = utils::path_join(path, pot);
+
+        if (utils::file_is_readable(filepath)) {
+          return filepath;
+        }
       }
     }
   }
   return "";
 }
+#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file

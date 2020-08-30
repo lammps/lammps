@@ -169,7 +169,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) ; // default
+      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
       if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {

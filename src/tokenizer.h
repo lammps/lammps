@@ -27,6 +27,11 @@ namespace LAMMPS_NS {
 
 #define TOKENIZER_DEFAULT_SEPARATORS " \t\r\n\f"
 
+/*! Class for splitting text into words
+ *
+ * \sa ValueTokenizer
+ */
+
 class Tokenizer {
     std::string text;
     std::string separators;
@@ -39,13 +44,46 @@ public:
     Tokenizer& operator=(const Tokenizer&) = default;
     Tokenizer& operator=(Tokenizer&&) = default;
 
+    /*! Reposition the tokenizer state to the first word,
+     * i.e. the first non-separator character
+     */
     void reset();
+
+    /*! Skip over a given number of tokens
+     *
+     * \param  n  number of tokens to skip over
+     */
     void skip(int n);
+
+    /*! Indicate whether more tokens are available
+     *
+     * \return   true if there are more tokens, false if not
+     */
     bool has_next() const;
+
+    /*! Search the text to be processed for a sub-string.
+     *
+     * \param  str  string to be searched for
+     * \return      true if string was found, false if not
+     */
     bool contains(const std::string & str) const;
+
+    /*! Retrieve next token.
+     *
+     * \return   string with the next token
+     */
     std::string next();
 
+    /*! Count number of tokens in text.
+     *
+     * \return   number of counted tokens
+     */
     size_t count();
+
+    /*! Retrieve the entire text converted to an STL vector of tokens.
+     *
+     * \return   The STL vector
+     */
     std::vector<std::string> as_vector();
 };
 
@@ -73,6 +111,11 @@ public:
     InvalidFloatException(const std::string & token) : TokenizerException("Not a valid floating-point number", token) {
     }
 };
+
+/*! Class for reading text with numbers
+ *
+ * \sa Tokenizer
+ */
 
 class ValueTokenizer {
     Tokenizer tokens;

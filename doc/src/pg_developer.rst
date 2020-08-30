@@ -880,3 +880,32 @@ Convenience functions
 
 .. doxygenfunction:: timespec2seconds
    :project: progguide
+
+---------------------------
+
+Tokenizer classes
+=================
+
+The purpose of the tokenizer classes is to simplify the recurring task
+of breaking lines of text down into words and/or numbers.
+Traditionally, LAMMPS code would be using the ``strtok()`` function from
+the C library for that purpose, but that function has two significant
+disadvantages: 1) it cannot be used concurrently from different LAMMPS
+instances since it stores its status in a global variable and 2) it
+modifies the string that it is processing.  These classes were
+implemented to avoid both of these issues and also to reduce the amount
+of code that needs to be written.
+
+The basic procedure is to create an instance of the class with the
+string to be processed as an argument and then do a loop until all
+available tokens are read.  The constructor has a default set of
+separator characters, but that can be overridden. The default separators
+are all "whitespace" characters, i.e. the space character, the tabulator
+character, the carriage return character, the linefeed character, and
+the form feed character.
+
+.. doxygenclass:: LAMMPS_NS::Tokenizer
+   :project: progguide
+
+.. doxygenclass:: LAMMPS_NS::ValueTokenizer
+   :project: progguide

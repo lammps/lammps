@@ -147,7 +147,7 @@ namespace LAMMPS_NS {
      *
      * This functions processes the string in *str* and set the values of *nlo*
      * and *nhi* according to the following five cases:
-     * 
+     *
      * - a single number, i: nlo = i; nhi = i;
      * - a single asterisk, \*: nlo = nmin; nhi = nmax;
      * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
@@ -170,7 +170,7 @@ namespace LAMMPS_NS {
      *
      * This functions processes the string in *str* and set the values of *nlo*
      * and *nhi* according to the following five cases:
-     * 
+     *
      * - a single number, i: nlo = i; nhi = i;
      * - a single asterisk, \*: nlo = nmin; nhi = nmax;
      * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;

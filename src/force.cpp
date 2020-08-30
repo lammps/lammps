@@ -837,59 +837,6 @@ void Force::set_special(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   open a potential file as specified by name
-   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
-------------------------------------------------------------------------- */
-
-FILE *Force::open_potential(const char *name, int *auto_convert)
-{
-  std::string filepath = utils::get_potential_file_path(name);
-
-  if(!filepath.empty()) {
-    std::string unit_style = update->unit_style;
-    std::string date       = utils::get_potential_date(filepath, "potential");
-    std::string units      = utils::get_potential_units(filepath, "potential");
-
-    if(!date.empty() && (comm->me == 0)) {
-      utils::logmesg(lmp, fmt::format("Reading potential file {} "
-                                      "with DATE: {}\n", name, date));
-    }
-
-    if (auto_convert == nullptr) {
-      if (!units.empty() && (units != unit_style) && (comm->me == 0)) {
-        error->one(FLERR, fmt::format("Potential file {} requires {} units "
-                                      "but {} units are in use", name, units,
-                                      unit_style));
-        return nullptr;
-      }
-    } else {
-      if (units.empty() || units == unit_style) {
-        *auto_convert = utils::NOCONVERT;
-      } else {
-        if ((units == "metal") && (unit_style == "real")
-            && (*auto_convert & utils::METAL2REAL)) {
-          *auto_convert = utils::METAL2REAL;
-        } else if ((units == "real") && (unit_style == "metal")
-            && (*auto_convert & utils::REAL2METAL)) {
-          *auto_convert = utils::REAL2METAL;
-        } else {
-          error->one(FLERR, fmt::format("Potential file {} requires {} units "
-                                        "but {} units are in use", name,
-                                        units, unit_style));
-          return nullptr;
-        }
-      }
-      if ((*auto_convert != utils::NOCONVERT) && (comm->me == 0))
-        lmp->error->warning(FLERR, fmt::format("Converting potential file in "
-                                               "{} units to {} units",
-                                               units, unit_style));
-    }
-    return fopen(filepath.c_str(), "r");
-  }
-  return nullptr;
-}
-
-/* ----------------------------------------------------------------------
    memory usage of force classes
 ------------------------------------------------------------------------- */
 

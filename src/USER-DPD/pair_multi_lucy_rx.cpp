@@ -493,7 +493,7 @@ void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);

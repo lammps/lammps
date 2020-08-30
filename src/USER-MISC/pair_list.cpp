@@ -209,7 +209,7 @@ void PairList::settings(int narg, char **arg)
     if (strcmp(arg[2],"check") == 0) check_flag = 1;
   }
 
-  FILE *fp = force->open_potential(arg[0]);
+  FILE *fp = utils::open_potential(arg[0],lmp,nullptr);
   char line[1024];
   if (fp == NULL)
     error->all(FLERR,"Cannot open pair list file");

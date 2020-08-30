@@ -315,7 +315,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open KC potential file %s",filename);

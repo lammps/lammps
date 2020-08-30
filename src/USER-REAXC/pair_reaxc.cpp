@@ -317,7 +317,7 @@ void PairReaxC::coeff( int nargs, char **args )
 
   char *file = args[2];
   FILE *fp;
-  fp = force->open_potential(file);
+  fp = utils::open_potential(file,lmp,nullptr);
   if (fp != NULL)
     Read_Force_Field(fp, &(system->reax_param), control);
   else {

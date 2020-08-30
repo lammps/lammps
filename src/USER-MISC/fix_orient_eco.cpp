@@ -97,7 +97,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = force->open_potential(dir_filename);
+    FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
     if (infile == NULL)
       error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
                                    dir_filename, utils::getsyserror()));

@@ -1078,7 +1078,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     string err_msg = string("Cannot open file ") + string(file);
     error->one(FLERR,err_msg);

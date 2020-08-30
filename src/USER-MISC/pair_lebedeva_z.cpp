@@ -311,7 +311,7 @@ void PairLebedevaZ::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Lebedeva potential file %s",filename);

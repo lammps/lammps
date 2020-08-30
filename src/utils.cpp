@@ -939,7 +939,8 @@ double utils::get_conversion_factor(const int property, const int conversion)
    if fails, search in dir specified by env variable LAMMPS_POTENTIALS
 ------------------------------------------------------------------------- */
 
-FILE *utils::open_potential(const char *name, LAMMPS *lmp, int *auto_convert)
+FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
+                            int *auto_convert)
 {
   auto error = lmp->error;
   auto me = lmp->comm->me;

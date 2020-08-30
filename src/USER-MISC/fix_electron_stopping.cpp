@@ -240,7 +240,7 @@ void FixElectronStopping::read_table(const char *file)
 {
   char line[MAXLINE];
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     char str[128];
     snprintf(str, 128, "Cannot open stopping range table %s", file);

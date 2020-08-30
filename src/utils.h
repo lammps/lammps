@@ -382,8 +382,7 @@ value is compared to the current :doc:`unit style <units>` setting.
      *  \param auto_convert  pointer to automatic unit conversion bitmask
      *  \return              FILE pointer of the opened potential file or NULL
      */
-    FILE *open_potential(const char *name, LAMMPS *lmp,
-                         int *auto_convert=nullptr);
+    FILE *open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert);
 
     /** Convert a time string to seconds
      *

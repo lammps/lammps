@@ -725,7 +725,7 @@ void PairExp6rx::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open exp6/rx potential file %s",file);

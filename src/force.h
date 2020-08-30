@@ -129,8 +129,6 @@ class Force : protected Pointers {
   void store_style(char *&, const std::string &, int);
   void set_special(int, char **);
 
-  FILE *open_potential(const char *, int *auto_convert = nullptr);
-
   bigint memory_usage();
 
  private:

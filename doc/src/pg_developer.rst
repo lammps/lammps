@@ -902,10 +902,58 @@ available tokens are read.  The constructor has a default set of
 separator characters, but that can be overridden. The default separators
 are all "whitespace" characters, i.e. the space character, the tabulator
 character, the carriage return character, the linefeed character, and
-the form feed character.
+the form feed character.  Below is a small example code using the
+tokenizer class to print the individual entries of the PATH environment
+variable.
+
+.. code-block:: C++
+
+   #include "tokenizer.h"
+   #include <cstdlib>
+   #include <string>
+   #include <iostream>
+
+   using namespace LAMMPS_NS;
+
+   int main(int, char **)
+   {
+       const char *path = getenv("PATH");
+
+       if (path != nullptr) {
+           Tokenizer p(path,":");
+           while (p.has_next())
+               std::cout << "Entry: " << p.next() << "\n";
+       }
+       return 0;
+   }
+
+Most tokenizer operations cannot fail except for
+:cpp:func:`LAMMPS_NS::Tokenizer::next` (when used without first
+checking with :cpp:func:`LAMMPS_NS::Tokenizer::has_next`) and
+:cpp:func:`LAMMPS_NS::Tokenizer::skip`.  In case of failure, the class
+will throw an exception, so you may need to wrap the code using the
+tokenizer into a ``try`` / ``catch`` block to handle errors.  The
+:cpp:class:`LAMMPS_NS::ValueTokenizer` class may also throw an exception
+when a (type of) number is requested as next token that is not
+compatible with the string representing the next word.
 
 .. doxygenclass:: LAMMPS_NS::Tokenizer
    :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::TokenizerException
+   :project: progguide
+   :members:
 
 .. doxygenclass:: LAMMPS_NS::ValueTokenizer
    :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::InvalidIntegerException
+   :project: progguide
+   :members: what
+
+.. doxygenclass:: LAMMPS_NS::InvalidFloatException
+   :project: progguide
+   :members: what
+

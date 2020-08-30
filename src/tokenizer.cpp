@@ -35,7 +35,9 @@ TokenizerException::TokenizerException(const std::string & msg, const std::strin
  * This tokenizer will break down a string into sub-strings (i.e words)
  * separated by the given separator characters.
  *
- * \sa LAMMPS_NS::ValueTokenizer TokenizerException */
+ * \exception TokenizerException
+ *
+ * \sa ValueTokenizer TokenizerException */
 
 Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
@@ -147,7 +149,7 @@ std::vector<std::string> Tokenizer::as_vector() {
 
 /*! Class for reading text with numbers
  *
- * \sa LAMMPS_NS::Tokenizer InvalidIntegerException InvalidFloatException */
+ * \sa Tokenizer InvalidIntegerException InvalidFloatException */
 
 ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
 }

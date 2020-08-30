@@ -49,10 +49,10 @@ public:
     std::vector<std::string> as_vector();
 };
 
-/** \exception TokenizerException. Contains an error message string. */
 class TokenizerException : public std::exception {
   std::string message;
 public:
+  /** Thrown during retrieving or skipping tokens */
   TokenizerException(const std::string & msg, const std::string & token);
 
   ~TokenizerException() throw() {

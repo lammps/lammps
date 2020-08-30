@@ -65,16 +65,16 @@ public:
   }
 };
 
-/** \exception InvalidIntegerException. Contains an error message string. */
 class InvalidIntegerException : public TokenizerException {
 public:
+    /** Thrown during converting string to integer number */
     InvalidIntegerException(const std::string & token) : TokenizerException("Not a valid integer number", token) {
     }
 };
 
-/** \exception FloatIntegerException. Contains an error message string. */
 class InvalidFloatException : public TokenizerException {
 public:
+    /** Thrown during converting string to floating point number */
     InvalidFloatException(const std::string & token) : TokenizerException("Not a valid floating-point number", token) {
     }
 };

@@ -15,6 +15,8 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
+
 #ifndef LMP_ZSTD_FILE_WRITER_H
 #define LMP_ZSTD_FILE_WRITER_H
 
@@ -49,4 +51,5 @@ public:
 
 }
 
+#endif
 #endif

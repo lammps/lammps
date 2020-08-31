@@ -15,6 +15,8 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
+
 #include "zstd_file_writer.h"
 #include <stdio.h>
 #include <fmt/format.h>
@@ -156,3 +158,5 @@ void ZstdFileWriter::setChecksum(bool enabled)
     throw FileWriterException("Checksum flag can not be changed while file is open");
   checksum_flag = enabled ? 1 : 0;
 }
+
+#endif

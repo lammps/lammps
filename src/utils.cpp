@@ -359,27 +359,27 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
 ------------------------------------------------------------------------- */
-template<>
-void utils::bounds(const char *file, int line, char *str,
-                   bigint nmin, bigint nmax, int &nlo, int &nhi, Error *error)
+template<typename TYPE>
+void utils::bounds(const char *file, int line, const std::string &str,
+                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
 {
-  char *ptr = strchr(str,'*');
+  size_t found = str.find_first_of("*");
 
   nlo = nhi = -1;
-  if (ptr == NULL) {
-    nlo = nhi = atoi(str);
-  } else if (strlen(str) == 1) {
+  if (found == std::string::npos) {    // contains no '*'
+    nlo = nhi = strtol(str.c_str(),NULL,10);
+  } else if (str.size() == 1) {        // is only '*'
     nlo = nmin;
     nhi = nmax;
-  } else if (ptr == str) {
+  } else if (found == 0) {             // is '*j'
     nlo = nmin;
-    nhi = atoi(ptr+1);
-  } else if (strlen(ptr+1) == 0) {
-    nlo = atoi(str);
+    nhi = strtol(str.substr(1).c_str(),NULL,10);
+  } else if (str.size() == found+1) {  // is 'i*'
+    nlo = strtol(str.c_str(),NULL,10);
     nhi = nmax;
-  } else {
-    nlo = atoi(str);
-    nhi = atoi(ptr+1);
+  } else {                             // is 'i*j'
+    nlo = strtol(str.c_str(),NULL,10);
+    nhi = strtol(str.substr(found+1).c_str(),NULL,10);
   }
 
   if (error) {
@@ -395,46 +395,10 @@ void utils::bounds(const char *file, int line, char *str,
   }
 }
 
-
-/* ----------------------------------------------------------------------
-   compute bounds implied by numeric str with a possible wildcard asterisk
-------------------------------------------------------------------------- */
-template <>
-void utils::bounds(const char *file, int line, char *str,
-                   bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
-                   Error *error)
-{
-  char *ptr = strchr(str,'*');
-
-  nlo = nhi = -1;
-  if (ptr == NULL) {
-    nlo = nhi = ATOBIGINT(str);
-  } else if (strlen(str) == 1) {
-    nlo = nmin;
-    nhi = nmax;
-  } else if (ptr == str) {
-    nlo = nmin;
-    nhi = ATOBIGINT(ptr+1);
-  } else if (strlen(ptr+1) == 0) {
-    nlo = ATOBIGINT(str);
-    nhi = nmax;
-  } else {
-    nlo = ATOBIGINT(str);
-    nhi = ATOBIGINT(ptr+1);
-  }
-
-  if (error) {
-    if (nlo < nmin)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
-                                       "({}-{})",nlo,nmin,nmax));
-    else if (nhi > nmax)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
-                                       "({}-{})",nhi,nmin,nmax));
-    else if (nlo > nhi)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
-                                       "({}-{})",nlo,nmin,nhi));
-  }
-}
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, int &, int &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long &, long &, Error *);
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards

@@ -163,7 +163,7 @@ namespace LAMMPS_NS {
      * \param nhi      upper bound
      * \param error    pointer to Error class for out-of-bounds messages */
     template <typename TYPE>
-    void bounds(const char *file, int line, char *str,
+    void bounds(const char *file, int line, const std::string &str,
                 bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error);
 
     /** Expand list of arguments when containing fix/compute wildcards

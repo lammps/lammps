@@ -85,8 +85,8 @@ PACKUSERUC = $(call uppercase,$(PACKUSER))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
-LIBDIR = $($(@:lib-%=%))
-LIBUSERDIR = $($(@:lib-user-%=%))
+LIBDIR = $(@:lib-%=%)
+LIBUSERDIR = $(@:lib-user-%=%)
 
 # List of all targets
 

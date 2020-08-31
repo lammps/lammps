@@ -762,6 +762,8 @@ on reading or an unexpected end-of-file state was reached.  In that
 case, the functions will stop the calculation with an error message,
 indicating the name of the problematic file, if possible.
 
+----------
+
 .. doxygenfunction:: sfgets
    :project: progguide
 
@@ -785,6 +787,8 @@ return the result of a partial conversion or zero in cases where the
 string is not a valid number.  This behavior allows to more easily detect
 typos or issues when processing input files.
 
+----------
+
 .. doxygenfunction:: numeric
    :project: progguide
 
@@ -802,6 +806,8 @@ String processing functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following are functions to help with processing strings
 and parsing files or arguments.
+
+----------
 
 .. doxygenfunction:: trim
    :project: progguide
@@ -880,3 +886,188 @@ Convenience functions
 
 .. doxygenfunction:: timespec2seconds
    :project: progguide
+
+---------------------------
+
+Tokenizer classes
+=================
+
+The purpose of the tokenizer classes is to simplify the recurring task
+of breaking lines of text down into words and/or numbers.
+Traditionally, LAMMPS code would be using the ``strtok()`` function from
+the C library for that purpose, but that function has two significant
+disadvantages: 1) it cannot be used concurrently from different LAMMPS
+instances since it stores its status in a global variable and 2) it
+modifies the string that it is processing.  These classes were
+implemented to avoid both of these issues and also to reduce the amount
+of code that needs to be written.
+
+The basic procedure is to create an instance of the tokenizer class with
+the string to be processed as an argument and then do a loop until all
+available tokens are read.  The constructor has a default set of
+separator characters, but that can be overridden. The default separators
+are all "whitespace" characters, i.e. the space character, the tabulator
+character, the carriage return character, the linefeed character, and
+the form feed character.
+
+.. code-block:: C++
+   :caption: Tokenizer class example listing entries of the PATH environment variable
+
+   #include "tokenizer.h"
+   #include <cstdlib>
+   #include <string>
+   #include <iostream>
+
+   using namespace LAMMPS_NS;
+
+   int main(int, char **)
+   {
+       const char *path = getenv("PATH");
+
+       if (path != nullptr) {
+           Tokenizer p(path,":");
+           while (p.has_next())
+               std::cout << "Entry: " << p.next() << "\n";
+       }
+       return 0;
+   }
+
+Most tokenizer operations cannot fail except for
+:cpp:func:`LAMMPS_NS::Tokenizer::next` (when used without first
+checking with :cpp:func:`LAMMPS_NS::Tokenizer::has_next`) and
+:cpp:func:`LAMMPS_NS::Tokenizer::skip`.  In case of failure, the class
+will throw an exception, so you may need to wrap the code using the
+tokenizer into a ``try`` / ``catch`` block to handle errors.  The
+:cpp:class:`LAMMPS_NS::ValueTokenizer` class may also throw an exception
+when a (type of) number is requested as next token that is not
+compatible with the string representing the next word.
+
+.. code-block:: C++
+   :caption: ValueTokenizer class example with exception handling
+
+   #include "tokenizer.h"
+   #include <cstdlib>
+   #include <string>
+   #include <iostream>
+
+   using namespace LAMMPS_NS;
+
+   int main(int, char **)
+   {
+       const char *text = "1 2 3 4 5 20.0 21 twentytwo 2.3";
+       double num1(0),num2(0),num3(0),num4(0);
+
+       ValueTokenizer t(text);
+       // read 4 doubles after skipping over 5 numbers
+       try {
+           t.skip(5);
+           num1 = t.next_double();
+           num2 = t.next_double();
+           num3 = t.next_double();
+           num4 = t.next_double();
+       } catch (TokenizerException &e) {
+           std::cout << "Reading numbers failed: " << e.what() << "\n";
+       }
+       std::cout << "Values: " << num1 << " " << num2 << " " << num3 << " " << num4 << "\n";
+       return 0;
+   }
+
+This code example should produce the following output:
+
+.. code-block::
+
+   Reading numbers failed: Not a valid floating-point number: 'twentytwo'
+   Values: 20 21 0 0
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::Tokenizer
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::TokenizerException
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::ValueTokenizer
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::InvalidIntegerException
+   :project: progguide
+   :members: what
+
+.. doxygenclass:: LAMMPS_NS::InvalidFloatException
+   :project: progguide
+   :members: what
+
+File reader classes
+====================
+
+The purpose of the file reader classes is to simplify the recurring task
+of reading and parsing files. They can use the
+:cpp:class:`LAMMPS_NS::ValueTokenizer` class to process the read in
+text.  The :cpp:class:`LAMMPS_NS::TextFileReader` is a more general
+version while :cpp:class:`LAMMPS_NS::PotentialFileReader` is specialized
+to implement the behavior expected for looking up and reading/parsing
+files with potential parameters in LAMMPS.  The potential file reader
+class requires a LAMMPS instance, requires to be run on MPI rank 0 only,
+will use the :cpp:func:`LAMMPS_NS::utils::get_potential_file_path`
+function to look up and open the file, and will call the
+:cpp:class:`LAMMPS_NS::Error` class in case of failures to read or to
+convert numbers, so that LAMMPS will be aborted.
+
+.. code-block:: C++
+   :caption: Use of PotentialFileReader class in pair style coul/streitz
+
+    PotentialFileReader reader(lmp, file, "coul/streitz");
+    char * line;
+
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
+        std::string iname = values.next_string();
+
+        int ielement;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].chi = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].zeta = values.next_double();
+        params[nparams].zcore = values.next_double();
+
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
+      }
+      nparams++;
+    }
+
+A file that would be parsed by the reader code fragment looks like this:
+
+   # DATE: 2015-02-19 UNITS: metal CONTRIBUTOR: Ray Shan CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
+   #
+   # X (eV)                J (eV)          gamma (1/\AA)   zeta (1/\AA)    Z (e)
+
+   Al      0.000000        10.328655       0.000000        0.968438        0.763905
+   O       5.484763        14.035715       0.000000        2.143957        0.000000
+
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::TextFileReader
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::PotentialFileReader
+   :project: progguide
+   :members:
+

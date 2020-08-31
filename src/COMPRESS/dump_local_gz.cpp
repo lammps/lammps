@@ -116,18 +116,18 @@ void DumpLocalGZ::write_header(bigint ndump)
 
     gzprintf(gzFp,"ITEM: TIMESTEP\n");
     gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
-    gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");
+    gzprintf(gzFp,"ITEM: NUMBER OF ENTRIES\n");
     gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
-    if (domain->triclinic == 0) {
-      gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxxlo,boxxhi);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxylo,boxyhi);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxzlo,boxzhi);
-    } else {
+    if (domain->triclinic) {
       gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
       gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxxlo,boxxhi,boxxy);
       gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxylo,boxyhi,boxxz);
       gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxzlo,boxzhi,boxyz);
+    } else {
+      gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxxlo,boxxhi);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxylo,boxyhi);
+      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxzlo,boxzhi);
     }
     gzprintf(gzFp,"ITEM: %s %s\n",label,columns);
   }

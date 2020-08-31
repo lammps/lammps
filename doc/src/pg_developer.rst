@@ -762,6 +762,8 @@ on reading or an unexpected end-of-file state was reached.  In that
 case, the functions will stop the calculation with an error message,
 indicating the name of the problematic file, if possible.
 
+----------
+
 .. doxygenfunction:: sfgets
    :project: progguide
 
@@ -785,6 +787,8 @@ return the result of a partial conversion or zero in cases where the
 string is not a valid number.  This behavior allows to more easily detect
 typos or issues when processing input files.
 
+----------
+
 .. doxygenfunction:: numeric
    :project: progguide
 
@@ -802,6 +806,8 @@ String processing functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following are functions to help with processing strings
 and parsing files or arguments.
+
+----------
 
 .. doxygenfunction:: trim
    :project: progguide
@@ -994,4 +1000,18 @@ This code example should produce the following output:
 .. doxygenclass:: LAMMPS_NS::InvalidFloatException
    :project: progguide
    :members: what
+
+File reader classes
+====================
+
+The purpose of the file reader classes is to simplify the recurring task
+of reading and parsing files. They are built on top of the tokenizer
+classes discussed in the previous section, but include operations that
+are optimized for processing larger chunks of data more efficiently.
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::TextFileReader
+   :project: progguide
+   :members:
 

@@ -33,7 +33,7 @@ namespace LAMMPS_NS
     FILE *fp;
 
   public:
-    bool ignore_comments;
+    bool ignore_comments; //!< Controls whether comments are ignored
 
     TextFileReader(const std::string &filename, const std::string &filetype);
     ~TextFileReader();

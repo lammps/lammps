@@ -22,13 +22,13 @@ NVCC = nvcc
 #CUDA_ARCH = -arch=sm_21
 
 # Kepler hardware
-CUDA_ARCH = -arch=sm_30
+#CUDA_ARCH = -arch=sm_30
 #CUDA_ARCH = -arch=sm_32
 #CUDA_ARCH = -arch=sm_35
 #CUDA_ARCH = -arch=sm_37
 
 # Maxwell hardware
-#CUDA_ARCH = -arch=sm_50
+CUDA_ARCH = -arch=sm_50
 #CUDA_ARCH = -arch=sm_52
 
 # Pascal hardware

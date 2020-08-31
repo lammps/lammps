@@ -15,6 +15,7 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
 #ifdef DUMP_CLASS
 
 DumpStyle(cfg/zstd,DumpCFGZstd)
@@ -47,6 +48,7 @@ class DumpCFGZstd : public DumpCFG {
 
 }
 
+#endif
 #endif
 #endif
 

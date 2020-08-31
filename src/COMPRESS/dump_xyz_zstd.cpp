@@ -15,6 +15,8 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
+
 #include "dump_xyz_zstd.h"
 #include "error.h"
 #include "update.h"
@@ -164,3 +166,5 @@ int DumpXYZZstd::modify_param(int narg, char **arg)
   }
   return consumed;
 }
+
+#endif

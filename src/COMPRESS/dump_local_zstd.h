@@ -15,6 +15,8 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
+
 #ifdef DUMP_CLASS
 
 DumpStyle(local/zstd,DumpLocalZstd)
@@ -47,6 +49,7 @@ class DumpLocalZstd : public DumpLocal {
 
 }
 
+#endif
 #endif
 #endif
 

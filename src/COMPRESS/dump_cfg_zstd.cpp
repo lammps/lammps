@@ -15,6 +15,7 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
 #include "dump_cfg_zstd.h"
 #include "atom.h"
 #include "domain.h"
@@ -192,3 +193,4 @@ int DumpCFGZstd::modify_param(int narg, char **arg)
   }
   return consumed;
 }
+#endif

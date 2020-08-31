@@ -15,6 +15,8 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_ZSTD
+
 #include "dump_local_zstd.h"
 #include "domain.h"
 #include "error.h"
@@ -189,3 +191,5 @@ int DumpLocalZstd::modify_param(int narg, char **arg)
   }
   return consumed;
 }
+
+#endif

@@ -896,17 +896,16 @@ modifies the string that it is processing.  These classes were
 implemented to avoid both of these issues and also to reduce the amount
 of code that needs to be written.
 
-The basic procedure is to create an instance of the class with the
-string to be processed as an argument and then do a loop until all
+The basic procedure is to create an instance of the tokenizer class with
+the string to be processed as an argument and then do a loop until all
 available tokens are read.  The constructor has a default set of
 separator characters, but that can be overridden. The default separators
 are all "whitespace" characters, i.e. the space character, the tabulator
 character, the carriage return character, the linefeed character, and
-the form feed character.  Below is a small example code using the
-tokenizer class to print the individual entries of the PATH environment
-variable.
+the form feed character.
 
 .. code-block:: C++
+   :caption: Tokenizer class example listing entries of the PATH environment variable
 
    #include "tokenizer.h"
    #include <cstdlib>
@@ -936,6 +935,45 @@ tokenizer into a ``try`` / ``catch`` block to handle errors.  The
 :cpp:class:`LAMMPS_NS::ValueTokenizer` class may also throw an exception
 when a (type of) number is requested as next token that is not
 compatible with the string representing the next word.
+
+.. code-block:: C++
+   :caption: ValueTokenizer class example with exception handling
+
+   #include "tokenizer.h"
+   #include <cstdlib>
+   #include <string>
+   #include <iostream>
+
+   using namespace LAMMPS_NS;
+
+   int main(int, char **)
+   {
+       const char *text = "1 2 3 4 5 20.0 21 twentytwo 2.3";
+       double num1(0),num2(0),num3(0),num4(0);
+
+       ValueTokenizer t(text);
+       // read 4 doubles after skipping over 5 numbers
+       try {
+           t.skip(5);
+           num1 = t.next_double();
+           num2 = t.next_double();
+           num3 = t.next_double();
+           num4 = t.next_double();
+       } catch (TokenizerException &e) {
+           std::cout << "Reading numbers failed: " << e.what() << "\n";
+       }
+       std::cout << "Values: " << num1 << " " << num2 << " " << num3 << " " << num4 << "\n";
+       return 0;
+   }
+
+This code example should produce the following output:
+
+.. code-block::
+
+   Reading numbers failed: Not a valid floating-point number: 'twentytwo'
+   Values: 20 21 0 0
+
+----------
 
 .. doxygenclass:: LAMMPS_NS::Tokenizer
    :project: progguide

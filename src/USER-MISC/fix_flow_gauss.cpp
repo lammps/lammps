@@ -71,7 +71,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   int tmpFlag;
   for (int ii=0; ii<3; ii++)
   {
-    tmpFlag=force->inumeric(FLERR,arg[3+ii]);
+    tmpFlag=utils::inumeric(FLERR,arg[3+ii],false,lmp);
     if (tmpFlag==1 || tmpFlag==0)
       flow[ii]=tmpFlag;
     else

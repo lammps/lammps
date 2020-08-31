@@ -586,7 +586,7 @@ void PairMESONTTPM::allocate(){
 void PairMESONTTPM::settings(int narg, char **arg){
   if ((narg == 0) || (narg > 4))
     error->all(FLERR,"Illegal pair_style command");
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
   if (allocated) {
@@ -604,12 +604,12 @@ void PairMESONTTPM::settings(int narg, char **arg){
   mesont_lib_SetTablePath(tab_path, tab_path_length);
 
   if (narg > 2) {
-    BendingMode = force->numeric(FLERR,arg[2]);
+    BendingMode = utils::numeric(FLERR,arg[2],false,lmp);
     if ((BendingMode < 0) || (BendingMode > 1))
       error->all(FLERR,"Incorrect BendingMode");
   }
   if (narg > 3) {
-    TPMType = force->numeric(FLERR,arg[3]);
+    TPMType = utils::numeric(FLERR,arg[3],false,lmp);
     if ((TPMType < 0) || (TPMType > 1))
       error->all(FLERR,"Incorrect TPMType");
   }
@@ -639,11 +639,11 @@ void PairMESONTTPM::coeff(int narg, char **arg){
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+  if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

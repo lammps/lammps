@@ -94,12 +94,12 @@ namespace LAMMPS_NS {
     /** Convert a string to a floating point number while checking
      *  if it is a valid floating point or integer number
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return double precision floating point number
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         double precision floating point number
      */
     double numeric(const char *file, int line, const char *str,
                    bool do_abort, LAMMPS *lmp);
@@ -107,12 +107,12 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (regular int)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (regular int)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (regular int)
      */
     int inumeric(const char *file, int line, const char *str,
                  bool do_abort, LAMMPS *lmp);
@@ -120,12 +120,12 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (bigint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (bigint)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (bigint)
      */
     bigint bnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
@@ -133,15 +133,66 @@ namespace LAMMPS_NS {
     /** Convert a string to an integer number while checking
      *  if it is a valid integer number (tagint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
-     *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (tagint)
-     */
+     * \param file     name of source file for error message
+     * \param line     line number in source file for error message
+     * \param str      string to be converted to number
+     * \param do_abort determines whether to call Error::one() or Error::all()
+     * \param lmp      pointer to top-level LAMMPS class instance
+     * \return         integer number (tagint) */
+
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
+
+    /** Compute index bounds derived from a string with a possible wildcard
+     *
+     * This functions processes the string in *str* and set the values of *nlo*
+     * and *nhi* according to the following five cases:
+     *
+     * - a single number, i: nlo = i; nhi = i;
+     * - a single asterisk, \*: nlo = nmin; nhi = nmax;
+     * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
+     * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
+     * - two numbers with an asterisk in between. i\*j: nlo = i; nhi = j;
+     *
+     * \param file     name of source file for error message
+     * \param line     line number in source file for error message
+     * \param str      string to be processed
+     * \param nmin     smallest possible lower bound
+     * \param nmax     largest allowed upper bound
+     * \param nlo      lower bound
+     * \param nhi      upper bound
+     * \param error    pointer to Error class for out-of-bounds messages */
+    template <typename TYPE>
+    void bounds(const char *file, int line, const std::string &str,
+                bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error);
+
+    /** Expand list of arguments when containing fix/compute wildcards
+     *
+     *  This function searches the list of arguments in *arg* for strings
+     *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+     *  Any such strings are replaced by one or more strings with the
+     *  '*' character replaced by the corresponding possible numbers as
+     *  determined from the fix or compute instance.  Other strings are
+     *  just copied. If the *mode* parameter is set to 0, expand global
+     *  vectors, but not global arrays; if it is set to 1, expand global
+     *  arrays (by column) but not global vectors.
+     *
+     *  If any expansion happens, the earg list and all its
+     *  strings are new allocations and must be freed explicitly by the
+     *  caller. Otherwise arg and earg will point to the same address
+     *  and no explicit de-allocation is needed by the caller.
+     *
+     * \param file  name of source file for error message
+     * \param line  line number in source file for error message
+     * \param narg  number of arguments in current list
+     * \param arg   argument list, possibly containing wildcards
+     * \param mode  select between global vectors(=0) and arrays (=1)
+     * \param earg  new argument list with wildcards expanded
+     * \param lmp   pointer to top-level LAMMPS class instance
+     * \return      number of arguments in expanded list */
+
+    int expand_args(const char *file, int line, int narg, char **arg,
+                    int mode, char **&earg, LAMMPS *lmp);
 
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
@@ -248,7 +299,7 @@ namespace LAMMPS_NS {
     bool file_is_readable(const std::string &path);
 
     /** Determine full path of potential file. If file is not found in current directory,
-     *  search LAMMPS_POTENTIALS folder
+     *  search directories listed in LAMMPS_POTENTIALS environment variable
      *
      * \param path file path
      * \return full path to potential file
@@ -288,6 +339,29 @@ namespace LAMMPS_NS {
      * \return conversion factor
      */
     double get_conversion_factor(const int property, const int conversion);
+
+    /** Open a potential file as specified by *name*
+     *
+     * If opening the file directly fails, the function will search for
+     * it in the list of folder pointed to by the environment variable
+     * ``LAMMPS_POTENTIALS`` (if it is set).
+     *
+     * If the potential file has a ``UNITS`` tag in the first line, the
+     * tag's value is compared to the current unit style setting.
+     * The behavior of the function then depends on the value of the
+     * *auto_convert* parameter.  If it is ``NULL``, then the unit values
+     * must match or else the open will fail with an error.  Otherwise
+     * the bitmask that *auto_convert* points to is used check for
+     * compatibility with possible automatic conversions by the calling
+     * function.  If compatible, the bitmask is set to the required
+     * conversion or ``utils::NOCONVERT``.
+     *
+     * \param name          file- or pathname of the potential file
+     * \param lmp           pointer to top-level LAMMPS class instance
+     * \param auto_convert  pointer to unit conversion bitmask or NULL
+     * \return              FILE pointer of the opened potential file or NULL*/
+
+    FILE *open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert);
 
     /** Convert a time string to seconds
      *

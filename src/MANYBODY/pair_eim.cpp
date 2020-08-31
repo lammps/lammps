@@ -1061,7 +1061,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   int unit_convert = auto_convert;
-  FILE *fp = force->open_potential(filename.c_str(), &unit_convert);
+  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == NULL) {

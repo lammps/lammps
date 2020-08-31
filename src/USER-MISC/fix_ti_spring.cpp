@@ -69,7 +69,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   time_depend = 1;
 
   // Spring constant.
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   if (k <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
 
   // Perform initial allocation of atom-based array
@@ -93,15 +93,15 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
   // Time variables.
   t0 = update->ntimestep;  // timestep of original/starting coordinates
-  t_switch = force->bnumeric(FLERR,arg[4]); // Number of steps for switching
-  t_equil  = force->bnumeric(FLERR,arg[5]); // Number of steps for equilibration
+  t_switch = utils::bnumeric(FLERR,arg[4],false,lmp); // Number of steps for switching
+  t_equil  = utils::bnumeric(FLERR,arg[5],false,lmp); // Number of steps for equilibration
   if ((t_switch <= 0) || (t_equil < 0))
     error->all(FLERR,"Illegal fix ti/spring command");
 
   // Coupling parameter initialization
   sf = 1;
   if (narg > 6) {
-    if (strcmp(arg[6], "function") == 0) sf = force->inumeric(FLERR,arg[7]);
+    if (strcmp(arg[6], "function") == 0) sf = utils::inumeric(FLERR,arg[7],false,lmp);
     else error->all(FLERR,"Illegal fix ti/spring switching function");
     if ((sf!=1) && (sf!=2))
       error->all(FLERR,"Illegal fix ti/spring switching function");

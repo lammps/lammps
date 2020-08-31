@@ -27,6 +27,7 @@
 #include "input.h"
 #include "variable.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -79,7 +80,7 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(arg[iarg]) + 1;
     pstyle[nterms] = new char[n];
     strcpy(pstyle[nterms],arg[iarg]);
-    force->bounds(FLERR,arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
+    utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,ilo[nterms],ihi[nterms],error);
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {

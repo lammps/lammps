@@ -75,13 +75,13 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 0;
 
-  cutbond = force->numeric(FLERR,arg[3]);
-  qfactor = force->numeric(FLERR,arg[4]);
-  vmax = force->numeric(FLERR,arg[5]);
-  tequil = force->numeric(FLERR,arg[6]);
-  dcut = force->numeric(FLERR,arg[7]);
-  alpha_user = force->numeric(FLERR,arg[8]);
-  boost_target = force->numeric(FLERR,arg[9]);
+  cutbond = utils::numeric(FLERR,arg[3],false,lmp);
+  qfactor = utils::numeric(FLERR,arg[4],false,lmp);
+  vmax = utils::numeric(FLERR,arg[5],false,lmp);
+  tequil = utils::numeric(FLERR,arg[6],false,lmp);
+  dcut = utils::numeric(FLERR,arg[7],false,lmp);
+  alpha_user = utils::numeric(FLERR,arg[8],false,lmp);
+  boost_target = utils::numeric(FLERR,arg[9],false,lmp);
 
   if (cutbond < 0.0 || qfactor < 0.0 || vmax < 0.0 ||
       tequil <= 0.0 || dcut <= 0.0 || alpha_user <= 0.0 || boost_target < 1.0)
@@ -105,13 +105,13 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bound") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix hyper/local command");
-      boundfrac = force->numeric(FLERR,arg[iarg+1]);
+      boundfrac = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (boundfrac < 0.0) boundflag = 0;
       else boundflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"reset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix hyper/local command");
-      resetfreq = force->inumeric(FLERR,arg[iarg+1]);
+      resetfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (resetfreq < -1) error->all(FLERR,"Illegal fix hyper/local command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"check/ghost") == 0) {
@@ -120,7 +120,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"check/bias") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix hyper/local command");
       checkbias = 1;
-      checkbias_every = force->inumeric(FLERR,arg[iarg+1]);
+      checkbias_every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (strcmp(arg[iarg+2],"error") == 0) checkbias_flag = ERROR;
       else if (strcmp(arg[iarg+2],"warn") == 0) checkbias_flag = WARN;
       else if (strcmp(arg[iarg+2],"ignore") == 0) checkbias_flag = IGNORE;

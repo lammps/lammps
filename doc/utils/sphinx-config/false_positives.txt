@@ -742,6 +742,7 @@ Eaat
 Eacn
 eam
 eangle
+earg
 eatom
 Eb
 Eba
@@ -2072,6 +2073,7 @@ Ngyuen
 nh
 nharmonic
 nhc
+nhi
 NiAlH
 Nicklas
 Niklasson
@@ -2089,6 +2091,7 @@ nktv
 nl
 nlen
 Nlines
+nlo
 nlocal
 Nlocal
 Nlog
@@ -2098,6 +2101,7 @@ Nm
 Nmax
 nmax
 Nmin
+nmin
 Nmols
 nn
 Nocedal
@@ -3320,8 +3324,9 @@ Widom
 widom
 Wijk
 Wikipedia
-wildcard
 Wildcard
+wildcard
+wildcards
 Wirnsberger
 wirtes
 witin

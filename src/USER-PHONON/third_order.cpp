@@ -132,7 +132,7 @@ void ThirdOrder::command(int narg, char **arg)
   if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
   else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
   else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
-  del = force->numeric(FLERR, arg[2]);
+  del = utils::numeric(FLERR, arg[2],false,lmp);
 
   if (atom->map_style == 0)
     error->all(FLERR,"third_order command requires an atom map, see atom_modify");

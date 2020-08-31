@@ -35,8 +35,8 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
-  int nmin = force->inumeric(FLERR,arg[1]);
-  int nmax = force->inumeric(FLERR,arg[2]);
+  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body nparticle command");
 

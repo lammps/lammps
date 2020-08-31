@@ -85,7 +85,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == NULL)
       error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
                                    coefffilename,utils::getsyserror()));

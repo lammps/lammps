@@ -66,7 +66,7 @@ void PairSpinNeel::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_neel_global = force->numeric(FLERR,arg[0]);
+  cut_spin_neel_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -99,16 +99,16 @@ void PairSpinNeel::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  const double rij = force->numeric(FLERR,arg[3]);
-  const double k1 = force->numeric(FLERR,arg[4]);
-  const double k2 = force->numeric(FLERR,arg[5]);
-  const double k3 = force->numeric(FLERR,arg[6]);
-  const double l1 = force->numeric(FLERR,arg[7]);
-  const double l2 = force->numeric(FLERR,arg[8]);
-  const double l3 = force->numeric(FLERR,arg[9]);
+  const double rij = utils::numeric(FLERR,arg[3],false,lmp);
+  const double k1 = utils::numeric(FLERR,arg[4],false,lmp);
+  const double k2 = utils::numeric(FLERR,arg[5],false,lmp);
+  const double k3 = utils::numeric(FLERR,arg[6],false,lmp);
+  const double l1 = utils::numeric(FLERR,arg[7],false,lmp);
+  const double l2 = utils::numeric(FLERR,arg[8],false,lmp);
+  const double l3 = utils::numeric(FLERR,arg[9],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

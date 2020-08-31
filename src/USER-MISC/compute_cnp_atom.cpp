@@ -56,7 +56,7 @@ ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cnp/atom command");
   cutsq = cutoff*cutoff;
 

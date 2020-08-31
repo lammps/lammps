@@ -230,8 +230,8 @@ void PairVashishtaTable::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  ntable = force->inumeric(FLERR,arg[0]);
-  tabinner = force->numeric(FLERR,arg[1]);
+  ntable = utils::inumeric(FLERR,arg[0],false,lmp);
+  tabinner = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (tabinner <= 0.0)
     error->all(FLERR,"Illegal inner cutoff for tabulation");

@@ -179,12 +179,12 @@ void AngleFourier::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one =  force->numeric(FLERR,arg[1]);
-  double C0_one = force->numeric(FLERR,arg[2]);
-  double C1_one = force->numeric(FLERR,arg[3]);
-  double C2_one = force->numeric(FLERR,arg[4]);
+  double k_one =  utils::numeric(FLERR,arg[1],false,lmp);
+  double C0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double C1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double C2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

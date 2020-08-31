@@ -37,9 +37,9 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
-  xflag = force->inumeric(FLERR,arg[3]);
-  yflag = force->inumeric(FLERR,arg[4]);
-  zflag = force->inumeric(FLERR,arg[5]);
+  xflag = utils::inumeric(FLERR,arg[3],false,lmp);
+  yflag = utils::inumeric(FLERR,arg[4],false,lmp);
+  zflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if ((xflag != 0 && xflag != 1) || (yflag != 0 && yflag != 1)
       || (zflag != 0 && zflag != 1))
     error->all(FLERR,"Illegal compute temp/partial command");

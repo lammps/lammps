@@ -69,14 +69,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);
   } else {
-    t_start = force->numeric(FLERR,arg[3]);
+    t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
-  seed = force->inumeric(FLERR,arg[6]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
+  seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (t_period <= 0.0) error->all(FLERR,"Fix langevin period must be > 0.0");
   if (seed <= 0) error->all(FLERR,"Illegal fix langevin command");
@@ -107,7 +107,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"angmom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) ascale = 0.0;
-      else ascale = force->numeric(FLERR,arg[iarg+1]);
+      else ascale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
@@ -133,8 +133,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix langevin command");
-      int itype = force->inumeric(FLERR,arg[iarg+1]);
-      double scale = force->numeric(FLERR,arg[iarg+2]);
+      int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Illegal fix langevin command");
       ratio[itype] = scale;

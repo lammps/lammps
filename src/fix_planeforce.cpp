@@ -31,9 +31,9 @@ FixPlaneForce::FixPlaneForce(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
 
   if (narg != 6) error->all(FLERR,"Illegal fix planeforce command");
-  xdir = force->numeric(FLERR,arg[3]);
-  ydir = force->numeric(FLERR,arg[4]);
-  zdir = force->numeric(FLERR,arg[5]);
+  xdir = utils::numeric(FLERR,arg[3],false,lmp);
+  ydir = utils::numeric(FLERR,arg[4],false,lmp);
+  zdir = utils::numeric(FLERR,arg[5],false,lmp);
 
   double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
   if (len == 0.0) error->all(FLERR,"Illegal fix planeforce command");

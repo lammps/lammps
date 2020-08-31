@@ -457,7 +457,7 @@ TEST(Utils, boundsbig_case2)
     ASSERT_EQ(nhi,5);
 }
 
-TEST(Utils, bounds_case3)
+TEST(Utils, boundsbig_case3)
 {
     bigint nlo, nhi;
 

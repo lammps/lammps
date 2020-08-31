@@ -44,6 +44,12 @@ if (PKG_COMPRESS)
     set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
     set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
 
+    add_executable(test_dump_cfg_gz test_dump_cfg_gz.cpp)
+    target_link_libraries(test_dump_cfg_gz PRIVATE lammps GTest::GMock GTest::GTest)
+    add_test(NAME DumpCfgGZ COMMAND test_dump_cfg_gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(DumpCfgGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+    set_tests_properties(DumpCfgGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
+
     find_program(ZSTD_BINARY NAMES zstd)
 
     if (ZSTD_BINARY)

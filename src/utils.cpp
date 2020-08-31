@@ -399,6 +399,8 @@ template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, int &, int &, Error *);
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long &, long &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long long &, long long &, Error *);
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards

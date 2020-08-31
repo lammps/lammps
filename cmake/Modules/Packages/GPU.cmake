@@ -399,12 +399,7 @@ RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
-if(NOT BUILD_MPI)
-  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
-  target_link_libraries(gpu PRIVATE mpi_stubs)
-else()
-  target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
-endif()
+target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_sources(lammps PRIVATE ${GPU_SOURCES})

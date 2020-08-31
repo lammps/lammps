@@ -91,15 +91,15 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 .. toctree::
    :maxdepth: 1
 
-..   pg_lib_create
-..   pg_lib_execute
-..   pg_lib_properties
-..   pg_lib_objects
-..   pg_lib_scatter
-..   pg_lib_neighbor
-..   pg_lib_config
-..   pg_lib_utility
-..   pg_lib_add
+   pg_lib_create
+   pg_lib_execute
+   pg_lib_properties
+   pg_lib_objects
+   pg_lib_scatter
+   pg_lib_neighbor
+   pg_lib_config
+   pg_lib_utility
+   pg_lib_add
 
 --------------------
 
@@ -111,7 +111,7 @@ LAMMPS Python APIs
 The LAMMPS Python module enables calling the LAMMPS C library API from
 Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
-Because of the dynamics loading, it is **required** that LAMMPS is compiled
+Because of the dynamic loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object oriented, but
 otherwise trying to be very similar to the C library API.  Three different
 Python classes to run LAMMPS are available and they build on each other.
@@ -153,6 +153,6 @@ The following links provide some examples and references to the C++ API.
 .. toctree::
    :maxdepth: 1
 
-..   pg_cplusplus
+   pg_cplusplus
 
 

@@ -52,11 +52,17 @@ public:
 class TokenizerException : public std::exception {
   std::string message;
 public:
+  /** Thrown during retrieving or skipping tokens
+   *
+   * \param  msg    String with error message
+   * \param  token  String of the token/word that caused the error */
   TokenizerException(const std::string &msg, const std::string &token);
 
   ~TokenizerException() throw() {
   }
 
+  /** Retrieve message describing the thrown exception
+   * \return string with error message */
   virtual const char * what() const throw() {
     return message.c_str();
   }
@@ -64,14 +70,20 @@ public:
 
 class InvalidIntegerException : public TokenizerException {
 public:
-    InvalidIntegerException(const std::string &token) : TokenizerException("Not a valid integer number", token) {
-    }
+  /** Thrown during converting string to integer number
+   *
+   * \param  token  String of the token/word that caused the error */
+  InvalidIntegerException(const std::string &token)
+    : TokenizerException("Not a valid integer number", token) {}
 };
 
 class InvalidFloatException : public TokenizerException {
 public:
-    InvalidFloatException(const std::string &token) : TokenizerException("Not a valid floating-point number", token) {
-    }
+  /** Thrown during converting string to floating point number
+   *
+   * \param  token  String of the token/word that caused the error */
+  InvalidFloatException(const std::string &token)
+    : TokenizerException("Not a valid floating-point number", token) {}
 };
 
 class ValueTokenizer {

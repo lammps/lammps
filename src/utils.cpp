@@ -870,14 +870,10 @@ std::string utils::get_potential_date(const std::string &path, const std::string
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "DATE:") {
-      if (values.has_next()) {
-        std::string date = values.next_string();
-        return date;
-      }
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "DATE:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";
@@ -893,14 +889,10 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "UNITS:") {
-      if (values.has_next()) {
-        std::string units = values.next_string();
-        return units;
-      }
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "UNITS:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";

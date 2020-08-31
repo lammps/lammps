@@ -2916,6 +2916,7 @@ strstr
 Stukowski
 Su
 subbox
+Subclassed
 subcutoff
 subcycle
 subcycling

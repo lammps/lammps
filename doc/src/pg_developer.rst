@@ -1005,13 +1005,26 @@ File reader classes
 ====================
 
 The purpose of the file reader classes is to simplify the recurring task
-of reading and parsing files. They are built on top of the tokenizer
-classes discussed in the previous section, but include operations that
-are optimized for processing larger chunks of data more efficiently.
+of reading and parsing files. They can use the
+:cpp:class:`LAMMPS_NS::ValueTokenizer` class to process the read in
+text.  The :cpp:class:`LAMMPS_NS::TextFileReader` is a more general
+version while :cpp:class:`LAMMPS_NS::PotentialFileReader` is specialized
+to implement the behavior expected for looking up and reading/parsing
+files with potential parameters in LAMMPS.  The potential file reader
+class requires a LAMMPS instance, requires to be run on MPI rank 0 only,
+will use the :cpp:func:`utils::get_potential_file_path` function to look up and
+open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
+case of failures to read or to convert numbers, so that LAMMPS will be
+aborted.
+
 
 ----------
 
 .. doxygenclass:: LAMMPS_NS::TextFileReader
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::PotentialFileReader
    :project: progguide
    :members:
 

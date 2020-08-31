@@ -58,7 +58,7 @@ Tokenizer::Tokenizer(Tokenizer && rhs) :
     reset();
 }
 
-/*! Reposition the tokenizer state to the first word,
+/*! Re-position the tokenizer state to the first word,
  * i.e. the first non-separator character */
 void Tokenizer::reset() {
     start = text.find_first_not_of(separators);
@@ -150,8 +150,8 @@ std::vector<std::string> Tokenizer::as_vector() {
 
 /*! Class for reading text with numbers
  *
- * \param str         string to be processed
- * \param separators  string with separator characters (default: " \t\r\n\f")
+ * \param str         String to be processed
+ * \param separators  String with separator characters (default: " \t\r\n\f")
  *
  * \sa Tokenizer InvalidIntegerException InvalidFloatException */
 

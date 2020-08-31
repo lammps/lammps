@@ -875,7 +875,7 @@ Potential file functions
 .. doxygenfunction:: get_conversion_factor
    :project: progguide
 
-.. doxygenfunction:: open_potential
+.. doxygenfunction:: open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert)
    :project: progguide
 
 Argument processing

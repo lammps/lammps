@@ -359,8 +359,9 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
 ------------------------------------------------------------------------- */
+template<>
 void utils::bounds(const char *file, int line, char *str,
-                   int nmin, int nmax, int &nlo, int &nhi, Error *error)
+                   bigint nmin, bigint nmax, int &nlo, int &nhi, Error *error)
 {
   char *ptr = strchr(str,'*');
 
@@ -398,9 +399,10 @@ void utils::bounds(const char *file, int line, char *str,
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
 ------------------------------------------------------------------------- */
-void utils::boundsbig(const char *file, int line, char *str,
-                      bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
-                      Error *error)
+template <>
+void utils::bounds(const char *file, int line, char *str,
+                   bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
+                   Error *error)
 {
   char *ptr = strchr(str,'*');
 

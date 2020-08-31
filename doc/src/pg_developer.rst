@@ -878,9 +878,6 @@ Argument processing
 .. doxygenfunction:: bounds
    :project: progguide
 
-.. doxygenfunction:: boundsbig
-   :project: progguide
-
 .. doxygenfunction:: expand_args
    :project: progguide
 

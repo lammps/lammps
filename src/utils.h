@@ -162,33 +162,9 @@ namespace LAMMPS_NS {
      * \param nlo      lower bound
      * \param nhi      upper bound
      * \param error    pointer to Error class for out-of-bounds messages */
-
+    template <typename TYPE>
     void bounds(const char *file, int line, char *str,
-                int nmin, int nmax, int &nlo, int &nhi, Error *error);
-
-    /** Compute index bounds derived from a string with a possible wildcard
-     *
-     * This functions processes the string in *str* and set the values of *nlo*
-     * and *nhi* according to the following five cases:
-     *
-     * - a single number, i: nlo = i; nhi = i;
-     * - a single asterisk, \*: nlo = nmin; nhi = nmax;
-     * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
-     * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
-     * - two numbers with an asterisk in between. i\*j: nlo = i; nhi = j;
-     *
-     * \param file     name of source file for error message
-     * \param line     line number in source file for error message
-     * \param str      string to be processed
-     * \param nmin     smallest possible lower bound
-     * \param nmax     largest allowed upper bound
-     * \param nlo      lower bound
-     * \param nhi      upper bound
-     * \param error    pointer to Error class for out-of-bounds messages */
-
-    void boundsbig(const char *file, int line, char *str,
-                   bigint nmin, bigint nmax, bigint &nlo, bigint &nhi,
-                   Error *error);
+                bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error);
 
     /** Expand list of arguments when containing fix/compute wildcards
      *

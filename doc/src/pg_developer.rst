@@ -1012,10 +1012,53 @@ version while :cpp:class:`LAMMPS_NS::PotentialFileReader` is specialized
 to implement the behavior expected for looking up and reading/parsing
 files with potential parameters in LAMMPS.  The potential file reader
 class requires a LAMMPS instance, requires to be run on MPI rank 0 only,
-will use the :cpp:func:`utils::get_potential_file_path` function to look up and
-open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
-case of failures to read or to convert numbers, so that LAMMPS will be
-aborted.
+will use the :cpp:func:`LAMMPS_NS::utils::get_potential_file_path`
+function to look up and open the file, and will call the
+:cpp:class:`LAMMPS_NS::Error` class in case of failures to read or to
+convert numbers, so that LAMMPS will be aborted.
+
+.. code-block:: C++
+   :caption: Use of PotentialFileReader class in pair style coul/streitz
+
+    PotentialFileReader reader(lmp, file, "coul/streitz");
+    char * line;
+
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
+        std::string iname = values.next_string();
+
+        int ielement;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].chi = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].zeta = values.next_double();
+        params[nparams].zcore = values.next_double();
+
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
+      }
+      nparams++;
+    }
+
+A file that would be parsed by the reader code fragment looks like this:
+
+   # DATE: 2015-02-19 UNITS: metal CONTRIBUTOR: Ray Shan CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
+   #
+   # X (eV)                J (eV)          gamma (1/\AA)   zeta (1/\AA)    Z (e)
+
+   Al      0.000000        10.328655       0.000000        0.968438        0.763905
+   O       5.484763        14.035715       0.000000        2.143957        0.000000
 
 
 ----------

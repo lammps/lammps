@@ -15,9 +15,7 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "dump_cfg_zstd.h"
-#include "atom.h"
-#include "domain.h"
+#include "dump_xyz_zstd.h"
 #include "error.h"
 #include "update.h"
 #include "force.h"
@@ -26,30 +24,29 @@
 #include <fmt/format.h>
 
 using namespace LAMMPS_NS;
-#define UNWRAPEXPAND 10.0
 
-DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) :
-  DumpCFG(lmp, narg, arg)
+DumpXYZZstd::DumpXYZZstd(LAMMPS *lmp, int narg, char **arg) :
+  DumpXYZ(lmp, narg, arg)
 {
   if (!compressed)
-    error->all(FLERR,"Dump cfg/zstd only writes compressed files");
+    error->all(FLERR,"Dump xyz/zstd only writes compressed files");
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-DumpCFGZstd::~DumpCFGZstd()
+DumpXYZZstd::~DumpXYZZstd()
 {
 }
 
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or zstdipped
+   ASCII or binary or gzipped
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DumpCFGZstd::openfile()
+void DumpXYZZstd::openfile()
 {
   // single file, already opened, so just return
 
@@ -110,52 +107,27 @@ void DumpCFGZstd::openfile()
   if (multifile) delete [] filecurrent;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void DumpCFGZstd::write_header(bigint n)
+void DumpXYZZstd::write_header(bigint ndump)
 {
-  // set scale factor used by AtomEye for CFG viz
-  // default = 1.0
-  // for peridynamics, set to pre-computed PD scale factor
-  //   so PD particles mimic C atoms
-  // for unwrapped coords, set to UNWRAPEXPAND (10.0)
-  //   so molecules are not split across periodic box boundaries
-
-  double scale = 1.0;
-  if (atom->peri_flag) scale = atom->pdscale;
-  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
-
-  std::string header = fmt::format("Number of particles = {}\n", n);
-  header += fmt::format("A = {0:g} Angstrom (basic length-scale)\n", scale);
-  header += fmt::format("H0(1,1) = {0:g} A\n",domain->xprd);
-  header += fmt::format("H0(1,2) = 0 A \n");
-  header += fmt::format("H0(1,3) = 0 A \n");
-  header += fmt::format("H0(2,1) = {0:g} A \n",domain->xy);
-  header += fmt::format("H0(2,2) = {0:g} A\n",domain->yprd);
-  header += fmt::format("H0(2,3) = 0 A \n");
-  header += fmt::format("H0(3,1) = {0:g} A \n",domain->xz);
-  header += fmt::format("H0(3,2) = {0:g} A \n",domain->yz);
-  header += fmt::format("H0(3,3) = {0:g} A\n",domain->zprd);
-  header += fmt::format(".NO_VELOCITY.\n");
-  header += fmt::format("entry_count = {}\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
-    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
-
-  writer.write(header.c_str(), header.length());
+  if (me == 0) {
+    std::string header = fmt::format("{}\n", ndump);
+    header += fmt::format("Atoms. Timestep: {}\n", update->ntimestep);
+    writer.write(header.c_str(), header.length());
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFGZstd::write_data(int n, double *mybuf)
+void DumpXYZZstd::write_data(int n, double *mybuf)
 {
   writer.write(mybuf, n);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFGZstd::write()
+void DumpXYZZstd::write()
 {
-  DumpCFG::write();
+  DumpXYZ::write();
   if (filewriter) {
     if (multifile) {
       writer.close();
@@ -169,9 +141,9 @@ void DumpCFGZstd::write()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCFGZstd::modify_param(int narg, char **arg)
+int DumpXYZZstd::modify_param(int narg, char **arg)
 {
-  int consumed = DumpCFG::modify_param(narg, arg);
+  int consumed = DumpXYZ::modify_param(narg, arg);
   if(consumed == 0) {
     try {
       if (strcmp(arg[0],"checksum") == 0) {

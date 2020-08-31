@@ -15,8 +15,7 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "dump_cfg_zstd.h"
-#include "atom.h"
+#include "dump_local_zstd.h"
 #include "domain.h"
 #include "error.h"
 #include "update.h"
@@ -26,30 +25,29 @@
 #include <fmt/format.h>
 
 using namespace LAMMPS_NS;
-#define UNWRAPEXPAND 10.0
 
-DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) :
-  DumpCFG(lmp, narg, arg)
+DumpLocalZstd::DumpLocalZstd(LAMMPS *lmp, int narg, char **arg) :
+  DumpLocal(lmp, narg, arg)
 {
   if (!compressed)
-    error->all(FLERR,"Dump cfg/zstd only writes compressed files");
+    error->all(FLERR,"Dump local/zstd only writes compressed files");
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-DumpCFGZstd::~DumpCFGZstd()
+DumpLocalZstd::~DumpLocalZstd()
 {
 }
 
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or zstdipped
+   ASCII or binary or gzipped
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DumpCFGZstd::openfile()
+void DumpLocalZstd::openfile()
 {
   // single file, already opened, so just return
 
@@ -110,52 +108,51 @@ void DumpCFGZstd::openfile()
   if (multifile) delete [] filecurrent;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void DumpCFGZstd::write_header(bigint n)
+void DumpLocalZstd::write_header(bigint ndump)
 {
-  // set scale factor used by AtomEye for CFG viz
-  // default = 1.0
-  // for peridynamics, set to pre-computed PD scale factor
-  //   so PD particles mimic C atoms
-  // for unwrapped coords, set to UNWRAPEXPAND (10.0)
-  //   so molecules are not split across periodic box boundaries
+  std::string header;
 
-  double scale = 1.0;
-  if (atom->peri_flag) scale = atom->pdscale;
-  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  if ((multiproc) || (!multiproc && me == 0)) {
+    if (unit_flag && !unit_count) {
+      ++unit_count;
+      header = fmt::format("ITEM: UNITS\n{}\n",update->unit_style);
+    }
 
-  std::string header = fmt::format("Number of particles = {}\n", n);
-  header += fmt::format("A = {0:g} Angstrom (basic length-scale)\n", scale);
-  header += fmt::format("H0(1,1) = {0:g} A\n",domain->xprd);
-  header += fmt::format("H0(1,2) = 0 A \n");
-  header += fmt::format("H0(1,3) = 0 A \n");
-  header += fmt::format("H0(2,1) = {0:g} A \n",domain->xy);
-  header += fmt::format("H0(2,2) = {0:g} A\n",domain->yprd);
-  header += fmt::format("H0(2,3) = 0 A \n");
-  header += fmt::format("H0(3,1) = {0:g} A \n",domain->xz);
-  header += fmt::format("H0(3,2) = {0:g} A \n",domain->yz);
-  header += fmt::format("H0(3,3) = {0:g} A\n",domain->zprd);
-  header += fmt::format(".NO_VELOCITY.\n");
-  header += fmt::format("entry_count = {}\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
-    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+    if (time_flag) {
+      header += fmt::format("ITEM: TIME\n{0:.16g}\n", compute_time());
+    }
 
-  writer.write(header.c_str(), header.length());
+    header += fmt::format("ITEM: TIMESTEP\n{}\n", update->ntimestep);
+    header += fmt::format("ITEM: NUMBER OF {}\n{}\n", label, ndump);
+    if (domain->triclinic == 0) {
+      header += fmt::format("ITEM: BOX BOUNDS {}\n", boundstr);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxxlo, boxxhi);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxylo, boxyhi);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxzlo, boxzhi);
+    } else {
+      header += fmt::format("ITEM: BOX BOUNDS xy xz yz {}\n", boundstr);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxxlo, boxxhi, boxxy);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxylo, boxyhi, boxxz);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxzlo, boxzhi, boxyz);
+    }
+    header += fmt::format("ITEM: {} {}\n", label, columns);
+
+    writer.write(header.c_str(), header.length());
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFGZstd::write_data(int n, double *mybuf)
+void DumpLocalZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, n);
+  writer.write(mybuf, sizeof(char)*n);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFGZstd::write()
+void DumpLocalZstd::write()
 {
-  DumpCFG::write();
+  DumpLocal::write();
   if (filewriter) {
     if (multifile) {
       writer.close();
@@ -169,9 +166,9 @@ void DumpCFGZstd::write()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCFGZstd::modify_param(int narg, char **arg)
+int DumpLocalZstd::modify_param(int narg, char **arg)
 {
-  int consumed = DumpCFG::modify_param(narg, arg);
+  int consumed = DumpLocal::modify_param(narg, arg);
   if(consumed == 0) {
     try {
       if (strcmp(arg[0],"checksum") == 0) {

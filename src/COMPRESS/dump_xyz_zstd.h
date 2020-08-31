@@ -17,22 +17,22 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(cfg/zstd,DumpCFGZstd)
+DumpStyle(xyz/zstd,DumpXYZZstd)
 
 #else
 
-#ifndef LMP_DUMP_CFG_ZSTD_H
-#define LMP_DUMP_CFG_ZSTD_H
+#ifndef LMP_DUMP_XYZ_ZSTD_H
+#define LMP_DUMP_XYZ_ZSTD_H
 
-#include "dump_cfg.h"
+#include "dump_xyz.h"
 #include "zstd_file_writer.h"
 
 namespace LAMMPS_NS {
 
-class DumpCFGZstd : public DumpCFG {
+class DumpXYZZstd : public DumpXYZ {
  public:
-  DumpCFGZstd(class LAMMPS *, int, char **);
-  virtual ~DumpCFGZstd();
+  DumpXYZZstd(class LAMMPS *, int, char **);
+  virtual ~DumpXYZZstd();
 
  protected:
   ZstdFileWriter writer;
@@ -52,9 +52,9 @@ class DumpCFGZstd : public DumpCFG {
 
 /* ERROR/WARNING messages:
 
-E: Dump cfg/zstd only writes compressed files
+E: Dump xyz/zstd only writes compressed files
 
-The dump cfg/zstd output file name must have a .zstd suffix.
+The dump xyz/zstd output file name must have a .zst suffix.
 
 E: Cannot open dump file
 

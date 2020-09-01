@@ -21,7 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
-#include "force.h"
+#include "utils.h"
 
 #include <cstring>
 #include "fmt/format.h"
@@ -181,7 +181,7 @@ int DumpAtomZstd::modify_param(int narg, char **arg)
         return 2;
       } else if (strcmp(arg[0],"compression_level") == 0) {
         if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        int compression_level = force->inumeric(FLERR,arg[1]);
+        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
         writer.setCompressionLevel(compression_level);
         return 2;
       }

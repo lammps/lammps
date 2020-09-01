@@ -15,7 +15,7 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
-#include "force.h"
+#include "utils.h"
 
 #include <cstring>
 #include "fmt/format.h"
@@ -188,7 +188,7 @@ int DumpLocalGZ::modify_param(int narg, char **arg)
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
       int min_level = Z_DEFAULT_COMPRESSION;
       int max_level = Z_BEST_COMPRESSION;
-      compression_level = force->inumeric(FLERR,arg[1]);
+      compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
       if (compression_level < min_level || compression_level > max_level)
         error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
       return 2;

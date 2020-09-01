@@ -27,11 +27,6 @@
 /*_ssa.h
 /*_ssa.cpp
 
-/bond_special.h
-/bond_special.cpp
-/fix_momentum_chunk.cpp
-/fix_momentum_chunk.h
-
 /kim_*.cpp
 /kim_*.h
 /pair_kim.cpp

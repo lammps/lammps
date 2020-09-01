@@ -19,7 +19,7 @@
 
 #include "zstd_file_writer.h"
 #include <stdio.h>
-#include <fmt/format.h>
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 

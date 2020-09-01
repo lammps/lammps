@@ -23,7 +23,7 @@
 #include "force.h"
 
 #include <cstring>
-#include <fmt/format.h>
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 

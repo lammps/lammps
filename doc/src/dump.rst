@@ -202,7 +202,7 @@ For the remainder of this doc page, you should thus consider the *atom*
 and *atom/gz* styles (etc) to be inter-changeable, with the exception
 of the required filename suffix.
 
-Similarily, the *atom/zstd*\ , *cfg/zstd*\ , *custom/zstd*\ , *local/zstd*,
+Similarly, the *atom/zstd*\ , *cfg/zstd*\ , *custom/zstd*\ , *local/zstd*,
 and *xyz/zstd* styles are identical to the gz styles, but use the Zstd
 compression library instead. See the :doc:`dump_modify <dump_modify>` doc
 page for details on how to control the compression level in both variants.

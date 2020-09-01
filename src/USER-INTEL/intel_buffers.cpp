@@ -35,6 +35,7 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _ncachetag = 0;
   _cutneighsq = 0;
   _cutneighghostsq = 0;
+  _need_tag = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   _separate_buffers = 0;
   _off_f = 0;

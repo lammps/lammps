@@ -148,7 +148,7 @@ void PythonImpl::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"input") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      ninput = force->inumeric(FLERR,arg[iarg+1]);
+      ninput = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ninput < 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
       istr = new char*[ninput];
@@ -168,7 +168,7 @@ void PythonImpl::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      length_longstr = force->inumeric(FLERR,arg[iarg+1]);
+      length_longstr = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (length_longstr <= 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
@@ -359,7 +359,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::find(char *name)
+int PythonImpl::find(const char *name)
 {
   for (int i = 0; i < nfunc; i++)
     if (strcmp(name,pfuncs[i].name) == 0) return i;
@@ -368,7 +368,8 @@ int PythonImpl::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::variable_match(char *name, char *varname, int numeric)
+int PythonImpl::variable_match(const char *name, const char *varname,
+                               int numeric)
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;
@@ -409,7 +410,7 @@ int PythonImpl::create_entry(char *name)
 
   if (!format && ninput+noutput)
     error->all(FLERR,"Invalid python command");
-  else if (format && strlen(format) != ninput+noutput)
+  else if (format && ((int) strlen(format) != ninput+noutput))
     error->all(FLERR,"Invalid python command");
 
   // process inputs as values or variables
@@ -432,7 +433,7 @@ int PythonImpl::create_entry(char *name)
         strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        pfuncs[ifunc].ivalue[i] = force->inumeric(FLERR,istr[i]);
+        pfuncs[ifunc].ivalue[i] = utils::inumeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
@@ -443,7 +444,7 @@ int PythonImpl::create_entry(char *name)
         strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        pfuncs[ifunc].dvalue[i] = force->numeric(FLERR,istr[i]);
+        pfuncs[ifunc].dvalue[i] = utils::numeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;

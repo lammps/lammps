@@ -71,7 +71,7 @@ FixNPTKokkos<DeviceType>::FixNPTKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 namespace LAMMPS_NS {
 template class FixNPTKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNPTKokkos<LMPHostType>;
 #endif
 }

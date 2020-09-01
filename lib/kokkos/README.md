@@ -151,7 +151,7 @@ Full details are given in the [build instructions](BUILD.md). Basic setups are s
 ## CMake
 
 The best way to install Kokkos is using the CMake build system. Assuming Kokkos lives in `$srcdir`:
-````
+````bash
 cmake $srcdir \
   -DCMAKE_CXX_COMPILER=$path_to_compiler \
   -DCMAKE_INSTALL_PREFIX=$path_to_install \
@@ -170,7 +170,7 @@ and run `make test` after completing the build.
 
 For your CMake project using Kokkos, code such as the following:
 
-````
+````cmake
 find_package(Kokkos)
 ...
 target_link_libraries(myTarget Kokkos::kokkos)
@@ -187,17 +187,15 @@ for the install location given above.
 
 ## Spack
 An alternative to manually building with the CMake is to use the Spack package manager.
-To do so, download the `kokkos-spack` git repo and add to the package list:
-````
-spack repo add $path-to-kokkos-spack
+To get started, download the Spack [repo](https://github.com/spack/spack).
 ````
 A basic installation would be done as:
-````
-spack install kokkos
+````bash
+> spack install kokkos
 ````
 Spack allows options and and compilers to be tuned in the install command.
-````
-spack install kokkos@3.0 %gcc@7.3.0 +openmp
+````bash
+> spack install kokkos@3.0 %gcc@7.3.0 +openmp
 ````
 This example illustrates the three most common parameters to Spack:
 * Variants: specified with, e.g. `+openmp`, this activates (or deactivates with, e.g. `~openmp`) certain options.
@@ -205,33 +203,33 @@ This example illustrates the three most common parameters to Spack:
 * Compiler: a default compiler will be chosen if not specified, but an exact compiler version can be given with the `%`option.
 
 For a complete list of Kokkos options, run:
-````
-spack info kokkos
+````bash
+> spack info kokkos
 ````
 Spack currently installs packages to a location determined by a unique hash. This hash name is not really "human readable".
 Generally, Spack usage should never really require you to reference the computer-generated unique install folder.
 More details are given in the [build instructions](BUILD.md). If you must know, you can locate Spack Kokkos installations with:
-````
-spack find -p kokkos ...
+````bash
+> spack find -p kokkos ...
 ````
 where `...` is the unique spec identifying the particular Kokkos configuration and version.
-
+Some more details can found in the Kokkos spack [documentation](Spack.md) or the Spack [website](https://spack.readthedocs.io/en/latest).
 
 ## Raw Makefile
 A bash script is provided to generate raw makefiles.
 To install Kokkos as a library create a build directory and run the following
-````
-$KOKKOS_PATH/generate_makefile.bash --prefix=$path_to_install
+````bash
+> $KOKKOS_PATH/generate_makefile.bash --prefix=$path_to_install
 ````
 Once the Makefile is generated, run:
-````
-make kokkoslib
-make install
+````bash
+> make kokkoslib
+> make install
 ````
 To additionally run the unit tests:
-````
-make build-test
-make test
+````bash
+> make build-test
+> make test
 ````
 Run `generate_makefile.bash --help` for more detailed options such as
 changing the device type for which to build.
@@ -274,7 +272,7 @@ more than a single GPU is used by a single process.
 
 If you publish work which mentions Kokkos, please cite the following paper:
 
-````
+````BibTeX
 @article{CarterEdwards20143202,
   title = "Kokkos: Enabling manycore performance portability through polymorphic memory access patterns ",
   journal = "Journal of Parallel and Distributed Computing ",

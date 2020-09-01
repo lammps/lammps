@@ -101,9 +101,9 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
       if (argi+3 >= narg)
         error->all(FLERR,"Keyword 'temp' needs 3 arguments");
 
-      t_start  = force->numeric(FLERR, arg[argi+1]);
-      t_stop   = force->numeric(FLERR, arg[argi+2]);
-      t_period = force->numeric(FLERR, arg[argi+3]);
+      t_start  = utils::numeric(FLERR, arg[argi+1],false,lmp);
+      t_stop   = utils::numeric(FLERR, arg[argi+2],false,lmp);
+      t_period = utils::numeric(FLERR, arg[argi+3],false,lmp);
       t_target = t_start;
       got_temp = 1;
 
@@ -112,7 +112,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
       if (argi+1 >= narg)
         error->all(FLERR,"Keyword 'tchain' needs 1 argument");
 
-      mtchain = force->inumeric(FLERR, arg[argi+1]);
+      mtchain = utils::inumeric(FLERR, arg[argi+1],false,lmp);
       argi += 2;
     } else if (error_on_unknown_keyword) {
       char msg[2048];

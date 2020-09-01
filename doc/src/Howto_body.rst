@@ -9,13 +9,15 @@ surface meshes of discrete points, collections of sub-particles,
 deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
-simpler entities that body particles.  See the :doc:`Howto spherical <Howto_spherical>` doc page for a general overview of all
-these particle types.
+simpler entities than body particles.  See the :doc:`Howto spherical
+<Howto_spherical>` doc page for a general overview of all these
+particle types.
 
 Body particles are used via the :doc:`atom_style body <atom_style>`
 command.  It takes a body style as an argument.  The current body
 styles supported by LAMMPS are as follows.  The name in the first
-column is used as the *bstyle* argument for the :doc:`atom_style body <atom_style>` command.
+column is used as the *bstyle* argument for the :doc:`atom_style body
+<atom_style>` command.
 
 +----------------------+---------------------------------------------------+
 | *nparticle*          | rigid body with N sub-particles                   |
@@ -30,8 +32,9 @@ thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
 style are described below.
 
-More styles may be added in the future.  See the :doc:`Modify body <Modify_body>` doc page for details on how to add a new body
-style to the code.
+More styles may be added in the future.  See the :doc:`Modify body
+<Modify_body>` doc page for details on how to add a new body style to
+the code.
 
 ----------
 
@@ -55,10 +58,10 @@ interactions, building neighbor lists, migrating particles between
 processors, output of particles to a dump file, etc.  This means that
 interactions between pairs of bodies or between a body and non-body
 (point) particle need to be encoded in an appropriate pair style.  If
-such a pair style were to mimic the :doc:`fix rigid <fix_rigid>` model,
-it would need to loop over the entire collection of interactions
-between pairs of simple particles within the two bodies, each time a
-single body/body interaction was computed.
+such a pair style were to mimic the :doc:`fix rigid <fix_rigid>`
+model, it would need to loop over the entire collection of
+interactions between pairs of simple particles within the two bodies,
+each time a single body/body interaction was computed.
 
 Thus it only makes sense to use body particles and develop such a pair
 style, when particle/particle interactions are more complex than what
@@ -160,27 +163,6 @@ of the body particle.
 The :doc:`pair_style body/nparticle <pair_body_nparticle>` command can be used
 with this body style to compute body/body and body/non-body interactions.
 
-For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
-commands, this body style produces one datum for each of the N
-sub-particles in a body particle.  The datum has 3 values:
-
-.. parsed-literal::
-
-   1 = x position of sub-particle
-   2 = y position of sub-particle
-   3 = z position of sub-particle
-
-These values are the current position of the sub-particle within the
-simulation domain, not a displacement from the center-of-mass (COM) of
-the body particle itself.  These values are calculated using the
-current COM and orientation of the body particle.
-
-For images created by the :doc:`dump image <dump_image>` command, if the
-*body* keyword is set, then each body particle is drawn as a
-collection of spheres, one for each sub-particle.  The size of each
-sphere is determined by the *bflag1* parameter for the *body* keyword.
-The *bflag2* argument is ignored.
-
 ----------
 
 **Specifics of body style rounded/polygon:**
@@ -208,7 +190,7 @@ The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.
 
 When the :doc:`read_data <read_data>` command reads a data file for this
-body style, the following information must be provided for each entry
+body style, the following information must be provided for each body
 in the *Bodies* section of the data file:
 
 .. parsed-literal::
@@ -219,21 +201,25 @@ in the *Bodies* section of the data file:
    x1 y1 z1
    ...
    xN yN zN
-   i j j k k ...
    diameter
 
-where M = 6 + 3\*N + 2\*N + 1, and N is the number of vertices in the
-body particle.
+where M = 6 + 3\*N + 1, and N is the number of vertices in the body
+particle.
 
 The integer line has a single value N.  The floating point line(s)
-list 6 moments of inertia followed by the coordinates of the N
+list 6 moments of inertia, followed by the coordinates of the N
 vertices (x1 to zN) as 3N values (with z = 0.0 for each), followed by
-2N vertex indices corresponding to the end points of the N edges,
-followed by a single diameter value = the rounded diameter of the
-circle that surrounds each vertex. The diameter value can be different
-for each body particle. These floating-point values can be listed on
-as many lines as you wish; see the :doc:`read_data <read_data>` command
-for more details.
+a diameter value = the rounded diameter of the circle that surrounds
+each vertex. The diameter value can be different for each body
+particle. These floating-point values can be listed on as many lines
+as you wish; see the :doc:`read_data <read_data>` command for more
+details.
+
+.. note::
+
+  It is important that the vertices for each polygonal body particle be
+  listed in order around its perimeter, so that edges can be inferred.
+  LAMMPS does not check that this is the case.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -260,10 +246,6 @@ is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
    -0.7071 0.7071 0
    0.7071 0.7071 0
    0.7071 -0.7071 0
-   0 1
-   1 2
-   2 3
-   3 0
    1.0
 
 A rod in 2D, whose length is 4.0, mass 1.0, rounded at two ends
@@ -345,8 +327,10 @@ in the *Bodies* section of the data file:
    1 2 3 4
    diameter
 
-where M = 6 + 3\*N + 2\*E + 4\*F + 1, and N is the number of vertices in
-the body particle, E = number of edges, F = number of faces.
+where M = 6 + 3\*N + 2\*E + 4\*F + 1, and N is the number of vertices
+in the body particle, E = number of edges, F = number of faces.  For N
+= 1 or 2, the format is simpler.  E and F are ignored and no edges or
+faces are listed, so that M = 6 + 3\*N + 1.
 
 The integer line has three values: number of vertices (N), number of
 edges (E) and number of faces (F). The floating point line(s) list 6
@@ -356,16 +340,26 @@ the end points of the E edges, then 4\*F vertex indices defining F
 faces.  The last value is the diameter value = the rounded diameter of
 the sphere that surrounds each vertex. The diameter value can be
 different for each body particle. These floating-point values can be
-listed on as many lines as you wish; see the
-:doc:`read_data <read_data>` command for more details.  Because the
-maximum number of vertices per face is hard-coded to be 4
-(i.e. quadrilaterals), faces with more than 4 vertices need to be
-split into triangles or quadrilaterals.  For triangular faces, the
-last vertex index should be set to -1.
+listed on as many lines as you wish; see the :doc:`read_data
+<read_data>` command for more details.
 
-The ordering of the 4 vertices within a face should follow
-the right-hand rule so that the normal vector of the face points
-outwards from the center of mass.
+Note that vertices are numbered from 0 to N-1 inclusive.  The order of
+the 2 vertices in each edge does not matter.  Faces can be triangles
+or quadrilaterals.  In both cases 4 vertices must be specified.  For a
+triangle the 4th vertex is -1.  The 4 vertices within each triangle or
+quadrilateral face should be ordered by the right-hand rule so that
+the normal vector of the face points outwards from the center of mass.
+For polyhedron with faces with more than 4 vertices, you should split
+the complex face into multiple simple faces, each of which is a
+triangle or quadrilateral.
+
+.. note::
+
+  If a face is a quadrilateral then its 4 vertices must be co-planar.
+  LAMMPS does not check that this is the case.  If you have a quad-face
+  of a polyhedron that is not planar (e.g. a cube whose vertices have
+  been randomly displaced), then you should represent the single quad
+  face as two triangle faces instead.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -421,8 +415,8 @@ by circles of diameter 0.5, is specified as follows:
 
 .. parsed-literal::
 
-   1 1 13
-   2
+   1 3 13
+   2 1 1
    0 1.33333 1.33333 0 0 0
    -2 0 0
    2 0 0
@@ -432,27 +426,34 @@ A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
 
 .. parsed-literal::
 
-   1 1 10
-   1
+   1 3 10
+   1 1 1
    0.9 0.9 0.9 0 0 0
    0 0 0
    3.0
 
-The :doc:`pair_style body/rounded/polhedron <pair_body_rounded_polyhedron>` command can
-be used with this body style to compute body/body interactions.  The
-:doc:`fix wall/body/polyhedron <fix_wall_body_polygon>` command can be
-used with this body style to compute the interaction of body particles
-with a wall.
+The number of edges and faces for a rod or sphere must be listed,
+but is ignored.
+
+The :doc:`pair_style body/rounded/polhedron
+<pair_body_rounded_polyhedron>` command can be used with this body
+style to compute body/body interactions.  The :doc:`fix
+wall/body/polyhedron <fix_wall_body_polygon>` command can be used with
+this body style to compute the interaction of body particles with a
+wall.
 
 ----------
 
-For output purposes via the :doc:`compute body/local <compute_body_local>` and :doc:`dump local <dump>`
-commands, this body style produces one datum for each of the N
-sub-particles in a body particle.  The datum has 3 values:
+**Output specifics for all body styles:**
+
+For the :doc:`compute body/local <compute_body_local>` and :doc:`dump
+local <dump>` commands, all 3 of the body styles described on his page
+produces one datum for each of the N vertices (of sub-particles) in a
+body particle.  The datum has 3 values:
 
 .. parsed-literal::
 
-   1 = x position of vertex
+   1 = x position of vertex (or sub-particle)
    2 = y position of vertex
    3 = z position of vertex
 
@@ -461,15 +462,29 @@ simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
 current COM and orientation of the body particle.
 
-For images created by the :doc:`dump image <dump_image>` command, if the
-*body* keyword is set, then each body particle is drawn as a polygon
-consisting of N line segments.  Note that the line segments are drawn
-between the N vertices, which does not correspond exactly to the
-physical extent of the body (because the :doc:`pair_style rounded/polygon <pair_body_rounded_polygon>` defines finite-size
-spheres at those point and the line segments between the spheres are
-tangent to the spheres).  The drawn diameter of each line segment is
-determined by the *bflag1* parameter for the *body* keyword.  The
-*bflag2* argument is ignored.
+The :doc:`dump image <dump_image>` command and its *body* keyword can
+be used to render body particles.
+
+For the *nparticle* body style, each body is drawn as a
+collection of spheres, one for each sub-particle.  The size of each
+sphere is determined by the *bflag1* parameter for the *body* keyword.
+The *bflag2* argument is ignored.
+
+For the *rounded/polygon* body style, each body is drawn as a polygon
+with N line segments.  For the *rounded/polyhedron* body style, each
+face of each body is drawn as a polygon with N line segments.  The
+drawn diameter of each line segment is determined by the *bflag1*
+parameter for the *body* keyword.  The *bflag2* argument is ignored.
+
+Note that for both the *rounded/polygon* and *rounded/polyhedron*
+styles, line segments are drawn between the pairs of vertices.
+Depending on the diameters of the line segments this may be slightly
+different than the physical extent of the body as calculated by the
+:doc:`pair_style rounded/polygon <pair_body_rounded_polygon>` or
+:doc:`pair_style rounded/polyhedron <pair_body_rounded_polyhedron>`
+commands.  Conceptually, the pair styles define the surface of a 2d or
+3d body by lines or planes that are tangent to the finite-size spheres
+of specified diameter which are placed on each vertex position.
 
 ----------
 

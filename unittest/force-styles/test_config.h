@@ -58,15 +58,21 @@ public:
     double run_coul;
     stress_t init_stress;
     stress_t run_stress;
+    double global_scalar;
+    std::vector<double> global_vector;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
+    std::vector<coord_t> run_pos;
+    std::vector<coord_t> restart_pos;
+    std::vector<coord_t> run_vel;
+    std::vector<coord_t> restart_vel;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
-        run_stress({0, 0, 0, 0, 0, 0})
+        run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
     {
         prerequisites.clear();
         pre_commands.clear();
@@ -79,6 +85,11 @@ public:
         extract.clear();
         init_forces.clear();
         run_forces.clear();
+        run_pos.clear();
+        restart_pos.clear();
+        run_vel.clear();
+        restart_vel.clear();
+        global_vector.clear();
     }
     virtual ~TestConfig(){};
 

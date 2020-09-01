@@ -44,6 +44,7 @@ page gives those details.
    * :ref:`MC <PKG-MC>`
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
+   * :ref:`MLIAP <PKG-MLIAP>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -305,7 +306,8 @@ gpu" or "-suffix gpu" :doc:`command-line switches <Run_options>`.  See
 also the :ref:`KOKKOS <PKG-KOKKOS>` package, which has GPU-enabled styles.
 
 **Authors:** Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
-(Northwestern U) while at ORNL.
+(Northwestern U) while at ORNL and later. AMD HIP support by Evgeny
+Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
@@ -649,6 +651,29 @@ listing, "ls src/MISC", to see the list of commands.
 * examples/VISCOSITY
 * https://lammps.sandia.gov/pictures.html#ttm
 * https://lammps.sandia.gov/movies.html#evaporation
+
+----------
+
+.. _PKG-MLIAP:
+
+MLIAP package
+-------------
+
+**Contents:**
+
+A general interface for machine-learning interatomic potentials.
+
+**Install:**
+
+To use this package, also the :ref:`SNAP package<PKG-SNAP>` needs to be installed.
+
+**Author:** Aidan Thompson (Sandia).
+
+**Supporting info:**
+
+* src/MLIAP: filenames -> commands
+* :doc:`pair_style mliap <pair_mliap>`
+* examples/mliap
 
 ----------
 
@@ -1667,7 +1692,7 @@ USER-MEAMC package
 **Contents:**
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the (obsolete) "MEAM" package
+translated from the Fortran version in the (obsolete) MEAM package
 to plain C++. The USER-MEAMC fully replaces the MEAM package, which
 has been removed from LAMMPS after the 12 December 2018 version.
 

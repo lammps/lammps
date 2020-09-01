@@ -163,7 +163,7 @@ void PairGaussCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -185,18 +185,18 @@ void PairGaussCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double hgauss_one = force->numeric(FLERR,arg[2]);
-  double rmh_one = force->numeric(FLERR,arg[3]);
-  double sigmah_one = force->numeric(FLERR,arg[4]);
+  double hgauss_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rmh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigmah_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (sigmah_one <= 0.0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

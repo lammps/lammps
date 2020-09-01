@@ -427,8 +427,9 @@ void PairEAMFSKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                          int iswap_in, DAT::tdual_xfloat_1d &buf,
+                                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
@@ -464,7 +465,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSUnpackForwardComm, cons
 
 template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
 
@@ -533,8 +534,8 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTO
 
   // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_rho = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
-  auto a_rho = v_rho.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_rho = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
+  auto a_rho = v_rho.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -704,8 +705,8 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -814,11 +815,11 @@ void PairEAMFSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_eatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (EFLAG) {
     if (eflag_atom) {
@@ -985,8 +986,13 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM");
+    PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     try {
       reader.skip_line();
       reader.skip_line();
@@ -996,7 +1002,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];
@@ -1030,6 +1036,10 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
         file->mass[i] = values.next_double();
 
         reader.next_dvector(&file->frho[i][1], file->nrho);
+        if (unit_convert) {
+          for (int j = 1; j <= file->nrho; ++j)
+            file->frho[i][j] *= conversion_factor;
+        }
 
         for (int j = 0; j < file->nelements; j++) {
           reader.next_dvector(&file->rhor[i][j][1], file->nr);
@@ -1039,6 +1049,10 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       for (int i = 0; i < file->nelements; i++) {
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k < file->nr; ++k)
+              file->z2r[i][j][k] *= conversion_factor;
+          }
         }
       }
     } catch (TokenizerException & e) {
@@ -1220,7 +1234,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
 }

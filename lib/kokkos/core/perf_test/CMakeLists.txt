@@ -49,11 +49,19 @@ SET(SOURCES
   )
 
 IF(Kokkos_ENABLE_HIP)
-# FIXME requires TeamPolicy
+# FIXME HIP requires TeamPolicy
   LIST(REMOVE_ITEM SOURCES
     PerfTest_CustomReduction.cpp
     PerfTest_ExecSpacePartitioning.cpp
-    )
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_OPENMPTARGET)
+# FIXME OPENMPTARGET requires TeamPolicy Reductions and Custom Reduction
+  LIST(REMOVE_ITEM SOURCES
+    PerfTest_CustomReduction.cpp
+    PerfTest_ExecSpacePartitioning.cpp
+  )
 ENDIF()
 
 # Per #374, we always want to build this test, but we only want to run
@@ -76,7 +84,22 @@ IF(NOT KOKKOS_CXX_COMPILER_ID STREQUAL "MSVC")
 ENDIF()
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  PerformanceTest_TaskDag
-  SOURCES test_taskdag.cpp
+  PerformanceTest_Atomic
+  SOURCES test_atomic.cpp
   CATEGORIES PERFORMANCE
 )
+
+KOKKOS_ADD_EXECUTABLE_AND_TEST(
+  PerformanceTest_Mempool
+  SOURCES test_mempool.cpp
+  CATEGORIES PERFORMANCE
+)
+
+IF(NOT Kokkos_ENABLE_OPENMPTARGET)
+# FIXME OPENMPTARGET needs tasking
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    PerformanceTest_TaskDag
+    SOURCES test_taskdag.cpp
+    CATEGORIES PERFORMANCE
+  )
+ENDIF()

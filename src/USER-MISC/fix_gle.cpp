@@ -197,7 +197,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
 
   // number of additional momenta
-  ns = force->inumeric(FLERR,arg[3]);
+  ns = utils::inumeric(FLERR,arg[3],false,lmp);
   ns1sq = (ns+1)*(ns+1);
 
   // allocate GLE matrices
@@ -209,19 +209,19 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   ST = new double[ns1sq];
 
   // start temperature (t ramp)
-  t_start = force->numeric(FLERR,arg[4]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
 
   // final temperature (t ramp)
-  t_stop = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
 
   // PRNG seed
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // LOADING A matrix
   FILE *fgle = NULL;
   char *fname = arg[7];
   if (comm->me == 0) {
-    fgle = force->open_potential(fname);
+    fgle = utils::open_potential(fname,lmp,nullptr);
     if (fgle == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open A-matrix file %s",fname);
@@ -276,7 +276,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
       if (iarg+2>narg)
         error->all(FLERR, "Did not specify interval for applying the GLE");
-      gle_every=force->inumeric(FLERR,arg[iarg+1]);
+      gle_every=utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     }
   }
 
@@ -291,7 +291,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   } else {
     if (comm->me == 0) {
-      fgle = force->open_potential(fname);
+      fgle = utils::open_potential(fname,lmp,nullptr);
       if (fgle == NULL) {
         char str[128];
         snprintf(str,128,"Cannot open C-matrix file %s",fname);
@@ -822,6 +822,7 @@ int FixGLE::unpack_exchange(int nlocal, double *buf)
 int FixGLE::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3*ns + 1;
   for (int k = 0; k < 3*ns; k=k+3)
   {
@@ -841,6 +842,7 @@ void FixGLE::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to the nth set of extended variables
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);

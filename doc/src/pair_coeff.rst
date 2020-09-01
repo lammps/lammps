@@ -89,14 +89,20 @@ LAMMPS so long as they are in the format LAMMPS expects, as discussed
 on the individual doc pages.  The first line of potential files may
 contain metadata with upper case tags followed their value. These may
 be parsed and used by LAMMPS.  Currently supported are the "DATE:"
-tag and the "UNITS:" tag.  For pair styles that have been programmed
+tag and the ``UNITS:`` tag.  For pair styles that have been programmed
 to support the metadata, the value of the "DATE:" tag is printed to
 the screen and logfile so that the version of a potential file can be
-later identified.  The "UNITS:" tag indicates the :doc:`units <units>`
+later identified.  The ``UNITS:`` tag indicates the :doc:`units <units>`
 setting required for this particular potential file.  If the potential
-file ware created for a different sets of units, LAMMPS will terminate
+file was created for a different sets of units, LAMMPS will terminate
 with an error.  If the potential file does not contain the tag, no
-check will be made.
+check will be made and it is the responsibility of the user to determine
+that the unit style is correct.
+
+In some select cases and for specific combinations of unit styles,
+LAMMPS is capable of automatically converting potential parameters
+from a file. In those cases, a warning message signaling that an
+automatic conversion has happened is printed to the screen.
 
 When a pair_coeff command using a potential file is specified, LAMMPS
 looks for the potential file in 2 places.  First it looks in the
@@ -104,8 +110,8 @@ location specified.  E.g. if the file is specified as "niu3.eam", it
 is looked for in the current working directory.  If it is specified as
 "../potentials/niu3.eam", then it is looked for in the potentials
 directory, assuming it is a sister directory of the current working
-directory.  If the file is not found, it is then looked for in the
-directory specified by the LAMMPS_POTENTIALS environment variable.
+directory.  If the file is not found, it is then looked for in one of
+the directories specified by the ``LAMMPS_POTENTIALS`` environment variable.
 Thus if this is set to the potentials directory in the LAMMPS distribution,
 then you can use those files from anywhere on your system, without
 copying them into your working directory.  Environment variables are
@@ -129,6 +135,11 @@ Windows:
 .. parsed-literal::
 
    % set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
+
+The ``LAMMPS_POTENTIALS`` environment variable may contain paths
+to multiple folders, if they are separated by ";" on Windows and
+":" on all other operating systems, just like the ``PATH`` and
+similar environment variables.
 
 ----------
 
@@ -155,4 +166,7 @@ Related commands
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`,
 :doc:`pair_write <pair_write>`
 
-**Default:** none
+Default
+"""""""
+
+none

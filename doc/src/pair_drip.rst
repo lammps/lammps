@@ -104,7 +104,8 @@ model H atoms:
 
 ----------
 
-**Mixing, shift, table, tail correction, and restart info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the pair_modify mix, shift, table,
 and tail options.

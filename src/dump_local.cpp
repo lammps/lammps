@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +46,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
   if (binary)
@@ -57,7 +58,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nfield = input->expand_args(nfield,&arg[5],1,earg);
+  nfield = utils::expand_args(FLERR,nfield,&arg[5],1,earg,lmp);
 
   if (earg != &arg[5]) expand = 1;
 
@@ -268,14 +269,14 @@ void DumpLocal::write_header(bigint ndump)
     fprintf(fp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic) {
       fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-      fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-      fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
     } else {
       fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-      fprintf(fp,"%g %g\n",boxylo,boxyhi);
-      fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
     }
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }

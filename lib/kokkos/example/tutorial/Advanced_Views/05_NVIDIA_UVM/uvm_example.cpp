@@ -49,18 +49,18 @@
 #include <cstdlib>
 
 #ifdef KOKKOS_ENABLE_CUDA
-typedef Kokkos::View<double*, Kokkos::CudaUVMSpace> view_type;
-typedef Kokkos::View<int**, Kokkos::CudaUVMSpace> idx_type;
+using view_type = Kokkos::View<double*, Kokkos::CudaUVMSpace>;
+using idx_type  = Kokkos::View<int**, Kokkos::CudaUVMSpace>;
 #else
-typedef Kokkos::View<double*, Kokkos::HostSpace> view_type;
-typedef Kokkos::View<int**, Kokkos::HostSpace> idx_type;
+using view_type = Kokkos::View<double*, Kokkos::HostSpace>;
+using idx_type  = Kokkos::View<int**, Kokkos::HostSpace>;
 #endif
 
 template <class Device>
 struct localsum {
   // Define the execution space for the functor (overrides the
   // DefaultExecutionSpace)
-  typedef Device execution_space;
+  using execution_space = Device;
 
   // Get the view types on the particular device the functor is instantiated for
   idx_type::const_type idx;

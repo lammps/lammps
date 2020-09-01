@@ -253,6 +253,22 @@ be generated and LAMMPS may lose atoms or use incorrect periodic images of atoms
 interaction lists.  To avoid, either define pair style zero with a suitable cutoff
 or use comm_modify cutoff.
 
+W: Communication cutoff is shorter than a bond length based estimate. This may lead to errors.
+
+Since LAMMPS stores topology data with individual atoms, all atoms comprising
+a bond, angle, dihedral or improper must be present on any sub-domain that
+"owns" the atom with the information, either as a local or a ghost atom. The
+communication cutoff is what determines up to what distance from a sub-domain
+boundary ghost atoms are created.  The communication cutoff is by default the
+largest non-bonded cutoff plus the neighbor skin distance, but for short or
+non-bonded cutoffs and/or long bonds, this may not be sufficient. This warning
+indicates that there is an increased risk of a simulation stopping unexpectedly
+because of Bond/Angle/Dihedral/Improper atoms missing.  It can be silenced by
+manually setting the communication cutoff via comm_modify cutoff.  However,
+since the heuristic used to determine the estimate is not always accurate, it
+is not changed automatically and the warning may be ignored depending on the
+specific system being simulated.
+
 UNDOCUMENTED
 
 U: OMP_NUM_THREADS environment is not set.

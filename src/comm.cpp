@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
 #include "fmt/format.h"
 
 #ifdef _OPENMP
@@ -103,12 +104,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Bcast(&nthreads,1,MPI_INT,0,world);
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-    if (logfile)
-      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  using {} OpenMP thread(s) per MPI task\n",nthreads));
 #endif
 
 }
@@ -303,7 +300,7 @@ void Comm::modify_params(int narg, char **arg)
       if (mode == Comm::MULTI)
         error->all(FLERR,
                    "Use cutoff/multi keyword to set cutoff in multi mode");
-      cutghostuser = force->numeric(FLERR,arg[iarg+1]);
+      cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       iarg += 2;
@@ -323,8 +320,8 @@ void Comm::modify_params(int narg, char **arg)
         for (i=0; i < ntypes+1; ++i)
           cutusermulti[i] = -1.0;
       }
-      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
-      cut = force->numeric(FLERR,arg[iarg+2]);
+      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -351,11 +348,11 @@ void Comm::set_processors(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Illegal processors command");
 
   if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
-  else user_procgrid[0] = force->inumeric(FLERR,arg[0]);
+  else user_procgrid[0] = utils::inumeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
-  else user_procgrid[1] = force->inumeric(FLERR,arg[1]);
+  else user_procgrid[1] = utils::inumeric(FLERR,arg[1],false,lmp);
   if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
-  else user_procgrid[2] = force->inumeric(FLERR,arg[2]);
+  else user_procgrid[2] = utils::inumeric(FLERR,arg[2],false,lmp);
 
   if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0)
     error->all(FLERR,"Illegal processors command");
@@ -376,13 +373,13 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = TWOLEVEL;
 
-        ncores = force->inumeric(FLERR,arg[iarg+2]);
+        ncores = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
-        else user_coregrid[0] = force->inumeric(FLERR,arg[iarg+3]);
+        else user_coregrid[0] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
-        else user_coregrid[1] = force->inumeric(FLERR,arg[iarg+4]);
+        else user_coregrid[1] = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
         if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
-        else user_coregrid[2] = force->inumeric(FLERR,arg[iarg+5]);
+        else user_coregrid[2] = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
 
         if (ncores <= 0 || user_coregrid[0] < 0 ||
             user_coregrid[1] < 0 || user_coregrid[2] < 0)
@@ -425,8 +422,8 @@ void Comm::set_processors(int narg, char **arg)
         error->all(FLERR,
                    "Cannot use processors part command "
                    "without using partitions");
-      int isend = force->inumeric(FLERR,arg[iarg+1]);
-      int irecv = force->inumeric(FLERR,arg[iarg+2]);
+      int isend = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      int irecv = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (isend < 1 || isend > universe->nworlds ||
           irecv < 1 || irecv > universe->nworlds || isend == irecv)
         error->all(FLERR,"Invalid partitions in processors part command");
@@ -563,20 +560,12 @@ void Comm::set_proc_grid(int outflag)
   // print 3d grid info to screen and logfile
 
   if (outflag && me == 0) {
-    if (screen) {
-      fprintf(screen,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(screen,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
-    if (logfile) {
-      fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(logfile,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
+    auto mesg = fmt::format("  {} by {} by {} MPI processor grid\n",
+                            procgrid[0],procgrid[1],procgrid[2]);
+    if (gridflag == NUMA || gridflag == TWOLEVEL)
+      mesg += fmt::format("  {} by {} by {} core grid within node\n",
+                          coregrid[0],coregrid[1],coregrid[2]);
+    utils::logmesg(lmp,mesg);
   }
 
   // print 3d grid details to outfile
@@ -1223,42 +1212,42 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
   int mbytes = 1024*1024;
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Rendezvous balance and memory info: (tot,ave,max,min) \n");
-      fmt::print(screen,"  input datum count: {} {} {} {}\n",
-                 size_in_all/insize,1.0*size_in_all/nprocs/insize,
-                 size_in_max/insize,size_in_min/insize);
-      fprintf(screen,"  input data (MB): %g %g %g %g\n",
-              1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
-              1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
-      if (outsize)
-        fmt::print(screen,"  output datum count: {} {} {} {}\n",
-                   size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
-                   size_out_max/outsize,size_out_min/outsize);
-      else
-        fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output data (MB): %g %g %g %g\n",
-              1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
-              1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
-      fmt::print(screen,"  input rvous datum count: {} {} {} {}\n",
-                 size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
-                 size_inrvous_max/insize,size_inrvous_min/insize);
-      fprintf(screen,"  input rvous data (MB): %g %g %g %g\n",
-              1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
-              1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
-      if (outsize)
-        fmt::print(screen,"  output rvous datum count: {} {} {} {}\n",
-                   size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
-                   size_outrvous_max/outsize,size_outrvous_min/outsize);
-      else
-        fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
-              1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
-              1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
-      fprintf(screen,"  rvous comm (MB): %g %g %g %g\n",
-              1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
-              1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
-    }
+    std::string mesg = "Rendezvous balance and memory info: (tot,ave,max,min) \n";
+    mesg += fmt::format("  input datum count: {} {} {} {}\n",
+                        size_in_all/insize,1.0*size_in_all/nprocs/insize,
+                        size_in_max/insize,size_in_min/insize);
+    mesg += fmt::format("  input data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
+                        1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output datum count: {} {} {} {}\n",
+                          size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+                          size_out_max/outsize,size_out_min/outsize);
+    else
+      mesg += fmt::format("  output datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+
+    mesg += fmt::format("  output data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
+                        1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
+    mesg += fmt::format("  input rvous datum count: {} {} {} {}\n",
+                        size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+                        size_inrvous_max/insize,size_inrvous_min/insize);
+    mesg += fmt::format("  input rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
+                        1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output rvous datum count: {} {} {} {}\n",
+                          size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+                          size_outrvous_max/outsize,size_outrvous_min/outsize);
+    else
+      mesg += fmt::format("  output rvous datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+    mesg += fmt::format("  output rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
+                        1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
+    mesg += fmt::format("  rvous comm (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
+                        1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
+    utils::logmesg(lmp,mesg);
   }
 }
 

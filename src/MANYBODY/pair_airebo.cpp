@@ -154,15 +154,15 @@ void PairAIREBO::settings(int narg, char **arg)
   if (narg != 1 && narg != 3 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cutlj = force->numeric(FLERR,arg[0]);
+  cutlj = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (narg >= 3) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
+    ljflag = utils::inumeric(FLERR,arg[1],false,lmp);
+    torflag = utils::inumeric(FLERR,arg[2],false,lmp);
   }
   if (narg == 4) {
     sigcut = cutlj;
-    sigmin = force->numeric(FLERR,arg[3]);
+    sigmin = utils::numeric(FLERR,arg[3],false,lmp);
     sigwid = sigcut - sigmin;
   }
 
@@ -3363,17 +3363,17 @@ void PairAIREBO::read_file(char *filename)
     std::string header;
     switch (variant) {
     case AIREBO:
-      potential_name = "AIREBO";
+      potential_name = "airebo";
       header = "# AIREBO ";
       break;
 
     case REBO_2:
-      potential_name = "REBO2";
+      potential_name = "rebo";
       header = "# REBO2 ";
       break;
 
     case AIREBO_M:
-      potential_name = "Cannot open AIREBO-M";
+      potential_name = "airebo/morse";
       header = "# AIREBO-M ";
       break;
 

@@ -310,7 +310,8 @@ included in the variable formula or via the *prefactor* keyword.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -361,7 +362,10 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
 :doc:`fix ave/histo <fix_ave_histo>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults are ave = one, type = auto, start = 0, no file
 output, title 1,2,3 = strings as described above, and prefactor = 1.0.

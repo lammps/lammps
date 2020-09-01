@@ -1,6 +1,6 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Fri May 29 23:03:56 202
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:21 202
 epsilon: 5e-13
 prerequisites: ! |
   pair beck

@@ -7,9 +7,11 @@ else()
 endif()
 
 include(ExternalProject)
+set(GTEST_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz" CACHE STRING "URL for GTest tarball")
+mark_as_advanced(GTEST_URL)
 ExternalProject_Add(googletest
-                    GIT_REPOSITORY  https://github.com/google/googletest.git
-                    GIT_TAG         release-1.10.0
+                    URL ${GTEST_URL}
+                    URL_MD5         ecd1fa65e7de707cd5c00bdac56022cd
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/gtest-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/gtest-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_GTEST_OPTS}
@@ -52,26 +54,26 @@ add_library(GTest::GTest UNKNOWN IMPORTED)
 set_target_properties(GTest::GTest PROPERTIES
         IMPORTED_LOCATION ${GTEST_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
-        IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+        INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
 add_dependencies(GTest::GTest googletest)
 
 add_library(GTest::GMock UNKNOWN IMPORTED)
 set_target_properties(GTest::GMock PROPERTIES
         IMPORTED_LOCATION ${GMOCK_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GMOCK_INCLUDE_DIR}
-        IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+        INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
 add_dependencies(GTest::GMock googletest)
 
 add_library(GTest::GTestMain UNKNOWN IMPORTED)
 set_target_properties(GTest::GTestMain PROPERTIES
         IMPORTED_LOCATION ${GTEST_MAIN_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
-        IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+        INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
 add_dependencies(GTest::GTestMain googletest)
 
 add_library(GTest::GMockMain UNKNOWN IMPORTED)
 set_target_properties(GTest::GMockMain PROPERTIES
         IMPORTED_LOCATION ${GMOCK_MAIN_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GMOCK_INCLUDE_DIR}
-        IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+        INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
 add_dependencies(GTest::GMockMain googletest)

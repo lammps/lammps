@@ -1,7 +1,7 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Fri May 15 23:19:20 202
-epsilon: 5.0e-12
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:21 202
+epsilon: 5e-12
 prerequisites: ! |
   pair eam/fs
 pre_commands: ! ""
@@ -10,6 +10,7 @@ input_file: in.metal
 pair_style: eam/fs
 pair_coeff: ! |
   * * AlFe_mm.eam.fs Al Fe
+extract: ! ""
 natoms: 32
 init_vdwl: -108.262111462389
 init_coul: 0

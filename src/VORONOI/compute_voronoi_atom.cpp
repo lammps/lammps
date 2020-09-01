@@ -100,15 +100,15 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_histo") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      maxedge = force->inumeric(FLERR,arg[iarg+1]);
+      maxedge = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "face_threshold") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      fthresh = force->numeric(FLERR,arg[iarg+1]);
+      fthresh = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_threshold") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      ethresh = force->numeric(FLERR,arg[iarg+1]);
+      ethresh = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "neighbors") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
@@ -511,7 +511,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       c.face_areas(narea);
       have_narea = true;
       voro[i][1] = 0.0;
-      for (j=0; j<narea.size(); ++j)
+      for (j=0; j < (int)narea.size(); ++j)
         if (narea[j] > fthresh) voro[i][1] += 1.0;
     } else {
       // unthresholded face count
@@ -526,7 +526,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       voro[i][2] = 0.0;
 
       // each entry in neigh should correspond to an entry in narea
-      if (neighs != narea.size())
+      if (neighs != (int)narea.size())
         error->one(FLERR,"Voro++ error: narea and neigh have a different size");
 
       // loop over all faces (neighbors) and check if they are in the surface group
@@ -543,10 +543,10 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
         c.vertices(vcell);
         c.face_vertices(vlist); // for each face: vertex count followed list of vertex indices (n_1,v1_1,v2_1,v3_1,..,vn_1,n_2,v2_1,...)
         double dx, dy, dz, r2, t2 = ethresh*ethresh;
-        for( j=0; j<vlist.size(); j+=vlist[j]+1 ) {
+        for( j=0; j < (int)vlist.size(); j+=vlist[j]+1 ) {
           int a, b, nedge = 0;
           // vlist[j] contains number of vertex indices for the current face
-          for( k=0; k<vlist[j]; ++k ) {
+          for( k=0; k < vlist[j]; ++k ) {
             a = vlist[j+1+k];              // first vertex in edge
             b = vlist[j+1+(k+1)%vlist[j]]; // second vertex in edge (possible wrap around to first vertex in list)
             dx = vcell[a*3]   - vcell[b*3];
@@ -587,7 +587,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
       if (!have_narea) c.face_areas(narea);
 
-      if (neighs != narea.size())
+      if (neighs != (int)narea.size())
         error->one(FLERR,"Voro++ error: narea and neigh have a different size");
       tagint itag, jtag;
       tagint *tag = atom->tag;

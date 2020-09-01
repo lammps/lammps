@@ -149,7 +149,8 @@ per-atom quantities to time average.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are
@@ -175,4 +176,7 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`,
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -452,6 +453,58 @@ void AtomVecLine::pack_data_post(int ilocal)
 {
   line[ilocal] = line_flag;
   rmass[ilocal] = rmass_one;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus line info for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i,j;
+  double length,theta;
+  double xc,yc,x1,x2,y1,y2;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (line[i] < 0) continue;
+    if (buf) {
+      buf[m++] = ubuf(tag[i]).d;
+      j = line[i];
+      length = bonus[j].length;
+      theta = bonus[j].theta;
+      xc = x[i][0];
+      yc = x[i][1];
+      x1 = xc - 0.5*cos(theta)*length;
+      y1 = yc - 0.5*sin(theta)*length;
+      x2 = xc + 0.5*cos(theta)*length;
+      y2 = yc + 0.5*sin(theta)*length;
+      buf[m++] = x1;
+      buf[m++] = y1;
+      buf[m++] = x2;
+      buf[m++] = y2;
+    } else m += size_data_bonus;
+  }
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus line info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecLine::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {}\n",ubuf(buf[i]).i,
+               buf[i+1],buf[i+2],buf[i+3],buf[i+4]);
+    i += size_data_bonus;
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -310,7 +310,8 @@ are not both set or not both unset.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *sna/atom* calculates a per-atom array, each column
 corresponding to a particular bispectrum component.  The total number
@@ -391,7 +392,9 @@ of :math:`K N_{elem}^3` columns.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
-page for an overview of LAMMPS output options.
+page for an overview of LAMMPS output options. To see how this command
+can be used within a Python workflow to train SNAP potentials,
+see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
 Restrictions
 """"""""""""
@@ -431,7 +434,6 @@ available at `arXiv:1409.3880 <http://arxiv.org/abs/1409.3880>`_
 
 **(Varshalovich)** Varshalovich, Moskalev, Khersonskii, Quantum Theory
 of Angular Momentum, World Scientific, Singapore (1987).
-.. _Varshalovich1987:
 
 .. _Mason2009:
 

@@ -156,11 +156,11 @@ void AngleCosineShift::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(k      ,n+1,"Angle:k");
-  memory->create(ksint  ,n+1,"Angle:ksint");
-  memory->create(kcost  ,n+1,"Angle:kcost");
-  memory->create(theta  ,n+1,"Angle:theta");
-  memory->create(setflag,n+1, "Angle:setflag");
+  memory->create(k,n+1,"angle:k");
+  memory->create(ksint,n+1,"angle:ksint");
+  memory->create(kcost,n+1,"angle:kcost");
+  memory->create(theta,n+1,"angle:theta");
+  memory->create(setflag,n+1,"angle:setflag");
 
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
@@ -175,10 +175,10 @@ void AngleCosineShift::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double umin   = force->numeric(FLERR,arg[1]);
-  double theta0 = force->numeric(FLERR,arg[2]);
+  double umin   = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0 = utils::numeric(FLERR,arg[2],false,lmp);
 
 // k=Umin/2
 

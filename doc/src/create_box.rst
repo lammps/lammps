@@ -153,4 +153,7 @@ Related commands
 :doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
-**Default:** none
+Default
+"""""""
+
+none

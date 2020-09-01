@@ -19,6 +19,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -32,6 +33,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
+#include "reset_mol_ids.h"
 #include "molecule.h"
 #include "group.h"
 #include "citeme.h"
@@ -41,6 +43,8 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "error.h"
 #include "input.h"
 #include "variable.h"
+#include "fmt/format.h"
+#include "superpose3d.h"
 
 #include <algorithm>
 
@@ -75,7 +79,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
@@ -90,6 +94,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix1 = NULL;
   fix2 = NULL;
   fix3 = NULL;
+  reset_mol_ids = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -142,7 +147,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   stabilization_flag = 0;
-  int num_common_keywords = 1;
+  reset_mol_ids_flag = 1;
+  int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
       if (strcmp(arg[iarg+1],"no") == 0) {
@@ -160,9 +166,21 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
       }
+    } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'reset_mol_ids' keyword has too few arguments");
+      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
+      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
     } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
+  }
+
+  if (reset_mol_ids_flag) {
+    delete reset_mol_ids;
+    reset_mol_ids = new ResetMolIDs(lmp);
+    reset_mol_ids->create_computes(id,group->names[igroup]);
   }
 
   // set up common variables as vectors of length 'nreacts'
@@ -227,11 +245,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     int n = strlen(arg[iarg]) + 1;
     if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
-    strncpy(rxn_name[rxn],arg[iarg++],n);
+    strcpy(rxn_name[rxn],arg[iarg++]);
 
-    int igroup = group->find(arg[iarg++]);
-    if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
-    groupbits[rxn] = group->bitmask[igroup];
+    int groupid = group->find(arg[iarg++]);
+    if (groupid == -1) error->all(FLERR,"Could not find fix group ID");
+    groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
       n = strlen(&arg[iarg][2]) + 1;
@@ -245,7 +263,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[NEVERY][rxn] = 1;
       delete [] str;
     } else {
-      nevery[rxn] = force->inumeric(FLERR,arg[iarg]);
+      nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "'Nevery' must be a positive integer");
     }
@@ -265,7 +283,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMIN][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
                                    "'Rmin' cannot be negative");
       cutsq[rxn][0] = cutoff*cutoff;
@@ -286,7 +304,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMAX][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
                                    "'Rmax' cannot be negative");
       cutsq[rxn][1] = cutoff*cutoff;
@@ -324,9 +342,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           delete [] str;
         } else {
           // otherwise probability should be a number
-          fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+          fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         }
-        seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
+        seed[rxn] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
           error->all(FLERR,"Illegal fix bond/react command: "
                      "probability fraction must between 0 and 1, inclusive");
@@ -336,7 +354,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'max_rxn' has too few arguments");
-        max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+        max_rxn[rxn] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
                                          "'max_rxn' cannot be negative");
         iarg += 2;
@@ -345,7 +363,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                                 "used without stabilization keyword");
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'stabilize_steps' has too few arguments");
-        limit_duration[rxn] = force->numeric(FLERR,arg[iarg+1]);
+        limit_duration[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         stabilize_steps_flag[rxn] = 1;
         iarg += 2;
       } else if (strcmp(arg[iarg],"update_edges") == 0) {
@@ -497,6 +515,8 @@ FixBondReact::~FixBondReact()
   }
   delete [] random;
 
+  delete reset_mol_ids;
+
   memory->destroy(partner);
   memory->destroy(finalpartner);
   memory->destroy(ncreate);
@@ -575,17 +595,11 @@ FixBondReact::~FixBondReact()
   delete [] set;
 
   if (group) {
-    char **newarg;
-    newarg = new char*[2];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "delete";
-    group->assign(2,newarg);
+    group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
-      newarg[0] = exclude_group;
-      group->assign(2,newarg);
+      group->assign(std::string(exclude_group) + " delete");
       delete [] exclude_group;
     }
-    delete [] newarg;
   }
 }
 
@@ -608,59 +622,38 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
+  int len;
   // let's add the limit_tags per-atom property fix
-  int len = strlen("bond_react_props_internal") + 1;
-  id_fix2 = new char[len];
-  strcpy(id_fix2,"bond_react_props_internal");
+  std::string cmd = std::string("bond_react_props_internal");
+  id_fix2 = new char[cmd.size()+1];
+  strcpy(id_fix2,cmd.c_str());
 
   int ifix = modify->find_fix(id_fix2);
   if (ifix == -1) {
-    char **newarg = new char*[7];
-    newarg[0] = (char *) "bond_react_props_internal";
-    newarg[1] = (char *) "all"; // group ID is ignored
-    newarg[2] = (char *) "property/atom";
-    newarg[3] = (char *) "i_limit_tags";
-    newarg[4] = (char *) "i_react_tags";
-    newarg[5] = (char *) "ghost";
-    newarg[6] = (char *) "yes";
-    modify->add_fix(7,newarg);
-    delete [] newarg;
+    cmd += std::string(" all property/atom i_limit_tags i_react_tags ghost yes");
+    modify->add_fix(cmd);
   }
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
   group->find_or_create(master_group);
-  char **newarg;
-  newarg = new char*[5];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "dynamic";
-  newarg[2] = (char *) "all";
-  newarg[3] = (char *) "property";
-  newarg[4] = (char *) "limit_tags";
-  group->assign(5,newarg);
-  delete [] newarg;
+  cmd = fmt::format("{} dynamic all property limit_tags",master_group);
+  group->assign(cmd);
 
   if (stabilization_flag == 1) {
-    int igroup = group->find(exclude_group);
+    int groupid = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
-    if (igroup == -1 || group->dynamic[igroup] == 0) {
+    if (groupid == -1 || group->dynamic[groupid] == 0) {
       // create stabilization per-atom property
-      len = strlen("bond_react_stabilization_internal") + 1;
-      id_fix3 = new char[len];
-      strcpy(id_fix3,"bond_react_stabilization_internal");
+      cmd = std::string("bond_react_stabilization_internal");
+      id_fix3 = new char[cmd.size()+1];
+      strcpy(id_fix3,cmd.c_str());
 
       ifix = modify->find_fix(id_fix3);
       if (ifix == -1) {
-        char **newarg = new char*[6];
-        newarg[0] = (char *) id_fix3;
-        newarg[1] = (char *) "all"; // group ID is ignored
-        newarg[2] = (char *) "property/atom";
-        newarg[3] = (char *) "i_statted_tags";
-        newarg[4] = (char *) "ghost";
-        newarg[5] = (char *) "yes";
-        modify->add_fix(6,newarg);
+        cmd += std::string(" all property/atom i_statted_tags ghost yes");
+        modify->add_fix(cmd);
         fix3 = modify->fix[modify->nfix-1];
-        delete [] newarg;
       }
 
       len = strlen("statted_tags") + 1;
@@ -680,16 +673,11 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      char **newarg;
-      newarg = new char*[5];
-      newarg[0] = exclude_group;
-      newarg[1] = (char *) "dynamic";
-      if (igroup == -1) newarg[2] = (char *) "all";
-      else newarg[2] = (char *) exclude_PARENT_group;
-      newarg[3] = (char *) "property";
-      newarg[4] = (char *) "statted_tags";
-      group->assign(5,newarg);
-      delete [] newarg;
+      if (groupid == -1)
+        cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
+      else
+        cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
+      group->assign(cmd);
       delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
@@ -737,21 +725,16 @@ void FixBondReact::post_constructor()
 
 
     // let's create a new nve/limit fix to limit newly reacted atoms
-    len = strlen("bond_react_MASTER_nve_limit") + 1;
-    id_fix1 = new char[len];
-    strcpy(id_fix1,"bond_react_MASTER_nve_limit");
+    cmd = std::string("bond_react_MASTER_nve_limit");
+    id_fix1 = new char[cmd.size()+1];
+    strcpy(id_fix1,cmd.c_str());
 
     ifix = modify->find_fix(id_fix1);
 
     if (ifix == -1) {
-      char **newarg = new char*[4];
-      newarg[0] = id_fix1;
-      newarg[1] = master_group;
-      newarg[2] = (char *) "nve/limit";
-      newarg[3] = nve_limit_xmax;
-      modify->add_fix(4,newarg);
+      cmd += fmt::format(" {} nve/limit  {}",master_group,nve_limit_xmax);
+      modify->add_fix(cmd);
       fix1 = modify->fix[modify->nfix-1];
-      delete [] newarg;
     }
   }
 }
@@ -1875,6 +1858,43 @@ int FixBondReact::check_constraints()
         prrhob = constraints[i][3]*pow(t,constraints[i][4])*
           exp(-constraints[i][5]/(force->boltz*t));
         if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
+      } else if (constraints[i][1] == RMSD) {
+        // call superpose
+        int n2superpose = 0;
+        double **xfrozen; // coordinates for the "frozen" target molecule
+        double **xmobile; // coordinates for the "mobile" molecule
+        int ifragment = constraints[i][3];
+        if (ifragment >= 0) {
+          for (int j = 0; j < onemol->natoms; j++)
+            if (onemol->fragmentmask[ifragment][j]) n2superpose++;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          int myincr = 0;
+          for (int j = 0; j < onemol->natoms; j++) {
+            if (onemol->fragmentmask[ifragment][j]) {
+              for (int k = 0; k < 3; k++) {
+                xfrozen[myincr][k] = x[atom->map(glove[j][1])][k];
+                xmobile[myincr][k] = onemol->x[j][k];
+              }
+              myincr++;
+            }
+          }
+        } else {
+          n2superpose = onemol->natoms;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          for (int j = 0; j < n2superpose; j++) {
+            for (int k = 0; k < 3; k++) {
+              xfrozen[j][k] = x[atom->map(glove[j][1])][k];
+              xmobile[j][k] = onemol->x[j][k];
+            }
+          }
+        }
+        Superpose3D<double, double **> superposer(n2superpose);
+        double rmsd = superposer.Superpose(xfrozen, xmobile);
+        if (rmsd > constraints[i][2]) return 0;
+        memory->destroy(xfrozen);
+        memory->destroy(xmobile);
       }
     }
   }
@@ -2096,7 +2116,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   for (int i = 0; i < twomol->natoms; i++) {
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
       char str[128];
-      snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+      snprintf(str,128,"Bond/react: Atom type affected by reaction %s too close to template edge",rxn_name[myrxn]);
       error->all(FLERR,str);
     }
   }
@@ -2115,7 +2135,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
                 char str[128];
-                snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                 error->all(FLERR,str);
               }
             }
@@ -2127,7 +2147,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
                   char str[128];
-                  snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                  snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                   error->all(FLERR,str);
                 }
               }
@@ -2538,7 +2558,7 @@ void FixBondReact::ghost_glovecast()
 }
 
 /* ----------------------------------------------------------------------
-update charges, types, special lists and all topology
+update molecule IDs, charges, types, special lists and all topology
 ------------------------------------------------------------------------- */
 
 void FixBondReact::update_everything()
@@ -3077,6 +3097,9 @@ void FixBondReact::update_everything()
   atom->natoms -= ndel;
   // done deleting atoms
 
+  // reset mol ids
+  if (reset_mol_ids_flag) reset_mol_ids->reset();
+
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG
 
@@ -3337,6 +3360,17 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[1];
       constraints[nconstraints][5] = tmp[2];
       constraints[nconstraints][6] = tmp[3];
+    } else if (strcmp(constraint_type,"rmsd") == 0) {
+      constraints[nconstraints][1] = RMSD;
+      strcpy(strargs[0],"0");
+      sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      constraints[nconstraints][2] = tmp[0]; // RMSDmax
+      constraints[nconstraints][3] = -1; // optional molecule fragment
+      if (isalpha(strargs[0][0])) {
+        int ifragment = onemol->findfragment(strargs[0]);
+        if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
+        else constraints[nconstraints][3] = ifragment;
+      }
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
     nconstraints++;

@@ -145,6 +145,9 @@ class AtomVec : protected Pointers {
   virtual int pack_improper(tagint **);
   virtual void write_improper(FILE *, int, tagint **, int);
 
+  virtual int pack_data_bonus(double *, int) {return 0;}
+  virtual void write_data_bonus(FILE *, int, double *, int) {}
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
@@ -208,10 +211,6 @@ class AtomVec : protected Pointers {
   // used by fields in grow() and memory_usage()
 
   bool *threads;
-
-  // counter for atom vec instances
-
-  static int num_atom_vecs;
 
   // local methods
 

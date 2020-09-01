@@ -110,7 +110,7 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  bigint nstep = force->bnumeric(FLERR,arg[1]);
+  bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
@@ -120,7 +120,7 @@ void ReadDump::command(int narg, char **arg)
 
   // find the snapshot and read/bcast/process header info
 
-  if (me == 0 && screen) fprintf(screen,"Scanning dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
 
   bigint ntimestep = seek(nstep,1);
   if (ntimestep < 0)
@@ -135,8 +135,7 @@ void ReadDump::command(int narg, char **arg)
 
   // read in the snapshot and reset system
 
-  if (me == 0 && screen)
-    fprintf(screen,"Reading snapshot from dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
 
   bigint natoms_prev = atom->natoms;
   atoms();
@@ -289,13 +288,9 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     for (ifile = 0; ifile < nfile; ifile++) {
       ntimestep = -1;
       if (multiproc) {
-        char *ptr = strchr(files[ifile],'%');
-        char *multiname = new char[strlen(files[ifile]) + 16];
-        *ptr = '\0';
-        sprintf(multiname,"%s%d%s",files[ifile],0,ptr+1);
-        *ptr = '%';
-        readers[0]->open_file(multiname);
-        delete [] multiname;
+        std::string multiname = files[ifile];
+        multiname.replace(multiname.find("%"),1,"0");
+        readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
       while (1) {
@@ -337,13 +332,9 @@ bigint ReadDump::seek(bigint nrequest, int exact)
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
-      char *ptr = strchr(files[currentfile],'%');
-      char *multiname = new char[strlen(files[currentfile]) + 16];
-      *ptr = '\0';
-      sprintf(multiname,"%s%d%s",files[currentfile],firstfile+i,ptr+1);
-      *ptr = '%';
-      readers[i]->open_file(multiname);
-      delete [] multiname;
+      std::string multiname = files[currentfile];
+      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      readers[i]->open_file(multiname.c_str());
 
       bigint step;
       while (1) {
@@ -389,13 +380,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       ntimestep = -1;
       if (ifile != currentfile) {
         if (multiproc) {
-          char *ptr = strchr(files[ifile],'%');
-          char *multiname = new char[strlen(files[ifile]) + 16];
-          *ptr = '\0';
-          sprintf(multiname,"%s%d%s",files[ifile],0,ptr+1);
-          *ptr = '%';
-          readers[0]->open_file(multiname);
-          delete [] multiname;
+          std::string multiname = files[ifile];
+          multiname.replace(multiname.find("%"),1,"0");
+          readers[0]->open_file(multiname.c_str());
         } else readers[0]->open_file(files[ifile]);
       }
 
@@ -447,13 +434,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;
-      char *ptr = strchr(files[currentfile],'%');
-      char *multiname = new char[strlen(files[currentfile]) + 16];
-      *ptr = '\0';
-      sprintf(multiname,"%s%d%s",files[currentfile],firstfile+i,ptr+1);
-      *ptr = '%';
-      readers[i]->open_file(multiname);
-      delete [] multiname;
+      std::string multiname = files[currentfile];
+      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      readers[i]->open_file(multiname.c_str());
 
       bigint step;
       while (1) {
@@ -1234,7 +1217,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      multiproc_nfile = force->inumeric(FLERR,arg[iarg+1]);
+      multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

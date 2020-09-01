@@ -43,7 +43,8 @@ translational degrees of freedom for each nuclei or electron are
 affected by the streaming velocity adjustment.  The radial velocity
 component of the electrons is not affected.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -69,4 +70,7 @@ Related commands
 :doc:`compute temp/ramp <compute_temp_ramp>`, :doc:`fix deform <fix_deform>`,
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
-**Default:** none
+Default
+"""""""
+
+none

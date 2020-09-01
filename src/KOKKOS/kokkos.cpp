@@ -100,8 +100,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef KOKKOS_ENABLE_CUDA
-      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
+#ifndef LMP_KOKKOS_GPU
+      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA or HIP");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       ngpus = atoi(arg[iarg+1]);
@@ -164,9 +164,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpus);
   }
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)
-    error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
+    error->all(FLERR,"Kokkos has been compiled for CUDA or HIP but no GPUs are requested");
 #endif
 
 #ifndef KOKKOS_ENABLE_SERIAL
@@ -253,13 +253,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #if defined(MPICH) && defined(MVAPICH2_VERSION)
       char* str;
       cuda_aware_flag = 0;
-      if ((str = getenv("MV2_ENABLE_CUDA")))
+      if ((str = getenv("MV2_USE_CUDA")))
         if ((strcmp(str,"1") == 0))
           cuda_aware_flag = 1;
 
       if (!cuda_aware_flag)
         if (me == 0)
-          error->warning(FLERR,"MVAPICH2 'MV2_ENABLE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
+          error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
       if (me == 0)
@@ -324,7 +324,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      binsize = force->numeric(FLERR,arg[iarg+1]);
+      binsize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");

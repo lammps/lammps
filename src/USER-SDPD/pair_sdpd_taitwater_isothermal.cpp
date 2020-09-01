@@ -30,6 +30,7 @@
 #include "error.h"
 #include "domain.h"
 #include "update.h"
+#include "utils.h"
 #ifndef USE_ZEST
 #include "random_mars.h"
 #endif
@@ -242,15 +243,15 @@ void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
     error->all (FLERR, "Illegal number of arguments for "
                 "pair_style sdpd/taitwater/isothermal");
 
-  temperature = force->numeric (FLERR, arg[0]);
-  viscosity = force->numeric (FLERR, arg[1]);
+  temperature = utils::numeric(FLERR, arg[0], false, lmp);
+  viscosity = utils::numeric(FLERR, arg[1], false, lmp);
 
   if (temperature <= 0) error->all (FLERR, "Temperature must be positive");
   if (viscosity <= 0) error->all (FLERR, "Viscosity must be positive");
 
   // seed is immune to underflow/overflow because it is unsigned
   seed = comm->nprocs + comm->me + atom->nlocal;
-  if (narg == 3) seed += force->inumeric (FLERR, arg[2]);
+  if (narg == 3) seed += utils::inumeric(FLERR, arg[2], false, lmp);
 #ifdef USE_ZEST
   generator.seed (seed);
 #else
@@ -270,12 +271,12 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds (FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds (FLERR, arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double rho0_one = force->numeric (FLERR,arg[2]);
-  double soundspeed_one = force->numeric (FLERR,arg[3]);
-  double cut_one = force->numeric (FLERR,arg[4]);
+  double rho0_one = utils::numeric(FLERR,arg[2], false, lmp);
+  double soundspeed_one = utils::numeric(FLERR,arg[3], false, lmp);
+  double cut_one = utils::numeric(FLERR,arg[4], false, lmp);
   double B_one = soundspeed_one * soundspeed_one * rho0_one / 7.0;
 
   if (rho0_one <= 0) error->all (FLERR, "Density must be positive");

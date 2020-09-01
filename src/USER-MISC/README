@@ -26,6 +26,7 @@ angle_style dipole, Mario Orsi, orsimario at gmail.com, 10 Jan 12
 angle_style quartic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+bond_style special, David Nicholson, davidanich at gmail.com, 31 Jan 2020
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute cnp/atom, Paulo Branicio (USC), branicio at usc.edu, 31 May 2017
@@ -58,9 +59,11 @@ fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov
 fix grem, David Stelter, dstelter@bu.edu, 22 Nov 16
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
+fix momentum/chunk, Jiang Xiao (Hong Kong Polytechnic University), polyu-xiao.jiang at connect.polyu.hk, 19 Aug 2020
 fix npt/cauchy, R. E. Miller (Carleton University), F. Pavia and S. Pattamatta, 12 Jan 2020
 fix nvk, Efrem Braun (UC Berkeley), efrem.braun at gmail.com, https://github.com/lammps/lammps/pull/310
 fix orient/eco Adrian A. Schratt and Volker Mohles (Ruhr-Uni Bochum), volker.mohles at rub.de, 6 Jun 2020
+fix pafi, Thomas Swinburne (CNRS), swinburne at cinam.univ-mrs.fr, 1st Sep 2020
 fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
 fix propel/self, Stefan Paquay (Brandeis U), stefanpaquay at gmail.com, 20 Jan 2020
 fix rhok, Ulf Pedersen (Roskilde U), ulf at urp.dk, 25 Sep 2017

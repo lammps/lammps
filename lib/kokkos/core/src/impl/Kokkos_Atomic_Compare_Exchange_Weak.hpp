@@ -343,6 +343,7 @@ inline T atomic_compare_exchange(
 
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   if (return_val == compare) {
     // Don't use the following line of code here:
@@ -359,6 +360,7 @@ inline T atomic_compare_exchange(
 #ifndef KOKKOS_COMPILER_CLANG
     (void)tmp;
 #endif
+    Kokkos::memory_fence();
   }
   Impl::unlock_address_host_space((void*)dest);
   return return_val;

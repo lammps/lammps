@@ -9,6 +9,7 @@ From: fedora:32
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
                openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
                netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
+               python3-pyyaml \
                mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
                mingw32-filesystem mingw32-pkg-config \
                mingw64-filesystem mingw64-pkg-config \

@@ -1,7 +1,7 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Tue May 26 18:05:10 202
-epsilon: 5.0e-13
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:20 202
+epsilon: 5e-13
 prerequisites: ! |
   pair adp
 pre_commands: ! ""

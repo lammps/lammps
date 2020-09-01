@@ -302,11 +302,11 @@ void BondOxdnaFene::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double Delta_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double Delta_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
 
@@ -328,29 +328,8 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 
 void BondOxdnaFene::init_style()
 {
-  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
-     the ss excluded volume interaction between nearest neighbors   */
-
-  force->special_lj[1] = 0.0;
-  force->special_lj[2] = 1.0;
-  force->special_lj[3] = 1.0;
-  force->special_coul[1] = 1.0;
-  force->special_coul[2] = 1.0;
-  force->special_coul[3] = 1.0;
-
-  fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                 " Special bond factors lj:   %-10g %-10g %-10g\n"
-                 " Special bond factors coul: %-10g %-10g %-10g\n",
-                 force->special_lj[1],force->special_lj[2],force->special_lj[3],
-                 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
-
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
-      force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-  {
-    if (comm->me == 0)
-      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna/fene");
-  }
-
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    error->all(FLERR,"Must use 'special_bonds lj 0 1 1' with bond style oxdna/fene, oxdna2/fene or oxrna2/fene");
 }
 
 /* ---------------------------------------------------------------------- */

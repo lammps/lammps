@@ -196,7 +196,8 @@ Note that one file can contain many sections, each with a tabulated
 potential. LAMMPS reads the file section by section until it finds one
 that matches the specified keyword.
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This dihedral style writes the settings for the "dihedral_style table/cut"
 command to :doc:`binary restart files <restart>`, so a dihedral_style
@@ -218,7 +219,10 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`, :doc:`dihedral_style table <dihedral_table>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _dihedralcut-Salerno:
 

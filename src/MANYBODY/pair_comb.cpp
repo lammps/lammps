@@ -493,15 +493,17 @@ void PairComb::coeff(int narg, char **arg)
 
   // generate streitz-mintmire direct 1/r energy look-up table
 
-  if (comm->me == 0 && screen) fprintf(screen,"Pair COMB:\n");
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Coulomb integral lookup table ...\n");
+    fputs("Pair COMB:\n"
+          "  generating Coulomb integral lookup table ...\n",screen);
   sm_table();
 
-  if (cor_flag && comm->me == 0 && screen)
-    fprintf(screen,"  will apply over-coordination correction ...\n");
-  if (!cor_flag&& comm->me == 0 && screen)
-    fprintf(screen,"  will not apply over-coordination correction ...\n");
+  if (comm->me == 0 && screen) {
+    if (cor_flag)
+      fputs("  will apply over-coordination correction ...\n",screen);
+    else
+      fputs("  will not apply over-coordination correction ...\n",screen);
+  }
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -589,7 +591,7 @@ void PairComb::read_file(char *file)
 
   // open file on proc 0
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "COMB");
+    PotentialFileReader reader(lmp, file, "comb");
     char * line;
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
@@ -621,6 +623,11 @@ void PairComb::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;

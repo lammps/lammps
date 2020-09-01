@@ -63,7 +63,8 @@ rotation axis to the particle.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth Mach
 Dynamics in LAMMPS.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Currently, no part of USER-SMD supports restarting nor
 minimization. This fix has no outputs.
@@ -80,4 +81,7 @@ Related commands
 :doc:`smd/triangle_mesh_vertices <compute_smd_triangle_vertices>`,
 :doc:`smd/wall_surface <fix_smd_wall_surface>`
 
-**Default:** none
+Default
+"""""""
+
+none

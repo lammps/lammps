@@ -22,11 +22,9 @@ tarball = "eigen.tar.gz"
 
 # known checksums for different Eigen versions. used to validate the download.
 checksums = { \
-              '3.3.4' : '1a47e78efe365a97de0c022d127607c3', \
-              '3.3.5' : 'ee48cafede2f51fe33984ff5c9f48026', \
-              '3.3.6' : 'd1be14064b50310b0eb2b49e402c64d7', \
-              '3.3.7' : 'f2a417d083fe8ca4b8ed2bc613d20f07' \
+              '3.3.7' : '9e30f67e8531477de4117506fe44669b' \
 }
+
 
 # help message
 
@@ -36,7 +34,7 @@ Syntax from src dir: make lib-smd args="-b"
 
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
-                 or: python Install.py -v 3.3.4 -b
+                 or: python Install.py -v 3.3.7 -b
 
 Example:
 
@@ -78,7 +76,7 @@ if pathflag:
 if buildflag:
   print("Downloading Eigen ...")
   eigentar = os.path.join(homepath, tarball)
-  url = "https://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
+  url = "https://gitlab.com/libeigen/eigen/-/archive/%s/eigen-%s.tar.gz" %  (version,version)
   geturl(url, eigentar)
 
   # verify downloaded archive integrity via md5 checksum, if known.
@@ -89,7 +87,7 @@ if buildflag:
 
 
   print("Cleaning up old folders ...")
-  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
+  edir = glob.glob(os.path.join(homepath, "eigen-*"))
   edir.append(eigenpath)
   for one in edir:
     if os.path.isdir(one):
@@ -102,8 +100,8 @@ if buildflag:
     os.remove(eigentar)
   else:
     sys.exit("File %s is not a supported archive" % eigentar)
-  edir = glob.glob(os.path.join(homepath, "eigen-eigen-*"))
-  os.rename(edir[0], eigenpath)
+  edir = os.path.join(homepath, "eigen-%s" % version)
+  os.rename(edir, eigenpath)
 
 # create link in lib/smd to Eigen src dir
 

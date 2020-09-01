@@ -58,7 +58,7 @@ void PairUFMOpt::eval()
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
-    double cutsq,uf1,uf2,uf3,uf4,scale,offset;
+    double cutsq,uf1,uf2,uf3,scale,offset;
     double _pad[2];
   } fast_alpha_t;
 
@@ -91,7 +91,6 @@ void PairUFMOpt::eval()
     a.uf1 = uf1[i+1][j+1];
     a.uf2 = uf2[i+1][j+1];
     a.uf3 = uf3[i+1][j+1];
-    a.uf4 = uf4[i+1][j+1];
     a.scale = scale[i+1][j+1];
     a.offset = offset[i+1][j+1];
   }

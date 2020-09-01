@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -84,7 +85,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
       } else {
-        nnn = force->numeric(FLERR,arg[iarg+1]);
+        nnn = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (nnn <= 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
       }
@@ -92,7 +93,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"degrees") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      nqlist = force->numeric(FLERR,arg[iarg+1]);
+      nqlist = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (nqlist <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       memory->destroy(qlist);
@@ -102,7 +103,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
       for (int il = 0; il < nqlist; il++) {
-        qlist[il] = force->numeric(FLERR,arg[iarg+il]);
+        qlist[il] = utils::numeric(FLERR,arg[iarg+il],false,lmp);
         if (qlist[il] < 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
         if (qlist[il] > qmax) qmax = qlist[il];
@@ -126,7 +127,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       qlcompflag = 1;
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      qlcomp = force->numeric(FLERR,arg[iarg+1]);
+      qlcomp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iqlcomp = -1;
       for (int il = 0; il < nqlist; il++)
         if (qlcomp == qlist[il]) {
@@ -139,7 +140,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      double cutoff = force->numeric(FLERR,arg[iarg+1]);
+      double cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff <= 0.0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
@@ -147,7 +148,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"chunksize") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      chunksize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (chunksize <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
@@ -255,6 +256,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+  memset(&qnarray[0][0],0,nmax*ncol*sizeof(double));
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -317,7 +319,6 @@ void ComputeOrientOrderAtom::compute_peratom()
       }
 
       calc_boop(rlist, ncount, qn, qlist, nqlist);
-
     }
   }
 }
@@ -715,11 +716,8 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
 
 double ComputeOrientOrderAtom::factorial(int n)
 {
-  if (n < 0 || n > nmaxfactorial) {
-    char str[128];
-    sprintf(str, "Invalid argument to factorial %d", n);
-    error->all(FLERR, str);
-  }
+  if (n < 0 || n > nmaxfactorial)
+    error->all(FLERR,fmt::format("Invalid argument to factorial {}", n));
 
   return nfac_table[n];
 }

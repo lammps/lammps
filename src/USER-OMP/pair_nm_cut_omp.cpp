@@ -147,6 +147,7 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           evdwl = e0nmi[jtype] *
             (mmi[jtype]*r0ni[jtype]*rninv -
              nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,

@@ -63,17 +63,22 @@ granular particles when they are close enough to touch the wall.  See
 the :doc:`fix wall/region <fix_wall_region>` and :doc:`fix wall/gran <fix_wall_gran>` commands for related kinds of walls for
 non-granular particles and simpler wall geometries, respectively.
 
-Here are snapshots of example models using this command.
-Corresponding input scripts can be found in examples/granregion.
-Click on the images to see a bigger picture.  Movies of these
-simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
-web site.
+Here are snapshots of example models using this command.  Corresponding
+input scripts can be found in examples/granregion.  Movies of these
+simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_
+of the LAMMPS web site.
 
-.. image:: JPG/gran_funnel_small.jpg
-   :target: JPG/gran_funnel.png
+.. |wallgran1| image:: img/gran_funnel.png
+   :width: 48%
 
-.. image:: JPG/gran_mixer_small.jpg
-   :target: JPG/gran_mixer.png
+.. |wallgran2| image:: img/gran_mixer.png
+   :width: 48%
+
+|wallgran1|  |wallgran2|
+
+.. raw:: html
+
+   Click on the images to see a bigger picture.
 
 ----------
 
@@ -194,7 +199,8 @@ values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Similar to :doc:`fix wall/gran <fix_wall_gran>` command, this fix writes
 the shear friction state of atoms interacting with the wall to :doc:`binary restart files <restart>`, so that a simulation can continue
@@ -269,4 +275,7 @@ Related commands
 :doc:`pair_style granular <pair_gran>`,
 :doc:`region <region>`
 
-**Default:** none
+Default
+"""""""
+
+none

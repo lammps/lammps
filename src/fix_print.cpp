@@ -40,7 +40,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
     strcpy(var_print,&arg[3][2]);
     nevery = 1;
   } else {
-    nevery = force->inumeric(FLERR,arg[3]);
+    nevery = utils::inumeric(FLERR,arg[3],false,lmp);
     if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
   }
 
@@ -182,10 +182,9 @@ void FixPrint::end_of_step()
   modify->addstep_compute(next_print);
 
   if (me == 0) {
-    if (screenflag && screen) fprintf(screen,"%s\n",copy);
-    if (screenflag && logfile) fprintf(logfile,"%s\n",copy);
+    if (screenflag) utils::logmesg(lmp,std::string(copy) + "\n");
     if (fp) {
-      fprintf(fp,"%s\n",copy);
+      fmt::print(fp,"{}\n",copy);
       fflush(fp);
     }
   }

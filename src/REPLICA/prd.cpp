@@ -18,6 +18,7 @@
 #include "prd.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -40,6 +41,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,15 +74,15 @@ void PRD::command(int narg, char **arg)
 
   // read as double so can cast to bigint
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  n_dephase = force->inumeric(FLERR,arg[2]);
-  t_dephase = force->inumeric(FLERR,arg[3]);
-  t_corr = force->inumeric(FLERR,arg[4]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  n_dephase = utils::inumeric(FLERR,arg[2],false,lmp);
+  t_dephase = utils::inumeric(FLERR,arg[3],false,lmp);
+  t_corr = utils::inumeric(FLERR,arg[4],false,lmp);
 
   char *id_compute = new char[strlen(arg[5])+1];
   strcpy(id_compute,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   options(narg-7,&arg[7]);
 
@@ -146,11 +148,7 @@ void PRD::command(int narg, char **arg)
 
   // create ComputeTemp class to monitor temperature
 
-  char **args = new char*[3];
-  args[0] = (char *) "prd_temp";
-  args[1] = (char *) "all";
-  args[2] = (char *) "temp";
-  modify->add_compute(3,args);
+  modify->add_compute("prd_temp all temp");
   temperature = modify->compute[modify->ncompute-1];
 
   // create Velocity class for velocity creation in dephasing
@@ -160,6 +158,7 @@ void PRD::command(int narg, char **arg)
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 
+  char *args[2];
   args[0] = (char *) "temp";
   args[1] = (char *) "prd_temp";
   velocity->options(2,args);
@@ -172,10 +171,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  args[0] = (char *) "prd_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/PRD";
-  modify->add_fix(3,args);
+  modify->add_fix("prd_event all EVENT/PRD");
   fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
 
   // create Finish for timing output
@@ -184,7 +180,6 @@ void PRD::command(int narg, char **arg)
 
   // string clean-up
 
-  delete [] args;
   delete [] loop_setting;
   delete [] dist_setting;
 
@@ -440,10 +435,7 @@ void PRD::command(int narg, char **arg)
               nsteps,atom->natoms);
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nPRD done\n");
-    if (logfile) fprintf(logfile,"\nPRD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nPRD done\n");
 
   finish->end(2);
 
@@ -900,17 +892,17 @@ void PRD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
-      temp_dephase = force->numeric(FLERR,arg[iarg+1]);
+      temp_dephase = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 

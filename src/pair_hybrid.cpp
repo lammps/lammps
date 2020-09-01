@@ -28,6 +28,7 @@
 #include "respa.h"
 #include "utils.h"
 #include "suffix.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -265,6 +266,9 @@ void PairHybrid::allocate()
 void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
+    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style));
 
   // delete old lists, since cannot just change settings
 
@@ -369,8 +373,8 @@ void PairHybrid::flags()
                                           styles[m]->comm_reverse_off);
   }
 
-  // single_enable = 1 if any sub-style is set
-  // respa_enable = 1 if any sub-style is set
+  // single_enable = 1 if all sub-styles are set
+  // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
@@ -380,9 +384,12 @@ void PairHybrid::flags()
 
   single_enable = 0;
   compute_flag = 0;
+  respa_enable = 0;
+  restartinfo = 0;
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]->single_enable) single_enable = 1;
-    if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->single_enable) ++single_enable;
+    if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -396,6 +403,9 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
     if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  single_enable = (single_enable == nstyles) ? 1 : 0;
+  respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
 }
 
@@ -427,12 +437,9 @@ void PairHybrid::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
-
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times
@@ -449,7 +456,7 @@ void PairHybrid::coeff(int narg, char **arg)
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
         if (!isdigit(arg[3][0]))
           error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = force->inumeric(FLERR,arg[3]);
+        int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;
       } else break;
@@ -857,7 +864,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 
     if (multiple[m]) {
       if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
-      int multiflag = force->inumeric(FLERR,arg[2]);
+      int multiflag = utils::inumeric(FLERR,arg[2],false,lmp);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
@@ -927,9 +934,9 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   int i;
 
   special[0] = 1.0;
-  special[1] = force->numeric(FLERR,arg[1]);
-  special[2] = force->numeric(FLERR,arg[2]);
-  special[3] = force->numeric(FLERR,arg[3]);
+  special[1] = utils::numeric(FLERR,arg[1],false,lmp);
+  special[2] = utils::numeric(FLERR,arg[2],false,lmp);
+  special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   // have to cast to PairHybrid to work around C++ access restriction
 

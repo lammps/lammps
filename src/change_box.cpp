@@ -49,7 +49,7 @@ void ChangeBox::command(int narg, char **arg)
     error->all(FLERR,"Change_box command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal change_box command");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Changing box ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Changing box ...\n");
 
   // group
 
@@ -83,23 +83,23 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].flo = force->numeric(FLERR,arg[iarg+2]);
-        ops[nops].fhi = force->numeric(FLERR,arg[iarg+3]);
+        ops[nops].flo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        ops[nops].fhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dlo = force->numeric(FLERR,arg[iarg+2]);
-        ops[nops].dhi = force->numeric(FLERR,arg[iarg+3]);
+        ops[nops].dlo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        ops[nops].dhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = SCALE;
-        ops[nops].scale = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 3;
@@ -129,13 +129,13 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].ftilt = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].ftilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         nops++;
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dtilt = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].dtilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         nops++;
         iarg += 3;
       } else error->all(FLERR,"Illegal change_box command");

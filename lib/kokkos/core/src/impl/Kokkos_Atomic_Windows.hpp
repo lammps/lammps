@@ -73,8 +73,9 @@ __attribute__((aligned(16)))
 ;
 }  // namespace Impl
 
+#ifndef __CUDA_ARCH__
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
     typename std::enable_if<sizeof(T) == sizeof(CHAR), const T&>::type val) {
   union U {
@@ -89,7 +90,7 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 }
 
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
     typename std::enable_if<sizeof(T) == sizeof(SHORT), const T&>::type val) {
   union U {
@@ -104,7 +105,7 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 }
 
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
     typename std::enable_if<sizeof(T) == sizeof(LONG), const T&>::type val) {
   union U {
@@ -119,7 +120,7 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 }
 
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
     typename std::enable_if<sizeof(T) == sizeof(LONGLONG), const T&>::type
         val) {
@@ -135,7 +136,7 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 }
 
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
     typename std::enable_if<sizeof(T) == sizeof(Impl::cas128_t), const T&>::type
         val) {
@@ -153,12 +154,11 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 }
 
 template <typename T>
-KOKKOS_INLINE_FUNCTION T atomic_compare_exchange_strong(volatile T* const dest,
-                                                        const T& compare,
-                                                        const T& val) {
+inline T atomic_compare_exchange_strong(volatile T* const dest,
+                                        const T& compare, const T& val) {
   return atomic_compare_exchange(dest, compare, val);
 }
-
+#endif
 }  // namespace Kokkos
 #endif
 #endif

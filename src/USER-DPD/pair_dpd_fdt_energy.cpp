@@ -336,8 +336,8 @@ void PairDPDfdtEnergy::settings(int narg, char **arg)
   // process keywords
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
   if (atom->dpd_flag != 1)
     error->all(FLERR,"pair_style dpd/fdt/energy requires atom_style with internal temperature and energies (e.g. dpd)");
 
@@ -367,19 +367,19 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double cut_one = cut_global;
   double kappa_one, alpha_one;
 
   a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
-  kappa_one = force->numeric(FLERR,arg[4]);
+  kappa_one = utils::numeric(FLERR,arg[4],false,lmp);
   alpha_one = sqrt(2.0*force->boltz*kappa_one);
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

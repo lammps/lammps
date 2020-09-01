@@ -110,8 +110,8 @@ location specified.  E.g. if the file is specified as "niu3.eam", it
 is looked for in the current working directory.  If it is specified as
 "../potentials/niu3.eam", then it is looked for in the potentials
 directory, assuming it is a sister directory of the current working
-directory.  If the file is not found, it is then looked for in the
-directory specified by the LAMMPS_POTENTIALS environment variable.
+directory.  If the file is not found, it is then looked for in one of
+the directories specified by the ``LAMMPS_POTENTIALS`` environment variable.
 Thus if this is set to the potentials directory in the LAMMPS distribution,
 then you can use those files from anywhere on your system, without
 copying them into your working directory.  Environment variables are
@@ -135,6 +135,11 @@ Windows:
 .. parsed-literal::
 
    % set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
+
+The ``LAMMPS_POTENTIALS`` environment variable may contain paths
+to multiple folders, if they are separated by ";" on Windows and
+":" on all other operating systems, just like the ``PATH`` and
+similar environment variables.
 
 ----------
 

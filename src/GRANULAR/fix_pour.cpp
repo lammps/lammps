@@ -65,9 +65,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  ninsert = force->inumeric(FLERR,arg[3]);
-  ntype = force->inumeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
+  ninsert = utils::inumeric(FLERR,arg[3],false,lmp);
+  ntype = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix pour command");
 
@@ -930,9 +930,9 @@ void FixPour::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"molfrac") == 0) {
       if (mode != MOLECULE) error->all(FLERR,"Illegal fix pour command");
       if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix pour command");
-      molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
+      molfrac[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       for (int i = 1; i < nmol; i++)
-        molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
+        molfrac[i] = molfrac[i-1] + utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
         error->all(FLERR,"Illegal fix pour command");
       molfrac[nmol-1] = 1.0;
@@ -973,21 +973,21 @@ void FixPour::options(int narg, char **arg)
       if (strcmp(arg[iarg+1],"one") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = ONE;
-        radius_one = 0.5 * force->numeric(FLERR,arg[iarg+2]);
+        radius_one = 0.5 * utils::numeric(FLERR,arg[iarg+2],false,lmp);
         radius_max = radius_one;
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"range") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = RANGE;
-        radius_lo = 0.5 * force->numeric(FLERR,arg[iarg+2]);
-        radius_hi = 0.5 * force->numeric(FLERR,arg[iarg+3]);
+        radius_lo = 0.5 * utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        radius_hi = 0.5 * utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (radius_lo > radius_hi) error->all(FLERR,"Illegal fix pour command");
         radius_max = radius_hi;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"poly") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = POLY;
-        npoly = force->inumeric(FLERR,arg[iarg+2]);
+        npoly = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (npoly <= 0) error->all(FLERR,"Illegal fix pour command");
         if (iarg+3 + 2*npoly > narg)
           error->all(FLERR,"Illegal fix pour command");
@@ -996,8 +996,8 @@ void FixPour::options(int narg, char **arg)
         iarg += 3;
         radius_max = 0.0;
         for (int i = 0; i < npoly; i++) {
-          radius_poly[i] = 0.5 * force->numeric(FLERR,arg[iarg++]);
-          frac_poly[i] = force->numeric(FLERR,arg[iarg++]);
+          radius_poly[i] = 0.5 * utils::numeric(FLERR,arg[iarg++],false,lmp);
+          frac_poly[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
           if (radius_poly[i] <= 0.0 || frac_poly[i] < 0.0)
             error->all(FLERR,"Illegal fix pour command");
           radius_max = MAX(radius_max,radius_poly[i]);
@@ -1010,35 +1010,35 @@ void FixPour::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"dens") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
-      density_lo = force->numeric(FLERR,arg[iarg+1]);
-      density_hi = force->numeric(FLERR,arg[iarg+2]);
+      density_lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      density_hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (density_lo > density_hi) error->all(FLERR,"Illegal fix pour command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"vol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
-      volfrac = force->numeric(FLERR,arg[iarg+1]);
-      maxattempt = force->inumeric(FLERR,arg[iarg+2]);
+      volfrac = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      maxattempt = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"rate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      rate = force->numeric(FLERR,arg[iarg+1]);
+      rate = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (domain->dimension == 3) {
         if (iarg+6 > narg) error->all(FLERR,"Illegal fix pour command");
-        vxlo = force->numeric(FLERR,arg[iarg+1]);
-        vxhi = force->numeric(FLERR,arg[iarg+2]);
-        vylo = force->numeric(FLERR,arg[iarg+3]);
-        vyhi = force->numeric(FLERR,arg[iarg+4]);
+        vxlo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        vxhi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        vylo = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        vyhi = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         if (vxlo > vxhi || vylo > vyhi)
           error->all(FLERR,"Illegal fix pour command");
-        vz = force->numeric(FLERR,arg[iarg+5]);
+        vz = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         iarg += 6;
       } else {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
-        vxlo = force->numeric(FLERR,arg[iarg+1]);
-        vxhi = force->numeric(FLERR,arg[iarg+2]);
-        vy = force->numeric(FLERR,arg[iarg+3]);
+        vxlo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        vxhi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        vy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         vz = 0.0;
         if (vxlo > vxhi) error->all(FLERR,"Illegal fix pour command");
         iarg += 4;

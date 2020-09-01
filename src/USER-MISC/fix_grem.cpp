@@ -52,9 +52,9 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
 
   // tbath - temp of bath, the same as defined in thermostat
 
-  lambda = force->numeric(FLERR,arg[3]);
-  eta = force->numeric(FLERR,arg[4]);
-  h0 = force->numeric(FLERR,arg[5]);
+  lambda = utils::numeric(FLERR,arg[3],false,lmp);
+  eta = utils::numeric(FLERR,arg[4],false,lmp);
+  h0 = utils::numeric(FLERR,arg[5],false,lmp);
 
   int n = strlen(arg[6])+1;
   id_nh = new char[n];

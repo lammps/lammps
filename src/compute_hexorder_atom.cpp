@@ -59,7 +59,7 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"degree") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
-      ndegree = force->numeric(FLERR,arg[iarg+1]);
+      ndegree = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (ndegree < 0)
         error->all(FLERR,"Illegal compute hexorder/atom command");
       iarg += 2;
@@ -68,14 +68,14 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"NULL") == 0)
         nnn = 0;
       else {
-        nnn = force->numeric(FLERR,arg[iarg+1]);
+        nnn = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (nnn < 0)
           error->all(FLERR,"Illegal compute hexorder/atom command");
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hexorder/atom command");
-      double cutoff = force->numeric(FLERR,arg[iarg+1]);
+      double cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff <= 0.0)
         error->all(FLERR,"Illegal compute hexorder/atom command");
       cutsq = cutoff*cutoff;

@@ -439,14 +439,6 @@ class Data(object):
             bond['note'] = ''.join([s + ' ' for s in tok[4:]]).strip()
             self.bonds.append(bond)
 
-        if 'Velocities' in self.sections:
-            for line in self.sections['Velocities']:
-                tok = line.split()
-                atom = self.idmap[int(tok[0])]
-                atom['vx'] = float(tok[1])
-                atom['vy'] = float(tok[2])
-                atom['vz'] = float(tok[3])
-
 
     def depolarize(self, drude):
         """remove Drude particles"""

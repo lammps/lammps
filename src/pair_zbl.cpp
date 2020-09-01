@@ -183,8 +183,8 @@ void PairZBL::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (cut_inner <= 0.0 )
     error->all(FLERR,"Illegal pair_style command");
@@ -206,13 +206,13 @@ void PairZBL::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
 
   int jlo,jhi;
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  z_one = force->numeric(FLERR,arg[2]);
-  z_two = force->numeric(FLERR,arg[3]);
+  z_one = utils::numeric(FLERR,arg[2],false,lmp);
+  z_two = utils::numeric(FLERR,arg[3],false,lmp);
 
   // set flag for each i-j pair
   // set z-parameter only for i-i pairs

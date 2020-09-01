@@ -77,19 +77,19 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three floats for velocity following *LINEAR");
                         }
-                        vx = force->numeric(FLERR, arg[iarg]);
+                        vx = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three floats for velocity following *LINEAR");
                         }
-                        vy = force->numeric(FLERR, arg[iarg]);
+                        vy = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three floats for velocity following *LINEAR");
                         }
-                        vz = force->numeric(FLERR, arg[iarg]);
+                        vz = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                 } else if (strcmp(arg[iarg], "*WIGGLE") == 0) {
                         wiggleFlag = true;
@@ -101,25 +101,25 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 4 floats following *WIGGLE : vx vy vz max_travel");
                         }
-                        vx = force->numeric(FLERR, arg[iarg]);
+                        vx = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 4 floats following *WIGGLE : vx vy vz max_travel");
                         }
-                        vy = force->numeric(FLERR, arg[iarg]);
+                        vy = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 4 floats following *WIGGLE : vx vy vz max_travel");
                         }
-                        vz = force->numeric(FLERR, arg[iarg]);
+                        vz = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 4 floats following *WIGGLE : vx vy vz max_travel");
                         }
-                        wiggle_max_travel = force->numeric(FLERR, arg[iarg]);
+                        wiggle_max_travel = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                 } else if (strcmp(arg[iarg], "*ROTATE") == 0) {
                         rotateFlag = true;
@@ -128,43 +128,43 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        origin(0) = force->numeric(FLERR, arg[iarg]);
+                        origin(0) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        origin(1) = force->numeric(FLERR, arg[iarg]);
+                        origin(1) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        origin(2) = force->numeric(FLERR, arg[iarg]);
+                        origin(2) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        rotation_axis(0) = force->numeric(FLERR, arg[iarg]);
+                        rotation_axis(0) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        rotation_axis(1) = force->numeric(FLERR, arg[iarg]);
+                        rotation_axis(1) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        rotation_axis(2) = force->numeric(FLERR, arg[iarg]);
+                        rotation_axis(2) = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected 7 floats following *ROTATE: origin, rotation axis, and rotation period");
                         }
-                        rotation_period = force->numeric(FLERR, arg[iarg]);
+                        rotation_period = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         /*
                          * construct rotation matrix

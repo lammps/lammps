@@ -320,7 +320,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
     // tokenize the line
     std::vector<std::string> words = Tokenizer(line).as_vector();
 
-    if (words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
+    if ((int)words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
 
     // convert selected fields to floats
 

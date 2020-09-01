@@ -266,7 +266,7 @@ void FixRX::post_constructor()
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(kineticsFile);
+    fp = utils::open_potential(kineticsFile,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",kineticsFile);
@@ -855,7 +855,7 @@ void FixRX::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",file);
@@ -892,7 +892,7 @@ void FixRX::read_file(char *file)
   }
 
   // open file on proc 0
-  if (comm->me == 0) fp = force->open_potential(file);
+  if (comm->me == 0) fp = utils::open_potential(file,lmp,nullptr);
 
   // read each reaction from kinetics file
   eof=0;

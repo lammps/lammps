@@ -47,7 +47,7 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
   global_freq = 1;
   extscalar = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
   hstr = NULL;
@@ -57,7 +57,7 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
     hstr = new char[n];
     strcpy(hstr,&arg[4][2]);
   } else {
-    heat_input = force->numeric(FLERR,arg[4]);
+    heat_input = utils::numeric(FLERR,arg[4],false,lmp);
     hstyle = CONSTANT;
   }
 

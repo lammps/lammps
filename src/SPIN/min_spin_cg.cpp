@@ -148,7 +148,7 @@ int MinSpinCG::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

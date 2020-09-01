@@ -138,27 +138,27 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      binsize = force->numeric(FLERR,arg[iarg+1]);
+      binsize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      _particle_split = force->numeric(FLERR,arg[iarg+1]);
+      _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,"Illegal package GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
-      first_gpu = force->inumeric(FLERR,arg[iarg+1]);
-      last_gpu = force->inumeric(FLERR,arg[iarg+2]);
+      first_gpu = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      last_gpu = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"tpa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      threads_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nthreads") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      nthreads = force->inumeric(FLERR,arg[iarg+1]);
+      nthreads = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"device") == 0) {
@@ -167,7 +167,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"blocksize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      block_pair = force->inumeric(FLERR,arg[iarg+1]);
+      block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal package gpu command");
   }

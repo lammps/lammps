@@ -66,7 +66,7 @@
 
 namespace Kokkos {
 
-enum { UnorderedMapInvalidIndex = ~0u };
+enum : unsigned { UnorderedMapInvalidIndex = ~0u };
 
 /// \brief First element of the return value of UnorderedMap::insert().
 ///
@@ -84,7 +84,7 @@ enum { UnorderedMapInvalidIndex = ~0u };
 
 class UnorderedMapInsertResult {
  private:
-  enum Status {
+  enum Status : uint32_t {
     SUCCESS          = 1u << 31,
     EXISTING         = 1u << 30,
     FREED_EXISTING   = 1u << 29,
@@ -206,42 +206,40 @@ template <typename Key, typename Value,
               pod_equal_to<typename std::remove_const<Key>::type> >
 class UnorderedMap {
  private:
-  typedef typename ViewTraits<Key, Device, void, void>::host_mirror_space
-      host_mirror_space;
+  using host_mirror_space =
+      typename ViewTraits<Key, Device, void, void>::host_mirror_space;
 
  public:
   //! \name Public types and constants
   //@{
 
   // key_types
-  typedef Key declared_key_type;
-  typedef typename std::remove_const<declared_key_type>::type key_type;
-  typedef typename std::add_const<key_type>::type const_key_type;
+  using declared_key_type = Key;
+  using key_type          = typename std::remove_const<declared_key_type>::type;
+  using const_key_type    = typename std::add_const<key_type>::type;
 
   // value_types
-  typedef Value declared_value_type;
-  typedef typename std::remove_const<declared_value_type>::type value_type;
-  typedef typename std::add_const<value_type>::type const_value_type;
+  using declared_value_type = Value;
+  using value_type = typename std::remove_const<declared_value_type>::type;
+  using const_value_type = typename std::add_const<value_type>::type;
 
-  typedef Device device_type;
-  typedef typename Device::execution_space execution_space;
-  typedef Hasher hasher_type;
-  typedef EqualTo equal_to_type;
-  typedef uint32_t size_type;
+  using device_type     = Device;
+  using execution_space = typename Device::execution_space;
+  using hasher_type     = Hasher;
+  using equal_to_type   = EqualTo;
+  using size_type       = uint32_t;
 
   // map_types
-  typedef UnorderedMap<declared_key_type, declared_value_type, device_type,
-                       hasher_type, equal_to_type>
-      declared_map_type;
-  typedef UnorderedMap<key_type, value_type, device_type, hasher_type,
-                       equal_to_type>
-      insertable_map_type;
-  typedef UnorderedMap<const_key_type, value_type, device_type, hasher_type,
-                       equal_to_type>
-      modifiable_map_type;
-  typedef UnorderedMap<const_key_type, const_value_type, device_type,
-                       hasher_type, equal_to_type>
-      const_map_type;
+  using declared_map_type =
+      UnorderedMap<declared_key_type, declared_value_type, device_type,
+                   hasher_type, equal_to_type>;
+  using insertable_map_type = UnorderedMap<key_type, value_type, device_type,
+                                           hasher_type, equal_to_type>;
+  using modifiable_map_type =
+      UnorderedMap<const_key_type, value_type, device_type, hasher_type,
+                   equal_to_type>;
+  using const_map_type = UnorderedMap<const_key_type, const_value_type,
+                                      device_type, hasher_type, equal_to_type>;
 
   static const bool is_set = std::is_same<void, value_type>::value;
   static const bool has_const_key =
@@ -254,43 +252,42 @@ class UnorderedMap {
   static const bool is_modifiable_map = has_const_key && !has_const_value;
   static const bool is_const_map      = has_const_key && has_const_value;
 
-  typedef UnorderedMapInsertResult insert_result;
+  using insert_result = UnorderedMapInsertResult;
 
-  typedef UnorderedMap<Key, Value, host_mirror_space, Hasher, EqualTo>
-      HostMirror;
+  using HostMirror =
+      UnorderedMap<Key, Value, host_mirror_space, Hasher, EqualTo>;
 
-  typedef Impl::UnorderedMapHistogram<const_map_type> histogram_type;
+  using histogram_type = Impl::UnorderedMapHistogram<const_map_type>;
 
   //@}
 
  private:
-  enum { invalid_index = ~static_cast<size_type>(0) };
+  enum : size_type { invalid_index = ~static_cast<size_type>(0) };
 
-  typedef typename Impl::if_c<is_set, int, declared_value_type>::type
-      impl_value_type;
+  using impl_value_type =
+      typename Impl::if_c<is_set, int, declared_value_type>::type;
 
-  typedef typename Impl::if_c<
+  using key_type_view = typename Impl::if_c<
       is_insertable_map, View<key_type *, device_type>,
-      View<const key_type *, device_type, MemoryTraits<RandomAccess> > >::type
-      key_type_view;
+      View<const key_type *, device_type, MemoryTraits<RandomAccess> > >::type;
 
-  typedef typename Impl::if_c<is_insertable_map || is_modifiable_map,
-                              View<impl_value_type *, device_type>,
-                              View<const impl_value_type *, device_type,
-                                   MemoryTraits<RandomAccess> > >::type
-      value_type_view;
+  using value_type_view =
+      typename Impl::if_c<is_insertable_map || is_modifiable_map,
+                          View<impl_value_type *, device_type>,
+                          View<const impl_value_type *, device_type,
+                               MemoryTraits<RandomAccess> > >::type;
 
-  typedef typename Impl::if_c<
+  using size_type_view = typename Impl::if_c<
       is_insertable_map, View<size_type *, device_type>,
-      View<const size_type *, device_type, MemoryTraits<RandomAccess> > >::type
-      size_type_view;
+      View<const size_type *, device_type, MemoryTraits<RandomAccess> > >::type;
 
-  typedef typename Impl::if_c<is_insertable_map, Bitset<execution_space>,
-                              ConstBitset<execution_space> >::type bitset_type;
+  using bitset_type =
+      typename Impl::if_c<is_insertable_map, Bitset<execution_space>,
+                          ConstBitset<execution_space> >::type;
 
   enum { modified_idx = 0, erasable_idx = 1, failed_insert_idx = 2 };
   enum { num_scalars = 3 };
-  typedef View<int[num_scalars], LayoutLeft, device_type> scalars_view;
+  using scalars_view = View<int[num_scalars], LayoutLeft, device_type>;
 
  public:
   //! \name Public member functions
@@ -351,6 +348,11 @@ class UnorderedMap {
       Kokkos::deep_copy(m_values, tmp);
     }
     { Kokkos::deep_copy(m_scalars, 0); }
+  }
+
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return (m_keys.is_allocated() && m_values.is_allocated() &&
+            m_scalars.is_allocated());
   }
 
   /// \brief Change the capacity of the the map
@@ -742,9 +744,9 @@ class UnorderedMap {
 
       Kokkos::deep_copy(tmp.m_available_indexes, src.m_available_indexes);
 
-      typedef Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                                     typename SDevice::memory_space>
-          raw_deep_copy;
+      using raw_deep_copy =
+          Kokkos::Impl::DeepCopy<typename device_type::memory_space,
+                                 typename SDevice::memory_space>;
 
       raw_deep_copy(tmp.m_hash_lists.data(), src.m_hash_lists.data(),
                     sizeof(size_type) * src.m_hash_lists.extent(0));
@@ -768,25 +770,25 @@ class UnorderedMap {
   bool modified() const { return get_flag(modified_idx); }
 
   void set_flag(int flag) const {
-    typedef Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                                   Kokkos::HostSpace>
-        raw_deep_copy;
+    using raw_deep_copy =
+        Kokkos::Impl::DeepCopy<typename device_type::memory_space,
+                               Kokkos::HostSpace>;
     const int true_ = true;
     raw_deep_copy(m_scalars.data() + flag, &true_, sizeof(int));
   }
 
   void reset_flag(int flag) const {
-    typedef Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                                   Kokkos::HostSpace>
-        raw_deep_copy;
+    using raw_deep_copy =
+        Kokkos::Impl::DeepCopy<typename device_type::memory_space,
+                               Kokkos::HostSpace>;
     const int false_ = false;
     raw_deep_copy(m_scalars.data() + flag, &false_, sizeof(int));
   }
 
   bool get_flag(int flag) const {
-    typedef Kokkos::Impl::DeepCopy<Kokkos::HostSpace,
-                                   typename device_type::memory_space>
-        raw_deep_copy;
+    using raw_deep_copy =
+        Kokkos::Impl::DeepCopy<Kokkos::HostSpace,
+                               typename device_type::memory_space>;
     int result = false;
     raw_deep_copy(&result, m_scalars.data() + flag, sizeof(int));
     return result;

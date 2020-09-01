@@ -44,7 +44,7 @@ FixMvvTDPD::FixMvvTDPD(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix mvv/tdpd command");
 
   verlet = 0.5;
-  if(narg > 3) verlet = force->numeric(FLERR,arg[3]);
+  if(narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
 
   cc_species = atom->cc_species;
 

@@ -37,6 +37,9 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/superpose3d.h
+/math_eigen.h
+
 /kokkos.cpp
 /kokkos.h
 /kokkos_type.h
@@ -53,6 +56,13 @@
 /meam*.cpp
 /pair_meamc.cpp
 /pair_meamc.h
+
+/compute_mliap.cpp
+/compute_mliap.h
+/mliap_*.cpp
+/mliap_*.h
+/pair_mliap.cpp
+/pair_mliap.h
 
 /ptm_*.cpp
 /ptm_*.h
@@ -313,6 +323,8 @@
 /bond_oxrna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
+/bond_special.cpp
+/bond_special.h
 /bond_table.cpp
 /bond_table.h
 /cg_cmm_parms.cpp
@@ -597,6 +609,8 @@
 /fix_meso_move.h
 /fix_meso_stationary.cpp
 /fix_meso_stationary.h
+/fix_momentum_chunk.cpp
+/fix_momentum_chunk.h
 /fix_mscg.cpp
 /fix_mscg.h
 /fix_msst.cpp
@@ -758,6 +772,8 @@
 /fix_wall_piston.h
 /fix_wall_srd.cpp
 /fix_wall_srd.h
+/fix_widom.cpp
+/fix_widom.h
 /gpu_extra.h
 /gridcomm.cpp
 /gridcomm.h

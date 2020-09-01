@@ -378,22 +378,22 @@ The images below illustrate how the data is presented.
 .. list-table::
 
       * - .. figure:: JPG/coverage-overview-top.png
-             :target: JPG/coverage-overview-top.png
+             :scale: 25%
 
           Top of the overview page
 
         - .. figure:: JPG/coverage-overview-manybody.png
-             :target: JPG/coverage-overview-manybody.png
+             :scale: 25%
 
           Styles with good coverage
 
         - .. figure:: JPG/coverage-file-top.png
-             :target: JPG/coverage-file-top.png
+             :scale: 25%
 
           Top of individual source page
 
         - .. figure:: JPG/coverage-file-branches.png
-             :target: JPG/coverage-file-branches.png
+             :scale: 25%
 
           Source page with branches
 

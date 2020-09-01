@@ -52,9 +52,9 @@ void Replicate::command(int narg, char **arg)
 
   // nrep = total # of replications
 
-  int nx = force->inumeric(FLERR,arg[0]);
-  int ny = force->inumeric(FLERR,arg[1]);
-  int nz = force->inumeric(FLERR,arg[2]);
+  int nx = utils::inumeric(FLERR,arg[0],false,lmp);
+  int ny = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
 
   int bbox_flag = 0;

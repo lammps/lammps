@@ -55,7 +55,7 @@ class KokkosLMP : protected Pointers {
     int value = 0;
 
     if (neighflag == HALFTHREAD)
-      value = NeedDup<HALFTHREAD,DeviceType>::value;
+      value = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
 
     return value;
   }

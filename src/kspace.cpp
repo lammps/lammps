@@ -453,9 +453,9 @@ void KSpace::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mesh") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      nx_pppm = nx_msm_max = force->inumeric(FLERR,arg[iarg+1]);
-      ny_pppm = ny_msm_max = force->inumeric(FLERR,arg[iarg+2]);
-      nz_pppm = nz_msm_max = force->inumeric(FLERR,arg[iarg+3]);
+      nx_pppm = nx_msm_max = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ny_pppm = ny_msm_max = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      nz_pppm = nz_msm_max = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0)
         gridflag = 0;
       else if (nx_pppm <= 0 || ny_pppm <= 0 || nz_pppm <= 0)
@@ -465,9 +465,9 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      nx_pppm_6 = force->inumeric(FLERR,arg[iarg+1]);
-      ny_pppm_6 = force->inumeric(FLERR,arg[iarg+2]);
-      nz_pppm_6 = force->inumeric(FLERR,arg[iarg+3]);
+      nx_pppm_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ny_pppm_6 = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      nz_pppm_6 = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
         gridflag_6 = 0;
       else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
@@ -477,15 +477,15 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      order = force->inumeric(FLERR,arg[iarg+1]);
+      order = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      order_6 = force->inumeric(FLERR,arg[iarg+1]);
+      order_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"minorder") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      minorder = force->inumeric(FLERR,arg[iarg+1]);
+      minorder = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (minorder < 2) error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
@@ -496,17 +496,17 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_absolute = force->numeric(FLERR,arg[iarg+1]);
+      accuracy_absolute = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      g_ewald = force->numeric(FLERR,arg[iarg+1]);
+      g_ewald = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      g_ewald_6 = force->numeric(FLERR,arg[iarg+1]);
+      g_ewald_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald_6 == 0.0) gewaldflag_6 = 0;
       else gewaldflag_6 = 1;
       iarg += 2;
@@ -516,7 +516,7 @@ void KSpace::modify_params(int narg, char **arg)
         slabflag = 2;
       } else {
         slabflag = 1;
-        slab_volfactor = force->numeric(FLERR,arg[iarg+1]);
+        slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (slab_volfactor <= 1.0)
           error->all(FLERR,"Bad kspace_modify slab parameter");
         if (slab_volfactor < 2.0 && comm->me == 0)

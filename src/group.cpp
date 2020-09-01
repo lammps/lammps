@@ -229,12 +229,12 @@ void Group::assign(int narg, char **arg)
       else error->all(FLERR,"Illegal group command");
 
       tagint bound1,bound2;
-      bound1 = force->tnumeric(FLERR,arg[3]);
+      bound1 = utils::tnumeric(FLERR,arg[3],false,lmp);
       bound2 = -1;
 
       if (condition == BETWEEN) {
         if (narg != 5) error->all(FLERR,"Illegal group command");
-        bound2 = force->tnumeric(FLERR,arg[4]);
+        bound2 = utils::tnumeric(FLERR,arg[4],false,lmp);
       } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
       int *attribute = NULL;
@@ -311,13 +311,13 @@ void Group::assign(int narg, char **arg)
         delta = 1;
         if (strchr(arg[iarg],':')) {
           ptr = strtok(arg[iarg],":");
-          start = force->tnumeric(FLERR,ptr);
+          start = utils::tnumeric(FLERR,ptr,false,lmp);
           ptr = strtok(NULL,":");
-          stop = force->tnumeric(FLERR,ptr);
+          stop = utils::tnumeric(FLERR,ptr,false,lmp);
           ptr = strtok(NULL,":");
-          if (ptr) delta = force->tnumeric(FLERR,ptr);
+          if (ptr) delta = utils::tnumeric(FLERR,ptr,false,lmp);
         } else {
-          start = stop = force->tnumeric(FLERR,arg[iarg]);
+          start = stop = utils::tnumeric(FLERR,arg[iarg],false,lmp);
         }
         if (delta < 1)
           error->all(FLERR,"Illegal range increment value");

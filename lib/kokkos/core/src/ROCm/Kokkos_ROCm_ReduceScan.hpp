@@ -349,8 +349,8 @@ bool rocm_inter_block_reduction( ROCmTeamMember& team,
                                  ROCm::size_type * const m_scratch_flags,
                                  const int max_active_thread) {
 #ifdef __ROCM_ARCH__
-  typedef typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type pointer_type;
-  typedef typename FunctorValueTraits< FunctorType , ArgTag >::value_type value_type;
+  using pointer_type = typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type;
+  using value_type = typename FunctorValueTraits< FunctorType , ArgTag >::value_type;
 
   //Do the intra-block reduction with shfl operations and static shared memory
   rocm_intra_block_reduction(value,join,max_active_thread);
@@ -442,10 +442,10 @@ KOKKOS_INLINE_FUNCTION void rocm_intra_block_reduce_scan(
     const FunctorType &functor,
     const typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type
         base_data) {
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
+  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
 
-  typedef typename ValueTraits::pointer_type pointer_type;
+  using pointer_type = typename ValueTraits::pointer_type;
 
   const unsigned value_count   = ValueTraits::value_count(functor);
   const unsigned BlockSizeMask = blockDim_y - 1;
@@ -582,15 +582,15 @@ KOKKOS_INLINE_FUNCTION bool rocm_single_inter_block_reduce_scan(
     typename FunctorValueTraits<FunctorType, ArgTag>::value_type
         *const global_data,
     ROCM::size_type *const global_flags) {
-  typedef ROCM::size_type size_type;
-  typedef FunctorValueTraits<FunctorType, ArgTag> ValueTraits;
-  typedef FunctorValueJoin<FunctorType, ArgTag> ValueJoin;
-  typedef FunctorValueInit<FunctorType, ArgTag> ValueInit;
-  typedef FunctorValueOps<FunctorType, ArgTag> ValueOps;
+  using size_type   = ROCM::size_type;
+  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
+  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
+  using ValueInit   = FunctorValueInit<FunctorType, ArgTag>;
+  using ValueOps    = FunctorValueOps<FunctorType, ArgTag>;
 
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::reference_type reference_type;
-  typedef typename ValueTraits::value_type value_type;
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using reference_type = typename ValueTraits::reference_type;
+  using value_type     = typename ValueTraits::value_type;
 
   // '__ffs' = position of the least significant bit set to 1.
   // blockDim_y is guaranteed to be a power of two so this

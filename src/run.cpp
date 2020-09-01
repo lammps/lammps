@@ -45,7 +45,7 @@ void Run::command(int narg, char **arg)
 
   if (timer->is_timeout()) return;
 
-  bigint nsteps_input = force->bnumeric(FLERR,arg[0]);
+  bigint nsteps_input = utils::bnumeric(FLERR,arg[0],false,lmp);
 
   // parse optional args
 
@@ -68,12 +68,12 @@ void Run::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       startflag = 1;
-      start = force->bnumeric(FLERR,arg[iarg+1]);
+      start = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       stopflag = 1;
-      stop = force->bnumeric(FLERR,arg[iarg+1]);
+      stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
@@ -94,7 +94,7 @@ void Run::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal run command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal run command");
       first = iarg+2;
       last = narg-1;

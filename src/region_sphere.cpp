@@ -39,7 +39,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     xstyle = VARIABLE;
     varshape = 1;
   } else {
-    xc = xscale*force->numeric(FLERR,arg[2]);
+    xc = xscale*utils::numeric(FLERR,arg[2],false,lmp);
     xstyle = CONSTANT;
   }
 
@@ -51,7 +51,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     ystyle = VARIABLE;
     varshape = 1;
   } else {
-    yc = yscale*force->numeric(FLERR,arg[3]);
+    yc = yscale*utils::numeric(FLERR,arg[3],false,lmp);
     ystyle = CONSTANT;
   }
 
@@ -63,7 +63,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     zstyle = VARIABLE;
     varshape = 1;
   } else {
-    zc = zscale*force->numeric(FLERR,arg[4]);
+    zc = zscale*utils::numeric(FLERR,arg[4],false,lmp);
     zstyle = CONSTANT;
   }
 
@@ -75,7 +75,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     rstyle = VARIABLE;
     varshape = 1;
   } else {
-    radius = xscale*force->numeric(FLERR,arg[5]);
+    radius = xscale*utils::numeric(FLERR,arg[5],false,lmp);
     rstyle = CONSTANT;
   }
 

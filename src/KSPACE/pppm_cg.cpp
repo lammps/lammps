@@ -66,7 +66,7 @@ void PPPMCG::settings(int narg, char **arg)
 
   PPPM::settings(narg,arg);
 
-  if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
+  if (narg == 2) smallq = fabs(utils::numeric(FLERR,arg[1],false,lmp));
   else smallq = SMALLQ;
 }
 

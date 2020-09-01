@@ -63,7 +63,7 @@
 #include <impl/Kokkos_HostThreadTeam.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>
 
@@ -89,19 +89,19 @@ class Serial {
   //@{
 
   //! Tag this class as an execution space:
-  typedef Serial execution_space;
-  //! The size_type typedef best suited for this device.
-  typedef HostSpace::size_type size_type;
+  using execution_space = Serial;
+  //! The size_type alias best suited for this device.
+  using size_type = HostSpace::size_type;
   //! This device's preferred memory space.
-  typedef HostSpace memory_space;
+  using memory_space = HostSpace;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   //! This device's preferred array layout.
-  typedef LayoutRight array_layout;
+  using array_layout = LayoutRight;
 
   /// \brief  Scratch memory space
-  typedef ScratchMemorySpace<Kokkos::Serial> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<Kokkos::Serial>;
 
   //@}
 
@@ -121,11 +121,7 @@ class Serial {
   /// device have completed.
   static void impl_static_fence() {}
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence() {}
-#else
   void fence() const {}
-#endif
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency() { return 1; }
@@ -134,32 +130,6 @@ class Serial {
   static void print_configuration(std::ostream&,
                                   const bool /* detail */ = false) {}
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static bool sleep();
-  static bool wake();
-
-  static void initialize(unsigned threads_count             = 1,
-                         unsigned use_numa_count            = 0,
-                         unsigned use_cores_per_numa        = 0,
-                         bool allow_asynchronous_threadpool = false);
-
-  static bool is_initialized();
-
-  //! Free any resources being consumed by the device.
-  static void finalize();
-
-  //--------------------------------------------------------------------------
-
-  inline static int thread_pool_size(int = 0) { return 1; }
-  KOKKOS_INLINE_FUNCTION static int thread_pool_rank() { return 0; }
-
-  //--------------------------------------------------------------------------
-
-  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() {
-    return thread_pool_rank();
-  }
-  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-#else
   static void impl_initialize();
 
   static bool impl_is_initialized();
@@ -180,21 +150,21 @@ class Serial {
   inline static unsigned impl_max_hardware_threads() {
     return impl_thread_pool_size(0);
   }
-#endif
+
   uint32_t impl_instance_id() const noexcept { return 0; }
 
   static const char* name();
   //--------------------------------------------------------------------------
 };
 
-namespace Profiling {
+namespace Tools {
 namespace Experimental {
 template <>
 struct DeviceTypeTraits<Serial> {
   static constexpr DeviceType id = DeviceType::Serial;
 };
 }  // namespace Experimental
-}  // namespace Profiling
+}  // namespace Tools
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -259,26 +229,16 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
 
  public:
   //! Tag this class as a kokkos execution policy
-  typedef TeamPolicyInternal execution_policy;
+  using execution_policy = TeamPolicyInternal;
 
-  typedef PolicyTraits<Properties...> traits;
+  using traits = PolicyTraits<Properties...>;
 
   //! Execution space of this execution policy:
-  typedef Kokkos::Serial execution_space;
+  using execution_space = Kokkos::Serial;
 
   const typename traits::execution_space& space() const {
     static typename traits::execution_space m_space;
     return m_space;
-  }
-
-  TeamPolicyInternal& operator=(const TeamPolicyInternal& p) {
-    m_league_size            = p.m_league_size;
-    m_team_scratch_size[0]   = p.m_team_scratch_size[0];
-    m_thread_scratch_size[0] = p.m_thread_scratch_size[0];
-    m_team_scratch_size[1]   = p.m_team_scratch_size[1];
-    m_thread_scratch_size[1] = p.m_thread_scratch_size[1];
-    m_chunk_size             = p.m_chunk_size;
-    return *this;
   }
 
   template <class ExecSpace, class... OtherProperties>
@@ -296,22 +256,6 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
   }
 
   //----------------------------------------
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  template <class FunctorType>
-  static int team_size_max(const FunctorType&) {
-    return 1;
-  }
-
-  template <class FunctorType>
-  static int team_size_recommended(const FunctorType&) {
-    return 1;
-  }
-
-  template <class FunctorType>
-  static int team_size_recommended(const FunctorType&, const int&) {
-    return 1;
-  }
-#endif
 
   template <class FunctorType>
   int team_size_max(const FunctorType&, const ParallelForTag&) const {
@@ -357,24 +301,14 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
     return (level == 0 ? 1024 * 32 : 20 * 1024 * 1024);
   }
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(const execution_space&, int league_size_request
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-                     ,
-                     int team_size_request
-#else
-                     ,
-                     int /* team_size_request */
-#endif
-                     ,
-                     int /* vector_length_request */ = 1)
+  TeamPolicyInternal(const execution_space&, int league_size_request,
+                     int team_size_request, int /* vector_length_request */ = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_league_size(league_size_request),
         m_chunk_size(32) {
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
     if (team_size_request > 1)
       Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
-#endif
   }
 
   TeamPolicyInternal(const execution_space&, int league_size_request,
@@ -386,24 +320,14 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
         m_league_size(league_size_request),
         m_chunk_size(32) {}
 
-  TeamPolicyInternal(int league_size_request
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-                     ,
-                     int team_size_request
-#else
-                     ,
-                     int /* team_size_request */
-#endif
-                     ,
+  TeamPolicyInternal(int league_size_request, int team_size_request,
                      int /* vector_length_request */ = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_league_size(league_size_request),
         m_chunk_size(32) {
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
     if (team_size_request > 1)
       Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
-#endif
   }
 
   TeamPolicyInternal(int league_size_request,
@@ -417,44 +341,6 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
 
   inline int chunk_size() const { return m_chunk_size; }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  /** \brief set chunk_size to a discrete value*/
-  inline TeamPolicyInternal set_chunk_size(
-      typename traits::index_type chunk_size_) const {
-    TeamPolicyInternal p = *this;
-    p.m_chunk_size       = chunk_size_;
-    return p;
-  }
-
-  /** \brief set per team scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerTeamValue& per_team) const {
-    TeamPolicyInternal p         = *this;
-    p.m_team_scratch_size[level] = per_team.value;
-    return p;
-  }
-
-  /** \brief set per thread scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p           = *this;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  }
-
-  /** \brief set per thread and per team scratch size for a specific level of
-   * the scratch hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerTeamValue& per_team,
-      const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p           = *this;
-    p.m_team_scratch_size[level]   = per_team.value;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  }
-#else
   /** \brief set chunk_size to a discrete value*/
   inline TeamPolicyInternal& set_chunk_size(
       typename traits::index_type chunk_size_) {
@@ -487,45 +373,8 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
   }
-#endif
 
-  typedef Impl::HostThreadTeamMember<Kokkos::Serial> member_type;
-
- protected:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  /** \brief set chunk_size to a discrete value*/
-  inline TeamPolicyInternal internal_set_chunk_size(
-      typename traits::index_type chunk_size_) {
-    m_chunk_size = chunk_size_;
-    return *this;
-  }
-
-  /** \brief set per team scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerTeamValue& per_team) {
-    m_team_scratch_size[level] = per_team.value;
-    return *this;
-  }
-
-  /** \brief set per thread scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerThreadValue& per_thread) {
-    m_thread_scratch_size[level] = per_thread.value;
-    return *this;
-  }
-
-  /** \brief set per thread and per team scratch size for a specific level of
-   * the scratch hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerTeamValue& per_team,
-      const PerThreadValue& per_thread) {
-    m_team_scratch_size[level]   = per_team.value;
-    m_thread_scratch_size[level] = per_thread.value;
-    return *this;
-  }
-#endif
+  using member_type = Impl::HostThreadTeamMember<Kokkos::Serial>;
 };
 } /* namespace Impl */
 } /* namespace Kokkos */
@@ -540,7 +389,7 @@ namespace Impl {
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Serial> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -579,25 +428,25 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
                      Kokkos::Serial> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag WorkTag;
+  using Policy  = Kokkos::RangePolicy<Traits...>;
+  using WorkTag = typename Policy::work_tag;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
 
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+                                  WorkTag, void>::type;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -687,16 +536,16 @@ template <class FunctorType, class... Traits>
 class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                    Kokkos::Serial> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag WorkTag;
+  using Policy  = Kokkos::RangePolicy<Traits...>;
+  using WorkTag = typename Policy::work_tag;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>;
 
-  typedef Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag> ValueInit;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -747,16 +596,16 @@ template <class FunctorType, class ReturnType, class... Traits>
 class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                             ReturnType, Kokkos::Serial> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag WorkTag;
+  using Policy  = Kokkos::RangePolicy<Traits...>;
+  using WorkTag = typename Policy::work_tag;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>;
 
-  typedef Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag> ValueInit;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -823,12 +672,11 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
                   Kokkos::Serial> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> MDRangePolicy;
-  typedef typename MDRangePolicy::impl_range_policy Policy;
+  using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy        = typename MDRangePolicy::impl_range_policy;
 
-  typedef typename Kokkos::Impl::HostIterateTile<
-      MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void>
-      iterate_type;
+  using iterate_type = typename Kokkos::Impl::HostIterateTile<
+      MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void>;
 
   const FunctorType m_functor;
   const MDRangePolicy m_mdr_policy;
@@ -855,28 +703,27 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                      Kokkos::Serial> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> MDRangePolicy;
-  typedef typename MDRangePolicy::impl_range_policy Policy;
+  using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy        = typename MDRangePolicy::impl_range_policy;
 
-  typedef typename MDRangePolicy::work_tag WorkTag;
+  using WorkTag = typename MDRangePolicy::work_tag;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+                                  WorkTag, void>::type;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, MDRangePolicy,
-                          FunctorType>
-      Analysis;
+  using Analysis = FunctorAnalysis<FunctorPatternInterface::REDUCE,
+                                   MDRangePolicy, FunctorType>;
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::value_type value_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using value_type     = typename Analysis::value_type;
+  using reference_type = typename Analysis::reference_type;
 
   using iterate_type =
       typename Kokkos::Impl::HostIterateTile<MDRangePolicy, FunctorType,
@@ -970,8 +817,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  typedef TeamPolicyInternal<Kokkos::Serial, Properties...> Policy;
-  typedef typename Policy::member_type Member;
+  using Policy = TeamPolicyInternal<Kokkos::Serial, Properties...>;
+  using Member = typename Policy::member_type;
 
   const FunctorType m_functor;
   const int m_league;
@@ -1024,26 +871,26 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  typedef TeamPolicyInternal<Kokkos::Serial, Properties...> Policy;
+  using Policy = TeamPolicyInternal<Kokkos::Serial, Properties...>;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
 
-  typedef typename Policy::member_type Member;
-  typedef typename Policy::work_tag WorkTag;
+  using Member  = typename Policy::member_type;
+  using WorkTag = typename Policy::work_tag;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+                                  WorkTag, void>::type;
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   const FunctorType m_functor;
   const int m_league;
@@ -1151,6 +998,11 @@ class UniqueToken<Serial, UniqueTokenScope::Instance> {
   ///
   /// This object should not be shared between instances
   UniqueToken(execution_space const& = execution_space()) noexcept {}
+
+  /// \brief create object size for requested size on given instance
+  ///
+  /// It is the users responsibility to only acquire size tokens concurrently
+  UniqueToken(size_type, execution_space const& = execution_space()) {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION

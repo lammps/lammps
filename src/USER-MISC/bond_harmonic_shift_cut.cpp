@@ -130,11 +130,11 @@ void BondHarmonicShiftCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double Umin = force->numeric(FLERR,arg[1]);   // energy at minimum
-  double r0_one = force->numeric(FLERR,arg[2]); // position of minimum
-  double r1_one = force->numeric(FLERR,arg[3]);  // position where energy = 0 = cutoff
+  double Umin = utils::numeric(FLERR,arg[1],false,lmp);   // energy at minimum
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp); // position of minimum
+  double r1_one = utils::numeric(FLERR,arg[3],false,lmp);  // position where energy = 0 = cutoff
   if (r0_one == r1_one)
     error->all(FLERR,"Bond harmonic/shift/cut r0 and r1 must be different");
 

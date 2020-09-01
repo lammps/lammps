@@ -48,6 +48,18 @@
 #include <cstdint>
 #include <string>
 
+// undefined at end of file
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_PGI)
+#define KOKKOS_IMPL_IF_ON_HOST if (!__builtin_is_device_code())
+#else
+// Note: OpenMPTarget enforces C++17 at configure time
+#define KOKKOS_IMPL_IF_ON_HOST if constexpr (omp_is_initial_device())
+#endif
+#else
+#define KOKKOS_IMPL_IF_ON_HOST if (true)
+#endif
+
 namespace Kokkos {
 namespace Impl {
 
@@ -56,7 +68,7 @@ class SharedAllocationRecord;
 
 class SharedAllocationHeader {
  private:
-  typedef SharedAllocationRecord<void, void> Record;
+  using Record = SharedAllocationRecord<void, void>;
 
   static constexpr unsigned maximum_label_length =
       (1u << 7 /* 128 */) - sizeof(Record*);
@@ -120,17 +132,33 @@ class SharedAllocationRecord<void, void> {
  public:
   virtual std::string get_label() const { return std::string("Unmanaged"); }
 
-  static int tracking_enabled() { return t_tracking_enabled; }
+#ifdef KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE
+  /* Device tracking_enabled -- always disabled */
+  KOKKOS_IMPL_DEVICE_FUNCTION
+  static int tracking_enabled() { return 0; }
+#endif
+
+  KOKKOS_IMPL_HOST_FUNCTION
+  static int tracking_enabled() {
+    KOKKOS_IMPL_IF_ON_HOST { return t_tracking_enabled; }
+    else {
+      return 0;
+    }
+  }
 
   /**\brief A host process thread claims and disables the
    *        shared allocation tracking flag.
    */
-  static void tracking_disable() { t_tracking_enabled = 0; }
+  static void tracking_disable() {
+    KOKKOS_IMPL_IF_ON_HOST { t_tracking_enabled = 0; }
+  }
 
   /**\brief A host process thread releases and enables the
    *        shared allocation tracking flag.
    */
-  static void tracking_enable() { t_tracking_enabled = 1; }
+  static void tracking_enable() {
+    KOKKOS_IMPL_IF_ON_HOST { t_tracking_enabled = 1; }
+  }
 
   virtual ~SharedAllocationRecord() = default;
 
@@ -164,11 +192,25 @@ class SharedAllocationRecord<void, void> {
   /* Cannot be 'constexpr' because 'm_count' is volatile */
   int use_count() const { return *static_cast<const volatile int*>(&m_count); }
 
+#ifdef KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE
+  /* Device tracking_enabled -- always disabled */
+  KOKKOS_IMPL_DEVICE_FUNCTION
+  static void increment(SharedAllocationRecord*){};
+#endif
+
   /* Increment use count */
+  KOKKOS_IMPL_HOST_FUNCTION
   static void increment(SharedAllocationRecord*);
+
+#ifdef KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE
+  /* Device tracking_enabled -- always disabled */
+  KOKKOS_IMPL_DEVICE_FUNCTION
+  static void decrement(SharedAllocationRecord*){};
+#endif
 
   /* Decrement use count. If 1->0 then remove from the tracking list and invoke
    * m_dealloc */
+  KOKKOS_IMPL_HOST_FUNCTION
   static SharedAllocationRecord* decrement(SharedAllocationRecord*);
 
   /* Given a root record and data pointer find the record */
@@ -192,8 +234,8 @@ namespace {
 /* Taking the address of this function so make sure it is unique */
 template <class MemorySpace, class DestroyFunctor>
 void deallocate(SharedAllocationRecord<void, void>* record_ptr) {
-  typedef SharedAllocationRecord<MemorySpace, void> base_type;
-  typedef SharedAllocationRecord<MemorySpace, DestroyFunctor> this_type;
+  using base_type = SharedAllocationRecord<MemorySpace, void>;
+  using this_type = SharedAllocationRecord<MemorySpace, DestroyFunctor>;
 
   this_type* const ptr =
       static_cast<this_type*>(static_cast<base_type*>(record_ptr));
@@ -259,7 +301,7 @@ class SharedAllocationRecord<MemorySpace, void>
 
 union SharedAllocationTracker {
  private:
-  typedef SharedAllocationRecord<void, void> Record;
+  using Record = SharedAllocationRecord<void, void>;
 
   enum : uintptr_t { DO_NOT_DEREF_FLAG = 0x01ul };
 
@@ -272,15 +314,36 @@ union SharedAllocationTracker {
   // pressure on compiler optimization by reducing
   // number of symbols and inline functions.
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+#if defined(KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE)
+
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_ENABLED Record::tracking_enabled()
+
+#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_CONDITION \
+  (!(m_record_bits & DO_NOT_DEREF_FLAG))
+#else
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_CONDITION (0)
+#endif
+
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT \
+  if (KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_CONDITION)  \
+    KOKKOS_IMPL_IF_ON_HOST Record::increment(m_record);
+
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT \
+  if (KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_CONDITION)  \
+    KOKKOS_IMPL_IF_ON_HOST Record::decrement(m_record);
+
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
 
 #define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_ENABLED Record::tracking_enabled()
 
 #define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT \
-  if (!(m_record_bits & DO_NOT_DEREF_FLAG)) Record::increment(m_record);
+  if (!(m_record_bits & DO_NOT_DEREF_FLAG))             \
+    KOKKOS_IMPL_IF_ON_HOST Record::increment(m_record);
 
 #define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT \
-  if (!(m_record_bits & DO_NOT_DEREF_FLAG)) Record::decrement(m_record);
+  if (!(m_record_bits & DO_NOT_DEREF_FLAG))             \
+    KOKKOS_IMPL_IF_ON_HOST Record::decrement(m_record);
 
 #else
 
@@ -312,7 +375,7 @@ union SharedAllocationTracker {
   constexpr SharedAllocationRecord<MemorySpace, void>* get_record() const
       noexcept {
     return (m_record_bits & DO_NOT_DEREF_FLAG)
-               ? (SharedAllocationRecord<MemorySpace, void>*)0
+               ? nullptr
                : static_cast<SharedAllocationRecord<MemorySpace, void>*>(
                      m_record);
   }
@@ -397,6 +460,38 @@ union SharedAllocationTracker {
     return *this;
   }
 
+  /*  The following functions (assign_direct and assign_force_disable)
+   *  are the result of deconstructing the
+   *  KOKKOS_IMPL_SHARED_ALLOCATION_CARRY_RECORD_BITS macro.  This
+   *  allows the caller to do the check for tracking enabled and managed
+   *  apart from the assignement of the record because the tracking
+   *  enabled / managed question may be important for other tasks as well
+   */
+
+  /** \brief  Copy assignment without the carry bits logic
+   *         This assumes that externally defined tracking is explicitly enabled
+   */
+  KOKKOS_FORCEINLINE_FUNCTION
+  void assign_direct(const SharedAllocationTracker& rhs) {
+    KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT
+    m_record_bits = rhs.m_record_bits;
+    KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT
+  }
+
+  /** \brief  Copy assignment without the increment
+   *         we cannot assume that current record is unmanaged
+   *         but with externally defined tracking explicitly disabled
+   *         we can go straight to the do not deref flag     */
+  KOKKOS_FORCEINLINE_FUNCTION
+  void assign_force_disable(const SharedAllocationTracker& rhs) {
+    KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT
+    m_record_bits = rhs.m_record_bits | DO_NOT_DEREF_FLAG;
+  }
+
+  // report if record is tracking or not
+  KOKKOS_FORCEINLINE_FUNCTION
+  bool tracking_enabled() { return (!(m_record_bits & DO_NOT_DEREF_FLAG)); }
+
   /** \brief  Copy assignment may disable tracking */
   KOKKOS_FORCEINLINE_FUNCTION
   void assign(const SharedAllocationTracker& rhs, const bool enable_tracking) {
@@ -413,5 +508,5 @@ union SharedAllocationTracker {
 
 } /* namespace Impl */
 } /* namespace Kokkos */
-
+#undef KOKKOS_IMPL_IF_ON_HOST
 #endif

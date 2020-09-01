@@ -55,12 +55,10 @@ namespace TestStaticCrsGraph {
 
 template <class Space>
 void run_test_graph() {
-  typedef Kokkos::StaticCrsGraph<unsigned, Space> dView;
-  typedef typename dView::HostMirror hView;
+  using dView = Kokkos::StaticCrsGraph<unsigned, Space>;
+  using hView = typename dView::HostMirror;
 
   const unsigned LENGTH = 1000;
-  dView dx;
-  hView hx;
 
   std::vector<std::vector<int> > graph(LENGTH);
 
@@ -70,6 +68,23 @@ void run_test_graph() {
       graph[i].push_back(i + j * 3);
     }
   }
+
+  {
+    dView d1;
+    ASSERT_FALSE(d1.is_allocated());
+
+    d1 = Kokkos::create_staticcrsgraph<dView>("d1", graph);
+
+    dView d2(d1);
+    dView d3(d1.entries, d1.row_map);
+
+    ASSERT_TRUE(d1.is_allocated());
+    ASSERT_TRUE(d2.is_allocated());
+    ASSERT_TRUE(d3.is_allocated());
+  }
+
+  dView dx;
+  hView hx;
 
   dx = Kokkos::create_staticcrsgraph<dView>("dx", graph);
   hx = Kokkos::create_mirror(dx);
@@ -98,8 +113,8 @@ void run_test_graph() {
 
 template <class Space>
 void run_test_graph2() {
-  typedef Kokkos::StaticCrsGraph<unsigned[3], Space> dView;
-  typedef typename dView::HostMirror hView;
+  using dView = Kokkos::StaticCrsGraph<unsigned[3], Space>;
+  using hView = typename dView::HostMirror;
 
   const unsigned LENGTH = 10;
 
@@ -158,8 +173,8 @@ template <class Space>
 void run_test_graph3(size_t B, size_t N) {
   srand(10310);
 
-  typedef Kokkos::StaticCrsGraph<int, Space> dView;
-  typedef typename dView::HostMirror hView;
+  using dView = Kokkos::StaticCrsGraph<int, Space>;
+  using hView = typename dView::HostMirror;
 
   const unsigned LENGTH = 2000;
 
@@ -197,20 +212,13 @@ void run_test_graph3(size_t B, size_t N) {
 
 template <class Space>
 void run_test_graph4() {
-  typedef unsigned ordinal_type;
-  typedef Kokkos::LayoutRight layout_type;
-  typedef Space space_type;
-  typedef Kokkos::MemoryUnmanaged memory_traits_type;
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  typedef Kokkos::StaticCrsGraph<ordinal_type, layout_type, space_type,
-                                 ordinal_type, memory_traits_type>
-      dView;
-#else
-  typedef Kokkos::StaticCrsGraph<ordinal_type, layout_type, space_type,
-                                 memory_traits_type>
-      dView;
-#endif
-  typedef typename dView::HostMirror hView;
+  using ordinal_type       = unsigned;
+  using layout_type        = Kokkos::LayoutRight;
+  using space_type         = Space;
+  using memory_traits_type = Kokkos::MemoryUnmanaged;
+  using dView = Kokkos::StaticCrsGraph<ordinal_type, layout_type, space_type,
+                                       memory_traits_type>;
+  using hView = typename dView::HostMirror;
 
   dView dx;
 
@@ -227,8 +235,8 @@ void run_test_graph4() {
   // of the unmanaged StaticCrsGraph
 
   // Data types for raw pointers storing StaticCrsGraph info
-  typedef typename dView::size_type ptr_row_map_type;
-  typedef typename dView::data_type ptr_entries_type;
+  using ptr_row_map_type = typename dView::size_type;
+  using ptr_entries_type = typename dView::data_type;
 
   const ordinal_type numRows = 8;
   const ordinal_type nnz     = 24;
@@ -237,8 +245,8 @@ void run_test_graph4() {
                                4, 5, 4, 5, 2, 3, 6, 7, 2, 3, 6, 7};
 
   // Wrap pointers in unmanaged host views
-  typedef typename hView::row_map_type local_row_map_type;
-  typedef typename hView::entries_type local_entries_type;
+  using local_row_map_type = typename hView::row_map_type;
+  using local_entries_type = typename hView::entries_type;
   local_row_map_type unman_row_map(&(ptrRaw[0]), numRows + 1);
   local_entries_type unman_entries(&(indRaw[0]), nnz);
 
@@ -248,10 +256,10 @@ void run_test_graph4() {
   // Create the device Views for copying the host arrays into
   // An allocation is needed on the device for the unmanaged StaticCrsGraph to
   // wrap the pointer
-  typedef typename Kokkos::View<ptr_row_map_type*, layout_type, space_type>
-      d_row_map_view_type;
-  typedef typename Kokkos::View<ptr_entries_type*, layout_type, space_type>
-      d_entries_view_type;
+  using d_row_map_view_type =
+      typename Kokkos::View<ptr_row_map_type*, layout_type, space_type>;
+  using d_entries_view_type =
+      typename Kokkos::View<ptr_entries_type*, layout_type, space_type>;
 
   d_row_map_view_type tmp_row_map("tmp_row_map", numRows + 1);
   d_entries_view_type tmp_entries("tmp_entries", nnz);

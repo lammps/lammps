@@ -70,34 +70,34 @@ void Rerun::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      first = force->bnumeric(FLERR,arg[iarg+1]);
+      first = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (first < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"last") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      last = force->bnumeric(FLERR,arg[iarg+1]);
+      last = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (last < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"skip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nskip = force->inumeric(FLERR,arg[iarg+1]);
+      nskip = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nskip <= 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       startflag = 1;
-      start = force->bnumeric(FLERR,arg[iarg+1]);
+      start = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (start < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       stopflag = 1;
-      stop = force->bnumeric(FLERR,arg[iarg+1]);
+      stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {

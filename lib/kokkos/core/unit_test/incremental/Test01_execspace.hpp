@@ -73,9 +73,9 @@ struct TestIncrExecSpaceTypedef {
 template <class ExecSpace>
 struct TestIncrExecSpace {
   void testit() {
-    typedef typename ExecSpace::device_type device_type;
-    typedef typename device_type::memory_space memory_space;
-    typedef typename device_type::execution_space execution_space;
+    using device_type     = typename ExecSpace::device_type;
+    using memory_space    = typename device_type::memory_space;
+    using execution_space = typename device_type::execution_space;
 
     const bool passed =
         std::is_same<device_type,

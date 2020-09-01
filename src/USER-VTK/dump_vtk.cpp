@@ -2296,7 +2296,7 @@ int DumpVTK::modify_param(int narg, char **arg)
 
     // set threshold value
 
-    thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
+    thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
 
     nthresh++;
     return 4;

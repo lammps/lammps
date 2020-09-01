@@ -151,7 +151,8 @@ too frequently.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with *nlvalues* columns,
 giving the :math:`Q_l` values for each atom, which are real numbers on the

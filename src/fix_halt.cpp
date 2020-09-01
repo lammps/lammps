@@ -42,7 +42,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), idvar(NULL), dlimit_path(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix halt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix halt command");
 
   // comparison args
@@ -80,7 +80,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Invalid fix halt operator");
 
   ++iarg;
-  value = force->numeric(FLERR,arg[iarg]);
+  value = utils::numeric(FLERR,arg[iarg],false,lmp);
 
   // parse optional args
 

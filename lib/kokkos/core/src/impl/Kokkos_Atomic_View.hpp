@@ -57,9 +57,9 @@ struct AtomicViewConstTag {};
 template <class ViewTraits>
 class AtomicDataElement {
  public:
-  typedef typename ViewTraits::value_type value_type;
-  typedef typename ViewTraits::const_value_type const_value_type;
-  typedef typename ViewTraits::non_const_value_type non_const_value_type;
+  using value_type           = typename ViewTraits::value_type;
+  using const_value_type     = typename ViewTraits::const_value_type;
+  using non_const_value_type = typename ViewTraits::non_const_value_type;
   volatile value_type* const ptr;
 
   KOKKOS_INLINE_FUNCTION
@@ -367,12 +367,12 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars;
 
 template <>
 struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<4> {
-  typedef int type;
+  using type = int;
 };
 
 template <>
 struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
-  typedef int64_t type;
+  using type = int64_t;
 };
 
 }  // namespace Impl

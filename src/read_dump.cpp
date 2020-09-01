@@ -110,7 +110,7 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  bigint nstep = force->bnumeric(FLERR,arg[1]);
+  bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
@@ -120,7 +120,7 @@ void ReadDump::command(int narg, char **arg)
 
   // find the snapshot and read/bcast/process header info
 
-  if (me == 0 && screen) fprintf(screen,"Scanning dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
 
   bigint ntimestep = seek(nstep,1);
   if (ntimestep < 0)
@@ -135,8 +135,7 @@ void ReadDump::command(int narg, char **arg)
 
   // read in the snapshot and reset system
 
-  if (me == 0 && screen)
-    fprintf(screen,"Reading snapshot from dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
 
   bigint natoms_prev = atom->natoms;
   atoms();
@@ -1218,7 +1217,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      multiproc_nfile = force->inumeric(FLERR,arg[iarg+1]);
+      multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

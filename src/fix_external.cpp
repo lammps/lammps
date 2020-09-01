@@ -41,14 +41,14 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"pf/callback") == 0) {
     if (narg != 6) error->all(FLERR,"Illegal fix external command");
     mode = PF_CALLBACK;
-    ncall = force->inumeric(FLERR,arg[4]);
-    napply = force->inumeric(FLERR,arg[5]);
+    ncall = utils::inumeric(FLERR,arg[4],false,lmp);
+    napply = utils::inumeric(FLERR,arg[5],false,lmp);
     if (ncall <= 0 || napply <= 0)
       error->all(FLERR,"Illegal fix external command");
   } else if (strcmp(arg[3],"pf/array") == 0) {
     if (narg != 5) error->all(FLERR,"Illegal fix external command");
     mode = PF_ARRAY;
-    napply = force->inumeric(FLERR,arg[4]);
+    napply = utils::inumeric(FLERR,arg[4],false,lmp);
     if (napply <= 0) error->all(FLERR,"Illegal fix external command");
   } else error->all(FLERR,"Illegal fix external command");
 

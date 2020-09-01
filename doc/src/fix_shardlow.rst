@@ -79,7 +79,10 @@ Related commands
 
 :doc:`pair_style dpd/fdt <pair_dpd_fdt>`, :doc:`fix eos/cv <fix_eos_cv>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

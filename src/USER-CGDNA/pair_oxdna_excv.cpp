@@ -455,8 +455,8 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   count = 0;
 
@@ -471,9 +471,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 
   // Excluded volume interaction
   // LJ parameters
-  epsilon_ss_one = force->numeric(FLERR,arg[2]);
-  sigma_ss_one = force->numeric(FLERR,arg[3]);
-  cut_ss_ast_one = force->numeric(FLERR,arg[4]);
+  epsilon_ss_one = utils::numeric(FLERR,arg[2],false,lmp);
+  sigma_ss_one = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_ss_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_ss_one = 4.0/sigma_ss_one
@@ -502,9 +502,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   count = 0;
 
   // LJ parameters
-  epsilon_sb_one = force->numeric(FLERR,arg[5]);
-  sigma_sb_one = force->numeric(FLERR,arg[6]);
-  cut_sb_ast_one = force->numeric(FLERR,arg[7]);
+  epsilon_sb_one = utils::numeric(FLERR,arg[5],false,lmp);
+  sigma_sb_one = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_sb_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_sb_one = 4.0/sigma_sb_one
@@ -533,9 +533,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   count = 0;
 
   // LJ parameters
-  epsilon_bb_one = force->numeric(FLERR,arg[8]);
-  sigma_bb_one = force->numeric(FLERR,arg[9]);
-  cut_bb_ast_one = force->numeric(FLERR,arg[10]);
+  epsilon_bb_one = utils::numeric(FLERR,arg[8],false,lmp);
+  sigma_bb_one = utils::numeric(FLERR,arg[9],false,lmp);
+  cut_bb_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_bb_one = 4.0/sigma_bb_one

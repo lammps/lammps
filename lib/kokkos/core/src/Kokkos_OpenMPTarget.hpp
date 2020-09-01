@@ -78,15 +78,15 @@ class OpenMPTarget {
   //@{
 
   //! Tag this class as a kokkos execution space
-  typedef OpenMPTarget execution_space;
-  typedef OpenMPTargetSpace memory_space;
+  using execution_space = OpenMPTarget;
+  using memory_space    = OpenMPTargetSpace;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef LayoutLeft array_layout;
-  typedef memory_space::size_type size_type;
+  using array_layout = LayoutLeft;
+  using size_type    = memory_space::size_type;
 
-  typedef ScratchMemorySpace<OpenMPTarget> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<OpenMPTarget>;
 
   inline static bool in_parallel() { return omp_in_parallel(); }
 
@@ -121,7 +121,7 @@ class OpenMPTarget {
 };
 }  // namespace Experimental
 
-namespace Profiling {
+namespace Tools {
 namespace Experimental {
 template <>
 struct DeviceTypeTraits<::Kokkos::Experimental::OpenMPTarget> {
@@ -129,7 +129,7 @@ struct DeviceTypeTraits<::Kokkos::Experimental::OpenMPTarget> {
       ::Kokkos::Profiling::Experimental::DeviceType::OpenMPTarget;
 };
 }  // namespace Experimental
-}  // namespace Profiling
+}  // namespace Tools
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

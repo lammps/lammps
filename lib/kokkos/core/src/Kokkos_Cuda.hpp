@@ -118,27 +118,27 @@ class Cuda {
   //@{
 
   //! Tag this class as a kokkos execution space
-  typedef Cuda execution_space;
+  using execution_space = Cuda;
 
 #if defined(KOKKOS_ENABLE_CUDA_UVM)
   //! This execution space's preferred memory space.
-  typedef CudaUVMSpace memory_space;
+  using memory_space = CudaUVMSpace;
 #else
   //! This execution space's preferred memory space.
-  typedef CudaSpace memory_space;
+  using memory_space = CudaSpace;
 #endif
 
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   //! The size_type best suited for this execution space.
-  typedef memory_space::size_type size_type;
+  using size_type = memory_space::size_type;
 
   //! This execution space's preferred array layout.
-  typedef LayoutLeft array_layout;
+  using array_layout = LayoutLeft;
 
   //!
-  typedef ScratchMemorySpace<Cuda> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<Cuda>;
 
   //@}
   //--------------------------------------------------
@@ -183,11 +183,7 @@ class Cuda {
   /// device have completed.
   static void impl_static_fence();
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence();
-#else
   void fence() const;
-#endif
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
@@ -199,14 +195,17 @@ class Cuda {
   //--------------------------------------------------
   //! \name  Cuda space instances
 
-  ~Cuda() = default;
-
   Cuda();
 
-  Cuda(Cuda&&)      = default;
-  Cuda(const Cuda&) = default;
-  Cuda& operator=(Cuda&&) = default;
-  Cuda& operator=(const Cuda&) = default;
+  KOKKOS_FUNCTION Cuda(Cuda&& other) noexcept;
+
+  KOKKOS_FUNCTION Cuda(const Cuda& other);
+
+  KOKKOS_FUNCTION Cuda& operator=(Cuda&& other) noexcept;
+
+  KOKKOS_FUNCTION Cuda& operator=(const Cuda& other);
+
+  KOKKOS_FUNCTION ~Cuda() noexcept;
 
   Cuda(cudaStream_t stream);
 
@@ -220,17 +219,6 @@ class Cuda {
     explicit SelectDevice(int id) : cuda_device_id(id) {}
   };
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  //! Free any resources being consumed by the device.
-  static void finalize();
-
-  //! Has been initialized
-  static int is_initialized();
-
-  //! Initialize, telling the CUDA run-time library which device to use.
-  static void initialize(const SelectDevice         = SelectDevice(),
-                         const size_t num_instances = 1);
-#else
   //! Free any resources being consumed by the device.
   static void impl_finalize();
 
@@ -240,7 +228,6 @@ class Cuda {
   //! Initialize, telling the CUDA run-time library which device to use.
   static void impl_initialize(const SelectDevice         = SelectDevice(),
                               const size_t num_instances = 1);
-#endif
 
   /// \brief Cuda device architecture of the selected device.
   ///
@@ -271,9 +258,10 @@ class Cuda {
 
  private:
   Impl::CudaInternal* m_space_instance;
+  int* m_counter;
 };
 
-namespace Profiling {
+namespace Tools {
 namespace Experimental {
 template <>
 struct DeviceTypeTraits<Cuda> {
@@ -281,7 +269,7 @@ struct DeviceTypeTraits<Cuda> {
   static constexpr DeviceType id = DeviceType::Cuda;
 };
 }  // namespace Experimental
-}  // namespace Profiling
+}  // namespace Tools
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

@@ -579,6 +579,7 @@ void FixPeriNeigh::restart(char *buf)
 int FixPeriNeigh::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way b/c other fixes unpack it
   if (isVES) buf[m++] = 4*npartner[i] + 4;
   else if (isEPS) buf[m++] = 3*npartner[i] + 5;
   else buf[m++] = 2*npartner[i] + 4;
@@ -608,6 +609,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

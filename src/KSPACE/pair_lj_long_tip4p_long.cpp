@@ -1440,19 +1440,21 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order==((1<<1)|(1<<6)))
     error->warning(FLERR,
                    "Using largest cutoff for pair_style lj/long/tip4p/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (!((ewald_order^ewald_off)&(1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
-  typeO = force->inumeric(FLERR,arg[1]);
-  typeH = force->inumeric(FLERR,arg[2]);
-  typeB = force->inumeric(FLERR,arg[3]);
-  typeA = force->inumeric(FLERR,arg[4]);
-  qdist = force->numeric(FLERR,arg[5]);
+  typeO = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[3],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[4],false,lmp);
+  qdist = utils::numeric(FLERR,arg[5],false,lmp);
 
 
-  cut_lj_global = force->numeric(FLERR,arg[6]);
+  cut_lj_global = utils::numeric(FLERR,arg[6],false,lmp);
   if (narg == 8) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[7]);
+  else cut_coul = utils::numeric(FLERR,arg[7],false,lmp);
 
 
   // reset cutoffs that have been explicitly set
@@ -1532,6 +1534,7 @@ void PairLJLongTIP4PLong::write_restart_settings(FILE *fp)
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1554,6 +1557,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
     utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -1569,6 +1573,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

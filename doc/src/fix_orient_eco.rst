@@ -90,7 +90,8 @@ simulation.
 
 
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc: `binary restart files <restart>`.
 
@@ -122,7 +123,10 @@ Related commands
 
 :doc:`fix_orient <fix_orient>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

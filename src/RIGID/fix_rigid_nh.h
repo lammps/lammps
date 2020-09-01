@@ -64,7 +64,7 @@ class FixRigidNH : public FixRigid {
 
   double mtk_term1,mtk_term2;         // Martyna-Tobias-Klein corrections
 
-  double t_current,t_target;
+  double t_current;
   double p_current[3],p_target[3];
 
   char *id_temp,*id_press;

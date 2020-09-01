@@ -139,7 +139,8 @@ effect on this fix.
 
 ----------
 
-**Restart, fix_modify, thermo output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -189,7 +190,10 @@ Related commands
 
 :doc:`fix atom/swap <fix_atom_swap>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

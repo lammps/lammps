@@ -446,7 +446,7 @@ Min *Update::minimize_creator(LAMMPS *lmp)
 void Update::reset_timestep(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal reset_timestep command");
-  bigint newstep = force->bnumeric(FLERR,arg[0]);
+  bigint newstep = utils::bnumeric(FLERR,arg[0],false,lmp);
   reset_timestep(newstep);
 }
 

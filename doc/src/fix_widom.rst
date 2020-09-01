@@ -156,7 +156,8 @@ with non-neutral systems. See the :doc:`compute group/group
 <compute_group_group>` documentation for more details about simulating
 non-neutral systems with kspace on.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the fix to :doc:`binary restart files
 <restart>`.  This includes information about the random number generator

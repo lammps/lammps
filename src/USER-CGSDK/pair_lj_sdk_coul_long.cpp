@@ -293,9 +293,9 @@ void PairLJSDKCoulLong::settings(int narg, char **arg)
 {
  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[1]);
+  else cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -318,18 +318,18 @@ void PairLJSDKCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int lj_type_one = find_lj_type(arg[2],lj_type_list);
   if (lj_type_one == LJ_NOT_SET)
     error->all(FLERR,"Cannot parse LJ type flag.");
 
-  double epsilon_one = force->numeric(FLERR,arg[3]);
-  double sigma_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 6) cut_lj_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -593,17 +593,32 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     const int ljt = lj_type[itype][jtype];
-    const double ljpow1 = lj_pow1[ljt];
-    const double ljpow2 = lj_pow2[ljt];
-    const double ljpref = lj_prefact[ljt];
 
-    const double ratio = sigma[itype][jtype]/sqrt(rsq);
-    const double eps = epsilon[itype][jtype];
+    if (ljt == LJ12_4) {
+      const double r4inv=r2inv*r2inv;
+      forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                       - lj2[itype][jtype]);
 
-    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
-                          - ljpow2*pow(ratio,ljpow2))/rsq;
-    philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-                         - offset[itype][jtype]);
+      philj = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ9_6) {
+      const double r3inv = r2inv*sqrt(r2inv);
+      const double r6inv = r3inv*r3inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r3inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_6) {
+      const double r6inv = r2inv*r2inv*r2inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r6inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+    }
+    forcelj *= factor_lj;
+    philj *= factor_lj;
   }
 
   fforce = (forcecoul + forcelj) * r2inv;

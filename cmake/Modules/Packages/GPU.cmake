@@ -75,7 +75,7 @@ if(GPU_API STREQUAL "CUDA")
   endif()
   # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
   if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_35,code=[sm_35,compute_35]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
   endif()
   # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")

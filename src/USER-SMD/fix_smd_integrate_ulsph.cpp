@@ -77,21 +77,21 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        adjust_radius_factor = force->numeric(FLERR, arg[iarg]);
+                        adjust_radius_factor = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        min_nn = force->inumeric(FLERR, arg[iarg]);
+                        min_nn = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        max_nn = force->inumeric(FLERR, arg[iarg]);
+                        max_nn = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("... will adjust smoothing length dynamically with factor %g to achieve %d to %d neighbors per particle.\n ",
@@ -103,7 +103,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                         if (iarg == narg) {
                                 error->all(FLERR, "expected number following limit_velocity");
                         }
-                        vlimit = force->numeric(FLERR, arg[iarg]);
+                        vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("... will limit velocities to <= %g\n", vlimit);

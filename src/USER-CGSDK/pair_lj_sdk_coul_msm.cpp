@@ -257,17 +257,32 @@ double PairLJSDKCoulMSM::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     const int ljt = lj_type[itype][jtype];
-    const double ljpow1 = lj_pow1[ljt];
-    const double ljpow2 = lj_pow2[ljt];
-    const double ljpref = lj_prefact[ljt];
 
-    const double ratio = sigma[itype][jtype]/sqrt(rsq);
-    const double eps = epsilon[itype][jtype];
+    if (ljt == LJ12_4) {
+      const double r4inv=r2inv*r2inv;
+      forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                       - lj2[itype][jtype]);
 
-    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
-                          - ljpow2*pow(ratio,ljpow2))/rsq;
-    philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-                         - offset[itype][jtype]);
+      philj = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ9_6) {
+      const double r3inv = r2inv*sqrt(r2inv);
+      const double r6inv = r3inv*r3inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r3inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_6) {
+      const double r6inv = r2inv*r2inv*r2inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r6inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+    }
+    forcelj *= factor_lj;
+    philj *= factor_lj;
   }
 
   fforce = (forcecoul + forcelj) * r2inv;

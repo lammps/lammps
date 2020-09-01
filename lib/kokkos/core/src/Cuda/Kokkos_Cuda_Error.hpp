@@ -50,7 +50,7 @@
 
 #include <impl/Kokkos_Error.hpp>
 
-#include <iostream>
+#include <iosfwd>
 
 namespace Kokkos {
 namespace Impl {
@@ -113,12 +113,7 @@ class CudaRawMemoryAllocationFailure : public RawMemoryAllocationFailure {
                get_failure_mode(arg_error_code), arg_mechanism),
         m_error_code(arg_error_code) {}
 
-  void append_additional_error_information(std::ostream& o) const override {
-    if (m_error_code != cudaSuccess) {
-      o << "  The Cuda allocation returned the error code \"\""
-        << cudaGetErrorName(m_error_code) << "\".";
-    }
-  }
+  void append_additional_error_information(std::ostream& o) const override;
 };
 
 }  // end namespace Experimental

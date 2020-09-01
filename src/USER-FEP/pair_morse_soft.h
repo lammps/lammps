@@ -38,6 +38,8 @@ class PairMorseSoft : public PairMorse {
   virtual double init_one(int, int);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
 
   void write_data(FILE *);
   void write_data_all(FILE *);

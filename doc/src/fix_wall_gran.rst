@@ -176,7 +176,8 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 the wall at whatever *radius* has been defined.
 
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the shear friction state of atoms interacting with the
 wall to :doc:`binary restart files <restart>`, so that a simulation can
@@ -234,4 +235,7 @@ Related commands
 :doc:`pair_style gran/\* <pair_gran>`
 :doc:`pair_style granular <pair_granular>`
 
-**Default:** none
+Default
+"""""""
+
+none

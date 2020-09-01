@@ -48,7 +48,6 @@
 #include <TestAggregate.hpp>
 #include <TestMemoryPool.hpp>
 #include <TestCXX11.hpp>
-#include <TestTile.hpp>
 
 #include <TestViewCtorPropEmbeddedDim.hpp>
 #include <TestViewLayoutTiled.hpp>
@@ -64,24 +63,14 @@ TEST(openmp, partition_master) {
   int errors = 0;
 
   auto master = [&errors, &mtx](int /*partition_id*/, int /*num_partitions*/) {
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = Kokkos::OpenMP::thread_pool_size();
-#else
     const int pool_size = Kokkos::OpenMP::impl_thread_pool_size();
-#endif
 
     {
       std::unique_lock<Mutex> lock(mtx);
       if (Kokkos::OpenMP::in_parallel()) {
         ++errors;
       }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      if (Kokkos::OpenMP::thread_pool_rank() != 0)
-#else
-      if (Kokkos::OpenMP::impl_thread_pool_rank() != 0)
-#endif
-      {
+      if (Kokkos::OpenMP::impl_thread_pool_rank() != 0) {
         ++errors;
       }
     }
@@ -91,12 +80,7 @@ TEST(openmp, partition_master) {
       Kokkos::parallel_reduce(
           Kokkos::RangePolicy<Kokkos::OpenMP>(0, 1000),
           [pool_size](const int, int& errs) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            if (Kokkos::OpenMP::thread_pool_size() != pool_size)
-#else
-            if (Kokkos::OpenMP::impl_thread_pool_size() != pool_size)
-#endif
-            {
+            if (Kokkos::OpenMP::impl_thread_pool_size() != pool_size) {
               ++errs;
             }
           },

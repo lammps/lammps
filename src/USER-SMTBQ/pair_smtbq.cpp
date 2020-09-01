@@ -410,7 +410,7 @@ void PairSMTBQ::read_file(char *file)
 
       // open file on all processors
   FILE *fp;
-  fp = force->open_potential(file);
+  fp = utils::open_potential(file,lmp,nullptr);
   if ( fp  == NULL ) {
     char str[128];
     snprintf(str,128,"Cannot open SMTBQ potential file %s",file);

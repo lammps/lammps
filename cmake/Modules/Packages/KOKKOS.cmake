@@ -35,8 +35,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.1.01.tar.gz
-    URL_MD5 3ccb2100f7fc316891e7dad3bc33fa37
+    URL https://github.com/kokkos/kokkos/archive/3.2.00.tar.gz
+    URL_MD5 81569170fe232e5e64ab074f7cca5e50
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
   )
@@ -50,7 +50,7 @@ if(DOWNLOAD_KOKKOS)
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
   add_dependencies(LAMMPS::KOKKOS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.1.01 REQUIRED CONFIG)
+  find_package(Kokkos 3.2.00 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)

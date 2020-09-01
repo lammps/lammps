@@ -67,7 +67,7 @@ void Velocity::command(int narg, char **arg)
 
   // check if velocities of atoms in rigid bodies are updated
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if (modify->check_rigid_group_overlap(groupbit) && (comm->me == 0))
     error->warning(FLERR,"Changing velocities of atoms in rigid bodies. "
                      "This has no effect unless rigid bodies are rebuild");
 
@@ -127,8 +127,8 @@ void Velocity::command(int narg, char **arg)
   // create() invoked differently, so can be called externally
 
   if (style == CREATE) {
-    double t_desired = force->numeric(FLERR,arg[2]);
-    int seed = force->inumeric(FLERR,arg[3]);
+    double t_desired = utils::numeric(FLERR,arg[2],false,lmp);
+    int seed = utils::inumeric(FLERR,arg[3],false,lmp);
     create(t_desired,seed);
   }
   else if (style == SET) set(narg-2,&arg[2]);
@@ -200,7 +200,7 @@ void Velocity::create(double t_desired, int seed)
   // initialize temperature computation(s)
   // warn if groups don't match
 
-  if (igroup != temperature->igroup && comm->me == 0)
+  if ((igroup != temperature->igroup) && (comm->me == 0))
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
   temperature->setup();
@@ -424,21 +424,21 @@ void Velocity::set(int /*narg*/, char **arg)
     xstr = new char[n];
     strcpy(xstr,&arg[0][2]);
   } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
-  else vx = force->numeric(FLERR,arg[0]);
+  else vx = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (strstr(arg[1],"v_") == arg[1]) {
     int n = strlen(&arg[1][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[1][2]);
   } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
-  else vy = force->numeric(FLERR,arg[1]);
+  else vy = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (strstr(arg[2],"v_") == arg[2]) {
     int n = strlen(&arg[2][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[2][2]);
   } else if (strcmp(arg[2],"NULL") == 0) zstyle = NONE;
-  else vz = force->numeric(FLERR,arg[2]);
+  else vz = utils::numeric(FLERR,arg[2],false,lmp);
 
   // set and apply scale factors
 
@@ -578,7 +578,7 @@ void Velocity::set(int /*narg*/, char **arg)
 
 void Velocity::scale(int /*narg*/, char **arg)
 {
-  double t_desired = force->numeric(FLERR,arg[0]);
+  double t_desired = utils::numeric(FLERR,arg[0],false,lmp);
 
   // if temperature = NULL, create a new ComputeTemp with the velocity group
 
@@ -596,7 +596,7 @@ void Velocity::scale(int /*narg*/, char **arg)
   // initialize temperature computation
   // warn if groups don't match
 
-  if (igroup != temperature->igroup && comm->me == 0)
+  if ((igroup != temperature->igroup) && (comm->me == 0))
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
   temperature->setup();
@@ -649,14 +649,14 @@ void Velocity::ramp(int /*narg*/, char **arg)
 
   double v_lo,v_hi;
   if (v_dim == 0) {
-    v_lo = xscale*force->numeric(FLERR,arg[1]);
-    v_hi = xscale*force->numeric(FLERR,arg[2]);
+    v_lo = xscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = xscale*utils::numeric(FLERR,arg[2],false,lmp);
   } else if (v_dim == 1) {
-    v_lo = yscale*force->numeric(FLERR,arg[1]);
-    v_hi = yscale*force->numeric(FLERR,arg[2]);
+    v_lo = yscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = yscale*utils::numeric(FLERR,arg[2],false,lmp);
   } else if (v_dim == 2) {
-    v_lo = zscale*force->numeric(FLERR,arg[1]);
-    v_hi = zscale*force->numeric(FLERR,arg[2]);
+    v_lo = zscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = zscale*utils::numeric(FLERR,arg[2],false,lmp);
   }
 
   int coord_dim = 0;
@@ -667,14 +667,14 @@ void Velocity::ramp(int /*narg*/, char **arg)
 
   double coord_lo,coord_hi;
   if (coord_dim == 0) {
-    coord_lo = xscale*force->numeric(FLERR,arg[4]);
-    coord_hi = xscale*force->numeric(FLERR,arg[5]);
+    coord_lo = xscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = xscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (coord_dim == 1) {
-    coord_lo = yscale*force->numeric(FLERR,arg[4]);
-    coord_hi = yscale*force->numeric(FLERR,arg[5]);
+    coord_lo = yscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = yscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (coord_dim == 2) {
-    coord_lo = zscale*force->numeric(FLERR,arg[4]);
-    coord_hi = zscale*force->numeric(FLERR,arg[5]);
+    coord_lo = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = zscale*utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   // vramp = ramped velocity component for v_dim

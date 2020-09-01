@@ -1,5 +1,5 @@
-Modify & extend LAMMPS
-**********************
+Modifying & extending LAMMPS
+****************************
 
 LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 95% of its source code

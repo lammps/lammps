@@ -51,11 +51,10 @@ void DeleteBonds::command(int narg, char **arg)
   // init entire system since comm->borders is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for delete_bonds ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"System init for delete_bonds ...\n");
   lmp->init();
 
-  if (comm->me == 0 && screen) fprintf(screen,"Deleting bonds ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Deleting bonds ...\n");
 
   // identify group
 
@@ -76,7 +75,7 @@ void DeleteBonds::command(int narg, char **arg)
   else error->all(FLERR,"Illegal delete_bonds command");
 
   // setup list of types (atom,bond,etc) to consider
-  // use force->bounds(FLERR,) to allow setting of range of types
+  // use utils::bounds(FLERR,) to allow setting of range of types
   // range can be 0 to ntypes inclusive
 
   int *tlist = NULL;
@@ -95,7 +94,7 @@ void DeleteBonds::command(int narg, char **arg)
     tlist = new int[n+1];
     for (int i = 0; i <= n; i++) tlist[i] = 0;
     int nlo,nhi;
-    force->bounds(FLERR,arg[2],n,nlo,nhi,0);
+    utils::bounds(FLERR,arg[2],0,n,nlo,nhi,error);
     for (int i = nlo; i <= nhi; i++) tlist[i] = 1;
 
     iarg++;

@@ -170,7 +170,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -190,8 +190,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -212,7 +213,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -231,8 +232,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -275,10 +277,10 @@ void PairLJCutCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  kappa = force->numeric(FLERR,arg[0]);
-  cut_lj_global = force->numeric(FLERR,arg[1]);
+  kappa = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(FLERR,arg[2]);
+  else cut_coul_global = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that were previously set from data file
 
@@ -376,7 +378,7 @@ double PairLJCutCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJCutCoulDebyeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJCutCoulDebyeKokkos<LMPHostType>;
 #endif
 }

@@ -44,7 +44,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   respa_level_support = 1;
 
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;
@@ -264,6 +264,7 @@ int FixSpringSelf::unpack_exchange(int nlocal, double *buf)
 
 int FixSpringSelf::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = 4;
   buf[1] = xoriginal[i][0];
   buf[2] = xoriginal[i][1];
@@ -280,6 +281,7 @@ void FixSpringSelf::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

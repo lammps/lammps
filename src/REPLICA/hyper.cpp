@@ -59,8 +59,8 @@ void Hyper::command(int narg, char **arg)
 
   if (narg < 4) error->all(FLERR,"Illegal hyper command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
 
   char *id_fix = new char[strlen(arg[2])+1];
   strcpy(id_fix,arg[2]);
@@ -459,10 +459,10 @@ void Hyper::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal hyper command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0) error->all(FLERR,"Illegal hyper command");
       iarg += 5;
 
@@ -478,7 +478,7 @@ void Hyper::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"rebond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
-      rebond = force->inumeric(FLERR,arg[iarg+1]);
+      rebond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal hyper command");

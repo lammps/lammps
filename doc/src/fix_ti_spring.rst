@@ -23,7 +23,8 @@ Syntax
        *function* value = function-ID
          function-ID = ID of the switching function (1 or 2)
 
-**Example:**
+Example
+"""""""
 
 .. code-block:: LAMMPS
 
@@ -116,7 +117,8 @@ increase in computational resources cost.
    option will *NOT* solve this problem). The Langevin thermostat (:doc:`fix langevin <fix_langevin>`) correctly thermostats the system and we
    advise its usage with ti/spring command.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
 same in a restarted simulation. See the :doc:`read restart <read_restart>` command for info on how to re-specify a fix

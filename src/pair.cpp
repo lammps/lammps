@@ -86,6 +86,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   manybody_flag = 0;
   offset_flag = 0;
   mix_flag = GEOMETRIC;
+  mixed_flag = 1;
   tail_flag = 0;
   etail = ptail = etail_ij = ptail_ij = 0.0;
   ncoultablebits = 12;
@@ -160,23 +161,23 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ncoultablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ndisptablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner = force->numeric(FLERR,arg[iarg+1]);
+      tabinner = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner_disp = force->numeric(FLERR,arg[iarg+1]);
+      tabinner_disp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -251,10 +252,12 @@ void Pair::init()
 
   cutforce = 0.0;
   etail = ptail = 0.0;
+  mixed_flag = 1;
   double cut;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if ((i != j) && setflag[i][j]) mixed_flag = 0;
       cut = init_one(i,j);
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);
@@ -1619,12 +1622,12 @@ void Pair::write_file(int narg, char **arg)
 
   // parse arguments
 
-  int itype = force->inumeric(FLERR,arg[0]);
-  int jtype = force->inumeric(FLERR,arg[1]);
+  int itype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int jtype = utils::inumeric(FLERR,arg[1],false,lmp);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in pair_write command");
 
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
 
   int style = NONE;
   if (strcmp(arg[3],"r") == 0) style = RLINEAR;
@@ -1632,8 +1635,8 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
-  double inner = force->numeric(FLERR,arg[4]);
-  double outer = force->numeric(FLERR,arg[5]);
+  double inner = utils::numeric(FLERR,arg[4],false,lmp);
+  double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
@@ -1706,8 +1709,8 @@ void Pair::write_file(int narg, char **arg)
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
-    q[0] = force->numeric(FLERR,arg[8]);
-    q[1] = force->numeric(FLERR,arg[9]);
+    q[0] = utils::numeric(FLERR,arg[8],false,lmp);
+    q[1] = utils::numeric(FLERR,arg[9],false,lmp);
   }
   double *q_hold;
 

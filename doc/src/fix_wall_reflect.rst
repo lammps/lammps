@@ -143,7 +143,8 @@ perturbation on the particles:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
@@ -170,7 +171,9 @@ Related commands
 
 :doc:`fix wall/lj93 <fix_wall>`, :doc:`fix oneway <fix_oneway>`
 
-**Default:**
+Default
+"""""""
+
 
 The default for the units keyword is lattice.
 

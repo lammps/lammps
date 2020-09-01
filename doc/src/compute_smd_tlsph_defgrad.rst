@@ -30,7 +30,8 @@ Total-Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute outputs a per-particle vector of vectors (tensors),
 which can be accessed by any command that uses per-particle values
@@ -56,4 +57,7 @@ Related commands
 
 :doc:`smd/hourglass/error <compute_smd_hourglass_error>`
 
-**Default:** none
+Default
+"""""""
+
+none

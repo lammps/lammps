@@ -52,16 +52,16 @@ vstore(NULL), astore(NULL), rbuf(NULL)
 
   if (flavor == GLOBAL) {
     restart_global = 1;
-    nrow = force->inumeric(FLERR,arg[4]);
-    ncol = force->inumeric(FLERR,arg[5]);
+    nrow = utils::inumeric(FLERR,arg[4],false,lmp);
+    ncol = utils::inumeric(FLERR,arg[5],false,lmp);
     if (nrow <= 0 || ncol <= 0)
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (ncol == 1) vecflag = 1;
   }
   if (flavor == PERATOM) {
-    restart_peratom = force->inumeric(FLERR,arg[4]);
-    nvalues = force->inumeric(FLERR,arg[5]);
+    restart_peratom = utils::inumeric(FLERR,arg[4],false,lmp);
+    nvalues = utils::inumeric(FLERR,arg[5],false,lmp);
     if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
@@ -280,7 +280,8 @@ int FixStore::pack_restart(int i, double *buf)
     return 1;
   }
 
-  buf[0] = ubuf(nvalues+1).d;
+  // pack buf[0] this way because other fixes unpack it
+  buf[0] = nvalues+1;
   if (vecflag) buf[1] = vstore[i];
   else
     for (int m = 0; m < nvalues; m++)
@@ -299,9 +300,10 @@ void FixStore::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
-  for (int i = 0; i < nth; i++) m += (int) ubuf(extra[nlocal][m]).i;
+  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
 
   if (vecflag) vstore[nlocal] = extra[nlocal][m];

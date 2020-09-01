@@ -84,13 +84,13 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   restart_global = 1;
 
-  seed = force->inumeric(FLERR,arg[3]);
+  seed = utils::inumeric(FLERR,arg[3],false,lmp);
   if (seed <= 0)
     error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
 
-  nxnodes = force->inumeric(FLERR,arg[5]);
-  nynodes = force->inumeric(FLERR,arg[6]);
-  nznodes = force->inumeric(FLERR,arg[7]);
+  nxnodes = utils::inumeric(FLERR,arg[5],false,lmp);
+  nynodes = utils::inumeric(FLERR,arg[6],false,lmp);
+  nznodes = utils::inumeric(FLERR,arg[7],false,lmp);
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
 
@@ -98,7 +98,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (total_nnodes > MAXSMALLINT)
     error->all(FLERR,"Too many nodes in fix ttm/mod");
 
-  nfileevery = force->inumeric(FLERR,arg[9]);
+  nfileevery = utils::inumeric(FLERR,arg[9],false,lmp);
   if (nfileevery > 0) {
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
     if (comm->me == 0) {
@@ -980,6 +980,7 @@ void FixTTMMod::restart(char *buf)
 
 int FixTTMMod::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = 4;
   buf[1] = flangevin[i][0];
   buf[2] = flangevin[i][1];
@@ -996,6 +997,7 @@ void FixTTMMod::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

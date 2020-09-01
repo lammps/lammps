@@ -209,12 +209,12 @@ void PairDSMC::settings(int narg, char **arg)
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = 0.0;
-  max_cell_size = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
-  weighting = force->numeric(FLERR,arg[2]);
-  T_ref = force->numeric(FLERR,arg[3]);
-  recompute_vsigmamax_stride = force->inumeric(FLERR,arg[4]);
-  vsigmamax_samples = force->inumeric(FLERR,arg[5]);
+  max_cell_size = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
+  weighting = utils::numeric(FLERR,arg[2],false,lmp);
+  T_ref = utils::numeric(FLERR,arg[3],false,lmp);
+  recompute_vsigmamax_stride = utils::inumeric(FLERR,arg[4],false,lmp);
+  vsigmamax_samples = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -245,13 +245,13 @@ void PairDSMC::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double sigma_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -631,10 +631,10 @@ void PairLJCharmmCoulLong::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(FLERR,arg[0]);
-  cut_lj = force->numeric(FLERR,arg[1]);
+  cut_lj_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -647,16 +647,16 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = force->numeric(FLERR,arg[4]);
-    sigma14_one = force->numeric(FLERR,arg[5]);
+    eps14_one = utils::numeric(FLERR,arg[4],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   int count = 0;
@@ -689,7 +689,7 @@ void PairLJCharmmCoulLong::init_style()
   int irequest;
   int respa = 0;
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
@@ -718,7 +718,7 @@ void PairLJCharmmCoulLong::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     cut_in_off = cut_respa[0];

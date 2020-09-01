@@ -29,7 +29,8 @@ particles interacting via the updated Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -53,4 +54,7 @@ Related commands
 
 :doc:`pair smd/ulsph <pair_smd_ulsph>`
 
-**Default:** none
+Default
+"""""""
+
+none

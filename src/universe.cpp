@@ -84,7 +84,7 @@ void Universe::reorder(char *style, char *arg)
   if (uworld != uorig) MPI_Comm_free(&uworld);
 
   if (strcmp(style,"nth") == 0) {
-    int n = force->inumeric(FLERR,arg);
+    int n = utils::inumeric(FLERR,arg,false,lmp);
     if (n <= 0)
       error->universe_all(FLERR,"Invalid -reorder N value");
     if (nprocs % n)

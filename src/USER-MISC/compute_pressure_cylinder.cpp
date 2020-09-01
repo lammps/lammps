@@ -56,10 +56,10 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
 
-  zlo=force->numeric(FLERR,arg[3]);
-  zhi=force->numeric(FLERR,arg[4]);
-  Rmax=force->numeric(FLERR,arg[5]);
-  bin_width=force->numeric(FLERR,arg[6]);
+  zlo=utils::numeric(FLERR,arg[3],false,lmp);
+  zhi=utils::numeric(FLERR,arg[4],false,lmp);
+  Rmax=utils::numeric(FLERR,arg[5],false,lmp);
+  bin_width=utils::numeric(FLERR,arg[6],false,lmp);
 
   if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");

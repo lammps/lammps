@@ -94,7 +94,8 @@ void serial_resize_thread_team_data(size_t pool_reduce_bytes,
       g_serial_thread_team_data.disband_team();
       g_serial_thread_team_data.disband_pool();
 
-      space.deallocate(g_serial_thread_team_data.scratch_buffer(),
+      space.deallocate("Kokkos::Serial::scratch_mem",
+                       g_serial_thread_team_data.scratch_buffer(),
                        g_serial_thread_team_data.scratch_bytes());
     }
 
@@ -117,7 +118,7 @@ void serial_resize_thread_team_data(size_t pool_reduce_bytes,
 
     void* ptr = nullptr;
     try {
-      ptr = space.allocate(alloc_bytes);
+      ptr = space.allocate("Kokkos::Serial::scratch_mem", alloc_bytes);
     } catch (Kokkos::Experimental::RawMemoryAllocationFailure const& failure) {
       // For now, just rethrow the error message the existing way
       Kokkos::Impl::throw_runtime_exception(failure.get_error_message());
@@ -145,44 +146,18 @@ HostThreadTeamData* serial_get_thread_team_data() {
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-bool Serial::is_initialized()
-#else
-bool Serial::impl_is_initialized()
-#endif
-{
-  return Impl::g_serial_is_initialized;
-}
+bool Serial::impl_is_initialized() { return Impl::g_serial_is_initialized; }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-void Serial::initialize(unsigned threads_count, unsigned use_numa_count,
-                        unsigned use_cores_per_numa,
-                        bool allow_asynchronous_threadpool) {
-  (void)threads_count;
-  (void)use_numa_count;
-  (void)use_cores_per_numa;
-  (void)allow_asynchronous_threadpool;
-#else
 void Serial::impl_initialize() {
-#endif
-
   Impl::SharedAllocationRecord<void, void>::tracking_enable();
 
   // Init the array of locks used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && defined(KOKKOS_ENABLE_PROFILING)
-  Kokkos::Profiling::initialize();
-#endif
 
   Impl::g_serial_is_initialized = true;
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-void Serial::finalize()
-#else
-void Serial::impl_finalize()
-#endif
-{
+void Serial::impl_finalize() {
   if (Impl::g_serial_thread_team_data.scratch_buffer()) {
     Impl::g_serial_thread_team_data.disband_team();
     Impl::g_serial_thread_team_data.disband_pool();
@@ -195,9 +170,7 @@ void Serial::impl_finalize()
     Impl::g_serial_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
   }
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::finalize();
-#endif
 
   Impl::g_serial_is_initialized = false;
 }

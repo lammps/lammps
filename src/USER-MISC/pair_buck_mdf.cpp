@@ -184,8 +184,8 @@ void PairBuckMDF::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner_global = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_inner_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -208,19 +208,19 @@ void PairBuckMDF::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double rho_one = force->numeric(FLERR,arg[3]);
+  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(FLERR,arg[4]);
+  double c_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 7) {
-    cut_inner_one = force->numeric(FLERR,arg[5]);
-    cut_one = force->numeric(FLERR,arg[6]);
+    cut_inner_one = utils::numeric(FLERR,arg[5],false,lmp);
+    cut_one = utils::numeric(FLERR,arg[6],false,lmp);
   }
   if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
     error->all(FLERR,"Illegal pair_style command");
@@ -285,6 +285,7 @@ void PairBuckMDF::write_restart(FILE *fp)
         fwrite(&rho[i][j],sizeof(double),1,fp);
         fwrite(&c[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut_inner[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -311,11 +312,13 @@ void PairBuckMDF::read_restart(FILE *fp)
           utils::sfread(FLERR,&rho[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&c[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -327,6 +330,7 @@ void PairBuckMDF::read_restart(FILE *fp)
 void PairBuckMDF::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&tail_flag,sizeof(int),1,fp);
@@ -340,11 +344,13 @@ void PairBuckMDF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,NULL,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);

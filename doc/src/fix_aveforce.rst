@@ -75,7 +75,8 @@ to it.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -107,4 +108,7 @@ Related commands
 
 :doc:`fix setforce <fix_setforce>`, :doc:`fix addforce <fix_addforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

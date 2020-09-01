@@ -47,7 +47,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peratom_freq = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix store/state command");
 
   // parse values until one isn't recognized
@@ -611,6 +611,7 @@ int FixStoreState::unpack_exchange(int nlocal, double *buf)
 
 int FixStoreState::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalues+1;
   for (int m = 0; m < nvalues; m++) buf[m+1] = values[i][m];
   return nvalues+1;
@@ -625,6 +626,7 @@ void FixStoreState::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

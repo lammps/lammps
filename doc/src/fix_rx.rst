@@ -222,4 +222,7 @@ Related commands
 :doc:`fix shardlow <fix_shardlow>`,
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

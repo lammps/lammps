@@ -1077,15 +1077,15 @@ void PairLubricateUPoly::settings(int narg, char **arg)
 {
   if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
-  mu = force->numeric(FLERR,arg[0]);
-  flaglog = force->inumeric(FLERR,arg[1]);
-  cut_inner_global = force->numeric(FLERR,arg[2]);
-  cut_global = force->numeric(FLERR,arg[3]);
-  gdot =  force->numeric(FLERR,arg[4]);
+  mu = utils::numeric(FLERR,arg[0],false,lmp);
+  flaglog = utils::inumeric(FLERR,arg[1],false,lmp);
+  cut_inner_global = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[3],false,lmp);
+  gdot =  utils::numeric(FLERR,arg[4],false,lmp);
 
   flagHI = flagVF = 1;
-  if (narg >= 6) flagHI = force->inumeric(FLERR,arg[5]);
-  if (narg == 7) flagVF = force->inumeric(FLERR,arg[6]);
+  if (narg >= 6) flagHI = utils::inumeric(FLERR,arg[5],false,lmp);
+  if (narg == 7) flagVF = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,"Cannot include log terms without 1/r terms; "

@@ -41,7 +41,7 @@ FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in fix eos/table");
 
-  tablength = force->inumeric(FLERR,arg[5]);
+  tablength = utils::inumeric(FLERR,arg[5],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of eos/table entries");
 
   ntables = 0;
@@ -199,7 +199,7 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);

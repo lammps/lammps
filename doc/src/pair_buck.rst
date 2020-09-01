@@ -151,7 +151,7 @@ commands:
 * cutoff2 (distance units)
 
 The second coefficient, :math:`\rho`, must be greater than zero.
-The coefficients A,:math:`\rho`, and C can be written as analytical expressions
+The coefficients A, :math:`\rho`, and C can be written as analytical expressions
 of :math:`\epsilon` and :math:`\sigma`, in analogy to the Lennard-Jones potential
 :ref:`(Khrapak) <Khrapak>`.
 
@@ -172,7 +172,8 @@ pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -205,7 +206,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Khrapak:
 

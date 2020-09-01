@@ -34,6 +34,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;
@@ -68,7 +69,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     error->all(FLERR,"Cannot displace_atoms after "
                "reading restart file with per-atom info");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Displacing atoms ...\n");
 
   // group and style
 
@@ -127,14 +128,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double d_lo,d_hi;
     if (d_dim == 0) {
-      d_lo = xscale*force->numeric(FLERR,arg[3]);
-      d_hi = xscale*force->numeric(FLERR,arg[4]);
+      d_lo = xscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = xscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 1) {
-      d_lo = yscale*force->numeric(FLERR,arg[3]);
-      d_hi = yscale*force->numeric(FLERR,arg[4]);
+      d_lo = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = yscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 2) {
-      d_lo = zscale*force->numeric(FLERR,arg[3]);
-      d_hi = zscale*force->numeric(FLERR,arg[4]);
+      d_lo = zscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = zscale*utils::numeric(FLERR,arg[4],false,lmp);
     }
 
     int coord_dim = 0;
@@ -145,14 +146,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {
-      coord_lo = xscale*force->numeric(FLERR,arg[6]);
-      coord_hi = xscale*force->numeric(FLERR,arg[7]);
+      coord_lo = xscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = xscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 1) {
-      coord_lo = yscale*force->numeric(FLERR,arg[6]);
-      coord_hi = yscale*force->numeric(FLERR,arg[7]);
+      coord_lo = yscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = yscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 2) {
-      coord_lo = zscale*force->numeric(FLERR,arg[6]);
-      coord_hi = zscale*force->numeric(FLERR,arg[7]);
+      coord_lo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
     }
 
     double **x = atom->x;
@@ -178,10 +179,10 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (style == RANDOM) {
     RanPark *random = new RanPark(lmp,1);
 
-    double dx = xscale*force->numeric(FLERR,arg[2]);
-    double dy = yscale*force->numeric(FLERR,arg[3]);
-    double dz = zscale*force->numeric(FLERR,arg[4]);
-    int seed = force->inumeric(FLERR,arg[5]);
+    double dx = xscale*utils::numeric(FLERR,arg[2],false,lmp);
+    double dy = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+    double dz = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    int seed = utils::inumeric(FLERR,arg[5],false,lmp);
     if (seed <= 0) error->all(FLERR,"Illegal displace_atoms random command");
 
     double **x = atom->x;
@@ -218,13 +219,13 @@ void DisplaceAtoms::command(int narg, char **arg)
     double *quat;
 
     int dim = domain->dimension;
-    point[0] = xscale*force->numeric(FLERR,arg[2]);
-    point[1] = yscale*force->numeric(FLERR,arg[3]);
-    point[2] = zscale*force->numeric(FLERR,arg[4]);
-    axis[0] = force->numeric(FLERR,arg[5]);
-    axis[1] = force->numeric(FLERR,arg[6]);
-    axis[2] = force->numeric(FLERR,arg[7]);
-    double theta = force->numeric(FLERR,arg[8]);
+    point[0] = xscale*utils::numeric(FLERR,arg[2],false,lmp);
+    point[1] = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+    point[2] = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    axis[0] = utils::numeric(FLERR,arg[5],false,lmp);
+    axis[1] = utils::numeric(FLERR,arg[6],false,lmp);
+    axis[2] = utils::numeric(FLERR,arg[7],false,lmp);
+    double theta = utils::numeric(FLERR,arg[8],false,lmp);
     if (dim == 2 && (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,"Invalid displace_atoms rotate axis for 2d");
 
@@ -371,7 +372,7 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
   int nlocal = atom->nlocal;
 
   if (strstr(arg,"v_") != arg) {
-    double delta = scale*force->numeric(FLERR,arg);
+    double delta = scale*utils::numeric(FLERR,arg,false,lmp);
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) x[i][idim] += delta;
 

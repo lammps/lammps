@@ -292,7 +292,8 @@ type pair.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distances for this pair style can be mixed.  The default
@@ -341,7 +342,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`set <set>`, :doc:`read_data <read_data>`,
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

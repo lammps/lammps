@@ -122,13 +122,13 @@ struct Array {
   T m_internal_implementation_private_member_data[N];
 
  public:
-  typedef T& reference;
-  typedef typename std::add_const<T>::type& const_reference;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef T* pointer;
-  typedef typename std::add_const<T>::type* const_pointer;
+  using reference       = T&;
+  using const_reference = typename std::add_const<T>::type&;
+  using size_type       = size_t;
+  using difference_type = ptrdiff_t;
+  using value_type      = T;
+  using pointer         = T*;
+  using const_pointer   = typename std::add_const<T>::type*;
 
   KOKKOS_INLINE_FUNCTION static constexpr size_type size() { return N; }
   KOKKOS_INLINE_FUNCTION static constexpr bool empty() { return false; }
@@ -158,38 +158,18 @@ struct Array {
   KOKKOS_INLINE_FUNCTION const_pointer data() const {
     return &m_internal_implementation_private_member_data[0];
   }
-
-#ifdef KOKKOS_IMPL_HIP_CLANG_WORKAROUND
-  // Do not default unless move and move-assignment are also defined
-  KOKKOS_DEFAULTED_FUNCTION ~Array()            = default;
-  KOKKOS_DEFAULTED_FUNCTION Array()             = default;
-  KOKKOS_DEFAULTED_FUNCTION Array(const Array&) = default;
-  KOKKOS_DEFAULTED_FUNCTION Array& operator=(const Array&) = default;
-
-  // Some supported compilers are not sufficiently C++11 compliant
-  // for default move constructor and move assignment operator.
-  KOKKOS_DEFAULTED_FUNCTION Array(Array&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION Array& operator=(Array&&) = default;
-
-  KOKKOS_INLINE_FUNCTION
-  Array(const std::initializer_list<T>& vals) {
-    for (size_t i = 0; i < N; i++) {
-      m_internal_implementation_private_member_data[i] = vals.begin()[i];
-    }
-  }
-#endif
 };
 
 template <class T, class Proxy>
 struct Array<T, 0, Proxy> {
  public:
-  typedef T& reference;
-  typedef typename std::add_const<T>::type& const_reference;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef T* pointer;
-  typedef typename std::add_const<T>::type* const_pointer;
+  using reference       = T&;
+  using const_reference = typename std::add_const<T>::type&;
+  using size_type       = size_t;
+  using difference_type = ptrdiff_t;
+  using value_type      = T;
+  using pointer         = T*;
+  using const_pointer   = typename std::add_const<T>::type*;
 
   KOKKOS_INLINE_FUNCTION static constexpr size_type size() { return 0; }
   KOKKOS_INLINE_FUNCTION static constexpr bool empty() { return true; }
@@ -240,13 +220,13 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
   size_t m_size;
 
  public:
-  typedef T& reference;
-  typedef typename std::add_const<T>::type& const_reference;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef T* pointer;
-  typedef typename std::add_const<T>::type* const_pointer;
+  using reference       = T&;
+  using const_reference = typename std::add_const<T>::type&;
+  using size_type       = size_t;
+  using difference_type = ptrdiff_t;
+  using value_type      = T;
+  using pointer         = T*;
+  using const_pointer   = typename std::add_const<T>::type*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
   KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }
@@ -309,13 +289,13 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
   size_t m_stride;
 
  public:
-  typedef T& reference;
-  typedef typename std::add_const<T>::type& const_reference;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef T* pointer;
-  typedef typename std::add_const<T>::type* const_pointer;
+  using reference       = T&;
+  using const_reference = typename std::add_const<T>::type&;
+  using size_type       = size_t;
+  using difference_type = ptrdiff_t;
+  using value_type      = T;
+  using pointer         = T*;
+  using const_pointer   = typename std::add_const<T>::type*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
   KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }

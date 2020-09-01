@@ -46,11 +46,11 @@
 #include <cstdio>
 
 // See 01_thread_teams for an explanation of a basic TeamPolicy
-typedef Kokkos::TeamPolicy<> team_policy;
-typedef typename team_policy::member_type team_member;
+using team_policy = Kokkos::TeamPolicy<>;
+using team_member = typename team_policy::member_type;
 
 struct hello_world {
-  typedef int value_type;  // Specify value type for reduction target, sum
+  using value_type = int;  // Specify value type for reduction target, sum
   KOKKOS_INLINE_FUNCTION
   void operator()(const team_member& thread, int& sum) const {
     sum += 1;

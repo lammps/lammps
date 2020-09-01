@@ -51,7 +51,7 @@ class PairUFM : public Pair {
   double cut_global;
   double **cut,**scale;
   double **epsilon,**sigma;
-  double **uf1,**uf2,**uf3,**uf4,**offset;
+  double **uf1,**uf2,**uf3,**offset;
 
   virtual void allocate();
 };

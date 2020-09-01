@@ -103,6 +103,12 @@
     {%- endif %}
   {%- endblock %}
   {%- block extrahead %} {% endblock %}
+
+  {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
+  <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
+
+  {# for improved browser compatibility #}
+  <script src="{{ pathto('_static/polyfill.js', 1) }}"></script>
 </head>
 
 <body class="wy-body-for-nav">
@@ -135,9 +141,8 @@
               {%- set nav_version = current_version %}
             {% endif %}
             {% if nav_version %}
-              <div class="version">
-                {{ nav_version }}
-              </div>
+              <div class="lammps_version">Version: <b>{{ nav_version }}</b></div>
+              <div class="lammps_release">git info: {{ release }}</div>
             {% endif %}
           {% endif %}
 

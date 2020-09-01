@@ -97,7 +97,8 @@ It also means that changing attributes of *thermo_temp* or
 
 .. include:: accel_styles.rst
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the Nose/Hoover barostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
@@ -145,4 +146,7 @@ Related commands
 :doc:`fix nph <fix_nh>`, :doc:`fix nve_sphere <fix_nve_sphere>`, :doc:`fix nvt_sphere <fix_nvt_sphere>`, :doc:`fix npt_sphere <fix_npt_sphere>`,
 :doc:`fix_modify <fix_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none

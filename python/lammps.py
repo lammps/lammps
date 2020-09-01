@@ -682,10 +682,10 @@ class lammps(object):
     natoms = self.lib.lammps_get_natoms(self.lmp)
     if type == 0:
       data = ((count*natoms)*c_int)()
-      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+      self.lib.lammps_gather(self.lmp,name,type,count,data)
     elif type == 1:
       data = ((count*natoms)*c_double)()
-      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+      self.lib.lammps_gather(self.lmp,name,type,count,data)
     else: return None
     return data
 
@@ -694,10 +694,10 @@ class lammps(object):
     natoms = self.lib.lammps_get_natoms(self.lmp)
     if type == 0:
       data = ((count*natoms)*c_int)()
-      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+      self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
     elif type == 1:
       data = ((count*natoms)*c_double)()
-      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+      self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
     else: return None
     return data
 
@@ -705,10 +705,10 @@ class lammps(object):
     if name: name = name.encode()
     if type == 0:
       data = ((count*ndata)*c_int)()
-      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
     elif type == 1:
       data = ((count*ndata)*c_double)()
-      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
     else: return None
     return data
 
@@ -723,11 +723,11 @@ class lammps(object):
 
   def scatter(self,name,type,count,data):
     if name: name = name.encode()
-    self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+    self.lib.lammps_scatter(self.lmp,name,type,count,data)
 
   def scatter_subset(self,name,type,count,ndata,ids,data):
     if name: name = name.encode()
-    self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+    self.lib.lammps_scatter_subset(self.lmp,name,type,count,ndata,ids,data)
 
   # create N atoms on all procs
   # N = global number of atoms

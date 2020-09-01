@@ -48,35 +48,39 @@ variable apf equal f_af[1]
 
 run 1000
 minimize 0 0 1000 1000
+
+variable s_pe equal ${pe}
+variable s_apf equal ${apf}
+variable s_adn equal ${adn}
+variable s_maxjump equal ${maxjump}
+
+unfix hp
+unfix pa
+unfix af
+minimize 0 0 1000 1000
+
+
 print """
 ---------- PAFI RESULTS --------
 
 During run:
-  Average Distance From Hyperplane = ${adn} A,
-  Average Force Projection Along MFEP = ${apf} eV/A
+  Average Distance From Hyperplane = ${s_adn}A (Should be very small, around 1e-5A),
+  Average Force Projection Along MFEP = ${s_apf} eV/A
 """
 print """
 In-plane minimization post-run:
-energy = ${pe} eV
+energy = ${s_pe} eV
 
 """
-if "${maxjump} > 0.1" then &
-"print 'Max Atomic Displacement = ${maxjump}A > 0.1A'" &
+if "${s_maxjump} > 0.1" then &
+"print 'Max Atomic Displacement = ${s_maxjump}A > 0.1A'" &
 "print ' => Possible shallow in-plane metastability: Reduce time in basin and/or decrease tdamp'" &
 else &
-"print 'Max Atomic Displacement = ${maxjump}A < 0.1A => No in-plane jumps'"
+"print 'Max Atomic Displacement = ${s_maxjump}A < 0.1A => No in-plane jumps'"
 print """
+
+Full minimization after removal of PAFI fixes:
+energy = ${pe} eV
+
 ----- END PAFI ----
 """
-
-
-
-#  disable fix and minimize full system
-# unfix hp
-# unfix pa
-# unfix af
-# minimize 0 0 1000 1000
-# print """
-#   Full minimization post-run:
-#   energy = ${pe} eV
-# """

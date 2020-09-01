@@ -30,4 +30,11 @@ To run the example from this folder:
 mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi
 ```
 
+This example executes a hyperplane constrained overdamped Langevin simulation
+whilst recording the projected free energy gradient, then minimizes in-plane, 
+then removes the hyperplane constraint and minimizes the whole system.
+If the temperature is too high the system will leave the local minima of
+the constrained system; PAFI checks for this also.
+
+
 To generate your own path, please see the LAMMPS documentation for more details

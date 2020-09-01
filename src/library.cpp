@@ -2701,8 +2701,10 @@ void lammps_gather_concat(void *ptr, char * /*name*/, int /*type*/,
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
-  lmp->error->all(FLERR,"Library function lammps_gather_concat"
-                                      " not compatible with -DLAMMPS_BIGBIG");
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_concat"
+                          " not compatible with -DLAMMPS_BIGBIG");
+  }
   END_CAPTURE
 }
 #else

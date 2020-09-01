@@ -1,9 +1,10 @@
 find_package(ZLIB REQUIRED)
 target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 
-find_package(Zstd)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Zstd IMPORTED_TARGET libzstd)
 
 if(Zstd_FOUND)
     target_compile_definitions(lammps PRIVATE -DLAMMPS_ZSTD)
-    target_link_libraries(lammps PRIVATE Zstd::Zstd)
+    target_link_libraries(lammps PRIVATE PkgConfig::Zstd)
 endif()

@@ -197,9 +197,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
         }
         p_basis_type = BASIS_ANALYTIC;
-        vavg = force->numeric(FLERR,arg[iarg+1]);
-        N_mol = force->inumeric(FLERR,arg[iarg+2]);
-        N_p_match = force->inumeric(FLERR,arg[iarg+3]);
+        vavg = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        N_mol = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+        N_p_match = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         p_match_coeffs = (double *) (calloc(N_p_match, sizeof(double)) );
         iarg += 4;
         if (iarg + N_p_match > narg)

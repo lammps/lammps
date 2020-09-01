@@ -240,13 +240,7 @@ SharedAllocationRecord<void, void>* SharedAllocationRecord<
       ss << arg_record->get_label();
       ss << "\" is being deallocated after Kokkos::finalize was called\n";
       auto s = ss.str();
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      std::cerr << s;
-      std::cerr << "This behavior is incorrect Kokkos usage, and will crash in "
-                   "future releases\n";
-#else
       Kokkos::Impl::throw_runtime_exception(s);
-#endif
     }
 
 #ifdef KOKKOS_DEBUG

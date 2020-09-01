@@ -123,7 +123,7 @@ struct concurrent_bitset {
       ,
       uint32_t const state_header = 0 /* optional header */
       ) noexcept {
-    typedef Kokkos::pair<int, int> type;
+    using type = Kokkos::pair<int, int>;
 
     const uint32_t bit_bound  = 1 << bit_bound_lg2;
     const uint32_t word_count = bit_bound >> bits_per_int_lg2;
@@ -208,7 +208,7 @@ struct concurrent_bitset {
       ,
       uint32_t const state_header = 0 /* optional header */
       ) noexcept {
-    typedef Kokkos::pair<int, int> type;
+    using type = Kokkos::pair<int, int>;
 
     if ((max_bit_count < bit_bound) || (state_header & ~state_header_mask) ||
         (bit_bound <= bit)) {

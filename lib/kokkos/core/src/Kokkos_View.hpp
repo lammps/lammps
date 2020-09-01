@@ -55,9 +55,7 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
-#endif
+#include <impl/Kokkos_Tools.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -93,7 +91,6 @@ KOKKOS_INLINE_FUNCTION std::size_t count_valid_integers(
          (i6 != KOKKOS_INVALID_INDEX) + (i7 != KOKKOS_INVALID_INDEX);
 }
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 KOKKOS_INLINE_FUNCTION
 void runtime_check_rank_device(const size_t dyn_rank, const bool is_void_spec,
                                const size_t i0, const size_t i1,
@@ -111,16 +108,8 @@ void runtime_check_rank_device(const size_t dyn_rank, const bool is_void_spec,
     }
   }
 }
-#else
-KOKKOS_INLINE_FUNCTION
-void runtime_check_rank_device(const size_t, const bool, const size_t,
-                               const size_t, const size_t, const size_t,
-                               const size_t, const size_t, const size_t,
-                               const size_t) {}
-#endif
 
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 KOKKOS_INLINE_FUNCTION
 void runtime_check_rank_host(const size_t dyn_rank, const bool is_void_spec,
                              const size_t i0, const size_t i1, const size_t i2,
@@ -141,13 +130,6 @@ void runtime_check_rank_host(const size_t dyn_rank, const bool is_void_spec,
     }
   }
 }
-#else
-KOKKOS_INLINE_FUNCTION
-void runtime_check_rank_host(const size_t, const bool, const size_t,
-                             const size_t, const size_t, const size_t,
-                             const size_t, const size_t, const size_t,
-                             const size_t, const std::string&) {}
-#endif
 #endif
 
 } /* namespace Impl */
@@ -188,23 +170,23 @@ struct ViewTraits;
 
 template <>
 struct ViewTraits<void> {
-  typedef void execution_space;
-  typedef void memory_space;
-  typedef void HostMirrorSpace;
-  typedef void array_layout;
-  typedef void memory_traits;
-  typedef void specialize;
+  using execution_space = void;
+  using memory_space    = void;
+  using HostMirrorSpace = void;
+  using array_layout    = void;
+  using memory_traits   = void;
+  using specialize      = void;
 };
 
 template <class... Prop>
 struct ViewTraits<void, void, Prop...> {
   // Ignore an extraneous 'void'
-  typedef typename ViewTraits<void, Prop...>::execution_space execution_space;
-  typedef typename ViewTraits<void, Prop...>::memory_space memory_space;
-  typedef typename ViewTraits<void, Prop...>::HostMirrorSpace HostMirrorSpace;
-  typedef typename ViewTraits<void, Prop...>::array_layout array_layout;
-  typedef typename ViewTraits<void, Prop...>::memory_traits memory_traits;
-  typedef typename ViewTraits<void, Prop...>::specialize specialize;
+  using execution_space = typename ViewTraits<void, Prop...>::execution_space;
+  using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
+  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
+  using array_layout    = typename ViewTraits<void, Prop...>::array_layout;
+  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize      = typename ViewTraits<void, Prop...>::specialize;
 };
 
 template <class ArrayLayout, class... Prop>
@@ -213,12 +195,12 @@ struct ViewTraits<typename std::enable_if<
                   ArrayLayout, Prop...> {
   // Specify layout, keep subsequent space and memory traits arguments
 
-  typedef typename ViewTraits<void, Prop...>::execution_space execution_space;
-  typedef typename ViewTraits<void, Prop...>::memory_space memory_space;
-  typedef typename ViewTraits<void, Prop...>::HostMirrorSpace HostMirrorSpace;
-  typedef ArrayLayout array_layout;
-  typedef typename ViewTraits<void, Prop...>::memory_traits memory_traits;
-  typedef typename ViewTraits<void, Prop...>::specialize specialize;
+  using execution_space = typename ViewTraits<void, Prop...>::execution_space;
+  using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
+  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
+  using array_layout    = ArrayLayout;
+  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize      = typename ViewTraits<void, Prop...>::specialize;
 };
 
 template <class Space, class... Prop>
@@ -238,13 +220,13 @@ struct ViewTraits<
                        void>::value,
       "Only one View Execution or Memory Space template argument");
 
-  typedef typename Space::execution_space execution_space;
-  typedef typename Space::memory_space memory_space;
-  typedef typename Kokkos::Impl::HostMirror<Space>::Space::memory_space
-      HostMirrorSpace;
-  typedef typename execution_space::array_layout array_layout;
-  typedef typename ViewTraits<void, Prop...>::memory_traits memory_traits;
-  typedef typename ViewTraits<void, Prop...>::specialize specialize;
+  using execution_space = typename Space::execution_space;
+  using memory_space    = typename Space::memory_space;
+  using HostMirrorSpace =
+      typename Kokkos::Impl::HostMirror<Space>::Space::memory_space;
+  using array_layout  = typename execution_space::array_layout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
 };
 
 template <class MemoryTraits, class... Prop>
@@ -264,84 +246,79 @@ struct ViewTraits<typename std::enable_if<Kokkos::Impl::is_memory_traits<
                        void>::value,
       "MemoryTrait is the final optional template argument for a View");
 
-  typedef void execution_space;
-  typedef void memory_space;
-  typedef void HostMirrorSpace;
-  typedef void array_layout;
-  typedef MemoryTraits memory_traits;
-  typedef void specialize;
+  using execution_space = void;
+  using memory_space    = void;
+  using HostMirrorSpace = void;
+  using array_layout    = void;
+  using memory_traits   = MemoryTraits;
+  using specialize      = void;
 };
 
 template <class DataType, class... Properties>
 struct ViewTraits {
  private:
   // Unpack the properties arguments
-  typedef ViewTraits<void, Properties...> prop;
+  using prop = ViewTraits<void, Properties...>;
 
-  typedef typename std::conditional<
+  using ExecutionSpace = typename std::conditional<
       !std::is_same<typename prop::execution_space, void>::value,
-      typename prop::execution_space, Kokkos::DefaultExecutionSpace>::type
-      ExecutionSpace;
+      typename prop::execution_space, Kokkos::DefaultExecutionSpace>::type;
 
-  typedef typename std::conditional<
+  using MemorySpace = typename std::conditional<
       !std::is_same<typename prop::memory_space, void>::value,
-      typename prop::memory_space, typename ExecutionSpace::memory_space>::type
-      MemorySpace;
+      typename prop::memory_space, typename ExecutionSpace::memory_space>::type;
 
-  typedef typename std::conditional<
+  using ArrayLayout = typename std::conditional<
       !std::is_same<typename prop::array_layout, void>::value,
-      typename prop::array_layout, typename ExecutionSpace::array_layout>::type
-      ArrayLayout;
+      typename prop::array_layout, typename ExecutionSpace::array_layout>::type;
 
-  typedef typename std::conditional<
+  using HostMirrorSpace = typename std::conditional<
       !std::is_same<typename prop::HostMirrorSpace, void>::value,
       typename prop::HostMirrorSpace,
-      typename Kokkos::Impl::HostMirror<ExecutionSpace>::Space>::type
-      HostMirrorSpace;
+      typename Kokkos::Impl::HostMirror<ExecutionSpace>::Space>::type;
 
-  typedef typename std::conditional<
+  using MemoryTraits = typename std::conditional<
       !std::is_same<typename prop::memory_traits, void>::value,
-      typename prop::memory_traits, typename Kokkos::MemoryManaged>::type
-      MemoryTraits;
+      typename prop::memory_traits, typename Kokkos::MemoryManaged>::type;
 
   // Analyze data type's properties,
   // May be specialized based upon the layout and value type
-  typedef Kokkos::Impl::ViewDataAnalysis<DataType, ArrayLayout> data_analysis;
+  using data_analysis = Kokkos::Impl::ViewDataAnalysis<DataType, ArrayLayout>;
 
  public:
   //------------------------------------
   // Data type traits:
 
-  typedef typename data_analysis::type data_type;
-  typedef typename data_analysis::const_type const_data_type;
-  typedef typename data_analysis::non_const_type non_const_data_type;
+  using data_type           = typename data_analysis::type;
+  using const_data_type     = typename data_analysis::const_type;
+  using non_const_data_type = typename data_analysis::non_const_type;
 
   //------------------------------------
   // Compatible array of trivial type traits:
 
-  typedef typename data_analysis::scalar_array_type scalar_array_type;
-  typedef
-      typename data_analysis::const_scalar_array_type const_scalar_array_type;
-  typedef typename data_analysis::non_const_scalar_array_type
-      non_const_scalar_array_type;
+  using scalar_array_type = typename data_analysis::scalar_array_type;
+  using const_scalar_array_type =
+      typename data_analysis::const_scalar_array_type;
+  using non_const_scalar_array_type =
+      typename data_analysis::non_const_scalar_array_type;
 
   //------------------------------------
   // Value type traits:
 
-  typedef typename data_analysis::value_type value_type;
-  typedef typename data_analysis::const_value_type const_value_type;
-  typedef typename data_analysis::non_const_value_type non_const_value_type;
+  using value_type           = typename data_analysis::value_type;
+  using const_value_type     = typename data_analysis::const_value_type;
+  using non_const_value_type = typename data_analysis::non_const_value_type;
 
   //------------------------------------
   // Mapping traits:
 
-  typedef ArrayLayout array_layout;
-  typedef typename data_analysis::dimension dimension;
+  using array_layout = ArrayLayout;
+  using dimension    = typename data_analysis::dimension;
 
-  typedef typename std::conditional<
+  using specialize = typename std::conditional<
       std::is_same<typename data_analysis::specialize, void>::value,
-      typename prop::specialize, typename data_analysis::specialize>::type
-      specialize; /* mapping specialization tag */
+      typename prop::specialize, typename data_analysis::specialize>::
+      type; /* mapping specialization tag */
 
   enum { rank = dimension::rank };
   enum { rank_dynamic = dimension::rank_dynamic };
@@ -349,13 +326,13 @@ struct ViewTraits {
   //------------------------------------
   // Execution space, memory space, memory access traits, and host mirror space.
 
-  typedef ExecutionSpace execution_space;
-  typedef MemorySpace memory_space;
-  typedef Kokkos::Device<ExecutionSpace, MemorySpace> device_type;
-  typedef MemoryTraits memory_traits;
-  typedef HostMirrorSpace host_mirror_space;
+  using execution_space   = ExecutionSpace;
+  using memory_space      = MemorySpace;
+  using device_type       = Kokkos::Device<ExecutionSpace, MemorySpace>;
+  using memory_traits     = MemoryTraits;
+  using host_mirror_space = HostMirrorSpace;
 
-  typedef typename MemorySpace::size_type size_type;
+  using size_type = typename MemorySpace::size_type;
 
   enum { is_hostspace = std::is_same<MemorySpace, HostSpace>::value };
   enum { is_managed = MemoryTraits::is_unmanaged == 0 };
@@ -447,8 +424,10 @@ struct ViewTraits {
  * }
  * \endcode
  */
-template <class DataType, class... Properties>
-class View;
+
+}  // namespace Kokkos
+
+namespace Kokkos {
 
 template <class T1, class T2>
 struct is_always_assignable_impl;
@@ -552,8 +531,8 @@ constexpr Kokkos::Impl::AllowPadding_t AllowPadding =
 template <class... Args>
 inline Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>
 view_alloc(Args const&... args) {
-  typedef Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>
-      return_type;
+  using return_type =
+      Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>;
 
   static_assert(!return_type::has_pointer,
                 "Cannot give pointer-to-memory for view allocation");
@@ -565,8 +544,8 @@ template <class... Args>
 KOKKOS_INLINE_FUNCTION
     Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>
     view_wrap(Args const&... args) {
-  typedef Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>
-      return_type;
+  using return_type =
+      Impl::ViewCtorProp<typename Impl::ViewCtorProp<void, Args>::type...>;
 
   static_assert(!return_type::has_memory_space &&
                     !return_type::has_execution_space &&
@@ -603,65 +582,64 @@ class View : public ViewTraits<DataType, Properties...> {
   template <class, class...>
   friend class Kokkos::Impl::ViewMapping;
 
+  using view_tracker_type = Kokkos::Impl::ViewTracker<View>;
+
  public:
-  typedef ViewTraits<DataType, Properties...> traits;
+  using traits = ViewTraits<DataType, Properties...>;
 
  private:
-  typedef Kokkos::Impl::ViewMapping<traits, typename traits::specialize>
-      map_type;
-  typedef Kokkos::Impl::SharedAllocationTracker track_type;
+  using map_type =
+      Kokkos::Impl::ViewMapping<traits, typename traits::specialize>;
+  template <typename V>
+  friend struct Kokkos::Impl::ViewTracker;
 
-  track_type m_track;
+  view_tracker_type m_track;
   map_type m_map;
 
  public:
   //----------------------------------------
   /** \brief  Compatible view of array of scalar types */
-  typedef View<typename traits::scalar_array_type,
-               typename traits::array_layout, typename traits::device_type,
-               typename traits::memory_traits>
-      array_type;
+  using array_type =
+      View<typename traits::scalar_array_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::memory_traits>;
 
   /** \brief  Compatible view of const data type */
-  typedef View<typename traits::const_data_type, typename traits::array_layout,
-               typename traits::device_type, typename traits::memory_traits>
-      const_type;
+  using const_type =
+      View<typename traits::const_data_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::memory_traits>;
 
   /** \brief  Compatible view of non-const data type */
-  typedef View<typename traits::non_const_data_type,
-               typename traits::array_layout, typename traits::device_type,
-               typename traits::memory_traits>
-      non_const_type;
+  using non_const_type =
+      View<typename traits::non_const_data_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::memory_traits>;
 
   /** \brief  Compatible HostMirror view */
-  typedef View<typename traits::non_const_data_type,
-               typename traits::array_layout,
-               Device<DefaultHostExecutionSpace,
-                      typename traits::host_mirror_space::memory_space>>
-      HostMirror;
+  using HostMirror =
+      View<typename traits::non_const_data_type, typename traits::array_layout,
+           Device<DefaultHostExecutionSpace,
+                  typename traits::host_mirror_space::memory_space>>;
 
   /** \brief  Compatible HostMirror view */
-  typedef View<typename traits::non_const_data_type,
-               typename traits::array_layout,
-               typename traits::host_mirror_space>
-      host_mirror_type;
+  using host_mirror_type =
+      View<typename traits::non_const_data_type, typename traits::array_layout,
+           typename traits::host_mirror_space>;
 
   /** \brief Unified types */
-  typedef typename Impl::ViewUniformType<View, 0>::type uniform_type;
-  typedef
-      typename Impl::ViewUniformType<View, 0>::const_type uniform_const_type;
-  typedef typename Impl::ViewUniformType<View, 0>::runtime_type
-      uniform_runtime_type;
-  typedef typename Impl::ViewUniformType<View, 0>::runtime_const_type
-      uniform_runtime_const_type;
-  typedef typename Impl::ViewUniformType<View, 0>::nomemspace_type
-      uniform_nomemspace_type;
-  typedef typename Impl::ViewUniformType<View, 0>::const_nomemspace_type
-      uniform_const_nomemspace_type;
-  typedef typename Impl::ViewUniformType<View, 0>::runtime_nomemspace_type
-      uniform_runtime_nomemspace_type;
-  typedef typename Impl::ViewUniformType<View, 0>::runtime_const_nomemspace_type
-      uniform_runtime_const_nomemspace_type;
+  using uniform_type = typename Impl::ViewUniformType<View, 0>::type;
+  using uniform_const_type =
+      typename Impl::ViewUniformType<View, 0>::const_type;
+  using uniform_runtime_type =
+      typename Impl::ViewUniformType<View, 0>::runtime_type;
+  using uniform_runtime_const_type =
+      typename Impl::ViewUniformType<View, 0>::runtime_const_type;
+  using uniform_nomemspace_type =
+      typename Impl::ViewUniformType<View, 0>::nomemspace_type;
+  using uniform_const_nomemspace_type =
+      typename Impl::ViewUniformType<View, 0>::const_nomemspace_type;
+  using uniform_runtime_nomemspace_type =
+      typename Impl::ViewUniformType<View, 0>::runtime_nomemspace_type;
+  using uniform_runtime_const_nomemspace_type =
+      typename Impl::ViewUniformType<View, 0>::runtime_const_nomemspace_type;
 
   //----------------------------------------
   // Domain rank and extents
@@ -702,44 +680,6 @@ class View : public ViewTraits<DataType, Properties...> {
   /*  Deprecate all 'dimension' functions in favor of
    *  ISO/C++ vocabulary 'extent'.
    */
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-
-  template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr
-      typename std::enable_if<std::is_integral<iType>::value, size_t>::type
-      dimension(const iType& r) const {
-    return extent(r);
-  }
-
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_0() const {
-    return m_map.dimension_0();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_1() const {
-    return m_map.dimension_1();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_2() const {
-    return m_map.dimension_2();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_3() const {
-    return m_map.dimension_3();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_4() const {
-    return m_map.dimension_4();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_5() const {
-    return m_map.dimension_5();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_6() const {
-    return m_map.dimension_6();
-  }
-  KOKKOS_INLINE_FUNCTION constexpr size_t dimension_7() const {
-    return m_map.dimension_7();
-  }
-
-#endif
-
-  //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION constexpr size_t size() const {
     return m_map.dimension_0() * m_map.dimension_1() * m_map.dimension_2() *
@@ -802,8 +742,8 @@ class View : public ViewTraits<DataType, Properties...> {
   //----------------------------------------
   // Range span is the span which contains all members.
 
-  typedef typename map_type::reference_type reference_type;
-  typedef typename map_type::pointer_type pointer_type;
+  using reference_type = typename map_type::reference_type;
+  using pointer_type   = typename map_type::pointer_type;
 
   enum {
     reference_type_is_lvalue_reference =
@@ -811,40 +751,19 @@ class View : public ViewTraits<DataType, Properties...> {
   };
 
   KOKKOS_INLINE_FUNCTION constexpr size_t span() const { return m_map.span(); }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  // Deprecated, use 'span()' instead
-  KOKKOS_INLINE_FUNCTION constexpr size_t capacity() const {
-    return m_map.span();
-  }
-#endif
   KOKKOS_INLINE_FUNCTION bool span_is_contiguous() const {
     return m_map.span_is_contiguous();
+  }
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return m_map.data() != nullptr;
   }
   KOKKOS_INLINE_FUNCTION constexpr pointer_type data() const {
     return m_map.data();
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  // Deprecated, use 'span_is_contigous()' instead
-  KOKKOS_INLINE_FUNCTION constexpr bool is_contiguous() const {
-    return m_map.span_is_contiguous();
-  }
-  // Deprecated, use 'data()' instead
-  KOKKOS_INLINE_FUNCTION constexpr pointer_type ptr_on_device() const {
-    return m_map.data();
-  }
-#endif
-
   //----------------------------------------
   // Allow specializations to query their specialized map
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  KOKKOS_INLINE_FUNCTION
-  const Kokkos::Impl::ViewMapping<traits, typename traits::specialize>&
-  implementation_map() const {
-    return m_map;
-  }
-#endif
   KOKKOS_INLINE_FUNCTION
   const Kokkos::Impl::ViewMapping<traits, typename traits::specialize>&
   impl_map() const {
@@ -852,7 +771,7 @@ class View : public ViewTraits<DataType, Properties...> {
   }
   KOKKOS_INLINE_FUNCTION
   const Kokkos::Impl::SharedAllocationTracker& impl_track() const {
-    return m_track;
+    return m_track.m_tracker;
   }
   //----------------------------------------
 
@@ -904,315 +823,6 @@ class View : public ViewTraits<DataType, Properties...> {
 #endif
 
  public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  template <class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<Args...>::value &&
-                               (0 == Rank)),
-                              reference_type>::type
-      operator()(Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, args...))
-    return m_map.reference();
-  }
-
-  template <typename I0, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0, Args...>::value &&
-                               (1 == Rank) && !is_default_map),
-                              reference_type>::type
-      operator()(const I0& i0, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, args...))
-    return m_map.reference(i0);
-  }
-
-  template <typename I0, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0, Args...>::value &&
-                               (1 == Rank) && is_default_map &&
-                               !is_layout_stride),
-                              reference_type>::type
-      operator()(const I0& i0, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, args...))
-    return m_map.m_impl_handle[i0];
-  }
-
-  template <typename I0, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0, Args...>::value &&
-                               (1 == Rank) && is_default_map &&
-                               is_layout_stride),
-                              reference_type>::type
-      operator()(const I0& i0, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset.m_stride.S0 * i0];
-  }
-
-  //------------------------------
-  // Rank 1 operator[]
-
-  template <typename I0>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0>::value &&
-                               (1 == Rank) && !is_default_map),
-                              reference_type>::type
-      operator[](const I0& i0) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0))
-    return m_map.reference(i0);
-  }
-
-  template <typename I0>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0>::value &&
-                               (1 == Rank) && is_default_map &&
-                               !is_layout_stride),
-                              reference_type>::type
-      operator[](const I0& i0) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0))
-    return m_map.m_impl_handle[i0];
-  }
-
-  template <typename I0>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(Kokkos::Impl::are_integral<I0>::value &&
-                               (1 == Rank) && is_default_map &&
-                               is_layout_stride),
-                              reference_type>::type
-      operator[](const I0& i0) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0))
-    return m_map.m_impl_handle[m_map.m_impl_offset.m_stride.S0 * i0];
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.reference(i0, i1);
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       is_default_map && is_layout_left && (traits::rank_dynamic == 0)),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.m_impl_handle[i0 + m_map.m_impl_offset.m_dim.N0 * i1];
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       is_default_map && is_layout_left && (traits::rank_dynamic != 0)),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.m_impl_handle[i0 + m_map.m_impl_offset.m_stride * i1];
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       is_default_map && is_layout_right && (traits::rank_dynamic == 0)),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.m_impl_handle[i1 + m_map.m_impl_offset.m_dim.N1 * i0];
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       is_default_map && is_layout_right && (traits::rank_dynamic != 0)),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.m_impl_handle[i1 + m_map.m_impl_offset.m_stride * i0];
-  }
-
-  template <typename I0, typename I1, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, Args...>::value && (2 == Rank) &&
-       is_default_map && is_layout_stride),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, args...))
-    return m_map.m_impl_handle[i0 * m_map.m_impl_offset.m_stride.S0 +
-                               i1 * m_map.m_impl_offset.m_stride.S1];
-  }
-
-  //------------------------------
-  // Rank 3
-
-  template <typename I0, typename I1, typename I2, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, Args...>::value && (3 == Rank) &&
-       is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, i2, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset(i0, i1, i2)];
-  }
-
-  template <typename I0, typename I1, typename I2, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, Args...>::value && (3 == Rank) &&
-       !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, i2, args...))
-    return m_map.reference(i0, i1, i2);
-  }
-
-  //------------------------------
-  // Rank 4
-
-  template <typename I0, typename I1, typename I2, typename I3, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, Args...>::value &&
-       (4 == Rank) && is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, i2, i3, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset(i0, i1, i2, i3)];
-  }
-
-  template <typename I0, typename I1, typename I2, typename I3, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, Args...>::value &&
-       (4 == Rank) && !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY((m_track, m_map, i0, i1, i2, i3, args...))
-    return m_map.reference(i0, i1, i2, i3);
-  }
-
-  //------------------------------
-  // Rank 5
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, Args...>::value &&
-       (5 == Rank) && is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset(i0, i1, i2, i3, i4)];
-  }
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, Args...>::value &&
-       (5 == Rank) && !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, args...))
-    return m_map.reference(i0, i1, i2, i3, i4);
-  }
-
-  //------------------------------
-  // Rank 6
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, Args...>::value &&
-       (6 == Rank) && is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset(i0, i1, i2, i3, i4, i5)];
-  }
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, Args...>::value &&
-       (6 == Rank) && !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, args...))
-    return m_map.reference(i0, i1, i2, i3, i4, i5);
-  }
-
-  //------------------------------
-  // Rank 7
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, typename I6, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, I6, Args...>::value &&
-       (7 == Rank) && is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, const I6& i6, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, i6, args...))
-    return m_map.m_impl_handle[m_map.m_impl_offset(i0, i1, i2, i3, i4, i5, i6)];
-  }
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, typename I6, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, I6, Args...>::value &&
-       (7 == Rank) && !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, const I6& i6, Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, i6, args...))
-    return m_map.reference(i0, i1, i2, i3, i4, i5, i6);
-  }
-
-  //------------------------------
-  // Rank 8
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, typename I6, typename I7, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, I6, I7,
-                                  Args...>::value &&
-       (8 == Rank) && is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, const I6& i6, const I7& i7,
-             Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, i6, i7, args...))
-    return m_map
-        .m_impl_handle[m_map.m_impl_offset(i0, i1, i2, i3, i4, i5, i6, i7)];
-  }
-
-  template <typename I0, typename I1, typename I2, typename I3, typename I4,
-            typename I5, typename I6, typename I7, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION typename std::enable_if<
-      (Kokkos::Impl::are_integral<I0, I1, I2, I3, I4, I5, I6, I7,
-                                  Args...>::value &&
-       (8 == Rank) && !is_default_map),
-      reference_type>::type
-  operator()(const I0& i0, const I1& i1, const I2& i2, const I3& i3,
-             const I4& i4, const I5& i5, const I6& i6, const I7& i7,
-             Args... args) const {
-    KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(
-        (m_track, m_map, i0, i1, i2, i3, i4, i5, i6, i7, args...))
-    return m_map.reference(i0, i1, i2, i3, i4, i5, i6, i7);
-  }
-
-#else
   //------------------------------
   // Rank 0 operator()
 
@@ -1513,7 +1123,6 @@ class View : public ViewTraits<DataType, Properties...> {
     return m_map.reference(i0, i1, i2, i3, i4, i5, i6, i7);
   }
 
-#endif
   template <class... Args>
   KOKKOS_FORCEINLINE_FUNCTION
       typename std::enable_if<(Kokkos::Impl::are_integral<Args...>::value &&
@@ -1810,30 +1419,20 @@ class View : public ViewTraits<DataType, Properties...> {
   KOKKOS_DEFAULTED_FUNCTION
   ~View() = default;
 
-  KOKKOS_INLINE_FUNCTION
-  View() : m_track(), m_map() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  View() = default;
 
-  KOKKOS_INLINE_FUNCTION
-  View(const View& rhs)
-      : m_track(rhs.m_track, traits::is_managed), m_map(rhs.m_map) {}
+  KOKKOS_DEFAULTED_FUNCTION
+  View(const View&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  View(View&& rhs)
-      : m_track(std::move(rhs.m_track)), m_map(std::move(rhs.m_map)) {}
+  KOKKOS_DEFAULTED_FUNCTION
+  View(View&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  View& operator=(const View& rhs) {
-    m_track = rhs.m_track;
-    m_map   = rhs.m_map;
-    return *this;
-  }
+  KOKKOS_DEFAULTED_FUNCTION
+  View& operator=(const View&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  View& operator=(View&& rhs) {
-    m_track = std::move(rhs.m_track);
-    m_map   = std::move(rhs.m_map);
-    return *this;
-  }
+  KOKKOS_DEFAULTED_FUNCTION
+  View& operator=(View&&) = default;
 
   //----------------------------------------
   // Compatible view copy constructor and assignment
@@ -1846,14 +1445,13 @@ class View : public ViewTraits<DataType, Properties...> {
           traits, typename View<RT, RP...>::traits,
           typename traits::specialize>::is_assignable_data_type>::type* =
           nullptr)
-      : m_track(rhs.m_track, traits::is_managed), m_map() {
-    typedef typename View<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits,
-                                      typename traits::specialize>
-        Mapping;
+      : m_track(rhs), m_map() {
+    using SrcTraits = typename View<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits,
+                                              typename traits::specialize>;
     static_assert(Mapping::is_assignable,
                   "Incompatible View copy construction");
-    Mapping::assign(m_map, rhs.m_map, rhs.m_track);
+    Mapping::assign(m_map, rhs.m_map, rhs.m_track.m_tracker);
   }
 
   template <class RT, class... RP>
@@ -1863,13 +1461,12 @@ class View : public ViewTraits<DataType, Properties...> {
           typename traits::specialize>::is_assignable_data_type,
       View>::type&
   operator=(const View<RT, RP...>& rhs) {
-    typedef typename View<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits,
-                                      typename traits::specialize>
-        Mapping;
+    using SrcTraits = typename View<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits,
+                                              typename traits::specialize>;
     static_assert(Mapping::is_assignable, "Incompatible View copy assignment");
-    Mapping::assign(m_map, rhs.m_map, rhs.m_track);
-    m_track.assign(rhs.m_track, traits::is_managed);
+    Mapping::assign(m_map, rhs.m_map, rhs.m_track.m_tracker);
+    m_track.assign(rhs);
     return *this;
   }
 
@@ -1880,16 +1477,13 @@ class View : public ViewTraits<DataType, Properties...> {
   template <class RT, class... RP, class Arg0, class... Args>
   KOKKOS_INLINE_FUNCTION View(const View<RT, RP...>& src_view, const Arg0 arg0,
                               Args... args)
-      : m_track(src_view.m_track, traits::is_managed), m_map() {
-    typedef View<RT, RP...> SrcType;
+      : m_track(src_view), m_map() {
+    using SrcType = View<RT, RP...>;
 
-    typedef Kokkos::Impl::ViewMapping<void /* deduce destination view type from
-                                              source view traits */
-                                      ,
-                                      typename SrcType::traits, Arg0, Args...>
-        Mapping;
+    using Mapping = Kokkos::Impl::ViewMapping<void, typename SrcType::traits,
+                                              Arg0, Args...>;
 
-    typedef typename Mapping::type DstType;
+    using DstType = typename Mapping::type;
 
     static_assert(
         Kokkos::Impl::ViewMapping<traits, typename DstType::traits,
@@ -1903,10 +1497,11 @@ class View : public ViewTraits<DataType, Properties...> {
   // Allocation tracking properties
 
   KOKKOS_INLINE_FUNCTION
-  int use_count() const { return m_track.use_count(); }
+  int use_count() const { return m_track.m_tracker.use_count(); }
 
   inline const std::string label() const {
-    return m_track.template get_label<typename traits::memory_space>();
+    return m_track.m_tracker
+        .template get_label<typename traits::memory_space>();
   }
 
   //----------------------------------------
@@ -1920,35 +1515,29 @@ class View : public ViewTraits<DataType, Properties...> {
           arg_layout)
       : m_track(), m_map() {
     // Append layout and spaces if not input
-    typedef Impl::ViewCtorProp<P...> alloc_prop_input;
+    using alloc_prop_input = Impl::ViewCtorProp<P...>;
 
     // use 'std::integral_constant<unsigned,I>' for non-types
     // to avoid duplicate class error.
-    typedef Impl::ViewCtorProp<
+    using alloc_prop = Impl::ViewCtorProp<
         P...,
         typename std::conditional<alloc_prop_input::has_label,
-                                  std::integral_constant<unsigned, 0>,
+                                  std::integral_constant<unsigned int, 0>,
                                   typename std::string>::type,
         typename std::conditional<
             alloc_prop_input::has_memory_space,
-            std::integral_constant<unsigned, 1>,
+            std::integral_constant<unsigned int, 1>,
             typename traits::device_type::memory_space>::type,
         typename std::conditional<
             alloc_prop_input::has_execution_space,
-            std::integral_constant<unsigned, 2>,
-            typename traits::device_type::execution_space>::type>
-        alloc_prop;
+            std::integral_constant<unsigned int, 2>,
+            typename traits::device_type::execution_space>::type>;
 
     static_assert(traits::is_managed,
                   "View allocation constructor requires managed memory");
 
     if (alloc_prop::initialize &&
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-        !alloc_prop::execution_space::is_initialized()
-#else
-        !alloc_prop::execution_space::impl_is_initialized()
-#endif
-    ) {
+        !alloc_prop::execution_space::impl_is_initialized()) {
       // If initializing view data then
       // the execution space must be initialized.
       Kokkos::Impl::throw_runtime_exception(
@@ -1986,12 +1575,12 @@ class View : public ViewTraits<DataType, Properties...> {
     //------------------------------------------------------------
 
     // Setup and initialization complete, start tracking
-    m_track.assign_allocated_record_to_uninitialized(record);
+    m_track.m_tracker.assign_allocated_record_to_uninitialized(record);
   }
 
   KOKKOS_INLINE_FUNCTION
   void assign_data(pointer_type arg_data) {
-    m_track.clear();
+    m_track.m_tracker.clear();
     m_map.assign_data(arg_data);
   }
 
@@ -2152,14 +1741,31 @@ class View : public ViewTraits<DataType, Properties...> {
 
 #endif
   }
+  // Construct view from ViewTracker and map
+  // This should be the preferred method because future extensions may need to
+  // use the ViewTracker class.
   template <class Traits>
   KOKKOS_INLINE_FUNCTION View(
-      const track_type& track,
+      const view_tracker_type& track,
       const Kokkos::Impl::ViewMapping<Traits, typename Traits::specialize>& map)
       : m_track(track), m_map() {
-    typedef Kokkos::Impl::ViewMapping<traits, Traits,
-                                      typename traits::specialize>
-        Mapping;
+    using Mapping =
+        Kokkos::Impl::ViewMapping<traits, Traits, typename traits::specialize>;
+    static_assert(Mapping::is_assignable,
+                  "Incompatible View copy construction");
+    Mapping::assign(m_map, map, track.m_tracker);
+  }
+
+  // Construct View from internal shared allocation tracker object and map
+  // This is here for backwards compatibility for classes that derive from
+  // Kokkos::View
+  template <class Traits>
+  KOKKOS_INLINE_FUNCTION View(
+      const typename view_tracker_type::track_type& track,
+      const Kokkos::Impl::ViewMapping<Traits, typename Traits::specialize>& map)
+      : m_track(track), m_map() {
+    using Mapping =
+        Kokkos::Impl::ViewMapping<traits, Traits, typename traits::specialize>;
     static_assert(Mapping::is_assignable,
                   "Incompatible View copy construction");
     Mapping::assign(m_map, map, track);
@@ -2344,8 +1950,8 @@ template <class LT, class... LP, class RT, class... RP>
 KOKKOS_INLINE_FUNCTION bool operator==(const View<LT, LP...>& lhs,
                                        const View<RT, RP...>& rhs) {
   // Same data, layout, dimensions
-  typedef ViewTraits<LT, LP...> lhs_traits;
-  typedef ViewTraits<RT, RP...> rhs_traits;
+  using lhs_traits = ViewTraits<LT, LP...>;
+  using rhs_traits = ViewTraits<RT, RP...>;
 
   return std::is_same<typename lhs_traits::const_value_type,
                       typename rhs_traits::const_value_type>::value &&

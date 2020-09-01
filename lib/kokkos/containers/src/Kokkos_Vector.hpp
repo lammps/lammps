@@ -58,19 +58,19 @@ namespace Kokkos {
 template <class Scalar, class Arg1Type = void>
 class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
  public:
-  typedef Scalar value_type;
-  typedef Scalar* pointer;
-  typedef const Scalar* const_pointer;
-  typedef Scalar& reference;
-  typedef const Scalar& const_reference;
-  typedef Scalar* iterator;
-  typedef const Scalar* const_iterator;
-  typedef size_t size_type;
+  using value_type      = Scalar;
+  using pointer         = Scalar*;
+  using const_pointer   = const Scalar*;
+  using reference       = Scalar&;
+  using const_reference = const Scalar&;
+  using iterator        = Scalar*;
+  using const_iterator  = const Scalar*;
+  using size_type       = size_t;
 
  private:
   size_t _size;
   float _extra_storage;
-  typedef DualView<Scalar*, LayoutLeft, Arg1Type> DV;
+  using DV = DualView<Scalar*, LayoutLeft, Arg1Type>;
 
  public:
 #ifdef KOKKOS_ENABLE_CUDA_UVM
@@ -212,13 +212,16 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
     return begin() + start;
   }
 
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return DV::is_allocated();
+  }
+
   size_type size() const { return _size; }
   size_type max_size() const { return 2000000000; }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  size_type capacity() const { return DV::capacity(); }
-#endif
   size_type span() const { return DV::span(); }
   bool empty() const { return _size == 0; }
+
+  pointer data() const { return DV::h_view.data(); }
 
   iterator begin() const { return DV::h_view.data(); }
 
@@ -310,7 +313,7 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
 
  public:
   struct set_functor {
-    typedef typename DV::t_dev::execution_space execution_space;
+    using execution_space = typename DV::t_dev::execution_space;
     typename DV::t_dev _data;
     Scalar _val;
 
@@ -321,7 +324,7 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
   };
 
   struct set_functor_host {
-    typedef typename DV::t_host::execution_space execution_space;
+    using execution_space = typename DV::t_host::execution_space;
     typename DV::t_host _data;
     Scalar _val;
 

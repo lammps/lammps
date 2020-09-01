@@ -40,13 +40,13 @@ FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 9) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 
-  t_start = force->numeric(FLERR,arg[3]);
+  t_start = utils::numeric(FLERR,arg[3],false,lmp);
   t_target = t_start;
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
   if (t_period <= 0.0) error->all(FLERR,"Fix nve/dotc/langevin period must be > 0.0");
   gamma = 1.0/t_period;
-  seed = force->inumeric(FLERR,arg[6]);
+  seed = utils::inumeric(FLERR,arg[6],false,lmp);
   if (seed <= 0) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 
   if (strcmp(arg[7],"angmom") == 0) {
@@ -56,7 +56,7 @@ FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
       Gamma = 0.0;
     }
     else {
-      ascale = force->numeric(FLERR,arg[8]);
+      ascale = utils::numeric(FLERR,arg[8],false,lmp);
       Gamma = gamma * ascale;
     }
 

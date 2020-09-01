@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +46,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
   if (binary)
@@ -57,7 +58,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nfield = input->expand_args(nfield,&arg[5],1,earg);
+  nfield = utils::expand_args(FLERR,nfield,&arg[5],1,earg,lmp);
 
   if (earg != &arg[5]) expand = 1;
 

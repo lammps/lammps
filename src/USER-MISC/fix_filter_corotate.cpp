@@ -110,25 +110,25 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
     // read numeric args of b,a,t,m
 
     else if (mode == 'b') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix filter/corotate");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type index for fix filter/corotate");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type index for fix filter/corotate");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = force->numeric(FLERR,arg[next]);
+      double massone = utils::numeric(FLERR,arg[next],false,lmp);
       if (massone == 0.0)
         error->all(FLERR,"Invalid atom mass for fix filter/corotate");
       if (nmass == atom->ntypes)

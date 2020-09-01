@@ -44,3 +44,4 @@
 
 #include <cuda/TestCuda_Category.hpp>
 #include <TestViewLayoutStrideAssignment.hpp>
+#include <TestIrregularLayout.hpp>

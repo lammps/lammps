@@ -45,7 +45,7 @@
 #ifndef KOKKOS_HPX_WORKGRAPHPOLICY_HPP
 #define KOKKOS_HPX_WORKGRAPHPOLICY_HPP
 
-#include <HPX/Kokkos_HPX_ChunkedRoundRobinExecutor.hpp>
+#include <Kokkos_HPX.hpp>
 
 #include <hpx/apply.hpp>
 #include <hpx/lcos/local/latch.hpp>
@@ -78,8 +78,8 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
 
  public:
   void execute() const {
-    dispatch_execute_task(this);
-    Kokkos::Experimental::HPX().fence();
+    dispatch_execute_task(this, m_policy.space());
+    m_policy.space().fence();
   }
 
   void execute_task() const {

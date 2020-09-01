@@ -94,22 +94,22 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  int team_range   = atoi(argv[1]);
-  int thread_range = atoi(argv[2]);
-  int vector_range = atoi(argv[3]);
+  int team_range   = std::stoi(argv[1]);
+  int thread_range = std::stoi(argv[2]);
+  int vector_range = std::stoi(argv[3]);
 
-  int outer_repeat  = atoi(argv[4]);
-  int thread_repeat = atoi(argv[5]);
-  int vector_repeat = atoi(argv[6]);
+  int outer_repeat  = std::stoi(argv[4]);
+  int thread_repeat = std::stoi(argv[5]);
+  int vector_repeat = std::stoi(argv[6]);
 
-  int team_size   = atoi(argv[7]);
-  int vector_size = atoi(argv[8]);
-  int schedule    = atoi(argv[9]);
-  int test_type   = atoi(argv[10]);
+  int team_size   = std::stoi(argv[7]);
+  int vector_size = std::stoi(argv[8]);
+  int schedule    = std::stoi(argv[9]);
+  int test_type   = std::stoi(argv[10]);
 
   int disable_verbose_output = 0;
   if (argc > 11) {
-    disable_verbose_output = atoi(argv[11]);
+    disable_verbose_output = std::stoi(argv[11]);
   }
 
   if (schedule != 1 && schedule != 2) {
@@ -138,9 +138,9 @@ int main(int argc, char* argv[]) {
                     double& lval) { lval += 1; },
       result);
 
-  typedef Kokkos::View<double*, Kokkos::LayoutRight> view_type_1d;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight> view_type_2d;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight> view_type_3d;
+  using view_type_1d = Kokkos::View<double*, Kokkos::LayoutRight>;
+  using view_type_2d = Kokkos::View<double**, Kokkos::LayoutRight>;
+  using view_type_3d = Kokkos::View<double***, Kokkos::LayoutRight>;
 
   // Allocate view without initializing
   // Call a 'warmup' test with 1 repeat - this will initialize the corresponding

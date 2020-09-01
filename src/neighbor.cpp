@@ -2194,7 +2194,7 @@ void Neighbor::set(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal neighbor command");
 
-  skin = force->numeric(FLERR,arg[0]);
+  skin = utils::numeric(FLERR,arg[0],false,lmp);
   if (skin < 0.0) error->all(FLERR,"Illegal neighbor command");
 
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
@@ -2236,12 +2236,12 @@ void Neighbor::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      every = force->inumeric(FLERR,arg[iarg+1]);
+      every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (every <= 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      delay = force->inumeric(FLERR,arg[iarg+1]);
+      delay = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (delay < 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
@@ -2259,16 +2259,16 @@ void Neighbor::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"page") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       old_pgsize = pgsize;
-      pgsize = force->inumeric(FLERR,arg[iarg+1]);
+      pgsize = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
       old_oneatom = oneatom;
-      oneatom = force->inumeric(FLERR,arg[iarg+1]);
+      oneatom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      binsize_user = force->numeric(FLERR,arg[iarg+1]);
+      binsize_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
@@ -2300,8 +2300,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = force->inumeric(FLERR,arg[iarg+2]);
-        ex2_type[nex_type] = force->inumeric(FLERR,arg[iarg+3]);
+        ex1_type[nex_type] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+        ex2_type[nex_type] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         nex_type++;
         iarg += 4;
 

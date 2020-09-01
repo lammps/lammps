@@ -764,7 +764,7 @@ void DihedralTableCut::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in dihedral style table_cut");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 3)
     error->all(FLERR,"Illegal number of dihedral table entries");
   // delete old tables, since cannot just change settings
@@ -794,11 +794,11 @@ void DihedralTableCut::coeff(int narg, char **arg)
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[2]);
-  double theta0_1_one = force->numeric(FLERR,arg[3]);
-  double theta0_2_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double theta0_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double theta0_2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // convert theta0's from degrees to radians
 
@@ -1078,7 +1078,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     string err_msg = string("Cannot open file ") + string(file);
     error->one(FLERR,err_msg);

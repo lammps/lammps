@@ -148,13 +148,13 @@ void ReadData::command(int narg, char **arg)
         if (atom->molecule_flag && (iarg+3 > narg))
           error->all(FLERR,"Illegal read_data command");
         addflag = VALUE;
-        bigint offset = force->bnumeric(FLERR,arg[iarg+1]);
+        bigint offset = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
         if (offset > MAXTAGINT)
           error->all(FLERR,"Read data add atomID offset is too big");
         id_offset = offset;
 
         if (atom->molecule_flag) {
-          offset = force->bnumeric(FLERR,arg[iarg+2]);
+          offset = utils::bnumeric(FLERR,arg[iarg+2],false,lmp);
           if (offset > MAXTAGINT)
             error->all(FLERR,"Read data add molID offset is too big");
           mol_offset = offset;
@@ -165,11 +165,11 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal read_data command");
       offsetflag = 1;
-      toffset = force->inumeric(FLERR,arg[iarg+1]);
-      boffset = force->inumeric(FLERR,arg[iarg+2]);
-      aoffset = force->inumeric(FLERR,arg[iarg+3]);
-      doffset = force->inumeric(FLERR,arg[iarg+4]);
-      ioffset = force->inumeric(FLERR,arg[iarg+5]);
+      toffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      boffset = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      aoffset = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      doffset = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      ioffset = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (toffset < 0 || boffset < 0 || aoffset < 0 ||
           doffset < 0 || ioffset < 0)
         error->all(FLERR,"Illegal read_data command");
@@ -177,9 +177,9 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"shift") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal read_data command");
       shiftflag = 1;
-      shift[0] = force->numeric(FLERR,arg[iarg+1]);
-      shift[1] = force->numeric(FLERR,arg[iarg+2]);
-      shift[2] = force->numeric(FLERR,arg[iarg+3]);
+      shift[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      shift[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      shift[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (domain->dimension == 2 && shift[2] != 0.0)
         error->all(FLERR,"Non-zero read_data shift z value for 2d simulation");
       iarg += 4;
@@ -188,28 +188,28 @@ void ReadData::command(int narg, char **arg)
       iarg ++;
     } else if (strcmp(arg[iarg],"extra/atom/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      extra_atom_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_atom_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_atom_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/bond/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->bonds_allow)
         error->all(FLERR,"No bonds allowed with this atom style");
-      extra_bond_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_bond_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_bond_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/angle/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->angles_allow)
         error->all(FLERR,"No angles allowed with this atom style");
-      extra_angle_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_angle_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_angle_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/dihedral/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->dihedrals_allow)
         error->all(FLERR,"No dihedrals allowed with this atom style");
-      extra_dihedral_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_dihedral_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_dihedral_types < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -217,7 +217,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->impropers_allow)
         error->all(FLERR,"No impropers allowed with this atom style");
-      extra_improper_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_improper_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_improper_types < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -225,7 +225,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No bonds allowed with this atom style");
-      atom->extra_bond_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_bond_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_bond_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -233,7 +233,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No angles allowed with this atom style");
-      atom->extra_angle_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_angle_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_angle_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -241,7 +241,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No dihedrals allowed with this atom style");
-      atom->extra_dihedral_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_dihedral_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_dihedral_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -249,7 +249,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No impropers allowed with this atom style");
-      atom->extra_improper_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_improper_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_improper_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -257,7 +257,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No bonded interactions allowed with this atom style");
-      force->special_extra = force->inumeric(FLERR,arg[iarg+1]);
+      force->special_extra = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (force->special_extra < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -2075,11 +2075,11 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
   if (narg == 0) return;
 
   if (noffset) {
-    int value = force->inumeric(FLERR,arg[0]);
+    int value = utils::inumeric(FLERR,arg[0],false,lmp);
     sprintf(argoffset1,"%d",value+offset);
     arg[0] = argoffset1;
     if (noffset == 2) {
-      value = force->inumeric(FLERR,arg[1]);
+      value = utils::inumeric(FLERR,arg[1],false,lmp);
       sprintf(argoffset2,"%d",value+offset);
       arg[1] = argoffset2;
     }

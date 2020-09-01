@@ -81,7 +81,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
         numtyp r2inv = ucl_recip(rsq);
         numtyp r = ucl_sqrt(rsq);
         numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv*factor_lj;
+        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -90,7 +90,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -168,7 +168,7 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
         numtyp r2inv = ucl_recip(rsq);
         numtyp r = ucl_sqrt(rsq);
         numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv*factor_lj;
+        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -177,7 +177,7 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

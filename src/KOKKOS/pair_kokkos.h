@@ -67,16 +67,16 @@ struct PairComputeFunctor  {
   // The force array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_f;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
   //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
 
   //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
 
 
 
@@ -89,9 +89,9 @@ struct PairComputeFunctor  {
     f = c.f;
     d_eatom = c.d_eatom;
     d_vatom = c.d_vatom;
-    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.f);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
-    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
+    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.f);
+    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
   };
 
   // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
@@ -118,7 +118,7 @@ struct PairComputeFunctor  {
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
 
-    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
@@ -185,7 +185,7 @@ struct PairComputeFunctor  {
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const CoulTag& ) const {
 
-    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
@@ -586,8 +586,8 @@ struct PairComputeFunctor  {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
-    auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
-    auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int EFLAG = c.eflag;
     const int NEWTON_PAIR = c.newton_pair;

@@ -365,18 +365,18 @@ void Region::options(int narg, char **arg)
       int n = strlen(&arg[iarg+1][2]) + 1;
       tstr = new char[n];
       strcpy(tstr,&arg[iarg+1][2]);
-      point[0] = force->numeric(FLERR,arg[iarg+2]);
-      point[1] = force->numeric(FLERR,arg[iarg+3]);
-      point[2] = force->numeric(FLERR,arg[iarg+4]);
-      axis[0] = force->numeric(FLERR,arg[iarg+5]);
-      axis[1] = force->numeric(FLERR,arg[iarg+6]);
-      axis[2] = force->numeric(FLERR,arg[iarg+7]);
+      point[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      point[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      point[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      axis[0] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      axis[1] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+      axis[2] = utils::numeric(FLERR,arg[iarg+7],false,lmp);
       rotateflag = 1;
       iarg += 8;
 
     } else if (strcmp(arg[iarg],"open") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
-      int iface = force->inumeric(FLERR,arg[iarg+1]);
+      int iface = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (iface < 1 || iface > 6) error->all(FLERR,"Illegal region command");
       // additional checks on valid face index are done by region classes
       open_faces[iface-1] = 1;

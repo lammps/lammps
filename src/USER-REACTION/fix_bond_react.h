@@ -61,6 +61,7 @@ class FixBondReact : public Fix {
   int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
+  int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
@@ -93,6 +94,7 @@ class FixBondReact : public Fix {
   class RanMars **random; // random number for 'prob' keyword
   class RanMars **rrhandom; // random number for Arrhenius constraint
   class NeighList *list;
+  class ResetMolIDs *reset_mol_ids; // class for resetting mol IDs
 
   int *reacted_mol,*unreacted_mol;
   int *limit_duration; // indicates how long to relax
@@ -240,8 +242,10 @@ E: Bond/react: Invalid template atom ID in map file
 Atom IDs in molecule templates range from 1 to the number of atoms in the template.
 
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
+        Bond/react: Atom type affected by reaction %s too close to template edge
+        Bond/react: Bond type affected by reaction %s too close to template edge
 
-This means an atom which changes type or connectivity during the
+This means an atom (or bond) that changes type or connectivity during the
 reaction is too close to an 'edge' atom defined in the map file. This
 could cause incorrect assignment of bonds, angle, etc. Generally, this
 means you must include more atoms in your templates, such that there

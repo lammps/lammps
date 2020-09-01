@@ -60,6 +60,7 @@
 #include <HIP/Kokkos_HIP_Parallel_Range.hpp>
 #include <HIP/Kokkos_HIP_Parallel_MDRange.hpp>
 #include <HIP/Kokkos_HIP_Parallel_Team.hpp>
+#include <HIP/Kokkos_HIP_UniqueToken.hpp>
 
 #endif
 #endif

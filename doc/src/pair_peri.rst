@@ -128,7 +128,7 @@ viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small
 values of m_lambdai the viscoelastic model responds very similar to a
 linear elastic model. For details please see the description in
-"(Mtchell2011)".
+"(Mitchell2011)".
 
 For the *peri/eps* style:
 
@@ -142,7 +142,7 @@ For the *peri/eps* style:
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m_yield_stress is the yield stress of the material. For
-details please see the description in "(Mtchell2011a)".
+details please see the description in "(Mitchell2011a)".
 
 ----------
 

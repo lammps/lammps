@@ -145,7 +145,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hma command");
       if (computeP>-1) continue;
       computeP = size_vector;
-      deltaPcap = force->numeric(FLERR, arg[iarg+1]);
+      deltaPcap = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       extlist[size_vector] = 0;
       size_vector++;
       iarg++;

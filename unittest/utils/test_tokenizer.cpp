@@ -62,6 +62,37 @@ TEST(Tokenizer, iterate_words)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, no_separator_path)
+{
+    Tokenizer t("one", ":");
+    ASSERT_EQ(t.has_next(), true);
+    ASSERT_EQ(t.count(), 1);
+    ASSERT_THAT(t.next(), Eq("one"));
+    ASSERT_EQ(t.has_next(), false);
+}
+
+TEST(Tokenizer, unix_paths)
+{
+    Tokenizer t(":one:two:three:", ":");
+    ASSERT_EQ(t.count(), 3);
+    ASSERT_THAT(t.next(), Eq("one"));
+    ASSERT_THAT(t.next(), Eq("two"));
+    ASSERT_EQ(t.has_next(), true);
+    ASSERT_THAT(t.next(), Eq("three"));
+    ASSERT_EQ(t.has_next(), false);
+}
+
+TEST(Tokenizer, windows_paths)
+{
+    Tokenizer t("c:\\one;\\two\\three;d:four;", ";");
+    ASSERT_EQ(t.count(), 3);
+    ASSERT_THAT(t.next(), Eq("c:\\one"));
+    ASSERT_EQ(t.has_next(), true);
+    ASSERT_THAT(t.next(), Eq("\\two\\three"));
+    ASSERT_THAT(t.next(), Eq("d:four"));
+    ASSERT_EQ(t.has_next(), false);
+}
+
 TEST(Tokenizer, default_separators)
 {
     Tokenizer t(" \r\n test \t word \f");

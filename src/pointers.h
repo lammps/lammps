@@ -25,7 +25,9 @@
 #include <mpi.h>       // IWYU pragma: export
 #include <cstddef>     // IWYU pragme: export
 #include <cstdio>      // IWYU pragma: export
+#include <string>      // IWYU pragma: export
 #include "lammps.h"    // IWYU pragma: export
+#include "utils.h"     // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

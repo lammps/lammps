@@ -953,7 +953,7 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords

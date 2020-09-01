@@ -285,11 +285,11 @@ void DihedralHelix::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double aphi_one = force->numeric(FLERR,arg[1]);
-  double bphi_one = force->numeric(FLERR,arg[2]);
-  double cphi_one = force->numeric(FLERR,arg[3]);
+  double aphi_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double bphi_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cphi_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

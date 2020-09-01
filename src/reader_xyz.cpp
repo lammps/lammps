@@ -65,7 +65,7 @@ int ReaderXYZ::read_time(bigint &ntimestep)
       break;
     }
   }
-  natoms = force->bnumeric(FLERR,line);
+  natoms = utils::bnumeric(FLERR,line,false,lmp);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
 

@@ -129,7 +129,7 @@ void Compute::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"extra") == 0 ||
         strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      extra_dof = force->numeric(FLERR,arg[iarg+1]);
+      extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0 ||
                strcmp(arg[iarg],"dynamic/dof") == 0) {

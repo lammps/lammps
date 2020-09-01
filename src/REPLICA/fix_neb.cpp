@@ -56,7 +56,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb command");
 
-  kspring = force->numeric(FLERR,arg[3]);
+  kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // optional params
@@ -85,7 +85,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"perp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
       PerpSpring = true;
-      kspringPerp = force->numeric(FLERR,arg[iarg+1]);
+      kspringPerp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (kspringPerp == 0.0) PerpSpring = false;
       if (kspringPerp < 0.0) error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
@@ -94,22 +94,22 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"first") == 0) {
         FreeEndIni = true;
-        kspringIni = force->numeric(FLERR,arg[iarg+2]);
+        kspringIni = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last") == 0) {
         FreeEndFinal = true;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = false;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last/efirst") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last/efirst/middle") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = true;
         FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else error->all(FLERR,"Illegal fix neb command");
 
       iarg += 3;

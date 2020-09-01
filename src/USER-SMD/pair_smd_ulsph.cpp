@@ -949,9 +949,9 @@ void PairULSPH::coeff(int narg, char **arg) {
          * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
          */
 
-        if (force->inumeric(FLERR, arg[0]) == force->inumeric(FLERR, arg[1])) {
+        if (utils::inumeric(FLERR, arg[0], false, lmp) == utils::inumeric(FLERR, arg[1], false, lmp)) {
 
-                itype = force->inumeric(FLERR, arg[0]);
+                itype = utils::inumeric(FLERR, arg[0],false,lmp);
                 eos[itype] = viscosity[itype] = strength[itype] = NONE;
 
                 if (comm->me == 0) {
@@ -992,11 +992,11 @@ void PairULSPH::coeff(int narg, char **arg) {
                         error->all(FLERR, str);
                 }
 
-                Lookup[REFERENCE_DENSITY][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                Lookup[REFERENCE_SOUNDSPEED][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                Q1[itype] = force->numeric(FLERR, arg[ioffset + 3]);
-                Lookup[HEAT_CAPACITY][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-                Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = force->numeric(FLERR, arg[ioffset + 5]);
+                Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                Lookup[REFERENCE_SOUNDSPEED][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                Q1[itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+                Lookup[HEAT_CAPACITY][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+                Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
 
                 Lookup[BULK_MODULUS][itype] = Lookup[REFERENCE_SOUNDSPEED][itype] * Lookup[REFERENCE_SOUNDSPEED][itype]
                                 * Lookup[REFERENCE_DENSITY][itype];
@@ -1057,7 +1057,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[EOS_TAIT_EXPONENT][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[EOS_TAIT_EXPONENT][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Tait EOS");
@@ -1094,7 +1094,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[EOS_PERFECT_GAS_GAMMA][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[EOS_PERFECT_GAS_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Perfect Gas EOS");
@@ -1168,9 +1168,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[SHEAR_MODULUS][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                                Lookup[YIELD_STRENGTH][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                                Lookup[HARDENING_PARAMETER][itype] = force->numeric(FLERR, arg[ioffset + 3]);
+                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                                Lookup[YIELD_STRENGTH][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                                Lookup[HARDENING_PARAMETER][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "linear elastic / ideal plastic material mode");
@@ -1210,7 +1210,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[SHEAR_MODULUS][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "linear elastic strength model");
@@ -1248,7 +1248,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[VISCOSITY_MU][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[VISCOSITY_MU][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Newton viscosity model");
@@ -1282,7 +1282,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                artificial_pressure[itype][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                artificial_pressure[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Artificial Pressure is enabled.");
@@ -1316,7 +1316,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                artificial_stress[itype][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                artificial_stress[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Artificial Stress is enabled.");
@@ -1358,8 +1358,8 @@ void PairULSPH::coeff(int narg, char **arg) {
                  * we are reading a cross-interaction line for particle types i, j
                  */
 
-                itype = force->inumeric(FLERR, arg[0]);
-                jtype = force->inumeric(FLERR, arg[1]);
+                itype = utils::inumeric(FLERR, arg[0],false,lmp);
+                jtype = utils::inumeric(FLERR, arg[1],false,lmp);
 
                 if (strcmp(arg[2], "*CROSS") != 0) {
                         sprintf(str, "ulsph cross interaction between particle type %d and %d requested, however, *CROSS keyword is missing",

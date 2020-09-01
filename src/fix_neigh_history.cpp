@@ -45,7 +45,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   newton_pair = force->newton_pair;
 
-  dnum = force->inumeric(FLERR,arg[3]);
+  dnum = utils::inumeric(FLERR,arg[3],false,lmp);
   dnumbytes = dnum * sizeof(double);
 
   zeroes = new double[dnum];

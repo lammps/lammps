@@ -37,6 +37,7 @@
 #include "error.h"
 #include "utils.h"
 #include "citeme.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -89,13 +90,8 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   if (PathCompute->size_peratom_cols < 9)
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
-  if (comm->me==0) {
-    if (screen) fprintf(screen,
-      "fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
-    if (logfile) fprintf(logfile,
-      "fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
-  }
-
+  if (comm->me==0)
+    utils::logmesg(lmp,fmt::format("fix pafi compute name,style: {},{}\n",computename,PathCompute->style));
 
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;

@@ -11,28 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
+#ifdef LAMMPS_ZSTD
+
 #ifdef DUMP_CLASS
 
-DumpStyle(atom/gz,DumpAtomGZ)
+DumpStyle(local/zstd,DumpLocalZstd)
 
 #else
 
-#ifndef LMP_DUMP_ATOM_GZ_H
-#define LMP_DUMP_ATOM_GZ_H
+#ifndef LMP_DUMP_LOCAL_ZSTD_H
+#define LMP_DUMP_LOCAL_ZSTD_H
 
-#include "dump_atom.h"
-#include <zlib.h>
+#include "dump_local.h"
+#include "zstd_file_writer.h"
 
 namespace LAMMPS_NS {
 
-class DumpAtomGZ : public DumpAtom {
+class DumpLocalZstd : public DumpLocal {
  public:
-  DumpAtomGZ(class LAMMPS *, int, char **);
-  virtual ~DumpAtomGZ();
+  DumpLocalZstd(class LAMMPS *, int, char **);
+  virtual ~DumpLocalZstd();
 
  protected:
-  int compression_level;
-  gzFile gzFp;  // file pointer for the compressed output stream
+  ZstdFileWriter writer;
 
   virtual void openfile();
   virtual void write_header(bigint);
@@ -46,12 +51,13 @@ class DumpAtomGZ : public DumpAtom {
 
 #endif
 #endif
+#endif
 
 /* ERROR/WARNING messages:
 
-E: Dump atom/gz only writes compressed files
+E: Dump local/zstd only writes compressed files
 
-The dump atom/gz output file name must have a .gz suffix.
+The dump local/zstd output file name must have a .zst suffix.
 
 E: Cannot open dump file
 

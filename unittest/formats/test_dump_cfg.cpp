@@ -46,7 +46,7 @@ TEST_F(DumpCfgTest, invalid_options)
 
 TEST_F(DumpCfgTest, require_multifile)
 {
-    auto dump_file = "dump_melt_run.cfg";
+    auto dump_file = "dump.melt.cfg_run.cfg";
     auto fields = "mass type xs ys zs id proc procp1 x y z ix iy iz xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -60,58 +60,58 @@ TEST_F(DumpCfgTest, require_multifile)
 
 TEST_F(DumpCfgTest, run0)
 {
-    auto dump_file = "dump_cfg_run*.melt";
+    auto dump_file = "dump_cfg_run*.melt.cfg";
     auto fields = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_dump(dump_file, fields, "", 0);
 
-    ASSERT_FILE_EXISTS("dump_cfg_run0.melt");
-    auto lines = read_lines("dump_cfg_run0.melt");
+    ASSERT_FILE_EXISTS("dump_cfg_run0.melt.cfg");
+    auto lines = read_lines("dump_cfg_run0.melt.cfg");
     ASSERT_EQ(lines.size(), 124);
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
-    delete_file("dump_cfg_run0.melt");
+    delete_file("dump_cfg_run0.melt.cfg");
 }
 
 TEST_F(DumpCfgTest, unwrap_run0)
 {
-    auto dump_file = "dump_cfg_unwrap_run*.melt";
+    auto dump_file = "dump_cfg_unwrap_run*.melt.cfg";
     auto fields = "mass type xsu ysu zsu id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_dump(dump_file, fields, "", 0);
 
-    ASSERT_FILE_EXISTS("dump_cfg_unwrap_run0.melt");
-    auto lines = read_lines("dump_cfg_unwrap_run0.melt");
+    ASSERT_FILE_EXISTS("dump_cfg_unwrap_run0.melt.cfg");
+    auto lines = read_lines("dump_cfg_unwrap_run0.melt.cfg");
     ASSERT_EQ(lines.size(), 124);
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
-    delete_file("dump_cfg_unwrap_run0.melt");
+    delete_file("dump_cfg_unwrap_run0.melt.cfg");
 }
 
 TEST_F(DumpCfgTest, no_buffer_run0)
 {
-    auto dump_file = "dump_cfg_no_buffer_run*.melt";
+    auto dump_file = "dump_cfg_no_buffer_run*.melt.cfg";
     auto fields = "mass type xsu ysu zsu id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_dump(dump_file, fields, "buffer no", 0);
 
-    ASSERT_FILE_EXISTS("dump_cfg_no_buffer_run0.melt");
-    auto lines = read_lines("dump_cfg_no_buffer_run0.melt");
+    ASSERT_FILE_EXISTS("dump_cfg_no_buffer_run0.melt.cfg");
+    auto lines = read_lines("dump_cfg_no_buffer_run0.melt.cfg");
     ASSERT_EQ(lines.size(), 124);
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
-    delete_file("dump_cfg_no_buffer_run0.melt");
+    delete_file("dump_cfg_no_buffer_run0.melt.cfg");
 }
 
 TEST_F(DumpCfgTest, no_unwrap_no_buffer_run0)
 {
-    auto dump_file = "dump_cfg_no_unwrap_no_buffer_run*.melt";
+    auto dump_file = "dump_cfg_no_unwrap_no_buffer_run*.melt.cfg";
     auto fields = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_dump(dump_file, fields, "buffer no", 0);
 
-    ASSERT_FILE_EXISTS("dump_cfg_no_unwrap_no_buffer_run0.melt");
-    auto lines = read_lines("dump_cfg_no_unwrap_no_buffer_run0.melt");
+    ASSERT_FILE_EXISTS("dump_cfg_no_unwrap_no_buffer_run0.melt.cfg");
+    auto lines = read_lines("dump_cfg_no_unwrap_no_buffer_run0.melt.cfg");
     ASSERT_EQ(lines.size(), 124);
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
-    delete_file("dump_cfg_no_unwrap_no_buffer_run0.melt");
+    delete_file("dump_cfg_no_unwrap_no_buffer_run0.melt.cfg");
 }
 
 

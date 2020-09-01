@@ -11,7 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "dump_custom_gz.h"
+/* ----------------------------------------------------------------------
+   Contributing author: Richard Berger (Temple U)
+------------------------------------------------------------------------- */
+
+#ifdef LAMMPS_ZSTD
+
+#include "dump_atom_zstd.h"
 #include "domain.h"
 #include "error.h"
 #include "update.h"
@@ -22,35 +28,26 @@
 
 using namespace LAMMPS_NS;
 
-DumpCustomGZ::DumpCustomGZ(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) :
+  DumpAtom(lmp, narg, arg)
 {
-  gzFp = NULL;
-
-  compression_level = Z_BEST_COMPRESSION;
-
   if (!compressed)
-    error->all(FLERR,"Dump custom/gz only writes compressed files");
+    error->all(FLERR,"Dump atom/zstd only writes compressed files");
 }
-
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustomGZ::~DumpCustomGZ()
+DumpAtomZstd::~DumpAtomZstd()
 {
-  if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
 }
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or zstdipped
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DumpCustomGZ::openfile()
+void DumpAtomZstd::openfile()
 {
   // single file, already opened, so just return
 
@@ -95,89 +92,104 @@ void DumpCustomGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    std::string mode;
     if (append_flag) {
-      mode = fmt::format("ab{}", compression_level);
-    } else {
-      mode = fmt::format("wb{}", compression_level);
+      error->one(FLERR, "dump/zstd currently doesn't support append");
     }
 
-    gzFp = gzopen(filecurrent, mode.c_str());
-
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    try {
+      writer.open(filecurrent);
+    } catch (FileWriterException & e) {
+      error->one(FLERR, e.what());
+    }
+  }
 
   // delete string with timestep replaced
 
   if (multifile) delete [] filecurrent;
 }
 
-void DumpCustomGZ::write_header(bigint ndump)
+/* ---------------------------------------------------------------------- */
+
+void DumpAtomZstd::write_header(bigint ndump)
 {
+  std::string header;
+
   if ((multiproc) || (!multiproc && me == 0)) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      gzprintf(gzFp,"ITEM: UNITS\n%s\n",update->unit_style);
+      header = fmt::format("ITEM: UNITS\n{}\n",update->unit_style);
     }
-    if (time_flag) gzprintf(gzFp,"ITEM: TIME\n%.16g\n",compute_time());
 
-    gzprintf(gzFp,"ITEM: TIMESTEP\n");
-    gzprintf(gzFp,BIGINT_FORMAT "\n",update->ntimestep);
-    gzprintf(gzFp,"ITEM: NUMBER OF ATOMS\n");
-    gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
-    if (domain->triclinic == 0) {
-      gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
-    } else {
-      gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
+    if (time_flag) {
+      header += fmt::format("ITEM: TIME\n{0:.16g}\n", compute_time());
     }
-    gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
+
+    header += fmt::format("ITEM: TIMESTEP\n{}\n", update->ntimestep);
+    header += fmt::format("ITEM: NUMBER OF ATOMS\n{}\n", ndump);
+    if (domain->triclinic == 0) {
+      header += fmt::format("ITEM: BOX BOUNDS {}\n", boundstr);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxxlo, boxxhi);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxylo, boxyhi);
+      header += fmt::format("{0:-1.16e} {1:-1.16e}\n", boxzlo, boxzhi);
+    } else {
+      header += fmt::format("ITEM: BOX BOUNDS xy xz yz {}\n", boundstr);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxxlo, boxxhi, boxxy);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxylo, boxyhi, boxxz);
+      header += fmt::format("{0:-1.16e} {1:-1.16e} {2:-1.16e}\n", boxzlo, boxzhi, boxyz);
+    }
+    header += fmt::format("ITEM: ATOMS {}\n", columns);
+
+    writer.write(header.c_str(), header.length());
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomGZ::write_data(int n, double *mybuf)
+void DumpAtomZstd::write_data(int n, double *mybuf)
 {
-  gzwrite(gzFp,mybuf,sizeof(char)*n);
+  writer.write(mybuf, n);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustomGZ::write()
+void DumpAtomZstd::write()
 {
-  DumpCustom::write();
+  DumpAtom::write();
   if (filewriter) {
     if (multifile) {
-      gzclose(gzFp);
-      gzFp = NULL;
+      writer.close();
     } else {
-      if (flush_flag)
-        gzflush(gzFp,Z_SYNC_FLUSH);
+      if (flush_flag && writer.isopen()) {
+        writer.flush();
+      }
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-int DumpCustomGZ::modify_param(int narg, char **arg)
+int DumpAtomZstd::modify_param(int narg, char **arg)
 {
-  int consumed = DumpCustom::modify_param(narg, arg);
+  int consumed = DumpAtom::modify_param(narg, arg);
   if(consumed == 0) {
-    if (strcmp(arg[0],"compression_level") == 0) {
-      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-      int min_level = Z_DEFAULT_COMPRESSION;
-      int max_level = Z_BEST_COMPRESSION;
-      compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-      if (compression_level < min_level || compression_level > max_level)
-        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
-      return 2;
+    try {
+      if (strcmp(arg[0],"checksum") == 0) {
+        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
+        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
+        else error->all(FLERR,"Illegal dump_modify command");
+        return 2;
+      } else if (strcmp(arg[0],"compression_level") == 0) {
+        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
+        writer.setCompressionLevel(compression_level);
+        return 2;
+      }
+    } catch (FileWriterException & e) {
+      error->one(FLERR, e.what());
     }
   }
   return consumed;
 }
+
+#endif

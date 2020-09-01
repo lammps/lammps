@@ -189,6 +189,27 @@ class lammps(object):
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
 
+    self.lib.lammps_gather.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather.restype = None
+
+    self.lib.lammps_gather_concat.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_concat.restype = None
+
+    self.lib.lammps_gather_subset.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
+    self.lib.lammps_gather_subset.restype = None
+
+    self.lib.lammps_scatter.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter.restype = None
+
+    self.lib.lammps_scatter_subset.argtypes = \
+      [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
+    self.lib.lammps_scatter_subset.restype = None
+
+
     self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
     self.lib.lammps_find_pair_neighlist.restype  = c_int
 
@@ -645,6 +666,66 @@ class lammps(object):
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
   def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
+    if name: name = name.encode()
+    self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+
+  # return vector of atom/compute/fix properties gathered across procs
+  # 3 variants to match src/library.cpp
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # returned data is a 1d vector - doc how it is ordered?
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+  def gather(self,name,type,count):
+    if name: name = name.encode()
+    natoms = self.lib.lammps_get_natoms(self.lmp)
+    if type == 0:
+      data = ((count*natoms)*c_int)()
+      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+    elif type == 1:
+      data = ((count*natoms)*c_double)()
+      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+    else: return None
+    return data
+
+  def gather_concat(self,name,type,count):
+    if name: name = name.encode()
+    natoms = self.lib.lammps_get_natoms(self.lmp)
+    if type == 0:
+      data = ((count*natoms)*c_int)()
+      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+    elif type == 1:
+      data = ((count*natoms)*c_double)()
+      self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+    else: return None
+    return data
+
+  def gather_subset(self,name,type,count,ndata,ids):
+    if name: name = name.encode()
+    if type == 0:
+      data = ((count*ndata)*c_int)()
+      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+    elif type == 1:
+      data = ((count*ndata)*c_double)()
+      self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+    else: return None
+    return data
+
+  # scatter vector of atom/compute/fix properties across procs
+  # 2 variants to match src/library.cpp
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # assume data is of correct type and length, as created by gather_atoms()
+  # NOTE: need to insure are converting to/from correct Python type
+  #   e.g. for Python list or NumPy or ctypes
+
+  def scatter(self,name,type,count,data):
+    if name: name = name.encode()
+    self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+
+  def scatter_subset(self,name,type,count,ndata,ids,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
 

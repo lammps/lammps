@@ -1908,7 +1908,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute for fix pafi must have 9 fields per atom*
    Self-explanatory.
- 
+
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.
 

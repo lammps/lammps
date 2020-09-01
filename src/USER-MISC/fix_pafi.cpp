@@ -100,9 +100,9 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
 
-  temperature = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
-  seed = force->inumeric(FLERR,arg[6]);
+  temperature = utils::numeric(FLERR,arg[4]);
+  t_period = utils::numeric(FLERR,arg[5]);
+  seed = utils::inumeric(FLERR,arg[6]);
   // TODO UNITS
   gamma = 1. / t_period / force->ftm2v;
   sqrtD = sqrt(1.) * sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e*temperature) / force->ftm2v;

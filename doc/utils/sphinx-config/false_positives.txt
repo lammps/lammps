@@ -1241,6 +1241,7 @@ hydrostatically
 Hynninen
 Hyoungki
 hyperdynamics
+hyperplane
 hyperradius
 hyperspherical
 hysteretic

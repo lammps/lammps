@@ -729,6 +729,47 @@ class lammps(object):
     if name: name = name.encode()
     self.lib.lammps_scatter_subset(self.lmp,name,type,count,ndata,ids,data)
 
+   # -------------------------------------------------------------------------
+
+  def encode_image_flags(self,ix,iy,iz):
+    """ convert 3 integers with image flags for x-, y-, and z-direction
+    into a single integer like it is used internally in LAMMPS
+
+    This method is a wrapper around the :cpp:func:`lammps_encode_image_flags`
+    function of library interface.
+
+    :param ix: x-direction image flag
+    :type  ix: int
+    :param iy: y-direction image flag
+    :type  iy: int
+    :param iz: z-direction image flag
+    :type  iz: int
+    :return: encoded image flags
+    :rtype: lammps.c_imageint
+    """
+    return self.lib.lammps_encode_image_flags(ix,iy,iz)
+
+  # -------------------------------------------------------------------------
+
+  def decode_image_flags(self,image):
+    """ Convert encoded image flag integer into list of three regular integers.
+
+    This method is a wrapper around the :cpp:func:`lammps_decode_image_flags`
+    function of library interface.
+
+    :param image: encoded image flags
+    :type image:  lammps.c_imageint
+    :return: list of three image flags in x-, y-, and z- direction
+    :rtype: list of 3 int
+    """
+
+    flags = (c_int*3)()
+    self.lib.lammps_decode_image_flags(image,byref(flags))
+
+    return [int(i) for i in flags]
+
+  # -------------------------------------------------------------------------
+
   # create N atoms on all procs
   # N = global number of atoms
   # id = ID of each atom (optional, can be None)

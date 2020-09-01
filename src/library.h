@@ -132,6 +132,14 @@ int   lammps_set_variable(void *, char *, char *);
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
+
+void lammps_gather(void *, char *, int, int, void *);
+void lammps_gather_concat(void *, char *, int, int, void *);
+void lammps_gather_subset(void *, char *, int, int, int, int *, void *);
+void lammps_scatter(void *, char *, int, int, void *);
+void lammps_scatter_subset(void *, char *, int, int, int, int *, void *);
+
+
 void lammps_gather_atoms(void *, char *, int, int, void *);
 void lammps_gather_atoms_concat(void *, char *, int, int, void *);
 void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);

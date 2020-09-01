@@ -182,7 +182,7 @@ KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
     Impl::TaskExec<Kokkos::Experimental::ROCm> >
 TeamThreadRange(Impl::TaskExec<Kokkos::Experimental::ROCm>& thread,
                 const iType1& begin, const iType2& end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamThreadRangeBoundariesStruct<
       iType, Impl::TaskExec<Kokkos::Experimental::ROCm> >(thread, begin, end);
 }

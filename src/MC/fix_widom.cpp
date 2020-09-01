@@ -83,11 +83,11 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  ninsertions = force->inumeric(FLERR,arg[4]);
-  nwidom_type = force->inumeric(FLERR,arg[5]);
-  seed = force->inumeric(FLERR,arg[6]);
-  insertion_temperature = force->numeric(FLERR,arg[7]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  ninsertions = utils::inumeric(FLERR,arg[4],false,lmp);
+  nwidom_type = utils::inumeric(FLERR,arg[5],false,lmp);
+  seed = utils::inumeric(FLERR,arg[6],false,lmp);
+  insertion_temperature = utils::numeric(FLERR,arg[7],false,lmp);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix Widom command");
   if (ninsertions < 0) error->all(FLERR,"Illegal fix Widom command");
@@ -234,7 +234,7 @@ void FixWidom::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
-      charge = force->numeric(FLERR,arg[iarg+1]);
+      charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       charge_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
@@ -242,7 +242,7 @@ void FixWidom::options(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
-      energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      energy_intra = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix Widom command");
   }

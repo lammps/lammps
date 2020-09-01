@@ -67,9 +67,9 @@ void Temper::command(int narg, char **arg)
   if (narg != 6 && narg != 7)
     error->universe_all(FLERR,"Illegal temper command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  nevery = force->inumeric(FLERR,arg[1]);
-  double temp = force->numeric(FLERR,arg[2]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+  double temp = utils::numeric(FLERR,arg[2],false,lmp);
 
   // ignore temper command, if walltime limit was already reached
 
@@ -80,11 +80,11 @@ void Temper::command(int narg, char **arg)
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
-  seed_swap = force->inumeric(FLERR,arg[4]);
-  seed_boltz = force->inumeric(FLERR,arg[5]);
+  seed_swap = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
 
   my_set_temp = universe->iworld;
-  if (narg == 7) my_set_temp = force->inumeric(FLERR,arg[6]);
+  if (narg == 7) my_set_temp = utils::inumeric(FLERR,arg[6],false,lmp);
   if ((my_set_temp < 0) || (my_set_temp >= universe->nworlds))
     error->universe_one(FLERR,"Illegal temperature index");
 

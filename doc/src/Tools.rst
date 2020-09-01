@@ -89,7 +89,6 @@ Miscellaneous tools
    :columns: 6
 
    * :ref:`CMake <cmake>`
-   * :ref:`doxygen <doxygen>`
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
@@ -251,21 +250,6 @@ coordinates in LAMMPS or other formats.
 See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
-
-----------
-
-.. _doxygen:
-
-doxygen tool
---------------------------
-
-The tools/doxygen directory contains a shell script called
-doxygen.sh which can generate a call graph and API lists using
-the `Doxygen software <http://doxygen.org>`_.
-
-See the included README file for details.
-
-The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
 ----------
 

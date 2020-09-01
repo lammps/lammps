@@ -115,7 +115,7 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
     ptr++;
   }
 
-  double threshold = force->numeric(FLERR, arg[4]);
+  double threshold = utils::numeric(FLERR, arg[4],false,lmp);
   if (threshold < 0.0)
     error->all(FLERR,
                "Illegal compute ptm/atom command (threshold is negative)");

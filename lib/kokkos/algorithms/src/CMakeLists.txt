@@ -7,9 +7,15 @@ KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 #-----------------------------------------------------------------------------
 
-FILE(GLOB HEADERS *.hpp)
-FILE(GLOB SOURCES *.cpp)
-LIST(APPEND HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h)
+FILE(GLOB ALGO_HEADERS *.hpp)
+FILE(GLOB ALGO_SOURCES *.cpp)
+LIST(APPEND ALGO_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h)
+
+INSTALL (
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+  DESTINATION ${KOKKOS_HEADER_DIR}
+  FILES_MATCHING PATTERN "*.hpp"
+)
 
 #-----------------------------------------------------------------------------
 
@@ -17,8 +23,8 @@ LIST(APPEND HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h)
 # These will get ignored for standalone CMake and a true interface library made
 KOKKOS_ADD_INTERFACE_LIBRARY(
   kokkosalgorithms
-  HEADERS ${HEADERS}
-  SOURCES ${SOURCES}
+  HEADERS ${ALGO_HEADERS}
+  SOURCES ${ALGO_SOURCES}
 )
 KOKKOS_LIB_INCLUDE_DIRECTORIES(kokkosalgorithms
   ${KOKKOS_TOP_BUILD_DIR}

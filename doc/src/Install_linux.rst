@@ -79,13 +79,13 @@ To get a copy of the current potentials files:
 which will download the potentials files to
 ``/usr/share/lammps-stable/potentials``.  The ``lmp_stable`` binary is
 hard-coded to look for potential files in this directory (it does not
-use the `LAMMPS_POTENTIALS` environment variable, as described
+use the ``LAMMPS_POTENTIALS`` environment variable, as described
 in :doc:`pair_coeff <pair_coeff>` command).
 
 The ``lmp_stable`` binary is built with the :ref:`KIM package <kim>` which
-results in the above command also installing the `kim-api` binaries when LAMMPS
+results in the above command also installing the ``kim-api`` binaries when LAMMPS
 is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
-can install the `openkim-models` package
+can install the ``openkim-models`` package
 
 .. code-block:: bash
 

@@ -45,7 +45,7 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  k_spring = force->numeric(FLERR,arg[3]);
+  k_spring = utils::numeric(FLERR,arg[3],false,lmp);
 
   int n = strlen(arg[4]) + 1;
   idchunk = new char[n];

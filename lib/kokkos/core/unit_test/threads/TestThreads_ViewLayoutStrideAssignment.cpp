@@ -44,3 +44,4 @@
 
 #include <threads/TestThreads_Category.hpp>
 #include <TestViewLayoutStrideAssignment.hpp>
+#include <TestIrregularLayout.hpp>

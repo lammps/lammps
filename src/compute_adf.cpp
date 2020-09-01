@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "error.h"
 #include "comm.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,7 +68,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   ordinate_style = DEGREE;
   cutflag = 0;
 
-  nbin = force->inumeric(FLERR,arg[3]);
+  nbin = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nbin < 1) error->all(FLERR,"Illegal compute adf command");
 
   // optional args
@@ -134,19 +135,19 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     cutflag = 1;
     iarg = 4;
     for (int m = 0; m < ntriples; m++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[m],ihi[m]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[m],jhi[m]);
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[m],khi[m]);
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[m],ihi[m],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[m],jhi[m],error);
+      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,klo[m],khi[m],error);
       if (ilo[m] > ihi[m] ||
           jlo[m] > jhi[m] ||
           klo[m] > khi[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerj[m] = force->numeric(FLERR,arg[iarg+3]);
-      rcutouterj[m] = force->numeric(FLERR,arg[iarg+4]);
+      rcutinnerj[m] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      rcutouterj[m] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (rcutinnerj[m] < 0.0 || rcutinnerj[m] >= rcutouterj[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerk[m] = force->numeric(FLERR,arg[iarg+5]);
-      rcutouterk[m] = force->numeric(FLERR,arg[iarg+6]);
+      rcutinnerk[m] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      rcutouterk[m] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
       if (rcutinnerk[m] < 0.0 || rcutinnerk[m] >= rcutouterk[m])
         error->all(FLERR,"Illegal compute adf command");
       iarg += nargsperadf;

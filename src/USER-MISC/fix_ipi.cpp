@@ -185,7 +185,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
     error->warning(FLERR,"Fix ipi always uses group all");
 
   host = strdup(arg[3]);
-  port = force->inumeric(FLERR,arg[4]);
+  port = utils::inumeric(FLERR,arg[4],false,lmp);
 
   inet   = ((narg > 5) && (strcmp(arg[5],"unix") == 0) ) ? 0 : 1;
   master = (comm->me==0) ? 1 : 0;

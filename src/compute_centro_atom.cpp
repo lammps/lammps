@@ -43,7 +43,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
-  else nnn = force->inumeric(FLERR,arg[3]);
+  else nnn = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // default values
 

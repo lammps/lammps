@@ -413,18 +413,18 @@ void PairLJCutTIP4PLongSoft::settings(int narg, char **arg)
 {
   if (narg < 9 || narg > 10) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(FLERR,arg[0]);
-  typeH = force->inumeric(FLERR,arg[1]);
-  typeB = force->inumeric(FLERR,arg[2]);
-  typeA = force->inumeric(FLERR,arg[3]);
-  qdist = force->numeric(FLERR,arg[4]);
-  nlambda = force->numeric(FLERR,arg[5]);
-  alphalj = force->numeric(FLERR,arg[6]);
-  alphac = force->numeric(FLERR,arg[7]);
+  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
+  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  nlambda = utils::numeric(FLERR,arg[5],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[6],false,lmp);
+  alphac = utils::numeric(FLERR,arg[7],false,lmp);
 
-  cut_lj_global = force->numeric(FLERR,arg[8]);
+  cut_lj_global = utils::numeric(FLERR,arg[8],false,lmp);
   if (narg == 9) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[9]);
+  else cut_coul = utils::numeric(FLERR,arg[9],false,lmp);
 
   // reset cutoffs that have been explicitly set
 

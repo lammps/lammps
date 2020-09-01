@@ -1692,7 +1692,7 @@ USER-MEAMC package
 **Contents:**
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the (obsolete) "MEAM" package
+translated from the Fortran version in the (obsolete) MEAM package
 to plain C++. The USER-MEAMC fully replaces the MEAM package, which
 has been removed from LAMMPS after the 12 December 2018 version.
 

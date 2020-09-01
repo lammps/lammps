@@ -71,7 +71,7 @@ class TeamPolicyInternal<Kokkos::Experimental::ROCm, Properties...>
  public:
   using execution_policy = TeamPolicyInternal;
   using execution_space  = Kokkos::Experimental::ROCm;
-  typedef PolicyTraits<Properties...> traits;
+  using traits           = PolicyTraits<Properties...>;
 
   TeamPolicyInternal& operator=(const TeamPolicyInternal& p) {
     m_league_size            = p.m_league_size;
@@ -143,44 +143,6 @@ class TeamPolicyInternal<Kokkos::Experimental::ROCm, Properties...>
 
   inline int chunk_size() const { return m_chunk_size; }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  /** \brief set chunk_size to a discrete value*/
-  KOKKOS_INLINE_FUNCTION TeamPolicyInternal
-  set_chunk_size(typename traits::index_type chunk_size_) const {
-    TeamPolicyInternal p = *this;
-    p.m_chunk_size       = chunk_size_;
-    return p;
-  }
-
-  /** \brief set per team scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerTeamValue& per_team) const {
-    TeamPolicyInternal p         = *this;
-    p.m_team_scratch_size[level] = per_team.value;
-    return p;
-  }
-
-  /** \brief set per thread scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p           = *this;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  }
-
-  /** \brief set per thread and per team scratch size for a specific level of
-   * the scratch hierarchy */
-  inline TeamPolicyInternal set_scratch_size(
-      const int& level, const PerTeamValue& per_team,
-      const PerThreadValue& per_thread) const {
-    TeamPolicyInternal p           = *this;
-    p.m_team_scratch_size[level]   = per_team.value;
-    p.m_thread_scratch_size[level] = per_thread.value;
-    return p;
-  }
-#else
   /** \brief set chunk_size to a discrete value*/
   inline TeamPolicyInternal& set_chunk_size(
       typename traits::index_type chunk_size_) {
@@ -213,50 +175,13 @@ class TeamPolicyInternal<Kokkos::Experimental::ROCm, Properties...>
     m_thread_scratch_size[level] = per_thread.value;
     return *this;
   }
-#endif
-
- protected:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  /** \brief set chunk_size to a discrete value*/
-  inline TeamPolicyInternal internal_set_chunk_size(
-      typename traits::index_type chunk_size_) {
-    m_chunk_size = chunk_size_;
-    return *this;
-  }
-
-  /** \brief set per team scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerTeamValue& per_team) {
-    m_team_scratch_size[level] = per_team.value;
-    return *this;
-  }
-
-  /** \brief set per thread scratch size for a specific level of the scratch
-   * hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerThreadValue& per_thread) {
-    m_thread_scratch_size[level] = per_thread.value;
-    return *this;
-  }
-
-  /** \brief set per thread and per team scratch size for a specific level of
-   * the scratch hierarchy */
-  inline TeamPolicyInternal internal_set_scratch_size(
-      const int& level, const PerTeamValue& per_team,
-      const PerThreadValue& per_thread) {
-    m_team_scratch_size[level]   = per_team.value;
-    m_thread_scratch_size[level] = per_thread.value;
-    return *this;
-  }
-#endif
 
  public:
   // TODO:  evaluate proper team_size_max requirements
   template <class Functor_Type>
   KOKKOS_INLINE_FUNCTION static int team_size_max(const Functor_Type& functor) {
-    typedef typename Kokkos::Impl::FunctorValueTraits<
-        Functor_Type, typename traits::work_tag>::value_type value_type;
+    using value_type = typename Kokkos::Impl::FunctorValueTraits<
+        Functor_Type, typename traits::work_tag>::value_type;
     return team_size_recommended(functor);
     // return std::min(Kokkos::Impl::get_max_tile_size() / sizeof(value_type),
     // Kokkos::Impl::get_max_tile_thread());
@@ -313,13 +238,13 @@ class TeamPolicyInternal<Kokkos::Experimental::ROCm, Properties...>
     return level == 0 ? 1024 * 40 : 1024 * 1204 * 20;
   }
 
-  typedef Impl::ROCmTeamMember member_type;
+  using member_type = Impl::ROCmTeamMember;
 };
 
 struct ROCmTeamMember {
-  typedef Kokkos::Experimental::ROCm execution_space;
-  typedef Kokkos::ScratchMemorySpace<Kokkos::Experimental::ROCm>
-      scratch_memory_space;
+  using execution_space = Kokkos::Experimental::ROCm;
+  using scratch_memory_space =
+      Kokkos::ScratchMemorySpace<Kokkos::Experimental::ROCm>;
 
   KOKKOS_INLINE_FUNCTION
   const scratch_memory_space& team_shmem() const {
@@ -406,7 +331,7 @@ struct ROCmTeamMember {
   template <class ValueType, class JoinOp>
   KOKKOS_INLINE_FUNCTION ValueType team_reduce(const ValueType& value,
                                                const JoinOp& op_in) const {
-    typedef JoinLambdaAdapter<ValueType, JoinOp> JoinOpFunctor;
+    using JoinOpFunctor = JoinLambdaAdapter<ValueType, JoinOp>;
     const JoinOpFunctor op(op_in);
 
     tile_static ValueType buffer[512];
@@ -471,7 +396,7 @@ struct ROCmTeamMember {
   KOKKOS_INLINE_FUNCTION
       typename std::enable_if<is_reducer<ReducerType>::value>::type
       team_reduce(const ReducerType& reducer) const {
-    typedef typename ReducerType::value_type value_type;
+    using value_type = typename ReducerType::value_type;
 
     tile_static value_type buffer[512];
     const auto local = lindex();
@@ -533,7 +458,7 @@ struct ROCmTeamMember {
   template <class ValueType, class JoinOp>
   KOKKOS_INLINE_FUNCTION ValueType thread_reduce(const ValueType& value,
                                                  const JoinOp& op_in) const {
-    typedef JoinLambdaAdapter<ValueType, JoinOp> JoinOpFunctor;
+    using JoinOpFunctor = JoinLambdaAdapter<ValueType, JoinOp>;
     const JoinOpFunctor op(op_in);
 
     const auto local = m_idx.local[0];
@@ -693,7 +618,7 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
                   Kokkos::Experimental::ROCm> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
  public:
   inline ParallelFor(const FunctorType& f, const Policy& policy) {
@@ -729,11 +654,11 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
                   Kokkos::Experimental::ROCm> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> Policy;
-  using RP = Policy;
-  typedef typename Policy::array_index_type array_index_type;
-  typedef typename Policy::index_type index_type;
-  typedef typename Policy::launch_bounds LaunchBounds;
+  using Policy           = Kokkos::MDRangePolicy<Traits...>;
+  using RP               = Policy;
+  using array_index_type = typename Policy::array_index_type;
+  using index_type       = typename Policy::index_type;
+  using LaunchBounds     = typename Policy::launch_bounds;
 
   const FunctorType m_functor;
   const Policy m_rp;
@@ -821,8 +746,8 @@ class ParallelFor<F, Kokkos::TeamPolicy<Traits...>,
                   Kokkos::Experimental::ROCm> {
   using Policy =
       Kokkos::Impl::TeamPolicyInternal<Kokkos::Experimental::ROCm, Traits...>;
-  typedef Kokkos::Impl::FunctorValueTraits<F, typename Policy::work_tag>
-      ValueTraits;
+  using ValueTraits =
+      Kokkos::Impl::FunctorValueTraits<F, typename Policy::work_tag>;
 
  public:
   inline ParallelFor(const F& f, const Policy& policy) {
@@ -870,7 +795,7 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
                      Kokkos::Experimental::ROCm> {
  public:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
   // TODO: Use generic lambdas instead
   struct invoke_fn {
@@ -889,10 +814,10 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
                               void*>::type = nullptr) {
-    typedef typename Policy::work_tag Tag;
-    typedef Kokkos::Impl::FunctorValueTraits<FunctorType, Tag> ValueTraits;
-    typedef Kokkos::Impl::FunctorValueInit<FunctorType, Tag> ValueInit;
-    typedef typename ValueTraits::reference_type reference_type;
+    using Tag            = typename Policy::work_tag;
+    using ValueTraits    = Kokkos::Impl::FunctorValueTraits<FunctorType, Tag>;
+    using ValueInit      = Kokkos::Impl::FunctorValueInit<FunctorType, Tag>;
+    using reference_type = typename ValueTraits::reference_type;
 
     const auto total_size = policy.end() - policy.begin();
 
@@ -910,16 +835,16 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
   inline ParallelReduce(const FunctorType& f, Policy policy,
                         const ReducerType& reducer) {
-    typedef typename Policy::work_tag Tag;
+    using Tag = typename Policy::work_tag;
 
-    typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                               FunctorType, ReducerType>
-        ReducerConditional;
-    typedef typename ReducerConditional::type ReducerTypeFwd;
-    typedef Kokkos::Impl::FunctorValueTraits<FunctorType, Tag> ValueTraits;
-    typedef Kokkos::Impl::FunctorValueInit<ReducerType, Tag> ValueInit;
+    using ReducerConditional =
+        Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                           FunctorType, ReducerType>;
+    using ReducerTypeFwd = typename ReducerConditional::type;
+    using ValueTraits    = Kokkos::Impl::FunctorValueTraits<FunctorType, Tag>;
+    using ValueInit      = Kokkos::Impl::FunctorValueInit<ReducerType, Tag>;
 
-    typedef typename ValueTraits::reference_type reference_type;
+    using reference_type = typename ValueTraits::reference_type;
 
     const auto total_size = policy.end() - policy.begin();
 
@@ -946,33 +871,33 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                      Kokkos::Experimental::ROCm> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> Policy;
-  using RP = Policy;
-  typedef typename Policy::array_index_type array_index_type;
-  typedef typename Policy::index_type index_type;
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::member_type Member;
-  typedef typename Policy::launch_bounds LaunchBounds;
+  using Policy           = Kokkos::MDRangePolicy<Traits...>;
+  using RP               = Policy;
+  using array_index_type = typename Policy::array_index_type;
+  using index_type       = typename Policy::index_type;
+  using WorkTag          = typename Policy::work_tag;
+  using Member           = typename Policy::member_type;
+  using LaunchBounds     = typename Policy::launch_bounds;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+                                  WorkTag, void>::type;
 
-  typedef Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>
-      ValueTraits;
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd> ValueJoin;
+  using ValueTraits =
+      Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
 
  public:
-  typedef typename ValueTraits::pointer_type pointer_type;
-  typedef typename ValueTraits::value_type value_type;
-  typedef typename ValueTraits::reference_type reference_type;
-  typedef FunctorType functor_type;
-  typedef Kokkos::Experimental::ROCm::size_type size_type;
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using value_type     = typename ValueTraits::value_type;
+  using reference_type = typename ValueTraits::reference_type;
+  using functor_type   = FunctorType;
+  using size_type      = Kokkos::Experimental::ROCm::size_type;
 
   // Algorithmic constraints: blockSize is a power of two AND blockDim.y ==
   // blockDim.z == 1
@@ -984,10 +909,9 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   value_type* m_scratch_space;
   size_type* m_scratch_flags;
 
-  typedef typename Kokkos::Impl::Reduce::DeviceIterateTile<
+  using DeviceIteratePattern = typename Kokkos::Impl::Reduce::DeviceIterateTile<
       Policy::rank, Policy, FunctorType, typename Policy::work_tag,
-      reference_type>
-      DeviceIteratePattern;
+      reference_type>;
 
   KOKKOS_INLINE_FUNCTION
   void exec_range(reference_type update) const {
@@ -1129,9 +1053,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Traits...>, ReducerType,
                      Kokkos::Experimental::ROCm> {
   using Policy =
       Kokkos::Impl::TeamPolicyInternal<Kokkos::Experimental::ROCm, Traits...>;
-  typedef Kokkos::Impl::FunctorValueTraits<FunctorType,
-                                           typename Policy::work_tag>
-      ValueTraits;
+  using ValueTraits =
+      Kokkos::Impl::FunctorValueTraits<FunctorType, typename Policy::work_tag>;
 
  public:
   struct invoke_fn {
@@ -1156,9 +1079,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Traits...>, ReducerType,
     const int scratch_size1 = policy.scratch_size(1, team_size);
     const int total_size    = league_size * team_size;
 
-    typedef Kokkos::Impl::FunctorValueInit<FunctorType,
-                                           typename Policy::work_tag>
-        ValueInit;
+    using ValueInit =
+        Kokkos::Impl::FunctorValueInit<FunctorType, typename Policy::work_tag>;
     if (total_size == 0) {
       if (result_view.data()) {
         ValueInit::init(f, result_view.data());
@@ -1201,12 +1123,11 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Traits...>, ReducerType,
     const int vector_length = policy.vector_length();
     const int total_size    = league_size * team_size;
 
-    typedef Kokkos::Impl::FunctorValueInit<ReducerType,
-                                           typename Policy::work_tag>
-        ValueInit;
-    typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                               FunctorType, ReducerType>
-        ReducerConditional;
+    using ValueInit =
+        Kokkos::Impl::FunctorValueInit<ReducerType, typename Policy::work_tag>;
+    using ReducerConditional =
+        Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                           FunctorType, ReducerType>;
     if (total_size == 0) {
       if (reducer.view().data()) {
         ValueInit::init(ReducerConditional::select(f, reducer),
@@ -1251,9 +1172,9 @@ template <class FunctorType, class... Traits>
 class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                    Kokkos::Experimental::ROCm> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag Tag;
-  typedef Kokkos::Impl::FunctorValueTraits<FunctorType, Tag> ValueTraits;
+  using Policy      = Kokkos::RangePolicy<Traits...>;
+  using Tag         = typename Policy::work_tag;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, Tag>;
 
  public:
   //----------------------------------------
@@ -1277,9 +1198,9 @@ template <class FunctorType, class ReturnType, class... Traits>
 class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                             ReturnType, Kokkos::Experimental::ROCm> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag Tag;
-  typedef Kokkos::Impl::FunctorValueTraits<FunctorType, Tag> ValueTraits;
+  using Policy      = Kokkos::RangePolicy<Traits...>;
+  using Tag         = typename Policy::work_tag;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, Tag>;
 
  public:
   //----------------------------------------
@@ -1307,8 +1228,8 @@ class ParallelScan<FunctorType, Kokkos::TeamPolicy<Traits...>,
  private:
   using Policy =
       Kokkos::Impl::TeamPolicyInternal<Kokkos::Experimental::ROCm, Traits...>;
-  typedef typename Policy::work_tag Tag;
-  typedef Kokkos::Impl::FunctorValueTraits<FunctorType, Tag> ValueTraits;
+  using Tag         = typename Policy::work_tag;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, Tag>;
 
  public:
   //----------------------------------------
@@ -1339,7 +1260,7 @@ namespace Kokkos {
 namespace Impl {
 template <typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, ROCmTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const iType start;
   const iType end;
   const iType increment;
@@ -1374,7 +1295,7 @@ struct TeamThreadRangeBoundariesStruct<iType, ROCmTeamMember> {
 
 template <typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType, ROCmTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const index_type start;
   const index_type end;
   const index_type increment;
@@ -1450,7 +1371,7 @@ template <typename iType1, typename iType2>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::ROCmTeamMember>
 TeamThreadRange(const Impl::ROCmTeamMember& thread, iType1 begin, iType2 end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamThreadRangeBoundariesStruct<iType, Impl::ROCmTeamMember>(
       thread, begin, end);
 }
@@ -1743,8 +1664,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::ROCmTeamMember>&
         loop_boundaries,
     const FunctorType& lambda) {
-  typedef Kokkos::Impl::FunctorValueTraits<FunctorType, void> ValueTraits;
-  typedef typename ValueTraits::value_type value_type;
+  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
+  using value_type  = typename ValueTraits::value_type;
 
   value_type val          = value_type();
   const int vector_length = loop_boundaries.thread.vector_length();

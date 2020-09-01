@@ -156,7 +156,7 @@ int MinSpinLBFGS::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     double discrete_factor;
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     maxepsrot = MY_2PI / (10 * discrete_factor);
     return 2;
   }

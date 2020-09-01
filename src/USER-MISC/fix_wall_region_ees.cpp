@@ -54,9 +54,9 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   idregion = new char[n];
   strcpy(idregion,arg[3]);
 
-  epsilon = force->numeric(FLERR,arg[4]);
-  sigma = force->numeric(FLERR,arg[5]);
-  cutoff = force->numeric(FLERR,arg[6]);
+  epsilon = utils::numeric(FLERR,arg[4],false,lmp);
+  sigma = utils::numeric(FLERR,arg[5],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[6],false,lmp);
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region/ees cutoff <= 0.0");
 

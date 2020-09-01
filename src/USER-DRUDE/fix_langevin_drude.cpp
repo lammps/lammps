@@ -55,12 +55,12 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr_core,&arg[3][2]);
     tstyle_core = EQUAL;
   } else {
-    t_start_core = force->numeric(FLERR,arg[3]);
+    t_start_core = utils::numeric(FLERR,arg[3],false,lmp);
     t_target_core = t_start_core;
     tstyle_core = CONSTANT;
   }
-  t_period_core = force->numeric(FLERR,arg[4]);
-  int seed_core = force->inumeric(FLERR,arg[5]);
+  t_period_core = utils::numeric(FLERR,arg[4],false,lmp);
+  int seed_core = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // drude temperature
   tstr_drude = NULL;
@@ -70,12 +70,12 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr_drude,&arg[6][2]);
     tstyle_drude = EQUAL;
   } else {
-    t_start_drude = force->numeric(FLERR,arg[6]);
+    t_start_drude = utils::numeric(FLERR,arg[6],false,lmp);
     t_target_drude = t_start_drude;
     tstyle_drude = CONSTANT;
   }
-  t_period_drude = force->numeric(FLERR,arg[7]);
-  int seed_drude = force->inumeric(FLERR,arg[8]);
+  t_period_drude = utils::numeric(FLERR,arg[7],false,lmp);
+  int seed_drude = utils::inumeric(FLERR,arg[8],false,lmp);
 
   // error checks
   if (t_period_core <= 0.0)

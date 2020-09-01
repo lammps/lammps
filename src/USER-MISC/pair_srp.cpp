@@ -362,12 +362,12 @@ void PairSRP::settings(int narg, char **arg)
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair_style srp requires atom IDs");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   // wildcard
   if (strcmp(arg[1],"*") == 0) {
     btype = 0;
   } else {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");
   }
@@ -401,7 +401,7 @@ void PairSRP::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      bptype = force->inumeric(FLERR,arg[iarg+1]);
+      bptype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if ((bptype < 1) || (bptype > atom->ntypes))
         error->all(FLERR,"Illegal bond particle type for srp");
       iarg += 2;
@@ -429,12 +429,12 @@ void PairSRP::coeff(int narg, char **arg)
 
     // set ij bond-bond cutoffs
     int ilo, ihi, jlo, jhi;
-    force->bounds(FLERR,arg[0], bptype, ilo, ihi);
-    force->bounds(FLERR,arg[1], bptype, jlo, jhi);
+    utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
+    utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
 
-    double a0_one = force->numeric(FLERR,arg[2]);
+    double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
     double cut_one = cut_global;
-    if (narg == 4)  cut_one = force->numeric(FLERR,arg[3]);
+    if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++)

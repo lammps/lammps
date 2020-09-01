@@ -50,8 +50,8 @@ namespace {
 
 template <class Scalar, class ExecutionSpace>
 struct SumPlain {
-  typedef ExecutionSpace execution_space;
-  typedef typename Kokkos::View<Scalar*, execution_space> type;
+  using execution_space = ExecutionSpace;
+  using type            = typename Kokkos::View<Scalar*, execution_space>;
 
   type view;
 
@@ -63,9 +63,9 @@ struct SumPlain {
 
 template <class Scalar, class ExecutionSpace>
 struct SumInitJoinFinalValueType {
-  typedef ExecutionSpace execution_space;
-  typedef typename Kokkos::View<Scalar*, execution_space> type;
-  typedef Scalar value_type;
+  using execution_space = ExecutionSpace;
+  using type            = typename Kokkos::View<Scalar*, execution_space>;
+  using value_type      = Scalar;
 
   type view;
 
@@ -85,9 +85,9 @@ struct SumInitJoinFinalValueType {
 
 template <class Scalar, class ExecutionSpace>
 struct SumInitJoinFinalValueType2 {
-  typedef ExecutionSpace execution_space;
-  typedef typename Kokkos::View<Scalar*, execution_space> type;
-  typedef Scalar value_type;
+  using execution_space = ExecutionSpace;
+  using type            = typename Kokkos::View<Scalar*, execution_space>;
+  using value_type      = Scalar;
 
   type view;
 
@@ -107,9 +107,9 @@ struct SumInitJoinFinalValueType2 {
 
 template <class Scalar, class ExecutionSpace>
 struct SumInitJoinFinalValueTypeArray {
-  typedef ExecutionSpace execution_space;
-  typedef typename Kokkos::View<Scalar*, execution_space> type;
-  typedef Scalar value_type[];
+  using execution_space = ExecutionSpace;
+  using type            = typename Kokkos::View<Scalar*, execution_space>;
+  using value_type      = Scalar[];
 
   type view;
   int n;
@@ -140,9 +140,9 @@ struct SumInitJoinFinalValueTypeArray {
 
 template <class Scalar, class ExecutionSpace>
 struct SumWrongInitJoinFinalValueType {
-  typedef ExecutionSpace execution_space;
-  typedef typename Kokkos::View<Scalar*, execution_space> type;
-  typedef Scalar value_type;
+  using execution_space = ExecutionSpace;
+  using type            = typename Kokkos::View<Scalar*, execution_space>;
+  using value_type      = Scalar;
 
   type view;
 
@@ -162,7 +162,7 @@ struct SumWrongInitJoinFinalValueType {
 
 template <class Scalar, class ExecutionSpace>
 void TestTemplateMetaFunctions() {
-  typedef typename Kokkos::View<Scalar*, ExecutionSpace> type;
+  using type = typename Kokkos::View<Scalar*, ExecutionSpace>;
   type a("A", 100);
   /*
     int sum_plain_has_init_arg = Kokkos::Impl::FunctorHasInit< SumPlain<Scalar,

@@ -381,16 +381,16 @@ void PairTIP4PLongSoft::settings(int narg, char **arg)
 {
   if (narg != 8) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(FLERR,arg[0]);
-  typeH = force->inumeric(FLERR,arg[1]);
-  typeB = force->inumeric(FLERR,arg[2]);
-  typeA = force->inumeric(FLERR,arg[3]);
-  qdist = force->numeric(FLERR,arg[4]);
+  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
+  qdist = utils::numeric(FLERR,arg[4],false,lmp);
 
-  nlambda = force->numeric(FLERR,arg[5]);
-  alphac  = force->numeric(FLERR,arg[6]);
+  nlambda = utils::numeric(FLERR,arg[5],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[6],false,lmp);
 
-  cut_coul = force->numeric(FLERR,arg[7]);
+  cut_coul = utils::numeric(FLERR,arg[7],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

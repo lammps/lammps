@@ -263,7 +263,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   // 2nd arg = improper sub-style name
   // allow for "none" as valid sub-style name

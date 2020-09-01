@@ -51,14 +51,14 @@
 // which means "column major," the same as in Fortran, the BLAS, or
 // LAPACK.  right_type has "layout right," which means "row major,"
 // the same as in C, C++, or Java.
-typedef Kokkos::View<double**, Kokkos::LayoutLeft> left_type;
-typedef Kokkos::View<double**, Kokkos::LayoutRight> right_type;
+using left_type  = Kokkos::View<double**, Kokkos::LayoutLeft>;
+using right_type = Kokkos::View<double**, Kokkos::LayoutRight>;
 // This is a one-dimensional View, so the layout matters less.
 // However, it still has a layout!  Since its layout is not specified
 // explicitly in the type, its layout is a function of the memory
 // space.  For example, the default Cuda layout is LayoutLeft, and the
 // default Host layout is LayoutRight.
-typedef Kokkos::View<double*> view_type;
+using view_type = Kokkos::View<double*>;
 
 // parallel_for functor that fills the given View with some data.  It
 // expects to access the View by rows in parallel: each call i of
@@ -114,7 +114,7 @@ struct contraction {
 struct dot {
   view_type a;
   dot(view_type a_) : a(a_) {}
-  typedef double value_type;  // Specify type for reduction target, lsum
+  using value_type = double;  // Specify type for reduction target, lsum
   KOKKOS_INLINE_FUNCTION
   void operator()(const view_type::size_type i, double& lsum) const {
     lsum += a(i) * a(i);

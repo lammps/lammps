@@ -51,8 +51,8 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
                 error->all(FLERR, "Illegal number of arguments for fix smd/wall_surface");
 
         filename = strdup(arg[3]);
-        wall_particle_type = force->inumeric(FLERR, arg[4]);
-        wall_molecule_id = force->inumeric(FLERR, arg[5]);
+        wall_particle_type = utils::inumeric(FLERR,arg[4],false,lmp);
+        wall_molecule_id = utils::inumeric(FLERR,arg[5],false,lmp);
         if (wall_molecule_id < 65535) {
                 error->one(FLERR, "wall molcule id must be >= 65535\n");
         }
@@ -310,7 +310,9 @@ void FixSMDWallSurface::read_triangles(int pass) {
         error->all(FLERR, "Incorrect atom format in data file");
     }
 
-    normal << force->numeric(FLERR, values[2]), force->numeric(FLERR, values[3]), force->numeric(FLERR, values[4]);
+    normal << utils::numeric(FLERR, values[2], false, lmp),
+              utils::numeric(FLERR, values[3], false, lmp),
+              utils::numeric(FLERR, values[4], false, lmp);
     //cout << "normal is " << normal << endl;
 
     delete[] values;
@@ -349,7 +351,9 @@ void FixSMDWallSurface::read_triangles(int pass) {
           error->all(FLERR, "Incorrect vertex line");
       }
 
-      vert[k] << force->numeric(FLERR, values[1]), force->numeric(FLERR, values[2]), force->numeric(FLERR, values[3]);
+      vert[k] << utils::numeric(FLERR, values[1], false, lmp),
+                 utils::numeric(FLERR, values[2], false, lmp),
+                 utils::numeric(FLERR, values[3], false, lmp);
       //cout << "vertex is " << vert[k] << endl;
       //printf("%s %s %s\n", values[1], values[2], values[3]);
       delete[] values;

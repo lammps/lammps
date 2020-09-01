@@ -149,10 +149,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix bocs command");
       tstat_flag = 1;
-      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_target = t_start;
-      t_stop = force->numeric(FLERR,arg[iarg+2]);
-      t_period = force->numeric(FLERR,arg[iarg+3]);
+      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (t_start <= 0.0 || t_stop <= 0.0)
         error->all(FLERR,
                    "Target temperature for fix bocs cannot be 0.0");
@@ -167,11 +167,11 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       p_match_flag = 1;
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] =
-                                        force->numeric(FLERR,arg[iarg+1]);
+                                        utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[0] = p_stop[1] = p_stop[2] =
-                                        force->numeric(FLERR,arg[iarg+2]);
+                                        utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[0] = p_period[1] = p_period[2] =
-                                        force->numeric(FLERR,arg[iarg+3]);
+                                        utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_flag[3] = p_flag[4] = p_flag[5] = 0; // MRD
@@ -187,15 +187,15 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
         }
         p_basis_type = 0;
-        vavg = force->numeric(FLERR,arg[iarg+1]);
-        N_mol = force->inumeric(FLERR,arg[iarg+2]);
-        N_p_match = force->inumeric(FLERR,arg[iarg+3]);
+        vavg = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        N_mol = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+        N_p_match = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         p_match_coeffs = (double *) (calloc(N_p_match, sizeof(double)) );
         iarg += 4;
         if (iarg + N_p_match > narg)
           error->all(FLERR,"Illegal fix bocs command. Missing coeffs.");
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
-          p_match_coeffs[pmatchi] = force->numeric(FLERR,arg[iarg+pmatchi]);
+          p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
       } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
@@ -217,14 +217,14 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      mtchain = force->inumeric(FLERR,arg[iarg+1]);
+      mtchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       // used by FixNVTSllod to preserve non-default value
       mtchain_default_flag = 0;
       if (mtchain < 1) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      mpchain = force->inumeric(FLERR,arg[iarg+1]);
+      mpchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (mpchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
@@ -235,12 +235,12 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_tchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_tchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_pchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {

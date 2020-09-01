@@ -628,14 +628,14 @@ void PairLJCharmmCoulLongSoft::settings(int narg, char **arg)
 {
   if (narg != 5 && narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphalj = force->numeric(FLERR,arg[1]);
-  alphac  = force->numeric(FLERR,arg[2]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
 
-  cut_lj_inner = force->numeric(FLERR,arg[3]);
-  cut_lj = force->numeric(FLERR,arg[4]);
+  cut_lj_inner = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[4],false,lmp);
   if (narg == 5) cut_coul = cut_lj;
-  else cut_coul = force->numeric(FLERR,arg[5]);
+  else cut_coul = utils::numeric(FLERR,arg[5],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -648,18 +648,18 @@ void PairLJCharmmCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double lambda_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 7) {
-    eps14_one = force->numeric(FLERR,arg[5]);
-    sigma14_one = force->numeric(FLERR,arg[6]);
+    eps14_one = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[6],false,lmp);
   }
 
   int count = 0;

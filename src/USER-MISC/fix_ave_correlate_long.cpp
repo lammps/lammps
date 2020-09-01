@@ -70,8 +70,8 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nfreq = force->inumeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[4],false,lmp);
 
   restart_global = 1;
   global_freq = nfreq;
@@ -142,22 +142,22 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncorr") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      numcorrelators = force->inumeric(FLERR,arg[iarg+1]);
+      numcorrelators = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nlen") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      p = force->inumeric(FLERR,arg[iarg+1]);
+      p = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncount") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      m = force->inumeric(FLERR,arg[iarg+1]);
+      m = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg)

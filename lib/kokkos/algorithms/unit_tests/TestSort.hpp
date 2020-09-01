@@ -55,8 +55,8 @@ namespace Impl {
 
 template <class ExecutionSpace, class Scalar>
 struct is_sorted_struct {
-  typedef unsigned int value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = unsigned int;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar*, ExecutionSpace> keys;
 
@@ -69,8 +69,8 @@ struct is_sorted_struct {
 
 template <class ExecutionSpace, class Scalar>
 struct sum {
-  typedef double value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = double;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar*, ExecutionSpace> keys;
 
@@ -81,8 +81,8 @@ struct sum {
 
 template <class ExecutionSpace, class Scalar>
 struct bin3d_is_sorted_struct {
-  typedef unsigned int value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = unsigned int;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar * [3], ExecutionSpace> keys;
 
@@ -115,8 +115,8 @@ struct bin3d_is_sorted_struct {
 
 template <class ExecutionSpace, class Scalar>
 struct sum3D {
-  typedef double value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = double;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar * [3], ExecutionSpace> keys;
 
@@ -131,7 +131,7 @@ struct sum3D {
 
 template <class ExecutionSpace, typename KeyType>
 void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
-  typedef Kokkos::View<KeyType*, ExecutionSpace> KeyViewType;
+  using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
   KeyViewType keys("Keys", n);
 
   // Test sorting array with all numbers equal
@@ -166,7 +166,7 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
 
 template <class ExecutionSpace, typename KeyType>
 void test_3D_sort_impl(unsigned int n) {
-  typedef Kokkos::View<KeyType * [3], ExecutionSpace> KeyViewType;
+  using KeyViewType = Kokkos::View<KeyType * [3], ExecutionSpace>;
 
   KeyViewType keys("Keys", n * n * n);
 
@@ -186,7 +186,7 @@ void test_3D_sort_impl(unsigned int n) {
   typename KeyViewType::value_type min[3] = {0, 0, 0};
   typename KeyViewType::value_type max[3] = {100, 100, 100};
 
-  typedef Kokkos::BinOp3D<KeyViewType> BinOp;
+  using BinOp = Kokkos::BinOp3D<KeyViewType>;
   BinOp bin_op(bin_max, min, max);
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(keys, bin_op, false);
   Sorter.create_permute_vector();
@@ -215,9 +215,9 @@ void test_3D_sort_impl(unsigned int n) {
 
 template <class ExecutionSpace, typename KeyType>
 void test_dynamic_view_sort_impl(unsigned int n) {
-  typedef Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>
-      KeyDynamicViewType;
-  typedef Kokkos::View<KeyType*, ExecutionSpace> KeyViewType;
+  using KeyDynamicViewType =
+      Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>;
+  using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
 
   const size_t upper_bound    = 2 * n;
   const size_t min_chunk_size = 1024;
@@ -305,8 +305,8 @@ void test_issue_1160_impl() {
   Kokkos::deep_copy(x_, h_x);
   Kokkos::deep_copy(v_, h_v);
 
-  typedef decltype(element_) KeyViewType;
-  typedef Kokkos::BinOp1D<KeyViewType> BinOp;
+  using KeyViewType = decltype(element_);
+  using BinOp       = Kokkos::BinOp1D<KeyViewType>;
 
   int begin = 3;
   int end   = 8;

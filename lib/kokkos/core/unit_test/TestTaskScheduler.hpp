@@ -136,7 +136,7 @@ struct TestFib {
   }
 
   static void run(int i, size_t MemoryCapacity = 16000) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MinBlockSize = 64 };
     enum { MaxBlockSize = 1024 };
@@ -185,10 +185,10 @@ namespace TestTaskScheduler {
 
 template <class Scheduler>
 struct TestTaskDependence {
-  typedef Scheduler sched_type;
-  typedef Kokkos::BasicFuture<void, Scheduler> future_type;
-  typedef Kokkos::View<long, typename sched_type::execution_space> accum_type;
-  typedef void value_type;
+  using sched_type  = Scheduler;
+  using future_type = Kokkos::BasicFuture<void, Scheduler>;
+  using accum_type  = Kokkos::View<long, typename sched_type::execution_space>;
+  using value_type  = void;
 
   accum_type m_accum;
   long m_count;
@@ -224,7 +224,7 @@ struct TestTaskDependence {
   }
 
   static void run(int n) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize = 64 };
@@ -264,11 +264,11 @@ struct TestTaskTeam {
   enum { SPAN = 33 };
   // enum { SPAN = 1 };
 
-  typedef void value_type;
+  using value_type  = void;
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<void, sched_type>;
   using ExecSpace   = typename sched_type::execution_space;
-  typedef Kokkos::View<long*, ExecSpace> view_type;
+  using view_type   = Kokkos::View<long*, ExecSpace>;
 
   future_type future;
 
@@ -480,11 +480,11 @@ template <class Scheduler>
 struct TestTaskTeamValue {
   enum { SPAN = 8 };
 
-  typedef long value_type;
+  using value_type  = long;
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<value_type, sched_type>;
   using ExecSpace   = typename sched_type::execution_space;
-  typedef Kokkos::View<long*, ExecSpace> view_type;
+  using view_type   = Kokkos::View<long*, ExecSpace>;
 
   future_type future;
 
@@ -576,8 +576,8 @@ template <class Scheduler>
 struct TestTaskSpawnWithPool {
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<void, sched_type>;
-  typedef void value_type;
-  using Space = typename sched_type::execution_space;
+  using value_type  = void;
+  using Space       = typename sched_type::execution_space;
 
   int m_count;
   Kokkos::MemoryPool<Space> m_pool;
@@ -596,7 +596,7 @@ struct TestTaskSpawnWithPool {
   }
 
   static void run() {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize = 64 };
@@ -793,7 +793,7 @@ struct TestMultipleDependence {
   }
 
   static void run(int depth) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 1 << 30 };
     enum { MinBlockSize = 64 };

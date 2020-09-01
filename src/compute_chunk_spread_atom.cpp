@@ -54,7 +54,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;

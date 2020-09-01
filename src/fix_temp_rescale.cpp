@@ -41,7 +41,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale command");
 
   restart_global = 1;
@@ -57,14 +57,14 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr,&arg[4][2]);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[4]);
+    t_start = utils::numeric(FLERR,arg[4],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[5]);
-  t_window = force->numeric(FLERR,arg[6]);
-  fraction = force->numeric(FLERR,arg[7]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
+  t_window = utils::numeric(FLERR,arg[6],false,lmp);
+  fraction = utils::numeric(FLERR,arg[7],false,lmp);
 
   // create a new compute temp
   // id = fix-ID + temp, compute group = fix group

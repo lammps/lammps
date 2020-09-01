@@ -112,11 +112,11 @@ void PairCoulStreitz::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_coul = force->numeric(FLERR,arg[0]);
+  cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (strcmp(arg[1],"wolf") == 0){
     kspacetype = 1;
-    g_wolf = force->numeric(FLERR,arg[2]);
+    g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
   } else if (strcmp(arg[1],"ewald") == 0){
     ewaldflag = pppmflag = 1;
     kspacetype = 2;

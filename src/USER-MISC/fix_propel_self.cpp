@@ -82,7 +82,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
     error->all(FLERR, msg);
   }
 
-  magnitude = force->numeric( FLERR, argv[4] );
+  magnitude = utils::numeric( FLERR, argv[4] ,false,lmp);
 
   // Handle rest of args:
 
@@ -100,7 +100,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
       int flag=0;
       while (iarg < narg) {
         if (isdigit(argv[iarg][0])) {
-          int thistype = force->inumeric(FLERR,argv[iarg]);
+          int thistype = utils::inumeric(FLERR,argv[iarg],false,lmp);
           if ((thistype < 1) || (thistype > atom->ntypes))
             error->all(FLERR,"Illegal atom type to types keyword");
           apply_to_type[thistype] = 1;

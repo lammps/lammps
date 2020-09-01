@@ -283,7 +283,7 @@ int DumpXTC::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[0],"precision") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    precision = force->numeric(FLERR,arg[1]);
+    precision = utils::numeric(FLERR,arg[1],false,lmp);
     if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) &&
         (fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) &&
         (fabs(precision-100000.0) > EPS) &&
@@ -292,13 +292,13 @@ int DumpXTC::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[0],"sfactor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    sfactor = force->numeric(FLERR,arg[1]);
+    sfactor = utils::numeric(FLERR,arg[1],false,lmp);
     if (sfactor <= 0.0)
       error->all(FLERR,"Illegal dump_modify sfactor value (must be > 0.0)");
     return 2;
   } else if (strcmp(arg[0],"tfactor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    tfactor = force->numeric(FLERR,arg[1]);
+    tfactor = utils::numeric(FLERR,arg[1],false,lmp);
     if (tfactor <= 0.0)
       error->all(FLERR,"Illegal dump_modify tfactor value (must be > 0.0)");
     return 2;

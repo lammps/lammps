@@ -101,7 +101,7 @@ bool rocm_launch_blocking()
 
   if (env == 0) return false;
 
-  return atoi(env);
+  return std::stoi(env);
 }
 
 }
@@ -295,7 +295,7 @@ class ROCmInternal {
   ROCmInternal& operator=(const ROCmInternal&);
 
  public:
-  typedef Kokkos::Experimental::ROCm::size_type size_type;
+  using size_type = Kokkos::Experimental::ROCm::size_type;
 
   int m_rocmDev;
   int m_rocmArch;
@@ -516,8 +516,8 @@ void ROCmInternal::initialize(int rocm_device_id) {
 
 //----------------------------------------------------------------------------
 
-typedef Kokkos::Experimental::ROCm::size_type
-    ScratchGrain[Impl::ROCmTraits::WorkgroupSize];
+using ScratchGrain =
+    Kokkos::Experimental::ROCm::size_type[Impl::ROCmTraits::WorkgroupSize];
 enum { sizeScratchGrain = sizeof(ScratchGrain) };
 
 void rocmMemset(Kokkos::Experimental::ROCm::size_type* ptr,
@@ -539,9 +539,9 @@ Kokkos::Experimental::ROCm::size_type* ROCmInternal::scratch_flags(
       m_scratchFlagsCount * sizeScratchGrain < size) {
     m_scratchFlagsCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
 
-    typedef Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::ROCmSpace, void>
-        Record;
+    using Record =
+        Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::ROCmSpace,
+                                             void>;
 
     Record* const r = Record::allocate(
         Kokkos::Experimental::ROCmSpace(), "InternalScratchFlags",
@@ -563,9 +563,9 @@ Kokkos::Experimental::ROCm::size_type* ROCmInternal::scratch_space(
       m_scratchSpaceCount * sizeScratchGrain < size) {
     m_scratchSpaceCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
 
-    typedef Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::ROCmSpace, void>
-        Record;
+    using Record =
+        Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::ROCmSpace,
+                                             void>;
 
     static Record* const r = Record::allocate(
         Kokkos::Experimental::ROCmSpace(), "InternalScratchSpace",
@@ -589,12 +589,10 @@ void ROCmInternal::finalize() {
     //    scratch_lock_array_rocm_space_ptr(false);
     //    threadid_lock_array_rocm_space_ptr(false);
 
-    typedef Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::ROCmSpace>
-        RecordROCm;
-    typedef Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::ROCmHostPinnedSpace>
-        RecordHost;
+    using RecordROCm =
+        Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::ROCmSpace>;
+    using RecordHost = Kokkos::Impl::SharedAllocationRecord<
+        Kokkos::Experimental::ROCmHostPinnedSpace>;
 
     RecordROCm::decrement(RecordROCm::get_record(m_scratchFlags));
     RecordROCm::decrement(RecordROCm::get_record(m_scratchSpace));
@@ -659,9 +657,7 @@ int ROCm::is_initialized() {
 void ROCm::initialize(const ROCm::SelectDevice config) {
   Kokkos::Impl::ROCmInternal::singleton().initialize(config.rocm_device_id);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::initialize();
-#endif
 }
 
 #if 0
@@ -688,9 +684,7 @@ ROCm::size_type ROCm::device_arch()
 void ROCm::finalize() {
   Kokkos::Impl::ROCmInternal::singleton().finalize();
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::finalize();
-#endif
 }
 
 ROCm::ROCm() : m_device(Kokkos::Impl::ROCmInternal::singleton().m_rocmDev) {

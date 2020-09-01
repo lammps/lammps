@@ -68,12 +68,12 @@ size_t allocation_count(const Kokkos::DynRankView<T, P...>& view) {
 
 template <typename T, class DeviceType>
 struct TestViewOperator {
-  typedef DeviceType execution_space;
+  using execution_space = DeviceType;
 
   static const unsigned N = 100;
   static const unsigned D = 3;
 
-  typedef Kokkos::DynRankView<T, execution_space> view_type;
+  using view_type = Kokkos::DynRankView<T, execution_space>;
 
   const view_type v1;
   const view_type v2;
@@ -101,11 +101,11 @@ struct TestViewOperator_LeftAndRight;
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -116,11 +116,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -186,11 +186,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -201,11 +201,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -268,11 +268,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -283,14 +283,14 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using stride_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -363,11 +363,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -378,11 +378,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -438,11 +438,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -453,14 +453,14 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using stride_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -536,11 +536,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -551,11 +551,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -616,11 +616,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using memory_space    = typename execution_space::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -631,14 +631,14 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>
-      left_view;
+  using left_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutLeft, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using right_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutRight, execution_space>;
 
-  typedef Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using stride_view =
+      Kokkos::DynRankView<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -689,22 +689,22 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
 template <typename T, class DeviceType>
 class TestDynViewAPI {
  public:
-  typedef DeviceType device;
+  using device = DeviceType;
 
   enum { N0 = 1000, N1 = 3, N2 = 5, N3 = 7 };
 
-  typedef Kokkos::DynRankView<T, device> dView0;
-  typedef Kokkos::DynRankView<const T, device> const_dView0;
+  using dView0       = Kokkos::DynRankView<T, device>;
+  using const_dView0 = Kokkos::DynRankView<const T, device>;
 
-  typedef Kokkos::DynRankView<T, device, Kokkos::MemoryUnmanaged>
-      dView0_unmanaged;
-  typedef typename dView0::host_mirror_space host_drv_space;
+  using dView0_unmanaged =
+      Kokkos::DynRankView<T, device, Kokkos::MemoryUnmanaged>;
+  using host_drv_space = typename dView0::host_mirror_space;
 
-  typedef Kokkos::View<T, device> View0;
-  typedef Kokkos::View<T*, device> View1;
-  typedef Kokkos::View<T*******, device> View7;
+  using View0 = Kokkos::View<T, device>;
+  using View1 = Kokkos::View<T*, device>;
+  using View7 = Kokkos::View<T*******, device>;
 
-  typedef typename View0::host_mirror_space host_view_space;
+  using host_view_space = typename View0::host_mirror_space;
 
   static void run_tests() {
     run_test_resize_realloc();
@@ -712,6 +712,7 @@ class TestDynViewAPI {
     run_test_mirror_and_copy();
     run_test_scalar();
     run_test();
+    run_test_allocated();
     run_test_const();
     run_test_subview();
     run_test_subview_strided();
@@ -750,8 +751,8 @@ class TestDynViewAPI {
   }
 
   static void run_test_mirror() {
-    typedef Kokkos::DynRankView<int, host_drv_space> view_type;
-    typedef typename view_type::HostMirror mirror_type;
+    using view_type   = Kokkos::DynRankView<int, host_drv_space>;
+    using mirror_type = typename view_type::HostMirror;
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
     mirror_type ax = Kokkos::create_mirror(a);
@@ -851,8 +852,8 @@ class TestDynViewAPI {
       ASSERT_EQ(a_h.rank(), a_d.rank());
     }
     {
-      typedef Kokkos::DynRankView<int, Kokkos::LayoutStride, Kokkos::HostSpace>
-          view_stride_type;
+      using view_stride_type =
+          Kokkos::DynRankView<int, Kokkos::LayoutStride, Kokkos::HostSpace>;
       unsigned order[] = {6, 5, 4, 3, 2, 1, 0},
                dimen[] = {N0, N1, N2, 2, 2, 2, 2};  // LayoutRight equivalent
       view_stride_type a_h(
@@ -956,8 +957,8 @@ class TestDynViewAPI {
   }
 
   static void run_test_scalar() {
-    typedef typename dView0::HostMirror
-        hView0;  // HostMirror of DynRankView is a DynRankView
+    using hView0 = typename dView0::HostMirror;  // HostMirror of DynRankView is
+                                                 // a DynRankView
 
     dView0 dx, dy;
     hView0 hx, hy;
@@ -1050,12 +1051,12 @@ class TestDynViewAPI {
 
   static void run_test() {
     // mfh 14 Feb 2014: This test doesn't actually create instances of
-    // these types.  In order to avoid "declared but unused typedef"
+    // these types.  In order to avoid "unused type alias"
     // warnings, we declare empty instances of these types, with the
     // usual "(void)" marker to avoid compiler warnings for unused
     // variables.
 
-    typedef typename dView0::HostMirror hView0;
+    using hView0 = typename dView0::HostMirror;
 
     {
       hView0 thing;
@@ -1361,7 +1362,7 @@ class TestDynViewAPI {
     }
   }
 
-  typedef T DataType;
+  using DataType = T;
 
   static void check_auto_conversion_to_const(
       const Kokkos::DynRankView<const DataType, device>& arg_const,
@@ -1369,12 +1370,28 @@ class TestDynViewAPI {
     ASSERT_TRUE(arg_const == arg);
   }
 
+  static void run_test_allocated() {
+    using device_type = Kokkos::DynRankView<DataType, device>;
+
+    const int N1 = 100;
+    const int N2 = 10;
+
+    device_type d1;
+    ASSERT_FALSE(d1.is_allocated());
+
+    d1 = device_type("d1", N1, N2);
+    device_type d2(d1);
+    device_type d3("d3", N1);
+    ASSERT_TRUE(d1.is_allocated());
+    ASSERT_TRUE(d2.is_allocated());
+    ASSERT_TRUE(d3.is_allocated());
+  }
+
   static void run_test_const() {
-    typedef Kokkos::DynRankView<DataType, device> typeX;
-    typedef Kokkos::DynRankView<const DataType, device> const_typeX;
-    typedef Kokkos::DynRankView<const DataType, device,
-                                Kokkos::MemoryRandomAccess>
-        const_typeR;
+    using typeX       = Kokkos::DynRankView<DataType, device>;
+    using const_typeX = Kokkos::DynRankView<const DataType, device>;
+    using const_typeR =
+        Kokkos::DynRankView<const DataType, device, Kokkos::MemoryRandomAccess>;
     typeX x("X", 2);
     const_typeX xc = x;
     const_typeR xr = x;
@@ -1398,10 +1415,10 @@ class TestDynViewAPI {
   }
 
   static void run_test_subview() {
-    typedef Kokkos::DynRankView<const T, device> cdView;
-    typedef Kokkos::DynRankView<T, device> dView;
+    using cdView = Kokkos::DynRankView<const T, device>;
+    using dView  = Kokkos::DynRankView<T, device>;
     // LayoutStride required for all returned DynRankView subdynrankview's
-    typedef Kokkos::DynRankView<T, Kokkos::LayoutStride, device> sdView;
+    using sdView = Kokkos::DynRankView<T, Kokkos::LayoutStride, device>;
 
     dView0 d0("d0");
     cdView s0 = d0;
@@ -1452,7 +1469,7 @@ class TestDynViewAPI {
     ASSERT_EQ(dv6.rank(), 6);
 
     // DynRankView with LayoutRight
-    typedef Kokkos::DynRankView<T, Kokkos::LayoutRight, device> drView;
+    using drView = Kokkos::DynRankView<T, Kokkos::LayoutRight, device>;
     drView dr5("dr5", N0, N1, N2, 2, 2);
     ASSERT_EQ(dr5.rank(), 5);
 
@@ -1514,7 +1531,8 @@ class TestDynViewAPI {
     ASSERT_EQ(ds5.extent(4), ds5plus.extent(4));
     ASSERT_EQ(ds5.extent(5), ds5plus.extent(5));
 
-#if !defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_UVM)
+#if (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_UVM)) && \
+    !defined(KOKKOS_ENABLE_HIP)
     ASSERT_EQ(&ds5(1, 1, 1, 1, 0) - &ds5plus(1, 1, 1, 1, 0), 0);
     ASSERT_EQ(&ds5(1, 1, 1, 1, 0, 0) - &ds5plus(1, 1, 1, 1, 0, 0),
               0);  // passing argument to rank beyond the view's rank is allowed
@@ -1538,12 +1556,12 @@ class TestDynViewAPI {
   }
 
   static void run_test_subview_strided() {
-    typedef Kokkos::DynRankView<int, Kokkos::LayoutLeft, host_drv_space>
-        drview_left;
-    typedef Kokkos::DynRankView<int, Kokkos::LayoutRight, host_drv_space>
-        drview_right;
-    typedef Kokkos::DynRankView<int, Kokkos::LayoutStride, host_drv_space>
-        drview_stride;
+    using drview_left =
+        Kokkos::DynRankView<int, Kokkos::LayoutLeft, host_drv_space>;
+    using drview_right =
+        Kokkos::DynRankView<int, Kokkos::LayoutRight, host_drv_space>;
+    using drview_stride =
+        Kokkos::DynRankView<int, Kokkos::LayoutStride, host_drv_space>;
 
     drview_left xl2("xl2", 100, 200);
     drview_right xr2("xr2", 100, 200);
@@ -1588,31 +1606,29 @@ class TestDynViewAPI {
   static void run_test_vector() {
     static const unsigned Length = 1000, Count = 8;
 
-    typedef typename Kokkos::DynRankView<T, Kokkos::LayoutLeft, host_drv_space>
-        multivector_type;
+    using multivector_type =
+        typename Kokkos::DynRankView<T, Kokkos::LayoutLeft, host_drv_space>;
 
-    typedef typename Kokkos::DynRankView<T, Kokkos::LayoutRight, host_drv_space>
-        multivector_right_type;
+    using multivector_right_type =
+        typename Kokkos::DynRankView<T, Kokkos::LayoutRight, host_drv_space>;
 
     multivector_type mv = multivector_type("mv", Length, Count);
     multivector_right_type mv_right =
         multivector_right_type("mv", Length, Count);
 
-    typedef
-        typename Kokkos::DynRankView<T, Kokkos::LayoutStride, host_drv_space>
-            svector_type;
-    typedef
-        typename Kokkos::DynRankView<T, Kokkos::LayoutStride, host_drv_space>
-            smultivector_type;
-    typedef typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
-                                         host_drv_space>
-        const_svector_right_type;
-    typedef typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
-                                         host_drv_space>
-        const_svector_type;
-    typedef typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
-                                         host_drv_space>
-        const_smultivector_type;
+    using svector_type =
+        typename Kokkos::DynRankView<T, Kokkos::LayoutStride, host_drv_space>;
+    using smultivector_type =
+        typename Kokkos::DynRankView<T, Kokkos::LayoutStride, host_drv_space>;
+    using const_svector_right_type =
+        typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
+                                     host_drv_space>;
+    using const_svector_type =
+        typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
+                                     host_drv_space>;
+    using const_smultivector_type =
+        typename Kokkos::DynRankView<const T, Kokkos::LayoutStride,
+                                     host_drv_space>;
 
     svector_type v1 = Kokkos::subdynrankview(mv, Kokkos::ALL(), 0);
     svector_type v2 = Kokkos::subdynrankview(mv, Kokkos::ALL(), 1);

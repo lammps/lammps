@@ -651,6 +651,14 @@ TEST(PairStyle, omp)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
 
+    if (utils::strmatch(test_config.pair_style, "^dpd")) {
+        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
     // abort if running in parallel and not all atoms are local
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
@@ -823,11 +831,11 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if (test_config.pair_style == "rebo") {
+    if ((test_config.pair_style == "rebo") || utils::strmatch(test_config.pair_style, "^dpd")) {
+        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
-        std::cerr << "Skipping pair style rebo/intel\n";
         GTEST_SKIP();
     }
 
@@ -1105,6 +1113,7 @@ TEST(PairStyle, single)
     // Pair styles colloid  and yukawa/colloid are also not compatible with this single tester
     if ((test_config.pair_style.substr(0, 7) == "colloid") ||
         (test_config.pair_style.substr(0, 14) == "yukawa/colloid") ||
+        (test_config.pair_style.substr(0, 3) == "dpd") ||
         (test_config.pair_style.substr(0, 3) == "eam") ||
         ((test_config.pair_style.substr(0, 6) == "hybrid") &&
          (test_config.pair_style.find("eam") != std::string::npos))) {

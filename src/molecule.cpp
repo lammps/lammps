@@ -79,43 +79,43 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal molecule command");
-      toffset = force->inumeric(FLERR,arg[iarg+1]);
-      boffset = force->inumeric(FLERR,arg[iarg+2]);
-      aoffset = force->inumeric(FLERR,arg[iarg+3]);
-      doffset = force->inumeric(FLERR,arg[iarg+4]);
-      ioffset = force->inumeric(FLERR,arg[iarg+5]);
+      toffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      boffset = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      aoffset = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      doffset = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      ioffset = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (toffset < 0 || boffset < 0 || aoffset < 0 ||
           doffset < 0 || ioffset < 0)
         error->all(FLERR,"Illegal molecule command");
       iarg += 6;
     } else if (strcmp(arg[iarg],"toff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      toffset = force->inumeric(FLERR,arg[iarg+1]);
+      toffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (toffset < 0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"boff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      boffset = force->inumeric(FLERR,arg[iarg+1]);
+      boffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (boffset < 0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"aoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      aoffset = force->inumeric(FLERR,arg[iarg+1]);
+      aoffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (aoffset < 0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"doff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      doffset = force->inumeric(FLERR,arg[iarg+1]);
+      doffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (doffset < 0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ioff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      ioffset = force->inumeric(FLERR,arg[iarg+1]);
+      ioffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ioffset < 0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal molecule command");
-      sizescale = force->numeric(FLERR,arg[iarg+1]);
+      sizescale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (sizescale <= 0.0) error->all(FLERR,"Illegal molecule command");
       iarg += 2;
     } else break;
@@ -773,7 +773,7 @@ void Molecule::fragments(char *line)
 
       ValueTokenizer values(line);
 
-      if (values.count() > natoms+1)
+      if ((int)values.count() > natoms+1)
         error->one(FLERR,"Invalid atom ID in Fragments section of molecule file");
 
       fragmentnames[i] = values.next_string();
@@ -879,7 +879,7 @@ void Molecule::masses(char *line)
 
 void Molecule::bonds(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2;
   int newton_bond = force->newton_bond;
 
@@ -947,7 +947,7 @@ void Molecule::bonds(int flag, char *line)
 
 void Molecule::angles(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3;
   int newton_bond = force->newton_bond;
 
@@ -1031,7 +1031,7 @@ void Molecule::angles(int flag, char *line)
 
 void Molecule::dihedrals(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 
@@ -1131,7 +1131,7 @@ void Molecule::dihedrals(int flag, char *line)
 
 void Molecule::impropers(int flag, char *line)
 {
-  int tmp,itype;
+  int itype;
   tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 

@@ -94,11 +94,11 @@ void NEBSpin::command(int narg, char **arg)
 
   if (narg < 6) error->universe_all(FLERR,"Illegal NEBSpin command");
 
-  etol = force->numeric(FLERR,arg[0]);
-  ttol = force->numeric(FLERR,arg[1]);
-  n1steps = force->inumeric(FLERR,arg[2]);
-  n2steps = force->inumeric(FLERR,arg[3]);
-  nevery = force->inumeric(FLERR,arg[4]);
+  etol = utils::numeric(FLERR,arg[0],false,lmp);
+  ttol = utils::numeric(FLERR,arg[1],false,lmp);
+  n1steps = utils::inumeric(FLERR,arg[2],false,lmp);
+  n2steps = utils::inumeric(FLERR,arg[3],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // error checks
 

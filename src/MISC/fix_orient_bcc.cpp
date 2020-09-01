@@ -78,12 +78,12 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nstats = force->inumeric(FLERR,arg[3]);
-  direction_of_motion = force->inumeric(FLERR,arg[4]);
-  a = force->numeric(FLERR,arg[5]);
-  Vxi = force->numeric(FLERR,arg[6]);
-  uxif_low = force->numeric(FLERR,arg[7]);
-  uxif_high = force->numeric(FLERR,arg[8]);
+  nstats = utils::inumeric(FLERR,arg[3],false,lmp);
+  direction_of_motion = utils::inumeric(FLERR,arg[4],false,lmp);
+  a = utils::numeric(FLERR,arg[5],false,lmp);
+  Vxi = utils::numeric(FLERR,arg[6],false,lmp);
+  uxif_low = utils::numeric(FLERR,arg[7],false,lmp);
+  uxif_high = utils::numeric(FLERR,arg[8],false,lmp);
 
   if (direction_of_motion == 0) {
     int n = strlen(arg[9]) + 1;

@@ -91,21 +91,21 @@ statements should follow the "include what you use" principle.
 
 Include files should be included in this order:
 * the header matching the implementation (`some_class.h` for file `some_class.cpp`)
-* mpi.h
-* system and library headers (anything that is using angular brackets; C-library headers first, then C++)
+* mpi.h  (only if needed)
 * LAMMPS local headers (preferably in alphabetical order)
+* system and library headers (anything that is using angular brackets; C-library headers first, then C++)
 
 ### Special Cases and Exceptions
 
 #### pointers.h
 
-The `pointer.h` header file also includes `cstdio`, `cstddef`,
-`string`, `lmptype.h`, and `utils.h` (and through those indirectly
- `stdint.h`, `intttypes.h`, cstdlib, and `climits`).
+The `pointer.h` header file also includes (in this order) `lmptype.h`,
+`mpi.h`, `cstddef`, `cstdio`, `string`, `utils.h`, and `fmt/format.h`
+and through `lmptype.h` indirectly also `climits`, `cstdlib`, `cinttypes`.
 This means any header including `pointers.h` can assume that `FILE`,
-`NULL`, `INT_MAX` are defined, they may freely use std::string
-and functions from the utils namespace without including the
-corresponding header files.
+`NULL`, `INT_MAX` are defined, and the may freely use the std::string
+for arguments. Corresponding implementation files do not need to include
+those headers.
 
 ## Tools
 

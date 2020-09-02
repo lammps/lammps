@@ -1,4 +1,5 @@
 .. index:: compute reduce
+.. index:: compute reduce/region
 
 compute reduce command
 ======================

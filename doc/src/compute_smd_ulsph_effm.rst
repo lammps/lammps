@@ -1,7 +1,7 @@
 .. index:: compute smd/ulsph/effm
 
 compute smd/ulsph/effm command
-================================
+==============================
 
 Syntax
 """"""

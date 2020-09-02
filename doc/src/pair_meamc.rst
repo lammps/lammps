@@ -1,8 +1,4 @@
-.. index:: pair_style meam
 .. index:: pair_style meam/c
-
-pair_style meam command
-=======================
 
 pair_style meam/c command
 =========================

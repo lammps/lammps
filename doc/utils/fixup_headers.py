@@ -5,8 +5,8 @@ import shutil
 import re
 import argparse
 
-index_pattern = re.compile(r"^.. index:: (fix|pair_style)\s+([a-zA-Z0-9/_]+)$")
-pattern = re.compile(r"^(fix|pair_style)\s+([a-zA-Z0-9/_]+)\s+command$")
+index_pattern = re.compile(r"^.. index:: (compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style)\s+([a-zA-Z0-9/_]+)$")
+pattern = re.compile(r"^(compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style)\s+([a-zA-Z0-9/_]+)\s+command$")
 
 parser = argparse.ArgumentParser(description='Fixup headers in docs')
 parser.add_argument('files', metavar='FILE', nargs='+', help='files to fix')

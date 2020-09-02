@@ -216,7 +216,7 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -259,8 +259,8 @@ void PairTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -273,7 +273,7 @@ void PairTable::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 5) tb->cut = force->numeric(FLERR,arg[4]);
+  if (narg == 5) tb->cut = utils::numeric(FLERR,arg[4],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 

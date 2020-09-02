@@ -471,7 +471,7 @@ LAMMPS source distribution.
 .. code-block:: bash
 
   make html          # create HTML doc pages in html directory
-  make pdf           # create Developer.pdf and Manual.pdf in this directory
+  make pdf           # create Manual.pdf in this directory
   make fetch         # fetch HTML and PDF files from LAMMPS web site
   make clean         # remove all intermediate files
   make clean-all     # reset the entire doc build environment

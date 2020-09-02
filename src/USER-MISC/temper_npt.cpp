@@ -69,10 +69,10 @@ void TemperNPT::command(int narg, char **arg)
   if (narg != 7 && narg != 8)
     error->universe_all(FLERR,"Illegal temper/npt command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  nevery = force->inumeric(FLERR,arg[1]);
-  double temp = force->numeric(FLERR,arg[2]);
-  double press_set = force->numeric(FLERR,arg[6]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+  double temp = utils::numeric(FLERR,arg[2],false,lmp);
+  double press_set = utils::numeric(FLERR,arg[6],false,lmp);
 
   // ignore temper command, if walltime limit was already reached
 
@@ -83,11 +83,11 @@ void TemperNPT::command(int narg, char **arg)
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
-  seed_swap = force->inumeric(FLERR,arg[4]);
-  seed_boltz = force->inumeric(FLERR,arg[5]);
+  seed_swap = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
 
   my_set_temp = universe->iworld;
-  if (narg == 8) my_set_temp = force->inumeric(FLERR,arg[6]);
+  if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // swap frequency must evenly divide total # of timesteps
 

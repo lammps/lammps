@@ -103,7 +103,7 @@ void PairCosineSquared::settings(int narg, char **arg)
     error->all(FLERR, "Illegal pair_style command (wrong number of params)");
   }
 
-  cut_global = force->numeric(FLERR, arg[0]);
+  cut_global = utils::numeric(FLERR, arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -130,16 +130,16 @@ void PairCosineSquared::coeff(int narg, char **arg)
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR, arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double epsilon_one = force->numeric(FLERR, arg[2]);
-  double sigma_one = force->numeric(FLERR, arg[3]);
+  double epsilon_one = utils::numeric(FLERR, arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR, arg[3],false,lmp);
 
   double cut_one = cut_global;
   double wca_one = 0;
   if (narg == 6) {
-    cut_one = force->numeric(FLERR, arg[4]);
+    cut_one = utils::numeric(FLERR, arg[4],false,lmp);
     if (strcmp(arg[5], "wca") == 0) {
       wca_one = 1;
     } else {
@@ -149,7 +149,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
     if (strcmp(arg[4], "wca") == 0) {
       wca_one = 1;
     } else {
-      cut_one = force->numeric(FLERR, arg[4]);
+      cut_one = utils::numeric(FLERR, arg[4],false,lmp);
     }
   }
 

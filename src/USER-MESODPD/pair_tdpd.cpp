@@ -233,9 +233,9 @@ void PairTDPD::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  temperature = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
-  seed = force->inumeric(FLERR,arg[2]);
+  temperature = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
+  seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -269,21 +269,21 @@ void PairTDPD::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double gamma_one = force->numeric(FLERR,arg[3]);
-  double power_one = force->numeric(FLERR,arg[4]);
-  double cut_one   = force->numeric(FLERR,arg[5]);
-  double cutcc_one = force->numeric(FLERR,arg[6]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double power_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one   = utils::numeric(FLERR,arg[5],false,lmp);
+  double cutcc_one = utils::numeric(FLERR,arg[6],false,lmp);
   double *kappa_one = new double[cc_species];
   double *epsilon_one = new double[cc_species];
   double *powercc_one = new double[cc_species];
   for(int k=0; k<cc_species; k++) {
-    kappa_one[k]   = force->numeric(FLERR,arg[7+3*k]);
-    epsilon_one[k] = force->numeric(FLERR,arg[8+3*k]);
-    powercc_one[k] = force->numeric(FLERR,arg[9+3*k]);
+    kappa_one[k]   = utils::numeric(FLERR,arg[7+3*k],false,lmp);
+    epsilon_one[k] = utils::numeric(FLERR,arg[8+3*k],false,lmp);
+    powercc_one[k] = utils::numeric(FLERR,arg[9+3*k],false,lmp);
   }
 
   int count = 0;

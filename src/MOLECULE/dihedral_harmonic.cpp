@@ -274,11 +274,11 @@ void DihedralHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  int sign_one = force->inumeric(FLERR,arg[2]);
-  int multiplicity_one = force->inumeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int sign_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int multiplicity_one = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // require sign = +/- 1 for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break

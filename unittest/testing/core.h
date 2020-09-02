@@ -71,6 +71,7 @@ protected:
     {
         if (!verbose) ::testing::internal::CaptureStdout();
         delete lmp;
+        lmp = nullptr;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };

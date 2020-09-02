@@ -31,7 +31,7 @@ ComputeTDPDCCAtom::ComputeTDPDCCAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all(FLERR,"Number of arguments for compute tdpd/cc/atom command != 4");
   if (atom->tdpd_flag != 1) error->all(FLERR,"compute tdpd/cc/atom command requires atom_style with concentration (e.g. tdpd)");
 
-  index = force->inumeric(FLERR,arg[3]);
+  index = utils::inumeric(FLERR,arg[3],false,lmp);
 
   peratom_flag = 1;
   size_peratom_cols = 0;

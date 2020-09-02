@@ -60,7 +60,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
   if (strstr(arg[4],"v_") == arg[4]) {
@@ -68,7 +68,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -76,7 +76,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 

@@ -86,7 +86,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
       iarg += 2;
     } else error->all(FLERR,"Illegal group command");

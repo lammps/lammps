@@ -114,6 +114,21 @@ Syntax
        *framerate* arg = fps
          fps = frames per second for movie
 
+* these keywords apply only to the */gz* and */zstd* dump styles
+* keyword = *compression_level*
+
+  .. parsed-literal::
+
+       *compression_level* args = level
+         level = integer specifying the compression level that should be used (see below for supported levels)
+
+* these keywords apply only to the */zstd* dump styles
+* keyword = *compression_level*
+
+  .. parsed-literal::
+
+       *checksum* args = *yes* or *no* (add checksum at end of zst file)
+
 Examples
 """"""""
 
@@ -962,6 +977,28 @@ images less frequently.
 
 ----------
 
+The COMPRESS package offers both GZ and Zstd compression variants of styles
+atom, custom, local, cfg, and xyz. When using these styles the compression
+level can be controlled by the :code:`compression_level` parameter. File names
+with these styles have to end in either :code:`.gz` or :code:`.zst`.
+
+GZ supports compression levels from -1 (default), 0 (no compression), and 1 to
+9. 9 being the best compression. The COMPRESS :code:`/gz` styles use 9 as
+default compression level.
+
+Zstd offers a wider range of compression levels, including negative
+levels that sacrifice compression for performance. 0 is the
+default, positive levels are 1 to 22, with 22 being the most expensive
+compression. Zstd promises higher compression/decompression speeds for
+similar compression ratios. For more details see
+`http://facebook.github.io/zstd/`.
+
+In addition, Zstd compressed files can have a checksum of the entire
+contents. The Zstd enabled dump styles enable this feature by default and it
+can be disabled with the :code:`checksum` parameter.
+
+----------
+
 Restrictions
 """"""""""""
  none
@@ -1009,6 +1046,10 @@ The option defaults are
 * boxcolor = yellow
 * color = 140 color names are pre-defined as listed below
 * framerate = 24
+
+* compression_level = 9 (gz variants)
+* compression_level = 0 (zstd variants)
+* checksum = yes (zstd variants)
 
 ----------
 

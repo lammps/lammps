@@ -87,7 +87,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(xstr[nwall],&arg[iarg+1][2]);
       } else {
         xstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
@@ -96,7 +96,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(estr[nwall],&arg[iarg+2][2]);
         estyle[nwall] = VARIABLE;
       } else {
-        epsilon[nwall] = force->numeric(FLERR,arg[iarg+2]);
+        epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         estyle[nwall] = CONSTANT;
       }
 
@@ -107,7 +107,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
           strcpy(astr[nwall],&arg[iarg+3][2]);
           astyle[nwall] = VARIABLE;
         } else {
-          alpha[nwall] = force->numeric(FLERR,arg[iarg+3]);
+          alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
           astyle[nwall] = CONSTANT;
         }
         ++iarg;
@@ -119,11 +119,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(sstr[nwall],&arg[iarg+3][2]);
         sstyle[nwall] = VARIABLE;
       } else {
-        sigma[nwall] = force->numeric(FLERR,arg[iarg+3]);
+        sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         sstyle[nwall] = CONSTANT;
       }
 
-      cutoff[nwall] = force->numeric(FLERR,arg[iarg+4]);
+      cutoff[nwall] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       nwall++;
       iarg += 5;
 

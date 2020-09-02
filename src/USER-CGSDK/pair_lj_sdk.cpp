@@ -234,7 +234,7 @@ void PairLJSDK::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -256,18 +256,18 @@ void PairLJSDK::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int lj_type_one = find_lj_type(arg[2],lj_type_list);
   if (lj_type_one == LJ_NOT_SET)
     error->all(FLERR,"Cannot parse LJ type flag.");
 
-  double epsilon_one = force->numeric(FLERR,arg[3]);
-  double sigma_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

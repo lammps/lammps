@@ -268,7 +268,7 @@ void BondHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   // 2nd arg = bond sub-style name
   // allow for "none" as valid sub-style name

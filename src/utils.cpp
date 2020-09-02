@@ -16,9 +16,15 @@
 #include <cstdlib>
 #include <cerrno>
 #include "lammps.h"
+#include "comm.h"
+#include "compute.h"
 #include "error.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
 #include "tokenizer.h"
 #include "text_file_reader.h"
+#include "update.h"
 #include "fmt/format.h"
 
 #if defined(__linux__)
@@ -71,7 +77,7 @@ using namespace LAMMPS_NS;
  *  This function is supposed to be a more safe, more specific and
  *  simple to use API to find pattern matches. The purpose is to replace
  *  uses of either strncmp() or strstr() in the code base to find
- *  substrings safely. With strncmp() finding prefixes, the number of
+ *  sub-strings safely. With strncmp() finding prefixes, the number of
  *  characters to match must be counted, which can lead to errors,
  *  while using "^pattern" will do the same with less problems.
  *  Matching for suffixes using strstr() is not as specific as 'pattern$',
@@ -88,7 +94,7 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
-/* This simplifies the repetitive task of outputting some
+/** This function simplifies the repetitive task of outputting some
  * message to both the screen and/or the log file. In combination
  * with using fmt::format(), which returns the formatted text
  * in a std::string() instance, this can be used to reduce
@@ -109,9 +115,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/*
- * On Linux the folder /proc/self/fd holds symbolic links to the actual
+/** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
+ *
+ * This function is used to provide a filename with error messages in functions
+ * where the filename is not passed as an argument, but the FILE * pointer.
  */
 const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
@@ -346,6 +354,184 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
   }
 
   return ATOTAGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterisk
+------------------------------------------------------------------------- */
+template<typename TYPE>
+void utils::bounds(const char *file, int line, const std::string &str,
+                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
+{
+  size_t found = str.find_first_of("*");
+
+  nlo = nhi = -1;
+  if (found == std::string::npos) {    // contains no '*'
+    nlo = nhi = strtol(str.c_str(),NULL,10);
+  } else if (str.size() == 1) {        // is only '*'
+    nlo = nmin;
+    nhi = nmax;
+  } else if (found == 0) {             // is '*j'
+    nlo = nmin;
+    nhi = strtol(str.substr(1).c_str(),NULL,10);
+  } else if (str.size() == found+1) {  // is 'i*'
+    nlo = strtol(str.c_str(),NULL,10);
+    nhi = nmax;
+  } else {                             // is 'i*j'
+    nlo = strtol(str.c_str(),NULL,10);
+    nhi = strtol(str.substr(found+1).c_str(),NULL,10);
+  }
+
+  if (error) {
+    if (nlo < nmin)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nmax));
+    else if (nhi > nmax)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nhi,nmin,nmax));
+    else if (nlo > nhi)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nhi));
+  }
+}
+
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, int &, int &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long &, long &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long long &, long long &, Error *);
+
+/* -------------------------------------------------------------------------
+   Expand list of arguments in arg to earg if arg contains wildcards
+------------------------------------------------------------------------- */
+
+int utils::expand_args(const char *file, int line, int narg, char **arg,
+                       int mode, char **&earg, LAMMPS *lmp)
+{
+  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
+  char *ptr1,*ptr2,*str;
+
+  ptr1 = NULL;
+  for (iarg = 0; iarg < narg; iarg++) {
+    ptr1 = strchr(arg[iarg],'*');
+    if (ptr1) break;
+  }
+
+  if (!ptr1) {
+    earg = arg;
+    return narg;
+  }
+
+  // maxarg should always end up equal to newarg, so caller can free earg
+
+  int maxarg = narg-iarg;
+  earg = (char **) lmp->memory->smalloc(maxarg*sizeof(char *),"input:earg");
+
+  int newarg = 0;
+  for (iarg = 0; iarg < narg; iarg++) {
+    expandflag = 0;
+
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0) {
+
+      ptr1 = strchr(&arg[iarg][2],'[');
+      if (ptr1) {
+        ptr2 = strchr(ptr1,']');
+        if (ptr2) {
+          *ptr2 = '\0';
+          if (strchr(ptr1,'*')) {
+            if (arg[iarg][0] == 'c') {
+              *ptr1 = '\0';
+              icompute = lmp->modify->find_compute(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (icompute >= 0) {
+                if (mode == 0 && lmp->modify->compute[icompute]->vector_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->compute[icompute]->array_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->peratom_flag &&
+                           lmp->modify->compute[icompute]->size_peratom_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->local_flag &&
+                           lmp->modify->compute[icompute]->size_local_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            } else if (arg[iarg][0] == 'f') {
+              *ptr1 = '\0';
+              ifix = lmp->modify->find_fix(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (ifix >= 0) {
+                if (mode == 0 && lmp->modify->fix[ifix]->vector_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->fix[ifix]->array_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->peratom_flag &&
+                           lmp->modify->fix[ifix]->size_peratom_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->local_flag &&
+                           lmp->modify->fix[ifix]->size_local_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            }
+          }
+          *ptr2 = ']';
+        }
+      }
+    }
+
+    if (expandflag) {
+      *ptr2 = '\0';
+      bounds(file,line,ptr1+1,1,nmax,nlo,nhi,lmp->error);
+      *ptr2 = ']';
+      if (newarg+nhi-nlo+1 > maxarg) {
+        maxarg += nhi-nlo+1;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      for (index = nlo; index <= nhi; index++) {
+        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+        str = earg[newarg] = new char[n];
+        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+        strcat(str,ptr2);
+        newarg++;
+      }
+
+    } else {
+      if (newarg == maxarg) {
+        maxarg++;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      n = strlen(arg[iarg]) + 1;
+      earg[newarg] = new char[n];
+      strcpy(earg[newarg],arg[iarg]);
+      newarg++;
+    }
+  }
+
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
+
+  return newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -606,6 +792,11 @@ bool utils::file_is_readable(const std::string &path) {
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
+#if defined(_WIN32)
+#define OS_PATH_VAR_SEP ";"
+#else
+#define OS_PATH_VAR_SEP ":"
+#endif
 
 std::string utils::get_potential_file_path(const std::string &path) {
   std::string filepath = path;
@@ -615,19 +806,25 @@ std::string utils::get_potential_file_path(const std::string &path) {
     return filepath;
   } else {
     // try the environment variable directory
-    const char *path = getenv("LAMMPS_POTENTIALS");
+    const char *var = getenv("LAMMPS_POTENTIALS");
 
-    if (path != nullptr){
-      std::string pot = utils::path_basename(filepath);
-      filepath = utils::path_join(path, pot);
+    if (var != nullptr){
+      Tokenizer dirs(var,OS_PATH_VAR_SEP);
 
-      if (utils::file_is_readable(filepath)) {
-        return filepath;
+      while (dirs.has_next()) {
+        auto pot = utils::path_basename(filepath);
+        auto path = dirs.next();
+        filepath = utils::path_join(path, pot);
+
+        if (utils::file_is_readable(filepath)) {
+          return filepath;
+        }
       }
     }
   }
   return "";
 }
+#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file
@@ -639,14 +836,10 @@ std::string utils::get_potential_date(const std::string &path, const std::string
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "DATE:") {
-      if (values.has_next()) {
-        std::string date = values.next_string();
-        return date;
-      }
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "DATE:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";
@@ -662,14 +855,10 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "UNITS:") {
-      if (values.has_next()) {
-        std::string units = values.next_string();
-        return units;
-      }
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "UNITS:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";
@@ -703,6 +892,63 @@ double utils::get_conversion_factor(const int property, const int conversion)
     }
   }
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   open a potential file as specified by name
+   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
+------------------------------------------------------------------------- */
+
+FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
+                            int *auto_convert)
+{
+  auto error = lmp->error;
+  auto me = lmp->comm->me;
+
+  std::string filepath = get_potential_file_path(name);
+
+  if(!filepath.empty()) {
+    std::string unit_style = lmp->update->unit_style;
+    std::string date       = get_potential_date(filepath, "potential");
+    std::string units      = get_potential_units(filepath, "potential");
+
+    if(!date.empty() && (me == 0)) {
+      logmesg(lmp, fmt::format("Reading potential file {} "
+                               "with DATE: {}\n", name, date));
+    }
+
+    if (auto_convert == nullptr) {
+      if (!units.empty() && (units != unit_style) && (me == 0)) {
+        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                      "but {} units are in use", name, units,
+                                      unit_style));
+        return nullptr;
+      }
+    } else {
+      if (units.empty() || units == unit_style) {
+        *auto_convert = NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real")
+            && (*auto_convert & METAL2REAL)) {
+          *auto_convert = METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal")
+            && (*auto_convert & REAL2METAL)) {
+          *auto_convert = REAL2METAL;
+        } else {
+          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                        "but {} units are in use", name,
+                                        units, unit_style));
+          return nullptr;
+        }
+      }
+      if ((*auto_convert != NOCONVERT) && (me == 0))
+        error->warning(FLERR, fmt::format("Converting potential file in "
+                                          "{} units to {} units",
+                                          units, unit_style));
+    }
+    return fopen(filepath.c_str(), "r");
+  }
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -203,7 +203,7 @@ void PairKolmogorovCrespiZ::settings(int narg, char **arg)
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -228,8 +228,8 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -315,7 +315,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open KC potential file %s",filename);

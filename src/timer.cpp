@@ -277,7 +277,7 @@ void Timer::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"every") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _checkfreq = force->inumeric(FLERR,arg[iarg]);
+        _checkfreq = utils::inumeric(FLERR,arg[iarg],false,lmp);
         if (_checkfreq <= 0)
           error->all(FLERR,"Illegal timers command");
       } else error->all(FLERR,"Illegal timers command");

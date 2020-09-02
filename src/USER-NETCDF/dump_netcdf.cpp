@@ -990,7 +990,7 @@ int DumpNetCDF::modify_param(int narg, char **arg)
     iarg++;
     if (iarg >= narg)
       error->all(FLERR,"expected additional arg after 'at' keyword.");
-    framei = force->inumeric(FLERR,arg[iarg]);
+    framei = utils::inumeric(FLERR,arg[iarg],false,lmp);
     if (framei == 0) error->all(FLERR,"frame 0 not allowed for 'at' keyword.");
     else if (framei < 0) framei--;
     iarg++;

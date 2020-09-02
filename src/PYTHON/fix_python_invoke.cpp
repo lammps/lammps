@@ -34,7 +34,7 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all(FLERR,"Illegal fix python/invoke command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix python/invoke command");
 
   // ensure Python interpreter is initialized

@@ -23,7 +23,6 @@ available online are listed below.
 * `Mail list <https://lammps.sandia.gov/mail.html>`_
 * `Workshops <https://lammps.sandia.gov/workshops.html>`_
 * `Tutorials <https://lammps.sandia.gov/tutorials.html>`_
-* `Developer guide <https://lammps.sandia.gov/doc/Developer.pdf>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://lammps.sandia.gov/prepost.html>`_
 * `Other software usable with LAMMPS <https://lammps.sandia.gov/offsite.html>`_

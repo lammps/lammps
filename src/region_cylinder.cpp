@@ -51,7 +51,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = VARIABLE;
       varshape = 1;
     } else {
-      c1 = yscale*force->numeric(FLERR,arg[3]);
+      c1 = yscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
     if (strstr(arg[4],"v_") == arg[4]) {
@@ -62,7 +62,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = VARIABLE;
       varshape = 1;
     } else {
-      c2 = zscale*force->numeric(FLERR,arg[4]);
+      c2 = zscale*utils::numeric(FLERR,arg[4],false,lmp);
       c2style = CONSTANT;
     }
   } else if (axis == 'y') {
@@ -74,7 +74,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = VARIABLE;
       varshape = 1;
     } else {
-      c1 = xscale*force->numeric(FLERR,arg[3]);
+      c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
     if (strstr(arg[4],"v_") == arg[4]) {
@@ -85,7 +85,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = VARIABLE;
       varshape = 1;
     } else {
-      c2 = zscale*force->numeric(FLERR,arg[4]);
+      c2 = zscale*utils::numeric(FLERR,arg[4],false,lmp);
       c2style = CONSTANT;
     }
   } else if (axis == 'z') {
@@ -97,7 +97,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = VARIABLE;
       varshape = 1;
     } else {
-      c1 = xscale*force->numeric(FLERR,arg[3]);
+      c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
     if (strstr(arg[4],"v_") == arg[4]) {
@@ -108,7 +108,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = VARIABLE;
       varshape = 1;
     } else {
-      c2 = yscale*force->numeric(FLERR,arg[4]);
+      c2 = yscale*utils::numeric(FLERR,arg[4],false,lmp);
       c2style = CONSTANT;
     }
   }
@@ -121,7 +121,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     rstyle = VARIABLE;
     varshape = 1;
   } else {
-    radius = force->numeric(FLERR,arg[5]);
+    radius = utils::numeric(FLERR,arg[5],false,lmp);
     if (axis == 'x') radius *= yscale;
     else radius *= xscale;
     rstyle = CONSTANT;
@@ -151,9 +151,9 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       else lo = domain->boxlo_bound[2];
     }
   } else {
-    if (axis == 'x') lo = xscale*force->numeric(FLERR,arg[6]);
-    if (axis == 'y') lo = yscale*force->numeric(FLERR,arg[6]);
-    if (axis == 'z') lo = zscale*force->numeric(FLERR,arg[6]);
+    if (axis == 'x') lo = xscale*utils::numeric(FLERR,arg[6],false,lmp);
+    if (axis == 'y') lo = yscale*utils::numeric(FLERR,arg[6],false,lmp);
+    if (axis == 'z') lo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
   }
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
@@ -175,9 +175,9 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       else hi = domain->boxhi_bound[2];
     }
   } else {
-    if (axis == 'x') hi = xscale*force->numeric(FLERR,arg[7]);
-    if (axis == 'y') hi = yscale*force->numeric(FLERR,arg[7]);
-    if (axis == 'z') hi = zscale*force->numeric(FLERR,arg[7]);
+    if (axis == 'x') hi = xscale*utils::numeric(FLERR,arg[7],false,lmp);
+    if (axis == 'y') hi = yscale*utils::numeric(FLERR,arg[7],false,lmp);
+    if (axis == 'z') hi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
   }
 
   // error check

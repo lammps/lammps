@@ -48,7 +48,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg > iarg) {
     if (isdigit(arg[iarg][0])) {
-      nsub = force->inumeric(FLERR,arg[iarg]);
+      nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
       ++iarg;
       if (nsub <= 0)
         error->all(FLERR,"Illegal compute pair command");

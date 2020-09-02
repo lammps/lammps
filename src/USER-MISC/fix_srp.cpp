@@ -642,11 +642,11 @@ void FixSRP::restart(char *buf)
 int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   if (strcmp(arg[0],"bptype") == 0) {
-    bptype = force->inumeric(FLERR,arg[1]);
+    bptype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

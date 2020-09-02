@@ -97,10 +97,10 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off) & (1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style buck/long/coul/coul");
-  cut_buck_global = force->numeric(FLERR,*(arg++));
+  cut_buck_global = utils::numeric(FLERR,*(arg++),false,lmp);
   if (narg == 4 && ((ewald_order & 0x42) == 0x42))
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
-  if (narg == 4) cut_coul = force->numeric(FLERR,*arg);
+  if (narg == 4) cut_coul = utils::numeric(FLERR,*arg,false,lmp);
   else cut_coul = cut_buck_global;
 
   if (allocated) {
@@ -200,15 +200,15 @@ void PairBuckLongCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,*(arg++),atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,*(arg++),atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,*(arg++),1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,*(arg++),1,atom->ntypes,jlo,jhi,error);
 
-  double buck_a_one = force->numeric(FLERR,*(arg++));
-  double buck_rho_one = force->numeric(FLERR,*(arg++));
-  double buck_c_one = force->numeric(FLERR,*(arg++));
+  double buck_a_one = utils::numeric(FLERR,*(arg++),false,lmp);
+  double buck_rho_one = utils::numeric(FLERR,*(arg++),false,lmp);
+  double buck_c_one = utils::numeric(FLERR,*(arg++),false,lmp);
 
   double cut_buck_one = cut_buck_global;
-  if (narg == 6) cut_buck_one = force->numeric(FLERR,*(arg++));
+  if (narg == 6) cut_buck_one = utils::numeric(FLERR,*(arg++),false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

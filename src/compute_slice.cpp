@@ -41,9 +41,9 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nstart = force->inumeric(FLERR,arg[3]);
-  nstop = force->inumeric(FLERR,arg[4]);
-  nskip = force->inumeric(FLERR,arg[5]);
+  nstart = utils::inumeric(FLERR,arg[3],false,lmp);
+  nstop = utils::inumeric(FLERR,arg[4],false,lmp);
+  nskip = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (nstart < 1 || nstop < nstart || nskip < 1)
     error->all(FLERR,"Illegal compute slice command");

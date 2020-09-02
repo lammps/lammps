@@ -63,6 +63,7 @@ fix momentum/chunk, Jiang Xiao (Hong Kong Polytechnic University), polyu-xiao.ji
 fix npt/cauchy, R. E. Miller (Carleton University), F. Pavia and S. Pattamatta, 12 Jan 2020
 fix nvk, Efrem Braun (UC Berkeley), efrem.braun at gmail.com, https://github.com/lammps/lammps/pull/310
 fix orient/eco Adrian A. Schratt and Volker Mohles (Ruhr-Uni Bochum), volker.mohles at rub.de, 6 Jun 2020
+fix pafi, Thomas Swinburne (CNRS), swinburne at cinam.univ-mrs.fr, 1st Sep 2020
 fix pimd, Yuxing Peng (U Chicago), yuxing at uchicago.edu, 24 Nov 2014
 fix propel/self, Stefan Paquay (Brandeis U), stefanpaquay at gmail.com, 20 Jan 2020
 fix rhok, Ulf Pedersen (Roskilde U), ulf at urp.dk, 25 Sep 2017

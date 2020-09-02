@@ -633,7 +633,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
 
   FILE *fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(cmapfile);
+    fp = utils::open_potential(cmapfile,lmp,nullptr);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open fix cmap file {}: {}",
                                    cmapfile, utils::getsyserror()));

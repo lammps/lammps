@@ -54,7 +54,7 @@ DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html          create HTML doc pages in html dir"
-	@echo "  pdf           create Developer.pdf and Manual.pdf in this dir"
+	@echo "  pdf           create Manual.pdf in this dir"
 	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"
 	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
@@ -69,7 +69,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf $(BUILDDIR)/Developer.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
 	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
@@ -140,13 +140,6 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
-		cd src/Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../Developer.pdf; \
-		cd ../../; \
-	)
-	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
@@ -175,12 +168,11 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@rm -rf latex/USER
 	@cp -r src/PDF latex/PDF
 	@rm -rf latex/PDF/.[sg]*
-	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
+	@echo "Build finished. Manual.pdf is in this directory."
 
 fetch:
-	@rm -rf html_www Manual_www.pdf Developer_www.pdf
+	@rm -rf html_www Manual_www.pdf
 	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
-	@curl -s -o Developer_www.pdf http://lammps.sandia.gov/doc/Developer.pdf
 	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
 	@tar xzf lammps-doc.tar.gz
 	@rm -f lammps-doc.tar.gz

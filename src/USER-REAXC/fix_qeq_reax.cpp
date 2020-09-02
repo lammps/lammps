@@ -66,12 +66,12 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reax command");
 
-  swa = force->numeric(FLERR,arg[4]);
-  swb = force->numeric(FLERR,arg[5]);
-  tolerance = force->numeric(FLERR,arg[6]);
+  swa = utils::numeric(FLERR,arg[4],false,lmp);
+  swb = utils::numeric(FLERR,arg[5],false,lmp);
+  tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   int len = strlen(arg[7]) + 1;
   pertype_option = new char[len];
   strcpy(pertype_option,arg[7]);

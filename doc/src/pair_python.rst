@@ -38,12 +38,12 @@ corresponding compiled code. This penalty can be significantly reduced
 through generating tabulations from the python code through the
 :doc:`pair_write <pair_write>` command, which is supported by this style.
 
-Only a single pair_coeff command is used with the *python* pair style
-which specifies a python class inside a python module or file that
-LAMMPS will look up in the current directory, the folder pointed to by
-the LAMMPS_POTENTIALS environment variable or somewhere in your python
-path.  A single python module can hold multiple python pair class
-definitions. The class definitions itself have to follow specific
+Only a single :doc:`pair_coeff <pair_coeff>` command is used with the
+*python* pair style which specifies a python class inside a python module
+or a file that LAMMPS will look up in the current directory, a folder
+pointed to by the ``LAMMPS_POTENTIALS`` environment variable or somewhere
+in your python path.  A single python module can hold multiple python pair
+class definitions.  The class definitions itself have to follow specific
 rules that are explained below.
 
 Atom types in the python class are specified through symbolic

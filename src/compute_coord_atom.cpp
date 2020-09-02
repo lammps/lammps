@@ -48,7 +48,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"cutoff") == 0) {
     cstyle = CUTOFF;
-    double cutoff = force->numeric(FLERR,arg[4]);
+    double cutoff = utils::numeric(FLERR,arg[4],false,lmp);
     cutsq = cutoff*cutoff;
 
     int iarg = 5;
@@ -75,7 +75,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     } else {
       ncol = 0;
       while (iarg < narg) {
-        force->bounds(FLERR,arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
+        utils::bounds(FLERR,arg[iarg],1,ntypes,typelo[ncol],typehi[ncol],error);
         if (typelo[ncol] > typehi[ncol])
           error->all(FLERR,"Illegal compute coord/atom command");
         ncol++;
@@ -97,7 +97,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
       error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
-    threshold = force->numeric(FLERR,arg[5]);
+    threshold = utils::numeric(FLERR,arg[5],false,lmp);
     if (threshold <= -1.0 || threshold >= 1.0)
       error->all(FLERR,"Compute coord/atom threshold not between -1 and 1");
 

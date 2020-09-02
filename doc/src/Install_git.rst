@@ -46,9 +46,9 @@ between them at any time using "git checkout <branch name>".)
 Once the command completes, your directory will contain the same files
 as if you unpacked a current LAMMPS tarball, with the exception, that
 the HTML documentation files are not included.  They can be fetched
-from the LAMMPS website by typing "make fetch" in the doc directory.
+from the LAMMPS website by typing ``make fetch`` in the doc directory.
 Or they can be generated from the content provided in doc/src by
-typing "make html" from the doc directory.
+typing ``make html`` from the doc directory.
 
 After initial cloning, as bug fixes and new features are added to
 LAMMPS, as listed on :doc:`this page <Errors_bugs>`, you can stay
@@ -70,8 +70,8 @@ repository file with your version of the file and tell you if there
 are any conflicts.  See the git documentation for details.
 
 If you want to access a particular previous release version of LAMMPS,
-you can instead "checkout" any version with a published tag. See the
-output of "git tag -l" for the list of tags.  The git command to do
+you can instead "check out" any version with a published tag. See the
+output of ``git tag -l`` for the list of tags.  The git command to do
 this is as follows.
 
 .. code-block:: bash
@@ -79,14 +79,14 @@ this is as follows.
    $ git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on :doc:`this page <Errors_bugs>`.  Note that this command
-will print some warnings, because in order to get back to the latest
-revision and to be able to update with "git pull" again, you first
-will need to first type "git checkout unstable" (or check out any
-other desired branch).
+are discussed on `this page <https://lammps.sandia.gov/bug.html#version>`_.
+Note that this command will print some warnings, because in order to get
+back to the latest revision and to be able to update with ``git pull``
+again, you first will need to first type ``git checkout unstable`` (or
+check out any other desired branch).
 
-Once you have updated your local files with a "git pull" (or "git
-checkout"), you still need to re-build LAMMPS if any source files have
+Once you have updated your local files with a ``git pull`` (or ``git
+checkout``), you still need to re-build LAMMPS if any source files have
 changed.  To do this, you should cd to the src directory and type:
 
 .. code-block:: bash

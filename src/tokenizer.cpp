@@ -17,6 +17,7 @@
 
 #include "tokenizer.h"
 #include "utils.h"
+#include <algorithm>
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;
@@ -28,6 +29,16 @@ TokenizerException::TokenizerException(const std::string & msg, const std::strin
         message = fmt::format("{}: '{}'", msg, token);
     }
 }
+
+/** Class for splitting text into words
+ *
+ * This tokenizer will break down a string into sub-strings (i.e words)
+ * separated by the given separator characters.
+ *
+ * \param str         string to be processed
+ * \param separators  string with separator characters (default: " \t\r\n\f")
+ *
+ * \sa ValueTokenizer TokenizerException */
 
 Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
@@ -47,10 +58,23 @@ Tokenizer::Tokenizer(Tokenizer && rhs) :
     reset();
 }
 
+/*! Re-position the tokenizer state to the first word,
+ * i.e. the first non-separator character */
 void Tokenizer::reset() {
     start = text.find_first_not_of(separators);
 }
 
+/*! Search the text to be processed for a sub-string.
+ *
+ * \param  str  string to be searched for
+ * \return      true if string was found, false if not */
+bool Tokenizer::contains(const std::string & str) const {
+    return text.find(str) != std::string::npos;
+}
+
+/*! Skip over a given number of tokens
+ *
+ * \param  n  number of tokens to skip over */
 void Tokenizer::skip(int n) {
     for(int i = 0; i < n; ++i) {
         if(!has_next()) throw TokenizerException("No more tokens", "");
@@ -65,10 +89,16 @@ void Tokenizer::skip(int n) {
     }
 }
 
+/*! Indicate whether more tokens are available
+ *
+ * \return   true if there are more tokens, false if not */
 bool Tokenizer::has_next() const {
     return start != std::string::npos;
 }
 
+/*! Retrieve next token.
+ *
+ * \return   string with the next token */
 std::string Tokenizer::next() {
     if(!has_next()) throw TokenizerException("No more tokens", "");
 
@@ -85,6 +115,9 @@ std::string Tokenizer::next() {
     return token;
 }
 
+/*! Count number of tokens in text.
+ *
+ * \return   number of counted tokens */
 size_t Tokenizer::count() {
     // lazy evaluation
     if (ntokens == std::string::npos) {
@@ -93,6 +126,9 @@ size_t Tokenizer::count() {
     return ntokens;
 }
 
+/*! Retrieve the entire text converted to an STL vector of tokens.
+ *
+ * \return   The STL vector */
 std::vector<std::string> Tokenizer::as_vector() {
   // store current state
   size_t current = start;
@@ -112,6 +148,12 @@ std::vector<std::string> Tokenizer::as_vector() {
   return tokens;
 }
 
+/*! Class for reading text with numbers
+ *
+ * \param str         String to be processed
+ * \param separators  String with separator characters (default: " \t\r\n\f")
+ *
+ * \sa Tokenizer InvalidIntegerException InvalidFloatException */
 
 ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
 }
@@ -122,10 +164,24 @@ ValueTokenizer::ValueTokenizer(const ValueTokenizer & rhs) : tokens(rhs.tokens) 
 ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tokens)) {
 }
 
+/*! Indicate whether more tokens are available
+ *
+ * \return   true if there are more tokens, false if not */
 bool ValueTokenizer::has_next() const {
     return tokens.has_next();
 }
 
+/*! Search the text to be processed for a sub-string.
+ *
+ * \param  value  string with value to be searched for
+ * \return        true if string was found, false if not */
+bool ValueTokenizer::contains(const std::string & value) const {
+    return tokens.contains(value);
+}
+
+/*! Retrieve next token
+ *
+ * \return   string with next token */
 std::string ValueTokenizer::next_string() {
     if (has_next()) {
         std::string value = tokens.next();
@@ -134,6 +190,9 @@ std::string ValueTokenizer::next_string() {
     return "";
 }
 
+/*! Retrieve next token and convert to int
+ *
+ * \return   value of next token */
 int ValueTokenizer::next_int() {
     if (has_next()) {
         std::string current = tokens.next();
@@ -146,6 +205,9 @@ int ValueTokenizer::next_int() {
     return 0;
 }
 
+/*! Retrieve next token and convert to bigint
+ *
+ * \return   value of next token */
 bigint ValueTokenizer::next_bigint() {
     if (has_next()) {
         std::string current = tokens.next();
@@ -158,6 +220,9 @@ bigint ValueTokenizer::next_bigint() {
     return 0;
 }
 
+/*! Retrieve next token and convert to tagint
+ *
+ * \return   value of next token */
 tagint ValueTokenizer::next_tagint() {
     if (has_next()) {
         std::string current = tokens.next();
@@ -170,6 +235,9 @@ tagint ValueTokenizer::next_tagint() {
     return 0;
 }
 
+/*! Retrieve next token and convert to double
+ *
+ * \return   value of next token */
 double ValueTokenizer::next_double() {
     if (has_next()) {
         std::string current = tokens.next();
@@ -182,10 +250,16 @@ double ValueTokenizer::next_double() {
     return 0.0;
 }
 
+/*! Skip over a given number of tokens
+ *
+ * \param  n  number of tokens to skip over */
 void ValueTokenizer::skip(int n) {
     tokens.skip(n);
 }
 
+/*! Count number of tokens in text.
+ *
+ * \return   number of counted tokens */
 size_t ValueTokenizer::count() {
     return tokens.count();
 }

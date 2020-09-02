@@ -73,15 +73,15 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  int P = atoi(argv[1]);
-  int N = atoi(argv[2]);
-  int K = atoi(argv[3]);
-  int R = atoi(argv[4]);
-  int D = atoi(argv[5]);
-  int U = atoi(argv[6]);
-  int F = atoi(argv[7]);
-  int T = atoi(argv[8]);
-  int S = atoi(argv[9]);
+  int P = std::stoi(argv[1]);
+  int N = std::stoi(argv[2]);
+  int K = std::stoi(argv[3]);
+  int R = std::stoi(argv[4]);
+  int D = std::stoi(argv[5]);
+  int U = std::stoi(argv[6]);
+  int F = std::stoi(argv[7]);
+  int T = std::stoi(argv[8]);
+  int S = std::stoi(argv[9]);
 
   if (U > 8) {
     printf("U must be 1-8\n");

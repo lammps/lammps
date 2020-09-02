@@ -66,12 +66,12 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reax command");
 
-  swa = force->numeric(FLERR,arg[4]);
-  swb = force->numeric(FLERR,arg[5]);
-  tolerance = force->numeric(FLERR,arg[6]);
+  swa = utils::numeric(FLERR,arg[4],false,lmp);
+  swb = utils::numeric(FLERR,arg[5],false,lmp);
+  tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   int len = strlen(arg[7]) + 1;
   pertype_option = new char[len];
   strcpy(pertype_option,arg[7]);
@@ -463,19 +463,26 @@ void FixQEqReax::min_setup_pre_force(int vflag)
 void FixQEqReax::init_storage()
 {
   int NN;
+  int *ilist;
 
-  if (reaxc)
+  if (reaxc) {
     NN = reaxc->list->inum + reaxc->list->gnum;
-  else
+    ilist = reaxc->list->ilist;
+  } else {
     NN = list->inum + list->gnum;
+    ilist = list->ilist;
+  }
 
-  for (int i = 0; i < NN; i++) {
-    Hdia_inv[i] = 1. / eta[atom->type[i]];
-    b_s[i] = -chi[atom->type[i]];
-    b_t[i] = -1.0;
-    b_prc[i] = 0;
-    b_prm[i] = 0;
-    s[i] = t[i] = 0;
+  for (int ii = 0; ii < NN; ii++) {
+    int i = ilist[ii];
+    if (atom->mask[i] & groupbit) {
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i] = -chi[atom->type[i]];
+      b_t[i] = -1.0;
+      b_prc[i] = 0;
+      b_prm[i] = 0;
+      s[i] = t[i] = 0;
+    }
   }
 }
 

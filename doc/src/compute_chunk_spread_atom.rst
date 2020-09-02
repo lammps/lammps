@@ -188,7 +188,8 @@ it is in.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector or array, which can be
 accessed by any command that uses per-atom values from a compute as
@@ -212,4 +213,7 @@ Related commands
 
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`compute reduce/chunk <compute_reduce_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none

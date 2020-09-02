@@ -39,8 +39,7 @@ FixNPTSphere::FixNPTSphere(LAMMPS *lmp, int narg, char **arg) :
   id_temp = new char[tcmd.size()+1];
   strcpy(id_temp,tcmd.c_str());
 
-  tcmd += " all temp/sphere";
-  modify->add_compute(tcmd);
+  modify->add_compute(tcmd + " all temp/sphere");
   tcomputeflag = 1;
 
   // create a new compute pressure style
@@ -51,7 +50,6 @@ FixNPTSphere::FixNPTSphere(LAMMPS *lmp, int narg, char **arg) :
   id_press = new char[pcmd.size()+1];
   strcpy(id_press,pcmd.c_str());
 
-  pcmd += " all pressure " + std::string(id_temp);
-  modify->add_compute(pcmd);
+  modify->add_compute(pcmd + " all pressure " + std::string(id_temp));
   pcomputeflag = 1;
 }

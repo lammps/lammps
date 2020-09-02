@@ -29,6 +29,16 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LMP_KOKKOS_GPU
+#endif
+
+#if defined(LMP_KOKKOS_GPU)
+#define KOKKOS_GPU_ARG(x) x
+#else
+#define KOKKOS_GPU_ARG(x)
+#endif
+
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
@@ -186,9 +196,17 @@ template<>
 struct ExecutionSpaceFromDevice<LMPHostType> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Host;
 };
+
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #endif
@@ -211,13 +229,20 @@ struct AtomicF<HALFTHREAD> {
 // Do atomic trait when running HALFTHREAD neighbor list style with CUDA
 template<int NEIGHFLAG, class DeviceType>
 struct AtomicDup {
-  enum {value = Kokkos::Experimental::ScatterNonAtomic};
+  using value = Kokkos::Experimental::ScatterNonAtomic;
 };
 
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
-  enum {value = Kokkos::Experimental::ScatterAtomic};
+  using value = Kokkos::Experimental::ScatterAtomic;
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
+  using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
 
@@ -226,14 +251,14 @@ struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
 #ifdef KOKKOS_ENABLE_OPENMP
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::OpenMP> {
-  enum {value = Kokkos::Experimental::ScatterAtomic};
+  using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
 
 #ifdef KOKKOS_ENABLE_THREADS
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Threads> {
-  enum {value = Kokkos::Experimental::ScatterAtomic};
+  using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
 
@@ -244,7 +269,7 @@ struct AtomicDup<HALFTHREAD,Kokkos::Threads> {
 // Use duplication when running threaded and not using atomics
 template<int NEIGHFLAG, class DeviceType>
 struct NeedDup {
-  enum {value = Kokkos::Experimental::ScatterNonDuplicated};
+  using value = Kokkos::Experimental::ScatterNonDuplicated;
 };
 
 #ifndef LMP_KOKKOS_USE_ATOMICS
@@ -252,27 +277,27 @@ struct NeedDup {
 #ifdef KOKKOS_ENABLE_OPENMP
 template<>
 struct NeedDup<HALFTHREAD,Kokkos::OpenMP> {
-  enum {value = Kokkos::Experimental::ScatterDuplicated};
+  using value = Kokkos::Experimental::ScatterDuplicated;
 };
 #endif
 
 #ifdef KOKKOS_ENABLE_THREADS
 template<>
 struct NeedDup<HALFTHREAD,Kokkos::Threads> {
-  enum {value = Kokkos::Experimental::ScatterDuplicated};
+  using value = Kokkos::Experimental::ScatterDuplicated;
 };
 #endif
 
 #endif
 
-template<int value, typename T1, typename T2>
+template<typename value, typename T1, typename T2>
 class ScatterViewHelper {};
 
 template<typename T1, typename T2>
 class ScatterViewHelper<Kokkos::Experimental::ScatterDuplicated,T1,T2> {
 public:
   KOKKOS_INLINE_FUNCTION
-  static T1 get(const T1 &dup, const T2 &nondup) {
+  static T1 get(const T1 &dup, const T2 & /*nondup*/) {
     return dup;
   }
 };
@@ -281,7 +306,7 @@ template<typename T1, typename T2>
 class ScatterViewHelper<Kokkos::Experimental::ScatterNonDuplicated,T1,T2> {
 public:
   KOKKOS_INLINE_FUNCTION
-  static T2 get(const T1 &dup, const T2 &nondup) {
+  static T2 get(const T1 & /*dup*/, const T2 &nondup) {
     return nondup;
   }
 };
@@ -753,7 +778,7 @@ typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template <>
 struct ArrayTypes<LMPHostType> {
 
@@ -1025,7 +1050,7 @@ struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+  params_lj_coul(int /*i*/){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
@@ -1039,7 +1064,7 @@ struct alignas(2*sizeof(real)) SNAComplex
 {
   real re,im;
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
+  SNAComplex() = default;
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
    : re(re), im(static_cast<real>(0.)) { ; }
@@ -1081,16 +1106,33 @@ KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAC
 
 typedef SNAComplex<SNAreal> SNAcomplex;
 
+// Cayley-Klein pack
+// Can guarantee it's aligned to 2 complex
+struct alignas(32) CayleyKleinPack {
+
+  SNAcomplex a, b;
+  SNAcomplex da[3], db[3];
+  SNAreal sfac;
+  SNAreal dsfacu[3];
+
+};
+
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 #define LAMMPS_LAMBDA [=] __device__
 #else
 #define LAMMPS_LAMBDA [=]
+#endif
+
+#ifdef LMP_KOKKOS_GPU
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#define LMP_KK_DEVICE_COMPILE
+#endif
 #endif
 
 #endif

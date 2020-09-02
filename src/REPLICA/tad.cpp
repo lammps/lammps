@@ -37,6 +37,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -81,12 +82,12 @@ void TAD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
-  nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  templo = force->numeric(FLERR,arg[2]);
-  temphi = force->numeric(FLERR,arg[3]);
-  delta_conf = force->numeric(FLERR,arg[4]);
-  tmax = force->numeric(FLERR,arg[5]);
+  nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  templo = utils::numeric(FLERR,arg[2],false,lmp);
+  temphi = utils::numeric(FLERR,arg[3],false,lmp);
+  delta_conf = utils::numeric(FLERR,arg[4],false,lmp);
+  tmax = utils::numeric(FLERR,arg[5],false,lmp);
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
@@ -398,10 +399,7 @@ void TAD::command(int narg, char **arg)
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nTAD done\n");
-    if (logfile) fprintf(logfile,"\nTAD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nTAD done\n");
 
   finish->end(3);
 
@@ -594,10 +592,10 @@ void TAD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal tad command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0 || maxeval < 0 ||
           etol < 0.0 || ftol < 0.0 )
         error->all(FLERR,"Illegal tad command");
@@ -605,11 +603,11 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal tad command");
-      etol_neb = force->numeric(FLERR,arg[iarg+1]);
-      ftol_neb = force->numeric(FLERR,arg[iarg+2]);
-      n1steps_neb = force->inumeric(FLERR,arg[iarg+3]);
-      n2steps_neb = force->inumeric(FLERR,arg[iarg+4]);
-      nevery_neb = force->inumeric(FLERR,arg[iarg+5]);
+      etol_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol_neb = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      n1steps_neb = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      n2steps_neb = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      nevery_neb = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (etol_neb < 0.0 || ftol_neb < 0.0 ||
           n1steps_neb < 0 || n2steps_neb < 0 ||
           nevery_neb < 0) error->all(FLERR,"Illegal tad command");
@@ -625,7 +623,7 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb_step") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      dt_neb = force->numeric(FLERR,arg[iarg+1]);
+      dt_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (dt_neb <= 0.0) error->all(FLERR,"Illegal tad command");
       iarg += 2;
 

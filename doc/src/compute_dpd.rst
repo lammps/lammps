@@ -46,7 +46,8 @@ where :math:`N` is the number of particles in the system
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 5 (:math:`U^{cond}`,
 :math:`U^{mech}`, :math:`U^{chem}`, :math:`\theta_{avg}`, :math:`N`),
@@ -71,7 +72,10 @@ Related commands
 :doc:`compute dpd/atom <compute_dpd_atom>`,
 :doc:`thermo_style <thermo_style>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

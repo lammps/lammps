@@ -541,7 +541,7 @@ void Output::add_dump(int narg, char **arg)
       error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
-  if (force->inumeric(FLERR,arg[3]) <= 0)
+  if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
     error->all(FLERR,"Invalid dump frequency");
 
   // extend Dump list if necessary
@@ -568,11 +568,11 @@ void Output::add_dump(int narg, char **arg)
   // create the Dump
 
   if (dump_map->find(arg[2]) != dump_map->end()) {
-    DumpCreator dump_creator = (*dump_map)[arg[2]];
+    DumpCreator &dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
-  every_dump[ndump] = force->inumeric(FLERR,arg[3]);
+  every_dump[ndump] = utils::inumeric(FLERR,arg[3],false,lmp);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
   last_dump[ndump] = -1;
   var_dump[ndump] = NULL;
@@ -670,7 +670,7 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);
   } else {
-    thermo_every = force->inumeric(FLERR,arg[0]);
+    thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
     if (thermo_every < 0) error->all(FLERR,"Illegal thermo command");
   }
 }
@@ -714,7 +714,7 @@ void Output::create_restart(int narg, char **arg)
   int varflag = 0;
 
   if (strstr(arg[0],"v_") == arg[0]) varflag = 1;
-  else every = force->inumeric(FLERR,arg[0]);
+  else every = utils::inumeric(FLERR,arg[0],false,lmp);
 
   if (!varflag && every == 0) {
     if (narg != 1) error->all(FLERR,"Illegal restart command");

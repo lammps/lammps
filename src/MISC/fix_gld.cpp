@@ -55,16 +55,16 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // 1 = Group ID         (e.g., all)
   // 2 = gld              (name of this fix)
   // 3 = t_start          (Starting target temperature)
-  t_start = force->numeric(FLERR,arg[3]);
+  t_start = utils::numeric(FLERR,arg[3],false,lmp);
 
   // 4 = t_stop           (Stopping target temperature)
-  t_stop = force->numeric(FLERR,arg[4]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
 
   // 5 = prony_terms      (number of terms in Prony series)
-  prony_terms = force->inumeric(FLERR,arg[5]);
+  prony_terms = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // 6 = seed             (random seed)
-  int seed    = force->inumeric(FLERR,arg[6]);
+  int seed    = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // 7 = series type
   if(strcmp(arg[7],"pprony") == 0) {
@@ -99,8 +99,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   int iarg = narg_min;
   int icoeff = 0;
   while (iarg < narg && icoeff < prony_terms) {
-    double pc = force->numeric(FLERR,arg[iarg]);
-    double ptau = force->numeric(FLERR,arg[iarg+1]);
+    double pc = utils::numeric(FLERR,arg[iarg],false,lmp);
+    double ptau = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
     if (pc < 0)
       error->all(FLERR,"Fix gld c coefficients must be >= 0");
@@ -547,6 +547,7 @@ int FixGLD::unpack_exchange(int nlocal, double *buf)
 int FixGLD::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3*prony_terms + 1;
   for (int k = 0; k < 3*prony_terms; k=k+3)
   {
@@ -566,6 +567,7 @@ void FixGLD::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to the nth set of extended variables
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);

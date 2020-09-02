@@ -51,4 +51,7 @@ Related commands
 
 :doc:`angle_style none <angle_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -358,7 +358,7 @@ void PairAGNI::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open AGNI potential file %s",file);

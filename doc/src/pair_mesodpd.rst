@@ -231,7 +231,8 @@ additional coeffs are specified (for species 2).
 
 ----------
 
-**Example scripts**
+Example scripts
+"""""""""""""""
 
 There are example scripts for using all these pair styles in
 examples/USER/meso.  The example for an eDPD simulation models heat
@@ -249,8 +250,12 @@ from :ref:`(Li2013_POF) <Li2013_POF>`.  The short mDPD run (about 2 minutes
 on a single core) generates a particle trajectory which can
 be visualized as follows.
 
+.. only:: html
+
+   .. image:: JPG/examples_mdpd.gif
+      :align: center
+
 .. image:: JPG/examples_mdpd_first.jpg
-   :target: JPG/examples_mdpd.gif
    :align: center
 
 .. image:: JPG/examples_mdpd_last.jpg
@@ -273,7 +278,8 @@ concentration profiles of the two chemical species as
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
 mixing. Thus, coefficients for all I,J pairs must be specified explicitly.
@@ -303,7 +309,10 @@ Related commands
 :doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`,
 :doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

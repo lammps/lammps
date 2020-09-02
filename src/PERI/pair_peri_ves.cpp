@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -425,16 +426,16 @@ void PairPeriVES::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double bulkmodulus_one = force->numeric(FLERR,arg[2]);
-  double shearmodulus_one = force->numeric(FLERR,arg[3]);
-  double cut_one = force->numeric(FLERR,arg[4]);
-  double s00_one = force->numeric(FLERR,arg[5]);
-  double alpha_one = force->numeric(FLERR,arg[6]);
-  double mlambdai_one = force->numeric(FLERR,arg[7]);
-  double mtaui_one = force->numeric(FLERR,arg[8]);
+  double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double shearmodulus_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double s00_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double mlambdai_one = utils::numeric(FLERR,arg[7],false,lmp);
+  double mtaui_one = utils::numeric(FLERR,arg[8],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -495,14 +496,7 @@ void PairPeriVES::init_style()
 
   // if first init, create Fix needed for storing fixed neighbors
 
-  if (ifix_peri == -1) {
-    char **fixarg = new char*[3];
-    fixarg[0] = (char *) "PERI_NEIGH";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "PERI_NEIGH";
-    modify->add_fix(3,fixarg);
-    delete [] fixarg;
-  }
+  if (ifix_peri == -1) modify->add_fix("PERI_NEIGH all PERI_NEIGH");
 
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created

@@ -163,7 +163,8 @@ constraints will be satisfied.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -182,7 +183,10 @@ Related commands
 
 :doc:`fix heat <fix_heat>`, :doc:`fix thermal/conductivity <fix_thermal_conductivity>`, :doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

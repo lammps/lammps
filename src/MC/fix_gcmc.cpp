@@ -87,14 +87,14 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nexchanges = force->inumeric(FLERR,arg[4]);
-  nmcmoves = force->inumeric(FLERR,arg[5]);
-  ngcmc_type = force->inumeric(FLERR,arg[6]);
-  seed = force->inumeric(FLERR,arg[7]);
-  reservoir_temperature = force->numeric(FLERR,arg[8]);
-  chemical_potential = force->numeric(FLERR,arg[9]);
-  displace = force->numeric(FLERR,arg[10]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nexchanges = utils::inumeric(FLERR,arg[4],false,lmp);
+  nmcmoves = utils::inumeric(FLERR,arg[5],false,lmp);
+  ngcmc_type = utils::inumeric(FLERR,arg[6],false,lmp);
+  seed = utils::inumeric(FLERR,arg[7],false,lmp);
+  reservoir_temperature = utils::numeric(FLERR,arg[8],false,lmp);
+  chemical_potential = utils::numeric(FLERR,arg[9],false,lmp);
+  displace = utils::numeric(FLERR,arg[10],false,lmp);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix gcmc command");
   if (nexchanges < 0) error->all(FLERR,"Illegal fix gcmc command");
@@ -287,9 +287,9 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
   } else if (strcmp(arg[iarg],"mcmoves") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      patomtrans = force->numeric(FLERR,arg[iarg+1]);
-      pmoltrans = force->numeric(FLERR,arg[iarg+2]);
-      pmolrotate = force->numeric(FLERR,arg[iarg+3]);
+      patomtrans = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      pmoltrans = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      pmolrotate = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (patomtrans < 0 || pmoltrans < 0 || pmolrotate < 0)
         error->all(FLERR,"Illegal fix gcmc command");
       pmctot = patomtrans + pmoltrans + pmolrotate;
@@ -308,21 +308,21 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_rotation_angle = force->numeric(FLERR,arg[iarg+1]);
+      max_rotation_angle = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       max_rotation_angle *= MY_PI/180;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      pressure = force->numeric(FLERR,arg[iarg+1]);
+      pressure = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       pressure_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      fugacity_coeff = force->numeric(FLERR,arg[iarg+1]);
+      fugacity_coeff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      charge = force->numeric(FLERR,arg[iarg+1]);
+      charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       charge_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
@@ -369,7 +369,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngrouptypesmax*sizeof(char *),
                            "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = force->inumeric(FLERR,arg[iarg+1]);
+      grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int n = strlen(arg[iarg+2]) + 1;
       grouptypestrings[ngrouptypes] = new char[n];
       strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
@@ -377,25 +377,25 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      energy_intra = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tfac_insert") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      tfac_insert = force->numeric(FLERR,arg[iarg+1]);
+      tfac_insert = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap_cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      double rtmp = force->numeric(FLERR,arg[iarg+1]);
+      double rtmp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      min_ngas = force->numeric(FLERR,arg[iarg+1]);
+      min_ngas = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_ngas = force->numeric(FLERR,arg[iarg+1]);
+      max_ngas = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -493,11 +493,7 @@ void FixGCMC::init()
     }
   }
 
-  if (full_flag) {
-    char *id_pe = (char *) "thermo_pe";
-    int ipe = modify->find_compute(id_pe);
-    c_pe = modify->compute[ipe];
-  }
+  if (full_flag) c_pe = modify->compute[modify->find_compute("thermo_pe")];
 
   int *type = atom->type;
 
@@ -580,18 +576,12 @@ void FixGCMC::init()
   // skip if already exists from previous init()
 
   if (full_flag && !exclusion_group_bit) {
-    char **group_arg = new char*[4];
 
     // create unique group name for atoms to be excluded
 
-    int len = strlen(id) + 30;
-    group_arg[0] = new char[len];
-    sprintf(group_arg[0],"FixGCMC:gcmc_exclusion_group:%s",id);
-    group_arg[1] = (char *) "subtract";
-    group_arg[2] = (char *) "all";
-    group_arg[3] = (char *) "all";
-    group->assign(4,group_arg);
-    exclusion_group = group->find(group_arg[0]);
+    auto group_id = std::string("FixGCMC:gcmc_exclusion_group:") + id;
+    group->assign(group_id + " subtract all all");
+    exclusion_group = group->find(group_id);
     if (exclusion_group == -1)
       error->all(FLERR,"Could not find fix gcmc exclusion group ID");
     exclusion_group_bit = group->bitmask[exclusion_group];
@@ -603,34 +593,25 @@ void FixGCMC::init()
     char **arg = new char*[narg];;
     arg[0] = (char *) "exclude";
     arg[1] = (char *) "group";
-    arg[2] = group_arg[0];
+    arg[2] = (char *) group_id.c_str();
     arg[3] = (char *) "all";
     neighbor->modify_params(narg,arg);
-    delete [] group_arg[0];
-    delete [] group_arg;
     delete [] arg;
   }
 
   // create a new group for temporary use with selected molecules
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL) {
-    char **group_arg = new char*[3];
+
     // create unique group name for atoms to be rotated
-    int len = strlen(id) + 30;
-    group_arg[0] = new char[len];
-    sprintf(group_arg[0],"FixGCMC:rotation_gas_atoms:%s",id);
-    group_arg[1] = (char *) "molecule";
-    char digits[12];
-    sprintf(digits,"%d",-1);
-    group_arg[2] = digits;
-    group->assign(3,group_arg);
-    molecule_group = group->find(group_arg[0]);
+
+    auto group_id = std::string("FixGCMC:rotation_gas_atoms:") + id;
+    group->assign(group_id + " molecule -1");
+    molecule_group = group->find(group_id);
     if (molecule_group == -1)
       error->all(FLERR,"Could not find fix gcmc rotation group ID");
     molecule_group_bit = group->bitmask[molecule_group];
     molecule_group_inversebit = molecule_group_bit ^ ~0;
-    delete [] group_arg[0];
-    delete [] group_arg;
   }
 
   // get all of the needed molecule data if exchanging

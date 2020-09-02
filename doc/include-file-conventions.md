@@ -3,7 +3,7 @@
 This purpose of this document is to provide a point of reference
 for LAMMPS developers and contributors as to what include files
 and definitions to put where into LAMMPS source.
-Last change 2019-07-05
+Last change 2020-08-31
 
 ## Table of Contents
 
@@ -99,10 +99,13 @@ Include files should be included in this order:
 
 #### pointers.h
 
-The `pointer.h` header file also includes `cstdio` and `lmptype.h`
-(and through it `stdint.h`, `intttypes.h`, cstdlib, and `climits`).
+The `pointer.h` header file also includes `cstdio`, `cstddef`,
+`string`, `lmptype.h`, and `utils.h` (and through those indirectly
+ `stdint.h`, `intttypes.h`, cstdlib, and `climits`).
 This means any header including `pointers.h` can assume that `FILE`,
-`NULL`, `INT_MAX` are defined.
+`NULL`, `INT_MAX` are defined, they may freely use std::string
+and functions from the utils namespace without including the
+corresponding header files.
 
 ## Tools
 

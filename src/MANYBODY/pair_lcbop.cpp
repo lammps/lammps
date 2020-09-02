@@ -969,7 +969,7 @@ void PairLCBOP::read_file(char *filename)
   // read file on proc 0
 
   if (me == 0) {
-    FILE *fp = force->open_potential(filename);
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open LCBOP potential file %s",filename);

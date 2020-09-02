@@ -872,7 +872,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (lmp->suffix) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator fix_creator = (*fix_map)[estyle];
+        FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = new char[estyle.size()+1];
@@ -882,7 +882,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (fix[ifix] == NULL && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator fix_creator = (*fix_map)[estyle];
+        FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = new char[estyle.size()+1];
@@ -892,7 +892,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL && fix_map->find(arg[2]) != fix_map->end()) {
-    FixCreator fix_creator = (*fix_map)[arg[2]];
+    FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
@@ -1031,7 +1031,7 @@ void Modify::modify_fix(int narg, char **arg)
    Atom class must update indices in its list of callbacks to fixes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_fix(const char *id)
+void Modify::delete_fix(const std::string &id)
 {
   int ifix = find_fix(id);
   if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
@@ -1055,14 +1055,12 @@ void Modify::delete_fix(int ifix)
    return index of fix or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_fix(const char *id)
+int Modify::find_fix(const std::string &id)
 {
-  if (id == NULL) return -1;
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(id,fix[ifix]->id) == 0) break;
-  if (ifix == nfix) return -1;
-  return ifix;
+  if (id.empty()) return -1;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (id == fix[ifix]->id) return ifix;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1195,7 +1193,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all(FLERR,"Reuse of compute ID");
+      error->all(FLERR,fmt::format("Reuse of compute ID '{}'",arg[0]));
 
   // extend Compute list if necessary
 
@@ -1214,7 +1212,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     if (lmp->suffix) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator compute_creator = (*compute_map)[estyle];
+        ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = new char[estyle.size()+1];
@@ -1224,7 +1222,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     if (compute[ncompute] == NULL && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator compute_creator = (*compute_map)[estyle];
+        ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = new char[estyle.size()+1];
@@ -1235,7 +1233,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (compute[ncompute] == NULL &&
       compute_map->find(arg[2]) != compute_map->end()) {
-    ComputeCreator compute_creator = (*compute_map)[arg[2]];
+    ComputeCreator &compute_creator = (*compute_map)[arg[2]];
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
@@ -1295,7 +1293,7 @@ void Modify::modify_compute(int narg, char **arg)
    delete a Compute from list of Computes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_compute(const char *id)
+void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
@@ -1312,14 +1310,12 @@ void Modify::delete_compute(const char *id)
    return index of compute or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_compute(const char *id)
+int Modify::find_compute(const std::string &id)
 {
-  if(id==NULL) return -1;
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(id,compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) return -1;
-  return icompute;
+  if(id.empty()) return -1;
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (id == compute[icompute]->id) return icompute;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

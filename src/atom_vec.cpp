@@ -156,7 +156,8 @@ AtomVec::~AtomVec()
 void AtomVec::store_args(int narg, char **arg)
 {
   nargcopy = narg;
-  argcopy = new char*[nargcopy];
+  if (nargcopy) argcopy = new char*[nargcopy];
+  else argcopy = nullptr;
   for (int i = 0; i < nargcopy; i++) {
     int n = strlen(arg[i]) + 1;
     argcopy[i] = new char[n];
@@ -1095,8 +1096,9 @@ void AtomVec::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
@@ -1164,8 +1166,9 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
@@ -1876,7 +1879,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -1884,29 +1887,29 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       cols = mdata_atom.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
 
-    fprintf(fp," %d %d %d\n",
+    fmt::print(fp," {} {} {}\n",
             (int) ubuf(buf[i][j]).i,
             (int) ubuf(buf[i][j+1]).i,
             (int) ubuf(buf[i][j+2]).i);
@@ -2024,7 +2027,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {
@@ -2032,28 +2035,28 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
       cols = mdata_vel.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
-  fprintf(fp,"\n");
+    fputs("\n",fp);
   }
 }
 
@@ -2110,8 +2113,7 @@ int AtomVec::pack_bond(tagint **buf)
 void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2]);
+    fmt::print(fp,"{} {} {} {}\n",index,buf[i][0],buf[i][1],buf[i][2]);
     index++;
   }
 }
@@ -2173,9 +2175,8 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+    fmt::print(fp,"{} {} {} {} {}\n",index,
+               buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
   }
 }
@@ -2235,9 +2236,8 @@ int AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -2297,9 +2297,8 @@ int AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -2414,7 +2413,8 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
-  threads = new bool[ngrow];
+  if (ngrow) threads = new bool[ngrow];
+  else threads = nullptr;
   for (int i = 0; i < ngrow; i++) {
     Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
     threads[i] = (field->threadflag) ? true : false;
@@ -2499,9 +2499,10 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
-  int *index = new int[nfield];
+  int *index;
   int match;
 
+  if (nfield) index = new int[nfield];
   for (int i = 0; i < nfield; i++) {
     const char * field = words[i].c_str();
 
@@ -2526,7 +2527,8 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
         error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
-  method->index = index;
+  if (nfield) method->index = index;
+  else method->index = nullptr;
   return nfield;
 }
 
@@ -2536,12 +2538,22 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
 void AtomVec::create_method(int nfield, Method *method)
 {
-  method->pdata = new void*[nfield];
-  method->datatype = new int[nfield];
-  method->cols = new int[nfield];
-  method->maxcols = new int*[nfield];
-  method->collength = new int[nfield];
-  method->plength = new void*[nfield];
+  if (nfield > 0) {
+    method->pdata = new void*[nfield];
+    method->datatype = new int[nfield];
+    method->cols = new int[nfield];
+    method->maxcols = new int*[nfield];
+    method->collength = new int[nfield];
+    method->plength = new void*[nfield];
+  } else {
+    method->pdata = nullptr;
+    method->datatype = nullptr;
+    method->cols = nullptr;
+    method->maxcols = nullptr;
+    method->collength = nullptr;
+    method->plength = nullptr;
+    return;
+  }
 
   for (int i = 0; i < nfield; i++) {
     Atom::PerAtom *field = &atom->peratom[method->index[i]];

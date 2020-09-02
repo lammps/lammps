@@ -118,7 +118,11 @@ Currently, the MS-CG library is not setup to run in parallel with MPI,
 so this fix can only be used in a serial LAMMPS build and run
 on a single processor.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

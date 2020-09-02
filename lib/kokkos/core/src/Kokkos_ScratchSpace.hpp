@@ -46,6 +46,7 @@
 #define KOKKOS_SCRATCHSPACE_HPP
 
 #include <cstdio>
+#include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Concepts.hpp>
 
@@ -84,13 +85,13 @@ class ScratchMemorySpace {
 
  public:
   //! Tag this class as a memory space
-  typedef ScratchMemorySpace memory_space;
-  typedef ExecSpace execution_space;
+  using memory_space    = ScratchMemorySpace<ExecSpace>;
+  using execution_space = ExecSpace;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef typename ExecSpace::array_layout array_layout;
-  typedef typename ExecSpace::size_type size_type;
+  using array_layout = typename ExecSpace::array_layout;
+  using size_type    = typename ExecSpace::size_type;
 
   static constexpr const char* name() { return "ScratchMemorySpace"; }
 

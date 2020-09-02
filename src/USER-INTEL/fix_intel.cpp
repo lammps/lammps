@@ -59,13 +59,14 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal package intel command");
 
-  int ncops = force->inumeric(FLERR,arg[3]);
+  int ncops = utils::inumeric(FLERR,arg[3],false,lmp);
 
   _nbor_pack_width = 1;
   _three_body_neighbor = 0;
   _pair_intel_count = 0;
   _hybrid_nonpair = 0;
   _print_pkg_info = 1;
+  _nthreads = comm->nthreads;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -105,7 +106,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"omp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      nomp = force->inumeric(FLERR,arg[iarg+1]);
+      nomp = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
@@ -119,7 +120,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"balance") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_balance = force->numeric(FLERR,arg[iarg+1]);
+      _offload_balance = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ghost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
@@ -218,12 +219,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   #endif
   if (nomp != 0) {
     omp_set_num_threads(nomp);
-    comm->nthreads = nomp;
-  } else {
-    int nthreads;
-    #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthreads)
-    nthreads = omp_get_num_threads();
-    comm->nthreads = nthreads;
+    _nthreads = comm->nthreads = nomp;
   }
   #endif
 

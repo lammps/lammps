@@ -78,12 +78,12 @@ int MinSpin::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"alpha_damp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    alpha_damp = force->numeric(FLERR,arg[1]);
+    alpha_damp = utils::numeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

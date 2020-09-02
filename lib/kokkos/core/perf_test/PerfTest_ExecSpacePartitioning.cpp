@@ -29,7 +29,7 @@ struct SpaceInstance<Kokkos::Cuda> {
     bool value          = true;
     auto local_rank_str = std::getenv("CUDA_LAUNCH_BLOCKING");
     if (local_rank_str) {
-      value = (std::atoi(local_rank_str) == 0);
+      value = (std::stoi(local_rank_str) == 0);
     }
     return value;
   }

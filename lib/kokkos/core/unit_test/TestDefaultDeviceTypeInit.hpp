@@ -117,7 +117,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
 
   if (do_device) {
     init_args.device_id = 0;
-    sprintf(args_kokkos[device_idx], "--device=%i", 0);
+    sprintf(args_kokkos[device_idx], "--device-id=%i", 0);
   }
 
   if (do_other) {
@@ -186,13 +186,8 @@ Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
 }
 
 void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  ASSERT_EQ(Kokkos::DefaultExecutionSpace::is_initialized(), 1);
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::is_initialized(), 1);
-#else
   ASSERT_EQ(Kokkos::DefaultExecutionSpace::impl_is_initialized(), 1);
   ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_is_initialized(), 1);
-#endif
 
   // Figure out the number of threads the HostSpace ExecutionSpace should have
   // initialized to.
@@ -258,13 +253,8 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
 #endif
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::thread_pool_size(),
-            expected_nthreads);
-#else
   ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_thread_pool_size(),
             expected_nthreads);
-#endif
 
 #ifdef KOKKOS_ENABLE_CUDA
   if (std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Cuda>::value) {
@@ -273,7 +263,7 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
 
     int expected_device = argstruct.device_id;
     if (argstruct.device_id < 0) {
-      expected_device = 0;
+      expected_device = Kokkos::Cuda().cuda_device();
     }
 
     ASSERT_EQ(expected_device, device);

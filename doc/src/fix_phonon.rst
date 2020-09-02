@@ -150,7 +150,8 @@ The calculated dynamical matrix elements are written out in
 points in the log file is in the units of the basis vectors of the
 corresponding reciprocal lattice.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

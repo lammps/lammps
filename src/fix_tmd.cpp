@@ -45,8 +45,8 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
-  rho_stop = force->numeric(FLERR,arg[3]);
-  nfileevery = force->inumeric(FLERR,arg[5]);
+  rho_stop = utils::numeric(FLERR,arg[3],false,lmp);
+  nfileevery = utils::inumeric(FLERR,arg[5],false,lmp);
   if (rho_stop < 0 || nfileevery < 0)
     error->all(FLERR,"Illegal fix tmd command");
   if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");

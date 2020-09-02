@@ -65,7 +65,7 @@ class Soft : public BaseAtomic<numtyp, acctyp> {
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
 
-  /// If atom type constants fit in shared memory, use fast kßernels
+  /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
   /// Number of atom types

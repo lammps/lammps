@@ -113,18 +113,13 @@ Min::~Min()
 void Min::init()
 {
   if (lmp->kokkos && !kokkosable)
-    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
-     "with Kokkos minimize");
+    error->all(FLERR,"Must use a Kokkos-enabled min style "
+               "(e.g. min_style cg/kk) with Kokkos minimize");
 
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  char **fixarg = new char*[3];
-  fixarg[0] = (char *) "MINIMIZE";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "MINIMIZE";
-  modify->add_fix(3,fixarg);
-  delete [] fixarg;
+  modify->add_fix("MINIMIZE all MINIMIZE");
   fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
   // clear out extra global and per-atom dof
@@ -676,35 +671,35 @@ void Min::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dmax = force->numeric(FLERR,arg[iarg+1]);
+      dmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      delaystep = force->numeric(FLERR,arg[iarg+1]);
+      delaystep = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtgrow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtgrow = force->numeric(FLERR,arg[iarg+1]);
+      dtgrow = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtshrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtshrink = force->numeric(FLERR,arg[iarg+1]);
+      dtshrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alpha0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alpha0 = force->numeric(FLERR,arg[iarg+1]);
+      alpha0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alphashrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alphashrink = force->numeric(FLERR,arg[iarg+1]);
+      alphashrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmax = force->numeric(FLERR,arg[iarg+1]);
+      tmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmin") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmin = force->numeric(FLERR,arg[iarg+1]);
+      tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"halfstepback") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -720,7 +715,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      max_vdotf_negatif = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");

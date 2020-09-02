@@ -103,7 +103,7 @@ void ReadRestart::command(int narg, char **arg)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    if (screen) fprintf(screen,"Reading restart file ...\n");
+    utils::logmesg(lmp,"Reading restart file ...\n");
     std::string hfile = file;
     if (multiproc) {
       hfile.replace(hfile.find("%"),1,"base");
@@ -423,19 +423,9 @@ void ReadRestart::command(int narg, char **arg)
     // create a temporary fix to hold and migrate extra atom info
     // necessary b/c irregular will migrate atoms
 
-    if (nextra) {
-      char cextra[8],fixextra[8];
-      sprintf(cextra,"%d",nextra);
-      sprintf(fixextra,"%d",modify->nfix_restart_peratom);
-      char **newarg = new char*[5];
-      newarg[0] = (char *) "_read_restart";
-      newarg[1] = (char *) "all";
-      newarg[2] = (char *) "READ_RESTART";
-      newarg[3] = cextra;
-      newarg[4] = fixextra;
-      modify->add_fix(5,newarg);
-      delete [] newarg;
-    }
+    if (nextra)
+      modify->add_fix(fmt::format("_read_restart all READ_RESTART {} {}",
+                                  nextra,modify->nfix_restart_peratom));
 
     // move atoms to new processors via irregular()
     // turn sorting on in migrate_atoms() to avoid non-reproducible restarts
@@ -521,7 +511,7 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} secs\n",
+    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
 }
 
@@ -630,10 +620,9 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_string();
-      if (me == 0) {
-        if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
-                            version,universe->version);
-      }
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
+                                       version,universe->version));
       delete [] version;
 
       // we have no forward compatibility, thus exit with error
@@ -894,6 +883,14 @@ void ReadRestart::header()
       atom->extra_improper_per_atom = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+    } else if (flag == NELLIPSOIDS) {
+      atom->nellipsoids = read_bigint();
+    } else if (flag == NLINES) {
+      atom->nlines = read_bigint();
+    } else if (flag == NTRIS) {
+      atom->ntris = read_bigint();
+    } else if (flag == NBODIES) {
+      atom->nbodies = read_bigint();
 
       // for backward compatibility
     } else if (flag == EXTRA_SPECIAL_PER_ATOM) {

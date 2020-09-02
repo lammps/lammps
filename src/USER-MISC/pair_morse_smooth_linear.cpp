@@ -162,7 +162,7 @@ void PairMorseSmoothLinear::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -184,15 +184,15 @@ void PairMorseSmoothLinear::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double d0_one = force->numeric(FLERR,arg[2]);
-  double alpha_one = force->numeric(FLERR,arg[3]);
-  double r0_one = force->numeric(FLERR,arg[4]);
+  double d0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -201,14 +201,6 @@ void PairMorseSmoothLinear::coeff(int narg, char **arg)
       alpha[i][j] = alpha_one;
       r0[i][j] = r0_one;
       cut[i][j] = cut_one;
-
-      morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
-
-      double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-
-      offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
-      der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
-
       setflag[i][j] = 1;
       count++;
     }
@@ -227,6 +219,9 @@ double PairMorseSmoothLinear::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
+  double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
+  offset[i][j]        = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
+  der_at_cutoff[i][j] = -2.0*alpha[i][j]*d0[i][j] * (exp(2.0*alpha_dr) - exp(alpha_dr));
 
   d0[j][i] = d0[i][j];
   alpha[j][i] = alpha[i][j];

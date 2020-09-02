@@ -52,9 +52,9 @@ namespace {
 
 template <class ExecSpace, class ScheduleType>
 struct TestRange {
-  typedef int value_type;  ///< typedef required for the parallel_reduce
+  using value_type = int;  ///< alias required for the parallel_reduce
 
-  typedef Kokkos::View<value_type *, ExecSpace> view_type;
+  using view_type = Kokkos::View<value_type *, ExecSpace>;
 
   view_type m_flags;
   view_type result_view;
@@ -87,9 +87,8 @@ struct TestRange {
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                          *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRange<ExecSpace, ScheduleType> ThisType;
+      using ThisType = TestRange<ExecSpace, ScheduleType>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, void> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -98,15 +97,13 @@ struct TestRange {
           empty_label);
       ASSERT_EQ(empty_pcn.get(), typeid(ThisType).name());
     }
-#endif
 
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecSpace, ScheduleType, VerifyInitTag>(0, N),
         *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRange<ExecSpace, ScheduleType> ThisType;
+      using ThisType = TestRange<ExecSpace, ScheduleType>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -116,7 +113,6 @@ struct TestRange {
       ASSERT_EQ(empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" +
                                      typeid(VerifyInitTag).name());
     }
-#endif
 
     Kokkos::deep_copy(host_flags, m_flags);
 
@@ -276,8 +272,8 @@ struct TestRange {
   void test_dynamic_policy() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
-    typedef Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >
-        policy_t;
+    using policy_t =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
 
     {
       Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> >
@@ -290,11 +286,7 @@ struct TestRange {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
-        count( ExecSpace::impl_hardware_thread_id() )++;
-#endif
+            count(ExecSpace::impl_hardware_thread_id())++;
           });
 
       int error = 0;
@@ -335,11 +327,7 @@ struct TestRange {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
             count(ExecSpace::impl_hardware_thread_id())++;
-#endif
             lsum++;
           },
           sum);

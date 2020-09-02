@@ -223,16 +223,16 @@ void AngleCross::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int count = 0;
 
-    double kss_one = force->numeric(FLERR,arg[1]);
-    double kbs0_one = force->numeric(FLERR,arg[2]);
-    double kbs1_one = force->numeric(FLERR,arg[3]);
-    double r0_one = force->numeric(FLERR,arg[4]);
-    double r1_one = force->numeric(FLERR,arg[5]);
-    double theta0_one = force->numeric(FLERR,arg[6]);
+    double kss_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double kbs0_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double kbs1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double r0_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double r1_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double theta0_one = utils::numeric(FLERR,arg[6],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       kss[i] = kss_one;

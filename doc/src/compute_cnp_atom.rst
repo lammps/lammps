@@ -86,7 +86,8 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *cnp/atom* style.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -118,7 +119,10 @@ Related commands
 :doc:`compute cna/atom <compute_cna_atom>`
 :doc:`compute centro/atom <compute_centro_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

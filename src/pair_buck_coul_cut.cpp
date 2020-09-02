@@ -69,8 +69,7 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,r2inv,r6inv,forcecoul,forcebuck,factor_coul,factor_lj;
-  double r,rexp;
+  double rsq,r2inv,r6inv,r,rexp,forcecoul,forcebuck,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -198,9 +197,9 @@ void PairBuckCoulCut::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 1) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(FLERR,arg[1]);
+  else cut_coul_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -226,18 +225,18 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double rho_one = force->numeric(FLERR,arg[3]);
+  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(FLERR,arg[4]);
+  double c_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 6) cut_coul_one = cut_lj_one = force->numeric(FLERR,arg[5]);
-  if (narg == 7) cut_coul_one = force->numeric(FLERR,arg[6]);
+  if (narg >= 6) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
+  if (narg == 7) cut_coul_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -41,7 +41,8 @@ directions, but it can be limited to the xy-, xz-, yz-plane and the
 x-, y-, or z-direction, thus restraining the atoms to a line or a
 plane, respectively.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
 same in a restarted simulation.  See the
@@ -86,4 +87,7 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix spring <fix_spring>`,
 :doc:`fix smd <fix_smd>`, :doc:`fix spring/rg <fix_spring_rg>`
 
-**Default:** none
+Default
+"""""""
+
+none

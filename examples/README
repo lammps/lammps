@@ -75,7 +75,7 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
+gcmc:     Grand Canonical MC with fix gcmc, Widom insertion with fix widom
 gjf:      use of fix langevin Gronbech-Jensen/Farago option
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics

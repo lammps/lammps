@@ -29,22 +29,22 @@ namespace LAMMPS_NS {
 
   namespace utils {
 
-    /** \brief Match text against a simplified regex pattern
+    /** Match text against a simplified regex pattern
      *
      *  \param text the text to be matched against the pattern
      *  \param pattern the search pattern, which may contain regexp markers
      *  \return true if the pattern matches, false if not
      */
-    bool strmatch(std::string text, std::string pattern);
+    bool strmatch(const std::string &text, const std::string &pattern);
 
-    /** \brief Send message to screen and logfile, if available
+    /** Send message to screen and logfile, if available
      *
      *  \param lmp   pointer to LAMMPS class instance
      *  \param mesg  message to be printed
      */
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
-    /** \brief return a string representing the current system error status
+    /** return a string representing the current system error status
      *
      *  This is a wrapper around calling strerror(errno).
      *
@@ -52,7 +52,7 @@ namespace LAMMPS_NS {
      */
     std::string getsyserror();
 
-    /** \brief safe wrapper around fgets() which aborts on errors
+    /** safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
@@ -66,7 +66,7 @@ namespace LAMMPS_NS {
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
 
-    /** \brief safe wrapper around fread() which aborts on errors
+    /** safe wrapper around fread() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
@@ -81,7 +81,7 @@ namespace LAMMPS_NS {
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);
 
-    /** \brief Report if a requested style is in a package or may have a typo
+    /** Report if a requested style is in a package or may have a typo
      *
      *  \param style type of style that is to be checked for
      *  \param name  name of style that was not found
@@ -91,131 +91,197 @@ namespace LAMMPS_NS {
     std::string check_packages_for_style(const std::string &style,
                                          const std::string &name, LAMMPS *lmp);
 
-    /** \brief Convert a string to a floating point number while checking
-        if it is a valid floating point or integer number
+    /** Convert a string to a floating point number while checking
+     *  if it is a valid floating point or integer number
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return double precision floating point number
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         double precision floating point number
      */
     double numeric(const char *file, int line, const char *str,
                    bool do_abort, LAMMPS *lmp);
 
-    /** \brief Convert a string to an integer number while checking
-        if it is a valid integer number (regular int)
+    /** Convert a string to an integer number while checking
+     *  if it is a valid integer number (regular int)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (regular int)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (regular int)
      */
     int inumeric(const char *file, int line, const char *str,
                  bool do_abort, LAMMPS *lmp);
 
-    /** \brief Convert a string to an integer number while checking
-        if it is a valid integer number (bigint)
+    /** Convert a string to an integer number while checking
+     *  if it is a valid integer number (bigint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
+     *  \param file     name of source file for error message
+     *  \param line     line number in source file for error message
+     *  \param str      string to be converted to number
      *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (bigint)
+     *  \param lmp      pointer to top-level LAMMPS class instance
+     *  \return         integer number (bigint)
      */
     bigint bnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
 
-    /** \brief Convert a string to an integer number while checking
-        if it is a valid integer number (tagint)
+    /** Convert a string to an integer number while checking
+     *  if it is a valid integer number (tagint)
      *
-     *  \param file name of source file for error message
-     *  \param line in source file for error message
-     *  \param str  string to be converted to number
-     *  \param do_abort determines whether to call Error::one() or Error::all()
-     *  \param lmp   pointer to top-level LAMMPS class instance
-     *  \return integer number (tagint)
-     */
+     * \param file     name of source file for error message
+     * \param line     line number in source file for error message
+     * \param str      string to be converted to number
+     * \param do_abort determines whether to call Error::one() or Error::all()
+     * \param lmp      pointer to top-level LAMMPS class instance
+     * \return         integer number (tagint) */
+
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
 
-    /**
-     * \brief Trim anything from '#' onward
+    /** Compute index bounds derived from a string with a possible wildcard
+     *
+     * This functions processes the string in *str* and set the values of *nlo*
+     * and *nhi* according to the following five cases:
+     *
+     * - a single number, i: nlo = i; nhi = i;
+     * - a single asterisk, \*: nlo = nmin; nhi = nmax;
+     * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
+     * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
+     * - two numbers with an asterisk in between. i\*j: nlo = i; nhi = j;
+     *
+     * \param file     name of source file for error message
+     * \param line     line number in source file for error message
+     * \param str      string to be processed
+     * \param nmin     smallest possible lower bound
+     * \param nmax     largest allowed upper bound
+     * \param nlo      lower bound
+     * \param nhi      upper bound
+     * \param error    pointer to Error class for out-of-bounds messages */
+    template <typename TYPE>
+    void bounds(const char *file, int line, const std::string &str,
+                bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error);
+
+    /** Expand list of arguments when containing fix/compute wildcards
+     *
+     *  This function searches the list of arguments in *arg* for strings
+     *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+     *  Any such strings are replaced by one or more strings with the
+     *  '*' character replaced by the corresponding possible numbers as
+     *  determined from the fix or compute instance.  Other strings are
+     *  just copied. If the *mode* parameter is set to 0, expand global
+     *  vectors, but not global arrays; if it is set to 1, expand global
+     *  arrays (by column) but not global vectors.
+     *
+     *  If any expansion happens, the earg list and all its
+     *  strings are new allocations and must be freed explicitly by the
+     *  caller. Otherwise arg and earg will point to the same address
+     *  and no explicit de-allocation is needed by the caller.
+     *
+     * \param file  name of source file for error message
+     * \param line  line number in source file for error message
+     * \param narg  number of arguments in current list
+     * \param arg   argument list, possibly containing wildcards
+     * \param mode  select between global vectors(=0) and arrays (=1)
+     * \param earg  new argument list with wildcards expanded
+     * \param lmp   pointer to top-level LAMMPS class instance
+     * \return      number of arguments in expanded list */
+
+    int expand_args(const char *file, int line, int narg, char **arg,
+                    int mode, char **&earg, LAMMPS *lmp);
+
+    /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
+     *
+     * \param line string that should be trimmed
+     * \return new string without whitespace (string)
+     */
+    std::string trim(const std::string &line);
+
+    /** Return string with anything from '#' onward removed
+     *
      * \param line string that should be trimmed
      * \return new string without comment (string)
      */
-    std::string trim_comment(const std::string & line);
+    std::string trim_comment(const std::string &line);
 
-    /**
-     * \brief Count words in string
+    /** Count words in string with custom choice of separating characters
+     *
      * \param text string that should be searched
      * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const std::string & text, const std::string & separators);
+    size_t count_words(const std::string &text, const std::string &separators);
 
-    /**
-     * \brief Count words in string, ignore any whitespace matching " \t\r\n\f"
+    /** Count words in string, ignore any whitespace matching " \t\r\n\f"
+     *
      * \param text string that should be searched
-     * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const std::string & text);
+    size_t count_words(const std::string &text);
 
-    /**
-     * \brief Count words in C-string, ignore any whitespace matching " \t\r\n\f"
+    /** Count words in C-string, ignore any whitespace matching " \t\r\n\f"
+     *
      * \param text string that should be searched
-     * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const char * text);
+    size_t count_words(const char *text);
 
-    /**
-     * \brief Count words in a single line, trim anything from '#' onward
+    /** Count words in a single line, trim anything from '#' onward
+     *
      * \param text string that should be trimmed and searched
      * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t trim_and_count_words(const std::string & text, const std::string & separators = " \t\r\n\f");
+    size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
 
-    /**
-     * \brief Take text and split into non-whitespace words.
+    /** Take text and split into non-whitespace words.
      *
-     * This can handle single and double quotes, escaped quotes,
-     * and escaped codes within quotes, but due to using an STL
-     * container and STL strings is rather slow because of making
-     * copies. Designed for parsing command lines and similar text
-     * and not for time critical processing. Use a tokenizer for that.
+     * This can handle strings with single and double quotes, escaped quotes,
+     * and escaped codes within quotes, but due to using an STL container and
+     * STL strings is rather slow because of making copies. Designed for parsing
+     * command lines and similar text and not for time critical processing.
+     * Use a tokenizer class for that.
      *
      * \param text string that should be split
      * \return STL vector with the words
      */
     std::vector<std::string> split_words(const std::string &text);
 
-    /**
-     * \brief Check if string can be converted to valid integer
-     * \param text string that should be checked
+    /** Check if string can be converted to valid integer
+     *
+     * \param str string that should be checked
      * \return true, if string contains valid integer, false otherwise
      */
-    bool is_integer(const std::string & str);
+    bool is_integer(const std::string &str);
 
-    /**
-     * \brief Check if string can be converted to valid floating-point number
-     * \param text string that should be checked
+    /** Check if string can be converted to valid floating-point number
+     *
+     * \param str string that should be checked
      * \return true, if string contains valid floating-point number, false otherwise
      */
-    bool is_double(const std::string & str);
+    bool is_double(const std::string &str);
 
-    /**
-     * \brief Strip off leading part of path, return just the filename
+    /** Try to detect pathname from FILE pointer.
+     *
+     * Currently only supported on Linux, otherwise will report "(unknown)".
+     *
+     *  \param buf  storage buffer for pathname. output will be truncated if not large enough
+     *  \param len  size of storage buffer. output will be truncated to this length - 1
+     *  \param fp   FILE pointer struct from STDIO library for which we want to detect the name
+     *  \return pointer to the storage buffer, i.e. buf
+     */
+    const char *guesspath(char *buf, int len, FILE *fp);
+
+    /** Strip off leading part of path, return just the filename
+     *
      * \param path file path
      * \return file name
      */
-    std::string path_basename(const std::string & path);
+    std::string path_basename(const std::string &path);
 
     /**
      * \brief Join two paths
@@ -223,56 +289,88 @@ namespace LAMMPS_NS {
      * \param b second path
      * \return combined path
      */
-    std::string path_join(const std::string & a, const std::string & b);
+    std::string path_join(const std::string &a, const std::string &b);
 
     /**
      * \brief Check if file exists and is readable
      * \param path file path
      * \return true if file exists and is readable
      */
-    bool file_is_readable(const std::string & path);
+    bool file_is_readable(const std::string &path);
 
-    /**
-     * \brief Determine full path of potential file
-     *        If file is not found in current directory, search LAMMPS_POTENTIALS folder
+    /** Determine full path of potential file. If file is not found in current directory,
+     *  search directories listed in LAMMPS_POTENTIALS environment variable
+     *
      * \param path file path
      * \return full path to potential file
      */
-    std::string get_potential_file_path(const std::string& path);
+    std::string get_potential_file_path(const std::string &path);
 
-    /**
-     * \brief Read potential file and return DATE field if it is present
+    /** Read potential file and return DATE field if it is present
+     *
      * \param path file path
      * \param potential_name name of potential that is being read
      * \return DATE field if present
      */
-    std::string get_potential_date(const std::string & path, const std::string & potential_name);
+    std::string get_potential_date(const std::string &path, const std::string &potential_name);
 
-    /**
-     * \brief Read potential file and return UNITS field if it is present
+    /** Read potential file and return UNITS field if it is present
+     *
      * \param path file path
      * \param potential_name name of potential that is being read
      * \return UNITS field if present
      */
-    std::string get_potential_units(const std::string & path, const std::string & potential_name);
+    std::string get_potential_units(const std::string &path, const std::string &potential_name);
 
     enum { NOCONVERT = 0, METAL2REAL = 1, REAL2METAL = 1<<1 };
     enum { UNKNOWN = 0, ENERGY };
 
-    /**
-     * \brief Return bitmask of available conversion factors for a given propert
+    /** Return bitmask of available conversion factors for a given property
+     *
      * \param property property to be converted
      * \return bitmask indicating available conversions
      */
     int get_supported_conversions(const int property);
 
-    /**
-     * \brief Return unit conversion factor for given property and selected from/to units
+    /** Return unit conversion factor for given property and selected from/to units
+     *
      * \param property property to be converted
      * \param conversion constant indicating the conversion
      * \return conversion factor
      */
     double get_conversion_factor(const int property, const int conversion);
+
+    /** Open a potential file as specified by *name*
+     *
+     * If opening the file directly fails, the function will search for
+     * it in the list of folder pointed to by the environment variable
+     * ``LAMMPS_POTENTIALS`` (if it is set).
+     *
+     * If the potential file has a ``UNITS`` tag in the first line, the
+     * tag's value is compared to the current unit style setting.
+     * The behavior of the function then depends on the value of the
+     * *auto_convert* parameter.  If it is ``NULL``, then the unit values
+     * must match or else the open will fail with an error.  Otherwise
+     * the bitmask that *auto_convert* points to is used check for
+     * compatibility with possible automatic conversions by the calling
+     * function.  If compatible, the bitmask is set to the required
+     * conversion or ``utils::NOCONVERT``.
+     *
+     * \param name          file- or pathname of the potential file
+     * \param lmp           pointer to top-level LAMMPS class instance
+     * \param auto_convert  pointer to unit conversion bitmask or NULL
+     * \return              FILE pointer of the opened potential file or NULL*/
+
+    FILE *open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert);
+
+    /** Convert a time string to seconds
+     *
+     * The strings "off" and "unlimited" result in -1
+     *
+     * \param timespec a string in the following format: ([[HH:]MM:]SS)
+     * \return total in seconds
+     */
+    double timespec2seconds(const std::string &timespec);
   }
 }
 

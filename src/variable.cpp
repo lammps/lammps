@@ -189,7 +189,7 @@ void Variable::set(int narg, char **arg)
     int nfirst = 0,nlast = 0;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
-      nlast = force->inumeric(FLERR,arg[2]);
+      nlast = utils::inumeric(FLERR,arg[2],false,lmp);
       if (nlast <= 0) error->all(FLERR,"Illegal variable command");
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
         char digits[12];
@@ -197,8 +197,8 @@ void Variable::set(int narg, char **arg)
         pad[nvar] = strlen(digits);
       } else pad[nvar] = 0;
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
-      nfirst = force->inumeric(FLERR,arg[2]);
-      nlast = force->inumeric(FLERR,arg[3]);
+      nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
+      nlast = utils::inumeric(FLERR,arg[3],false,lmp);
       if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
@@ -252,7 +252,7 @@ void Variable::set(int narg, char **arg)
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
-      num[nvar] = force->inumeric(FLERR,arg[2]);
+      num[nvar] = utils::inumeric(FLERR,arg[2],false,lmp);
       data[nvar] = new char*[1];
       data[nvar][0] = NULL;
       if (narg == 4) {
@@ -508,7 +508,7 @@ void Variable::set(int narg, char **arg)
     if (ivar >= 0) {
       if (style[ivar] != INTERNAL)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -518,7 +518,7 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = new char[VALUELENGTH];
-      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
     }
 
   } else error->all(FLERR,"Illegal variable command");
@@ -538,6 +538,22 @@ void Variable::set(int narg, char **arg)
                                    "alphanumeric characters or underscores",
                                    names[nvar]));
   nvar++;
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow defining a variable from a single string
+------------------------------------------------------------------------- */
+
+void Variable::set(const std::string &setcmd)
+{
+  std::vector<std::string> args = utils::split_words(setcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  set(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -562,13 +578,14 @@ void Variable::set(char *name, int narg, char **arg)
    called via library interface, so external programs can set variables
 ------------------------------------------------------------------------- */
 
-int Variable::set_string(char *name, char *str)
+int Variable::set_string(const char *name, const char *str)
 {
   int ivar = find(name);
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  copy(1,&str,data[ivar]);
+  data[ivar][0] = new char[strlen(str)+1];
+  strcpy(data[ivar][0],str);
   return 0;
 }
 
@@ -752,9 +769,9 @@ int Variable::next(int narg, char **arg)
    return index or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Variable::find(char *name)
+int Variable::find(const char *name)
 {
-  if(name==NULL) return -1;
+  if (name == nullptr) return -1;
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;
@@ -864,7 +881,7 @@ int Variable::internalstyle(int ivar)
      caller must respond
 ------------------------------------------------------------------------- */
 
-char *Variable::retrieve(char *name)
+char *Variable::retrieve(const char *name)
 {
   int ivar = find(name);
   if (ivar < 0) return NULL;
@@ -2771,8 +2788,8 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = MAXBIGINT;
-    } else tree->value = MAXBIGINT;
+      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT;
+    } else tree->value = (double) MAXBIGINT;
     return tree->value;
   }
 
@@ -3105,8 +3122,8 @@ double Variable::eval_tree(Tree *tree, int i)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = MAXBIGINT;
-    } else arg = MAXBIGINT;
+      if (arg > ivalue2) arg = (double) MAXBIGINT;
+    } else arg = (double) MAXBIGINT;
     return arg;
   }
 
@@ -3682,8 +3699,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       else if (update->ntimestep < ivalue2) {
         int offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = MAXBIGINT;
-      } else value = MAXBIGINT;
+        if (value > ivalue2) value = (double) MAXBIGINT;
+      } else value = (double) MAXBIGINT;
       argstack[nargstack++] = value;
     }
 
@@ -4057,7 +4074,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack,
                                double *argstack, int &nargstack, int ivar)
 {
-  bigint sx,sxx;
+  double sx,sxx;
   double value,sy,sxy;
 
   // word not a match to any special function
@@ -4209,14 +4226,15 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       nvec = compute_vector(ivar,&vec);
       nstride = 1;
 
+      if ((method == AVE) && (nvec == 0))
+        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
+
+
     } else print_var_error(FLERR,"Invalid special function in "
                            "variable formula",ivar);
 
     value = 0.0;
-    if (method == SLOPE) {
-      sx = sxx = 0;
-      sy = sxy = 0.0;
-    }
+    if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
     else if (method == XMIN) value = BIG;
     else if (method == XMAX) value = -BIG;
 
@@ -4235,10 +4253,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += vec[j];
-          sxx += i*i;
-          sxy += i*vec[j];
+          sxx += (double)i * (double)i;
+          sxy += (double)i * vec[j];
         }
         j += nstride;
       }
@@ -4256,10 +4274,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) {
@@ -4281,10 +4299,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double) i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
@@ -5180,7 +5198,7 @@ int VarReader::read_peratom()
   if (n == 0) return 1;
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = force->bnumeric(FLERR,str);
+  bigint nlines = utils::bnumeric(FLERR,str,false,lmp);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;

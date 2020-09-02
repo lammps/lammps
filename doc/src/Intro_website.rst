@@ -23,7 +23,6 @@ this Intr are included in this list.
 * `Mail list <https://lammps.sandia.gov/mail.html>`_
 * `Workshops <https://lammps.sandia.gov/workshops.html>`_
 * `Tutorials <https://lammps.sandia.gov/tutorials.html>`_
-* `Developer guide <https://lammps.sandia.gov/Developer.pdf>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://lammps.sandia.gov/prepost.html>`_
 * `Other software usable with LAMMPS <https://lammps.sandia.gov/offsite.html>`_

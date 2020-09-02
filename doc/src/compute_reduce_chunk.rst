@@ -160,7 +160,8 @@ handful of large micelles.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector if a single input value is
 specified, otherwise a global array is output.  The number of columns
@@ -184,4 +185,7 @@ Related commands
 
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`compute reduce <compute_reduce>`, :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

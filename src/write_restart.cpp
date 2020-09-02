@@ -87,8 +87,7 @@ void WriteRestart::command(int narg, char **arg)
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
   if (noinit == 0) {
-    if (comm->me == 0 && screen)
-      fprintf(screen,"System init for write_restart ...\n");
+    if (comm->me == 0) utils::logmesg(lmp,"System init for write_restart ...\n");
     lmp->init();
 
     // move atoms to new processors before writing file
@@ -160,7 +159,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
 
       multiproc = nprocs/nper;
@@ -178,7 +177,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
       nfile = MIN(nfile,nprocs);
 
@@ -272,6 +271,7 @@ void WriteRestart::write(std::string file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
+  memset(buf,0,max_size*sizeof(buf));
 
   // all procs write file layout info which may include per-proc sizes
 
@@ -504,6 +504,11 @@ void WriteRestart::header()
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
 
+  write_bigint(NELLIPSOIDS,atom->nellipsoids);
+  write_bigint(NLINES,atom->nlines);
+  write_bigint(NTRIS,atom->ntris);
+  write_bigint(NBODIES,atom->nbodies);
+
   // -1 flag signals end of header
 
   int flag = -1;
@@ -607,11 +612,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  int n = strlen(MAGIC_STRING) + 1;
-  char *str = new char[n];
-  strcpy(str,MAGIC_STRING);
-  fwrite(str,sizeof(char),n,fp);
-  delete [] str;
+  std::string magic = MAGIC_STRING;
+  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

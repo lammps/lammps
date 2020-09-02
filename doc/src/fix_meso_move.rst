@@ -206,7 +206,8 @@ spacings can be different in x,y,z.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the original coordinates of moving particles to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the

@@ -681,9 +681,9 @@ void DihedralSpherical::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  int nterms_one = force->inumeric(FLERR,arg[1]);
+  int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -706,16 +706,16 @@ void DihedralSpherical::coeff(int narg, char **arg)
     theta2_offset[i] = new double [nterms_one];
     for (int j = 0; j < nterms_one; j++) {
       int offset = 1+10*j;
-      Ccoeff[i][j] = force->numeric(FLERR,arg[offset+1]);
-      phi_mult[i][j] = force->numeric(FLERR,arg[offset+2]);
-      phi_shift[i][j] = force->numeric(FLERR,arg[offset+3]) * MY_PI/180.0;
-      phi_offset[i][j] = force->numeric(FLERR,arg[offset+4]);
-      theta1_mult[i][j] = force->numeric(FLERR,arg[offset+5]);
-      theta1_shift[i][j] = force->numeric(FLERR,arg[offset+6]) * MY_PI/180.0;
-      theta1_offset[i][j] = force->numeric(FLERR,arg[offset+7]);
-      theta2_mult[i][j] = force->numeric(FLERR,arg[offset+8]);
-      theta2_shift[i][j] = force->numeric(FLERR,arg[offset+9]) * MY_PI/180.0;
-      theta2_offset[i][j] = force->numeric(FLERR,arg[offset+10]);
+      Ccoeff[i][j] = utils::numeric(FLERR,arg[offset+1],false,lmp);
+      phi_mult[i][j] = utils::numeric(FLERR,arg[offset+2],false,lmp);
+      phi_shift[i][j] = utils::numeric(FLERR,arg[offset+3],false,lmp) * MY_PI/180.0;
+      phi_offset[i][j] = utils::numeric(FLERR,arg[offset+4],false,lmp);
+      theta1_mult[i][j] = utils::numeric(FLERR,arg[offset+5],false,lmp);
+      theta1_shift[i][j] = utils::numeric(FLERR,arg[offset+6],false,lmp) * MY_PI/180.0;
+      theta1_offset[i][j] = utils::numeric(FLERR,arg[offset+7],false,lmp);
+      theta2_mult[i][j] = utils::numeric(FLERR,arg[offset+8],false,lmp);
+      theta2_shift[i][j] = utils::numeric(FLERR,arg[offset+9],false,lmp) * MY_PI/180.0;
+      theta2_offset[i][j] = utils::numeric(FLERR,arg[offset+10],false,lmp);
     }
     setflag[i] = 1;
     count++;

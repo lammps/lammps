@@ -502,10 +502,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: Unknown section in map file*
    Please ensure reaction map files are properly formatted.
 
-*Bond/react: Atom affected by reaction too close to template edge*
+*Bond/react: Atom/Bond type affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
    reaction is too close to an 'edge' atom defined in the map
-   file. This could cause incorrect assignment of bonds, angle, etc.
+   file.  This could cause incorrect assignment of bonds, angle, etc.
    Generally, this means you must include more atoms in your templates,
    such that there are at least two atoms between each atom involved in
    the reaction and an edge atom.
@@ -1902,6 +1902,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
+
+*Compute for fix pafi does not calculate a local array*
+   Self-explanatory.
+
+*Compute for fix pafi must have 9 fields per atom*
+   Self-explanatory.
 
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.

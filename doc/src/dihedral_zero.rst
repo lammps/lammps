@@ -44,8 +44,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`dihedral_style none <dihedral_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

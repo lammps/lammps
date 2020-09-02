@@ -217,6 +217,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   map_bucket = NULL;
   map_hash = NULL;
 
+  unique_tags = nullptr;
+
   atom_style = NULL;
   avec = NULL;
 
@@ -295,6 +297,8 @@ Atom::~Atom()
   // delete mapping data structures
 
   map_delete();
+
+  delete unique_tags;
 }
 
 /* ----------------------------------------------------------------------
@@ -653,7 +657,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        AtomVecCreator &avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
       }
     }
@@ -662,7 +666,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        AtomVecCreator &avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
       }
     }
@@ -670,7 +674,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 
   sflag = 0;
   if (avec_map->find(style) != avec_map->end()) {
-    AtomVecCreator avec_creator = (*avec_map)[style];
+    AtomVecCreator &avec_creator = (*avec_map)[style];
     return avec_creator(lmp);
   }
 
@@ -737,7 +741,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) avec;
+    auto avec_hybrid = (AtomVecHybrid *) avec;
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -791,8 +795,8 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
-      sortfreq = force->inumeric(FLERR,arg[iarg+1]);
-      userbinsize = force->numeric(FLERR,arg[iarg+2]);
+      sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (sortfreq < 0 || userbinsize < 0.0)
         error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname)
@@ -1554,6 +1558,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   int *ivalues = NULL;
   double *dvalues = NULL;
 
+  if (!unique_tags) unique_tags = new std::set<tagint>;
+
   // loop over lines of body data
   // if I own atom tag, tokenize lines into ivalues/dvalues, call data_body()
   // else skip values
@@ -1565,8 +1571,13 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
 
-    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    if (unique_tags->find(tagdata) == unique_tags->end())
+      unique_tags->insert(tagdata);
+    else
+      error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
+
+    ninteger = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
+    ndouble = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1581,9 +1592,9 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
       }
 
       for (j = 0; j < ninteger; j++)
-        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
       for (j = 0; j < ndouble; j++)
-        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+        dvalues[j] = utils::numeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
@@ -1691,7 +1702,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
   int lo,hi;
-  force->bounds(file,line,arg[0],ntypes,lo,hi);
+  utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
   if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
@@ -1765,9 +1776,8 @@ int Atom::shape_consistency(int itype,
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+  auto avec_ellipsoid = (AtomVecEllipsoid *) style_match("ellipsoid");
+  auto bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {

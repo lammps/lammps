@@ -192,7 +192,7 @@ int FixPropertyAtom::setmask()
 void FixPropertyAtom::init()
 {
   // error if atom style has changed since fix was defined
-  // don't allow this b/c user could change to style that defines molecule,q
+  // don't allow this because user could change to style that defines molecule,q
 
   if (strcmp(astyle,atom->atom_style) != 0)
     error->all(FLERR,"Atom style was redefined after using fix property/atom");
@@ -579,6 +579,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalue+1;
 
   int m = 1;
@@ -602,6 +603,7 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

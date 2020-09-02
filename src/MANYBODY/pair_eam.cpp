@@ -378,8 +378,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct
@@ -467,7 +467,7 @@ void PairEAM::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

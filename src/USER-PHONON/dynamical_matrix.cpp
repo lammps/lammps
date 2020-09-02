@@ -117,7 +117,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
     else error->all(FLERR,"Illegal Dynamical Matrix command");
-    del = force->numeric(FLERR, arg[2]);
+    del = utils::numeric(FLERR, arg[2],false,lmp);
 
     // set option defaults
 

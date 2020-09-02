@@ -90,7 +90,8 @@ the note below about how to include the CMAP energy when performing an
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
@@ -140,7 +141,10 @@ Related commands
 
 :doc:`fix_modify <fix_modify>`, :doc:`read_data <read_data>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

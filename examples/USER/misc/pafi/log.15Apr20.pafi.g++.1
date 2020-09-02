@@ -1,0 +1,401 @@
+LAMMPS (24 Aug 2020)
+units metal
+atom_style atomic
+atom_modify map array sort 0 0.0
+neigh_modify every 2 delay 10 check yes page 1000000 one 100000
+
+## read in path data using fix property/atom- here 4th image of a NEB
+fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
+read_data pafipath.4.data fix pa NULL PafiPath
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (19.987184 19.987184 19.987184)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  687 atoms
+  read_data CPU = 0.007 seconds
+
+## EAM potential
+pair_style    eam/fs
+pair_coeff * * ../../../../potentials/Fe_mm.eam.fs Fe
+Reading eam/fs potential file ../../../../potentials/Fe_mm.eam.fs with DATE: 2007-06-11
+
+mass * 55.85
+thermo 100
+min_style fire
+
+
+compute pe all pe
+variable pe equal pe
+run 0
+Neighbor list info ...
+  update every 2 steps, delay 10 steps, check yes
+  max neighbors/atom: 100000, page size: 1000000
+  master list distance cutoff = 7.3
+  ghost atom cutoff = 7.3
+  binsize = 3.65, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.903 | 6.903 | 6.903 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -2828.2492            0   -2828.2492    3015.2014 
+Loop time of 6.88e-07 on 1 procs for 0 steps with 687 atoms
+
+290.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 6.88e-07   |            |       |100.00
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46843.0 ave       46843 max       46843 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46843
+Ave neighs/atom = 68.184862
+Neighbor list builds = 0
+Dangerous builds = 0
+print "energy=${pe}"
+energy=-2828.24917967199
+
+## compute property/atom to access relevant fields
+compute pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
+run 0
+Per MPI rank memory allocation (min/avg/max) = 6.903 | 6.903 | 6.903 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -2828.2492            0   -2828.2492    3015.2014 
+Loop time of 9.41e-07 on 1 procs for 0 steps with 687 atoms
+
+106.3% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 9.41e-07   |            |       |100.00
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46843.0 ave       46843 max       46843 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46843
+Ave neighs/atom = 68.184862
+Neighbor list builds = 0
+Dangerous builds = 0
+
+## fix name group-id pafi compute-id temperature tdamp seed overdamped 0/1 com 0/1
+fix hp all pafi pa 500.0 0.01 434 overdamped no com yes
+fix pafi compute name,style: pa,property/atom
+
+run 0
+Per MPI rank memory allocation (min/avg/max) = 8.403 | 8.403 | 8.403 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -2828.2492            0   -2828.2492    3015.2014 
+Loop time of 5.53002e-07 on 1 procs for 0 steps with 687 atoms
+
+361.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 5.53e-07   |            |       |100.00
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46843.0 ave       46843 max       46843 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46843
+Ave neighs/atom = 68.184862
+Neighbor list builds = 0
+Dangerous builds = 0
+minimize 0 0 1000 1000 # best if using NEB path
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:186)
+  Parameters for fire: 
+    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin    integrator halfstepback 
+     0.1        20    1.1      0.5   0.25        0.99   10 0.02 eulerimplicit          yes 
+Per MPI rank memory allocation (min/avg/max) = 8.403 | 8.403 | 8.403 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -2828.2492            0   -2828.2492    3015.2014 
+     100 9.5973821e-06   -2828.3565            0   -2828.3565     3092.936 
+     200 1.5010519e-13   -2828.3565            0   -2828.3565    3092.8883 
+     300 5.4507205e-14   -2828.3565            0   -2828.3565    3092.8883 
+     400 5.0283348e-14   -2828.3565            0   -2828.3565    3092.8883 
+     500 4.9056964e-14   -2828.3565            0   -2828.3565    3092.8883 
+     600 4.8645525e-14   -2828.3565            0   -2828.3565    3092.8883 
+     700 4.8498912e-14   -2828.3565            0   -2828.3565    3092.8882 
+     800 4.8444552e-14   -2828.3565            0   -2828.3565    3092.8882 
+     900 4.8424643e-14   -2828.3565            0   -2828.3565    3092.8882 
+    1000  4.84169e-14   -2828.3565            0   -2828.3565    3092.8882 
+Loop time of 1.23105 on 1 procs for 1000 steps with 687 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+     -2828.24917967199  -2828.35645843665  -2828.35645844395
+  Force two-norm initial, final = 1.2831004431533395 7.468917431980592e-07
+  Force max component initial, final = 0.3331705829071986 2.93217567864934e-07
+  Final line search alpha, max atom move = 0.0 0.0
+  Iterations, force evaluations = 1000 1007
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1849     | 1.1849     | 1.1849     |   0.0 | 96.25
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.010743   | 0.010743   | 0.010743   |   0.0 |  0.87
+Output  | 0.00013686 | 0.00013686 | 0.00013686 |   0.0 |  0.01
+Modify  | 0.02476    | 0.02476    | 0.02476    |   0.0 |  2.01
+Other   |            | 0.01055    |            |       |  0.86
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46843.0 ave       46843 max       46843 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46843
+Ave neighs/atom = 68.184862
+Neighbor list builds = 0
+Dangerous builds = 0
+compute dx all displace/atom
+compute dmag all reduce max c_dx[4]
+variable maxjump equal sqrt(c_dmag)
+
+thermo_style custom step pe temp v_maxjump
+
+
+variable dn equal f_hp[4]*f_hp[4] # should be zero to float precision
+
+
+fix af all ave/time 1 1000 1000 f_hp[1] f_hp[2] f_hp[3] v_dn
+
+variable adn equal sqrt(f_af[4]) # should be very small (approx. 1e-6 A)
+variable apf equal f_af[1]
+
+
+run 1000
+Per MPI rank memory allocation (min/avg/max) = 8.778 | 8.778 | 8.778 Mbytes
+Step PotEng Temp v_maxjump 
+    1000   -2828.3565  4.84169e-14 3.9400009e-08 
+    1100   -2788.9297    505.16169   0.53846275 
+    1200   -2784.1274    471.52773    0.5820714 
+    1300   -2782.7071    503.23183   0.57990998 
+    1400   -2780.7259    531.16141   0.61955057 
+    1500    -2781.512     490.9404   0.58663715 
+    1600   -2783.4961    513.37777   0.65062082 
+    1700   -2780.0312    492.76259    0.5785296 
+    1800   -2781.6555    512.32986   0.58277945 
+    1900   -2782.1648    486.16736   0.58913114 
+    2000   -2781.1942    493.15046   0.56962281 
+Loop time of 1.3463 on 1 procs for 1000 steps with 687 atoms
+
+Performance: 64.176 ns/day, 0.374 hours/ns, 742.778 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2429     | 1.2429     | 1.2429     |   0.0 | 92.32
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.011341   | 0.011341   | 0.011341   |   0.0 |  0.84
+Output  | 0.0001418  | 0.0001418  | 0.0001418  |   0.0 |  0.01
+Modify  | 0.089655   | 0.089655   | 0.089655   |   0.0 |  6.66
+Other   |            | 0.002248   |            |       |  0.17
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46844.0 ave       46844 max       46844 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46844
+Ave neighs/atom = 68.186317
+Neighbor list builds = 0
+Dangerous builds = 0
+minimize 0 0 1000 1000
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:186)
+  Parameters for fire: 
+    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin    integrator halfstepback 
+     0.1        20    1.1      0.5   0.25        0.99   10 0.02 eulerimplicit          yes 
+Per MPI rank memory allocation (min/avg/max) = 9.278 | 9.278 | 9.278 Mbytes
+Step PotEng Temp v_maxjump 
+    2000   -2781.1942            0   0.56962281 
+    2100   -2828.3564 2.3533517e-06  0.028829312 
+    2200   -2828.3565 2.3166114e-09 0.0015098779 
+    2300   -2828.3565 5.7159208e-14 0.0017926087 
+    2400   -2828.3565 5.0928429e-14 0.0020264648 
+    2500   -2828.3565 4.9253427e-14 0.0022344754 
+    2600   -2828.3565 4.8706717e-14 0.0024243813 
+    2700   -2828.3565 4.8513392e-14 0.0026003645 
+    2800   -2828.3565 4.8442915e-14 0.0027651416 
+    2900   -2828.3565 4.8417422e-14 0.0029206277 
+    3000   -2828.3565 4.840734e-14 0.0030682417 
+Loop time of 1.24896 on 1 procs for 1000 steps with 687 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+     -2781.19422468903  -2828.35646618005  -2828.35646618733
+  Force two-norm initial, final = 29.0662462838641 7.469228601686482e-07
+  Force max component initial, final = 2.2910705425983147 2.932332034966123e-07
+  Final line search alpha, max atom move = 0.0 0.0
+  Iterations, force evaluations = 1000 1008
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2027     | 1.2027     | 1.2027     |   0.0 | 96.30
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.010706   | 0.010706   | 0.010706   |   0.0 |  0.86
+Output  | 0.00016364 | 0.00016364 | 0.00016364 |   0.0 |  0.01
+Modify  | 0.024873   | 0.024873   | 0.024873   |   0.0 |  1.99
+Other   |            | 0.01053    |            |       |  0.84
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3209.00 ave        3209 max        3209 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        48576.0 ave       48576 max       48576 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 48576
+Ave neighs/atom = 70.707424
+Neighbor list builds = 0
+Dangerous builds = 0
+
+variable s_pe equal ${pe}
+variable s_pe equal -2828.35646618733
+variable s_apf equal ${apf}
+variable s_apf equal -0.117797263023891
+variable s_adn equal ${adn}
+variable s_adn equal 1.36645874805011e-05
+variable s_maxjump equal ${maxjump}
+variable s_maxjump equal 0.00306824174470598
+
+unfix hp
+unfix pa
+unfix af
+minimize 0 0 1000 1000
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:186)
+  Parameters for fire: 
+    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin    integrator halfstepback 
+     0.1        20    1.1      0.5   0.25        0.99   10 0.02 eulerimplicit          yes 
+Per MPI rank memory allocation (min/avg/max) = 8.778 | 8.778 | 8.778 Mbytes
+Step PotEng Temp v_maxjump 
+    3000   -2828.3565            0 0.0030682417 
+    3100   -2828.5793 0.00016081731   0.54349309 
+    3200   -2828.5793 1.1620454e-14   0.54386121 
+    3300   -2828.5793 4.4699993e-19   0.54386124 
+    3400   -2828.5793 1.0681196e-23   0.54386124 
+    3500   -2828.5793 2.046642e-25   0.54386124 
+    3600   -2828.5793 1.4539039e-25   0.54386124 
+    3700   -2828.5793 2.0152508e-25   0.54386124 
+    3800   -2828.5793 1.3593174e-25   0.54386124 
+    3900   -2828.5793 1.8155665e-25   0.54386124 
+    4000   -2828.5793 1.2308872e-25   0.54386124 
+Loop time of 1.20543 on 1 procs for 1000 steps with 687 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+     -2828.35646618733  -2828.57925588226  -2828.57925588226
+  Force two-norm initial, final = 0.5639141583763609 2.3523921777846766e-13
+  Force max component initial, final = 0.22089321768110187 2.037953139577553e-14
+  Final line search alpha, max atom move = 0.0 0.0
+  Iterations, force evaluations = 1000 1017
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1843     | 1.1843     | 1.1843     |   0.0 | 98.25
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.010469   | 0.010469   | 0.010469   |   0.0 |  0.87
+Output  | 0.00012213 | 0.00012213 | 0.00012213 |   0.0 |  0.01
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.01051    |            |       |  0.87
+
+Nlocal:        687.000 ave         687 max         687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3239.00 ave        3239 max        3239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        46844.0 ave       46844 max       46844 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46844
+Ave neighs/atom = 68.186317
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+print """
+---------- PAFI RESULTS --------
+During run:
+  Average Distance From Hyperplane = ${s_adn}A (Should be very small, around 1e-5A),
+  Average Force Projection Along MFEP = ${s_apf} eV/A
+"""
+
+---------- PAFI RESULTS --------
+During run:
+  Average Distance From Hyperplane = 1.36645874805011e-05A (Should be very small, around 1e-5A),
+  Average Force Projection Along MFEP = -0.117797263023891 eV/A
+
+print """
+In-plane minimization post-run:
+energy = ${s_pe} eV
+"""
+
+In-plane minimization post-run:
+energy = -2828.35646618733 eV
+
+if "${s_maxjump} > 0.1" then "print 'Max Atomic Displacement = ${s_maxjump}A > 0.1A'" "print ' => Possible shallow in-plane metastability: Reduce time in basin and/or decrease tdamp'" else "print 'Max Atomic Displacement = ${s_maxjump}A < 0.1A => No in-plane jumps'"
+print 'Max Atomic Displacement = ${s_maxjump}A < 0.1A => No in-plane jumps'
+Max Atomic Displacement = 0.00306824174470598A < 0.1A => No in-plane jumps
+print """
+Full minimization after removal of PAFI fixes:
+energy = ${pe} eV
+----- END PAFI ----
+"""
+
+Full minimization after removal of PAFI fixes:
+energy = -2828.57925588226 eV
+----- END PAFI ----
+
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:05

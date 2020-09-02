@@ -59,7 +59,8 @@ displacement of each atom is calculated.
 See the :doc:`compute msd <compute_msd>` doc page for further important
 NOTEs, which also apply to this compute.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3, which can be
 accessed by indices 1-3 by any command that uses global vector values

@@ -103,7 +103,7 @@ __inline__ __device__ T atomic_compare_exchange(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T&>::type val) {
-  typedef unsigned long long int type;
+  using type     = unsigned long long int;
   const type tmp = atomicCAS((type*)dest, *((type*)&compare), *((type*)&val));
   return *((T*)&tmp);
 }
@@ -126,8 +126,10 @@ __inline__ __device__ T atomic_compare_exchange(
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = *dest;
         if (return_val == compare) *dest = val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -263,6 +265,7 @@ inline T atomic_compare_exchange(
 
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   if (return_val == compare) {
     // Don't use the following line of code here:
@@ -279,6 +282,7 @@ inline T atomic_compare_exchange(
 #ifndef KOKKOS_COMPILER_CLANG
     (void)tmp;
 #endif
+    Kokkos::memory_fence();
   }
   Impl::unlock_address_host_space((void*)dest);
   return return_val;

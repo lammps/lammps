@@ -91,8 +91,8 @@ int get_ctest_gpu(const char* local_rank_str) {
   }
 
   // Make sure rank is within bounds of resource groups specified by CTest
-  auto resource_group_count = std::atoi(ctest_resource_group_count_str);
-  auto local_rank           = std::atoi(local_rank_str);
+  auto resource_group_count = std::stoi(ctest_resource_group_count_str);
+  auto local_rank           = std::stoi(local_rank_str);
   if (local_rank >= resource_group_count) {
     std::ostringstream ss;
     ss << "Error: local rank " << local_rank
@@ -163,10 +163,53 @@ int get_ctest_gpu(const char* local_rank_str) {
   }
 
   std::string id(resource_str + 3, comma - resource_str - 3);
-  return std::atoi(id.c_str());
+  return std::stoi(id.c_str());
 }
 
 namespace {
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM) || \
+    defined(KOKKOS_ENABLE_HIP)
+int get_gpu(const InitArguments& args) {
+  int use_gpu           = args.device_id;
+  const int ndevices    = args.ndevices;
+  const int skip_device = args.skip_device;
+
+  // if the exact device is not set, but ndevices was given, assign round-robin
+  // using on-node MPI rank
+  if (use_gpu < 0) {
+    auto const* local_rank_str =
+        std::getenv("OMPI_COMM_WORLD_LOCAL_RANK");  // OpenMPI
+    if (!local_rank_str)
+      local_rank_str = std::getenv("MV2_COMM_WORLD_LOCAL_RANK");  // MVAPICH2
+    if (!local_rank_str)
+      local_rank_str = std::getenv("SLURM_LOCALID");  // SLURM
+
+    auto const* ctest_kokkos_device_type =
+        std::getenv("CTEST_KOKKOS_DEVICE_TYPE");  // CTest
+    auto const* ctest_resource_group_count_str =
+        std::getenv("CTEST_RESOURCE_GROUP_COUNT");  // CTest
+    if (ctest_kokkos_device_type && ctest_resource_group_count_str &&
+        local_rank_str) {
+      // Use the device assigned by CTest
+      use_gpu = get_ctest_gpu(local_rank_str);
+    } else if (ndevices >= 0) {
+      // Use the device assigned by the rank
+      if (local_rank_str) {
+        auto local_rank = std::stoi(local_rank_str);
+        use_gpu         = local_rank % ndevices;
+      } else {
+        // user only gave use ndevices, but the MPI environment variable wasn't
+        // set. start with GPU 0 at this point
+        use_gpu = 0;
+      }
+    }
+    // shift assignments over by one so no one is assigned to "skip_device"
+    if (use_gpu >= skip_device) ++use_gpu;
+  }
+  return use_gpu;
+}
+#endif  // KOKKOS_ENABLE_CUDA || KOKKOS_ENABLE_ROCM || KOKKOS_ENABLE_HIP
 
 bool is_unsigned_int(const char* str) {
   const size_t len = strlen(str);
@@ -196,51 +239,13 @@ void initialize_backends(const InitArguments& args) {
 #endif
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM) || \
     defined(KOKKOS_ENABLE_HIP)
-  int use_gpu           = args.device_id;
-  const int ndevices    = args.ndevices;
-  const int skip_device = args.skip_device;
-  // if the exact device is not set, but ndevices was given, assign round-robin
-  // using on-node MPI rank
-  if (use_gpu < 0) {
-    auto const* local_rank_str =
-        std::getenv("OMPI_COMM_WORLD_LOCAL_RANK");  // OpenMPI
-    if (!local_rank_str)
-      local_rank_str = std::getenv("MV2_COMM_WORLD_LOCAL_RANK");  // MVAPICH2
-    if (!local_rank_str)
-      local_rank_str = std::getenv("SLURM_LOCALID");  // SLURM
-
-    auto const* ctest_kokkos_device_type =
-        std::getenv("CTEST_KOKKOS_DEVICE_TYPE");  // CTest
-    auto const* ctest_resource_group_count_str =
-        std::getenv("CTEST_RESOURCE_GROUP_COUNT");  // CTest
-    if (ctest_kokkos_device_type && ctest_resource_group_count_str &&
-        local_rank_str) {
-      // Use the device assigned by CTest
-      use_gpu = get_ctest_gpu(local_rank_str);
-    } else if (ndevices >= 0) {
-      // Use the device assigned by the rank
-      if (local_rank_str) {
-        auto local_rank = std::atoi(local_rank_str);
-        use_gpu         = local_rank % ndevices;
-      } else {
-        // user only gave use ndevices, but the MPI environment variable wasn't
-        // set. start with GPU 0 at this point
-        use_gpu = 0;
-      }
-    }
-    // shift assignments over by one so no one is assigned to "skip_device"
-    if (use_gpu >= skip_device) ++use_gpu;
-  }
+  int use_gpu = get_gpu(args);
 #endif  // defined( KOKKOS_ENABLE_CUDA )
 
 #if defined(KOKKOS_ENABLE_OPENMP)
   if (std::is_same<Kokkos::OpenMP, Kokkos::DefaultExecutionSpace>::value ||
       std::is_same<Kokkos::OpenMP, Kokkos::HostSpace::execution_space>::value) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    Kokkos::OpenMP::initialize(num_threads);
-#else
     Kokkos::OpenMP::impl_initialize(num_threads);
-#endif
   } else {
     // std::cout << "Kokkos::initialize() fyi: OpenMP enabled but not
     // initialized" << std::endl ;
@@ -251,17 +256,6 @@ void initialize_backends(const InitArguments& args) {
   if (std::is_same<Kokkos::Threads, Kokkos::DefaultExecutionSpace>::value ||
       std::is_same<Kokkos::Threads,
                    Kokkos::HostSpace::execution_space>::value) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    if (num_threads > 0) {
-      if (use_numa > 0) {
-        Kokkos::Threads::initialize(num_threads, use_numa);
-      } else {
-        Kokkos::Threads::initialize(num_threads);
-      }
-    } else {
-      Kokkos::Threads::initialize();
-    }
-#else
     if (num_threads > 0) {
       if (use_numa > 0) {
         Kokkos::Threads::impl_initialize(num_threads, use_numa);
@@ -271,7 +265,6 @@ void initialize_backends(const InitArguments& args) {
     } else {
       Kokkos::Threads::impl_initialize();
     }
-#endif
     // std::cout << "Kokkos::initialize() fyi: Pthread enabled and initialized"
     // << std::endl ;
   } else {
@@ -305,11 +298,7 @@ void initialize_backends(const InitArguments& args) {
   (void)args;
 
   // Always initialize Serial if it is configure time enabled
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  Kokkos::Serial::initialize();
-#else
   Kokkos::Serial::impl_initialize();
-#endif
 #endif
 
 #if defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -328,17 +317,9 @@ void initialize_backends(const InitArguments& args) {
   if (std::is_same<Kokkos::Cuda, Kokkos::DefaultExecutionSpace>::value ||
       0 < use_gpu) {
     if (use_gpu > -1) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      Kokkos::Cuda::initialize(Kokkos::Cuda::SelectDevice(use_gpu));
-#else
       Kokkos::Cuda::impl_initialize(Kokkos::Cuda::SelectDevice(use_gpu));
-#endif
     } else {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      Kokkos::Cuda::initialize();
-#else
       Kokkos::Cuda::impl_initialize();
-#endif
     }
     // std::cout << "Kokkos::initialize() fyi: Cuda enabled and initialized" <<
     // std::endl ;
@@ -370,22 +351,12 @@ void initialize_backends(const InitArguments& args) {
     } else {
       Kokkos::Experimental::HIP::impl_initialize();
     }
-    std::cout << "Kokkos::initialize() fyi: HIP enabled and initialized"
-              << std::endl;
   }
 #endif
 }
 
 void initialize_profiling(const InitArguments&) {
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::initialize();
-#else
-  if (getenv("KOKKOS_PROFILE_LIBRARY") != nullptr) {
-    std::cerr << "Kokkos::initialize() warning: Requested Kokkos Profiling, "
-                 "but Kokkos was built without Profiling support"
-              << std::endl;
-  }
-#endif
 }
 
 void pre_initialize_internal(const InitArguments& args) {
@@ -431,18 +402,12 @@ void finalize_internal(const bool all_spaces = false) {
     ++numSuccessfulCalls;
   }
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::finalize();
-#endif
 
 #if defined(KOKKOS_ENABLE_CUDA)
   if (std::is_same<Kokkos::Cuda, Kokkos::DefaultExecutionSpace>::value ||
       all_spaces) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    if (Kokkos::Cuda::is_initialized()) Kokkos::Cuda::finalize();
-#else
     if (Kokkos::Cuda::impl_is_initialized()) Kokkos::Cuda::impl_finalize();
-#endif
   }
 #else
   (void)all_spaces;
@@ -478,11 +443,7 @@ void finalize_internal(const bool all_spaces = false) {
   if (std::is_same<Kokkos::OpenMP, Kokkos::DefaultExecutionSpace>::value ||
       std::is_same<Kokkos::OpenMP, Kokkos::HostSpace::execution_space>::value ||
       all_spaces) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    if (Kokkos::OpenMP::is_initialized()) Kokkos::OpenMP::finalize();
-#else
     if (Kokkos::OpenMP::impl_is_initialized()) Kokkos::OpenMP::impl_finalize();
-#endif
   }
 #endif
 
@@ -502,21 +463,13 @@ void finalize_internal(const bool all_spaces = false) {
       std::is_same<Kokkos::Threads,
                    Kokkos::HostSpace::execution_space>::value ||
       all_spaces) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    if (Kokkos::Threads::is_initialized()) Kokkos::Threads::finalize();
-#else
     if (Kokkos::Threads::impl_is_initialized())
       Kokkos::Threads::impl_finalize();
-#endif
   }
 #endif
 
 #if defined(KOKKOS_ENABLE_SERIAL)
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  if (Kokkos::Serial::is_initialized()) Kokkos::Serial::finalize();
-#else
   if (Kokkos::Serial::impl_is_initialized()) Kokkos::Serial::impl_finalize();
-#endif
 #endif
 
   g_is_initialized = false;
@@ -533,7 +486,7 @@ void fence_internal() {
 #endif
 
 #if defined(KOKKOS_ENABLE_HIP)
-  Kokkos::Experimental::HIP().fence();
+  Kokkos::Experimental::HIP::impl_static_fence();
 #endif
 
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -541,7 +494,7 @@ void fence_internal() {
 #endif
 
 #if defined(KOKKOS_ENABLE_HPX)
-  Kokkos::Experimental::HPX::impl_static_fence();
+  Kokkos::Experimental::HPX().fence();
 #endif
 
 #if defined(KOKKOS_ENABLE_THREADS)
@@ -577,7 +530,7 @@ bool check_int_arg(char const* arg, char const* expected, int* value) {
   if (arg_len == exp_len || arg[exp_len] != '=') okay = false;
   char const* number = arg + exp_len + 1;
   if (!Impl::is_unsigned_int(number) || strlen(number) == 0) okay = false;
-  *value = std::atoi(number);
+  *value = std::stoi(number);
   if (!okay) {
     std::ostringstream ss;
     ss << "Error: expecting an '=INT' after command line argument '" << expected
@@ -614,10 +567,10 @@ void parse_command_line_arguments(int& narg, char* arg[],
   auto& skip_device      = arguments.skip_device;
   auto& disable_warnings = arguments.disable_warnings;
 
-  int kokkos_threads_found  = 0;
-  int kokkos_numa_found     = 0;
-  int kokkos_device_found   = 0;
-  int kokkos_ndevices_found = 0;
+  bool kokkos_threads_found  = false;
+  bool kokkos_numa_found     = false;
+  bool kokkos_device_found   = false;
+  bool kokkos_ndevices_found = false;
 
   int iarg = 0;
 
@@ -626,7 +579,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       for (int k = iarg; k < narg - 1; k++) {
         arg[k] = arg[k + 1];
       }
-      kokkos_threads_found = 1;
+      kokkos_threads_found = true;
       narg--;
     } else if (!kokkos_threads_found &&
                check_int_arg(arg[iarg], "--threads", &num_threads)) {
@@ -635,7 +588,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       for (int k = iarg; k < narg - 1; k++) {
         arg[k] = arg[k + 1];
       }
-      kokkos_numa_found = 1;
+      kokkos_numa_found = true;
       narg--;
     } else if (!kokkos_numa_found &&
                check_int_arg(arg[iarg], "--numa", &numa)) {
@@ -649,7 +602,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       for (int k = iarg; k < narg - 1; k++) {
         arg[k] = arg[k + 1];
       }
-      kokkos_device_found = 1;
+      kokkos_device_found = true;
       narg--;
     } else if (!kokkos_device_found &&
                (check_int_arg(arg[iarg], "--device-id", &device) ||
@@ -694,7 +647,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       }
       if (check_arg(arg[iarg], "--kokkos-num-devices") ||
           check_arg(arg[iarg], "--kokkos-ndevices") || !kokkos_ndevices_found)
-        ndevices = atoi(num1_only);
+        ndevices = std::stoi(num1_only);
       delete[] num1_only;
 
       if (num2 != nullptr) {
@@ -706,7 +659,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
 
         if (check_arg(arg[iarg], "--kokkos-num-devices") ||
             check_arg(arg[iarg], "--kokkos-ndevices") || !kokkos_ndevices_found)
-          skip_device = atoi(num2 + 1);
+          skip_device = std::stoi(num2 + 1);
       }
 
       // Remove the --kokkos-num-devices argument from the list but leave
@@ -716,7 +669,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
         for (int k = iarg; k < narg - 1; k++) {
           arg[k] = arg[k + 1];
         }
-        kokkos_ndevices_found = 1;
+        kokkos_ndevices_found = true;
         narg--;
       } else {
         iarg++;
@@ -1233,12 +1186,6 @@ void print_configuration(std::ostream& out, const bool detail) {
 #endif
   msg << "  KOKKOS_ENABLE_MPI: ";
 #ifdef KOKKOS_ENABLE_MPI
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_PROFILING: ";
-#ifdef KOKKOS_ENABLE_PROFILING
   msg << "yes" << std::endl;
 #else
   msg << "no" << std::endl;

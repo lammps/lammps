@@ -59,7 +59,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg != 7) error->all(FLERR,"Illegal fix bond/swap command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/swap command");
 
   force_reneighbor = 1;
@@ -69,13 +69,13 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  fraction = force->numeric(FLERR,arg[4]);
-  double cutoff = force->numeric(FLERR,arg[5]);
+  fraction = utils::numeric(FLERR,arg[4],false,lmp);
+  double cutoff = utils::numeric(FLERR,arg[5],false,lmp);
   cutsq = cutoff*cutoff;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
   random = new RanMars(lmp,seed + comm->me);
 
   // error check
@@ -86,17 +86,11 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string cmd = id + std::string("_temp");
+  id_temp = new char[cmd.size()+1];
+  strcpy(id_temp,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  modify->add_compute(cmd + " all temp");
   tflag = 1;
 
   // initialize atom list

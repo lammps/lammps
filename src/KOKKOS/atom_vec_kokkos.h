@@ -103,14 +103,14 @@ class AtomVecKokkos : public AtomVec {
                          ExecutionSpace space) = 0;
 
   virtual int
-    pack_border_vel_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                           DAT::tdual_xfloat_2d buf,int iswap,
-                           int pbc_flag, int *pbc, ExecutionSpace space) { return 0; }
+    pack_border_vel_kokkos(int /*n*/, DAT::tdual_int_2d /*k_sendlist*/,
+                           DAT::tdual_xfloat_2d /*buf*/,int /*iswap*/,
+                           int /*pbc_flag*/, int * /*pbc*/, ExecutionSpace /*space*/) { return 0; }
 
   virtual void
-    unpack_border_vel_kokkos(const int &n, const int &nfirst,
-                             const DAT::tdual_xfloat_2d &buf,
-                             ExecutionSpace space) {}
+    unpack_border_vel_kokkos(const int &/*n*/, const int & /*nfirst*/,
+                             const DAT::tdual_xfloat_2d & /*buf*/,
+                             ExecutionSpace /*space*/) {}
 
   virtual int
     pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &buf,

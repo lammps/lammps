@@ -99,7 +99,8 @@ can then later be used to compute the potential of mean force (PMF)
 by averaging over multiple independent trajectories along the same
 pulling path.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix stores the direction of the spring, current pulling target
 distance and the running PMF to :doc:`binary restart files <restart>`.
@@ -146,7 +147,10 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`,
 :doc:`fix colvars <fix_colvars>`, :doc:`fix plumed <fix_plumed>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

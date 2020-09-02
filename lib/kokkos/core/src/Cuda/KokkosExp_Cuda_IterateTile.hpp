@@ -48,7 +48,6 @@
 #include <Kokkos_Macros.hpp>
 #if defined(__CUDACC__) && defined(KOKKOS_ENABLE_CUDA)
 
-#include <iostream>
 #include <algorithm>
 #include <cstdio>
 
@@ -60,10 +59,8 @@
 // type is not allowed As a result, recreate cuda_parallel_launch and associated
 // code
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
-#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -1291,8 +1288,8 @@ struct DeviceIterateTile {
   using point_type       = typename RP::point_type;
 
   struct VoidDummy {};
-  typedef typename std::conditional<std::is_same<Tag, void>::value, VoidDummy,
-                                    Tag>::type usable_tag;
+  using usable_tag = typename std::conditional<std::is_same<Tag, void>::value,
+                                               VoidDummy, Tag>::type;
 
   DeviceIterateTile(const RP& rp, const Functor& func)
       : m_rp{rp}, m_func{func} {}
@@ -1310,6 +1307,8 @@ struct DeviceIterateTile {
         65535;  // not true for blockIdx.x for newer archs
     if (RP::rank == 2) {
       const dim3 block(m_rp.m_tile[0], m_rp.m_tile[1], 1);
+      KOKKOS_ASSERT(block.x > 0);
+      KOKKOS_ASSERT(block.y > 0);
       const dim3 grid(
           std::min((m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1) / block.x,
                    maxblocks),
@@ -1319,6 +1318,9 @@ struct DeviceIterateTile {
       CudaLaunch<DeviceIterateTile>(*this, grid, block);
     } else if (RP::rank == 3) {
       const dim3 block(m_rp.m_tile[0], m_rp.m_tile[1], m_rp.m_tile[2]);
+      KOKKOS_ASSERT(block.x > 0);
+      KOKKOS_ASSERT(block.y > 0);
+      KOKKOS_ASSERT(block.z > 0);
       const dim3 grid(
           std::min((m_rp.m_upper[0] - m_rp.m_lower[0] + block.x - 1) / block.x,
                    maxblocks),
@@ -1332,6 +1334,8 @@ struct DeviceIterateTile {
       // threadIdx.z
       const dim3 block(m_rp.m_tile[0] * m_rp.m_tile[1], m_rp.m_tile[2],
                        m_rp.m_tile[3]);
+      KOKKOS_ASSERT(block.y > 0);
+      KOKKOS_ASSERT(block.z > 0);
       const dim3 grid(
           std::min(
               static_cast<index_type>(m_rp.m_tile_end[0] * m_rp.m_tile_end[1]),
@@ -1346,6 +1350,7 @@ struct DeviceIterateTile {
       // threadIdx.z
       const dim3 block(m_rp.m_tile[0] * m_rp.m_tile[1],
                        m_rp.m_tile[2] * m_rp.m_tile[3], m_rp.m_tile[4]);
+      KOKKOS_ASSERT(block.z > 0);
       const dim3 grid(
           std::min(
               static_cast<index_type>(m_rp.m_tile_end[0] * m_rp.m_tile_end[1]),

@@ -474,10 +474,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   partner = finalpartner = NULL;
   distsq = NULL;
   probability = NULL;
-  maxcreate = 0;
-  created = NULL;
-  ncreate = NULL;
-  allncreate = 0;
+  maxattempt = 0;
+  attempt = NULL;
+  nattempt = NULL;
+  allnattempt = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
   restore =  NULL;
@@ -519,10 +519,10 @@ FixBondReact::~FixBondReact()
 
   memory->destroy(partner);
   memory->destroy(finalpartner);
-  memory->destroy(ncreate);
+  memory->destroy(nattempt);
   memory->destroy(distsq);
   memory->destroy(probability);
-  memory->destroy(created);
+  memory->destroy(attempt);
   memory->destroy(edge);
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
@@ -815,19 +815,19 @@ void FixBondReact::post_integrate()
     memory->destroy(partner);
     memory->destroy(finalpartner);
     memory->destroy(distsq);
-    memory->destroy(ncreate);
+    memory->destroy(nattempt);
     memory->destroy(probability);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/react:partner");
     memory->create(finalpartner,nmax,"bond/react:finalpartner");
     memory->create(distsq,nmax,2,"bond/react:distsq");
-    memory->create(ncreate,nreacts,"bond/react:ncreate");
+    memory->create(nattempt,nreacts,"bond/react:nattempt");
     memory->create(probability,nmax,"bond/react:probability");
   }
 
   // reset create counts
   for (int i = 0; i < nreacts; i++) {
-    ncreate[i] = 0;
+    nattempt[i] = 0;
   }
 
   int nlocal = atom->nlocal;
@@ -909,7 +909,7 @@ void FixBondReact::post_integrate()
     //   and probability constraint is satisfied
     // if other atom is owned by another proc, it should do same thing
 
-    int temp_ncreate = 0;
+    int temp_nattempt = 0;
     for (int i = 0; i < nlocal; i++) {
       if (partner[i] == 0) {
         continue;
@@ -930,17 +930,17 @@ void FixBondReact::post_integrate()
         }
       }
 
-      // store final created bond partners and count the rxn possibility once
+      // store final bond partners and count the rxn possibility once
 
       finalpartner[i] = tag[j];
       finalpartner[j] = tag[i];
 
-      if (tag[i] < tag[j]) temp_ncreate++;
+      if (tag[i] < tag[j]) temp_nattempt++;
     }
 
     // cycle loop if no even eligible bonding atoms were found (on any proc)
     int some_chance;
-    MPI_Allreduce(&temp_ncreate,&some_chance,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&temp_nattempt,&some_chance,1,MPI_INT,MPI_SUM,world);
     if (!some_chance) continue;
 
     // communicate final partner
@@ -948,7 +948,7 @@ void FixBondReact::post_integrate()
     commflag = 3;
     comm->forward_comm_fix(this);
 
-    // add instance to 'created' only if this processor
+    // add instance to 'attempt' only if this processor
     // owns the atoms with smaller global ID
     // NOTE: we no longer care about ghost-ghost instances as bond/create did
     // this is because we take care of updating topology later (and differently)
@@ -959,21 +959,21 @@ void FixBondReact::post_integrate()
       j = atom->map(finalpartner[i]);
       // if (j < 0 || tag[i] < tag[j]) {
       if (tag[i] < tag[j]) { //atom->map(std::min(tag[i],tag[j])) <= nlocal &&
-        if (ncreate[rxnID] == maxcreate) {
-          maxcreate += DELTA;
-          // third column of 'created': bond/react integer ID
-          memory->grow(created,maxcreate,2,nreacts,"bond/react:created");
+        if (nattempt[rxnID] == maxattempt) {
+          maxattempt += DELTA;
+          // third column of 'attempt': bond/react integer ID
+          memory->grow(attempt,maxattempt,2,nreacts,"bond/react:attempt");
         }
         // to ensure types remain in same order
         // unnecessary now taken from reaction map file
         if (iatomtype[rxnID] == type[i]) {
-          created[ncreate[rxnID]][0][rxnID] = tag[i];
-          created[ncreate[rxnID]][1][rxnID] = finalpartner[i];
+          attempt[nattempt[rxnID]][0][rxnID] = tag[i];
+          attempt[nattempt[rxnID]][1][rxnID] = finalpartner[i];
         } else {
-          created[ncreate[rxnID]][0][rxnID] = finalpartner[i];
-          created[ncreate[rxnID]][1][rxnID] = tag[i];
+          attempt[nattempt[rxnID]][0][rxnID] = finalpartner[i];
+          attempt[nattempt[rxnID]][1][rxnID] = tag[i];
         }
-        ncreate[rxnID]++;
+        nattempt[rxnID]++;
       }
     }
   }
@@ -981,11 +981,11 @@ void FixBondReact::post_integrate()
   // break loop if no even eligible bonding atoms were found (on any proc)
   int some_chance;
 
-  allncreate = 0;
+  allnattempt = 0;
   for (int i = 0; i < nreacts; i++)
-    allncreate += ncreate[i];
+    allnattempt += nattempt[i];
 
-  MPI_Allreduce(&allncreate,&some_chance,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&allnattempt,&some_chance,1,MPI_INT,MPI_SUM,world);
   if (!some_chance) {
     unlimit_bond();
     return;
@@ -1201,13 +1201,13 @@ void FixBondReact::superimpose_algorithm()
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
   memory->create(restore,max_natoms,MAXGUESS,"bond/react:restore");
-  memory->create(local_mega_glove,max_natoms+1,allncreate,"bond/react:local_mega_glove");
-  memory->create(ghostly_mega_glove,max_natoms+1,allncreate,"bond/react:ghostly_mega_glove");
+  memory->create(local_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
+  memory->create(ghostly_mega_glove,max_natoms+1,allnattempt,"bond/react:ghostly_mega_glove");
 
   attempted_rxn = 1;
 
   for (int i = 0; i < max_natoms+1; i++) {
-    for (int j = 0; j < allncreate; j++) {
+    for (int j = 0; j < allnattempt; j++) {
       local_mega_glove[i][j] = 0;
       ghostly_mega_glove[i][j] = 0;
     }
@@ -1215,7 +1215,7 @@ void FixBondReact::superimpose_algorithm()
 
   // let's finally begin the superimpose loop
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
-    for (lcl_inst = 0; lcl_inst < ncreate[rxnID]; lcl_inst++) {
+    for (lcl_inst = 0; lcl_inst < nattempt[rxnID]; lcl_inst++) {
 
       onemol = atom->molecules[unreacted_mol[rxnID]];
       twomol = atom->molecules[reacted_mol[rxnID]];
@@ -1238,10 +1238,10 @@ void FixBondReact::superimpose_algorithm()
       int myjbonding = jbonding[rxnID];
 
       glove[myibonding-1][0] = myibonding;
-      glove[myibonding-1][1] = created[lcl_inst][0][rxnID];
+      glove[myibonding-1][1] = attempt[lcl_inst][0][rxnID];
       glove_counter++;
       glove[myjbonding-1][0] = myjbonding;
-      glove[myjbonding-1][1] = created[lcl_inst][1][rxnID];
+      glove[myjbonding-1][1] = attempt[lcl_inst][1][rxnID];
       glove_counter++;
 
       // special case, only two atoms in reaction templates

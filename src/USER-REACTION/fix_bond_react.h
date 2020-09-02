@@ -80,10 +80,10 @@ class FixBondReact : public Fix {
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
   double **distsq,*probability;
-  int *ncreate;
-  int maxcreate;
-  int allncreate;
-  tagint ***created;
+  int *nattempt;
+  int maxattempt;
+  int allnattempt;
+  tagint ***attempt;
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Utility script to fix headers in doc pages and generate "Accelerator Styles" portion
+import os
 import shutil
 import re
 import argparse
@@ -16,10 +17,12 @@ for orig_file in args.files:
     styles = []
     headings = {}
     new_file = f"{orig_file}.tmp"
+    found_syntax = False
 
     with open(orig_file, 'r') as reader, open(new_file, 'w') as writer:
         for line in reader:
             if line.startswith("Syntax"):
+                found_syntax = True
                 break
 
             m = index_pattern.match(line)
@@ -42,28 +45,32 @@ for orig_file in args.files:
                         headings[style] = []
                 elif style not in headings[base_name]:
                     headings[base_name].append(style)
-                
-        # write new header
-        for s in styles:
-            print(f".. index:: {command_type} {s}", file=writer)
 
-        print(file=writer)
+        if found_syntax:
+            # write new header
+            for s in styles:
+                print(f".. index:: {command_type} {s}", file=writer)
 
-        for s, variants in headings.items():
-            header = f"{command_type} {s} command"
-            print(header, file=writer)
-            print("="*len(header), file=writer)
             print(file=writer)
 
-            if len(variants) > 0:
-                print("Accelerator Variants: ", end="", file=writer)
-                print(", ".join([f"*{v}*" for v in variants]), file=writer)
+            for s, variants in headings.items():
+                header = f"{command_type} {s} command"
+                print(header, file=writer)
+                print("="*len(header), file=writer)
                 print(file=writer)
 
-        # write rest of reader
-        print(line, end="", file=writer)
-        for line in reader:
-            print(line, end="", file=writer)
+                if len(variants) > 0:
+                    print("Accelerator Variants: ", end="", file=writer)
+                    print(", ".join([f"*{v}*" for v in variants]), file=writer)
+                    print(file=writer)
 
-    # override original file
-    shutil.move(new_file, orig_file)
+            # write rest of reader
+            print(line, end="", file=writer)
+            for line in reader:
+                print(line, end="", file=writer)
+
+    if found_syntax:
+        # override original file
+        shutil.move(new_file, orig_file)
+    else:
+        os.remove(new_file)

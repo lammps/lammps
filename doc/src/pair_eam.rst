@@ -1,40 +1,33 @@
 .. index:: pair_style eam
+.. index:: pair_style eam/gpu
+.. index:: pair_style eam/intel
+.. index:: pair_style eam/kk
+.. index:: pair_style eam/omp
+.. index:: pair_style eam/opt
+.. index:: pair_style eam/alloy
+.. index:: pair_style eam/alloy/gpu
+.. index:: pair_style eam/alloy/intel
+.. index:: pair_style eam/alloy/kk
+.. index:: pair_style eam/alloy/omp
+.. index:: pair_style eam/alloy/opt
+.. index:: pair_style eam/cd
+.. index:: pair_style eam/cd/old
+.. index:: pair_style eam/fs
+.. index:: pair_style eam/fs/gpu
+.. index:: pair_style eam/fs/intel
+.. index:: pair_style eam/fs/kk
+.. index:: pair_style eam/fs/omp
+.. index:: pair_style eam/fs/opt
 
 pair_style eam command
 ======================
 
-pair_style eam/gpu command
-==========================
-
-pair_style eam/intel command
-============================
-
-pair_style eam/kk command
-=========================
-
-pair_style eam/omp command
-==========================
-
-pair_style eam/opt command
-==========================
+Accelerator Styles: *eam/gpu*, *eam/intel*, *eam/kk*, *eam/omp*, *eam/opt*
 
 pair_style eam/alloy command
 ============================
 
-pair_style eam/alloy/gpu command
-================================
-
-pair_style eam/alloy/intel command
-==================================
-
-pair_style eam/alloy/kk command
-===============================
-
-pair_style eam/alloy/omp command
-================================
-
-pair_style eam/alloy/opt command
-================================
+Accelerator Styles: *eam/alloy/gpu*, *eam/alloy/intel*, *eam/alloy/kk*, *eam/alloy/omp*, *eam/alloy/opt*
 
 pair_style eam/cd command
 =========================
@@ -45,20 +38,7 @@ pair_style eam/cd/old command
 pair_style eam/fs command
 =========================
 
-pair_style eam/fs/gpu command
-=============================
-
-pair_style eam/fs/intel command
-===============================
-
-pair_style eam/fs/kk command
-============================
-
-pair_style eam/fs/omp command
-=============================
-
-pair_style eam/fs/opt command
-=============================
+Accelerator Styles: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
 """"""

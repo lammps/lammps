@@ -8,11 +8,19 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID com/chunk chunkID
+  compute ID group-ID com/chunk chunkID [wrapstyle <style>]
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * com/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
+* wrapstyle *style* = (optional) style of coordinate (un-)wrapping: *unwrap*\ , *atom*\ , *chunk*\ , *com*
+
+.. parsed-literal::
+
+  *unwrap* = completely unwrap coordinates
+  *atom*   = wrap coordinates per atom
+  *chunk*  = wrap per-chunk based on the lowest atom-ID in chunk
+  *com*    = wrap per-chunk based on center of mass position
 
 Examples
 """"""""
@@ -27,16 +35,29 @@ Description
 Define a computation that calculates the center-of-mass for multiple
 chunks of atoms.
 
-In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
-to a single chunk (or no chunk).  The ID for this command is specified
-as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>`
-doc pages for details of how chunks can be defined and examples of how
-they can be used to measure properties of a system.
+In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
+chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
+single chunk (or no chunk).  The ID for this command is specified as
+chunkID.  For example, a single chunk could be the atoms in a molecule
+or atoms in a spatial bin.  See the :doc:`compute chunk/atom
+<compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>` doc pages for
+details of how chunks can be defined and examples of how they can be
+used to measure properties of a system.
 
-This compute calculates the x,y,z coordinates of the center-of-mass
-for each chunk, which includes all effects due to atoms passing through
-periodic boundaries.
+This compute calculates the x,y,z coordinates of the center-of-mass for
+each chunk.  The optional *wrapstyle* keyword determines how the effects
+due to atoms passing through periodic boundaries are considered.  With
+the default setting, *unwrap*\ , the center-of-mass is based on fully
+unwrapped coordinates (this may be desired with per-molecule chunks);
+when using the *atom* wrap style, no unwrapping is performed (this may
+be desired when the chunks are bins); when using the *chunk* wrap style,
+positions are wrapped back, but on a per-chunk basis using the atom with
+the lowest atom-ID in a chunk (this may be desired in combination with
+clusters); and finally the *com* style is similar to *chunk* only that
+the per chunk center-of-mass is used as reference position.  Please
+note, that while the computation of the per-chunk property selects atoms
+also based on the group-ID of this compute (see below), the wrapping
+itself considers all atoms in each chunk.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command

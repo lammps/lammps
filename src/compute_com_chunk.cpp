@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
+#include "chunk_wrap.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +33,7 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL), masstotal(NULL), massproc(NULL), com(NULL), comall(NULL)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute com/chunk command");
+  if (narg < 4) error->all(FLERR,"Illegal compute com/chunk command");
 
   array_flag = 1;
   size_array_cols = 3;
@@ -45,6 +46,14 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(arg[3]) + 1;
   idchunk = new char[n];
   strcpy(idchunk,arg[3]);
+  wrap = new ChunkWrap(lmp,idchunk,"unwrap");
+
+  if (narg == 6) {
+    if (strcmp(arg[4],"wrapstyle") == 0) {
+      if (wrap) delete wrap;
+      wrap = new ChunkWrap(lmp,idchunk,arg[5]);
+    } else error->all(FLERR,"Illegal compute com/chunk command");
+  }
 
   init();
 
@@ -62,6 +71,8 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
 ComputeCOMChunk::~ComputeCOMChunk()
 {
   delete [] idchunk;
+  delete wrap;
+
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
@@ -111,6 +122,8 @@ void ComputeCOMChunk::compute_array()
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
 
+  wrap->init();
+
   if (nchunk > maxchunk) allocate();
   size_array_rows = nchunk;
 
@@ -123,10 +136,8 @@ void ComputeCOMChunk::compute_array()
 
   // compute COM for each chunk
 
-  double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -137,7 +148,7 @@ void ComputeCOMChunk::compute_array()
       if (index < 0) continue;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      domain->unmap(x[i],image[i],unwrap);
+      wrap->wrap(i,unwrap);
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
       com[index][2] += unwrap[2] * massone;

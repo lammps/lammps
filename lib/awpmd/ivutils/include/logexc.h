@@ -273,7 +273,7 @@ public:
 };
 
 /// format a string 
-const char *fmt(const char *format,...);
+const char *logfmt(const char *format,...);
 
 /// macros with common usage
 #define LOGFATAL(code,text,lineinfo) ((lineinfo) ? ::message(vblFATAL,(code)," %s at %s:%d",(text),__FILE__,__LINE__) : \

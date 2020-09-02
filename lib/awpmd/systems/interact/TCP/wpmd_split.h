@@ -119,11 +119,11 @@ public:
   ///    Electronic charges q are -1 by default (when q=NULL), otherwise the charges are assigned for each split
   int set_electrons(int s, int nel, Vector_3P x, Vector_3P v, double* w, double* pw, Vector_2 *c, int *splits, double mass=-1, double *q=NULL);
 
-  
+
   ///\en Starts adding new electron: continue with \ref add_split functions.
   int add_electron(int s){
     if(s < 0 || s > 1)
-      return LOGERR(-1,fmt("AWPMD_split.add_electron: invaid spin setting (%d)!",s),LINFO);
+      return LOGERR(-1,logfmt("AWPMD_split.add_electron: invaid spin setting (%d)!",s),LINFO);
     s_add=s;
     spl_add=0;
     return ne[s_add];

@@ -237,7 +237,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       etmap[etag[i]].push_back(i);
     }
     else
-      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
+      error->all(FLERR,logfmt("Invalid spin value (%d) for particle %d !",spin[i],i));
   }
   // ion force vector
   Vector_3 *fi=NULL;
@@ -254,7 +254,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     for(size_t k=0;k<el.size();k++){
       int i=el[k];
       if(spin[el[0]]!=spin[i])
-        error->all(FLERR,fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
+        error->all(FLERR,logfmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
       double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);

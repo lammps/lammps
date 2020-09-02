@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/shift
+.. index:: angle_style cosine/shift/omp
 
 angle_style cosine/shift command
-=================================
+================================
 
-angle_style cosine/shift/omp command
-====================================
+Accelerator Variants: *cosine/shift/omp*
 
 Syntax
 """"""

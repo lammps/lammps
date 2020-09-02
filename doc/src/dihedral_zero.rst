@@ -1,7 +1,7 @@
 .. index:: dihedral_style zero
 
 dihedral_style zero command
-============================
+===========================
 
 Syntax
 """"""

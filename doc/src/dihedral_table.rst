@@ -1,10 +1,10 @@
 .. index:: dihedral_style table
+.. index:: dihedral_style table/omp
 
 dihedral_style table command
 ============================
 
-dihedral_style table/omp command
-================================
+Accelerator Variants: *table/omp*
 
 Syntax
 """"""

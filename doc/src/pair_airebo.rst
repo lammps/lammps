@@ -1,31 +1,27 @@
 .. index:: pair_style airebo
+.. index:: pair_style airebo/intel
+.. index:: pair_style airebo/omp
+.. index:: pair_style airebo/morse
+.. index:: pair_style airebo/morse/intel
+.. index:: pair_style airebo/morse/omp
+.. index:: pair_style rebo
+.. index:: pair_style rebo/intel
+.. index:: pair_style rebo/omp
 
 pair_style airebo command
 =========================
 
-pair_style airebo/intel command
-===============================
-
-pair_style airebo/omp command
-=============================
+Accelerator Variants: *airebo/intel*, *airebo/omp*
 
 pair_style airebo/morse command
 ===============================
 
-pair_style airebo/morse/intel command
-=====================================
-
-pair_style airebo/morse/omp command
-===================================
+Accelerator Variants: *airebo/morse/intel*, *airebo/morse/omp*
 
 pair_style rebo command
 =======================
 
-pair_style rebo/intel command
-=============================
-
-pair_style rebo/omp command
-===========================
+Accelerator Variants: *rebo/intel*, *rebo/omp*
 
 Syntax
 """"""

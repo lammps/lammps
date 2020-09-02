@@ -5,7 +5,6 @@
 .. index:: pair_style lj/cut/tip4p/long/omp
 .. index:: pair_style lj/cut/tip4p/long/opt
 
-
 pair_style lj/cut/tip4p/cut command
 ===================================
 

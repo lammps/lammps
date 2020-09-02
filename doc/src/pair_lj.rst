@@ -5,7 +5,6 @@
 .. index:: pair_style lj/cut/opt
 .. index:: pair_style lj/cut/omp
 
-
 pair_style lj/cut command
 =========================
 

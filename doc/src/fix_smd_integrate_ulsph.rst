@@ -1,7 +1,7 @@
 .. index:: fix smd/integrate_ulsph
 
 fix smd/integrate_ulsph command
-================================
+===============================
 
 Syntax
 """"""

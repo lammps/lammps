@@ -13,17 +13,17 @@
 fix nvt command
 ===============
 
-Accelerator Styles: *nvt/intel*, *nvt/kk*, *nvt/omp*
+Accelerator Variants: *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-Accelerator Styles: *npt/intel*, *npt/kk*, *npt/omp*
+Accelerator Variants: *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============
 
-Accelerator Styles: *nph/kk*, *nph/omp*
+Accelerator Variants: *nph/kk*, *nph/omp*
 
 Syntax
 """"""

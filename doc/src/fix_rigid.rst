@@ -18,32 +18,32 @@
 fix rigid command
 =================
 
-Accelerator Styles: *rigid/omp*
+Accelerator Variants: *rigid/omp*
 
 fix rigid/nve command
 =====================
 
-Accelerator Styles: *rigid/nve/omp*
+Accelerator Variants: *rigid/nve/omp*
 
 fix rigid/nvt command
 =====================
 
-Accelerator Styles: *rigid/nvt/omp*
+Accelerator Variants: *rigid/nvt/omp*
 
 fix rigid/npt command
 =====================
 
-Accelerator Styles: *rigid/npt/omp*
+Accelerator Variants: *rigid/npt/omp*
 
 fix rigid/nph command
 =====================
 
-Accelerator Styles: *rigid/nph/omp*
+Accelerator Variants: *rigid/nph/omp*
 
 fix rigid/small command
 =======================
 
-Accelerator Styles: *rigid/small/omp*
+Accelerator Variants: *rigid/small/omp*
 
 fix rigid/nve/small command
 ===========================

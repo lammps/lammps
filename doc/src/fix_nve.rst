@@ -1,16 +1,12 @@
 .. index:: fix nve
+.. index:: fix nve/intel
+.. index:: fix nve/kk
+.. index:: fix nve/omp
 
 fix nve command
 ===============
 
-fix nve/intel command
-=====================
-
-fix nve/kk command
-==================
-
-fix nve/omp command
-===================
+Accelerator Variants: *nve/intel*, *nve/kk*, *nve/omp*
 
 Syntax
 """"""

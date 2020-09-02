@@ -1,4 +1,5 @@
 .. index:: fix bond/create
+.. index:: fix bond/create/angle
 
 fix bond/create command
 =======================

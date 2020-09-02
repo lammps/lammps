@@ -1,10 +1,10 @@
 .. index:: fix enforce2d
+.. index:: fix enforce2d/kk
 
 fix enforce2d command
 =====================
 
-fix enforce2d/kk command
-========================
+Accelerator Variants: *enforce2d/kk*
 
 Syntax
 """"""

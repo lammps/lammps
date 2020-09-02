@@ -18,7 +18,7 @@
 
 #include "fix_wall_reflect_stochastic.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
 #include "update.h"

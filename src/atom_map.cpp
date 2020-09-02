@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

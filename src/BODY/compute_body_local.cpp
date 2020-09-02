@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_body_local.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"

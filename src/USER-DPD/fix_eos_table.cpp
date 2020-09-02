@@ -16,14 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_table.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include "atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "utils.h"
+
 
 #define MAXLINE 1024
 

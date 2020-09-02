@@ -45,7 +45,7 @@ https://doi.org/10.1103/PhysRevE.92.043303
 
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
+
 #include "compute_hma.h"
 #include "atom.h"
 #include "update.h"

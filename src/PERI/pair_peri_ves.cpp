@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_ves.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -32,7 +32,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "update.h"
 
 using namespace LAMMPS_NS;

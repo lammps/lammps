@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_setforce.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

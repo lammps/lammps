@@ -17,7 +17,7 @@
 
 #include "compute_orientorder_atom_kokkos.h"
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "atom_kokkos.h"
 #include "update.h"

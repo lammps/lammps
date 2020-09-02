@@ -18,7 +18,7 @@
 #include "fix_box_relax.h"
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "compute.h"
 #include "error.h"
 #include "math_extra.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

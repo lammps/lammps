@@ -29,10 +29,10 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "utils.h"
+
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cstdio>
 #include <cmath>
 

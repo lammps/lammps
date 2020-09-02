@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_atom.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -23,7 +23,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

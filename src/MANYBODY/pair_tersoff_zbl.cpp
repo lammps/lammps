@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

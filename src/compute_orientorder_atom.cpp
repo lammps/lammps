@@ -17,22 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

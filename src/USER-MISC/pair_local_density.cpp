@@ -18,11 +18,11 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_local_density.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -33,7 +33,7 @@
 #include "error.h"
 #include "domain.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

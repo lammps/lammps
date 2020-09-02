@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_spherical.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cassert>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace std;
 using namespace LAMMPS_NS;

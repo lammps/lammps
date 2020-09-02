@@ -14,10 +14,10 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
+#include "pointers.h"
+
 #include <cmath>
 #include <map>
-#include <string>
-#include "pointers.h"
 
 namespace LAMMPS_NS {
 

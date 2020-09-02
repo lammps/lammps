@@ -16,7 +16,7 @@
 #include "pair_mesont_tpm.h"
 #include "export_mesont.h"
 
-#include <mpi.h>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -29,7 +29,7 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
-#include <string>
+
 #include <fstream>
 #include <sstream>
 #include <algorithm>

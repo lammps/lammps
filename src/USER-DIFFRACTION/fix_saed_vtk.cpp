@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_saed_vtk.h"
-#include <cstdlib>
+
 #include <cstring>
 #include <cmath>
 #include "update.h"

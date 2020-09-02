@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_histo.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <unistd.h>
 #include "atom.h"
@@ -25,8 +25,8 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

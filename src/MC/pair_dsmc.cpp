@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dsmc.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <climits>
 #include "atom.h"
@@ -27,8 +27,8 @@
 #include "domain.h"
 #include "update.h"
 #include "random_mars.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 

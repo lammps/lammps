@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "my_page.h"
 #include "atom.h"

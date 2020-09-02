@@ -21,7 +21,7 @@
 
 #include <cstdio>
 #include <cstring>
-#include <string>
+
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

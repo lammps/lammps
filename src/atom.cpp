@@ -12,31 +12,28 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include <mpi.h>
-#include <climits>
-#include <cstdlib>
-#include <cstring>
-#include <algorithm>
-#include <string>
 #include "style_atom.h"
+
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "molecule.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neighbor.h"
+#include "update.h"
+#include "variable.h"
+
+#include <algorithm>
+#include <cstring>
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"

@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "universe.h"
 #include "update.h"
 #include "atom.h"

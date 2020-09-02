@@ -16,21 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_table.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

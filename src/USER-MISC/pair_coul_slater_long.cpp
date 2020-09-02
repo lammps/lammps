@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_coul_slater_long.h"
 #include "atom.h"
@@ -31,7 +31,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

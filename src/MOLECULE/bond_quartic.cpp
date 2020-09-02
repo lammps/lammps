@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_quartic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -25,7 +25,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

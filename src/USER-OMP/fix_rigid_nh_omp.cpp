@@ -17,7 +17,7 @@
 
 #include "omp_compat.h"
 #include "fix_rigid_nh_omp.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"

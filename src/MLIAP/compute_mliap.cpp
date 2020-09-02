@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"

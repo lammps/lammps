@@ -22,7 +22,7 @@
 #include "neighbor.h"
 #include "update.h"
 #include "domain.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

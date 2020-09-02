@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_property_atom_kokkos.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom_kokkos.h"
 #include "comm.h"

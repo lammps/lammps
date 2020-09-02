@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ti_spring.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

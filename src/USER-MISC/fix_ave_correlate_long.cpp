@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_correlate_long.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <unistd.h>
 #include "update.h"

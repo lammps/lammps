@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_indent.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

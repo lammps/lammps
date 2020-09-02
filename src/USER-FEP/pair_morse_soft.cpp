@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_morse_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -22,7 +22,7 @@
 #include "memory.h"
 #include "math_special.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

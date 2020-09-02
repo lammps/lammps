@@ -15,7 +15,7 @@
    Contributing author: Zheng GONG (ENS de Lyon, z.gong@outlook.com)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include "compute_viscosity_cos.h"
 #include "atom.h"
 #include "update.h"

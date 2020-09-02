@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_pmb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cfloat>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -33,7 +33,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_drag.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

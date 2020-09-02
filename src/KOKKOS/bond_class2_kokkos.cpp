@@ -17,7 +17,7 @@
 
 #include "bond_class2_kokkos.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"

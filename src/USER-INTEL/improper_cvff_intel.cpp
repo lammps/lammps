@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include "improper_cvff_intel.h"
 #include "atom.h"
 #include "comm.h"

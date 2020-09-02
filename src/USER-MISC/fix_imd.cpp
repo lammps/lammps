@@ -58,7 +58,7 @@ negotiate an appropriate license for such distribution."
 #include "group.h"
 #include "memory.h"
 
-#include <cstdlib>
+
 #include <cstring>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_create.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "update.h"
 #include "respa.h"

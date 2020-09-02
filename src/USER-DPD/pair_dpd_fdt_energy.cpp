@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_fdt_energy.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

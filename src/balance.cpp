@@ -19,28 +19,26 @@
 // #define BALANCE_DEBUG 1
 
 #include "balance.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "rcb.h"
-#include "irregular.h"
 #include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix_store.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
-#include "imbalance_time.h"
 #include "imbalance_neigh.h"
 #include "imbalance_store.h"
+#include "imbalance_time.h"
 #include "imbalance_var.h"
+#include "irregular.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "rcb.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

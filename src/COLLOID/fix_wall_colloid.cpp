@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_colloid.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "atom_vec.h"

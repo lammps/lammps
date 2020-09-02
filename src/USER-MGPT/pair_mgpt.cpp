@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_mgpt.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cassert>
 

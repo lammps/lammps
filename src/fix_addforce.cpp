@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_addforce.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_masks.h"
 #include "update.h"

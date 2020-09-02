@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_dh.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -25,7 +25,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 

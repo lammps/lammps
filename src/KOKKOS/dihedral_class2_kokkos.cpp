@@ -17,7 +17,7 @@
 
 #include "dihedral_class2_kokkos.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"

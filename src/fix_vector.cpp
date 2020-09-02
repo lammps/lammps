@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_vector.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "update.h"
 #include "force.h"

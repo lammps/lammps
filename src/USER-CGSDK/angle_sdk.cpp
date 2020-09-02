@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_sdk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -30,7 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "lj_sdk_common.h"
 

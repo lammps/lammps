@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eim.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,10 +26,10 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

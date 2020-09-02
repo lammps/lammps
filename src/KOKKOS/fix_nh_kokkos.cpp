@@ -17,7 +17,7 @@
 
 #include "fix_nh_kokkos.h"
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "math_extra.h"
 #include "atom.h"

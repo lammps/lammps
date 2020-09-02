@@ -19,7 +19,7 @@
 #include "pair_lj_cut_thole_long_omp.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

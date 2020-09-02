@@ -56,8 +56,8 @@
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
 #include <cstring>
-#include <cstdlib>
-#include <string>
+
+
 #include <sstream>
 #include "atom.h"
 #include "comm.h"
@@ -68,7 +68,7 @@
 #include "update.h"
 #include "memory.h"
 #include "domain.h"
-#include "utils.h"
+
 #include "error.h"
 
 using namespace LAMMPS_NS;

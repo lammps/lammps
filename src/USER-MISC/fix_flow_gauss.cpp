@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_flow_gauss.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"

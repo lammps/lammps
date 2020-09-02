@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_halt.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "update.h"
 #include "force.h"
 #include "input.h"
@@ -26,7 +26,7 @@
 #include "comm.h"
 #include "timer.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

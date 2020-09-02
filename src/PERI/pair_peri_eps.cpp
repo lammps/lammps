@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_eps.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -33,7 +33,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

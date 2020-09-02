@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_hybrid.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

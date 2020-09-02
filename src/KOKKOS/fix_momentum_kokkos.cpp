@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_momentum_kokkos.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom_kokkos.h"
 #include "atom_masks.h"

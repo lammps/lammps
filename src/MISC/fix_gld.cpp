@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gld.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

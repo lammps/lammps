@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region_ees.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

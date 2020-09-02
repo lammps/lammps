@@ -16,30 +16,28 @@
 ------------------------------------------------------------------------- */
 
 #include "domain.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include <string>
-#include "style_region.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "region.h"
+#include "force.h"
+#include "kspace.h"
 #include "lattice.h"
-#include "comm.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
 #include "output.h"
+#include "region.h"
+#include "style_region.h"
 #include "thermo.h"
 #include "universe.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

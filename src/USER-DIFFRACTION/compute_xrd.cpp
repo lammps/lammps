@@ -18,9 +18,9 @@
 
 #include "omp_compat.h"
 #include "compute_xrd.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_const.h"
 #include "compute_xrd_consts.h"

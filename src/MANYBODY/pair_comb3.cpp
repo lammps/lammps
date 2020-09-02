@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb3.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -33,10 +33,10 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

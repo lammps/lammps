@@ -22,9 +22,9 @@
 
 #include "pair_kolmogorov_crespi_full.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -34,7 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

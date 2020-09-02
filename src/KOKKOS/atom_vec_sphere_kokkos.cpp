@@ -25,7 +25,7 @@
 #include "memory.h"
 #include "error.h"
 #include "memory_kokkos.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

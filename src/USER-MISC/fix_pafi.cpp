@@ -19,10 +19,10 @@
 
 
 #include "fix_pafi.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -35,9 +35,9 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "citeme.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

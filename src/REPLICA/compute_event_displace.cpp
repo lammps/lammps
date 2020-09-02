@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_event_displace.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"

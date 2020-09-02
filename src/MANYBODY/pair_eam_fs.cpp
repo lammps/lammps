@@ -16,14 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_fs.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

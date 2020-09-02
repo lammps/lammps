@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_agni.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -31,7 +31,7 @@
 #include "citeme.h"
 #include "math_special.h"
 #include "math_const.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

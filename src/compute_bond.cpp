@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_bond.h"
-#include <mpi.h>
+
 #include "bond.h"
-#include "update.h"
-#include "force.h"
 #include "bond_hybrid.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

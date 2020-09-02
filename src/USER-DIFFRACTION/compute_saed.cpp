@@ -17,9 +17,9 @@
 
 #include "omp_compat.h"
 #include "compute_saed.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_const.h"
 #include "compute_saed_consts.h"

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_self.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

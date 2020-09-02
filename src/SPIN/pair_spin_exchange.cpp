@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_exchange.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -34,7 +34,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

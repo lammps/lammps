@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include <cstring>
-#include <string>
-#include "my_pool_chunk.h"
 #include "style_body.h"
-#include "body.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "modify.h"
+#include "body.h"
+#include "error.h"
 #include "fix.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

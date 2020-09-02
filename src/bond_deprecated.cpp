@@ -16,12 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_deprecated.h"
-#include <string>
+
 #include "bond_hybrid.h"
 #include "comm.h"
-#include "force.h"
 #include "error.h"
-#include "utils.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 

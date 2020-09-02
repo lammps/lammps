@@ -34,7 +34,7 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"

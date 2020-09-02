@@ -16,7 +16,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_oxrna2_excv.h"
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

@@ -16,10 +16,10 @@
 
 #include "compute_pressure_bocs.h"
 
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 
 #include "angle.h"
 #include "atom.h"
@@ -28,7 +28,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fmt/format.h"
+
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"

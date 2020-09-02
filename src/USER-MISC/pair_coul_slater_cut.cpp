@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_coul_slater_cut.h"
 #include "atom.h"

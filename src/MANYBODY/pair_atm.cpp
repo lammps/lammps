@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_atm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "citeme.h"
@@ -27,7 +27,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

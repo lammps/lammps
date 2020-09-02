@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_local.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
@@ -24,7 +24,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

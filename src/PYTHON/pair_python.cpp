@@ -17,7 +17,7 @@
 
 #include "pair_python.h"
 #include <Python.h>  // IWYU pragma: keep
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"

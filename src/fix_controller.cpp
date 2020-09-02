@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_controller.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "force.h"
 #include "update.h"

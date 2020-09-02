@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_streitz.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -30,8 +30,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 #include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;

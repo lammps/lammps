@@ -14,7 +14,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rhok.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 

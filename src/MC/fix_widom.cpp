@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "fix_widom.h"
 #include "atom.h"

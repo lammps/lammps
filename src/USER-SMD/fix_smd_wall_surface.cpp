@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_smd_wall_surface.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include <Eigen/Eigen>
 #include "atom.h"
 #include "domain.h"

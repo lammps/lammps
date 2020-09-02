@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_buck_coul_cut_intel.h"
 #include "atom.h"

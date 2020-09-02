@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_manifoldforce.h"  // For stuff
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

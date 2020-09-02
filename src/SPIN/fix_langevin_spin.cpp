@@ -34,7 +34,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -17,7 +17,7 @@
 
 #include "pair_eam_fs_gpu.h"
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -30,7 +30,7 @@
 #include "gpu_extra.h"
 #include "domain.h"
 #include "suffix.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

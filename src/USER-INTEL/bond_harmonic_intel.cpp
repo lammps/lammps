@@ -17,7 +17,7 @@
 
 #include "omp_compat.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "bond_harmonic_intel.h"
 #include "atom.h"
 #include "modify.h"

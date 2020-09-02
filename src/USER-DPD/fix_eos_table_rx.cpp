@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_table_rx.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "comm.h"
 #include "modify.h"
-#include "utils.h"
+
 
 #define MAXLINE 1024
 

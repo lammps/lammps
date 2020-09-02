@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

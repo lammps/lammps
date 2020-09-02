@@ -20,7 +20,7 @@
 #include "comm.h"
 #include "force.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

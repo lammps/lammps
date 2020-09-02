@@ -18,7 +18,7 @@
 #include "compute_fep.h"
 #include <cstring>
 #include <cmath>
-#include <mpi.h>
+
 #include "comm.h"
 #include "update.h"
 #include "atom.h"
@@ -34,7 +34,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

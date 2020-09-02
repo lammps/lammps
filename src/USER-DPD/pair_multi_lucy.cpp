@@ -21,10 +21,10 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
 #include "math_const.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_multi_lucy.h"
 #include "atom.h"
@@ -33,9 +33,9 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

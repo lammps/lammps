@@ -12,31 +12,29 @@
 ------------------------------------------------------------------------- */
 
 #include "comm.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "universe.h"
+
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "fix.h"
 #include "compute.h"
 #include "domain.h"
-#include "output.h"
 #include "dump.h"
-#include "group.h"
-#include "procmap.h"
-#include "irregular.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "procmap.h"
+#include "universe.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>

@@ -12,33 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "delete_atoms.h"
-#include <mpi.h>
-#include <cstring>
-#include <utility>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "region.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "region.h"
 
+#include <cstring>
 #include <map>
-#include <string>
+#include <utility>
 
 using namespace LAMMPS_NS;
 

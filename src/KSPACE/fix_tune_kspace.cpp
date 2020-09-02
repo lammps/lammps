@@ -19,7 +19,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include <string>
+
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -32,8 +32,8 @@
 #include "neighbor.h"
 #include "modify.h"
 #include "compute.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))

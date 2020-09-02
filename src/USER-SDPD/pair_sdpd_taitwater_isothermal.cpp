@@ -30,7 +30,7 @@
 #include "error.h"
 #include "domain.h"
 #include "update.h"
-#include "utils.h"
+
 #ifndef USE_ZEST
 #include "random_mars.h"
 #endif

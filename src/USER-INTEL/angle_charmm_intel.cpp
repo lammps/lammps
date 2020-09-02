@@ -17,7 +17,7 @@
 
 #include "omp_compat.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "angle_charmm_intel.h"
 #include "atom.h"
 #include "neighbor.h"

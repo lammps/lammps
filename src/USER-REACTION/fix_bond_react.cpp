@@ -16,10 +16,10 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_react.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -43,7 +43,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "error.h"
 #include "input.h"
 #include "variable.h"
-#include "fmt/format.h"
+
 #include "superpose3d.h"
 
 #include <algorithm>

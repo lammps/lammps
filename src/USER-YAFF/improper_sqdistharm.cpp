@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_sqdistharm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +26,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

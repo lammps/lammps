@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_mod.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +28,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

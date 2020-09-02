@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_eam_alloy_intel.h"
 #include "atom.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_srd.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "fix.h"
 #include "domain.h"

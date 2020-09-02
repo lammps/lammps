@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_time.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <unistd.h>
 #include "update.h"
@@ -28,8 +28,8 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

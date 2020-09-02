@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna_coaxstk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "mf_oxdna.h"
@@ -27,7 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 

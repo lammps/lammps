@@ -17,7 +17,7 @@
 
 #include "omp_compat.h"
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "math_extra.h"
 #include "fix_nh_asphere_omp.h"

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "dihedral_fourier_intel.h"
 #include "atom.h"

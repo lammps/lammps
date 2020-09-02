@@ -16,7 +16,7 @@
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "atom_masks.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

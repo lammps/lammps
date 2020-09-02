@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_shardlow.h"
-#include <cstdlib>
+
 #include <cstring>
 #include <cmath>
 #include <stdint.h>
@@ -54,7 +54,7 @@
 #include "pair_dpd_fdt_energy.h"
 #include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

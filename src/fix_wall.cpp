@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "input.h"
 #include "variable.h"
@@ -23,7 +23,7 @@
 #include "respa.h"
 #include "error.h"
 #include "force.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

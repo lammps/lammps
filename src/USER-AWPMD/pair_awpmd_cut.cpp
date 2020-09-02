@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_awpmd_cut.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <map>
@@ -32,7 +32,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "logexc.h"
 #include "vector_3.h"

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_kokkos.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom_kokkos.h"
 #include "update.h"

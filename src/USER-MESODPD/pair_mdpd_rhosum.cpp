@@ -29,7 +29,7 @@
 #include "memory.h"
 #include "error.h"
 #include "neighbor.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

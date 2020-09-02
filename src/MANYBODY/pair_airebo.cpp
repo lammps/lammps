@@ -23,7 +23,7 @@
 #include "pair_airebo.h"
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "force.h"
@@ -34,10 +34,10 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

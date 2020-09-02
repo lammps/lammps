@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dipole_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -31,7 +31,7 @@
 #include "modify.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

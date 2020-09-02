@@ -17,12 +17,12 @@
                           the "tridiag.c" written by Gerard Jungman for GSL
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include <sstream>  // IWYU pragma: keep
 #include <fstream>  // IWYU pragma: keep
 
@@ -33,12 +33,12 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "dihedral_table.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 #include "math_const.h"
 #include "math_extra.h"

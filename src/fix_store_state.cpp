@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_store_state.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"

@@ -14,7 +14,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "bond_special.h"
 #include "atom.h"
@@ -25,7 +25,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -19,7 +19,7 @@
 #pragma offload_attribute(push, target(mic))
 #endif
 #include <unistd.h>
-#include <cstdlib>
+
 #include <cstring>
 #include <cmath>
 #include <cstdio>

@@ -17,7 +17,7 @@
 #include "atom.h"
 #include "force.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

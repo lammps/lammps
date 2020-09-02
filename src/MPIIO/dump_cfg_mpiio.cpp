@@ -18,7 +18,7 @@
 #include "omp_compat.h"
 #include "dump_cfg_mpiio.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"

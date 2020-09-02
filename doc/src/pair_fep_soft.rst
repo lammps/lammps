@@ -1,64 +1,75 @@
 .. index:: pair_style lj/cut/soft
+.. index:: pair_style lj/cut/soft/omp
+.. index:: pair_style lj/cut/coul/cut/soft
+.. index:: pair_style lj/cut/coul/cut/soft/omp
+.. index:: pair_style lj/cut/coul/long/soft
+.. index:: pair_style lj/cut/coul/long/soft/omp
+.. index:: pair_style lj/cut/tip4p/long/soft
+.. index:: pair_style lj/cut/tip4p/long/soft/omp
+.. index:: pair_style lj/charmm/coul/long/soft
+.. index:: pair_style lj/charmm/coul/long/soft/omp
+.. index:: pair_style lj/class2/soft
+.. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style coul/cut/soft
+.. index:: pair_style coul/cut/soft/omp
+.. index:: pair_style coul/long/soft
+.. index:: pair_style coul/long/soft/omp
+.. index:: pair_style tip4p/long/soft
+.. index:: pair_style tip4p/long/soft/omp
+.. index:: pair_style morse/soft
 
 pair_style lj/cut/soft command
 ==============================
 
-pair_style lj/cut/soft/omp command
-==================================
+Accelerator Styles: *lj/cut/soft/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================
 
-pair_style lj/cut/coul/cut/soft/omp command
-===========================================
+Accelerator Styles: *lj/cut/coul/cut/soft/omp*
 
 pair_style lj/cut/coul/long/soft command
 ========================================
 
-pair_style lj/cut/coul/long/soft/omp command
-============================================
+Accelerator Styles: *lj/cut/coul/long/soft/omp*
 
 pair_style lj/cut/tip4p/long/soft command
-==========================================
+=========================================
 
-pair_style lj/cut/tip4p/long/soft/omp command
-==============================================
+Accelerator Styles: *lj/cut/tip4p/long/soft/omp*
 
 pair_style lj/charmm/coul/long/soft command
-============================================
-
-pair_style lj/charmm/coul/long/soft/omp command
-================================================
-
-pair_style lj/class2/soft command
-==================================
-
-pair_style lj/class2/coul/cut/soft command
 ===========================================
 
-pair_style lj/class2/coul/long/soft command
-============================================
+Accelerator Styles: *lj/charmm/coul/long/soft/omp*
 
-pair_style coul/cut/soft command
+pair_style lj/class2/soft command
 =================================
 
-pair_style coul/cut/soft/omp command
-=====================================
+pair_style lj/class2/coul/cut/soft command
+==========================================
+
+pair_style lj/class2/coul/long/soft command
+===========================================
+
+pair_style coul/cut/soft command
+================================
+
+Accelerator Styles: *coul/cut/soft/omp*
 
 pair_style coul/long/soft command
-==================================
+=================================
 
-pair_style coul/long/soft/omp command
-======================================
+Accelerator Styles: *coul/long/soft/omp*
 
 pair_style tip4p/long/soft command
-===================================
+==================================
 
-pair_style tip4p/long/soft/omp command
-=======================================
+Accelerator Styles: *tip4p/long/soft/omp*
 
 pair_style morse/soft command
-==============================
+=============================
 
 Syntax
 """"""

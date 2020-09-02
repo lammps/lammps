@@ -93,7 +93,8 @@ Include files should be included in this order:
 * the header matching the implementation (`some_class.h` for file `some_class.cpp`)
 * mpi.h  (only if needed)
 * LAMMPS local headers (preferably in alphabetical order)
-* system and library headers (anything that is using angular brackets; C-library headers first, then C++)
+* system and library headers (anything that is using angular brackets; preferably in alphabetical order)
+* conditional include statements (i.e. anything bracketed with ifdefs)
 
 ### Special Cases and Exceptions
 
@@ -111,12 +112,10 @@ those headers.
 
 The [Include What You Use tool](https://include-what-you-use.org/)
 can be used to provide supporting information about compliance with
-the rules listed here.  There are some limitations and the IWYU tool
-may give incorrect advice.  The tools is activated by setting the
-CMake variable `CMAKE_CXX_INCLUDE_WHAT_YOU_USE` variable to the
-path of the `include-what-you-use` command.  When activated, the
-tool will be run after each compilation and provide suggestions for
-which include files should be added or removed.
+the rules listed here.  Through setting `-DENABLE_IWYU=on` when running
+CMake, a custom build target is added that will enable recording
+the compilation commands and then run the `iwyu_tool` using the
+recorded compilation commands information when typing `make iwyu`.
 
 ## Legacy Code
 

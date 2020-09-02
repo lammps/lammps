@@ -1,3 +1,7 @@
+.. index:: angle_style
+
+angle_style command
+===================
 
 Syntax
 """"""

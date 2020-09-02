@@ -69,7 +69,7 @@ for orig_file in args.files:
             for line in reader:
                 print(line, end="", file=writer)
 
-    if found_syntax:
+    if found_syntax and len(styles) > 0:
         # override original file
         shutil.move(new_file, orig_file)
     else:

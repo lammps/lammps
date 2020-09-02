@@ -1,3 +1,7 @@
+.. index:: angle_coeff
+
+angle_coeff command
+===================
 
 Syntax
 """"""

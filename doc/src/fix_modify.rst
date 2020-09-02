@@ -1,3 +1,7 @@
+.. index:: fix_modify
+
+fix_modify command
+==================
 
 Syntax
 """"""

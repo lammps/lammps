@@ -133,10 +133,10 @@ def check_style(filename, dirname, pattern, styles, name, suffix=False, skip=set
                 counter += 1
     return counter
 
-def check_style_index(name, styles, index):
+def check_style_index(name, styles, index, skip=[]):
     counter = 0
     for style in styles:
-        if style not in index and not styles[style]['removed']:
+        if style not in index and not styles[style]['removed'] and style not in skip:
             print(f"{name} index entry {style} is missing")
             counter += 1
 
@@ -146,7 +146,7 @@ def check_style_index(name, styles, index):
                 suffix_style = f"{style}/kk"
             else:
                 suffix_style = f"{style}/{suffix}"
-            if styles[style][suffix] and suffix_style not in index:
+            if styles[style][suffix] and suffix_style not in index and style not in skip:
                 print(f"{name} index entry {suffix_style} is missing")
                 counter += 1
     return counter
@@ -295,13 +295,13 @@ if counter:
 counter = 0
 
 counter += check_style_index("compute", compute, index["compute"])
-counter += check_style_index("fix", fix, index["fix"])
+counter += check_style_index("fix", fix, index["fix"], skip=['python'])
 counter += check_style_index("angle_style", angle, index["angle_style"])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
 counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
-counter += check_style_index("pair_style", pair, index["pair_style"])
+counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam', 'lj/sf'])
 
 if counter:
     print(f"Found {counter} issue(s) with style index")

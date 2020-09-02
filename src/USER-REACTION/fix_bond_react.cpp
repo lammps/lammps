@@ -390,6 +390,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
   memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
+  memory->create(create_atoms,max_natoms,nreacts,"bond/react:create_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
   for (int j = 0; j < nreacts; j++)
@@ -398,6 +399,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
       else custom_edges[i][j] = 0;
       delete_atoms[i][j] = 0;
+      create_atoms[i][j] = 0;
       for (int k = 0; k < 6; k++) {
         chiral_atoms[i][k][j] = 0;
       }
@@ -410,11 +412,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     twomol = atom->molecules[reacted_mol[i]];
     onemol->check_attributes(0);
     twomol->check_attributes(0);
-    if (onemol->natoms != twomol->natoms)
-      error->all(FLERR,"Bond/react: Reaction templates must contain the same number of atoms");
     get_molxspecials();
     read(i);
     fclose(fp);
+    if (ncreate == 0 && onemol->natoms != twomol->natoms)
+      error->all(FLERR,"Bond/react: Reaction templates must contain the same number of atoms");
+    else if (ncreate > 0 && onemol->natoms + ncreate != twomol->natoms)
+      error->all(FLERR,"Bond/react: Incorrect number of created atoms");
     iatomtype[i] = onemol->type[ibonding[i]-1];
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
@@ -529,6 +533,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(landlocked_atoms);
   memory->destroy(custom_edges);
   memory->destroy(delete_atoms);
+  memory->destroy(create_atoms);
   memory->destroy(chiral_atoms);
 
   memory->destroy(nevery);
@@ -2090,7 +2095,8 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
 
   // always remove edge atoms from landlocked list
   for (int i = 0; i < twomol->natoms; i++) {
-    if (edge[equivalences[i][1][myrxn]-1][myrxn] == 1) landlocked_atoms[i][myrxn] = 0;
+    if (create_atoms[i][myrxn] == 0 && edge[equivalences[i][1][myrxn]-1][myrxn] == 1)
+      landlocked_atoms[i][myrxn] = 0;
     else landlocked_atoms[i][myrxn] = 1;
   }
   int nspecial_limit = -1;
@@ -2114,41 +2120,45 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // bad molecule templates check
   // if atoms change types, but aren't landlocked, that's bad
   for (int i = 0; i < twomol->natoms; i++) {
-    if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
-      char str[128];
-      snprintf(str,128,"Bond/react: Atom type affected by reaction %s too close to template edge",rxn_name[myrxn]);
-      error->all(FLERR,str);
+    if (create_atoms[i][myrxn] == 0) {
+      if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
+        char str[128];
+        snprintf(str,128,"Bond/react: Atom type affected by reaction %s too close to template edge",rxn_name[myrxn]);
+        error->all(FLERR,str);
+      }
     }
   }
 
   // additionally, if a bond changes type, but neither involved atom is landlocked, bad
   // would someone want to change an angle type but not bond or atom types? (etc.) ...hopefully not yet
   for (int i = 0; i < twomol->natoms; i++) {
-    if (landlocked_atoms[i][myrxn] == 0) {
-      for (int j = 0; j < twomol->num_bond[i]; j++) {
-        int twomol_atomj = twomol->bond_atom[i][j];
-        if (landlocked_atoms[twomol_atomj-1][myrxn] == 0) {
-          int onemol_atomi = equivalences[i][1][myrxn];
-          int onemol_batom;
-          for (int m = 0; m < onemol->num_bond[onemol_atomi-1]; m++) {
-            onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
-            if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
-              if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
-                char str[128];
-                snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
-                error->all(FLERR,str);
-              }
-            }
-          }
-          if (newton_bond) {
-            int onemol_atomj = equivalences[twomol_atomj-1][1][myrxn];
-            for (int m = 0; m < onemol->num_bond[onemol_atomj-1]; m++) {
-              onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
-              if (onemol_batom == equivalences[i][1][myrxn]) {
-                if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
+    if (create_atoms[i][myrxn] == 0) {
+      if (landlocked_atoms[i][myrxn] == 0) {
+        for (int j = 0; j < twomol->num_bond[i]; j++) {
+          int twomol_atomj = twomol->bond_atom[i][j];
+          if (landlocked_atoms[twomol_atomj-1][myrxn] == 0) {
+            int onemol_atomi = equivalences[i][1][myrxn];
+            int onemol_batom;
+            for (int m = 0; m < onemol->num_bond[onemol_atomi-1]; m++) {
+              onemol_batom = onemol->bond_atom[onemol_atomi-1][m];
+              if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
+                if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
                   char str[128];
                   snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                   error->all(FLERR,str);
+                }
+              }
+            }
+            if (newton_bond) {
+              int onemol_atomj = equivalences[twomol_atomj-1][1][myrxn];
+              for (int m = 0; m < onemol->num_bond[onemol_atomj-1]; m++) {
+                onemol_batom = onemol->bond_atom[onemol_atomj-1][m];
+                if (onemol_batom == equivalences[i][1][myrxn]) {
+                  if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
+                    char str[128];
+                    snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                    error->all(FLERR,str);
+                  }
                 }
               }
             }
@@ -2173,13 +2183,22 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
   if (me == 0)
     for (int i = 0; i < twomol->natoms; i++) {
-      if (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0] && landlocked_atoms[i][myrxn] == 0) {
-        char str[128];
-        snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
-        error->warning(FLERR,str);
-        break;
+      if (create_atoms[i][myrxn] == 0) {
+        if (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0] && landlocked_atoms[i][myrxn] == 0) {
+          char str[128];
+          snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+          error->warning(FLERR,str);
+          break;
+        }
       }
     }
+
+  // finally, if a created atom is not landlocked, bad!
+  for (int i = 0; i < twomol->natoms; i++) {
+    if (create_atoms[i][myrxn] == 1 && landlocked_atoms[i][myrxn] == 0) {
+      error->one(FLERR,"Bond/react: Created atom too close to template edge");
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3137,6 +3156,7 @@ void FixBondReact::read(int myrxn)
   // skip blank lines or lines that start with "#"
   // stop when read an unrecognized line
 
+  ncreate = 0;
   while (1) {
 
     readline(line);
@@ -3156,6 +3176,7 @@ void FixBondReact::read(int myrxn)
     }
     else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
+    else if (strstr(line,"createIDs")) sscanf(line,"%d",&ncreate);
     else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstr);
@@ -3192,6 +3213,8 @@ void FixBondReact::read(int myrxn)
       CustomEdges(line, myrxn);
     } else if (strcmp(keyword,"DeleteIDs") == 0) {
       DeleteAtoms(line, myrxn);
+    } else if (strcmp(keyword,"CreateIDs") == 0) {
+      CreateAtoms(line, myrxn);
     } else if (strcmp(keyword,"ChiralIDs") == 0) {
       ChiralCenters(line, myrxn);
     } else if (strcmp(keyword,"Constraints") == 0) {
@@ -3276,6 +3299,16 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
     if (tmp > onemol->natoms)
       error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
+  }
+}
+
+void FixBondReact::CreateAtoms(char *line, int myrxn)
+{
+  int tmp;
+  for (int i = 0; i < ncreate; i++) {
+    readline(line);
+    sscanf(line,"%d",&tmp);
+    create_atoms[tmp-1][myrxn] = 1;
   }
 }
 

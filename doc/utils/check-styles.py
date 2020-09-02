@@ -299,7 +299,7 @@ counter += check_style_index("fix", fix, index["fix"])
 counter += check_style_index("angle_style", angle, index["angle_style"])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
-counter += check_style_index("improper_style", dihedral, index["improper_style"])
+counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
 counter += check_style_index("pair_style", pair, index["pair_style"])
 

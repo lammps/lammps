@@ -4,6 +4,7 @@ import shutil
 import re
 import argparse
 
+index_pattern = re.compile(r"^.. index:: (fix|pair_style)\s+([a-zA-Z0-9/_]+)$")
 pattern = re.compile(r"^(fix|pair_style)\s+([a-zA-Z0-9/_]+)\s+command$")
 
 parser = argparse.ArgumentParser(description='Fixup headers in docs')
@@ -21,19 +22,25 @@ for orig_file in args.files:
             if line.startswith("Syntax"):
                 break
 
-            m = pattern.match(line)
+            m = index_pattern.match(line)
+
+            if not m:
+                m = pattern.match(line)
+
             if m:
                 command_type = m.group(1)
                 style        = m.group(2)
 
-                styles.append(style)
+                if style not in styles:
+                    styles.append(style)
 
                 base_name = '/'.join(style.split('/')[0:-1])
                 ext = style.split('/')[-1]
 
                 if ext not in ('omp', 'intel', 'kk', 'gpu', 'opt'):
-                    headings[style] = []
-                else:
+                    if style not in headings:
+                        headings[style] = []
+                elif style not in headings[base_name]:
                     headings[base_name].append(style)
                 
         # write new header
@@ -49,7 +56,7 @@ for orig_file in args.files:
             print(file=writer)
 
             if len(variants) > 0:
-                print("Accelerator Styles: ", end="", file=writer)
+                print("Accelerator Variants: ", end="", file=writer)
                 print(", ".join([f"*{v}*" for v in variants]), file=writer)
 
             print(file=writer)

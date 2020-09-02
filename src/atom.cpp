@@ -14,8 +14,6 @@
 #include "atom.h"
 #include "style_atom.h"
 
-#include "atom_vec.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"

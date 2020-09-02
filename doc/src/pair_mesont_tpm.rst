@@ -1,7 +1,7 @@
 .. index:: pair_style mesont/tpm
 
 pair_style mesont/tpm command
-==============================
+=============================
 
 Syntax
 """"""

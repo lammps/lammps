@@ -11,17 +11,17 @@
 pair_style lj/sdk command
 =========================
 
-Accelerator Styles: *lj/sdk/gpu*, *lj/sdk/kk*, *lj/sdk/omp*
+Accelerator Variants: *lj/sdk/gpu*, *lj/sdk/kk*, *lj/sdk/omp*
 
 pair_style lj/sdk/coul/long command
 ===================================
 
-Accelerator Styles: *lj/sdk/coul/long/gpu*, *lj/sdk/coul/long/omp*
+Accelerator Variants: *lj/sdk/coul/long/gpu*, *lj/sdk/coul/long/omp*
 
 pair_style lj/sdk/coul/msm command
 ==================================
 
-Accelerator Styles: *lj/sdk/coul/msm/omp*
+Accelerator Variants: *lj/sdk/coul/msm/omp*
 
 Syntax
 """"""

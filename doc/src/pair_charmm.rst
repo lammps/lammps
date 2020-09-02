@@ -17,30 +17,30 @@
 .. index:: pair_style lj/charmmfsw/coul/long
 
 pair_style lj/charmm/coul/charmm command
-=========================================
+========================================
 
-Accelerator Styles: *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
+Accelerator Variants: *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
 
 pair_style lj/charmm/coul/charmm/implicit command
-==================================================
+=================================================
 
-Accelerator Styles: *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
+Accelerator Variants: *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
 
 pair_style lj/charmm/coul/long command
-=======================================
-
-Accelerator Styles: *lj/charmm/coul/long/gpu*, *lj/charmm/coul/long/intel*, *lj/charmm/coul/long/kk*, *lj/charmm/coul/long/opt*, *lj/charmm/coul/long/omp*
-
-pair_style lj/charmm/coul/msm command
 ======================================
 
-Accelerator Styles: *lj/charmm/coul/msm/omp*
+Accelerator Variants: *lj/charmm/coul/long/gpu*, *lj/charmm/coul/long/intel*, *lj/charmm/coul/long/kk*, *lj/charmm/coul/long/opt*, *lj/charmm/coul/long/omp*
+
+pair_style lj/charmm/coul/msm command
+=====================================
+
+Accelerator Variants: *lj/charmm/coul/msm/omp*
 
 pair_style lj/charmmfsw/coul/charmmfsh command
-===============================================
+==============================================
 
 pair_style lj/charmmfsw/coul/long command
-==========================================
+=========================================
 
 Syntax
 """"""

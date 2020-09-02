@@ -1,7 +1,3 @@
-.. index:: pair_style
-
-pair_style command
-==================
 
 Syntax
 """"""

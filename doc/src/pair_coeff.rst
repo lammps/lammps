@@ -1,7 +1,3 @@
-.. index:: pair_coeff
-
-pair_coeff command
-==================
 
 Syntax
 """"""

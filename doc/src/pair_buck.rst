@@ -1,5 +1,4 @@
 .. index:: pair_style buck
-.. index:: pair_style buck
 .. index:: pair_style buck/gpu
 .. index:: pair_style buck/intel
 .. index:: pair_style buck/kk
@@ -18,24 +17,24 @@
 .. index:: pair_style buck/coul/msm/omp
 
 pair_style buck command
-========================
+=======================
 
-Accelerator Styles: *buck/gpu*, *buck/intel*, *buck/kk*, *buck/omp*
+Accelerator Variants: *buck/gpu*, *buck/intel*, *buck/kk*, *buck/omp*
 
 pair_style buck/coul/cut command
-=================================
+================================
 
-Accelerator Styles: *buck/coul/cut/gpu*, *buck/coul/cut/intel*, *buck/coul/cut/kk*, *buck/coul/cut/omp*
+Accelerator Variants: *buck/coul/cut/gpu*, *buck/coul/cut/intel*, *buck/coul/cut/kk*, *buck/coul/cut/omp*
 
 pair_style buck/coul/long command
-==================================
-
-Accelerator Styles: *buck/coul/long/gpu*, *buck/coul/long/intel*, *buck/coul/long/kk*, *buck/coul/long/omp*
-
-pair_style buck/coul/msm command
 =================================
 
-Accelerator Styles: *buck/coul/msm/omp*
+Accelerator Variants: *buck/coul/long/gpu*, *buck/coul/long/intel*, *buck/coul/long/kk*, *buck/coul/long/omp*
+
+pair_style buck/coul/msm command
+================================
+
+Accelerator Variants: *buck/coul/msm/omp*
 
 Syntax
 """"""

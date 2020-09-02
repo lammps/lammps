@@ -1,7 +1,3 @@
-.. index:: pair_write
-
-pair_write command
-==================
 
 Syntax
 """"""

@@ -1,22 +1,19 @@
 .. index:: pair_style lj/long/coul/long
+.. index:: pair_style lj/long/coul/long/intel
+.. index:: pair_style lj/long/coul/long/omp
+.. index:: pair_style lj/long/coul/long/opt
+.. index:: pair_style lj/long/tip4p/long
+.. index:: pair_style lj/long/tip4p/long/omp
 
 pair_style lj/long/coul/long command
 ====================================
 
-pair_style lj/long/coul/long/intel command
-==========================================
-
-pair_style lj/long/coul/long/omp command
-========================================
-
-pair_style lj/long/coul/long/opt command
-========================================
+Accelerator Variants: *lj/long/coul/long/intel*, *lj/long/coul/long/omp*, *lj/long/coul/long/opt*
 
 pair_style lj/long/tip4p/long command
 =====================================
 
-pair_style lj/long/tip4p/long/omp command
-=========================================
+Accelerator Variants: *lj/long/tip4p/long/omp*
 
 Syntax
 """"""

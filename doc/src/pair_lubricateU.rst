@@ -1,4 +1,5 @@
 .. index:: pair_style lubricateU
+.. index:: pair_style lubricateU/poly
 
 pair_style lubricateU command
 =============================

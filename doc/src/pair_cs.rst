@@ -13,37 +13,32 @@
 pair_style born/coul/dsf/cs command
 ===================================
 
-
 pair_style born/coul/long/cs command
 ====================================
 
-Accelerator Styles: *born/coul/long/cs/gpu*
+Accelerator Variants: *born/coul/long/cs/gpu*
 
 pair_style born/coul/wolf/cs command
 ====================================
 
-Accelerator Styles: *born/coul/wolf/cs/gpu*
+Accelerator Variants: *born/coul/wolf/cs/gpu*
 
 pair_style buck/coul/long/cs command
 ====================================
 
-
 pair_style coul/long/cs command
 ===============================
 
-Accelerator Styles: *coul/long/cs/gpu*
+Accelerator Variants: *coul/long/cs/gpu*
 
 pair_style coul/wolf/cs command
 ===============================
 
-
 pair_style lj/cut/coul/long/cs command
 ======================================
 
-
 pair_style lj/class2/coul/long/cs command
 =========================================
-
 
 Syntax
 """"""

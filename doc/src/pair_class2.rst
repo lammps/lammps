@@ -13,17 +13,17 @@
 pair_style lj/class2 command
 ============================
 
-Accelerator Styles: *lj/class2/gpu*, *lj/class2/kk*, *lj/class2/omp*
+Accelerator Variants: *lj/class2/gpu*, *lj/class2/kk*, *lj/class2/omp*
 
 pair_style lj/class2/coul/cut command
 =====================================
 
-Accelerator Styles: *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
+Accelerator Variants: *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
 
 pair_style lj/class2/coul/long command
 ======================================
 
-Accelerator Styles: *lj/class2/coul/long/gpu*, *lj/class2/coul/long/kk*, *lj/class2/coul/long/omp*
+Accelerator Variants: *lj/class2/coul/long/gpu*, *lj/class2/coul/long/kk*, *lj/class2/coul/long/omp*
 
 Syntax
 """"""

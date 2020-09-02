@@ -1,4 +1,5 @@
 .. index:: pair_style gw
+.. index:: pair_style gw/zbl
 
 pair_style gw command
 =====================

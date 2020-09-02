@@ -1,25 +1,20 @@
 .. index:: pair_style tersoff
+.. index:: pair_style tersoff/table
+.. index:: pair_style tersoff/gpu
+.. index:: pair_style tersoff/intel
+.. index:: pair_style tersoff/kk
+.. index:: pair_style tersoff/omp
+.. index:: pair_style tersoff/table/omp
 
 pair_style tersoff command
 ==========================
 
+Accelerator Variants: *tersoff/gpu*, *tersoff/intel*, *tersoff/kk*, *tersoff/omp*
+
 pair_style tersoff/table command
 ================================
 
-pair_style tersoff/gpu command
-==============================
-
-pair_style tersoff/intel command
-================================
-
-pair_style tersoff/kk command
-=============================
-
-pair_style tersoff/omp command
-==============================
-
-pair_style tersoff/table/omp command
-====================================
+Accelerator Variants: *tersoff/table/omp*
 
 Syntax
 """"""

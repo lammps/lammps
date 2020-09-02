@@ -22,27 +22,27 @@
 pair_style lj/cut/soft command
 ==============================
 
-Accelerator Styles: *lj/cut/soft/omp*
+Accelerator Variants: *lj/cut/soft/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================
 
-Accelerator Styles: *lj/cut/coul/cut/soft/omp*
+Accelerator Variants: *lj/cut/coul/cut/soft/omp*
 
 pair_style lj/cut/coul/long/soft command
 ========================================
 
-Accelerator Styles: *lj/cut/coul/long/soft/omp*
+Accelerator Variants: *lj/cut/coul/long/soft/omp*
 
 pair_style lj/cut/tip4p/long/soft command
 =========================================
 
-Accelerator Styles: *lj/cut/tip4p/long/soft/omp*
+Accelerator Variants: *lj/cut/tip4p/long/soft/omp*
 
 pair_style lj/charmm/coul/long/soft command
 ===========================================
 
-Accelerator Styles: *lj/charmm/coul/long/soft/omp*
+Accelerator Variants: *lj/charmm/coul/long/soft/omp*
 
 pair_style lj/class2/soft command
 =================================
@@ -56,17 +56,17 @@ pair_style lj/class2/coul/long/soft command
 pair_style coul/cut/soft command
 ================================
 
-Accelerator Styles: *coul/cut/soft/omp*
+Accelerator Variants: *coul/cut/soft/omp*
 
 pair_style coul/long/soft command
 =================================
 
-Accelerator Styles: *coul/long/soft/omp*
+Accelerator Variants: *coul/long/soft/omp*
 
 pair_style tip4p/long/soft command
 ==================================
 
-Accelerator Styles: *tip4p/long/soft/omp*
+Accelerator Variants: *tip4p/long/soft/omp*
 
 pair_style morse/soft command
 =============================

@@ -14,26 +14,25 @@
 pair_style born command
 =======================
 
-Accelerator Styles: *born/omp*, *born/gpu*
+Accelerator Variants: *born/omp*, *born/gpu*
 
 pair_style born/coul/long command
 =================================
 
-Accelerator Styles: *born/coul/long/gpu*, *born/coul/long/omp*
+Accelerator Variants: *born/coul/long/gpu*, *born/coul/long/omp*
 
 pair_style born/coul/msm command
 ================================
 
-Accelerator Styles: *born/coul/msm/omp*
+Accelerator Variants: *born/coul/msm/omp*
 
 pair_style born/coul/wolf command
 =================================
 
-Accelerator Styles: *born/coul/wolf/gpu*, *born/coul/wolf/omp*
+Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/omp*
 
 pair_style born/coul/dsf command
 ================================
-
 
 Syntax
 """"""

@@ -22,12 +22,12 @@
 pair_style eam command
 ======================
 
-Accelerator Styles: *eam/gpu*, *eam/intel*, *eam/kk*, *eam/omp*, *eam/opt*
+Accelerator Variants: *eam/gpu*, *eam/intel*, *eam/kk*, *eam/omp*, *eam/opt*
 
 pair_style eam/alloy command
 ============================
 
-Accelerator Styles: *eam/alloy/gpu*, *eam/alloy/intel*, *eam/alloy/kk*, *eam/alloy/omp*, *eam/alloy/opt*
+Accelerator Variants: *eam/alloy/gpu*, *eam/alloy/intel*, *eam/alloy/kk*, *eam/alloy/omp*, *eam/alloy/opt*
 
 pair_style eam/cd command
 =========================
@@ -38,7 +38,7 @@ pair_style eam/cd/old command
 pair_style eam/fs command
 =========================
 
-Accelerator Styles: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
+Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
 """"""

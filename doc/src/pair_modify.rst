@@ -1,7 +1,3 @@
-.. index:: pair_modify
-
-pair_modify command
-===================
 
 Syntax
 """"""

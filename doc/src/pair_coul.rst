@@ -25,7 +25,6 @@
 .. index:: pair_style tip4p/long
 .. index:: pair_style tip4p/long/omp
 
-
 pair_style coul/cut command
 ===========================
 

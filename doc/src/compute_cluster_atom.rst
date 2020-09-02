@@ -1,4 +1,6 @@
 .. index:: compute cluster/atom
+.. index:: compute fragment/atom
+.. index:: compute aggregate/atom
 
 compute cluster/atom command
 ============================

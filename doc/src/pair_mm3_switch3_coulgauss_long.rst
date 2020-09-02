@@ -1,7 +1,7 @@
 .. index:: pair_style mm3/switch3/coulgauss/long
 
 pair_style mm3/switch3/coulgauss/long command
-==============================================
+=============================================
 
 Syntax
 """"""

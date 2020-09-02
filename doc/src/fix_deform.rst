@@ -1,10 +1,10 @@
 .. index:: fix deform
+.. index:: fix deform/kk
 
 fix deform command
 ==================
 
-fix deform/kk command
-=====================
+Accelerator Variants: *deform/kk*
 
 Syntax
 """"""

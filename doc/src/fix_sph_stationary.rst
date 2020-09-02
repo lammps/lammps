@@ -1,7 +1,7 @@
 .. index:: fix sph/stationary
 
 fix sph/stationary command
-===========================
+==========================
 
 Syntax
 """"""

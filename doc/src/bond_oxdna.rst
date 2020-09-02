@@ -1,4 +1,6 @@
 .. index:: bond_style oxdna/fene
+.. index:: bond_style oxdna2/fene
+.. index:: bond_style oxrna2/fene
 
 bond_style oxdna/fene command
 =============================

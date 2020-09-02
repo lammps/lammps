@@ -1,10 +1,10 @@
 .. index:: pair_style meam/spline
+.. index:: pair_style meam/spline/omp
 
 pair_style meam/spline command
 ==============================
 
-pair_style meam/spline/omp command
-==================================
+Accelerator Variants: *meam/spline/omp*
 
 Syntax
 """"""

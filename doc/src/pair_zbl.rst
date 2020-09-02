@@ -1,16 +1,12 @@
 .. index:: pair_style zbl
+.. index:: pair_style zbl/gpu
+.. index:: pair_style zbl/kk
+.. index:: pair_style zbl/omp
 
 pair_style zbl command
 ======================
 
-pair_style zbl/gpu command
-==========================
-
-pair_style zbl/kk command
-=========================
-
-pair_style zbl/omp command
-==========================
+Accelerator Variants: *zbl/gpu*, *zbl/kk*, *zbl/omp*
 
 Syntax
 """"""

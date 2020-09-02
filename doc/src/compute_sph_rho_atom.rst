@@ -1,7 +1,7 @@
 .. index:: compute sph/rho/atom
 
 compute sph/rho/atom command
-=============================
+============================
 
 Syntax
 """"""

@@ -249,6 +249,27 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   endif()
 endif()
 
+#######################################
+# add custom target for IWYU analysis
+#######################################
+set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
+mark_as_advanced(ENABLE_IWYU)
+if(ENABLE_IWYU)
+  find_program(IWYU_EXE NAMES include-what-you-use iwyu)
+  find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
+  if (IWYU_EXE AND IWYU_TOOL)
+    add_custom_target(
+      iwyu
+      ${IWYU_TOOL} -p ${CMAKE_BINARY_DIR}
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "Running IWYU")
+    add_dependencies(iwyu lammps)
+  else()
+    message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
+      "and the iwyu-tool/iwyu_tool script installed in your PATH")
+  endif()
+endif()
+
 set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, leak, thread, undefined)")
 mark_as_advanced(ENABLE_SANITIZER)
 set(ENABLE_SANITIZER_VALUES none address leak thread undefined)
@@ -292,7 +313,6 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
 endif()
-
 
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})

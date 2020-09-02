@@ -88,7 +88,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
-		ln -sf Manual.html html/index.html;\
+		ln -sf Manual.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
@@ -104,7 +104,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@rm -rf html/PDF/.[sg]*
-	@echo "Build finished. The HTML pages are in doc/html."
+	@echo "Build finished. The HTML pages are in doc/html. Documentation starts with doc/html/Manual.html"
 
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@(\

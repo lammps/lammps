@@ -61,7 +61,7 @@ TEST_F(DumpCfgZstdTest, compressed_run0)
     auto compressed_file = "dump_cfg_zstd_compressed_run0.melt.cfg.zst";
     auto fields = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
-    generate_text_and_compressed_dump(text_files, compressed_files, "cfg/gz", fields, "", 0);
+    generate_text_and_compressed_dump(text_files, compressed_files, "cfg/zstd", fields, "", 0);
 
     TearDown();
 

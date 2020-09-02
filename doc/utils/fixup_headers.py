@@ -58,8 +58,7 @@ for orig_file in args.files:
             if len(variants) > 0:
                 print("Accelerator Variants: ", end="", file=writer)
                 print(", ".join([f"*{v}*" for v in variants]), file=writer)
-
-            print(file=writer)
+                print(file=writer)
 
         # write rest of reader
         print(line, end="", file=writer)

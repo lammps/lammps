@@ -1,4 +1,8 @@
+.. index:: fix python
 .. index:: fix python/invoke
+
+fix python command
+==================
 
 fix python/invoke command
 =========================

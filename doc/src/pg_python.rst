@@ -28,6 +28,47 @@ There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 ----------
 
+Setting up a Python virtual environment
+***************************************
+
+LAMMPS and its Python module can be installed together into a Python virtual
+environment. This lets you isolate your customized Python environment from
+your user or system installation. The following is a minimal working example:
+
+.. code-block:: bash
+
+   # create and change into build directory
+   mkdir build
+   cd build
+
+   # create virtual environment
+   virtualenv myenv
+
+   # Add venv lib folder to LD_LIBRARY_PATH when activating it
+   echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> myenv/bin/activate
+
+   # Add LAMMPS_POTENTIALS path when activating venv
+   echo 'export LAMMPS_POTENTIALS=$VIRTUAL_ENV/share/lammps/potentials' >> myenv/bin/activate
+
+   # activate environment
+   source myenv/bin/activate
+
+   # configure LAMMPS compilation
+   # compiles as shared library with PYTHON package and C++ exceptions
+   # and installs into myvenv
+   (myenv)$ cmake -C ../cmake/presets/minimal.cmake    \
+                  -D BUILD_SHARED_LIBS=on              \
+                  -D PKG_PYTHON=on                     \
+                  -D LAMMPS_EXCEPTIONS=on              \
+                  -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
+                  ../cmake
+
+    # compile LAMMPS
+    (myenv)$ cmake --build . --parallel
+
+    # install LAMMPS into myvenv
+    (myenv)$ cmake --install .
+
 Creating or deleting a LAMMPS object
 ************************************
 

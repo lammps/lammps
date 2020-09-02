@@ -238,7 +238,7 @@ void FixNEB::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if (MULTI_PROC && counts == NULL) {
+  if ((cmode == MULTI_PROC) && (counts == NULL)) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");

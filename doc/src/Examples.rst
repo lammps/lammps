@@ -26,8 +26,8 @@ snapshot images will be produced when the simulation runs.  They can
 be quickly post-processed into a movie using commands described on the
 :doc:`dump image <dump_image>` doc page.
 
-Animations of many of the examples can be viewed on the Movies section
-of the `LAMMPS web site <lws_>`_.
+Animations of many of the examples can be viewed on `the Movies section
+of the LAMMPS web site <lwsmov_>`_.
 
 There are two kinds of sub-directories in the examples folder.  Lower
 case named directories contain one or a few simple, quick-to-run
@@ -224,3 +224,4 @@ page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org
 .. _lws: https://lammps.sandia.gov
+.. _lwsmov: https://lammps.sandia.gov/movies.html

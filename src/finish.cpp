@@ -20,13 +20,13 @@
 #include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "memory.h"
+#include "memory.h"             // IWYU pragma: keep
 #include "min.h"
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "neighbor.h"
-#include "timer.h"
+#include "neighbor.h"           // IWYU pragma: keep
+#include "timer.h"              // IWYU pragma: keep
 #include "universe.h"
 #include "update.h"
 

@@ -14,7 +14,6 @@
 #include "universe.h"
 
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "version.h"
 

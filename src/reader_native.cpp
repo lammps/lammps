@@ -13,7 +13,6 @@
 
 #include "reader_native.h"
 
-#include "atom.h"
 #include "error.h"
 #include "memory.h"
 #include "tokenizer.h"

@@ -14,20 +14,20 @@
 #include "comm.h"
 
 #include "accelerator_kokkos.h"
-#include "atom.h"
+#include "atom.h"               // IWYU pragma: keep
 #include "atom_vec.h"
 #include "bond.h"
 #include "compute.h"
-#include "domain.h"
+#include "domain.h"             // IWYU pragma: keep
 #include "dump.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "irregular.h"
-#include "memory.h"
+#include "memory.h"             // IWYU pragma: keep
 #include "modify.h"
-#include "neighbor.h"
+#include "neighbor.h"           // IWYU pragma: keep
 #include "output.h"
 #include "pair.h"
 #include "procmap.h"

@@ -29,7 +29,7 @@
 #include "irregular.h"
 #include "memory.h"
 #include "reader.h"
-#include "style_reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
 #include "update.h"
 
 #include <cstring>
@@ -243,7 +243,7 @@ void ReadDump::setup_reader(int narg, char **arg)
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
   }
-#include "style_reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style

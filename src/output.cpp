@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "output.h"
-#include "style_dump.h"
+#include "style_dump.h"         // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
@@ -79,7 +79,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 #define DUMP_CLASS
 #define DumpStyle(key,Class) \
   (*dump_map)[#key] = &dump_creator<Class>;
-#include "style_dump.h"
+#include "style_dump.h"         // IWYU pragma: keep
 #undef DumpStyle
 #undef DUMP_CLASS
 }

@@ -15,22 +15,22 @@
    Contributing authors: William McDoniel (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_disp_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
-#include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

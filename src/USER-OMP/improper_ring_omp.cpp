@@ -15,17 +15,18 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "improper_ring_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "timer.h"
 #include "force.h"
 #include "math_special.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 

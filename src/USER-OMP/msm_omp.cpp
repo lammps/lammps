@@ -15,14 +15,15 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "msm_omp.h"
-#include <cstring>
+
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "timer.h"
 
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

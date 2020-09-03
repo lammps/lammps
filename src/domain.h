@@ -20,6 +20,7 @@
 #include <map>
 
 namespace LAMMPS_NS {
+  class Region;
 
 class Domain : protected Pointers {
  public:
@@ -90,7 +91,7 @@ class Domain : protected Pointers {
 
   int nregion;                             // # of defined Regions
   int maxregion;                           // max # list can hold
-  class Region **regions;                  // list of defined Regions
+  Region **regions;                        // list of defined Regions
 
   int copymode;
   enum{NO_REMAP,X_REMAP,V_REMAP};

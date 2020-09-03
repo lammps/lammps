@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "style_atom.h"  // IWYU pragma: keep
 
 #include "comm.h"

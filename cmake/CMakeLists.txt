@@ -260,10 +260,14 @@ if(ENABLE_IWYU)
   if (IWYU_EXE AND IWYU_TOOL)
     add_custom_target(
       iwyu
-      ${IWYU_TOOL} -o clang -p ${CMAKE_BINARY_DIR}
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -Xiwyu --mapping_file=${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp
       COMMENT "Running IWYU")
     add_dependencies(iwyu lammps)
+    # generate file with additional mappings
+    file(WRITE  ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp "[\n")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp
+           "  { include: [ \"<bits/types/struct_rusage.h>\", private, \"<sys/resource.h>\", public ] },\n")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp "]\n")
   else()
     message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
       "and the iwyu-tool/iwyu_tool script installed in your PATH")

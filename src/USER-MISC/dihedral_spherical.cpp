@@ -19,20 +19,19 @@
 
 #include "dihedral_spherical.h"
 
-#include <cmath>
-#include <cassert>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cassert>
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;

@@ -17,23 +17,20 @@
 
 #include "pair_peri_ves.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-
+#include "fix_peri_neigh.h"
+#include "force.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

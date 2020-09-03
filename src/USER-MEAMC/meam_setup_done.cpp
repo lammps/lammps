@@ -1,9 +1,11 @@
 #include "meam.h"
+
+#include "math_special.h"
+#include "memory.h"
+
 #include <cmath>
 #include <cstddef>
 #include <algorithm>
-#include "math_special.h"
-#include "memory.h"
 
 using namespace LAMMPS_NS;
 

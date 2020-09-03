@@ -48,16 +48,15 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 #include "fix_imd.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
-#include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
-
+#include "respa.h"
+#include "update.h"
 
 #include <cstring>
 

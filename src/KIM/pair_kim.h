@@ -66,7 +66,6 @@ PairStyle(kim,PairKIM)
 class KIM_API_model;
 #include "pair.h"
 
-
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }

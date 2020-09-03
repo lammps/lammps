@@ -15,23 +15,19 @@
  *     Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_coul_slater_long.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -12,17 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model.h"
-#include "pair_mliap.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "utils.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

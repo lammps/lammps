@@ -1,5 +1,7 @@
 #include "meam.h"
+
 #include <cmath>
+
 using namespace LAMMPS_NS;
 
 template <typename TYPE, int maxi, int maxj>

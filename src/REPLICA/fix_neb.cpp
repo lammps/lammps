@@ -18,21 +18,20 @@
 
 #include "fix_neb.h"
 
-#include <cmath>
-#include <cstring>
-
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
 #include "universe.h"
 #include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "group.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "math_const.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

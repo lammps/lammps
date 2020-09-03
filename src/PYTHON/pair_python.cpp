@@ -16,17 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_python.h"
-#include <Python.h>  // IWYU pragma: keep
+
+#include "atom.h"
+#include "error.h"
+#include "force.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "python_compat.h"
+#include "update.h"
 
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "update.h"
-#include "neigh_list.h"
-#include "lmppython.h"
-#include "error.h"
-#include "python_compat.h"
+#include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 

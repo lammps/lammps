@@ -17,14 +17,15 @@
 
 #include "omp_compat.h"
 #include "dump_cfg_mpiio.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 #ifdef LMP_USER_IO_TIMER
 #include <sys/times.h>

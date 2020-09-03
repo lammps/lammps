@@ -15,17 +15,16 @@
 
 #include "fix_rhok.h"
 
-#include <cstring>
-#include <cmath>
-
 #include "atom.h"
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "math_const.h"
 #include "respa.h"
 #include "update.h"
-#include "citeme.h"
-#include "math_const.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

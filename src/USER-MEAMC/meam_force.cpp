@@ -1,10 +1,11 @@
 #include "meam.h"
-#include <cmath>
-#include <algorithm>
+
 #include "math_special.h"
 
-using namespace LAMMPS_NS;
+#include <cmath>
+#include <algorithm>
 
+using namespace LAMMPS_NS;
 
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,

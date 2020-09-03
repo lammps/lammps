@@ -13,18 +13,17 @@
 
 #include "fix_momentum_chunk.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
 #include "compute_com_chunk.h"
 #include "domain.h"
-#include "group.h"
 #include "error.h"
-#include "force.h"
+#include "group.h"
 #include "modify.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

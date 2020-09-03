@@ -1,5 +1,10 @@
+
 #include "meam.h"
+
+#include "math_const.h"
 #include <algorithm>
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

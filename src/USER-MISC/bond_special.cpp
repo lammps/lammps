@@ -13,19 +13,15 @@
    Contributing Author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
 #include "bond_special.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 

@@ -17,18 +17,18 @@
 
 #include "fix_srp.h"
 
+#include "atom.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "domain.h"
-#include "modify.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "neighbor.h"
-#include "atom_vec.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

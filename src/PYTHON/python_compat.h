@@ -14,6 +14,8 @@
 #ifndef LMP_PYTHON_COMPAT_H
 #define LMP_PYTHON_COMPAT_H
 
+#include <Python.h>
+
 // Wrap API changes between Python 2 and 3 using macros
 #if PY_MAJOR_VERSION == 2
 #define PY_INT_FROM_LONG(X) PyInt_FromLong(X)

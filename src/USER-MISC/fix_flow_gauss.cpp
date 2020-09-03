@@ -18,15 +18,15 @@
 
 #include "fix_flow_gauss.h"
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "update.h"
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
-#include "citeme.h"
+#include "group.h"
 #include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -57,23 +57,18 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_interactions.h"
-#include <cstring>
-#include <cstdio>
-#include <string>
-#include <sstream>
-#include <vector>
-#include "error.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_store_kim.h"
+#include "input.h"
 #include "modify.h"
 #include "update.h"
-#include "universe.h"
-#include "input.h"
-#include "variable.h"
-#include "utils.h"
-#include "fix_store_kim.h"
-#include "fmt/format.h"
+
+#include <cstring>
+#include <vector>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"

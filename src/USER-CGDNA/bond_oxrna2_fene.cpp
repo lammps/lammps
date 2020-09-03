@@ -14,8 +14,6 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
 #include "bond_oxrna2_fene.h"
 
 using namespace LAMMPS_NS;

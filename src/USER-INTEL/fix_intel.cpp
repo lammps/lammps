@@ -16,8 +16,8 @@
                         Anupama Kurpad (Intel) - Host Affinitization
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_intel.h"
+
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -25,16 +25,9 @@
 #include "neigh_request.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
-#include "timer.h"
-#include "universe.h"
 #include "update.h"
 
-
 #include <cstring>
-
-#include <cstdio>
-#include <cmath>
 
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY

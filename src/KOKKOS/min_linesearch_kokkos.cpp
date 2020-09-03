@@ -16,8 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "min_linesearch_kokkos.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom_kokkos.h"
 #include "modify.h"
 #include "fix_minimize_kokkos.h"
@@ -26,6 +25,8 @@
 #include "thermo.h"
 #include "error.h"
 #include "atom_masks.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

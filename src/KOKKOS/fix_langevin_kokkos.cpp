@@ -12,20 +12,21 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_langevin_kokkos.h"
-#include <cmath>
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "update.h"
-#include "error.h"
-#include "memory_kokkos.h"
-#include "compute.h"
-#include "comm.h"
-#include "modify.h"
 #include "input.h"
-#include "region.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "update.h"
 #include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

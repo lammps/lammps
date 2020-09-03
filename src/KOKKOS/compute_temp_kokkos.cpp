@@ -13,15 +13,14 @@
 
 #include "compute_temp_kokkos.h"
 
-#include <cstring>
 #include "atom_kokkos.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "comm.h"
-#include "group.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

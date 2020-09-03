@@ -99,7 +99,6 @@ void ComputeFragmentAtom::compute_peratom()
   int i,j,k,m,n;
   int nstack,ncluster,done,alldone;
   double newID,cID;
-  tagint *list;
 
   invoked_peratom = update->ntimestep;
 
@@ -134,6 +133,25 @@ void ComputeFragmentAtom::compute_peratom()
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+
+  int max_onetwo = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (nspecial[i][0] > max_onetwo) max_onetwo = nspecial[i][0];
+  MPI_Allreduce(MPI_IN_PLACE,&max_onetwo,1,MPI_INT,MPI_MAX,world);
+
+  // xspecials are first neighs, also listed for ghosts (unlike specials)
+  double **nxspecial; // N first-neighbors (includes ghosts)
+  double **xspecial; // first-neighbor list (includes ghosts)
+  memory->create(nxspecial,nall,1,"reset_mol_ids:nxspecial"); // only first neighs
+  memory->create(xspecial,nall,max_onetwo,"reset_mol_ids:xspecial"); // only need space for first neighs
+  for (int i = 0; i < nlocal; i++) {
+    nxspecial[i][0] = nspecial[i][0];
+    for (int j = 0; j < nspecial[i][0]; j++) {
+      xspecial[i][j] = special[i][j];
+    }
+  }
+  comm->forward_comm_array(1,nxspecial);
+  comm->forward_comm_array(max_onetwo,xspecial); // only need first neighs
 
   for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) fragmentID[i] = tag[i];
@@ -171,7 +189,7 @@ void ComputeFragmentAtom::compute_peratom()
 
       if (!(mask[i] & groupbit)) continue;
       if (markflag[i]) continue;
-      if (!singleflag && (nspecial[i][0] == 0)) {
+      if (!singleflag && (nxspecial[i][0] == 0)) {
         fragmentID[i] = 0.0;
         continue;
       }
@@ -189,10 +207,9 @@ void ComputeFragmentAtom::compute_peratom()
         clist[ncluster++] = j;
         markflag[j] = 1;
 
-        n = nspecial[j][0];
-        list = special[j];
+        n = nxspecial[j][0];
         for (m = 0; m < n; m++) {
-          k = atom->map(list[m]);
+          k = atom->map((tagint) xspecial[j][m]);
 
           // skip bond neighbor K if not in group or already marked
 

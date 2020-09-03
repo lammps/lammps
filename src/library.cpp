@@ -3820,7 +3820,7 @@ int lammps_config_has_mpi_support()
 
 \verbatim embed:rst
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
-:doc:`dump styles atom, custom, and xyz <dump>`) support reading and
+:doc:`dump style atom, custom, and xyz <dump>`) support reading and
 writing compressed files via creating a pipe to the ``gzip`` program.
 This function checks whether this feature was :ref:`enabled at compile
 time <gzip>`. It does **not** check whether the ``gzip`` itself is

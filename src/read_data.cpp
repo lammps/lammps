@@ -16,34 +16,33 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_data.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cctype>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "molecule.h"
-#include "group.h"
+#include "bond.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "domain.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
+#include "group.h"
 #include "improper.h"
-#include "special.h"
 #include "irregular.h"
-#include "error.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "molecule.h"
+#include "pair.h"
+#include "special.h"
+#include "update.h"
+
+#include <string>
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

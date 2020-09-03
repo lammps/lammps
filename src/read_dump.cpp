@@ -20,22 +20,19 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_dump.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "reader.h"
-#include "style_reader.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "irregular.h"
+#include "domain.h"
 #include "error.h"
+#include "irregular.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "reader.h"
+#include "style_reader.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

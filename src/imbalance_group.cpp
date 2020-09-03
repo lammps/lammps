@@ -15,7 +15,6 @@
 
 #include "atom.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 
 using namespace LAMMPS_NS;

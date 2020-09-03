@@ -12,27 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "output.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
 #include "style_dump.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "input.h"
-#include "variable.h"
 #include "comm.h"
-#include "update.h"
-#include "group.h"
 #include "domain.h"
-#include "thermo.h"
-#include "modify.h"
-#include "force.h"
 #include "dump.h"
-#include "write_restart.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "thermo.h"
+#include "update.h"
+#include "variable.h"
+#include "write_restart.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

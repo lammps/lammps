@@ -31,9 +31,7 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
-#include "update.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;

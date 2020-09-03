@@ -17,7 +17,9 @@
 
 #include "tokenizer.h"
 #include "utils.h"
-#include <algorithm>
+#include <exception>
+#include <utility>
+
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;

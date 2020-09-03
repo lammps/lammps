@@ -15,38 +15,36 @@
    Contributing author: Evangelos Voyiatzis (Royal DSM)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
 #include "fix_widom.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_hybrid.h"
-#include "molecule.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "math_extra.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "thermo.h"
-#include "output.h"
+#include "modify.h"
+#include "molecule.h"
 #include "neighbor.h"
-#include <iostream>
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace std;
 using namespace LAMMPS_NS;

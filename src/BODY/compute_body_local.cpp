@@ -13,14 +13,14 @@
 
 #include "compute_body_local.h"
 
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

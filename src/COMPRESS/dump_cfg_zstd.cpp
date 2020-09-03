@@ -16,15 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef LAMMPS_ZSTD
-#include "dump_cfg_zstd.h"
+
 #include "atom.h"
 #include "domain.h"
+#include "dump_cfg_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
 
-
 #include <cstring>
-
 
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0

@@ -19,11 +19,10 @@
 
 #include "dump_xyz_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
 
-
 #include <cstring>
-
 
 using namespace LAMMPS_NS;
 

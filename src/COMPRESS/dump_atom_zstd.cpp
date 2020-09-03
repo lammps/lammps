@@ -17,11 +17,11 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "dump_atom_zstd.h"
 #include "domain.h"
+#include "dump_atom_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
-
 
 #include <cstring>
 

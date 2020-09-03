@@ -17,19 +17,17 @@
 
 #include "pair_eim.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "tokenizer.h"
-#include "potential_file_reader.h"
-
 
 using namespace LAMMPS_NS;
 

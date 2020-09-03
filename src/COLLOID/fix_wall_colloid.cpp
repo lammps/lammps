@@ -19,7 +19,6 @@
 
 #include <cmath>
 #include "atom.h"
-#include "atom_vec.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

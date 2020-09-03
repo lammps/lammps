@@ -46,7 +46,6 @@
 #include "text_file_reader.h"
 #include "tokenizer.h"
 
-#include <cctype>
 #include <cmath>
 #include <cstring>
 

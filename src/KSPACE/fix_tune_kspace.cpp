@@ -16,24 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tune_kspace.h"
-#include <cmath>
-#include <cstring>
-#include <limits>
 
 #include "comm.h"
-#include "update.h"
+#include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "info.h"
 #include "kspace.h"
-#include "pair.h"
-#include "error.h"
-#include "memory.h"
-#include "timer.h"
-#include "neighbor.h"
 #include "modify.h"
-#include "compute.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "timer.h"
+#include "update.h"
 
-
+#include <cmath>
+#include <cstring>
+#include <limits>
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))

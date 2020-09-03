@@ -18,20 +18,17 @@
 
 #include "pair_gw_zbl.h"
 
-#include <cmath>
-
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-
-#include "tokenizer.h"
-#include "potential_file_reader.h"
-
 #include "math_const.h"
+#include "memory.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

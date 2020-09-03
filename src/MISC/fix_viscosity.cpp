@@ -18,13 +18,13 @@
 
 #include "fix_viscosity.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
 #include "error.h"
-#include "force.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fft3d_wrap.h"
-#include <mpi.h>
+
 #include "error.h"
 
 using namespace LAMMPS_NS;

@@ -17,18 +17,16 @@
 
 #include "pair_dsmc.h"
 
-#include <cmath>
-#include <climits>
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "domain.h"
-#include "update.h"
 #include "random_mars.h"
+#include "update.h"
 
-
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

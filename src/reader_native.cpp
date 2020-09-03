@@ -20,7 +20,6 @@
 
 #include <cstring>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 

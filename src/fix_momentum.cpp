@@ -13,13 +13,13 @@
 
 #include "fix_momentum.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "group.h"
 #include "error.h"
-#include "force.h"
+#include "group.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

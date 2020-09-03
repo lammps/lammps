@@ -13,17 +13,16 @@
 
 #include "fix_ave_atom.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

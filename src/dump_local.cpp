@@ -13,18 +13,15 @@
 
 #include "dump_local.h"
 
-#include <cstring>
-
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

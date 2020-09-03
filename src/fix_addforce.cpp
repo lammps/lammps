@@ -13,20 +13,19 @@
 
 #include "fix_addforce.h"
 
-#include <cstring>
-
 #include "atom.h"
 #include "atom_masks.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

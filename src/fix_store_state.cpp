@@ -13,19 +13,19 @@
 
 #include "fix_store_state.h"
 
-#include <cstring>
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "group.h"
-#include "modify.h"
 #include "compute.h"
-#include "fix.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

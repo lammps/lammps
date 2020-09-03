@@ -17,39 +17,37 @@
 ------------------------------------------------------------------------- */
 
 #include "info.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cctype>
-#include <ctime>
-#include <map>
-#include <string>
+
 #include "accelerator_kokkos.h"
+#include "angle.h"
 #include "atom.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "dump.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
 #include "group.h"
+#include "improper.h"
 #include "input.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
+#include "pair_hybrid.h"
 #include "region.h"
 #include "universe.h"
-#include "variable.h"
 #include "update.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "variable.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
+#include <ctime>
+#include <map>
 
 #ifdef _WIN32
 #define PSAPI_VERSION 1

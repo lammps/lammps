@@ -12,28 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "finish.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
+#include "memory.h"
 #include "min.h"
-#include "neighbor.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "timer.h"
 #include "universe.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #ifdef LMP_USER_OMP
 #include "modify.h"

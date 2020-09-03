@@ -595,7 +595,7 @@ void AtomVecHybrid::build_styles()
   nallstyles = 0;
 #define ATOM_CLASS
 #define AtomStyle(key,Class) nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"   // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 
@@ -609,7 +609,7 @@ void AtomVecHybrid::build_styles()
   allstyles[nallstyles] = new char[n];      \
   strcpy(allstyles[nallstyles],#key);       \
   nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }

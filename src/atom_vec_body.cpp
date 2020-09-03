@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include "style_body.h"
+#include "style_body.h"    // IWYU pragma: keep
 
 #include "atom.h"
 #include "body.h"

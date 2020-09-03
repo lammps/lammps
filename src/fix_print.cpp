@@ -13,16 +13,14 @@
 
 #include "fix_print.h"
 
-#include <cstring>
-#include "update.h"
-#include "input.h"
-#include "modify.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

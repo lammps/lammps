@@ -13,16 +13,16 @@
 
 #include "fix_wall_region.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "math_const.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

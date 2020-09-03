@@ -15,8 +15,8 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
 

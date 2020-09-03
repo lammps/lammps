@@ -13,17 +13,17 @@
 
 #include "fix_aveforce.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

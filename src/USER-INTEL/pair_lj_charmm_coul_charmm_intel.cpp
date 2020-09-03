@@ -12,19 +12,21 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_charmm_coul_charmm_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #define LJ_T typename IntelBuffers<flt_t,flt_t>::vec4_t

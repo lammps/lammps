@@ -19,19 +19,16 @@
 
 #include "fix_ave_correlate.h"
 
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

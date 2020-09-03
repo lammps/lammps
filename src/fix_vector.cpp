@@ -13,15 +13,15 @@
 
 #include "fix_vector.h"
 
-#include <cstring>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

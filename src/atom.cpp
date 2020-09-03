@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 
 #include "comm.h"
 #include "compute.h"

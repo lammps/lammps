@@ -13,18 +13,18 @@
 
 #include "fix_gravity.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "math_const.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

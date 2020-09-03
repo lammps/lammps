@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "domain.h"
+#include "style_region.h"   // IWYU pragma: keep
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,7 +32,6 @@
 #include "molecule.h"
 #include "output.h"
 #include "region.h"
-#include "style_region.h"
 #include "thermo.h"
 #include "universe.h"
 #include "update.h"
@@ -106,7 +106,8 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
   (*region_map)[#key] = &region_creator<Class>;
-#include "style_region.h"
+#include "style_region.h"   // IWYU pragma: keep
+
 #undef RegionStyle
 #undef REGION_CLASS
 }

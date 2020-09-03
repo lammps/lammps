@@ -13,20 +13,18 @@
 
 #include "fix_halt.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "input.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "timer.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-
-#include "update.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "comm.h"
-#include "timer.h"
-#include "error.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

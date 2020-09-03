@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_zero.h"
-#include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "error.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

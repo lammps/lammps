@@ -13,14 +13,14 @@
 
 #include "fix_drag.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -12,31 +12,29 @@
 ------------------------------------------------------------------------- */
 
 #include "force.h"
-#include <cstdlib>
-#include <cstring>
-#include <cctype>
-#include <string>
-#include "style_bond.h"
-#include "style_angle.h"
-#include "style_dihedral.h"
-#include "style_improper.h"
-#include "style_pair.h"
-#include "style_kspace.h"
+#include "style_angle.h"       // IWYU pragma: keep
+#include "style_bond.h"        // IWYU pragma: keep
+#include "style_dihedral.h"    // IWYU pragma: keep
+#include "style_improper.h"    // IWYU pragma: keep
+#include "style_kspace.h"      // IWYU pragma: keep
+#include "style_pair.h"        // IWYU pragma: keep
+
+#include "angle.h"
 #include "atom.h"
+#include "bond.h"
+#include "bond_hybrid.h"
 #include "comm.h"
+#include "dihedral.h"
+#include "error.h"
+#include "improper.h"
+#include "kspace.h"
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
-#include "bond.h"
-#include "bond_hybrid.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

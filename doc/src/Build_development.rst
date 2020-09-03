@@ -59,7 +59,7 @@ be found in the path.  The analysis can then be started with:
 
 This may first run some compilation, as the analysis is dependent
 on recording all commands required to do the compilation.
-   
+
 ----------
 
 .. _sanitizer:

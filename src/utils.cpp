@@ -983,6 +983,34 @@ double utils::timespec2seconds(const std::string &timespec)
   return vals[0];
 }
 
+/* ----------------------------------------------------------------------
+   convert a LAMMPS version date (1Jan01) to a number
+------------------------------------------------------------------------- */
+
+int utils::date2num(const std::string &date)
+{
+  std::size_t found = date.find_first_not_of("0123456789 ");
+  int num = strtol(date.substr(0,found).c_str(),NULL,10);
+  auto month = date.substr(found);
+  found = month.find_first_of("0123456789 ");
+  num += strtol(month.substr(found).c_str(),NULL,10)*10000;
+  if (num < 1000000) num += 20000000;
+
+  if (strmatch(month,"^Jan")) num += 100;
+  else if (strmatch(month,"^Feb")) num += 200;
+  else if (strmatch(month,"^Mar")) num += 300;
+  else if (strmatch(month,"^Apr")) num += 400;
+  else if (strmatch(month,"^May")) num += 500;
+  else if (strmatch(month,"^Jun")) num += 600;
+  else if (strmatch(month,"^Jul")) num += 700;
+  else if (strmatch(month,"^Aug")) num += 800;
+  else if (strmatch(month,"^Sep")) num += 900;
+  else if (strmatch(month,"^Oct")) num += 1000;
+  else if (strmatch(month,"^Nov")) num += 1100;
+  else if (strmatch(month,"^Dec")) num += 1200;
+  return num;
+}
+
 /* ------------------------------------------------------------------ */
 
 extern "C" {

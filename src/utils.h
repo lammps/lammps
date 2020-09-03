@@ -371,6 +371,24 @@ namespace LAMMPS_NS {
      * \return total in seconds
      */
     double timespec2seconds(const std::string &timespec);
+
+    /** Convert a LAMMPS version date to a number
+     *
+     * This will generate a number YYYYMMDD from a date string
+     * (with or without blanks) that is suitable for numerical
+     * comparisons, i.e. later dates will generate a larger number.
+     *
+     * The day may or may not have a leading zero, the month
+     * is identified by the first 3 letters (so there may be more)
+     * and the year may be 2 or 4 digits (the missing 2 digits will
+     * be assumed as 20. That is 04 corresponds to 2004).
+     *
+     * No check is made whether the date is valid.
+     *
+     * \param  date  string in the format (Day Month Year)
+     * \return       date code
+     */
+    int date2num(const std::string &date);
   }
 }
 

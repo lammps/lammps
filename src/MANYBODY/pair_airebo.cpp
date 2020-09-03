@@ -21,23 +21,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo.h"
-#include <cmath>
-#include <cstring>
 
 #include "atom.h"
-#include "neighbor.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "my_page.h"
+#include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-
-#include "tokenizer.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

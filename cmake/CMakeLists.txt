@@ -267,6 +267,8 @@ if(ENABLE_IWYU)
     file(WRITE  ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp "[\n")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp
            "  { include: [ \"<bits/types/struct_rusage.h>\", private, \"<sys/resource.h>\", public ] },\n")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp
+           "  { include: [ \"<bits/exception.h>\", public, \"<exception>\", public ] },\n")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/iwyu-extra-map.imp "]\n")
   else()
     message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"

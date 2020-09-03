@@ -260,7 +260,7 @@ if(ENABLE_IWYU)
   if (IWYU_EXE AND IWYU_TOOL)
     add_custom_target(
       iwyu
-      ${IWYU_TOOL} -p ${CMAKE_BINARY_DIR}
+      ${IWYU_TOOL} -o clang -p ${CMAKE_BINARY_DIR}
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running IWYU")
     add_dependencies(iwyu lammps)

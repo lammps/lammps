@@ -103,6 +103,8 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
                         | DUMP_STYLES | COMMAND_STYLES;
 }
 
+using namespace LAMMPS_NS;
+
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
@@ -114,17 +116,15 @@ static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
 
 static const char bstyles[] = "pfsm";
 
-using namespace LAMMPS_NS;
-using namespace std;
+template<typename ValueType>
+static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles);
 
 template<typename ValueType>
-static void print_columns(FILE* fp, map<string, ValueType> * styles);
+static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+                       const std::string &name, bool suffix_check);
 
 template<typename ValueType>
-static bool find_style(const LAMMPS * lmp, map<string, ValueType> * styles, const string & name, bool suffix_check);
-
-template<typename ValueType>
-static vector<string> get_style_names(map<string, ValueType> * styles);
+static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
 
 /* ---------------------------------------------------------------------- */
 
@@ -355,7 +355,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    string version = get_mpi_info(major,minor);
+    std::string version = get_mpi_info(major,minor);
 
     fmt::print(out,"\nCommunication information:\n"
                "MPI library level: MPI v{}.{}\n"
@@ -947,7 +947,7 @@ bool Info::is_defined(const char *category, const char *name)
   return false;
 }
 
-bool Info::has_style(const string & category, const string & name)
+bool Info::has_style(const std::string &category, const std::string &name)
 {
   if ( category == "atom" ) {
     return find_style(lmp, atom->avec_map, name, false);
@@ -981,7 +981,7 @@ bool Info::has_style(const string & category, const string & name)
   return false;
 }
 
-vector<string> Info::get_available_styles(const string & category)
+std::vector<std::string> Info::get_available_styles(const std::string &category)
 {
   if ( category == "atom" ) {
     return get_style_names(atom->avec_map);
@@ -1012,13 +1012,13 @@ vector<string> Info::get_available_styles(const string & category)
   } else if( category == "command" ) {
     return get_style_names(input->command_map);
   }
-  return vector<string>();
+  return std::vector<std::string>();
 }
 
 template<typename ValueType>
-static vector<string> get_style_names(map<string, ValueType> * styles)
+static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles)
 {
-  vector<string> names;
+  std::vector<std::string> names;
 
   names.reserve(styles->size());
   for(auto const& kv : *styles) {
@@ -1031,7 +1031,8 @@ static vector<string> get_style_names(map<string, ValueType> * styles)
 }
 
 template<typename ValueType>
-static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const string & name, bool suffix_check)
+static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+                       const std::string &name, bool suffix_check)
 {
   if (styles->find(name) != styles->end()) {
     return true;
@@ -1039,13 +1040,13 @@ static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const
 
   if (suffix_check && lmp->suffix_enable) {
     if (lmp->suffix) {
-      string name_w_suffix = name + "/" + lmp->suffix;
+      std::string name_w_suffix = name + "/" + lmp->suffix;
       if (find_style(lmp, styles, name_w_suffix, false)) {
         return true;
       }
     }
     if (lmp->suffix2) {
-      string name_w_suffix = name + "/" + lmp->suffix2;
+      std::string name_w_suffix = name + "/" + lmp->suffix2;
       if (find_style(lmp, styles, name_w_suffix, false)) {
         return true;
       }
@@ -1055,7 +1056,7 @@ static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const
 }
 
 template<typename ValueType>
-static void print_columns(FILE* fp, map<string, ValueType> * styles)
+static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 {
   if (styles->empty()) {
     fprintf(fp, "\nNone");
@@ -1064,8 +1065,8 @@ static void print_columns(FILE* fp, map<string, ValueType> * styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for(typename map<string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
-    const string & style_name = it->first;
+  for(typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+    const std::string &style_name = it->first;
 
     // skip "secret" styles
     if (isupper(style_name[0])) continue;
@@ -1147,9 +1148,9 @@ bool Info::has_package(const char * package_name) {
 /* ---------------------------------------------------------------------- */
 #define _INFOBUF_SIZE 256
 
-string Info::get_os_info()
+std::string Info::get_os_info()
 {
-  string buf;
+  std::string buf;
 
 #if defined(_WIN32)
   DWORD fullversion,majorv,minorv,buildv=0;
@@ -1189,9 +1190,9 @@ string Info::get_os_info()
   return buf;
 }
 
-string Info::get_compiler_info()
+std::string Info::get_compiler_info()
 {
-  string buf;
+  std::string buf;
 #if __clang__
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif __INTEL_COMPILER
@@ -1206,7 +1207,7 @@ string Info::get_compiler_info()
   return buf;
 }
 
-string Info::get_openmp_info()
+std::string Info::get_openmp_info()
 {
 
 #if !defined(_OPENMP)
@@ -1241,7 +1242,7 @@ string Info::get_openmp_info()
 #endif
 }
 
-string Info::get_mpi_vendor() {
+std::string Info::get_mpi_vendor() {
   #if defined(MPI_STUBS)
   return "MPI STUBS";
   #elif defined(OPEN_MPI)
@@ -1261,7 +1262,7 @@ string Info::get_mpi_vendor() {
   #endif
 }
 
-string Info::get_mpi_info(int &major, int &minor)
+std::string Info::get_mpi_info(int &major, int &minor)
 {
   int len;
 #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
@@ -1277,10 +1278,10 @@ string Info::get_mpi_info(int &major, int &minor)
     char *ptr = strchr(version+80,'\n');
     if (ptr) *ptr = '\0';
   }
-  return string(version);
+  return std::string(version);
 }
 
-string Info::get_cxx_info()
+std::string Info::get_cxx_info()
 {
 #if __cplusplus > 201703L
   return "newer than C++17";

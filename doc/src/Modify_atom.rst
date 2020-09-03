@@ -47,13 +47,13 @@ other strings.
    * - fields_comm
      - list of properties communicated to ghost atoms every step
    * - fields_comm_vel
-     - additional properties communicated if :doc:`comm_modify vel <atom_style>` is used
+     - additional properties communicated if :doc:`comm_modify vel <comm_modify>` is used
    * - fields_reverse
      - list of properties summed from ghost atoms every step
    * - fields_border
      - list of properties communicated with ghost atoms every reneighboring step
    * - fields_border_vel
-     - additional properties communicated if :doc:`comm_modify vel <atom_style>` is used
+     - additional properties communicated if :doc:`comm_modify vel <comm_modify>` is used
    * - fields_exchange
      - list of properties communicated when an atom migrates to another processor
    * - fields_restart

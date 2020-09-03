@@ -14,7 +14,7 @@ There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 - the :py:class:`lammps <lammps.lammps>` class. This is a wrapper around
   the C-library interface and its member functions try to replicate the
-  :doc:`C-library API <pg_library>` closely.  This is the most
+  :ref:`C-library API <lammps_c_api>` closely.  This is the most
   feature-complete Python API.
 - the :py:class:`PyLammps <lammps.PyLammps>` class. This is a more high-level
   and more Python style class implemented on top of the

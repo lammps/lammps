@@ -12,19 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "replicate.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "domain.h"
 #include "comm.h"
-#include "special.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "memory.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -12,32 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "set.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <climits>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "domain.h"
-#include "region.h"
-#include "group.h"
 #include "comm.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
 #include "modify.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

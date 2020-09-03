@@ -40,7 +40,6 @@
 #include "special.h"
 #include "update.h"
 
-#include <string>
 #include <cctype>
 #include <cstring>
 

@@ -17,7 +17,6 @@
 
 #include "table_file_reader.h"
 
-#include "error.h"
 #include "text_file_reader.h"
 #include "tokenizer.h"
 

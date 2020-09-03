@@ -13,8 +13,9 @@ the steps outlined below:
    are observing is indeed in conflict with the documentation
  * Check the `GitHub Issue page <gip_>`_
    if your issue has already been reported and if it is still open.
- * Check the `GitHub Pull Requests page <https://github.com/lammps/pulls>`_
-   if there is already a fix for your bug pending.
+ * Check the `GitHub Pull Requests page 
+   <https://github.com/lammps/lammps/pulls>`_ to see if there is already a fix
+   for your bug pending.
  * Check the `mailing list archives <https://lammps.sandia.gov/mail.html>`_
    to see if the issue has been discussed before.
 
@@ -45,5 +46,5 @@ closed, so that will *guarantee* that at least one LAMMPS developer will
 have looked at it.
 
 .. _lws: https://lammps.sandia.gov
-.. _gip: https://github.com/lammps/issues
+.. _gip: https://github.com/lammps/lammps/issues
 .. _valgrind: https://valgrind.org

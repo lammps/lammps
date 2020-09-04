@@ -16,22 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_bond_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "update.h"
 #include "domain_kokkos.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "modify.h"
-#include "fix.h"
-#include <cstring>
-#include "atom_masks.h"
-#include "domain.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000

@@ -17,11 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qbmsst.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include <string>
+
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -34,8 +34,8 @@
 #include "error.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

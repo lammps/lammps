@@ -12,20 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "utils.h"
-#include <cstring>
-#include <cstdlib>
-#include <cerrno>
-#include "lammps.h"
+
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
 #include "memory.h"
 #include "modify.h"
-#include "tokenizer.h"
 #include "text_file_reader.h"
+#include "tokenizer.h"
 #include "update.h"
-#include "fmt/format.h"
+
+#include <cctype>
+#include <cerrno>
+#include <cstring>
 
 #if defined(__linux__)
 #include <unistd.h>  // for readlink

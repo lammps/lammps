@@ -17,19 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect_stochastic.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hyper_global.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

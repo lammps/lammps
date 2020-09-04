@@ -2,28 +2,29 @@
 // Created by charlie sievers on 6/21/18.
 //
 
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
 #include "dynamical_matrix.h"
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "error.h"
-#include "group.h"
-#include "force.h"
-#include "memory.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "update.h"
+#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
-#include "finish.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 #include <algorithm>
 
 using namespace LAMMPS_NS;

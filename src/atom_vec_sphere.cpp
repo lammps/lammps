@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_sphere.h"
-#include <cstring>
+
 #include "atom.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -18,7 +18,7 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_ufm_opt.h"
-#include <cstdlib>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"

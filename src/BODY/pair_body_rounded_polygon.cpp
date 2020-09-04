@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polygon.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_extra.h"
@@ -34,7 +34,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

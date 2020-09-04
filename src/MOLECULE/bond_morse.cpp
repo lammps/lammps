@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_morse.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -25,7 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

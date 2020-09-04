@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_gromos.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

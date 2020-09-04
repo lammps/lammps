@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "atom.h"
+#include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
 
 #ifndef LMP_ATOM_KOKKOS_H

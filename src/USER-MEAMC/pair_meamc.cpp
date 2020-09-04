@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_meamc.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
-#include <string>
+
 #include "meam.h"
 #include "atom.h"
 #include "force.h"
@@ -29,8 +29,8 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 

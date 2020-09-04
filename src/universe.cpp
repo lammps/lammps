@@ -12,16 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "universe.h"
-#include <mpi.h>
-#include <cctype>
-#include <cstdlib>
-#include <cstring>
-#include "version.h"
+
 #include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "version.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

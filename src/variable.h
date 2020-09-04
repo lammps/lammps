@@ -15,7 +15,6 @@
 #define LMP_VARIABLE_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

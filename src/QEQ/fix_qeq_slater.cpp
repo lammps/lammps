@@ -17,7 +17,7 @@
 
 #include "fix_qeq_slater.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

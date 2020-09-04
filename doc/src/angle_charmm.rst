@@ -1,16 +1,12 @@
 .. index:: angle_style charmm
+.. index:: angle_style charmm/intel
+.. index:: angle_style charmm/kk
+.. index:: angle_style charmm/omp
 
 angle_style charmm command
 ==========================
 
-angle_style charmm/intel command
-================================
-
-angle_style charmm/kk command
-=============================
-
-angle_style charmm/omp command
-==============================
+Accelerator Variants: *charmm/intel*, *charmm/kk*, *charmm/omp*
 
 Syntax
 """"""

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lubricateU.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -34,7 +34,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

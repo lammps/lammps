@@ -16,33 +16,31 @@
 
 #include "library.h"
 #include <mpi.h>
-#include <cctype>
-#include <cstring>
-#include <cstdlib>
-#include <string>
-#include "universe.h"
-#include "atom_vec.h"
+
 #include "atom.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "compute.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "fix.h"
+#include "fix_external.h"
+#include "force.h"
 #include "group.h"
+#include "info.h"
 #include "input.h"
-#include "variable.h"
+#include "memory.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
-#include "compute.h"
-#include "fix.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "info.h"
-#include "fix_external.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "fmt/format.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
+#include <vector>
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"

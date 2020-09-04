@@ -15,7 +15,7 @@
    Contributing author:  Axel Kohlmeyer (ICTP)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+
 #include <cstring>
 #include "fix_qmmm.h"
 #include "atom.h"

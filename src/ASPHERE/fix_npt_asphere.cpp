@@ -13,7 +13,7 @@
 
 #include "fix_npt_asphere.h"
 #include <cstring>
-#include <string>
+
 #include "modify.h"
 #include "error.h"
 

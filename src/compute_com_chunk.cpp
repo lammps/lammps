@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_com_chunk.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

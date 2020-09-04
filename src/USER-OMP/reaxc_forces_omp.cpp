@@ -26,13 +26,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "omp_compat.h"
 #include "reaxc_forces_omp.h"
-#include <mpi.h>
-#include <cmath>
+
+#include "error.h"
 #include "fix_omp.h"
-#include "reaxc_defs.h"
 #include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_bonds_omp.h"
@@ -43,6 +42,9 @@
 #include "reaxc_torsion_angles_omp.h"
 #include "reaxc_valence_angles_omp.h"
 #include "reaxc_vector.h"
+
+#include <mpi.h>
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>

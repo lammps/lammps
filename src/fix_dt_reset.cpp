@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_dt_reset.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

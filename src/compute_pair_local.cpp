@@ -12,18 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair_local.h"
+
+#include "atom.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

@@ -23,7 +23,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "dump_vtk.h"
 #include "atom.h"

@@ -14,7 +14,7 @@
 #ifndef LMP_MIN_H
 #define LMP_MIN_H
 
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

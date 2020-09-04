@@ -51,15 +51,14 @@ Or they can be generated from the content provided in doc/src by
 typing ``make html`` from the doc directory.
 
 After initial cloning, as bug fixes and new features are added to
-LAMMPS, as listed on :doc:`this page <Errors_bugs>`, you can stay
-up-to-date by typing the following git commands from within the
-"mylammps" directory:
+LAMMPS you can stay up-to-date by typing the following git commands
+from within the "mylammps" directory:
 
 .. code-block:: bash
 
    $ git checkout unstable      # not needed if you always stay in this branch
-   $ git checkout stable        # use one of the 3 checkout commands
-   $ git checkout master
+   $ git checkout stable        # use one of these 3 checkout commands
+   $ git checkout master        # to choose the branch to follow
    $ git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
@@ -82,8 +81,8 @@ Stable versions and what tagID to use for a particular stable version
 are discussed on `this page <https://lammps.sandia.gov/bug.html#version>`_.
 Note that this command will print some warnings, because in order to get
 back to the latest revision and to be able to update with ``git pull``
-again, you first will need to first type ``git checkout unstable`` (or
-check out any other desired branch).
+again, you will need to do ``git checkout unstable`` (or
+check out any other desired branch) first.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have
@@ -95,7 +94,7 @@ changed.  To do this, you should cd to the src directory and type:
    $ make package-update    # sync package files with src files
    $ make foo               # re-build for your machine (mpi, serial, etc)
 
-just as described on the :doc:`Install patch <Install_patch>` doc page,
+just as described on the :doc:`Apply patch <Install_patch>` doc page,
 after a patch has been installed.
 
 .. warning::

@@ -12,12 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_time.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "force.h"
-#include "timer.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 

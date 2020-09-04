@@ -17,19 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "comm_tiled.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "fix.h"
 #include "compute.h"
+#include "domain.h"
 #include "dump.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

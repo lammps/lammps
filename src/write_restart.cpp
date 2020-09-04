@@ -12,32 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "write_restart.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "mpiio.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "mpiio.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 
 #include "lmprestart.h"
 

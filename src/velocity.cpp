@@ -12,24 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "velocity.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
+#include "comm.h"
 #include "compute.h"
 #include "compute_temp.h"
-#include "random_park.h"
-#include "group.h"
-#include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_park.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

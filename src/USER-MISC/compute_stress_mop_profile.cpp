@@ -16,7 +16,7 @@
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop_profile.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 

@@ -16,10 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_xyz.h"
-#include <cstdlib>
+
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 

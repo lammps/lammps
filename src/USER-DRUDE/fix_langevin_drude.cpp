@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_langevin_drude.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "fix_drude.h"

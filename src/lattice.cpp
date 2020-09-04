@@ -12,17 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "lattice.h"
+
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "update.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 

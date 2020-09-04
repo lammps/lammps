@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edip.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cfloat>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -35,7 +35,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

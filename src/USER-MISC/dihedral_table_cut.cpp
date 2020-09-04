@@ -17,12 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_table_cut.h"
-#include <mpi.h>
+
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 
@@ -35,7 +35,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

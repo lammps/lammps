@@ -16,12 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_peri.h"
-#include <cfloat>
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
-#include "memory.h"
 #include "error.h"
+
+#include <cfloat>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

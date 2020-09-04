@@ -24,16 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "compute_smd_tlsph_strain.h"
-#include <cstring>
-#include <Eigen/Eigen>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <Eigen/Eigen>          // IWYU pragma: export
 
 using namespace Eigen;
 using namespace std;

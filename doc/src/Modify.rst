@@ -8,7 +8,8 @@ this.
 
 If you add a new feature to LAMMPS and think it will be of interest to
 general users, we encourage you to submit it for inclusion in LAMMPS
-as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_, after reading the :doc:`Modify contribute <Modify_contribute>` doc page.
+as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_,
+after reading :doc:`this page <Modify_contribute>`.
 
 .. toctree::
    :maxdepth: 1

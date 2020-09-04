@@ -12,31 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "read_restart.h"
-#include <mpi.h>
-#include <cstring>
-#include <dirent.h>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "irregular.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_read_restart.h"
-#include "group.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_read_restart.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
+#include "irregular.h"
+#include "memory.h"
+#include "modify.h"
+#include "mpiio.h"
+#include "pair.h"
 #include "special.h"
 #include "universe.h"
-#include "mpiio.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
+#include <dirent.h>
 
 #include "lmprestart.h"
 

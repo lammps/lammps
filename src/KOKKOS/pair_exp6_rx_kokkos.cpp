@@ -17,7 +17,7 @@
 
 #include "pair_exp6_rx_kokkos.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -32,7 +32,7 @@
 #include "neigh_request.h"
 #include "atom_kokkos.h"
 #include "kokkos.h"
-#include "utils.h"
+
 
 #ifdef _OPENMP
 #include <omp.h>

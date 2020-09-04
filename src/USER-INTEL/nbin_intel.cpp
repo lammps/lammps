@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_intel.h"
+
 #include "atom.h"
-#include "group.h"
 #include "comm.h"
-#include "domain.h"
+#include "error.h"
+#include "group.h"
 #include "modify.h"
 #include "update.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

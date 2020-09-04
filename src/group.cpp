@@ -12,30 +12,28 @@
 ------------------------------------------------------------------------- */
 
 #include "group.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <string>
-#include <utility>
-#include "domain.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "region.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "output.h"
-#include "input.h"
-#include "variable.h"
+#include "domain.h"
 #include "dump.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "input.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "output.h"
+#include "region.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 #include <map>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -538,7 +536,7 @@ void Group::assign(int narg, char **arg)
 
 void Group::assign(const std::string &groupcmd)
 {
-  std::vector<std::string> args = utils::split_words(groupcmd);
+  auto args = utils::split_words(groupcmd);
   char **newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {

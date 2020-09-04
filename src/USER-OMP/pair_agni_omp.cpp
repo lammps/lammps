@@ -12,21 +12,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
-#include <cstring>
-#include <stdint.h> // <cstdint> requires C++-11
 #include "pair_agni_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "math_special.h"
 #include "math_const.h"
-
+#include "math_special.h"
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 

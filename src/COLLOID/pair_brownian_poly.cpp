@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_brownian_poly.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

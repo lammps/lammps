@@ -1,16 +1,17 @@
 .. index:: pair_style lubricate
+.. index:: pair_style lubricate/omp
+.. index:: pair_style lubricate/poly
+.. index:: pair_style lubricate/poly/omp
 
 pair_style lubricate command
 ============================
 
-pair_style lubricate/omp command
-================================
+Accelerator Variants: *lubricate/omp*
 
 pair_style lubricate/poly command
 =================================
 
-pair_style lubricate/poly/omp command
-=====================================
+Accelerator Variants: *lubricate/poly/omp*
 
 Syntax
 """"""

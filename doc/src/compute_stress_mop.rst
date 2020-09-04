@@ -1,4 +1,5 @@
 .. index:: compute stress/mop
+.. index:: compute stress/mop/profile
 
 compute stress/mop command
 ==========================

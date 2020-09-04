@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "region_prism.h"
-#include <cstring>
+
 #include "domain.h"
-#include "force.h"
-#include "math_extra.h"
 #include "error.h"
+#include "math_extra.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

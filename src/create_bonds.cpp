@@ -18,21 +18,19 @@
 ------------------------------------------------------------------------- */
 
 #include "create_bonds.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "comm.h"
-#include "group.h"
-#include "special.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "group.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

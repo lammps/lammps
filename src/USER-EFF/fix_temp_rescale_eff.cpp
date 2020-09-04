@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "fix_temp_rescale_eff.h"
 #include "atom.h"

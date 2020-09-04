@@ -16,17 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_mol_ids.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
+#include "compute_chunk_atom.h"
+#include "compute_fragment_atom.h"
+#include "domain.h"
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "compute_fragment_atom.h"
-#include "compute_chunk_atom.h"
-#include "utils.h"
-#include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

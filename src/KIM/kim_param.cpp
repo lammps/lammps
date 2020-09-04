@@ -56,19 +56,17 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_param.h"
-#include "fix_store_kim.h"
-#include "pair_kim.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <sstream>
-#include "comm.h"
+
 #include "error.h"
+#include "fix_store_kim.h"
+#include "force.h"
 #include "input.h"
 #include "modify.h"
+#include "pair_kim.h"
 #include "variable.h"
-#include "force.h"
-#include "fmt/format.h"
+
+#include <cstring>
+#include <sstream>
 
 extern "C"
 {

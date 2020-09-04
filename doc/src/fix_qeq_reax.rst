@@ -1,13 +1,11 @@
 .. index:: fix qeq/reax
+.. index:: fix qeq/reax/kk
+.. index:: fix qeq/reax/omp
 
 fix qeq/reax command
 ====================
 
-fix qeq/reax/kk command
-=======================
-
-fix qeq/reax/omp command
-========================
+Accelerator Variants: *qeq/reax/kk*, *qeq/reax/omp*
 
 Syntax
 """"""

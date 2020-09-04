@@ -9,7 +9,7 @@ different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
 optimize performance on different hardware. For more information on
-Kokkos, see `GitHub <https://github.com/kokkos/kokkos>`_.
+Kokkos, see `the Kokkos GitHub page <https://github.com/kokkos/kokkos>`_.
 
 The LAMMPS KOKKOS package contains versions of pair, fix, and atom
 styles that use data structures and macros provided by the Kokkos
@@ -20,20 +20,20 @@ including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
 see the Kokkos `Wiki <https://github.com/kokkos/kokkos/wiki>`_.
 
-Kokkos currently provides support for 3 modes of execution (per MPI
+Kokkos currently provides support for 4 modes of execution (per MPI
 task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
-(threading for many-core CPUs and Intel Phi), and CUDA (for NVIDIA
-GPUs). You choose the mode at build time to produce an executable
-compatible with specific hardware.
+(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA
+GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
+produce an executable compatible with a specific hardware.
 
-.. note::
+.. admonition:: NVIDIA CUDA support
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
    software version 9.0 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of
    how to check and do this.
 
-.. note::
+.. admonition:: CUDA and MPI library compatibility
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
    CUDA-aware. This is not always the case, especially when using
@@ -44,6 +44,13 @@ compatible with specific hardware.
    the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
    cuda/aware off <package>` in the input file.
+
+.. admonition:: AMD GPU support
+
+   To build with Kokkos the HIPCC compiler from the AMD ROCm software
+   version 3.5 or later is required.  Supporting this Kokkos mode in
+   LAMMPS is still work in progress.  Please contact the LAMMPS developers
+   if you run into problems.
 
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""

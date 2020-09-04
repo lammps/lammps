@@ -1,16 +1,12 @@
 .. index:: pair_style table
+.. index:: pair_style table/gpu
+.. index:: pair_style table/kk
+.. index:: pair_style table/omp
 
 pair_style table command
 ========================
 
-pair_style table/gpu command
-============================
-
-pair_style table/kk command
-===========================
-
-pair_style table/omp command
-============================
+Accelerator Variants: *table/gpu*, *table/kk*, *table/omp*
 
 Syntax
 """"""

@@ -31,14 +31,14 @@ send an e-mail to ``slack@lammps.org`` explaining what part of LAMMPS
 you are working on.  Only discussions related to LAMMPS development are
 tolerated, so this is **NOT** for people that look for help with compiling,
 installing, or using LAMMPS. Please contact the `lammps-users mailing
-list <https://lammps.sandia.gov>`_ for those purposes instead.
+list <https://lammps.sandia.gov/mail.html>`_ for those purposes instead.
 
 How quickly your contribution will be integrated depends largely on how
 much effort it will cause to integrate and test it, how much it requires
 changes to the core codebase, and of how much interest it is to the
 larger LAMMPS community.  Please see below for a checklist of typical
-requirements. Once you have prepared everything, see the :doc:`Using
-GitHub with LAMMPS Howto <Howto_github>` doc page for instructions on
+requirements. Once you have prepared everything, see the :doc:`LAMMPS GitHub
+Tutorial <Howto_github>` page for instructions on
 how to submit your changes or new files through a GitHub pull
 request. If you prefer to submit patches or full files, you should first
 make certain, that your code works correctly with the latest patch-level
@@ -58,8 +58,8 @@ are listed and described on the :doc:`Packages details <Packages_details>` doc p
 
 Note that by providing us files to release, you are agreeing to make
 them open-source, i.e. we can release them under the terms of the GPL,
-used as a license for the rest of LAMMPS.  See the `Open source <https://lammps.sandia.gov/open_source.html>`_ page on the LAMMPS
-website for details.
+used as a license for the rest of LAMMPS.  See the :doc:`LAMMPS license
+<Intro_opensource>` doc page for details.
 
 With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source

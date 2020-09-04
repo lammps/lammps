@@ -15,22 +15,23 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
+
 #include "improper_harmonic_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "suffix.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

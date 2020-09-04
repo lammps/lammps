@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_setforce_kokkos.h"
-#include <cstring>
+
 #include "atom_kokkos.h"
 #include "update.h"
 #include "modify.h"
@@ -24,7 +24,8 @@
 #include "error.h"
 #include "atom_masks.h"
 #include "kokkos_base.h"
-#include "region.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

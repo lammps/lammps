@@ -15,14 +15,11 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lammps.h"
-#include "force.h"
-#include "error.h"
-#include "comm.h"
-#include "utils.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
+
 #include "fmt/format.h"
+#include "tokenizer.h"
+#include "utils.h"
 
 #include <cstring>
 

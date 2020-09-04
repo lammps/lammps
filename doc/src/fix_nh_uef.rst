@@ -1,4 +1,5 @@
 .. index:: fix nvt/uef
+.. index:: fix npt/uef
 
 fix nvt/uef command
 ===================

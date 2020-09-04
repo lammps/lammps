@@ -14,16 +14,13 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis)
 ------------------------------------------------------------------------- */
-
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "fft3d_kokkos.h"
-#include "remap_kokkos.h"
+
 #include "error.h"
 #include "kokkos.h"
+#include "remap_kokkos.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

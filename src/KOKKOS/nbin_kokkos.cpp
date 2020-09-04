@@ -12,14 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_kokkos.h"
-#include "neighbor.h"
+
 #include "atom_kokkos.h"
-#include "group.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "update.h"
-#include "error.h"
-#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 

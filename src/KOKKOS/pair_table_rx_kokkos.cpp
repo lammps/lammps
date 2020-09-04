@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_table_rx_kokkos.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "kokkos.h"
@@ -33,7 +33,7 @@
 #include "kokkos_few.h"
 #include "kokkos.h"
 #include "modify.h"
-#include "utils.h"
+
 #include <cassert>
 
 using namespace LAMMPS_NS;

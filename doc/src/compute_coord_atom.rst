@@ -1,10 +1,10 @@
 .. index:: compute coord/atom
+.. index:: compute coord/atom/kk
 
 compute coord/atom command
 ==========================
 
-compute coord/atom/kk command
-===================================
+Accelerator Variants: *coord/atom/kk*
 
 Syntax
 """"""

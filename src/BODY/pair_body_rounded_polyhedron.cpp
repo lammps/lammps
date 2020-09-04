@@ -21,7 +21,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polyhedron.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -37,7 +37,7 @@
 #include "error.h"
 #include "math_extra.h"
 #include "math_const.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

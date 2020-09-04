@@ -1,10 +1,10 @@
 .. index:: fix property/atom
+.. index:: fix property/atom/kk
 
 fix property/atom command
 =========================
 
-fix property/atom/kk command
-============================
+Accelerator Variants: *property/atom/kk*
 
 Syntax
 """"""

@@ -16,10 +16,10 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_quip.h"
 #include "atom.h"

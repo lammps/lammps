@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 

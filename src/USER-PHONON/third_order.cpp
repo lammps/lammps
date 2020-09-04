@@ -169,13 +169,11 @@ void ThirdOrder::options(int narg, char **arg)
   if (narg < 0) error->all(FLERR,"Illegal third_order command");
   int iarg = 0;
   const char *filename = "third_order.dat";
-  std::stringstream fss;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
-      fss << arg[iarg + 1];
-      filename = fss.str().c_str();
+      filename = arg[iarg + 1];
       file_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"binary") == 0) {

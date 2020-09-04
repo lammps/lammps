@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <cerrno>
 #include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <vector>
 

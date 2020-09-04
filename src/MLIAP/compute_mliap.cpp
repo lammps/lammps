@@ -22,7 +22,6 @@
 #include "update.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "pair.h"

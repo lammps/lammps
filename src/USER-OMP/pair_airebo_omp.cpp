@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -29,7 +30,6 @@
 #include <omp.h>
 #endif
 
-#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 

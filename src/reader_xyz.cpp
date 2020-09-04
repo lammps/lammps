@@ -20,8 +20,6 @@
 #include "memory.h"
 #include "error.h"
 
-#include <cstdlib>
-
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024        // max line length in dump file

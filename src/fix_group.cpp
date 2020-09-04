@@ -64,6 +64,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
+      
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       if (input->variable->find(arg[iarg+1]) < 0)
@@ -74,16 +75,21 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       idvar = new char[n];
       strcpy(idvar,arg[iarg+1]);
       iarg += 2;
+      
     } else if (strcmp(arg[iarg],"property") == 0) {
-          if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-          if (atom->find_custom(arg[iarg+1],typeflag) < 0)
-        error->all(FLERR,"Per atom property for group dynamic does not exist");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+      int flag,cols;
+      iprop = atom->find_custom(arg[iarg+1],flag,cols);
+      if (iprop < 1 || cols) 
+        error->all(FLERR,"Custom per-atom vector for group dynamic "
+		   "does not exist");
       propflag = 1;
       delete [] idprop;
       int n = strlen(arg[iarg+1]) + 1;
       idprop = new char[n];
       strcpy(idprop,arg[iarg+1]);
       iarg += 2;
+      
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = force->inumeric(FLERR,arg[iarg+1]);
@@ -125,7 +131,7 @@ void FixGroup::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // set current indices for region and variable
+  // set current indices for region and variable and custom property
 
   if (regionflag) {
     iregion = domain->find_region(idregion);
@@ -143,9 +149,10 @@ void FixGroup::init()
   }
 
   if (propflag) {
-    iprop = atom->find_custom(idprop,typeflag);
-    if (iprop < 0)
-      error->all(FLERR,"Per-atom property for group dynamic does not exist");
+    int cols;
+    iprop = atom->find_custom(idprop,proptype,cols);
+    if (iprop < 0 || cols)
+      error->all(FLERR,"Group dynamic command custom property vector does not exist");
   }
 
   // warn if any FixGroup is not at tail end of all post_integrate fixes
@@ -222,11 +229,10 @@ void FixGroup::set_group()
     update->post_integrate = 0;
   }
 
-  // invoke per-atom property if defined
+  // set ptr to custom atom vector
 
-  if (propflag && !typeflag) ivector = atom->ivector[iprop]; //check nlocal > 0?
-
-  if (propflag && typeflag) dvector = atom->dvector[iprop]; //check nlocal > 0?
+  if (propflag && !proptype) ivector = atom->ivector[iprop];
+  if (propflag && proptype) dvector = atom->dvector[iprop];
 
   // update region in case it has a variable dependence or is dynamic
 
@@ -246,8 +252,10 @@ void FixGroup::set_group()
       inflag = 1;
       if (regionflag && !region->match(x[i][0],x[i][1],x[i][2])) inflag = 0;
       if (varflag && var[i] == 0.0) inflag = 0;
-      if (propflag && !typeflag && ivector[i] == 0) inflag = 0;
-      if (propflag && typeflag && dvector[i] == 0) inflag = 0;
+      if (propflag) {
+	if (!proptype && ivector[i] == 0) inflag = 0;
+	if (proptype && dvector[i] == 0.0) inflag = 0;
+      }
     } else inflag = 0;
 
     if (inflag) mask[i] |= gbit;

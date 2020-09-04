@@ -600,8 +600,9 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   expand arg to earg, for arguments with syntax c_ID[*] or f_ID[*]
+   expand arg to earg, for args with syntax c_ID[*], f_ID[*], i2_ID[*], d2_ID[*]
    fields to consider in input arg range from iarg to narg
+   mode = 0 for args = vectors, mode = 1 for args = arrays
    return new expanded # of values, and copy them w/out "*" into earg
    if any expansion occurs, earg is new allocation, must be freed by caller
    if no expansion occurs, earg just points to arg, caller need not free
@@ -609,7 +610,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
 int Input::expand_args(int narg, char **arg, int mode, char **&earg)
 {
-  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
+  int n,iarg,index,nlo,nhi,nmax,expandflag;
   char *ptr1,*ptr2,*str;
 
   ptr1 = NULL;
@@ -633,7 +634,9 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
     expandflag = 0;
 
     if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0) {
+        strncmp(arg[iarg],"f_",2) == 0 ||
+	strncmp(arg[iarg],"i2_",3) == 0 ||
+	strncmp(arg[iarg],"d2_",3) == 0) {
 
       ptr1 = strchr(&arg[iarg][2],'[');
       if (ptr1) {
@@ -641,9 +644,10 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
         if (ptr2) {
           *ptr2 = '\0';
           if (strchr(ptr1,'*')) {
+	    
             if (arg[iarg][0] == 'c') {
               *ptr1 = '\0';
-              icompute = modify->find_compute(&arg[iarg][2]);
+              int icompute = modify->find_compute(&arg[iarg][2]);
               *ptr1 = '[';
 
               // check for global vector/array, peratom array, local array
@@ -665,9 +669,10 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
                   expandflag = 1;
                 }
               }
+	      
             } else if (arg[iarg][0] == 'f') {
               *ptr1 = '\0';
-              ifix = modify->find_fix(&arg[iarg][2]);
+              int ifix = modify->find_fix(&arg[iarg][2]);
               *ptr1 = '[';
 
               // check for global vector/array, peratom array, local array
@@ -689,10 +694,40 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
                   expandflag = 1;
                 }
               }
-            }
-          }
-          *ptr2 = ']';
-        }
+	      
+	    } else if (arg[iarg][0] == 'i') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+
+	      // check for custom per-atom integer array
+
+	      if (icustom >= 0) {
+		if (mode == 1 && !flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    
+	    } else if (arg[iarg][0] == 'd') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+	      
+	      // check for custom per-atom floating point array
+	      
+	      if (icustom >= 0) {
+		if (mode == 1 && flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    }
+	  }
+	  *ptr2 = ']';
+	}
       }
     }
 

@@ -178,10 +178,13 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // custom atom arrays
 
-  nivector = ndvector = 0;
+  nivector = ndvector = niarray = ndarray = 0;
   ivector = NULL;
   dvector = NULL;
-  iname = dname = NULL;
+  iarray = NULL;
+  darray = NULL;
+  icols = dcols = NULL;
+  ivname = dvname = ianame = daname = NULL;
 
   // initialize atom style and array existence flags
 
@@ -262,20 +265,32 @@ Atom::~Atom()
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
-    delete [] iname[i];
+    delete [] ivname[i];
     memory->destroy(ivector[i]);
   }
-  if (dvector != NULL) {
-    for (int i = 0; i < ndvector; i++) {
-      delete [] dname[i];
-      memory->destroy(dvector[i]);
-    }
+  for (int i = 0; i < ndvector; i++) {
+    delete [] dvname[i];
+    memory->destroy(dvector[i]);
+  }
+  for (int i = 0; i < niarray; i++) {
+    delete [] ianame[i];
+    memory->destroy(iarray[i]);
+  }
+  for (int i = 0; i < ndarray; i++) {
+    delete [] daname[i];
+    memory->destroy(darray[i]);
   }
 
-  memory->sfree(iname);
-  memory->sfree(dname);
+  memory->sfree(ivname);
+  memory->sfree(dvname);
+  memory->sfree(ianame);
+  memory->sfree(daname);
   memory->sfree(ivector);
   memory->sfree(dvector);
+  memory->sfree(iarray);
+  memory->sfree(darray);
+  memory->sfree(icols);
+  memory->sfree(dcols);
 
   // delete user-defined molecules
 
@@ -2282,23 +2297,41 @@ void Atom::update_callback(int ifix)
 
 /* ----------------------------------------------------------------------
    find custom per-atom vector with name
-   return index if found, and flag = 0/1 for int/double
-   return -1 if not found
+   return index if found, -1 if not found
+     lists of names can have NULL entries if previously removed
+   return flag = 0/1 for int/double
+   return cols = 0/N for vector/array where N = # of columns
 ------------------------------------------------------------------------- */
 
-int Atom::find_custom(const char *name, int &flag)
+int Atom::find_custom(const char *name, int &flag, int &cols)
 {
-  if(name == NULL) return -1;
+  if (name == NULL) return -1;
 
   for (int i = 0; i < nivector; i++)
-    if (iname[i] && strcmp(iname[i],name) == 0) {
+    if (ivname[i] && strcmp(ivname[i],name) == 0) {
       flag = 0;
+      cols = 0;
       return i;
     }
 
   for (int i = 0; i < ndvector; i++)
-    if (dname[i] && strcmp(dname[i],name) == 0) {
+    if (dvname[i] && strcmp(dvname[i],name) == 0) {
       flag = 1;
+      cols = 0;
+      return i;
+    }
+
+  for (int i = 0; i < niarray; i++)
+    if (ianame[i] && strcmp(ianame[i],name) == 0) {
+      flag = 0;
+      cols = icols[i];
+      return i;
+    }
+
+  for (int i = 0; i < ndarray; i++)
+    if (daname[i] && strcmp(daname[i],name) == 0) {
+      flag = 1;
+      cols = dcols[i];
       return i;
     }
 
@@ -2306,60 +2339,107 @@ int Atom::find_custom(const char *name, int &flag)
 }
 
 /* ----------------------------------------------------------------------
-   add a custom variable with name of type flag = 0/1 for int/double
+   add a custom variable with name
+   flag = 0/1 for int/double, cols = 0/N for vector/array where N = # of columns
    assumes name does not already exist
-   return index in ivector or dvector of its location
+   vectors of names and data ptrs are always incremented by one
+   return index in vector/array lists of its location
 ------------------------------------------------------------------------- */
 
-int Atom::add_custom(const char *name, int flag)
+int Atom::add_custom(const char *name, int flag, int cols)
 {
   int index;
 
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
-    iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
-                                       "atom:iname");
+    ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),
+					"atom:ivname");
     int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    ivname[index] = new char[n];
+    strcpy(ivname[index],name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
-  } else {
+    
+  } else if (flag == 1 && cols == 0) {
     index = ndvector;
     ndvector++;
-    dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
-                                       "atom:dname");
+    dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),
+					"atom:dvname");
     int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dvname[index] = new char[n];
+    strcpy(dvname[index],name);
     dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
                                            "atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");
-  }
 
+  } else if (flag == 0 && cols) {
+    index = niarray;
+    niarray++;
+    ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),
+					"atom:ianame");
+    int n = strlen(name) + 1;
+    ianame[index] = new char[n];
+    strcpy(ianame[index],name);
+    iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
+					"atom:iarray");
+    memory->create(iarray[index],nmax,cols,"atom:iarray");
+    
+    icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
+    icols[index] = cols;
+    
+  } else if (flag == 1 && cols) {
+    index = ndarray;
+    ndarray++;
+    daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),
+					"atom:daname");
+    int n = strlen(name) + 1;
+    daname[index] = new char[n];
+    strcpy(daname[index],name);
+    darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),
+					   "atom:darray");
+    memory->create(darray[index],nmax,cols,"atom:darray");
+
+    dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
+    dcols[index] = cols;
+  }
+  
   return index;
 }
 
 /* ----------------------------------------------------------------------
-   remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
-   ivector/dvector and iname/dname lists never shrink
+   remove a custom variable stored at index
+   flag = 0/1 for int/double, cols = 0/1 for vector/array or N for array columns
+   free memory for vector/array and name and set ptrs to NULL
+   vector/array lists and name lists never shrink
 ------------------------------------------------------------------------- */
 
-void Atom::remove_custom(int flag, int index)
+void Atom::remove_custom(int index, int flag, int cols)
 {
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
     ivector[index] = NULL;
-    delete [] iname[index];
-    iname[index] = NULL;
-  } else {
+    delete [] ivname[index];
+    ivname[index] = NULL;
+    
+  } else if (flag == 1 && cols == 0) {
     memory->destroy(dvector[index]);
     dvector[index] = NULL;
-    delete [] dname[index];
-    dname[index] = NULL;
+    delete [] dvname[index];
+    dvname[index] = NULL;
+
+  } else if (flag == 0 && cols) {
+    memory->destroy(iarray[index]);
+    iarray[index] = NULL;
+    delete [] ianame[index];
+    ianame[index] = NULL;
+    
+  } else if (flag == 1 && cols) {
+    memory->destroy(darray[index]);
+    darray[index] = NULL;
+    delete [] daname[index];
+    daname[index] = NULL;
   }
 }
 
@@ -2372,7 +2452,8 @@ void *Atom::extract(char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name
-
+  // if new variable is from a package, add package comment
+  
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
   if (strcmp(name,"id") == 0) return (void *) tag;
@@ -2415,10 +2496,30 @@ void *Atom::extract(char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // USER-MESONT package
-  if (strcmp(name,"length") == 0) return (void *) length;
-  if (strcmp(name,"buckling") == 0) return (void *) buckling;
-  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
+  // custom vectors and arrays
+  
+  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
+      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
+    int which = 0;
+    if (name[0] == 'd') which = 1;
+    int array = 0;
+    if (name[1] == '2') array = 1;
+    
+    int index,flag,cols;
+    if (!array) index = find_custom(&name[2],flag,cols);
+    else index = find_custom(&name[3],flag,cols);
+    
+    if (index < 0) return NULL;
+    if (which != flag) return NULL;
+    if ((!array && cols) || (array && !cols)) return NULL;
+	
+    if (!which && !array) return (void *) ivector[index];
+    if (which && !array) return (void *) dvector[index];
+    if (!which && array) return (void *) iarray[index];
+    if (which && array) return (void *) darray[index];
+  }
+
+  // USER-SMD package
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
   if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
@@ -2429,8 +2530,19 @@ void *Atom::extract(char *name)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
+  // USER-DPD package
+  
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
+
+  // USER-MESO package
+
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
+
+  // USER-MESONT package
+  
+  if (strcmp(name,"length") == 0) return (void *) length;
+  if (strcmp(name,"buckling") == 0) return (void *) buckling;
+  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
 
   // end of customization section
   // --------------------------------------------------------------------

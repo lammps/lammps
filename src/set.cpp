@@ -45,12 +45,12 @@ using namespace MathConst;
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
-     MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
+     MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
+     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY};
 
 #define BIG INT_MAX
 
@@ -573,28 +573,63 @@ void Set::command(int narg, char **arg)
       set(DPDTHETA);
       iarg += 2;
 
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    // custom per-atom vector
+      
+    } else if (strstr(arg[iarg],"i_") == arg[iarg] ||
+	       strstr(arg[iarg],"d_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      int which = 0;
+      if (arg[iarg][0] == 'd') which = 1;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else ivalue = force->inumeric(FLERR,arg[iarg+1]);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 0)
-        error->all(FLERR,"Set command integer vector does not exist");
-      set(INAME);
-      iarg += 2;
-
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else if (!which) ivalue = force->inumeric(FLERR,arg[iarg+1]);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 1)
-        error->all(FLERR,"Set command floating point vector does not exist");
-      set(DNAME);
+      
+      int flag,cols;
+      index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
+      if ((!which && (index_custom < 0 || flag || cols)) ||
+	  (which && (index_custom < 0 || !flag || cols)))
+        error->all(FLERR,"Set command per-atom custom vector does not exist");
+      if (!which) set(IVEC);
+      else set(DVEC);
       iarg += 2;
 
+    // custom per-atom array, must include bracketed index
+
+    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
+	       strstr(arg[iarg],"d2_") == arg[iarg]) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      int which = 0;
+      if (arg[iarg][0] == 'd') which = 1;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else if (!which) ivalue = force->inumeric(FLERR,arg[iarg+1]);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][3]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Invalid attribute in set command");
+        icol_custom = atoi(ptr+1);
+        *ptr = '\0';
+      } else error->all(FLERR,"Set command per-atom custom array is not indexed");
+
+      int flag,cols;
+      index_custom = atom->find_custom(suffix,flag,cols);
+      delete [] suffix;
+      
+      if ((!which && (index_custom < 0 || flag || !cols)) ||
+	  (which && (index_custom < 0 || !flag || !cols)))
+        error->all(FLERR,"Set command per-atom custom array does not exist");
+      if (icol_custom <= 0 || icol_custom > cols)
+        error->all(FLERR,"Set command per-atom custom array is accessed out-of-range");
+
+      if (!which) set(IARRAY);
+      else set(DARRAY);
+      iarg += 2;
+      
     } else error->all(FLERR,"Illegal set command");
 
     // statistics
@@ -970,20 +1005,29 @@ void Set::set(int keyword)
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
 
-    // set value for custom integer or double vector
+    // set value for custom vector or array
 
-    else if (keyword == INAME) {
+    else if (keyword == IVEC) {
       atom->ivector[index_custom][i] = ivalue;
     }
 
-    else if (keyword == DNAME) {
+    else if (keyword == DVEC) {
       atom->dvector[index_custom][i] = dvalue;
+    }
+
+    else if (keyword == IARRAY) {
+      atom->iarray[index_custom][i][icol_custom-1] = ivalue;
+    }
+
+    else if (keyword == DARRAY) {
+      atom->darray[index_custom][i][icol_custom-1] = dvalue;
     }
 
     count++;
   }
 
   // update bonus data numbers
+  
   if (keyword == SHAPE) {
     bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
     MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,

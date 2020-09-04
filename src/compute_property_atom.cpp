@@ -24,6 +24,7 @@
 #include "update.h"
 #include "domain.h"
 #include "comm.h"
+#include "utils.h"
 #include "memory.h"
 #include "error.h"
 
@@ -33,7 +34,7 @@ using namespace LAMMPS_NS;
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  index(NULL), pack_choice(NULL)
+  index(NULL), colindex(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/atom command");
 
@@ -47,6 +48,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   pack_choice = new FnPtrPack[nvalues];
   index = new int[nvalues];
+  colindex = new int[nvalues];
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
@@ -141,7 +143,10 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
-    } else if (strcmp(arg[iarg],"spx") == 0) {          // pack magnetic variables
+
+    // pack magnetic variables
+      
+    } else if (strcmp(arg[iarg],"spx") == 0) {          
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
@@ -176,6 +181,17 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_fmz;
+
+    // bond count
+      
+    } else if (strcmp(arg[iarg],"nbonds") == 0) {
+      if (!atom->molecule_flag)
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
+
+    // finite-size particles
+      
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Compute property/atom for "
@@ -329,6 +345,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!avec_tri) error->all(FLERR,"Compute property/atom for "
                                  "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner2x;
+
     } else if (strcmp(arg[iarg],"corner2y") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
       if (!avec_tri) error->all(FLERR,"Compute property/atom for "
@@ -355,40 +372,59 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                                  "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
-    } else if (strcmp(arg[iarg],"nbonds") == 0) {
-      if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
-
+    // custom per-atom vectors
+      
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
-      int flag;
-      index[i] = atom->find_custom(&arg[iarg][2],flag);
-      if (index[i] < 0 || flag != 0)
-        error->all(FLERR,"Compute property/atom integer "
-                   "vector does not exist");
+      int flag,cols;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index[i] < 0 || flag || cols)
+        error->all(FLERR,"Compute property/atom custom vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
     } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
-      int flag;
-      index[i] = atom->find_custom(&arg[iarg][2],flag);
-      if (index[i] < 0 || flag != 1)
-        error->all(FLERR,"Compute property/atom floating point "
-                   "vector does not exist");
+      int flag,cols;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index[i] < 0 || !flag || cols)
+        error->all(FLERR,"Compute property/atom custom vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
-    }
 
-    else if (strcmp(arg[iarg],"buckling") == 0) {
-      if (!atom->mesont_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_buckling;
-    // check if atom style recognizes keyword
+    // custom per-atom arrays, must include bracketed index
+      
+    } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
+	       strstr(arg[iarg],"d2_") == arg[iarg]) {
+      int which = 0;
+      if (arg[iarg][0] == 'd') which = 1;
+      
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][3]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Invalid attribute in set command");
+	suffix[strlen(suffix)-1] = '\0';
+        colindex[i] = utils::inumeric(FLERR,ptr+1,true,lmp);
+        *ptr = '\0';
+      } else error->all(FLERR,"Compute property/atom custom array is not indexed");
+      
+      int flag,cols;
+      index[i] = atom->find_custom(suffix,flag,cols);
+      delete [] suffix;
+
+      if ((!which && (index[i] < 0 || flag || !cols)) ||
+	  (which && (index[i] < 0 || !flag || !cols)))
+        error->all(FLERR,"Compute property/atom custom array does not exist");
+
+      if (!which) pack_choice[i] = &ComputePropertyAtom::pack_i2name;
+      else pack_choice[i] = &ComputePropertyAtom::pack_d2name;
+
+    // anything else must be recognized by atom style
 
     } else {
       index[i] = atom->avec->property_atom(arg[iarg]);
       if (index[i] < 0)
         error->all(FLERR,"Invalid keyword in compute property/atom command");
-      pack_choice[i] = &ComputePropertyAtom::pack_property_atom;
+      pack_choice[i] = &ComputePropertyAtom::pack_atom_style;
     }
   }
 
@@ -401,6 +437,7 @@ ComputePropertyAtom::~ComputePropertyAtom()
 {
   delete [] pack_choice;
   delete [] index;
+  delete [] colindex;
   memory->destroy(vector_atom);
   memory->destroy(array_atom);
 }
@@ -413,6 +450,9 @@ void ComputePropertyAtom::init()
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
   avec_body = (AtomVecBody *) atom->style_match("body");
+
+  // NOTE: could reset custom vector/array indices here, like dump custom does
+  //       in case have been deleted
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1145,6 +1185,21 @@ void ComputePropertyAtom::pack_fmz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputePropertyAtom::pack_nbonds(int n)
+{
+  int *num_bond = atom->num_bond;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = num_bond[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputePropertyAtom::pack_radius(int n)
 {
   double *radius = atom->radius;
@@ -1780,36 +1835,6 @@ void ComputePropertyAtom::pack_corner3z(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_buckling(int n)
-{
-  int *buckling = atom->buckling;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = static_cast<double>(buckling[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_nbonds(int n)
-{
-  int *num_bond = atom->num_bond;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = num_bond[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputePropertyAtom::pack_iname(int n)
 {
   int *ivector = atom->ivector[index[n]];
@@ -1840,7 +1865,39 @@ void ComputePropertyAtom::pack_dname(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_property_atom(int n)
+void ComputePropertyAtom::pack_i2name(int n)
+{
+  int **iarray = atom->iarray[index[n]];
+  int icol = colindex[n] - 1;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = iarray[i][icol];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_d2name(int n)
+{
+  double **darray = atom->darray[index[n]];
+  int icol = colindex[n] - 1;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = darray[i][icol];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_atom_style(int n)
 {
   atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbit);
 }

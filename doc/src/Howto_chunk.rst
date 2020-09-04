@@ -198,7 +198,8 @@ explained on the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` co
 
 (7) An example for using one set of per-chunk values for molecule
 chunks, to create a second set of micelle-scale chunks (clustered
-molecules, due to hydrophobicity), is explained on the :doc:`compute chunk/reduce <compute_reduce_chunk>` command doc page.
+molecules, due to hydrophobicity), is explained on the
+:doc:`compute reduce/chunk <compute_reduce_chunk>` command doc page.
 
 (8) An example for using one set of per-chunk values (dipole moment
 vectors) for molecule chunks, spreading the values to each atom in

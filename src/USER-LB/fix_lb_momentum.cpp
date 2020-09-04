@@ -19,8 +19,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_momentum.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include "atom.h"
 #include "group.h"

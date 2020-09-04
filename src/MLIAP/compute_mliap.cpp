@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
@@ -22,7 +22,6 @@
 #include "update.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "pair.h"

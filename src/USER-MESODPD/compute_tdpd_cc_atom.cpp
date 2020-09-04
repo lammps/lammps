@@ -11,15 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_tdpd_cc_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

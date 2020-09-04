@@ -17,7 +17,7 @@
 
 #include "pair_eam_alloy_gpu.h"
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -29,7 +29,7 @@
 #include "neigh_request.h"
 #include "gpu_extra.h"
 #include "domain.h"
-#include "utils.h"
+
 #include "suffix.h"
 #include "tokenizer.h"
 #include "potential_file_reader.h"

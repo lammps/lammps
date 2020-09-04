@@ -12,14 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_kokkos.h"
-#include <cstdio>
-#include <cstring>
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
+#include "atom_masks.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

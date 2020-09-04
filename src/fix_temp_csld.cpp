@@ -17,7 +17,7 @@
 
 #include "fix_temp_csld.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -31,7 +31,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

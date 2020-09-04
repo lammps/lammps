@@ -12,22 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "change_box.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "modify.h"
+#include "output.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "modify.h"
-#include "fix.h"
-#include "domain.h"
-#include "lattice.h"
-#include "comm.h"
-#include "irregular.h"
-#include "output.h"
-#include "group.h"
-#include "error.h"
-#include "force.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 

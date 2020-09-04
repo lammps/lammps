@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tfmc.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include <cfloat>

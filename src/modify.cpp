@@ -12,24 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include <cstring>
-#include <string>
 #include "style_compute.h"
 #include "style_fix.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "fix.h"
 #include "compute.h"
-#include "group.h"
-#include "update.h"
 #include "domain.h"
-#include "region.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -947,7 +947,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
 void Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
-  std::vector<std::string> args = utils::split_words(fixcmd);
+  auto args = utils::split_words(fixcmd);
   char **newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {
@@ -1249,7 +1249,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
 void Modify::add_compute(const std::string &computecmd, int trysuffix)
 {
-  std::vector<std::string> args = utils::split_words(computecmd);
+  auto args = utils::split_words(computecmd);
   char **newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {

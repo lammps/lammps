@@ -12,20 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "bond.h"
-#include <mpi.h>
-#include <ctime>
-#include <string>
+
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <ctime>
 
 using namespace LAMMPS_NS;
 

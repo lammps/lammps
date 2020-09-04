@@ -1,28 +1,27 @@
 .. index:: pair_style lj/cut/dipole/cut
+.. index:: pair_style lj/cut/dipole/cut/gpu
+.. index:: pair_style lj/cut/dipole/cut/omp
+.. index:: pair_style lj/sf/dipole/sf
+.. index:: pair_style lj/sf/dipole/sf/gpu
+.. index:: pair_style lj/sf/dipole/sf/omp
+.. index:: pair_style lj/cut/dipole/long
+.. index:: pair_style lj/cut/dipole/long/gpu
+.. index:: pair_style lj/long/dipole/long
 
 pair_style lj/cut/dipole/cut command
 ====================================
 
-pair_style lj/cut/dipole/cut/gpu command
-========================================
-
-pair_style lj/cut/dipole/cut/omp command
-========================================
+Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/omp*
 
 pair_style lj/sf/dipole/sf command
 ==================================
 
-pair_style lj/sf/dipole/sf/gpu command
-======================================
-
-pair_style lj/sf/dipole/sf/omp command
-======================================
+Accelerator Variants: *lj/sf/dipole/sf/gpu*, *lj/sf/dipole/sf/omp*
 
 pair_style lj/cut/dipole/long command
 =====================================
 
-pair_style lj/cut/dipole/long/gpu command
-=========================================
+Accelerator Variants: *lj/cut/dipole/long/gpu*
 
 pair_style lj/long/dipole/long command
 ======================================

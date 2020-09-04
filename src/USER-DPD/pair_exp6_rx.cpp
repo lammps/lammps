@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_exp6_rx.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cfloat>
 #include "atom.h"
@@ -24,7 +24,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "modify.h"
 #include "fix.h"
 

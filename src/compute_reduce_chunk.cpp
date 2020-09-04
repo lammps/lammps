@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reduce_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,7 +25,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

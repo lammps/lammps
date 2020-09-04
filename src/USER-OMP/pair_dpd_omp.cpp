@@ -21,7 +21,7 @@
 #include "neigh_list.h"
 #include "update.h"
 #include "random_mars.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

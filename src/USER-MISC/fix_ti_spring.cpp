@@ -19,16 +19,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ti_spring.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
-#include "force.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

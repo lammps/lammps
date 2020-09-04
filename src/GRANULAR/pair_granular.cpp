@@ -18,10 +18,10 @@
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -37,7 +37,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

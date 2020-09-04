@@ -56,24 +56,22 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_query.h"
-#include "fix_store_kim.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <sstream>
+
 #include "comm.h"
 #include "error.h"
+#include "fix_store_kim.h"
+#include "info.h"
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
 #include "version.h"
-#include "info.h"
-#include "fmt/format.h"
+
+#include <cstring>
+#include <sstream>
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
-#include <cstdlib>
 #endif
 
 using namespace LAMMPS_NS;

@@ -1,10 +1,10 @@
 .. index:: dihedral_style nharmonic
+.. index:: dihedral_style nharmonic/omp
 
 dihedral_style nharmonic command
-=================================
+================================
 
-dihedral_style nharmonic/omp command
-=====================================
+Accelerator Variants: *nharmonic/omp*
 
 Syntax
 """"""

@@ -1,4 +1,4 @@
-..  index:: fix orient/eco
+.. index:: fix orient/eco
 
 fix orient/eco command
 ======================

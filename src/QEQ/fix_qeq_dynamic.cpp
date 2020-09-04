@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_dynamic.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"

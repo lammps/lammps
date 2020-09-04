@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_erotate_sphere.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

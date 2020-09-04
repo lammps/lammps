@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_resquared.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "math_extra.h"
 #include "atom.h"
@@ -27,7 +27,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

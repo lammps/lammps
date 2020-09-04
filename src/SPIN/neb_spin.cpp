@@ -22,29 +22,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neb_spin.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "citeme.h"
-#include "force.h"
-#include "universe.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
+#include "citeme.h"
 #include "comm.h"
-#include "min.h"
-#include "modify.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix.h"
 #include "fix_neb_spin.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "finish.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

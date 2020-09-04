@@ -23,7 +23,7 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "fix_phonon.h"

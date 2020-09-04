@@ -1,13 +1,11 @@
 .. index:: improper_style cvff
+.. index:: improper_style cvff/intel
+.. index:: improper_style cvff/omp
 
 improper_style cvff command
 ===========================
 
-improper_style cvff/intel command
-=================================
-
-improper_style cvff/omp command
-===============================
+Accelerator Variants: *cvff/intel*, *cvff/omp*
 
 Syntax
 """"""

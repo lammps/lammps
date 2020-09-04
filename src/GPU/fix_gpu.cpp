@@ -13,7 +13,7 @@
 
 #include "fix_gpu.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -30,7 +30,7 @@
 #include "neighbor.h"
 #include "citeme.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

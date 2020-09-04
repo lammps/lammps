@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_skip_kokkos.h"
-#include "neigh_list_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "neigh_list_kokkos.h"
 
 using namespace LAMMPS_NS;
 

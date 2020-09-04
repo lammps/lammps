@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neb_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "universe.h"

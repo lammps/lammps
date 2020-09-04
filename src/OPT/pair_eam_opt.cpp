@@ -21,7 +21,7 @@
 
 #include "pair_eam_opt.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

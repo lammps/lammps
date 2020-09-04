@@ -23,8 +23,8 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_adjust_dt.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include "update.h"
 #include "force.h"
 #include "pair.h"

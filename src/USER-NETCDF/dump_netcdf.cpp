@@ -18,7 +18,7 @@
 #if defined(LMP_HAS_NETCDF)
 
 #include <unistd.h>
-#include <cstdlib>
+
 #include <cstring>
 #include <netcdf.h>
 #include "dump_netcdf.h"

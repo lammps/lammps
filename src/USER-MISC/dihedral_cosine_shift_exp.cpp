@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_cosine_shift_exp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

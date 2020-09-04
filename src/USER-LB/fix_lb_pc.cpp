@@ -26,7 +26,7 @@
 #include "domain.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"
-#include <mpi.h>
+
 #include "group.h"
 
 using namespace LAMMPS_NS;

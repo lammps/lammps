@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"

@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list_kokkos.h"
-#include "atom.h"
-#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 

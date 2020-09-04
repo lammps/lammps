@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_profile.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

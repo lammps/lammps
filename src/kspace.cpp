@@ -12,21 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "kspace.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "memory.h"
 #include "atom_masks.h"
-#include "error.h"
-#include "suffix.h"
+#include "comm.h"
 #include "domain.h"
-#include "fmt/format.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "pair.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

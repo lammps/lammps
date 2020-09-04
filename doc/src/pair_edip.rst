@@ -1,10 +1,11 @@
 .. index:: pair_style edip
+.. index:: pair_style edip/omp
+.. index:: pair_style edip/multi
 
 pair_style edip command
 =======================
 
-pair_style edip/omp command
-===========================
+Accelerator Variants: *edip/omp*
 
 pair_style edip/multi command
 =============================

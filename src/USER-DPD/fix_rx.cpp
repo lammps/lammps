@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rx.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <cmath>
 #include <cfloat> // DBL_EPSILON
@@ -31,7 +31,7 @@
 #include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
-#include "utils.h"
+
 
 #include <vector> // std::vector<>
 #include <algorithm> // std::max

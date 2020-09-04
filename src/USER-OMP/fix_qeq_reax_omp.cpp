@@ -32,7 +32,7 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reax_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "pair_reaxc.h"
 #include "atom.h"

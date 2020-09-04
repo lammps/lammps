@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_evaporate.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"

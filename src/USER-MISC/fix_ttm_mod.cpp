@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ttm_mod.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "error.h"
 #include "citeme.h"
 #include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;

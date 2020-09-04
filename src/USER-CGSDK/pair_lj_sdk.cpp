@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sdk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #define LMP_NEED_SDK_FIND_LJ_TYPE 1
 #include "lj_sdk_common.h"

@@ -14,7 +14,8 @@
 #ifndef LMP_ATOM_VEC_KOKKOS_H
 #define LMP_ATOM_VEC_KOKKOS_H
 
-#include "atom_vec.h"
+#include "atom_vec.h"           //  IWYU pragma: export
+
 #include "kokkos_type.h"
 #include <type_traits>
 

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_ti.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -27,7 +27,7 @@
 #include "input.h"
 #include "variable.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

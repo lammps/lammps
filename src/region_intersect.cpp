@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "region_intersect.h"
-#include <cstring>
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

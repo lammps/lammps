@@ -16,16 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "image.h"
-#include <mpi.h>
-#include <cmath>
-#include <cctype>
-#include <cstring>
-#include "math_extra.h"
-#include "random_mars.h"
-#include "math_const.h"
+
 #include "error.h"
-#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
+#include "random_mars.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 #ifdef LAMMPS_JPEG
 #include <jpeglib.h>

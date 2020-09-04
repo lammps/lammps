@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
-#include "comm.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 

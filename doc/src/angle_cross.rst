@@ -1,7 +1,7 @@
 .. index:: angle_style cross
 
 angle_style cross command
-==========================
+=========================
 
 Syntax
 """"""

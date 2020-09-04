@@ -1,4 +1,5 @@
 .. index:: pair_style spin/dipole/cut
+.. index:: pair_style spin/dipole/long
 
 pair_style spin/dipole/cut command
 ==================================

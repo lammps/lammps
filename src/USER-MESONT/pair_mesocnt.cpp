@@ -20,9 +20,9 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 
 #include "atom.h"
 #include "comm.h"
@@ -33,8 +33,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #include "math_const.h"
 #include "math_extra.h"

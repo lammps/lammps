@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_movie.h"
-#include <cstring>
+
 #include "comm.h"
-#include "force.h"
 #include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

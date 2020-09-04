@@ -20,7 +20,7 @@
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "timer.h"
+
 #include "comm.h"
 #include "force.h"
 #include "lj_sdk_common.h"

@@ -1,10 +1,10 @@
 .. index:: fix npt/sphere
+.. index:: fix npt/sphere/omp
 
 fix npt/sphere command
 ======================
 
-fix npt/sphere/omp command
-==========================
+Accelerator Variants: *npt/sphere/omp*
 
 Syntax
 """"""

@@ -1,4 +1,6 @@
 .. index:: fix nvt/eff
+.. index:: fix npt/eff
+.. index:: fix nph/eff
 
 fix nvt/eff command
 ===================

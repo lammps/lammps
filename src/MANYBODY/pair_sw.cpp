@@ -16,21 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_sw.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

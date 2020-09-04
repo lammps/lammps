@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "gridcomm_kokkos.h"
-#include <mpi.h>
+
 #include "comm.h"
-#include "kspace.h"
 #include "irregular.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "kokkos_base_fft.h"
 #include "kokkos.h"
+#include "kokkos_base_fft.h"
+#include "kspace.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 

@@ -12,27 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "output.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "style_dump.h"
+#include "style_dump.h"         // IWYU pragma: keep
+
 #include "atom.h"
-#include "neighbor.h"
-#include "input.h"
-#include "variable.h"
 #include "comm.h"
-#include "update.h"
-#include "group.h"
 #include "domain.h"
-#include "thermo.h"
-#include "modify.h"
-#include "force.h"
 #include "dump.h"
-#include "write_restart.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "thermo.h"
+#include "update.h"
+#include "variable.h"
+#include "write_restart.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -81,7 +79,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 #define DUMP_CLASS
 #define DumpStyle(key,Class) \
   (*dump_map)[#key] = &dump_creator<Class>;
-#include "style_dump.h"
+#include "style_dump.h"         // IWYU pragma: keep
 #undef DumpStyle
 #undef DUMP_CLASS
 }

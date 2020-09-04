@@ -18,7 +18,7 @@
 #include "pair_gayberne_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

@@ -12,17 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_slice.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "update.h"
-#include "modify.h"
+
+#include "error.h"
 #include "fix.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "force.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

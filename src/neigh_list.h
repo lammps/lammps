@@ -14,7 +14,7 @@
 #ifndef LMP_NEIGH_LIST_H
 #define LMP_NEIGH_LIST_H
 
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

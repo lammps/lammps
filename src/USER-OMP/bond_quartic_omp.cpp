@@ -21,7 +21,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "timer.h"
+
 #include "pair.h"
 
 #include <cmath>

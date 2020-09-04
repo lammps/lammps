@@ -35,7 +35,7 @@
 
 #include "fix_shardlow_kokkos.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"

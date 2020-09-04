@@ -16,26 +16,19 @@
                         David Farrell (NWU) - ZBL addition
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_tersoff_zbl_omp.h"
-#include "atom.h"
 #include "update.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
 #include "tokenizer.h"
 #include "potential_file_reader.h"
-
 #include "math_const.h"
 #include "math_special.h"
+
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;

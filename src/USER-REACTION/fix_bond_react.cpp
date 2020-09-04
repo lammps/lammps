@@ -17,34 +17,35 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 
 #include "fix_bond_react.h"
 
-#include <cmath>
-#include <cstring>
-
-#include "update.h"
-#include "modify.h"
-#include "respa.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
-#include "reset_mol_ids.h"
-#include "molecule.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
-#include "citeme.h"
+#include "input.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "input.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
+#include "reset_mol_ids.h"
+#include "respa.h"
+#include "update.h"
 #include "variable.h"
 
 #include "superpose3d.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 #include <algorithm>
 

@@ -15,18 +15,16 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-
-#include <cstring>
 #include "pair_eam_alloy_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
-
-#include "tokenizer.h"
+#include "memory.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

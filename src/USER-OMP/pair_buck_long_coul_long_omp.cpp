@@ -21,6 +21,7 @@
 #include "suffix.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;

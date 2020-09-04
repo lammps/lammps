@@ -12,17 +12,16 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_sph_rhosum.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
-
 
 using namespace LAMMPS_NS;
 

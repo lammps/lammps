@@ -28,6 +28,7 @@
 
 #include "reaxc_forces_omp.h"
 
+#include "error.h"
 #include "fix_omp.h"
 #include "pair_reaxc_omp.h"
 #include "reaxc_defs.h"
@@ -44,8 +45,6 @@
 
 #include <mpi.h>
 #include <cmath>
-
-#include "omp_compat.h"
 
 #if defined(_OPENMP)
 #include <omp.h>

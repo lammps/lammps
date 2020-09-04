@@ -22,7 +22,6 @@
 #include "input.h"
 #include "math_const.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "suffix.h"
 #include "variable.h"
 

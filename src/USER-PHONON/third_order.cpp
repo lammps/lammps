@@ -3,29 +3,28 @@
 //
 
 #include "third_order.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "error.h"
-#include "group.h"
-#include "force.h"
-#include "memory.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "update.h"
+#include "math_special.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
-#include "finish.h"
-#include "math_special.h"
+#include "update.h"
+
+#include <cstring>
 #include <algorithm>
-#include <complex>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

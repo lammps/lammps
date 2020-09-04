@@ -115,7 +115,9 @@ bool colvardeps::get_keyval_feature(colvarparse *cvp,
   }
   bool value;
   bool const found = cvp->get_keyval(conf, key, value, def_value, parse_mode);
-  if (value) enable(feature_id);
+  // If the default value is on, this function should be able to disable the feature!
+  set_enabled(feature_id, value);
+
   return found;
 }
 

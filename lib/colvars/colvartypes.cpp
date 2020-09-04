@@ -74,7 +74,7 @@ std::ostream & operator << (std::ostream &os, colvarmodule::rvector const &v)
 
 std::istream & operator >> (std::istream &is, colvarmodule::rvector &v)
 {
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
   char sep;
   if ( !(is >> sep) || !(sep == '(') ||
        !(is >> v.x) || !(is >> sep)  || !(sep == ',') ||
@@ -130,7 +130,7 @@ std::ostream & operator << (std::ostream &os, colvarmodule::quaternion const &q)
 
 std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 {
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
 
   std::string euler("");
 

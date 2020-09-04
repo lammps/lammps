@@ -55,21 +55,20 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
-#include <cstring>
 
-
-#include <sstream>
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "memory.h"
-#include "domain.h"
 
-#include "error.h"
+#include <cstring>
+#include <sstream>
 
 using namespace LAMMPS_NS;
 

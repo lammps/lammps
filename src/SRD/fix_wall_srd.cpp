@@ -13,17 +13,17 @@
 
 #include "fix_wall_srd.h"
 
-#include <cstring>
-#include "fix.h"
 #include "domain.h"
-#include "lattice.h"
+#include "error.h"
+#include "fix.h"
 #include "input.h"
+#include "lattice.h"
+#include "memory.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

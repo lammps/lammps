@@ -17,20 +17,19 @@
 
 #include "pair_dpd_fdt_energy.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

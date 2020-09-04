@@ -16,11 +16,6 @@
 
 #include "compute_pressure_bocs.h"
 
-
-#include <cmath>
-#include <cstring>
-
-
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
@@ -28,15 +23,15 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "memory.h"
 #include "modify.h"
 #include "pair.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

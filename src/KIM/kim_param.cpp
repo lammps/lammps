@@ -57,7 +57,6 @@
 
 #include "kim_param.h"
 
-#include "comm.h"
 #include "error.h"
 #include "fix_store_kim.h"
 #include "force.h"

@@ -12,16 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_edpd.h"
-#include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "update.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "error.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

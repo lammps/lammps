@@ -18,17 +18,16 @@
 
 #include "fix_saed_vtk.h"
 
-#include <cstring>
-#include <cmath>
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "compute_saed.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 #include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
+#include <cmath>
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

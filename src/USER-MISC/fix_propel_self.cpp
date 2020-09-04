@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "error.h"
-#include "math.h"
 #include "math_const.h"
 #include "math_extra.h"
 

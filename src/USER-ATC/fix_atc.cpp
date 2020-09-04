@@ -12,23 +12,15 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_atc.h"
-#include <cstdio>
-#include <cstring>
-#include <sstream>
-#include "fix_nve.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "pointers.h"
 #include "comm.h"
+#include "error.h"
 #include "group.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 
 #include "ATC_Method.h"
-#include "ATC_Transfer.h"
 #include "ATC_TransferKernel.h"
 #include "ATC_TransferPartitionOfUnity.h"
 #include "ATC_CouplingEnergy.h"
@@ -36,6 +28,8 @@
 #include "ATC_CouplingMass.h"
 #include "ATC_CouplingMomentumEnergy.h"
 #include "LammpsInterface.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

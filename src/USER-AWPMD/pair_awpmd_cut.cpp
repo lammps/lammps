@@ -17,27 +17,28 @@
 
 #include "pair_awpmd_cut.h"
 
-#include <cmath>
-#include <cstring>
-#include <map>
-#include <utility>
 #include "atom.h"
-#include "update.h"
-#include "min.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
+#include "min.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-
+#include "neighbor.h"
+#include "update.h"
 
 #include "logexc.h"
 #include "vector_3.h"
 #include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
+
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 

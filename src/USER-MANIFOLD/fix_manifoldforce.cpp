@@ -13,16 +13,15 @@
 
 #include "fix_manifoldforce.h"  // For stuff
 
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
-#include "force.h"
-
 #include "manifold.h"
 #include "manifold_factory.h"   // For constructing manifold
 
+#include "atom.h"
+#include "error.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

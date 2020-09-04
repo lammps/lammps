@@ -1,4 +1,4 @@
 [
-  { include: [ "<bits/types/struct_rusage.h>", private, "<sys/resource.h>", public ] }
-  { include: [ "<bits/exception.h>", public, "<exception>", public ] }
+  { include: [ "<bits/types/struct_rusage.h>", private, "<sys/resource.h>", public ] },
+  { include: [ "<bits/exception.h>", public, "<exception>", public ] },
 ]

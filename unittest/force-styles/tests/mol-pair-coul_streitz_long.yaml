@@ -5,6 +5,7 @@ epsilon: 5e-13
 prerequisites: ! |
   atom full
   pair coul/streitz
+  kspace ewald
 pre_commands: ! |
   variable units index metal
   variable newton_pair delete

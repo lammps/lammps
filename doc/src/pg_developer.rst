@@ -909,6 +909,9 @@ Convenience functions
 .. doxygenfunction:: timespec2seconds
    :project: progguide
 
+.. doxygenfunction:: date2num
+   :project: progguide
+
 ---------------------------
 
 Tokenizer classes

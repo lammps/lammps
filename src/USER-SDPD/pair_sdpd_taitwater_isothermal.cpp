@@ -19,18 +19,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_sdpd_taitwater_isothermal.h"
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
-#include "utils.h"
+
+#include <cmath>
+
 #ifndef USE_ZEST
 #include "random_mars.h"
 #endif

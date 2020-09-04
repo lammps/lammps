@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "reader.h"
-#include <cstring>
+
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

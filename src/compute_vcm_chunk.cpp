@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_vcm_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

@@ -12,9 +12,10 @@
  ------------------------------------------------------------------------- */
 
 #include "atom_vec_sph.h"
-#include <cstring>
+
 #include "atom.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna_stk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <utility>
@@ -26,7 +26,7 @@
 #include "neighbor.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 

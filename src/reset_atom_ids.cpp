@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_atom_ids.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
-#include "modify.h"
-#include "fix.h"
-#include "special.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "special.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

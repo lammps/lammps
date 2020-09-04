@@ -27,7 +27,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "kokkos.h"
-#include "utils.h"
+
 
 #include <cfloat> // DBL_EPSILON
 

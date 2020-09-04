@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_var.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

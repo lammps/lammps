@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/delta
+.. index:: angle_style cosine/delta/omp
 
 angle_style cosine/delta command
 ================================
 
-angle_style cosine/delta/omp command
-====================================
+Accelerator Variants: *cosine/delta/omp*
 
 Syntax
 """"""

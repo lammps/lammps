@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_extep.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "math_const.h"
 

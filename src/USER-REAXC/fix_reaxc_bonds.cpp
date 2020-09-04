@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_bonds.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

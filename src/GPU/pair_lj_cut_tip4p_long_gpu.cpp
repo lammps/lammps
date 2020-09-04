@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_lj_cut_tip4p_long_gpu.h"
 #include "atom.h"

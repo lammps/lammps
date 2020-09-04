@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mscg.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "mscg.h"
 #include "atom.h"
 #include "comm.h"

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_srd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_extra.h"

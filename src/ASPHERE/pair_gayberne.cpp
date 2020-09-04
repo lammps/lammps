@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gayberne.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "math_extra.h"
 #include "atom.h"
@@ -28,7 +28,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

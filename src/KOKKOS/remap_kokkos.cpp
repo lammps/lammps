@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "remap_kokkos.h"
-#include "pack_kokkos.h"
+
 #include "error.h"
+#include "pack_kokkos.h"
 
 using namespace LAMMPS_NS;
 

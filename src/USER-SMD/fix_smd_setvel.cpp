@@ -24,18 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_setvel.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "region.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -1,13 +1,13 @@
 
-add_executable(library-open library-open.cpp)
-target_link_libraries(library-open PRIVATE lammps GTest::GTest GTest::GTestMain)
-add_test(LibraryOpen library-open)
+add_executable(test_library_open test_library_open.cpp)
+target_link_libraries(test_library_open PRIVATE lammps GTest::GTest GTest::GTestMain)
+add_test(LibraryOpen test_library_open)
 
-add_executable(library-commands library-commands.cpp)
-target_link_libraries(library-commands PRIVATE lammps GTest::GTest GTest::GTestMain)
-add_test(LibraryCommands library-commands)
+add_executable(test_library_commands test_library_commands.cpp)
+target_link_libraries(test_library_commands PRIVATE lammps GTest::GTest GTest::GTestMain)
+add_test(LibraryCommands test_library_commands)
 
-add_executable(library-properties library-properties.cpp)
-target_link_libraries(library-properties PRIVATE lammps GTest::GTest GTest::GTestMain)
-add_test(LibraryProperties library-properties)
+add_executable(test_library_properties test_library_properties.cpp)
+target_link_libraries(test_library_properties PRIVATE lammps GTest::GTest GTest::GTestMain)
+add_test(LibraryProperties test_library_properties)
 

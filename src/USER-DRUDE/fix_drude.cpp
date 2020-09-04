@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_drude.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <map>
 #include "atom.h"

@@ -12,20 +12,21 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_coul_long_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define C_FORCE_T typename ForceConst<flt_t>::c_force_t

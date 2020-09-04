@@ -13,7 +13,7 @@
 
 #include "compute_sna_atom.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"

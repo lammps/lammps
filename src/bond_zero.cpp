@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_zero.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

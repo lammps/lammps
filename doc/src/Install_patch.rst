@@ -6,9 +6,12 @@ if you use git to track the LAMMPS development.  Instructions for
 how to stay current are on the
 :doc:`Download the LAMMPS source with git <Install_git>` page.
 
-If you prefer to download a tarball, as described on the :doc:`Install git <Install_tarball>` doc page, you can stay current by
+If you prefer to download a tarball, as described on the
+:doc:`tarball download <Install_tarball>` page, you can stay current by
 downloading "patch files" when new patch releases are made.  A link to
-a patch file is posted on the `bug and feature page <https://lammps.sandia.gov/bug.html>`_ of the LAMMPS website, along
+a patch file is posted on the
+`bugf fixes and new feature page <https://lammps.sandia.gov/bug.html>`_
+of the LAMMPS website, along
 with a list of changed files and details about what is in the new patch
 release.  This page explains how to apply the patch file to your local
 LAMMPS directory.

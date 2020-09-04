@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_msst.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

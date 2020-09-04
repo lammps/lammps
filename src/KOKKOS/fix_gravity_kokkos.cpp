@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gravity_kokkos.h"
-#include "atom_masks.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "update.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
 

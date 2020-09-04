@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tdpd_source.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

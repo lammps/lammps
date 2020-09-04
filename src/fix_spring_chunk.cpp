@@ -12,18 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_chunk.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "compute_com_chunk.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

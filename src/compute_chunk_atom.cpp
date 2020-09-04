@@ -14,29 +14,27 @@
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
 #include "compute_chunk_atom.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <map>
-#include <utility>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "comm.h"
 #include "domain.h"
-#include "region.h"
-#include "lattice.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
-#include "comm.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -16,21 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cna_atom.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

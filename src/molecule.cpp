@@ -12,22 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "molecule.h"
-#include <mpi.h>
-#include <cctype>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 #include "tokenizer.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

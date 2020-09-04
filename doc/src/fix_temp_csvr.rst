@@ -1,4 +1,5 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csld
 
 fix temp/csvr command
 =====================

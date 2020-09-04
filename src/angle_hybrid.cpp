@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 

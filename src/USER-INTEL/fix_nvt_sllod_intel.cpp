@@ -11,18 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "fix_nvt_sllod_intel.h"
-#include "math_extra.h"
+
 #include "atom.h"
+#include "compute.h"
 #include "domain.h"
-#include "group.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "compute.h"
-#include "error.h"
+#include "group.h"
+#include "math_extra.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

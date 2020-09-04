@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_buck6d_coul_gauss_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,7 +29,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "math_special.h"
 
 using namespace LAMMPS_NS;

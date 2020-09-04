@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edpd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <ctime>
 #include <cstring>
@@ -31,7 +31,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

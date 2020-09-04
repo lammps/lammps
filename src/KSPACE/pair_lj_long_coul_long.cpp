@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_long_coul_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_vector.h"
@@ -33,8 +33,8 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 

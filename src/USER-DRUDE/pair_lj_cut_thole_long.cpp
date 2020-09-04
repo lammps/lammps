@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_thole_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "fix_drude.h"
@@ -29,7 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "modify.h"
 #include "domain.h"
 

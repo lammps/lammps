@@ -12,25 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_custom.h"
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "force.h"
-#include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "input.h"
-#include "modify.h"
 #include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "group.h"
+#include "input.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "region.h"
 #include "update.h"
 #include "variable.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

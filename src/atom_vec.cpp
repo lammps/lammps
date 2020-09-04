@@ -12,20 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec.h"
-#include <cstdio>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
 #include "tokenizer.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

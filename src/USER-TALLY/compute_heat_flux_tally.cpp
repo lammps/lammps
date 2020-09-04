@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_heat_flux_tally.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"

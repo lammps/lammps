@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edip_multi.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_displace_atom.h"
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix_store.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 

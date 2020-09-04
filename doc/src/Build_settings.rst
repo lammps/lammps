@@ -6,7 +6,7 @@ explain how to do this for building both with CMake and make.
 
 * :ref:`C++11 standard compliance <cxx11>` when building all of LAMMPS
 * :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
-* :ref:`Size of LAMMPS data types <size>`
+* :ref:`Size of LAMMPS integer types <size>`
 * :ref:`Read or write compressed files <gzip>`
 * :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
 * :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
@@ -123,7 +123,8 @@ per-timestep CPU cost, FFTs are only a portion of long-range
 Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
 communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run when using the
-:doc:`kspace_style pppm <kspace_style>` command. The :doc:`Run output <Run_output>`
+:doc:`kspace_style pppm <kspace_style>` command. The
+:doc:`Screen and logfile output <Run_output>`
 doc page gives more details.  A more detailed (and time consuming)
 report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.

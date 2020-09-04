@@ -16,17 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_smd_wall_surface.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
-#include <Eigen/Eigen>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
 #include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
+
+#include <cstring>
+#include <Eigen/Eigen>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

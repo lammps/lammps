@@ -1,19 +1,18 @@
 .. index:: pair_style gauss
+.. index:: pair_style gauss/gpu
+.. index:: pair_style gauss/omp
+.. index:: pair_style gauss/cut
+.. index:: pair_style gauss/cut/omp
 
 pair_style gauss command
 ========================
 
-pair_style gauss/gpu command
-============================
-
-pair_style gauss/omp command
-============================
+Accelerator Variants: *gauss/gpu*, *gauss/omp*
 
 pair_style gauss/cut command
 ============================
 
-pair_style gauss/cut/omp command
-================================
+Accelerator Variants: *gauss/cut/omp*
 
 Syntax
 """"""

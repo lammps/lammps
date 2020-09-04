@@ -115,12 +115,12 @@ self-installed MPICH or OpenMPI, so you should study the provided
 documentation to find out how to build and link with it.
 
 The majority of OpenMP (threading) support in LAMMPS is provided by the
-``USER-OMP`` package; see the :doc:`Speed omp <Speed_omp>` doc page for
-details. The ``USER-INTEL`` package also includes OpenMP threading (it
-is compatible with ``USER-OMP`` and will usually fall back on styles
-from that package, if a ``USER-INTEL`` does not exist) and adds
-vectorization support when compiled with compatible compilers, in
-particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
+``USER-OMP`` package; see the :doc:`Speed_omp`
+page for details. The ``USER-INTEL`` package also includes OpenMP
+threading (it is compatible with ``USER-OMP`` and will usually fall
+back on styles from that package, if a ``USER-INTEL`` does not exist)
+and adds vectorization support when compiled with compatible compilers,
+in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
 package can be compiled to include OpenMP threading.
 
 In addition, there are a few commands in LAMMPS that have native OpenMP
@@ -290,13 +290,13 @@ Serial build with GNU gcc (see ``src/MAKE/Makefile.serial``):
    compiler that supports C++11; either as a binary package or through
    compiling from source.
 
-If you build LAMMPS with any :doc:`accelerator packages
-<Speed_packages>` included, there may be specific optimization flags
+If you build LAMMPS with any :doc:`Speed_packages` included, there may
+be specific compiler or linker flags
 that are either required or recommended to enable required features and
 to achieve optimal performance.  You need to include these in the
 CCFLAGS and LINKFLAGS settings above.  For details, see the individual
-package doc pages listed on the :doc:`Speed packages <Speed_packages>`
-doc page.  Or examine these files in the src/MAKE/OPTIONS directory.
+package doc pages listed on the :doc:`Speed_packages`
+page.  Or examine these files in the src/MAKE/OPTIONS directory.
 They correspond to each of the 5 accelerator packages and their hardware
 variants:
 
@@ -418,7 +418,7 @@ recommended to ensure the integrity of the system software installation.
 
 .. _debug:
 
-Excluding or removing debug support
+Including or removing debug support
 -----------------------------------
 
 By default the compilation settings will include the *-g* flag which
@@ -460,7 +460,7 @@ python packages are installed into that virtual environment via the pip
 tool.  The actual translation is then done via make commands.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
-.. _sphinx: https://sphinx-doc.org
+.. _sphinx: https://www.sphinx-doc.org
 
 Documentation make option
 ^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -43,33 +43,30 @@ properties of crystals by molecular simulation”, Phys. Rev. E 92, 043303 (2015
 https://doi.org/10.1103/PhysRevE.92.043303
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
 #include "compute_hma.h"
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "group.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "kspace.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
-#include <vector>
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

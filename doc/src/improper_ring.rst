@@ -1,10 +1,10 @@
 .. index:: improper_style ring
+.. index:: improper_style ring/omp
 
 improper_style ring command
 ===========================
 
-improper_style ring/omp command
-===============================
+Accelerator Variants: *ring/omp*
 
 Syntax
 """"""

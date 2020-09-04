@@ -16,13 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_python_invoke.h"
-#include <Python.h>   // IWYU pragma: keep
-#include <cstring>
-#include "force.h"
-#include "update.h"
+
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
+#include "update.h"
+
+#include <cstring>
+#include <Python.h>   // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

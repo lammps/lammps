@@ -12,17 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_global_atom.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -16,10 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_electron.h"
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -1,7 +1,7 @@
 .. index:: compute mesont
 
 compute mesont command
-==========================
+======================
 
 Syntax
 """"""

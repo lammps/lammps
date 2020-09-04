@@ -4,11 +4,11 @@ Link LAMMPS as a library to another code
 LAMMPS is designed as a library of C++ objects that can be
 integrated into other applications including Python scripts.
 The files ``src/library.cpp`` and ``src/library.h`` define a
-C-style API for using LAMMPS as a library.  See the :doc:`Howto
-library <Howto_library>` page for a description of the interface
-and how to use it for your needs.
+C-style API for using LAMMPS as a library.  See the
+:doc:`Howto_library` page
+for a description of the interface and how to use it for your needs.
 
-The :doc:`Build basics <Build_basics>` doc page explains how to build
+The :doc:`Build_basics` page explains how to build
 LAMMPS as either a shared or static library.  This results in a file
 in the compilation folder called ``liblammps.a`` or ``liblammps_<name>.a``
 in case of building a static library.  In case of a shared library

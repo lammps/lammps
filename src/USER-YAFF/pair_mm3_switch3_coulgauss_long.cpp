@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_mm3_switch3_coulgauss_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -31,7 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

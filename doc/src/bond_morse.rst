@@ -1,10 +1,10 @@
 .. index:: bond_style morse
+.. index:: bond_style morse/omp
 
 bond_style morse command
 ========================
 
-bond_style morse/omp command
-============================
+Accelerator Variants: *morse/omp*
 
 Syntax
 """"""

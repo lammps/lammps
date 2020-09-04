@@ -16,31 +16,27 @@
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "comm.h"
-#include "irregular.h"
-#include "modify.h"
-#include "force.h"
-#include "special.h"
 #include "domain.h"
-#include "lattice.h"
-#include "region.h"
-#include "input.h"
-#include "variable.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "math_extra.h"
-#include "math_const.h"
 #include "error.h"
+#include "input.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "special.h"
+#include "variable.h"
 
-#include <string>
-#include "utils.h"
-#include "fmt/format.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

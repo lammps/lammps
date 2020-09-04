@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_species.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include "fix_ave_atom.h"
 #include "atom.h"

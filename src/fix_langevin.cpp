@@ -20,7 +20,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_langevin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_extra.h"
@@ -38,7 +38,7 @@
 #include "memory.h"
 #include "error.h"
 #include "group.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

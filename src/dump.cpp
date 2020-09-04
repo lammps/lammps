@@ -12,20 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "dump.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "output.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

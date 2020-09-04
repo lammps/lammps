@@ -1,10 +1,11 @@
 .. index:: fix setforce
+.. index:: fix setforce/kk
+.. index:: fix setforce/spin
 
 fix setforce command
 ====================
 
-fix setforce/kk command
-=======================
+Accelerator Variants: *setforce/kk*
 
 fix setforce/spin command
 =========================

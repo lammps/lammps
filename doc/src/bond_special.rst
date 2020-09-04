@@ -1,7 +1,7 @@
 .. index:: bond_style special
 
 bond_style special command
-=================================
+==========================
 
 Syntax
 """"""

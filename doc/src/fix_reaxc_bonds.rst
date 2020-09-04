@@ -1,10 +1,10 @@
 .. index:: fix reax/c/bonds
+.. index:: fix reax/c/bonds/kk
 
 fix reax/c/bonds command
 ========================
 
-fix reax/c/bonds/kk command
-===========================
+Accelerator Variants: *reax/c/bonds/kk*
 
 Syntax
 """"""

@@ -136,7 +136,7 @@ From: ubuntu:18.04
     tar -xzf plumed.tar.gz
     cd plumed-${PLUMED_PKG_VERSION}
     ./configure --disable-doc --prefix=/usr
-    make -j 8
+    make
     make install
     cd ../../
     rm -rvf plumed

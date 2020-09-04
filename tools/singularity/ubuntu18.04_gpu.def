@@ -129,7 +129,7 @@ From: ubuntu:18.04
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..
-    make -j 8
+    make
     make package
     make install
 

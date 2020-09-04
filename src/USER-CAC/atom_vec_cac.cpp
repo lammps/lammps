@@ -1762,7 +1762,7 @@ bigint AtomVecCAC::memory_usage()
    clear nodal forces and gradients
 ------------------------------------------------------------------------- */
 
-void AtomVecCAC::force_clear(int a, size_t) {
+void AtomVecCAC::force_clear(int a, size_t b) {
   int *nodes_count_list = atom->nodes_per_element_list;
   for (int i = 0; i < atom->nlocal; i++) {
     for (int poly_index = 0; poly_index < poly_count[i]; poly_index++){
@@ -1780,6 +1780,10 @@ void AtomVecCAC::force_clear(int a, size_t) {
       }
     }
   }
+
+  if (atom->nextra_clear)
+    for (int iextra = 0; iextra < atom->nextra_clear; iextra++)
+      modify->fix[atom->extra_clear[iextra]]->clear_arrays(a, b);
 }
 
 //-------------------------------------------------------------------------

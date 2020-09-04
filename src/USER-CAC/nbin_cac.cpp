@@ -178,7 +178,7 @@ void NBinCAC::CAC_setup_bins(int style)
 
   int *nodes_per_element_list = atom->nodes_per_element_list;
   double max_search_range=atom->max_search_range;
-  double cut_max=neighbor->cutneighmax;
+  double cut_max=neighbor->cutneighmax + atom->cut_add;
   double **eboxes=atom->eboxes;
   int *ebox_ref=atom->ebox_ref;
   //expand sub-box sizes to contain all element bounding boxes
@@ -304,34 +304,32 @@ void NBinCAC::CAC_setup_bins(int style)
     if(element_type[element_index]){
     double *current_ebox;
 
-  current_ebox = eboxes[ebox_ref[element_index]];
-  //define this elements bounding box
-  ebounding_boxlo[0] = current_ebox[0];
-  ebounding_boxlo[1] = current_ebox[1];
-  ebounding_boxlo[2] = current_ebox[2];
-  ebounding_boxhi[0] = current_ebox[3];
-  ebounding_boxhi[1] = current_ebox[4];
-  ebounding_boxhi[2] = current_ebox[5];
-  for(int idim=0; idim < dimension; idim++){
-  if(ebounding_boxhi[idim]-ebounding_boxlo[idim]>cut_max)
-  average_size+=ebounding_boxhi[idim]-ebounding_boxlo[idim];
-  else
-  average_size+=cut_max;
-  }
-  }
-  else{
-  average_size+=dimension*cut_max;
-  }
+    current_ebox = eboxes[ebox_ref[element_index]];
+    //define this elements bounding box
+    ebounding_boxlo[0] = current_ebox[0];
+    ebounding_boxlo[1] = current_ebox[1];
+    ebounding_boxlo[2] = current_ebox[2];
+    ebounding_boxhi[0] = current_ebox[3];
+    ebounding_boxhi[1] = current_ebox[4];
+    ebounding_boxhi[2] = current_ebox[5];
+    for(int idim=0; idim < dimension; idim++){
+    if(ebounding_boxhi[idim]-ebounding_boxlo[idim]>cut_max)
+    average_size+=ebounding_boxhi[idim]-ebounding_boxlo[idim];
+    else
+    average_size+=cut_max;
+    }
+    }
+    else{
+    average_size+=dimension*cut_max;
+    }
   }
   if(atom->nlocal+atom->nghost!=0)
   average_size=average_size/(dimension*(atom->nlocal+atom->nghost));
   if(average_size<=cut_max) average_size=cut_max;
   double binsize_optimal;
-  if (binsizeflag) binsize_optimal = binsize_user;
-  else if (style == BIN) binsize_optimal = 0.5*cutneighmax;
-  else binsize_optimal = 0.5*cutneighmin;
-  if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
   binsize_optimal=0.5*average_size;
+  if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
+  if (binsizeflag) binsize_optimal = binsize_user;
   double binsizeinv = 1.0/binsize_optimal;
 
   // test for too many global bins in any dimension due to huge global domain
@@ -635,7 +633,7 @@ void NBinCAC::bin_atoms()
   int *poly_count = atom->poly_count;
   double bounding_boxlo[3];
   double bounding_boxhi[3];
-  double cut = neighbor->cutneighmax;
+  double cut = neighbor->cutneighmax + atom->cut_add;
 
   double **eboxes=atom->eboxes;
   double **foreign_eboxes=atom->foreign_eboxes;
@@ -788,7 +786,7 @@ if (x[2] > bsubboxhi[2])
   int *poly_count = atom->poly_count;
   double bounding_boxlo[3];
   double bounding_boxhi[3];
-  double cut = neighbor->cutneighmax;
+  double cut = neighbor->cutneighmax + atom->cut_add;
 
   double **eboxes=atom->eboxes;
   double **foreign_eboxes=atom->foreign_eboxes;

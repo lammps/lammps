@@ -66,7 +66,7 @@ class PairCACEAMInterp : public PairCAC {
   double **scale;
 
 	// per-atom arrays
-  double *rho, *fp;
+  double *rho, *fp, *add_rho, *add_fp;
   double density;
   double **quad_electron_densities;
   int max_density;
@@ -118,6 +118,7 @@ class PairCACEAMInterp : public PairCAC {
   virtual void pre_force_densities();
   virtual void compute_electron_densities(int);
   virtual void quad_electron_density(int, double, double, double);
+  virtual void quad_neigh_flux();
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
 

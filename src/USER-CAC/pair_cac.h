@@ -39,7 +39,6 @@ class PairCAC : public Pair {
 
   //functions for Asa_Data and class to obtain
   double shape_function(double, double, double,int,int);
-  void interpolation(int);
   double shape_function_derivative(double, double, double,int,int,int);
  
   //set of shape functions
@@ -56,7 +55,7 @@ class PairCAC : public Pair {
 
  protected:
   int outer_neighflag;
-  int sector_flag;
+  int sector_flag, flux_enable;
   int ghost_quad;
   double cutforcesq;
   double **scale;
@@ -64,7 +63,9 @@ class PairCAC : public Pair {
   double mapped_volume;
   int reneighbor_time;
   int max_nodes_per_element, neigh_poly_count;
-  double virial_density[6];
+  double virial_density[6], flux_density[24];
+  int ***flux_neigh_intercepts, *flux_neigh_nintercepts, **flux_neigh_indices, **nplane_intersects;
+  class FixCACAllocVector *fix_cac_alloc_vector;  // fix that stores nodal flux information
 
   //stores quadrature point coordinates and calculation coefficients
   double **quadrature_point_data;
@@ -84,12 +85,12 @@ class PairCAC : public Pair {
   Shape_Functions *shape_functions;
 
   double element_energy;
-  int quad_eflag;
+  int quad_eflag, flux_compute, quad_flux_flag;
   double quadrature_energy;
   double **mass_matrix;
   double **mass_copy;
   double **force_column;
-  double *current_nodal_forces;
+  double *current_nodal_forces, current_position[3], current_velocity[3];
   double *current_force_column;
   double *current_x;
   int   *pivot;
@@ -100,12 +101,9 @@ class PairCAC : public Pair {
   int neighbor_element_type;
   int old_atom_count,old_all_atom_count, old_quad_count;
   int *old_atom_etype, *old_all_atom_etype;
-  int ***inner_quad_lists_index;
-  double ***inner_quad_lists_ucell;
-  int *inner_quad_lists_counts;
-  int ***outer_quad_lists_index;
-  double ***outer_quad_lists_ucell;
-  int *outer_quad_lists_counts;
+  int ***inner_quad_lists_index, ***outer_quad_lists_index, ***add_quad_lists_index;
+  double ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, ***add_quad_lists_ucell;
+  int *inner_quad_lists_counts, *outer_quad_lists_counts, *add_quad_lists_counts;
   int atomic_flag;
   int nmax, nmax_surf;
   int neighrefresh;
@@ -114,16 +112,16 @@ class PairCAC : public Pair {
   int maxneigh2;
   int current_element_type, current_poly_count;
   int natomic, atomic_counter;
-  int *type_array;
+  int *type_array, type_map, *type_maps;
   int poly_counter;
   int qi, pqi;
-  int local_inner_max;
-  int local_outer_max;
-  double **inner_neighbor_coords;
-  double **outer_neighbor_coords;
-  int *inner_neighbor_types;
-  int *outer_neighbor_types;
-  double *inner_neighbor_charges;
+  int local_inner_max, local_outer_max, local_add_max, local_all_max;
+  int vel_inner_max, vel_outer_max;
+  double **inner_neighbor_coords, **inner_neighbor_velocities;
+  double **outer_neighbor_coords, **outer_neighbor_velocities;
+  double **add_neighbor_coords, **add_neighbor_velocities;
+  int *inner_neighbor_types, *outer_neighbor_types, *add_neighbor_types;
+  double *inner_neighbor_charges, *outer_neighbor_charges, *add_neighbor_charges;
 
 	virtual void allocate();
 
@@ -132,10 +130,18 @@ class PairCAC : public Pair {
   void compute_mass_matrix();
   void compute_forcev(int);
   void set_shape_functions();
+  void interpolation(int, double, double, double);
+  void allocate_quad_memory();
+  void init_quad_arrays();
   void LUPSolve(double **A, int *P, double *b, int N, double *x);
   int LUPDecompose(double **A, int N, double Tol, int *P);
   double shape_product(int,int);
   void quadrature_init(int degree);
+  virtual void compute_intersections();
+  virtual void quad_neigh_flux();
+  virtual void current_quad_flux(int, double, double, double);
+  virtual double pair_interaction(double, int , int){}
+  virtual double pair_interaction_q(double, int, int, double, double){}
   virtual void pre_force_densities() {}
   virtual void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz) {}

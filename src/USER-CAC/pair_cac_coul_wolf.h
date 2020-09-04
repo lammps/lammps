@@ -35,12 +35,13 @@ class PairCACCoulWolf : public PairCAC {
 
  protected:
 
-  double cut_coul, cut_coulsq, alf;
+  double cut_coul, cut_coulsq, alf, e_shift, f_shift, v_sh, factor_coul;
   
   void allocate();
   void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
   virtual void settings(int, char **);
+  virtual double pair_interaction_q(double, int, int, double, double);
 };
 
 }

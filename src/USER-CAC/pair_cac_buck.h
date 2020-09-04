@@ -38,11 +38,13 @@ class PairCACBuck : public PairCAC {
   double **cut;
   double **a, **rho, **c;
   double **rhoinv, **buck1, **buck2, **offset;
+  double  r6inv, rexp;
   
   void allocate();
   void force_densities(int, double, double, double, double, double
   &fx, double &fy, double &fz);
   virtual void settings(int, char **);
+  virtual double pair_interaction(double, int, int);
 };
 
 }

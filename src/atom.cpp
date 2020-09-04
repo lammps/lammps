@@ -159,25 +159,22 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   list_container = NULL;
   inner_quad_neigh_maxes = NULL;
   outer_quad_neigh_maxes = NULL;
+  add_quad_neigh_maxes = NULL;
   quadrature_point_data = NULL;
   min_x = min_f = min_v = NULL;
   npair_cac = NULL;
   element_names = NULL;
   neighbor_weights = NULL;
-  maxpoly = max_quad_per_element = 0;
-  nodes_per_element = 0;
+  maxpoly = max_quad_per_element = nodes_per_element = 0;
   max_search_range = cut_add = 0;
   initial_size = 0;
   max_neigh_inner_init = max_neigh_outer_init = 0;
   local_neboxes = neboxes = 0;
   bin_foreign = 0;
   sector_flag = neigh_weight_flag = 0;
-  weight_count = 0;
-  CAC_comm_flag = one_layer_flag = CAC_flag = CAC_pair_flag = 0;
-  element_type_count = 0;
-  dense_count = 0;
-  CAC_virial = 0;
-  outer_neigh_flag = ghost_quad_flag = full_quad_flag = 0;
+  CAC_comm_flag = one_layer_flag = CAC_flag = CAC_pair_flag = CAC_virial = 0;
+  element_type_count = dense_count = weight_count = 0;
+  outer_neigh_flag = ghost_quad_flag = full_quad_flag = cac_flux_flag = flux_compute = 0;
   interface_quadrature = 1;
 
   // USER-DPD package

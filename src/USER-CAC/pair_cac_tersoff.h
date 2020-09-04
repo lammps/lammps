@@ -61,11 +61,13 @@ class PairCACTersoff : public PairCAC {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
-  int *neighshort;              // short neighbor list array
   double cutmax;                // max cutoff for all elements
-  int maxshort;                 // size of short neighbor list array
   int **cluster_neighbors;      // stores neighbors of neighbors within cutshort for the given quadrature point
   int *cluster_neighbor_counts; // number of neighbors withing cutshort for each neighbor within cutshort
+  int flux_max;                     // array storage maximum for additional cluster neighbor array for flux calculation
+  int add_ncluster;                 // number of additional sites to store neighbors around for the flux calculation
+  int **add_cluster_neighbors;      // stores neighbors of neighbors for flux calculation around the quadrature point
+  int *add_cluster_neighbor_counts; // stores neighbors of neighbors counts for flux calculation around the quadrature point
  
   void allocate();
   void read_file(char *);
@@ -90,6 +92,7 @@ class PairCACTersoff : public PairCAC {
                   double *, double *, double *);
   void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
+  virtual void quad_neigh_flux();
 
   // inlined functions for efficiency
 

@@ -27,18 +27,31 @@ if (Python_EXECUTABLE)
     list(APPEND PYTHON_TEST_ENVIRONMENT LAMMPS_MACHINE_NAME=${LAMMPS_MACHINE_NAME})
   endif()
 
+  if(ENABLE_COVERAGE)
+    find_program(COVERAGE_BINARY coverage)
+    find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
+    
+    if(COVERAGE_FOUND)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} ${COVERAGE_BINARY} run --parallel-mode)
+    else()
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE})
+    endif()
+  else()
+    set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE})
+  endif()
+
   add_test(NAME PythonOpen
-           COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
   add_test(NAME PythonCommands
-           COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
   add_test(NAME PythonNumpy
-           COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonNumpy PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 else()

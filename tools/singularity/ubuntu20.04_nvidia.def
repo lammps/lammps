@@ -1,5 +1,5 @@
 BootStrap: docker
-From: nvidia/cuda:11.0-devel-ubuntu18.04
+From: nvidia/cuda:11.0-devel-ubuntu20.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
@@ -44,10 +44,6 @@ From: nvidia/cuda:11.0-devel-ubuntu18.04
         ninja-build \
         ocl-icd-libopencl1 \
         ocl-icd-opencl-dev \
-        python-dev \
-        python-pip \
-        python-pygments \
-        python-virtualenv \
         python3-dev \
         python3-pip \
         python3-pkg-resources \
@@ -73,7 +69,7 @@ From: nvidia/cuda:11.0-devel-ubuntu18.04
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[ubuntu18.04/nvidia:\u@\h] \W> "
+PS1="[ubuntu20.04/nvidia:\u@\h] \W> "
 EOF
     chmod 755 $CUSTOM_PROMPT_ENV
 

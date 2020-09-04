@@ -38,6 +38,8 @@ From: ubuntu:18.04
         cmake \
         cmake-curses-gui \
         curl \
+        doxygen \
+        enchant \
         g++ \
         gcc \
         gfortran \
@@ -46,6 +48,7 @@ From: ubuntu:18.04
         less \
         libblas-dev \
         libeigen3-dev \
+        libenchant-dev \
         libfftw3-dev \
         libgsl-dev \
         libhdf5-serial-dev \
@@ -165,7 +168,7 @@ From: ubuntu:18.04
     tar -xzf plumed.tar.gz
     cd plumed-${PLUMED_PKG_VERSION}
     ./configure --disable-doc --prefix=/usr
-    make -j 8
+    make
     make install
     cd ../../
     rm -rvf plumed

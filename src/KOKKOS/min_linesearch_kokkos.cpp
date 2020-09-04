@@ -18,13 +18,12 @@
 #include "min_linesearch_kokkos.h"
 
 #include "atom_kokkos.h"
-#include "modify.h"
-#include "fix_minimize_kokkos.h"
-#include "pair.h"
-#include "output.h"
-#include "thermo.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "error.h"
+#include "fix_minimize_kokkos.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
 
 #include <cmath>
 

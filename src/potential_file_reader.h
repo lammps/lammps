@@ -18,7 +18,7 @@
 #ifndef LMP_POTENTIAL_FILE_READER_H
 #define LMP_POTENTIAL_FILE_READER_H
 
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 #include "tokenizer.h"
 
 namespace LAMMPS_NS

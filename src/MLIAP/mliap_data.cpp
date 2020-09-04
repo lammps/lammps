@@ -19,8 +19,6 @@
 #include "mliap_model.h"
 #include "neigh_list.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,

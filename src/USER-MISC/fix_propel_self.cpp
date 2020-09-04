@@ -27,6 +27,7 @@
 #include "math_extra.h"
 
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

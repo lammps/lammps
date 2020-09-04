@@ -20,7 +20,6 @@
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "bond.h"
 #include "comm.h"
 #include "compute.h"

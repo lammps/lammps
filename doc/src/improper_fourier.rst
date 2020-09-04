@@ -1,10 +1,10 @@
 .. index:: improper_style fourier
+.. index:: improper_style fourier/omp
 
 improper_style fourier command
 ==============================
 
-improper_style fourier/omp command
-==================================
+Accelerator Variants: *fourier/omp*
 
 Syntax
 """"""

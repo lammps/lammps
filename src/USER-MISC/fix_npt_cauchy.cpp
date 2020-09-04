@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "fix_npt_cauchy.h"
 #include "math_extra.h"

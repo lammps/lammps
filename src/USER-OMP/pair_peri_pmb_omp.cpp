@@ -12,23 +12,23 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
-#include <cfloat>
 #include "pair_peri_pmb_omp.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "fix_peri_neigh.h"
 #include "force.h"
-#include "memory.h"
 #include "lattice.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cfloat>
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

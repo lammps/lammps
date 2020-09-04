@@ -12,18 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_gayberne_omp.h"
-#include "math_extra.h"
-#include "atom.h"
-#include "comm.h"
-#include "atom_vec_ellipsoid.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "force.h"
+#include "math_extra.h"
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

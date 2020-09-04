@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo_improper_template.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -23,7 +23,7 @@
 #include "molecule.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

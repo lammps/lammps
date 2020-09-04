@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_eff_cut.h"
 #include "pair_eff_inline.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

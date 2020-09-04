@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <strings.h>
 #include "atom.h"
@@ -39,7 +39,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"

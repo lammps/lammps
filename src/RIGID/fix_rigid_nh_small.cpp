@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh_small.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_extra.h"

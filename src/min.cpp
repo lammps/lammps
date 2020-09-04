@@ -20,32 +20,32 @@
 ------------------------------------------------------------------------- */
 
 #include "min.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_minimize.h"
-#include "compute.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_minimize.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "thermo.h"
-#include "timer.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

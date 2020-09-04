@@ -16,10 +16,10 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 
 #include <cstring>
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0

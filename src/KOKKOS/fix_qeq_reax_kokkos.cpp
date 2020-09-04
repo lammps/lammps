@@ -17,21 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reax_kokkos.h"
-#include <cmath>
-#include "kokkos.h"
+
 #include "atom.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "integrate.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "pair_reaxc_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

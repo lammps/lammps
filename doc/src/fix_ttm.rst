@@ -1,4 +1,5 @@
 .. index:: fix ttm
+.. index:: fix ttm/mod
 
 fix ttm command
 ===============

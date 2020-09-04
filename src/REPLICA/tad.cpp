@@ -16,28 +16,28 @@
 ------------------------------------------------------------------------- */
 
 #include "tad.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "update.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "neb.h"
 #include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix_event_tad.h"
 #include "fix_store.h"
 #include "force.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
+#include "integrate.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "min.h"
+#include "modify.h"
+#include "neb.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

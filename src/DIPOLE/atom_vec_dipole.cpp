@@ -12,15 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_dipole.h"
-#include <cmath>
+
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

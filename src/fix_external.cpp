@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_external.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -19,25 +19,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_bcc.h"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <mpi.h>
-#include <string>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "force.h"
-#include "math_const.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

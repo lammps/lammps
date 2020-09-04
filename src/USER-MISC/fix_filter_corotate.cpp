@@ -17,11 +17,11 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_filter_corotate.h"
-#include <mpi.h>
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

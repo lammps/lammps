@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_cv.h"
+
 #include "atom.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

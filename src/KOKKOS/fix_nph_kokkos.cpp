@@ -12,9 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nph_kokkos.h"
-#include <cstring>
+
 #include "modify.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

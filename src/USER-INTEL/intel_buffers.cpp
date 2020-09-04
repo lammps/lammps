@@ -12,8 +12,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "intel_buffers.h"
+
 #include "force.h"
 #include "memory.h"
 

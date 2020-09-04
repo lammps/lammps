@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_cd.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -29,8 +29,8 @@
 #include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 

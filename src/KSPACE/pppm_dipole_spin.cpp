@@ -16,22 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_dipole_spin.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
-
+#include "force.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

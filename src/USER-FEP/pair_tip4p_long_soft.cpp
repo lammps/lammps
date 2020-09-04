@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tip4p_long_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "angle.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

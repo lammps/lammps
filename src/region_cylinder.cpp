@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "region_cylinder.h"
+
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "domain.h"
-#include "input.h"
-#include "variable.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 

@@ -18,14 +18,13 @@
 #ifndef LMP_POTENTIAL_FILE_READER_H
 #define LMP_POTENTIAL_FILE_READER_H
 
-#include <string>
-
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 #include "tokenizer.h"
-#include "text_file_reader.h"
 
 namespace LAMMPS_NS
 {
+  class TextFileReader;
+
   class PotentialFileReader : protected Pointers {
   protected:
     TextFileReader *reader;

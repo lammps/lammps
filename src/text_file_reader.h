@@ -18,10 +18,9 @@
 #ifndef LMP_TEXT_FILE_READER_H
 #define LMP_TEXT_FILE_READER_H
 
-#include <cstdio>
-#include <string>
-#include <exception>
 #include "tokenizer.h"
+
+#include <cstdio>
 
 namespace LAMMPS_NS
 {

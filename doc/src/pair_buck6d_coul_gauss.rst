@@ -1,4 +1,5 @@
 .. index:: pair_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/long
 
 pair_style buck6d/coul/gauss/dsf command
 ========================================

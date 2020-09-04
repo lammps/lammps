@@ -12,13 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "lammps.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <cctype>
-#include <map>
-#include <string>
+
 #include "style_angle.h"     // IWYU pragma: keep
 #include "style_atom.h"      // IWYU pragma: keep
 #include "style_bond.h"      // IWYU pragma: keep
@@ -36,12 +30,12 @@
 #include "universe.h"
 #include "input.h"
 #include "info.h"
-#include "atom.h"
+#include "atom.h"            // IWYU pragma: keep
 #include "update.h"
-#include "neighbor.h"
+#include "neighbor.h"        // IWYU pragma: keep
 #include "comm.h"
 #include "comm_brick.h"
-#include "domain.h"
+#include "domain.h"          // IWYU pragma: keep
 #include "force.h"
 #include "modify.h"
 #include "group.h"
@@ -54,8 +48,11 @@
 #include "version.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
+#include <map>
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"

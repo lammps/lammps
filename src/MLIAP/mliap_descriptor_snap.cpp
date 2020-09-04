@@ -12,20 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_snap.h"
-#include "pair_mliap.h"
-#include "mliap_data.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "utils.h"
-#include "sna.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "memory.h"
+#include "mliap_data.h"
+#include "pair_mliap.h"
+#include "sna.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

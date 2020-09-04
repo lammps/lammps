@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_hybrid_kokkos.h"
-#include <cstring>
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -1177,7 +1178,7 @@ void AtomVecHybridKokkos::build_styles()
   allstyles[nallstyles] = new char[n];      \
   strcpy(allstyles[nallstyles],#key);       \
   nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"         // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }

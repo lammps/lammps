@@ -16,23 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_disp.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cmath>
-#include "math_vector.h"
-#include "math_const.h"
-#include "math_special.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_special.h"
+#include "math_vector.h"
+#include "memory.h"
+#include "pair.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

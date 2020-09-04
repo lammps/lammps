@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_csvr.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -32,7 +32,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

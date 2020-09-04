@@ -1,37 +1,29 @@
 .. index:: pair_style lj/class2
+.. index:: pair_style lj/class2/gpu
+.. index:: pair_style lj/class2/kk
+.. index:: pair_style lj/class2/omp
+.. index:: pair_style lj/class2/coul/cut
+.. index:: pair_style lj/class2/coul/cut/kk
+.. index:: pair_style lj/class2/coul/cut/omp
+.. index:: pair_style lj/class2/coul/long
+.. index:: pair_style lj/class2/coul/long/gpu
+.. index:: pair_style lj/class2/coul/long/kk
+.. index:: pair_style lj/class2/coul/long/omp
 
 pair_style lj/class2 command
 ============================
 
-pair_style lj/class2/gpu command
-================================
-
-pair_style lj/class2/kk command
-===============================
-
-pair_style lj/class2/omp command
-================================
+Accelerator Variants: *lj/class2/gpu*, *lj/class2/kk*, *lj/class2/omp*
 
 pair_style lj/class2/coul/cut command
 =====================================
 
-pair_style lj/class2/coul/cut/kk command
-========================================
-
-pair_style lj/class2/coul/cut/omp command
-=========================================
+Accelerator Variants: *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
 
 pair_style lj/class2/coul/long command
 ======================================
 
-pair_style lj/class2/coul/long/gpu command
-==========================================
-
-pair_style lj/class2/coul/long/kk command
-=========================================
-
-pair_style lj/class2/coul/long/omp command
-==========================================
+Accelerator Variants: *lj/class2/coul/long/gpu*, *lj/class2/coul/long/kk*, *lj/class2/coul/long/omp*
 
 Syntax
 """"""

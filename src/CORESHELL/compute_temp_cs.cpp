@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_cs.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -31,7 +31,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

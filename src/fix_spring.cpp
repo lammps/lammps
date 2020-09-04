@@ -16,14 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring.h"
+
+#include "atom.h"
+#include "error.h"
+#include "group.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "force.h"
-#include "group.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

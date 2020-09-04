@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_pimd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "universe.h"
 #include "comm.h"
 #include "force.h"

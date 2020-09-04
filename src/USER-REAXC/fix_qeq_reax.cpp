@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reax.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "pair_reaxc.h"

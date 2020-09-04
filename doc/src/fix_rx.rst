@@ -1,10 +1,10 @@
 .. index:: fix rx
+.. index:: fix rx/kk
 
 fix rx command
 ==============
 
-fix rx/kk command
-=================
+Accelerator Variants: *rx/kk*
 
 Syntax
 """"""

@@ -17,7 +17,7 @@
 #include "fix_bocs.h"
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include <vector>
 
@@ -29,7 +29,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_deform.h"
-#include "fmt/format.h"
+
 #include "force.h"
 #include "group.h"
 #include "irregular.h"

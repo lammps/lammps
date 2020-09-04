@@ -1,31 +1,27 @@
 .. index:: pair_style lj/sdk
+.. index:: pair_style lj/sdk/gpu
+.. index:: pair_style lj/sdk/kk
+.. index:: pair_style lj/sdk/omp
+.. index:: pair_style lj/sdk/coul/long
+.. index:: pair_style lj/sdk/coul/long/gpu
+.. index:: pair_style lj/sdk/coul/long/omp
+.. index:: pair_style lj/sdk/coul/msm
+.. index:: pair_style lj/sdk/coul/msm/omp
 
 pair_style lj/sdk command
 =========================
 
-pair_style lj/sdk/gpu command
-=============================
-
-pair_style lj/sdk/kk command
-============================
-
-pair_style lj/sdk/omp command
-=============================
+Accelerator Variants: *lj/sdk/gpu*, *lj/sdk/kk*, *lj/sdk/omp*
 
 pair_style lj/sdk/coul/long command
 ===================================
 
-pair_style lj/sdk/coul/long/gpu command
-=======================================
-
-pair_style lj/sdk/coul/long/omp command
-=======================================
+Accelerator Variants: *lj/sdk/coul/long/gpu*, *lj/sdk/coul/long/omp*
 
 pair_style lj/sdk/coul/msm command
 ==================================
 
-pair_style lj/sdk/coul/msm/omp command
-======================================
+Accelerator Variants: *lj/sdk/coul/msm/omp*
 
 Syntax
 """"""

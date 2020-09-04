@@ -19,19 +19,17 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald.h"
-#include <mpi.h>
-#include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

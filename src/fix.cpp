@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix.h"
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "error.h"
+#include "group.h"
+#include "memory.h"
+
 #include <cstring>
 #include <cctype>
-#include "atom.h"
-#include "group.h"
-#include "force.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

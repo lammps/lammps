@@ -16,13 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_eco.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -33,8 +30,9 @@
 #include "pair.h"
 #include "respa.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

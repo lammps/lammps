@@ -16,15 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "write_dump.h"
-#include <cstring>
-#include <string>
 #include "style_dump.h"
+
+#include "comm.h"
 #include "dump.h"
 #include "dump_image.h"
-#include "comm.h"
-#include "update.h"
 #include "error.h"
-#include "utils.h"
+#include "update.h"
+
+#include <cstring>
+
 
 using namespace LAMMPS_NS;
 

@@ -27,9 +27,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_smd_hertz.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -40,7 +40,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

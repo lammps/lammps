@@ -16,22 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_agni.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
-#include "math_special.h"
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
-#include "utils.h"
+#include "math_special.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

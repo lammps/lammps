@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

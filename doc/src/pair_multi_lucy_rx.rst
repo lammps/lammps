@@ -1,10 +1,10 @@
 .. index:: pair_style multi/lucy/rx
+.. index:: pair_style multi/lucy/rx/kk
 
 pair_style multi/lucy/rx command
 ================================
 
-pair_style multi/lucy/rx/kk command
-===================================
+Accelerator Variants: *multi/lucy/rx/kk*
 
 Syntax
 """"""

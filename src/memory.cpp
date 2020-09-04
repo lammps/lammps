@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "memory.h"
-#include <cstdlib>
+
 #include "error.h"
-#include "fmt/format.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
 #ifndef LMP_INTEL_NO_TBB

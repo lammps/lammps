@@ -23,24 +23,22 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_smd_ulsph.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <string>
-#include <utility>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "smd_kernels.h"
 #include "smd_material_models.h"
 #include "smd_math.h"
-#include "smd_kernels.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace SMD_Kernels;
 using namespace std;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_gyration_chunk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

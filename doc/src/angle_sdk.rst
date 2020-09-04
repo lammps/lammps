@@ -1,10 +1,10 @@
 .. index:: angle_style sdk
+.. index:: angle_style sdk/omp
 
 angle_style sdk command
 =======================
 
-angle_style sdk/omp command
-===========================
+Accelerator Variants: *sdk/omp*
 
 Syntax
 """"""

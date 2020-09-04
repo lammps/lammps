@@ -23,15 +23,16 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_move_triangulated_surface.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "update.h"
-#include "error.h"
-#include "math_const.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;

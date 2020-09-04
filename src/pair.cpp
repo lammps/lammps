@@ -16,28 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <string>
-#include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "compute.h"
-#include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

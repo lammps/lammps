@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_debye.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neigh_list.h"
 #include "force.h"
 #include "comm.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

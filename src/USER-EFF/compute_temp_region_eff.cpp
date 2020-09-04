@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "compute_temp_region_eff.h"
 #include "atom.h"
 #include "update.h"

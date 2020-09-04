@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -22,7 +22,7 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

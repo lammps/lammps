@@ -1,10 +1,10 @@
 .. index:: fix eos/table/rx
+.. index:: fix eos/table/rx/kk
 
 fix eos/table/rx command
 ========================
 
-fix eos/table/rx/kk command
-===========================
+Accelerator Variants: *eos/table/rx/kk*
 
 Syntax
 """"""

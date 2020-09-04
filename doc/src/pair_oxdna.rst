@@ -1,4 +1,8 @@
 .. index:: pair_style oxdna/excv
+.. index:: pair_style oxdna/stk
+.. index:: pair_style oxdna/hbond
+.. index:: pair_style oxdna/xstk
+.. index:: pair_style oxdna/coaxstk
 
 pair_style oxdna/excv command
 =============================

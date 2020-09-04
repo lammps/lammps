@@ -1,16 +1,19 @@
 .. index:: pair_style peri/pmb
+.. index:: pair_style peri/pmb/omp
+.. index:: pair_style peri/lps
+.. index:: pair_style peri/lps/omp
+.. index:: pair_style peri/ves
+.. index:: pair_style peri/eps
 
 pair_style peri/pmb command
 ===========================
 
-pair_style peri/pmb/omp command
-===============================
+Accelerator Variants: *peri/pmb/omp*
 
 pair_style peri/lps command
 ===========================
 
-pair_style peri/lps/omp command
-===============================
+Accelerator Variants: *peri/lps/omp*
 
 pair_style peri/ves command
 ===========================

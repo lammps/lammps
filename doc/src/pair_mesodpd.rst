@@ -1,4 +1,7 @@
 .. index:: pair_style edpd
+.. index:: pair_style mdpd
+.. index:: pair_style mdpd/rhosum
+.. index:: pair_style tdpd
 
 pair_style edpd command
 =======================

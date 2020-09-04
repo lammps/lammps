@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_born_coul_dsf.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -28,7 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_special.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cnp_atom.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"

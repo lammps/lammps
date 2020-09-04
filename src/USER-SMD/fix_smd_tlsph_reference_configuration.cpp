@@ -25,7 +25,7 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_tlsph_reference_configuration.h"
-#include <mpi.h>
+
 #include <Eigen/Eigen>
 #include "atom.h"
 #include "comm.h"

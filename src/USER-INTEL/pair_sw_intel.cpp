@@ -17,6 +17,19 @@
 
 #include "pair_sw_intel.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cstring>
+
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
@@ -25,21 +38,6 @@
 #pragma offload_attribute(pop)
 #endif
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "modify.h"
-#include "suffix.h"
 
 #ifdef LMP_USE_AVXCD
 #include "intel_simd.h"

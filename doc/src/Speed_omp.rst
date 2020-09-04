@@ -86,7 +86,8 @@ USER-OMP style (in serial or parallel) with a single thread per MPI
 task, versus running standard LAMMPS with its standard un-accelerated
 styles (in serial or all-MPI parallelization with 1 task/core).  This
 is because many of the USER-OMP styles contain similar optimizations
-to those used in the OPT package, described in :doc:`Section 5.3.5 <Speed_opt>`.
+to those used in the OPT package, described in
+:doc:`the OPT package <Speed_opt>` doc page.
 
 With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be
@@ -95,7 +96,8 @@ specific machine, paying attention to guidelines discussed in the next
 sub-section.
 
 A description of the multi-threading strategy used in the USER-OMP
-package and some performance examples are `presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_
+package and some performance examples are
+`presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_.
 
 Guidelines for best performance
 """""""""""""""""""""""""""""""

@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "rcb.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "irregular.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

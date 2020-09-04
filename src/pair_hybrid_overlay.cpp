@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid_overlay.h"
+
+#include "atom.h"
+#include "error.h"
+
 #include <cstring>
 #include <cctype>
-#include "atom.h"
-#include "force.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 

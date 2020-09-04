@@ -1,22 +1,19 @@
 .. index:: pair_style vashishta
+.. index:: pair_style vashishta/gpu
+.. index:: pair_style vashishta/omp
+.. index:: pair_style vashishta/kk
+.. index:: pair_style vashishta/table
+.. index:: pair_style vashishta/table/omp
 
 pair_style vashishta command
 ============================
 
-pair_style vashishta/gpu command
-================================
-
-pair_style vashishta/omp command
-================================
-
-pair_style vashishta/kk command
-===============================
+Accelerator Variants: *vashishta/gpu*, *vashishta/omp*, *vashishta/kk*
 
 pair_style vashishta/table command
 ==================================
 
-pair_style vashishta/table/omp command
-======================================
+Accelerator Variants: *vashishta/table/omp*
 
 Syntax
 """"""

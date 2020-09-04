@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure_cylinder.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"

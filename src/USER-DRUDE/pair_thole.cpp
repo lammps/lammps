@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_thole.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -22,7 +22,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "fix.h"
 #include "fix_drude.h"
 #include "domain.h"

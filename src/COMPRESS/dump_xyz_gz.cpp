@@ -14,10 +14,10 @@
 #include "dump_xyz_gz.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 
 #include <cstring>
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -15,7 +15,8 @@
 #define LMP_NEIGH_LIST_KOKKOS_H
 
 #include "pointers.h"
-#include "neigh_list.h"
+
+#include "neigh_list.h"         // IWYU pragma: export
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {

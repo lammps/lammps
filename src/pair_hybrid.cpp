@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -26,9 +26,9 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
-#include "utils.h"
+
 #include "suffix.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

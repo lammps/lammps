@@ -12,22 +12,22 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_hbond_dreiding_lj_omp.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-
 #include "math_const.h"
 #include "math_special.h"
-
+#include "molecule.h"
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;

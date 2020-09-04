@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_momb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -25,7 +25,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "citeme.h"
 
 using namespace LAMMPS_NS;

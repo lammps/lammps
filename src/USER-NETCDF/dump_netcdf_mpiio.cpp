@@ -18,7 +18,7 @@
 #if defined(LMP_HAS_PNETCDF)
 
 #include <unistd.h>
-#include <cstdlib>
+
 #include <cstring>
 #include <pnetcdf.h>
 #include "dump_netcdf_mpiio.h"

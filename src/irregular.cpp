@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "irregular.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
-#include "modify.h"
+#include "domain.h"
 #include "fix.h"
 #include "memory.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

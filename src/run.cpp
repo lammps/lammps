@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "run.h"
-#include <cstring>
+
 #include "domain.h"
-#include "update.h"
-#include "force.h"
+#include "error.h"
+#include "finish.h"
+#include "input.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
-#include "finish.h"
-#include "input.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

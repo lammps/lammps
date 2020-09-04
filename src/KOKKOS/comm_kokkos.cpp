@@ -12,23 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "comm_kokkos.h"
-#include "kokkos.h"
+
 #include "atom.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "domain.h"
-#include "atom_masks.h"
-#include "error.h"
-#include "memory_kokkos.h"
-#include "force.h"
-#include "pair.h"
-#include "fix.h"
 #include "compute.h"
+#include "domain.h"
 #include "dump.h"
-#include "output.h"
-#include "modify.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "kokkos.h"
 #include "kokkos_base.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "output.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 

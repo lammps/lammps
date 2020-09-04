@@ -1,4 +1,5 @@
 .. index:: compute stress/atom
+.. index:: compute centroid/stress/atom
 
 compute stress/atom command
 ===========================

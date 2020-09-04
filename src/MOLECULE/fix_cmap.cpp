@@ -28,9 +28,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_cmap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -41,8 +41,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

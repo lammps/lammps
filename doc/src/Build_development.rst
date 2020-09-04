@@ -71,14 +71,14 @@ Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
 during run-time. They can detect issues like:
 
- - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html>`_
+ - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html#memory-leak-detection>`_
  - `undefined behavior <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_
  - `data races <https://clang.llvm.org/docs/ThreadSanitizer.html>`_
 
 Please note that this kind of instrumentation usually comes with a
 performance hit (but much less than using tools like `Valgrind
-<https://valgrind.org>`_ with a more low level approach).  The to enable
-these features additional compiler flags need to be added to the
+<https://valgrind.org>`_ with a more low level approach).  To enable
+these features, additional compiler flags need to be added to the
 compilation and linking stages.  This is done through setting the
 ``ENABLE_SANITIZER`` variable during configuration. Examples:
 
@@ -111,7 +111,7 @@ error margin).  The status of this automated testing can be viewed on
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <http://pyyaml.org/>`_ library and development
+It requires the `PyYAML <http://pyyaml.org/>`_ library and development
 headers to compile and will download and compile a recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.

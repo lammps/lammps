@@ -234,11 +234,10 @@ command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
 If you would like to use the :doc:`kim_property <kim_commands>`
-command, you need to build LAMMPS with the Python 3.6 or later package
-installed. See the :doc:`Python <python>` doc page for more info on building
-LAMMPS with the version of Python on your system.
-After successfully building LAMMPS with Python, you need to
-install the kim-property Python package, which can be easily done using
+command, you need to build LAMMPS with the PYTHON package installed
+and linked to Python 3.6 or later. See the :ref:`PYTHON package build info <python>`
+for more details on this. After successfully building LAMMPS with Python, you
+also need to install the kim-property Python package, which can be easily done using
 *pip* as ``pip install kim-property``, or from the *conda-forge* channel as
 ``conda install kim-property`` if LAMMPS is built in Conda. More detailed
 information is available at:
@@ -812,10 +811,11 @@ a corresponding ``Makefile.lammps.machine`` file.
 PYTHON package
 ---------------------------
 
-Building with the PYTHON package requires you have a Python shared
-library available on your system, which needs to be a Python 2.7
-version or a Python 3.x version.  See ``lib/python/README`` for more
-details.
+Building with the PYTHON package requires you have a the Python development
+headers and library available on your system, which needs to be a Python 2.7
+version or a Python 3.x version.  Since support for Python 2.x has ended,
+using Python 3.x is strongly recommended. See ``lib/python/README`` for
+additional details.
 
 CMake build
 ^^^^^^^^^^^
@@ -1095,7 +1095,7 @@ USER-PLUMED package
 
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
-from LAMMPS using the generic `plumed installation instructions <plumedinstall_>`_.
+from LAMMPS using the generic `PLUMED installation instructions <plumedinstall_>`_.
 The USER-PLUMED package has been tested to work with Plumed versions
 2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
 with a different version of the Plumed kernel.
@@ -1262,7 +1262,7 @@ To build with this package, you must choose which hardware you want to
 build for, either x86 CPUs or Intel KNLs in offload mode.  You should
 also typically :ref:`install the USER-OMP package <user-omp>`, as it can be
 used in tandem with the USER-INTEL package to good effect, as explained
-on the :doc:`Speed intel <Speed_intel>` doc page.
+on the :doc:`Speed_intel` page.
 
 When using Intel compilers version 16.0 or later is required.  You can
 also use the GNU or Clang compilers and they will provide performance

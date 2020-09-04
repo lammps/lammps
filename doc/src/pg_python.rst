@@ -14,7 +14,7 @@ There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 - the :py:class:`lammps <lammps.lammps>` class. This is a wrapper around
   the C-library interface and its member functions try to replicate the
-  :doc:`C-library API <pg_library>` closely.  This is the most
+  :ref:`C-library API <lammps_c_api>` closely.  This is the most
   feature-complete Python API.
 - the :py:class:`PyLammps <lammps.PyLammps>` class. This is a more high-level
   and more Python style class implemented on top of the
@@ -63,7 +63,7 @@ MPI ranks after splitting the communicator. Here is a simple example:
    # explicitly close and delete LAMMPS instance (optional)
    lmp.close()
 
-Same as with the :doc:`C library API <pg_lib_create>` this will use the
+Same as with the :ref:`C library API <lammps_c_api>` this will use the
 ``MPI_COMM_WORLD`` communicator for the MPI library that LAMMPS was
 compiled with.  The :py:func:`lmp.close() <lammps.lammps.close>` call is
 optional since the LAMMPS class instance will also be deleted
@@ -113,8 +113,8 @@ The ``lammps`` class API
 ************************
 
 The :py:class:`lammps <lammps.lammps>` class is the core of the LAMMPS
-Python interfaces.  It is a wrapper around the :doc:`LAMMPS C library
-API <pg_library>` using the `Python ctypes module
+Python interfaces.  It is a wrapper around the :ref:`LAMMPS C library
+API <lammps_c_api>` using the `Python ctypes module
 <https://docs.python.org/3/library/ctypes.html>`_ and a shared library
 compiled from the LAMMPS sources code.  The individual methods in this
 class try to closely follow the corresponding C functions.  The handle

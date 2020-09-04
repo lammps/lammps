@@ -1,5 +1,5 @@
 BootStrap: docker
-From: ubuntu:18.04
+From: ubuntu:20.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
@@ -13,7 +13,6 @@ From: ubuntu:18.04
         build-essential \
         ccache \
         clang \
-        clinfo \
         cmake \
         cmake-curses-gui \
         curl \
@@ -34,6 +33,7 @@ From: ubuntu:18.04
         libhwloc-dev \
         libjpeg-dev \
         liblapack-dev \
+        libnetcdf-dev \
         libomp-dev \
         libopenblas-dev \
         libnuma-dev \
@@ -46,12 +46,6 @@ From: ubuntu:18.04
         mpi-default-bin \
         mpi-default-dev \
         ninja-build \
-        ocl-icd-libopencl1 \
-        ocl-icd-opencl-dev \
-        python-dev \
-        python-pip \
-        python-pygments \
-        python-virtualenv \
         python3-dev \
         python3-pip \
         python3-pkg-resources \
@@ -126,7 +120,7 @@ From: ubuntu:18.04
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[ubuntu18.04/intel:\u@\h] \W> "
+PS1="[ubuntu20.04/intel:\u@\h] \W> "
 EOF
     chmod 755 $CUSTOM_PROMPT_ENV
 

@@ -12,23 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
-#include "update.h"
+#include "bond.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "pair_hybrid.h"
+#include "update.h"
 
+#include <cctype>
+#include <cstring>
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

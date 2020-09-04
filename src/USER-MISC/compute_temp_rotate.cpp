@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_rotate.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"

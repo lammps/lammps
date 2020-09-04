@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_voronoi_atom.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <voro++.hh>

@@ -18,7 +18,7 @@
 #include "omp_compat.h"
 #include "dump_custom_mpiio.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "domain.h"
 #include "input.h"

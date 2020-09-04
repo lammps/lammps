@@ -15,25 +15,25 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "respa_omp.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
-#include "error.h"
-#include "timer.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "update.h"
 
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

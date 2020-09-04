@@ -15,16 +15,20 @@
 #define LMP_ATOM_H
 
 #include "pointers.h"
+
 #include <map>
 #include <set>
-#include <string>
 
 namespace LAMMPS_NS {
+
+  // forward declaration
+
+  class AtomVec;
 
 class Atom : protected Pointers {
  public:
   char *atom_style;
-  class AtomVec *avec;
+  AtomVec *avec;
   enum{DOUBLE,INT,BIGINT};
 
   // atom counts
@@ -273,12 +277,12 @@ class Atom : protected Pointers {
   void add_peratom_vary(const char *, void *, int, int *,
                         void *, int collength=0);
   void create_avec(const std::string &, int, char **, int);
-  virtual class AtomVec *new_avec(const std::string &, int, int &);
+  virtual AtomVec *new_avec(const std::string &, int, int &);
 
   void init();
   void setup();
 
-  class AtomVec *style_match(const char *);
+  AtomVec *style_match(const char *);
   void modify_params(int, char **);
   void tag_check();
   void tag_extend();
@@ -296,8 +300,8 @@ class Atom : protected Pointers {
   void data_angles(int, char *, int *, tagint, int);
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
-  void data_bonus(int, char *, class AtomVec *, tagint);
-  void data_bodies(int, char *, class AtomVec *, tagint);
+  void data_bonus(int, char *, AtomVec *, tagint);
+  void data_bodies(int, char *, AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();

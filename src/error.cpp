@@ -12,16 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "error.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include "universe.h"
-#include "output.h"
-#include "input.h"
+
 #include "accelerator_kokkos.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "input.h"
+#include "output.h"
+#include "universe.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "update.h"

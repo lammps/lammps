@@ -16,18 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_accelerate_cos.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

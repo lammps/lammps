@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_rigid_pc_sphere.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

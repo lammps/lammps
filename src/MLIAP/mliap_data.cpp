@@ -11,24 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "mliap_data.h"
-#include "mliap_model_linear.h"
-#include "mliap_model_quadratic.h"
-#include "mliap_descriptor_snap.h"
-#include "compute_mliap.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
 #include "memory.h"
-#include "error.h"
+#include "mliap_descriptor.h"
+#include "mliap_model.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

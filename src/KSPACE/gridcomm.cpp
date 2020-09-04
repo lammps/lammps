@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "gridcomm.h"
-#include <mpi.h>
+
 #include "comm.h"
-#include "kspace.h"
-#include "irregular.h"
-#include "memory.h"
 #include "error.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 

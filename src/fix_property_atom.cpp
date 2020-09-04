@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_property_atom.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

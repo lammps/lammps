@@ -13,7 +13,7 @@
 
 #include "fix_temp_rescale.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

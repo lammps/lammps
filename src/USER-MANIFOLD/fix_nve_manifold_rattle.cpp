@@ -33,7 +33,7 @@
 
 
 #include "fix_nve_manifold_rattle.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"

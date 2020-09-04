@@ -12,22 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "write_coeff.h"
-#include <cstring>
-#include <cstdlib>
-#include <cctype>
-#include <unistd.h>
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
+#include "bond.h"
 #include "comm.h"
-#include "force.h"
-#include "universe.h"
-#include "error.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "error.h"
+#include "force.h"
+#include "improper.h"
+#include "pair.h"
+#include "universe.h"
+
+#include <cctype>
+#include <cstring>
+#include <unistd.h>
 
 using namespace LAMMPS_NS;
 

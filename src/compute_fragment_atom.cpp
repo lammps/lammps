@@ -16,17 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fragment_atom.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "group.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

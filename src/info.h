@@ -21,7 +21,7 @@ CommandStyle(info,Info)
 #define LMP_INFO_H
 
 #include "pointers.h"
-#include <string>
+
 #include <vector>
 
 namespace LAMMPS_NS {

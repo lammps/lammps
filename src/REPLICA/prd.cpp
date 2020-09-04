@@ -16,32 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "prd.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix_event_prd.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "region.h"
-#include "comm.h"
 #include "velocity.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
-#include "fix_event_prd.h"
-#include "force.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

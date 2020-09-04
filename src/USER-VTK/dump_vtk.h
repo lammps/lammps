@@ -27,7 +27,7 @@ DumpStyle(vtk,DumpVTK)
 #include "dump_custom.h"
 #include <map>
 #include <set>
-#include <string>
+
 
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>

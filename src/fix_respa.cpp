@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_respa.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

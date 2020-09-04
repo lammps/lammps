@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "compute.h"
 #include "modify.h"
 #include "pair.h"
-#include "utils.h"
+
 #include "timer.h"
 
 #include "plumed/wrapper/Plumed.h"

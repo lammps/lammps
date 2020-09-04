@@ -66,7 +66,6 @@ CommandStyle(kim_init,KimInit)
 #define LMP_KIM_INIT_H
 
 #include "pointers.h"
-#include <string>
 
 // Forward declaration.
 typedef struct KIM_Model KIM_Model;

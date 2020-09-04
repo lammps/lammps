@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_asphere.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

@@ -16,8 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "restart_mpiio.h"
-#include <mpi.h>
-#include <climits>
+
 #include "error.h"
 
 using namespace LAMMPS_NS;

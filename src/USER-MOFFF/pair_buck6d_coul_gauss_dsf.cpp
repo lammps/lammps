@@ -29,7 +29,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
-#include "utils.h"
+
 #include "math_special.h"
 
 using namespace LAMMPS_NS;

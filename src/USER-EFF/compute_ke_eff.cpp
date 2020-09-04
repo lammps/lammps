@@ -15,8 +15,8 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include "compute_ke_eff.h"
 #include "atom.h"
 #include "update.h"

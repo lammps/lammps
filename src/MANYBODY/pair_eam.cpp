@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

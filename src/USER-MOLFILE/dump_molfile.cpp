@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_molfile.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "domain.h"

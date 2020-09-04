@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "region_block.h"
-#include <cstring>
-#include "force.h"
+
 #include "domain.h"
-#include "math_extra.h"
 #include "error.h"
+#include "math_extra.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

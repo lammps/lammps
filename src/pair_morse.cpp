@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_morse.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

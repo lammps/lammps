@@ -12,12 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_group.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "error.h"
-#include <string>
-#include "fmt/format.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 

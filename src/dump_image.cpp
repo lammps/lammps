@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_image.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
@@ -35,7 +35,7 @@
 #include "math_extra.h"
 #include "error.h"
 #include "memory.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -16,7 +16,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <exception>
-#include <string>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;

@@ -16,15 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_event_displace.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix_event.h"
 #include "error.h"
-#include "force.h"
+#include "fix_event.h"
+#include "modify.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

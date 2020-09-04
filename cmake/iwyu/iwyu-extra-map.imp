@@ -1,0 +1,7 @@
+[
+  { include: [ "<bits/types/struct_rusage.h>", private, "<sys/resource.h>", public ] },
+  { include: [ "<bits/exception.h>", public, "<exception>", public ] },
+  { include: [ "@<Eigen/.*>", private, "<Eigen/Eigen>", public ] },
+  { include: [ "@<gtest/.*>", private, "\"gtest/gtest.h\"", public ] },
+  { include: [ "@<gmock/.*>", private, "\"gmock/gmock.h\"", public ] },
+]

@@ -24,7 +24,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.

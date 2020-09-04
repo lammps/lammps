@@ -14,11 +14,9 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxrna2_excv.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

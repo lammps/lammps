@@ -42,10 +42,10 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <climits>
-#include <cstdlib>
-#include <cstdint>
-#include <cinttypes>
+#include <climits>    // IWYU pragma: export
+#include <cstdlib>    // IWYU pragma: export
+#include <cstdint>    // IWYU pragma: export
+#include <cinttypes>  // IWYU pragma: export
 
 // grrr - IBM Power6 does not provide this def in their system header files
 

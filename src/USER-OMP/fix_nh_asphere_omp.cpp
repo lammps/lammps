@@ -15,19 +15,15 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "math_extra.h"
 #include "fix_nh_asphere_omp.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "compute.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
+#include "math_extra.h"
 
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

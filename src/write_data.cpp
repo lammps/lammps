@@ -12,29 +12,27 @@
 ------------------------------------------------------------------------- */
 
 #include "write_data.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "domain.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "force.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -19,7 +19,7 @@
 #include "error.h"
 #include "neigh_list.h"
 #include "domain.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

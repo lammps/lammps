@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tmd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,8 +29,8 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

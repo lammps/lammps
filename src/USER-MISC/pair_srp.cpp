@@ -26,9 +26,9 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
 #include "pair_srp.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -44,7 +44,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "thermo.h"
 #include "output.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

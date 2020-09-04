@@ -16,23 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_aggregate_atom.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
-#include "group.h"
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

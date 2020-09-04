@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -27,7 +27,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

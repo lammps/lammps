@@ -66,7 +66,6 @@ CommandStyle(kim_interactions,KimInteractions)
 #define LMP_KIM_INTERACTIONS_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

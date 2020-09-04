@@ -23,7 +23,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ehex.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

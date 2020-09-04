@@ -16,12 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_oneway.h"
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "region.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

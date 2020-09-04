@@ -29,7 +29,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 

@@ -28,6 +28,40 @@ variable VERBOSE set to 1:
 
 ----------
 
+.. _iwyu_processing:
+
+Report missing and unneeded '#include' statements
+-------------------------------------------------
+
+The conventions for how and when to use and order include statements in
+LAMMPS are `documented in a separate file <https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md>`_
+(also included in the source code distribution).  To assist with following
+these conventions one can use the `Include What You Use tool <https://include-what-you-use.org/>`_.
+This is still under development and for large and complex projects like LAMMPS
+there are some false positives, so suggested changes need to be verified manually.
+It is recommended to use at least version 0.14, which has much fewer incorrect
+reports than earlier versions.
+
+The necessary steps to generate the report can be enabled via a
+CMake variable:
+
+.. code-block:: bash
+
+   -D ENABLE_IWYU=value    # value = no (default) or yes
+
+This will check if the required binary (include-what-you-use or iwyu)
+and python script script (iwyu-tool or iwyu_tool or iwyu_tool.py) can
+be found in the path.  The analysis can then be started with:
+
+.. code-block:: bash
+
+   make iwyu
+
+This may first run some compilation, as the analysis is dependent
+on recording all commands required to do the compilation.
+
+----------
+
 .. _sanitizer:
 
 Address, Undefined Behavior, and Thread Sanitizer Support

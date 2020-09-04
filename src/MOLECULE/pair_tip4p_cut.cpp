@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tip4p_cut.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +28,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

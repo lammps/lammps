@@ -41,6 +41,7 @@ From: ubuntu:18.04
         libproj-dev \
         libvtk6-dev \
         libyaml-dev \
+        libzstd-dev \
         make \
         mpi-default-bin \
         mpi-default-dev \
@@ -70,6 +71,7 @@ From: ubuntu:18.04
         xxd \
         valgrind \
         gdb \
+        zstd \
         libkim-api-dev \
         openkim-models
 

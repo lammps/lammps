@@ -48,7 +48,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "timer.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"

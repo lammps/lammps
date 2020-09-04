@@ -31,6 +31,9 @@
 #include <cstring>
 
 #include "omp_compat.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 

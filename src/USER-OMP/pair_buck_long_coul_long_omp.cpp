@@ -11,18 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
-#include "omp_compat.h"
-#include <cmath>
-#include "math_vector.h"
 #include "pair_buck_long_coul_long_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "force.h"
-
+#include "math_vector.h"
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define EWALD_F   1.12837917

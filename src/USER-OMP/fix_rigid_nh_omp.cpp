@@ -31,7 +31,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "update.h"
-#include "timer.h"
+
 
 #if defined(_OPENMP)
 #include <omp.h>

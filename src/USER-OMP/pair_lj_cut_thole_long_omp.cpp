@@ -32,7 +32,7 @@
 #include "math_const.h"
 #include "error.h"
 #include "suffix.h"
-#include "timer.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -12,25 +12,25 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "pair_brownian_poly_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "fix_wall.h"
 #include "force.h"
 #include "input.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "update.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "fix_wall.h"
-
 #include "math_const.h"
 #include "math_special.h"
-
+#include "neigh_list.h"
+#include "random_mars.h"
 #include "suffix.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;

@@ -23,7 +23,7 @@
 #include "force.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "timer.h"
+
 #include "update.h"
 
 #include <cmath>

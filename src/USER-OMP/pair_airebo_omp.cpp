@@ -12,19 +12,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_airebo_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
-#include "math_special.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 
+#include <cmath>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

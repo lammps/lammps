@@ -107,10 +107,10 @@ jacobi3(double const mat[3][3], // the 3x3 matrix you wish to diagonalize
 
 
 int MathEigen::
-jacobi3(double const **mat,     // the 3x3 matrix you wish to diagonalize
-        double *eval,           // store the eigenvalues here
-        double **evec,          // store the eigenvectors here...
-        bool evec_as_columns,   // ...as rows or columns?
+jacobi3(double const* const* mat, // the 3x3 matrix you wish to diagonalize
+        double *eval,             // store the eigenvalues here
+        double **evec,            // store the eigenvectors here...
+        bool evec_as_columns,     // ...as rows or columns?
         Jacobi<double,double*,double**,double const*const*>::SortCriteria
         sort_criteria)
 {

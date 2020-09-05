@@ -242,7 +242,7 @@ namespace MathEigen {
   /// @note
   ///   When invoked using default arguments, this function is a stand-in for
   ///   the the version of "jacobi()" that was defined in "POEMS/fix_poems.cpp".
-  int jacobi3(double const **mat,
+  int jacobi3(double const* const* mat,
               double *eval,
               double **evec,
               // optional arguments:
@@ -599,7 +599,6 @@ inline void normalize(std::vector<T>& vec) {
   scalar_mul(1.0/l2_norm(vec), vec);
 }
 
-
 template <typename T>
 inline real_t<T> l1_norm(const std::vector<T>& vec) {
   real_t<T> norm = real_t<T>(); // Zero initialization
@@ -628,12 +627,14 @@ Jacobi(int n, Scalar **workspace) {
   }
 }
 
+
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 ~Jacobi() {
   if (! is_M_preallocated)
     Dealloc();
 }
+
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 int Jacobi<Scalar, Vector, Matrix, ConstMatrix>::

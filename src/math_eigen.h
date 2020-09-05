@@ -66,21 +66,30 @@ namespace MathEigen {
   void Dealloc2D(Entry ***paaX);     //!< pointer to 2D multidimensional array
 
   // --- Complex numbers ---
-
-  /// @brief  "realTypeMap" struct is used to the define "real_t<T>" type mapper
-  ///         which returns the C++ type corresponding to the real component of T.
-  /// @details  Consider a function ("l2_norm()") that calculates the
-  ///         (Euclidian) length of a vector of numbers (either real or complex):
+  /// @brief
+  /// The "realTypeMap" struct is used to the define "real_t<T>" type mapper.
+  /// The "real_t" type mapper is used by the "LambdaLanczos" and "PEigenDense"
+  /// classes, so it is documented here to help users understand those classes.
+  /// "real_t<T>" returns the C++ type corresponding to the real component of T.
+  /// @details
+  /// For example, suppose you have a matrix of type std::complex<double> **.
+  /// The eigenvalues calculated by "LambdaLanczos" and "PEigenDense" should be
+  /// of type "double" (which is the same as "real_T<std::complex<double>>"),
+  /// (This is because the algorithm assumes the matrix is Hermetian, and the
+  ///  eigenvalues of a Hermetian matrix are always real.
+  ///  So if you attempt to pass a reference to a complex number as the first
+  ///  argument to LambdaLanczos::run(), the compiler will complain.)
+  /// For a simpler example, consider a function ("l2_norm()") that calculates
+  /// the (Euclidian) length of a vector of numbers (either real or complex):
   /// @code
   ///    template <typename T>  real_t<T>  l2_norm(const std::vector<T>& vec);
   /// @endcode
-  /// The l2_norm is always real by definition.
+  /// Since it is a "length", the l2_norm is always real by definition.
   /// (See https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm)
-  /// The return type of this function ("real_t<T>") indicates that
-  /// it returns a real number, even if the entries (of type T)
-  /// are complex numbers.  In other words, by default, real_t<T> returns T.
-  /// However real_t<std::complex<T>> returns T (not std::complex<T>).
-  /// We define "real_t<T>" below using C++ template specializations:
+  /// The return type of this function ("real_t<T>") indicates that it returns
+  /// a real number, even if the entries (of type T) are complex numbers.
+  /// (Implementation details: "real_t<T>" is defined using C++ template
+  ///  specializations.)
 
   template <typename T>
   struct realTypeMap {
@@ -265,15 +274,15 @@ namespace MathEigen {
   /// @note
   ///   When invoked using default arguments, this function is a stand-in for
   ///   the previous version of "jacobi()" that was declared in "math_extra.h".
-  int jacobi3(double const mat[3][3],//!< the 3x3 matrix you wish to diagonalize
-              double *eval,          //!< store the eigenvalues here
-              double evec[3][3],     //!< store the eigenvectors here...
-              bool evec_as_columns=true,  //!< ...as columns or as rows?
+  int jacobi3(double const mat[3][3],
+              double *eval,
+              double evec[3][3],
               // optional arguments:
+              bool evec_as_columns=true,
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
               SortCriteria sort_criteria=
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
-              SORT_DECREASING_EVALS  //!<sort results?
+              SORT_DECREASING_EVALS
               );
 
 
@@ -425,11 +434,10 @@ namespace MathEigen {
     ///        iteration (ie. during LambdaLanczos::run()).  The goal is to insure
     ///        that the correct eigenvalue is selected (the one with the maximum
     ///        magnitude).
-    /// @note  The eigevalue returned by LambdaLanczos::run() is not effected
-    ///        because after the iteration is finished, it will subtract this
+    /// @note  Unless your matrix is positive definite or negative definite, you
+    ///        MUST specify eigenvalue_offset.  See comment above for details.
+    /// @note  After LambdaLanczos::run() has finished, it will subtract this
     ///        number from the eigenvalue before it is returned to the caller.
-    /// @note  Unless your matrix is positive definite or negative definite,
-    ///        you MUST specify eigenvalue_offset.  See comment above for details.
     real_t<T> eigenvalue_offset = 0.0;
 
     /// @brief This function sets "eigenvalue_offset" automatically.
@@ -445,7 +453,7 @@ namespace MathEigen {
     std::function<void(std::vector<T>&)> init_vector =
       VectorRandomInitializer<T>::init;
 
-    // (for those who prefer "Set" functions...)
+    // (for those who prefer using "Set" functions...)
     int SetSize(int matrix_size);
     void SetMul(std::function<void(const std::vector<T>&,
                                    std::vector<T>&)> mv_mul);
@@ -512,7 +520,7 @@ namespace MathEigen {
     /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
     /// @return Return the principal eigenvalue of the matrix.
     ///         If you want the eigenvector, pass a non-null "evector" argument.
-    Scalar
+    real_t<Scalar>
     PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
                    Vector evector,       //!< the eigenvector is stored here
                    bool find_max=false); //!< want the max or min eigenvalue?
@@ -1422,7 +1430,7 @@ PEigenDense(int matrix_size):evec(matrix_size) {
 }
 
 template<typename Scalar, typename Vector, typename ConstMatrix>
-Scalar PEigenDense<Scalar, Vector, ConstMatrix>::
+real_t<Scalar> PEigenDense<Scalar, Vector, ConstMatrix>::
 PrincipalEigen(ConstMatrix matrix,
                Vector eigenvector,
                bool find_max)

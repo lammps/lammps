@@ -159,17 +159,20 @@ void PairCAC::compute(int eflag, int vflag) {
   pqi = qi = 0;
   //compute forces
   for (i = 0; i < nlocal; i++) {
-    //compute this element's mass matrix
-    compute_mass_matrix();
-    for ( mi = 0; mi < max_nodes_per_element; mi++) {
-      for (mj = 0; mj < max_nodes_per_element; mj++){
-        mass_copy[mi][mj]=mass_matrix[mi][mj];
-      }      
-    }
+    if(element_type[i]){
+      //compute this element's mass matrix
+      compute_mass_matrix();
+      for ( mi = 0; mi < max_nodes_per_element; mi++) {
+        for (mj = 0; mj < max_nodes_per_element; mj++){
+          mass_copy[mi][mj]=mass_matrix[mi][mj];
+        }      
+      }
+    
 
     singular = LUPDecompose(mass_copy, max_nodes_per_element,0.00000000000001,  pivot);
     if(singular==0){
       error->one(FLERR,"LU matrix is degenerate");
+    }
     }
     atomic_flag = 0;
     current_element_type = element_type[i];

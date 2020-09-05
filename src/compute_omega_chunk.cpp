@@ -20,6 +20,7 @@
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "error.h"
 
@@ -250,10 +251,10 @@ void ComputeOmegaChunk::compute_array()
 
     // handle each (nearly) singular I matrix
     // due to 2-atom chunk or linear molecule
-    // use jacobi() and angmom_to_omega() to calculate valid omega
+    // use jacobi3() and angmom_to_omega() to calculate valid omega
 
     } else {
-      int ierror = MathExtra::jacobi(ione,idiag,evectors);
+      int ierror = MathEigen::jacobi3(ione,idiag,evectors);
       if (ierror) error->all(FLERR,
                              "Insufficient Jacobi rotations for omega/chunk");
 

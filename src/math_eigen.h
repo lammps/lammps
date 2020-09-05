@@ -16,8 +16,8 @@
                          Andrew Jewett (Scripps Research, Jacobi algorithm)
 ------------------------------------------------------------------------- */
 
-#ifndef _MATH_EIGEN_H
-#define _MATH_EIGEN_H
+#ifndef LMP_MATH_EIGEN_H
+#define LMP_MATH_EIGEN_H
 
 /// @file  This file contains a library of functions and classes which can
 ///        efficiently perform eigendecomposition for an extremely broad
@@ -40,7 +40,7 @@
 ///        https://github.com/jewettaij/jacobi_pd   (CC0-1.0 license)
 ///        https://github.com/mrcdr/lambda-lanczos  (MIT license)
 
-#include <cassert>
+//#include <cassert>
 #include <numeric>
 #include <complex>
 #include <limits>
@@ -51,408 +51,475 @@
 
 namespace MathEigen {
 
-// --- Memory allocation for matrices ---
+  // --- Memory allocation for matrices ---
 
-/// @brief Allocate an arbitrary 2-dimensional array.  (Uses row-major order.)
-/// @note  This function was intended for relatively small matrices (eg 4x4).
-///        For large arrays, please use the 2d create() function from "memory.h"
-template<typename Entry>
-void Alloc2D(size_t nrows,          //!< size of the array (number of rows)
-             size_t ncols,          //!< size of the array (number of columns)
-             Entry ***paaX);        //!< pointer to a 2D C-style array
+  /// @brief Allocate an arbitrary 2-dimensional array.  (Uses row-major order.)
+  /// @note  This function was intended for relatively small matrices (eg 4x4).
+  ///        For large arrays, please use the 2d create() function from "memory.h"
+  template<typename Entry>
+  void Alloc2D(size_t nrows,          //!< size of the array (number of rows)
+               size_t ncols,          //!< size of the array (number of columns)
+               Entry ***paaX);        //!< pointer to a 2D C-style array
 
-/// @brief Deallocate arrays that were created using Alloc2D().
-template<typename Entry>
-void Dealloc2D(Entry ***paaX);     //!< pointer to 2D multidimensional array
+  /// @brief Deallocate arrays that were created using Alloc2D().
+  template<typename Entry>
+  void Dealloc2D(Entry ***paaX);     //!< pointer to 2D multidimensional array
 
-// --- Complex numbers ---
+  // --- Complex numbers ---
 
-/// @brief  "realTypeMap" struct is used to the define "real_t<T>" type mapper
-///         which returns the C++ type corresponding to the real component of T.
-/// @details  Consider a function ("l2_norm()") that calculates the
-///         (Euclidian) length of a vector of numbers (either real or complex):
-/// @code
-///    template <typename T>  real_t<T>  l2_norm(const std::vector<T>& vec);
-/// @endcode
-/// The l2_norm is always real by definition.
-/// (See https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm)
-/// The return type of this function ("real_t<T>") indicates that
-/// it returns a real number, even if the entries (of type T)
-/// are complex numbers.  In other words, by default, real_t<T> returns T.
-/// However real_t<std::complex<T>> returns T (not std::complex<T>).
-/// We define "real_t<T>" below using C++ template specializations:
+  /// @brief  "realTypeMap" struct is used to the define "real_t<T>" type mapper
+  ///         which returns the C++ type corresponding to the real component of T.
+  /// @details  Consider a function ("l2_norm()") that calculates the
+  ///         (Euclidian) length of a vector of numbers (either real or complex):
+  /// @code
+  ///    template <typename T>  real_t<T>  l2_norm(const std::vector<T>& vec);
+  /// @endcode
+  /// The l2_norm is always real by definition.
+  /// (See https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm)
+  /// The return type of this function ("real_t<T>") indicates that
+  /// it returns a real number, even if the entries (of type T)
+  /// are complex numbers.  In other words, by default, real_t<T> returns T.
+  /// However real_t<std::complex<T>> returns T (not std::complex<T>).
+  /// We define "real_t<T>" below using C++ template specializations:
 
-template <typename T>
-struct realTypeMap {
-  typedef T type;
-};
-template <typename T>
-struct realTypeMap<std::complex<T>> {
-  typedef T type;
-};
-template <typename T>
-using real_t = typename realTypeMap<T>::type;
-
-
-// --- Operations on vectors (of real and complex numbers) ---
-
-/// @brief  Calculate the inner product of two vectors.
-///         (For vectors of complex numbers, std::conj() is used.)
-template <typename T>
-T inner_prod(const std::vector<T>& v1, const std::vector<T>& v2);
-
-/// @brief  Compute the sum of the absolute values of the entries in v
-/// @returns a real number (of type real_t<T>).
-template <typename T>
-real_t<T> l1_norm(const std::vector<T>& v);
-
-/// @brief  Calculate the l2_norm (Euclidian length) of vector v.
-/// @returns a real number (of type real_t<T>).
-template <typename T>
-real_t<T> l2_norm(const std::vector<T>& v);
-
-/// @brief  Multiply a vector (v) by a scalar (c).
-template <typename T1, typename T2>
-void scalar_mul(T1 c, std::vector<T2>& v);
-
-/// @brief  Divide vector "v" in-place by it's length (l2_norm(v)).
-template <typename T>
-void normalize(std::vector<T>& v);
+  template <typename T>
+  struct realTypeMap {
+    typedef T type;
+  };
+  template <typename T>
+  struct realTypeMap<std::complex<T>> {
+    typedef T type;
+  };
+  template <typename T>
+  using real_t = typename realTypeMap<T>::type;
 
 
-// ---- Eigendecomposition of small dense symmetric matrices ----
+  // --- Operations on vectors (of real and complex numbers) ---
 
-/// @class Jacobi
-/// @brief Calculate the eigenvalues and eigevectors of a symmetric matrix
-///        using the Jacobi eigenvalue algorithm.  Code for the Jacobi class
-///        (along with tests and benchmarks) is available free of copyright at
-///        https://github.com/jewettaij/jacobi_pd
-/// @note  The "Vector" and "Matrix" type arguments can be any
-///        C or C++ object that support indexing, including pointers or vectors.
-/// @details
-/// -- Example: --
-///
-/// int n = 5;       // Matrix size
-/// double **M;      // A symmetric n x n matrix you want to diagonalize
-/// double *evals;   // Store the eigenvalues here.
-/// double **evects; // Store the eigenvectors here.
-/// // Allocate space for M, evals, and evects, and load contents of M (omitted)
-///
-/// // Now create an instance of Jacobi ("eigen_calc"). This will allocate space
-/// // for storing intermediate calculations.  Once created, it can be reused
-/// // multiple times without paying the cost of allocating memory on the heap.
-///
-/// Jacobi<double, double*, double**> eigen_calc(n);
-///
-/// // Note:
-/// // If the matrix you plan to diagonalize (M) is read-only, use this instead:
-/// // Jacobi<double, double*, double**, double const*const*> eigen_calc(n);
-/// // If you prefer using vectors over C-style pointers, this works also:
-/// // Jacobi<double, vector<double>&, vector<vector<double>>&> eigen_calc(n);
-///
-/// // Now, calculate the eigenvalues and eigenvectors of M
-///
-/// eigen_calc.Diagonalize(M, evals, evects);
-///
-/// --- end of example ---
+  /// @brief  Calculate the inner product of two vectors.
+  ///         (For vectors of complex numbers, std::conj() is used.)
+  template <typename T>
+  T inner_prod(const std::vector<T>& v1, const std::vector<T>& v2);
 
-template<typename Scalar,
-         typename Vector,
-         typename Matrix,
-         typename ConstMatrix=Matrix>
+  /// @brief  Compute the sum of the absolute values of the entries in v
+  /// @returns a real number (of type real_t<T>).
+  template <typename T>
+  real_t<T> l1_norm(const std::vector<T>& v);
 
-class Jacobi
-{
-  int n;            //!< the size of the matrices you want to diagonalize
-  Scalar **M;       //!< local copy of the current matrix being analyzed
-  // Precomputed cosine, sine, and tangent of the most recent rotation angle:
-  Scalar c;         //!< = cos(θ)
-  Scalar s;         //!< = sin(θ)
-  Scalar t;         //!< = tan(θ),  (note |t|<=1)
-  int *max_idx_row; //!< = keep track of the the maximum element in row i (>i)
+  /// @brief  Calculate the l2_norm (Euclidian length) of vector v.
+  /// @returns a real number (of type real_t<T>).
+  template <typename T>
+  real_t<T> l2_norm(const std::vector<T>& v);
 
-public:
+  /// @brief  Multiply a vector (v) by a scalar (c).
+  template <typename T1, typename T2>
+  void scalar_mul(T1 c, std::vector<T2>& v);
 
-  /// @brief  Specify the size of the matrices you want to diagonalize later.
-  /// @param n  the size (ie. number of rows) of the (square) matrix.
-  void SetSize(int n);
+  /// @brief  Divide vector "v" in-place by it's length (l2_norm(v)).
+  template <typename T>
+  void normalize(std::vector<T>& v);
 
-  Jacobi(int n = 0) { Init(); SetSize(n); }
+  // ---- Eigendecomposition of small dense symmetric matrices ----
 
-  ~Jacobi() { Dealloc(); }
-
-  // @typedef choose the criteria for sorting eigenvalues and eigenvectors
-  typedef enum eSortCriteria {
-    DO_NOT_SORT,
-    SORT_DECREASING_EVALS,
-    SORT_INCREASING_EVALS,
-    SORT_DECREASING_ABS_EVALS,
-    SORT_INCREASING_ABS_EVALS
-  } SortCriteria;
-
+  /// @class Jacobi
   /// @brief Calculate the eigenvalues and eigevectors of a symmetric matrix
-  ///        using the Jacobi eigenvalue algorithm.
-  /// @returns The number_of_sweeps (= number_of_iterations / (n*(n-1)/2)).
-  ///          If this equals max_num_sweeps, the algorithm failed to converge.
-  /// @note  To reduce the computation time further, set calc_evecs=false.
-  int
-  Diagonalize(ConstMatrix mat, //!< the matrix you wish to diagonalize (size n)
-              Vector eval,   //!< store the eigenvalues here
-              Matrix evec,   //!< store the eigenvectors here (in rows)
-              SortCriteria sort_criteria=SORT_DECREASING_EVALS,//!<sort results?
-              bool calc_evecs=true,      //!< calculate the eigenvectors?
-              int max_num_sweeps = 50);  //!< limit the number of iterations
+  ///        using the Jacobi eigenvalue algorithm.  Code for the Jacobi class
+  ///        (along with tests and benchmarks) is available free of copyright at
+  ///        https://github.com/jewettaij/jacobi_pd
+  /// @note  The "Vector" and "Matrix" type arguments can be any
+  ///        C or C++ object that support indexing, including pointers or vectors.
+  /// @details
+  ///   Usage example:
+  /// @code
+  ///
+  /// int n = 5;       // Matrix size
+  /// double **M;      // A symmetric n x n matrix you want to diagonalize
+  /// double *evals;   // Store the eigenvalues here.
+  /// double **evects; // Store the eigenvectors here.
+  /// // Allocate space for M, evals, and evects, and load contents of M (omitted)
+  ///
+  /// // Now create an instance of Jacobi ("eigen_calc"). This will allocate space
+  /// // for storing intermediate calculations.  Once created, it can be reused
+  /// // multiple times without paying the cost of allocating memory on the heap.
+  ///
+  /// Jacobi<double, double*, double**> eigen_calc(n);
+  ///
+  /// // Note:
+  /// // If the matrix you plan to diagonalize (M) is read-only, use this instead:
+  /// // Jacobi<double, double*, double**, double const*const*> eigen_calc(n);
+  /// // If you prefer using vectors over C-style pointers, this works also:
+  /// // Jacobi<double, vector<double>&, vector<vector<double>>&> eigen_calc(n);
+  ///
+  /// // Now, calculate the eigenvalues and eigenvectors of M
+  ///
+  /// eigen_calc.Diagonalize(M, evals, evects);
+  ///
+  /// @endcode
 
-private:
-  // (Descriptions of private functions can be found in their implementation.)
-  void CalcRot(Scalar const *const *M, int i, int j);
-  void ApplyRot(Scalar **M, int i, int j);
-  void ApplyRotLeft(Matrix E, int i, int j);
-  int MaxEntryRow(Scalar const *const *M, int i) const;
-  void MaxEntry(Scalar const *const *M, int& i_max, int& j_max) const;
-  void SortRows(Vector v, Matrix M, int n, SortCriteria s=SORT_DECREASING_EVALS) const;
-  void Init();
-  void Alloc(int n);
-  void Dealloc();
-public:
-  // C++ boilerplate: copy and move constructor, swap, and assignment operator
-  Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source);
-  Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other);
-  void swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other);
-  Jacobi<Scalar, Vector, Matrix, ConstMatrix>& operator = (Jacobi<Scalar, Vector, Matrix, ConstMatrix> source);
+  template<typename Scalar,
+           typename Vector,
+           typename Matrix,
+           typename ConstMatrix=Matrix>
 
-}; // class Jacobi
+  class Jacobi
+  {
+    int n;            //!< the size of the matrices you want to diagonalize
+    Scalar **M;       //!< local copy of the current matrix being analyzed
+    // Precomputed cosine, sine, and tangent of the most recent rotation angle:
+    Scalar c;         //!< = cos(θ)
+    Scalar s;         //!< = sin(θ)
+    Scalar t;         //!< = tan(θ),  (note |t|<=1)
+    int *max_idx_row; //!< = keep track of the the maximum element in row i (>i)
+
+  public:
+    /// @brief  Specify the size of the matrices you want to diagonalize later.
+    /// @param  n  the size (ie. number of rows) of the (square) matrix.
+    /// @param  workspace  optional array for storing intermediate calculations
+    ///                   (The vast majority of users can ignore this argument.)
+    Jacobi(int n = 0, Scalar **workspace=nullptr);
+
+    ~Jacobi();
+
+    /// @brief  Change the size of the matrices you want to diagonalize.
+    /// @param  n  the size (ie. number of rows) of the (square) matrix.
+    void SetSize(int n);
+
+    // @typedef choose the criteria for sorting eigenvalues and eigenvectors
+    typedef enum eSortCriteria {
+      DO_NOT_SORT,
+      SORT_DECREASING_EVALS,
+      SORT_INCREASING_EVALS,
+      SORT_DECREASING_ABS_EVALS,
+      SORT_INCREASING_ABS_EVALS
+    } SortCriteria;
+
+    /// @brief Calculate the eigenvalues and eigevectors of a symmetric matrix
+    ///        using the Jacobi eigenvalue algorithm.
+    /// @returns 0 if the algorithm converged,
+    ///          1 if the algorithm failed to converge. (IE, if the number of
+    ///            pivot iterations exceeded max_num_sweeps * iters_per_sweep,
+    ///            where iters_per_sweep = (n*(n-1)/2))
+    /// @note  To reduce the computation time further, set calc_evecs=false.
+    int
+    Diagonalize(ConstMatrix mat, //!< the matrix you wish to diagonalize (size n)
+                Vector eval,     //!< store the eigenvalues here
+                Matrix evec,     //!< store the eigenvectors here (in rows)
+                SortCriteria sort_criteria=SORT_DECREASING_EVALS,//!<sort results?
+                bool calc_evecs=true,    //!< calculate the eigenvectors?
+                int max_num_sweeps=50    //!< limit the number of iterations
+                );
+
+  private:
+    bool is_M_preallocated;
+    // (Descriptions of private functions can be found in their implementation.)
+    void CalcRot(Scalar const *const *M, int i, int j);
+    void ApplyRot(Scalar **M, int i, int j);
+    void ApplyRotLeft(Matrix E, int i, int j);
+    int MaxEntryRow(Scalar const *const *M, int i) const;
+    void MaxEntry(Scalar const *const *M, int& i_max, int& j_max) const;
+    void SortRows(Vector v, Matrix M, int n, SortCriteria s=SORT_DECREASING_EVALS) const;
+    void Init();
+    void Alloc(int n);
+    void Dealloc();
+  public:
+    // C++ boilerplate: copy and move constructor, swap, and assignment operator
+    Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source);
+    Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other);
+    void swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other);
+    Jacobi<Scalar, Vector, Matrix, ConstMatrix>& operator = (Jacobi<Scalar, Vector, Matrix, ConstMatrix> source);
+
+  }; // class Jacobi
 
 
+  /// @brief
+  ///   A specialized function which finds the eigenvalues and eigenvectors
+  ///   of a 3x3 matrix (in double ** format).
+  /// @param  mat   the 3x3 matrix you wish to diagonalize
+  /// @param  eval  store the eigenvalues here
+  /// @param  evec  store the eigenvectors here...
+  /// @param  evec_as_columns  ...in the columns or in rows?
+  /// @param  sort_criteria   sort the resulting eigenvalues?
+  /// @note
+  ///   When invoked using default arguments, this function is a stand-in for
+  ///   the the version of "jacobi()" that was defined in "POEMS/fix_poems.cpp".
+  int jacobi3(double const **mat,
+              double *eval,
+              double **evec,
+              // optional arguments:
+              bool evec_as_columns = true,
+              Jacobi<double,double*,double**,double const*const*>::
+              SortCriteria sort_criteria =
+              Jacobi<double,double*,double**,double const*const*>::
+              SORT_DECREASING_EVALS
+              );
 
 
-
-// ---- Eigendecomposition of large sparse (and dense) matrices ----
-
-// The "LambdaLanczos" is a class useful for calculating eigenvalues
-// and eigenvectors of large sparse matrices.  Unfortunately, before the
-// LambdaLanczos class can be declared, several additional expressions,
-// classes and functions that it depends on must be declared first.
-
-// @brief  Create random vectors used at the beginning of the Lanczos algorithm.
-// @note "Partially specialization of function" is not allowed, so
-//       it is mimicked by wrapping the "init" function with a class template.
-template <typename T>
-struct VectorRandomInitializer {
-public:
-  static void init(std::vector<T>&);
-};
-
-template <typename T>
-struct VectorRandomInitializer<std::complex<T>> {
-public:
-  static void init(std::vector<std::complex<T>>&);
-};
-
-/// @brief  Return the number of significant decimal digits of type T.
-template <typename T>
-inline constexpr int sig_decimal_digit() {
-  return (int)(std::numeric_limits<T>::digits *
-               std::log10(std::numeric_limits<T>::radix));
-}
-
-/// @brief  Return 10^-n where n=number of significant decimal digits of type T.
-template <typename T>
-inline constexpr T minimum_effective_decimal() {
-  return std::pow(10, -sig_decimal_digit<T>());
-}
-
-
-/// @brief The LambdaLanczos class provides a general way to calculate
-///        the smallest or largest eigenvalue and the corresponding eigenvector
-///        of a symmetric (Hermitian) matrix using the Lanczos algorithm.
-///        The characteristic feature of LambdaLanczos is that the matrix-vector
-///        multiplication routine used in the Lanczos algorithm is adaptable.
-/// @details
-/// @code
-///
-/// //Example:
-/// const int n = 3;
-/// double M[n][n] = { {-1.0, -1.0, 1.0},
-///                    {-1.0, 1.0, 1.0},
-///                    { 1.0, 1.0, 1.0} };
-/// // (Its eigenvalues are {-2, 1, 2})
-///
-/// // Specify the matrix-vector multiplication function
-/// auto mv_mul = [&](const vector<double>& in, vector<double>& out) {
-///   for(int i = 0;i < n;i++) {
-///     for(int j = 0;j < n;j++) {
-///       out[i] += M[i][j]*in[j];
-///     }
-///   }
-/// };
-///
-/// LambdaLanczos<double> engine(mv_mul, n, true);
-///     // ("true" means to calculate the largest eigenvalue.)
-/// engine.eigenvalue_offset = 3.0   # = max_i{Σ_j|Mij|}  (see below)
-/// double eigenvalue;
-/// vector<double> eigenvector(n);
-/// int itern = engine.run(eigenvalue, eigenvector);
-///
-/// cout << "Iteration count: " << itern << endl;
-/// cout << "Eigen value: " << setprecision(16) << eigenvalue << endl;
-/// cout << "Eigen vector:";
-/// for(int i = 0; i < n; i++) {
-///   cout << eigenvector[i] << " ";
-/// }
-/// cout << endl;
-///
-/// @endcode
-/// This feature allows you to use a matrix whose elements are partially given,
-/// e.g. a sparse matrix whose non-zero elements are stored as a list of
-/// {row-index, column-index, value} tuples.  You can also easily combine
-/// LambdaLanczos with existing matrix libraries (e.g. Eigen)
-///
-/// @note
-///   If the matrices you want to analyze are ordinary square matrices, (as in
-///   the example) it might be easier to use "PEigenDense" instead.  (It is a
-///   wrapper which takes care of all of the LambdaLanczos details for you.)
-///
-/// @note
-///  IMPORTANT:
-///  The Lanczos algorithm finds the largest magnitude eigenvalue, so you
-///  MUST ensure that the eigenvalue you are seeking has the largest magnitude
-///  (regardless of whether it is the maximum or minimum eigenvalue).
-///  To insure that this is so, you can add or subtract a number to all
-///  of the eigenvalues of the matrix by specifying the "eigenvalue_offset".
-///  This number should exceed the largest magnitude eigenvalue of the matrix.
-///  According to the Gershgorin theorem, you can estimate this number using
-///     r = max_i{Σ_j|Mij|} = max_j{Σ_i|Mij|}
-///  (where Mij are the elements of the matrix and Σ_j denotes the sum over j).
-///  If find_maximum == true (if you are seeking the maximum eigenvalue), then
-///    eigenvalue_offset = +r
-///  If find_maximum == false, then
-///    eigenvalue_offset = -r
-///  The eigenvalue_offset MUST be specified by the user.  LambdaLanczos does
-///  not have an efficient and general way to access the elements of the matrix.
-///
-///  (You can omit this step if you are seeking the maximum eigenvalue,
-///   and the matrix is positive definite, or if you are seeking the minimum
-///   eigenvalue and the matrix is negative definite.)
-///
-/// @note
-///   LambdaLanczos is available under the MIT license and downloadable at:
-///   https://github.com/mrcdr/lambda-lanczos
-
-template <typename T>
-class LambdaLanczos {
-public:
-  LambdaLanczos();
-  LambdaLanczos(std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul, int matrix_size, bool find_maximum);
-  LambdaLanczos(std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul, int matrix_size) : LambdaLanczos(mv_mul, matrix_size, true) {}
-
-  /// @brief  Calculate the principal (largest or smallest) eigenvalue
-  ///         of the matrix (and its corresponding eigenvector).
-  int run(real_t<T>&, std::vector<T>&) const;
-
-  // --- public data members ---
-
-  /// @brief  Specify the size of the matrix you will analyze.
-  ///         (This equals the size of the eigenvector which will be returned.)
-  int matrix_size;
-
-  /// @brief  Specify the function used for matrix*vector multiplication
-  ///         used by the Lanczos algorithm.  For an ordinary dense matrix,
-  ///         this function is the ordinary matrix*vector product. (See the
-  ///         example above.  For a sparse matrix, it will be something else.)
-  std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul;
-
-  /// @brief  Are we searching for the maximum or minimum eigenvalue?
-  /// @note   (Usually, you must also specify eigenvalue_offset.)
-  bool find_maximum = false;
-
-  /// @brief Shift all the eigenvalues by "eigenvalue_offset" during the Lanczos
-  ///        iteration (ie. during LambdaLanczos::run()).  The goal is to insure
-  ///        that the correct eigenvalue is selected (the one with the maximum
-  ///        magnitude).
-  /// @note  The eigevalue returned by LambdaLanczos::run() is not effected
-  ///        because after the iteration is finished, it will subtract this
-  ///        number from the eigenvalue before it is returned to the caller.
-  /// @note  Unless your matrix is positive definite or negative definite,
-  ///        you MUST specify eigenvalue_offset.  See comment above for details.
-  real_t<T> eigenvalue_offset = 0.0;
-
-  /// @brief This function sets "eigenvalue_offset" automatically.
-  /// @note  Using this function is not recommended because it is very slow.
-  ///        For efficiency, set the "eigenvalue_offset" yourself.
-  void ChooseOffset();
-
-  // The remaining data members usually can be left alone:
-  int max_iteration;
-  real_t<T> eps = minimum_effective_decimal<real_t<T>>() * 1e3;
-  real_t<T> tridiag_eps_ratio = 1e-1;
-  int initial_vector_size = 200;
-  std::function<void(std::vector<T>&)> init_vector =
-    VectorRandomInitializer<T>::init;
-
-  // (for those who prefer "Set" functions...)
-  int SetSize(int matrix_size);
-  void SetMul(std::function<void(const std::vector<T>&,
-                                 std::vector<T>&)> mv_mul);
-  void SetInitVec(std::function<void(std::vector<T>&)> init_vector);
-  void SetFindMax(bool find_maximum);
-  void SetEvalOffset(T eigenvalue_offset);
-  void SetEpsilon(T eps);
-  void SetTriEpsRatio(T tridiag_eps_ratio);
-
-private:
-  static void schmidt_orth(std::vector<T>&, const std::vector<std::vector<T>>&);
-  real_t<T> find_minimum_eigenvalue(const std::vector<real_t<T>>&,
-                                    const std::vector<real_t<T>>&) const;
-  real_t<T> find_maximum_eigenvalue(const std::vector<real_t<T>>&,
-                                    const std::vector<real_t<T>>&) const;
-  static real_t<T> tridiagonal_eigen_limit(const std::vector<real_t<T>>&,
-                                           const std::vector<real_t<T>>&);
-  static int num_of_eigs_smaller_than(real_t<T>,
-                                      const std::vector<real_t<T>>&,
-                                      const std::vector<real_t<T>>&);
-  real_t<T> UpperBoundEvals() const;
-};
+  /// @brief
+  ///   This version of jacobi3() finds the eigenvalues and eigenvectors
+  ///   of a 3x3 matrix (which is in double (*)[3] format, instead of double **)
+  /// @param  mat   the 3x3 matrix you wish to diagonalize
+  /// @param  eval  store the eigenvalues here
+  /// @param  evec  store the eigenvectors here...
+  /// @param  evec_as_columns  ...in the columns or in rows?
+  /// @param  sort_criteria   sort the resulting eigenvalues?
+  /// @note
+  ///   When invoked using default arguments, this function is a stand-in for
+  ///   the previous version of "jacobi()" that was declared in "math_extra.h".
+  int jacobi3(double const mat[3][3],//!< the 3x3 matrix you wish to diagonalize
+              double *eval,          //!< store the eigenvalues here
+              double evec[3][3],     //!< store the eigenvectors here...
+              bool evec_as_columns=true,  //!< ...as columns or as rows?
+              // optional arguments:
+              Jacobi<double,double*,double(*)[3],double const(*)[3]>::
+              SortCriteria sort_criteria=
+              Jacobi<double,double*,double(*)[3],double const(*)[3]>::
+              SORT_DECREASING_EVALS  //!<sort results?
+              );
 
 
 
-/// @brief
-///   PEigenDense is a class containing only one useful member function:
-///   PrincipalEigen().  This function calculates the principal (largest
-///   or smallest) eigenvalue and corresponding eigenvector of a square
-///   n x n matrix.  This can be faster than diagionalizing the entire matrix.
-///   (For example by using the Lanczos algorithm or something similar.)
-/// @note
-///   This code is a wrapper. Internally, it uses the "LambdaLanczos" class.
-/// @note
-///   For matrices larger than 13x13, PEigenDense::PrincipleEigen()
-///   is usually faster than Jacobi::Diagonalize().)
 
-template<typename Scalar, typename Vector, typename ConstMatrix>
-class PEigenDense
-{
-  size_t n;                 // the size of the matrix
-  std::vector<Scalar> evec; // preallocated vector
+  // ---- Eigendecomposition of large sparse (and dense) matrices ----
 
-public:
-  void SetSize(int matrix_size) {
-    n = matrix_size;
-    evec.resize(n);
+  // The "LambdaLanczos" is a class useful for calculating eigenvalues
+  // and eigenvectors of large sparse matrices.  Unfortunately, before the
+  // LambdaLanczos class can be declared, several additional expressions,
+  // classes and functions that it depends on must be declared first.
+
+  // @brief  Create random vectors used at the beginning of the Lanczos algorithm.
+  // @note "Partially specialization of function" is not allowed, so
+  //       it is mimicked by wrapping the "init" function with a class template.
+  template <typename T>
+  struct VectorRandomInitializer {
+  public:
+    static void init(std::vector<T>&);
+  };
+
+  template <typename T>
+  struct VectorRandomInitializer<std::complex<T>> {
+  public:
+    static void init(std::vector<std::complex<T>>&);
+  };
+
+  /// @brief  Return the number of significant decimal digits of type T.
+  template <typename T>
+  inline constexpr int sig_decimal_digit() {
+    return (int)(std::numeric_limits<T>::digits *
+                 std::log10(std::numeric_limits<T>::radix));
   }
 
-  PEigenDense(int matrix_size=0):evec(matrix_size) {
-    SetSize(matrix_size);
+  /// @brief  Return 10^-n where n=number of significant decimal digits of type T.
+  template <typename T>
+  inline constexpr T minimum_effective_decimal() {
+    return std::pow(10, -sig_decimal_digit<T>());
   }
 
-  /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
-  /// @return Return the principal eigenvalue of the matrix.
-  ///         If you want the eigenvector, pass a non-null "evector" argument.
-  Scalar
-  PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
-                 Vector evector,       //!< the eigenvector is stored here
-                 bool find_max=false); //!< want the max or min eigenvalue?
 
-}; // class PEigenDense
+  /// @class LambdaLanczos
+  /// @brief The LambdaLanczos class provides a general way to calculate
+  ///        the smallest or largest eigenvalue and the corresponding eigenvector
+  ///        of a symmetric (Hermitian) matrix using the Lanczos algorithm.
+  ///        The characteristic feature of LambdaLanczos is that the matrix-vector
+  ///        multiplication routine used in the Lanczos algorithm is adaptable.
+  /// @details
+  /// @code
+  ///
+  /// //Example:
+  /// const int n = 3;
+  /// double M[n][n] = { {-1.0, -1.0, 1.0},
+  ///                    {-1.0, 1.0, 1.0},
+  ///                    { 1.0, 1.0, 1.0} };
+  /// // (Its eigenvalues are {-2, 1, 2})
+  ///
+  /// // Specify the matrix-vector multiplication function
+  /// auto mv_mul = [&](const vector<double>& in, vector<double>& out) {
+  ///   for(int i = 0;i < n;i++) {
+  ///     for(int j = 0;j < n;j++) {
+  ///       out[i] += M[i][j]*in[j];
+  ///     }
+  ///   }
+  /// };
+  ///
+  /// LambdaLanczos<double> engine(mv_mul, n, true);
+  ///     // ("true" means to calculate the largest eigenvalue.)
+  /// engine.eigenvalue_offset = 3.0;   // = max_i{Σ_j|Mij|}  (see below)
+  ///
+  /// double eigenvalue; //(must never be a complex number even if M is complex)
+  /// vector<double> eigenvector(n);
+  ///
+  /// int itern = engine.run(eigenvalue, eigenvector);
+  ///
+  /// cout << "Iteration count: " << itern << endl;
+  /// cout << "Eigen value: " << setprecision(16) << eigenvalue << endl;
+  /// cout << "Eigen vector:";
+  /// for(int i = 0; i < n; i++) {
+  ///   cout << eigenvector[i] << " ";
+  /// }
+  /// cout << endl;
+  ///
+  /// @endcode
+  /// This feature allows you to use a matrix whose elements are partially given,
+  /// e.g. a sparse matrix whose non-zero elements are stored as a list of
+  /// {row-index, column-index, value} tuples.  You can also easily combine
+  /// LambdaLanczos with existing matrix libraries (e.g. Eigen)
+  ///
+  /// @note
+  ///   If the matrices you want to analyze are ordinary square matrices, (as in
+  ///   the example) it might be easier to use "PEigenDense" instead.  (It is a
+  ///   wrapper which takes care of all of the LambdaLanczos details for you.)
+  ///
+  /// @note
+  ///  IMPORTANT:
+  ///  The Lanczos algorithm finds the largest magnitude eigenvalue, so you
+  ///  MUST ensure that the eigenvalue you are seeking has the largest magnitude
+  ///  (regardless of whether it is the maximum or minimum eigenvalue).
+  ///  To insure that this is so, you can add or subtract a number to all
+  ///  of the eigenvalues of the matrix by specifying the "eigenvalue_offset".
+  ///  This number should exceed the largest magnitude eigenvalue of the matrix.
+  ///  According to the Gershgorin theorem, you can estimate this number using
+  ///     r = max_i{Σ_j|Mij|} = max_j{Σ_i|Mij|}
+  ///  (where Mij are the elements of the matrix and Σ_j denotes the sum over j).
+  ///  If find_maximum == true (if you are seeking the maximum eigenvalue), then
+  ///    eigenvalue_offset = +r
+  ///  If find_maximum == false, then
+  ///    eigenvalue_offset = -r
+  ///  The eigenvalue_offset MUST be specified by the user.  LambdaLanczos does
+  ///  not have an efficient and general way to access the elements of the matrix.
+  ///
+  ///  (You can omit this step if you are seeking the maximum eigenvalue,
+  ///   and the matrix is positive definite, or if you are seeking the minimum
+  ///   eigenvalue and the matrix is negative definite.)
+  ///
+  /// @note
+  ///   LambdaLanczos is available under the MIT license and downloadable at:
+  ///   https://github.com/mrcdr/lambda-lanczos
+
+  template <typename T>
+  class LambdaLanczos {
+  public:
+    LambdaLanczos();
+    LambdaLanczos(std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul, int matrix_size, bool find_maximum);
+    LambdaLanczos(std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul, int matrix_size) : LambdaLanczos(mv_mul, matrix_size, true) {}
+
+    /// @brief  Calculate the principal (largest or smallest) eigenvalue
+    ///         of the matrix (and its corresponding eigenvector).
+    int run(real_t<T>&, std::vector<T>&) const;
+
+    // --- public data members ---
+
+    /// @brief  Specify the size of the matrix you will analyze.
+    ///         (This equals the size of the eigenvector which will be returned.)
+    int matrix_size;
+
+    /// @brief  Specify the function used for matrix*vector multiplication
+    ///         used by the Lanczos algorithm.  For an ordinary dense matrix,
+    ///         this function is the ordinary matrix*vector product. (See the
+    ///         example above.  For a sparse matrix, it will be something else.)
+    std::function<void(const std::vector<T>&, std::vector<T>&)> mv_mul;
+
+    /// @brief  Are we searching for the maximum or minimum eigenvalue?
+    /// @note   (Usually, you must also specify eigenvalue_offset.)
+    bool find_maximum = false;
+
+    /// @brief Shift all the eigenvalues by "eigenvalue_offset" during the Lanczos
+    ///        iteration (ie. during LambdaLanczos::run()).  The goal is to insure
+    ///        that the correct eigenvalue is selected (the one with the maximum
+    ///        magnitude).
+    /// @note  The eigevalue returned by LambdaLanczos::run() is not effected
+    ///        because after the iteration is finished, it will subtract this
+    ///        number from the eigenvalue before it is returned to the caller.
+    /// @note  Unless your matrix is positive definite or negative definite,
+    ///        you MUST specify eigenvalue_offset.  See comment above for details.
+    real_t<T> eigenvalue_offset = 0.0;
+
+    /// @brief This function sets "eigenvalue_offset" automatically.
+    /// @note  Using this function is not recommended because it is very slow.
+    ///        For efficiency, set the "eigenvalue_offset" yourself.
+    void ChooseOffset();
+
+    // The remaining data members usually can be left alone:
+    int max_iteration;
+    real_t<T> eps = minimum_effective_decimal<real_t<T>>() * 1e3;
+    real_t<T> tridiag_eps_ratio = 1e-1;
+    int initial_vector_size = 200;
+    std::function<void(std::vector<T>&)> init_vector =
+      VectorRandomInitializer<T>::init;
+
+    // (for those who prefer "Set" functions...)
+    int SetSize(int matrix_size);
+    void SetMul(std::function<void(const std::vector<T>&,
+                                   std::vector<T>&)> mv_mul);
+    void SetInitVec(std::function<void(std::vector<T>&)> init_vector);
+    void SetFindMax(bool find_maximum);
+    void SetEvalOffset(T eigenvalue_offset);
+    void SetEpsilon(T eps);
+    void SetTriEpsRatio(T tridiag_eps_ratio);
+
+  private:
+    static void schmidt_orth(std::vector<T>&, const std::vector<std::vector<T>>&);
+    real_t<T> find_minimum_eigenvalue(const std::vector<real_t<T>>&,
+                                      const std::vector<real_t<T>>&) const;
+    real_t<T> find_maximum_eigenvalue(const std::vector<real_t<T>>&,
+                                      const std::vector<real_t<T>>&) const;
+    static real_t<T> tridiagonal_eigen_limit(const std::vector<real_t<T>>&,
+                                             const std::vector<real_t<T>>&);
+    static int num_of_eigs_smaller_than(real_t<T>,
+                                        const std::vector<real_t<T>>&,
+                                        const std::vector<real_t<T>>&);
+    real_t<T> UpperBoundEvals() const;
+  };
+
+
+
+  /// @class PEigenDense
+  /// @brief
+  ///   PEigenDense is a class containing only one useful member function:
+  ///   PrincipalEigen().  This function calculates the principal (largest
+  ///   or smallest) eigenvalue and corresponding eigenvector of a square
+  ///   n x n matrix.  This can be faster than diagionalizing the entire matrix.
+  ///   (For example by using the Lanczos algorithm or something similar.)
+  /// @note
+  ///   This code is a wrapper. Internally, it uses the "LambdaLanczos" class.
+  /// @note
+  ///   For dense matrices smaller than 13x13, Jacobi::Diagonalize(),
+  ///   is usually faster than PEigenDense::PrincipleEigen().
+  /// @details
+  ///   Usage example:
+  /// @code
+  ///
+  /// const int n = 100;
+  ///
+  /// PEigenDense<double, double*, double**, double const*const*>  pe(n);
+  ///
+  /// double **M;       // A symmetric n x n matrix you want to diagonalize
+  /// double evect[n];  // Store the principal eigenvector here.
+  ///
+  /// // Now, allocate space for M and load it's contents. (omitted)
+  ///
+  /// double eval = pe.PrincipalEigen(M, evect, true);  //Returns the max eval
+  ///
+  /// @endcode
+
+  template<typename Scalar, typename Vector, typename ConstMatrix>
+  class PEigenDense
+  {
+    size_t n;                 // the size of the matrix
+    std::vector<Scalar> evec; // preallocated vector
+
+  public:
+    PEigenDense(int matrix_size=0);
+
+    /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
+    /// @return Return the principal eigenvalue of the matrix.
+    ///         If you want the eigenvector, pass a non-null "evector" argument.
+    Scalar
+    PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
+                   Vector evector,       //!< the eigenvector is stored here
+                   bool find_max=false); //!< want the max or min eigenvalue?
+
+    void SetSize(int matrix_size); //change matrix size after instantiation
+
+  }; // class PEigenDense
 
 
 
@@ -460,16 +527,13 @@ public:
 // ----------- IMPLEMENTATION -----------
 // --------------------------------------
 
-
-
-
 // --- Implementation: Memory allocation for matrices ---
 template<typename Entry>
 void Alloc2D(size_t nrows,          // size of the array (number of rows)
              size_t ncols,          // size of the array (number of columns)
              Entry ***paaX)         // pointer to a 2D C-style array
 {
-  assert(paaX);
+  //assert(paaX);
   *paaX = new Entry* [nrows];  //conventional 2D C array (pointer-to-pointer)
   (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memor)
   for(size_t iy=0; iy<nrows; iy++)
@@ -550,6 +614,28 @@ inline real_t<T> l1_norm(const std::vector<T>& vec) {
 // --- Implementation: Eigendecomposition of small dense matrices ---
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
+Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
+Jacobi(int n, Scalar **workspace) {
+  Init();
+  if (workspace) {
+    is_M_preallocated = true;
+    M = workspace;
+    this->n = n;
+  }
+  else {
+    is_M_preallocated = false;
+    SetSize(n);
+  }
+}
+
+template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
+Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
+~Jacobi() {
+  if (! is_M_preallocated)
+    Dealloc();
+}
+
+template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 int Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Diagonalize(ConstMatrix mat,    // the matrix you wish to diagonalize (size n)
             Vector eval,        // store the eigenvalues here
@@ -602,7 +688,7 @@ Diagonalize(ConstMatrix mat,    // the matrix you wish to diagonalize (size n)
   // Optional: Sort results by eigenvalue.
   SortRows(eval, evec, n, sort_criteria);
 
-  return n_iters / (n*(n-1)/2); //returns the number of "sweeps" (converged?)
+  return (n_iters == max_num_iters);
 }
 
 
@@ -634,7 +720,7 @@ CalcRot(Scalar const *const *M,    //!< matrix
         t = -t;
     }
   }
-  assert(std::abs(t) <= 1.0);
+  //assert(std::abs(t) <= 1.0);
   c = 1.0 / std::sqrt(1 + t*t);
   s = c*t;
 }
@@ -699,7 +785,7 @@ ApplyRot(Scalar **M,  // matrix
   M[j][j] += t * M[i][j];
 
   //Update the off-diagonal elements of M which will change (above the diagonal)
-  assert(i < j);
+  //assert(i < j);
   M[i][j] = 0.0;
 
   //compute M[w][i] and M[i][w] for all w!=i,considering above-diagonal elements
@@ -887,7 +973,7 @@ Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source)
 {
   Init();
   SetSize(source.n);
-  assert(n == source.n);
+  //assert(n == source.n);
   // The following lines aren't really necessary, because the contents
   // of source.M and source.max_idx_row are not needed (since they are
   // overwritten every time Jacobi::Diagonalize() is invoked).
@@ -912,8 +998,8 @@ swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other) {
-  Init();
-  swap(*this, other);
+  Init(); 
+  this->swap(other);
 }
 
 // Using the "copy-swap" idiom for the assignment operator
@@ -955,8 +1041,8 @@ template <typename T>
 inline int LambdaLanczos<T>::
 run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
 {
-  assert(matrix_size > 0);
-  assert(0 < this->tridiag_eps_ratio && this->tridiag_eps_ratio < 1);
+  //assert(matrix_size > 0);
+  //assert(0 < this->tridiag_eps_ratio && this->tridiag_eps_ratio < 1);
 
   std::vector<std::vector<T>> u;     // Lanczos vectors
   std::vector<real_t<T>> alpha; // Diagonal elements of an approximated tridiagonal matrix
@@ -1322,12 +1408,25 @@ init(std::vector<std::complex<T>>& v)
 // --- Implementation of PEigenDense
 
 template<typename Scalar, typename Vector, typename ConstMatrix>
+void PEigenDense<Scalar, Vector, ConstMatrix>::
+SetSize(int matrix_size) {
+  n = matrix_size;
+  evec.resize(n);
+}
+
+template<typename Scalar, typename Vector, typename ConstMatrix>
+PEigenDense<Scalar, Vector, ConstMatrix>::
+PEigenDense(int matrix_size):evec(matrix_size) {
+  SetSize(matrix_size);
+}
+
+template<typename Scalar, typename Vector, typename ConstMatrix>
 Scalar PEigenDense<Scalar, Vector, ConstMatrix>::
 PrincipalEigen(ConstMatrix matrix,
                Vector eigenvector,
                bool find_max)
 {
-  assert(n > 0);
+  //assert(n > 0);
   auto matmul = [&](const std::vector<Scalar>& in, std::vector<Scalar>& out) {
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < n; j++) {
@@ -1373,8 +1472,12 @@ PrincipalEigen(ConstMatrix matrix,
   return eval;
 }
 
-
 } //namespace MathEigen
 
 
-#endif //#ifndef _MATH_EIGEN_H
+
+
+
+
+
+#endif //#ifndef LMP_MATH_EIGEN_H

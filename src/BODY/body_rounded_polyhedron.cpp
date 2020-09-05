@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "force.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "error.h"
 #include "fmt/format.h"
@@ -243,7 +244,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 

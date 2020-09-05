@@ -12,7 +12,6 @@
 
 #include <vector>
 
-#include "jacobi_pd.h"
 #include "colvarmodule.h"
 
 #ifndef PI
@@ -1391,20 +1390,19 @@ public:
 
   /// Default constructor
   inline rotation()
-    : b_debug_gradients(false), ecalc(4)
+    : b_debug_gradients(false)
   {}
 
   /// Constructor after a quaternion
   inline rotation(cvm::quaternion const &qi)
     : q(qi),
-      b_debug_gradients(false),
-      ecalc(4)
+      b_debug_gradients(false)
   {
   }
 
   /// Constructor after an axis of rotation and an angle (in radians)
   inline rotation(cvm::real angle, cvm::rvector const &axis)
-    : b_debug_gradients(false), ecalc(4)
+    : b_debug_gradients(false)
   {
     cvm::rvector const axis_n = axis.unit();
     cvm::real const sina = cvm::sin(angle/2.0);
@@ -1540,9 +1538,9 @@ protected:
   void compute_overlap_matrix();
 
   /// Diagonalize a given matrix m (used by calc_optimal_rotation())
-  MathEigen::Jacobi<cvm::real,
-                    cvm::vector1d<cvm::real> &,
-                    cvm::matrix2d<cvm::real> &> ecalc;
+  static void diagonalize_matrix(cvm::matrix2d<cvm::real> &m,
+                                 cvm::vector1d<cvm::real> &eigval,
+                                 cvm::matrix2d<cvm::real> &eigvec);
 };
 
 

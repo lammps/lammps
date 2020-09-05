@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "jacobi_pd.h"
 #include "colvarmodule.h"
 #include "colvartypes.h"
 #include "colvarparse.h"
@@ -18,6 +17,20 @@
 
 bool      colvarmodule::rotation::monitor_crossings = false;
 cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-02;
+
+
+namespace  {
+
+/// Numerical recipes diagonalization
+static int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
+
+/// Eigenvector sort
+static int eigsrt(cvm::real *d, cvm::real **v);
+
+/// Transpose the matrix
+static int transpose(cvm::real **v);
+
+}
 
 
 std::string cvm::rvector::to_simple_string() const
@@ -278,6 +291,43 @@ void colvarmodule::rotation::compute_overlap_matrix()
 }
 
 
+void colvarmodule::rotation::diagonalize_matrix(
+                                            cvm::matrix2d<cvm::real> &m,
+                                            cvm::vector1d<cvm::real> &eigval,
+                                            cvm::matrix2d<cvm::real> &eigvec)
+{
+  eigval.resize(4);
+  eigval.reset();
+  eigvec.resize(4, 4);
+  eigvec.reset();
+
+  // diagonalize
+  int jac_nrot = 0;
+  if (jacobi(m.c_array(), eigval.c_array(), eigvec.c_array(), &jac_nrot) !=
+      COLVARS_OK) {
+    cvm::error("Too many iterations in routine jacobi.\n"
+               "This is usually the result of an ill-defined set of atoms for "
+               "rotational alignment (RMSD, rotateReference, etc).\n");
+  }
+  eigsrt(eigval.c_array(), eigvec.c_array());
+  // jacobi saves eigenvectors by columns
+  transpose(eigvec.c_array());
+
+  // normalize eigenvectors
+  for (size_t ie = 0; ie < 4; ie++) {
+    cvm::real norm2 = 0.0;
+    size_t i;
+    for (i = 0; i < 4; i++) {
+      norm2 += eigvec[ie][i] * eigvec[ie][i];
+    }
+    cvm::real const norm = cvm::sqrt(norm2);
+    for (i = 0; i < 4; i++) {
+      eigvec[ie][i] /= norm;
+    }
+  }
+}
+
+
 // Calculate the rotation, plus its derivatives
 
 void colvarmodule::rotation::calc_optimal_rotation(
@@ -299,13 +349,7 @@ void colvarmodule::rotation::calc_optimal_rotation(
     cvm::log("S     = "+cvm::to_str(S_backup, cvm::cv_width, cvm::cv_prec)+"\n");
   }
 
-  int ierror = ecalc.Diagonalize(S, S_eigval, S_eigvec);
-  if (ierror) {
-    cvm::error("Too many iterations in routine jacobi.\n"
-               "This is usually the result of an ill-defined set of atoms for "
-               "rotational alignment (RMSD, rotateReference, etc).\n");
-  }
-
+  diagonalize_matrix(S, S_eigval, S_eigvec);
   // eigenvalues and eigenvectors
   cvm::real const L0 = S_eigval[0];
   cvm::real const L1 = S_eigval[1];
@@ -477,7 +521,7 @@ void colvarmodule::rotation::calc_optimal_rotation(
 
         //           cvm::log("S_new = "+cvm::to_str(cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
 
-        ecalc.Diagonalize(S_new, S_new_eigval, S_new_eigvec);
+        diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
 
         cvm::real const &L0_new = S_new_eigval[0];
         cvm::quaternion const Q0_new(S_new_eigvec[0]);
@@ -500,3 +544,138 @@ void colvarmodule::rotation::calc_optimal_rotation(
 
 
 
+// Numerical Recipes routine for diagonalization
+
+#define ROTATE(a,i,j,k,l) g=a[i][j]; \
+  h=a[k][l];                         \
+  a[i][j]=g-s*(h+g*tau);             \
+  a[k][l]=h+s*(g-h*tau);
+
+#define n 4
+
+
+namespace {
+
+int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
+{
+  int j,iq,ip,i;
+  cvm::real tresh,theta,tau,t,sm,s,h,g,c;
+
+  cvm::vector1d<cvm::real> b(n);
+  cvm::vector1d<cvm::real> z(n);
+
+  for (ip=0;ip<n;ip++) {
+    for (iq=0;iq<n;iq++) {
+      v[ip][iq]=0.0;
+    }
+    v[ip][ip]=1.0;
+  }
+  for (ip=0;ip<n;ip++) {
+    b[ip]=d[ip]=a[ip][ip];
+    z[ip]=0.0;
+  }
+  *nrot=0;
+  for (i=0;i<=50;i++) {
+    sm=0.0;
+    for (ip=0;ip<n-1;ip++) {
+      for (iq=ip+1;iq<n;iq++)
+        sm += cvm::fabs(a[ip][iq]);
+    }
+    if (sm == 0.0) {
+      return COLVARS_OK;
+    }
+    if (i < 4)
+      tresh=0.2*sm/(n*n);
+    else
+      tresh=0.0;
+    for (ip=0;ip<n-1;ip++) {
+      for (iq=ip+1;iq<n;iq++) {
+        g=100.0*cvm::fabs(a[ip][iq]);
+        if (i > 4 && (cvm::real)(cvm::fabs(d[ip])+g) == (cvm::real)cvm::fabs(d[ip])
+            && (cvm::real)(cvm::fabs(d[iq])+g) == (cvm::real)cvm::fabs(d[iq]))
+          a[ip][iq]=0.0;
+        else if (cvm::fabs(a[ip][iq]) > tresh) {
+          h=d[iq]-d[ip];
+          if ((cvm::real)(cvm::fabs(h)+g) == (cvm::real)cvm::fabs(h))
+            t=(a[ip][iq])/h;
+          else {
+            theta=0.5*h/(a[ip][iq]);
+            t=1.0/(cvm::fabs(theta)+cvm::sqrt(1.0+theta*theta));
+            if (theta < 0.0) t = -t;
+          }
+          c=1.0/cvm::sqrt(1+t*t);
+          s=t*c;
+          tau=s/(1.0+c);
+          h=t*a[ip][iq];
+          z[ip] -= h;
+          z[iq] += h;
+          d[ip] -= h;
+          d[iq] += h;
+          a[ip][iq]=0.0;
+          for (j=0;j<=ip-1;j++) {
+            ROTATE(a,j,ip,j,iq)
+              }
+          for (j=ip+1;j<=iq-1;j++) {
+            ROTATE(a,ip,j,j,iq)
+              }
+          for (j=iq+1;j<n;j++) {
+            ROTATE(a,ip,j,iq,j)
+              }
+          for (j=0;j<n;j++) {
+            ROTATE(v,j,ip,j,iq)
+              }
+          ++(*nrot);
+        }
+      }
+    }
+    for (ip=0;ip<n;ip++) {
+      b[ip] += z[ip];
+      d[ip]=b[ip];
+      z[ip]=0.0;
+    }
+  }
+  return COLVARS_ERROR;
+}
+
+
+int eigsrt(cvm::real *d, cvm::real **v)
+{
+  int k,j,i;
+  cvm::real p;
+
+  for (i=0;i<n;i++) {
+    p=d[k=i];
+    for (j=i+1;j<n;j++)
+      if (d[j] >= p) p=d[k=j];
+    if (k != i) {
+      d[k]=d[i];
+      d[i]=p;
+      for (j=0;j<n;j++) {
+        p=v[j][i];
+        v[j][i]=v[j][k];
+        v[j][k]=p;
+      }
+    }
+  }
+  return COLVARS_OK;
+}
+
+
+int transpose(cvm::real **v)
+{
+  cvm::real p;
+  int i,j;
+  for (i=0;i<n;i++) {
+    for (j=i+1;j<n;j++) {
+      p=v[i][j];
+      v[i][j]=v[j][i];
+      v[j][i]=p;
+    }
+  }
+  return COLVARS_OK;
+}
+
+}
+
+#undef n
+#undef ROTATE

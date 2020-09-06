@@ -341,37 +341,34 @@ If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
 :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D WITH_GZIP=value       # yes or no
-                            # default is yes if CMake can find gzip, else no
-   -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D WITH_GZIP=value       # yes or no
+                                  # default is yes if CMake can find gzip, else no
+         -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_GZIP
+      .. code-block:: make
 
-CMake and make info
-^^^^^^^^^^^^^^^^^^^
+         LMP_INC = -DLAMMPS_GZIP
 
-This option requires that your machine supports the "popen()" function
-in the standard runtime library and that a gzip executable can be
+This option requires that your operating system fully supports the "popen()"
+function in the standard runtime library and that a ``gzip`` executable can be
 found by LAMMPS during a run.
 
 .. note::
 
-   On some clusters with high-speed networks, using the fork()
-   library call (required by popen()) can interfere with the fast
-   communication library and lead to simulations using compressed output
-   or input to hang or crash. For selected operations, compressed file
-   I/O is also available using a compression library instead, which is
-   what the :ref:`COMPRESS package <PKG-COMPRESS>` enables.
+   On some clusters with high-speed networks, using the "fork()" library
+   call (required by "popen()") can interfere with the fast communication
+   library and lead to simulations using compressed output or input to
+   hang or crash. For selected operations, compressed file I/O is also
+   available using a compression library instead, which is what the
+   :ref:`COMPRESS package <PKG-COMPRESS>` enables.
 
 ----------
 
@@ -380,65 +377,66 @@ found by LAMMPS during a run.
 Memory allocation alignment
 ---------------------------------------
 
-This setting enables the use of the posix_memalign() call instead of
-malloc() when LAMMPS allocates large chunks or memory.  This can make
-vector instructions on CPUs more efficient, if dynamically allocated
-memory is aligned on larger-than-default byte boundaries.
-On most current systems, the malloc() implementation returns
+This setting enables the use of the "posix_memalign()" call instead of
+"malloc()" when LAMMPS allocates large chunks or memory.  Vector
+instructions on CPUs may become more efficient, if dynamically allocated
+memory is aligned on larger-than-default byte boundaries.  On most
+current operating systems, the "malloc()" implementation returns
 pointers that are aligned to 16-byte boundaries. Using SSE vector
-instructions efficiently, however, requires memory blocks being
-aligned on 64-byte boundaries.
+instructions efficiently, however, requires memory blocks being aligned
+on 64-byte boundaries.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
+      .. code-block:: bash
 
-Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using posix_memalign()
-and revert to using the malloc() C-library function instead.  When
-compiling LAMMPS for Windows systems, malloc() will always be used
-and this setting ignored.
+         -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using
+      "posix_memalign()" and revert to using the "malloc()" C-library
+      function instead.  When compiling LAMMPS for Windows systems,
+      "malloc()" will always be used and this setting is ignored.
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
+      .. code-block:: make
 
-Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory allocated
-with the malloc() function call instead. ``-DLAMMPS_MEMALIGN`` **cannot**
-be used on Windows, as it does use different function calls for
-allocating aligned memory, that are not compatible with how LAMMPS
-manages its dynamical memory.
+         LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
+
+      Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory
+      allocated with the "malloc()" function call
+      instead. ``-DLAMMPS_MEMALIGN`` **cannot** be used on Windows, as
+      Windows different function calls with different semantics for
+      allocating aligned memory, that are not compatible with how LAMMPS
+      manages its dynamical memory.
 
 ----------
 
 .. _longlong:
 
 Workaround for long long integers
-------------------------------------------------
+---------------------------------
 
 If your system or MPI version does not recognize "long long" data
 types, the following setting will be needed.  It converts "long long"
 to a "long" data type, which should be the desired 8-byte integer on
 those systems:
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
 
 ----------
 
@@ -453,19 +451,19 @@ Instead, the call stack is unwound and control returns to the caller,
 e.g. to Python. Of course, the calling code has to be set up to
 *catch* exceptions thrown from within LAMMPS.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_EXCEPTIONS
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_EXCEPTIONS
 
 .. note::
 

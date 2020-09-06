@@ -179,6 +179,8 @@ Size of LAMMPS integer types and size limits
 
 LAMMPS has a few integer data types which can be defined as either
 4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
+This has an impact on the size of a system that can be simulated
+or how large counters can become before "rolling over".
 The default setting of "smallbig" is almost always adequate.
 
 .. tabs::
@@ -208,34 +210,52 @@ The default setting of "smallbig" is almost always adequate.
 LAMMPS system size restrictions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default "smallbig" setting allows for simulations with:
+.. list-table::
+   :header-rows: 1
+   :widths: auto
 
-* total atom count = 2\^63 atoms (about 9e18)
-* total timesteps = 2\^63 (about 9e18)
-* atom IDs = 2\^31 (about 2 billion)
-* image flags = roll over at 512
+   * -
+     - smallbig
+     - bigbig
+     - smallsmall
+   * - Total atom count
+     - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{31}` atoms (= :math:`2\,147\,483\,648`)
+   * - Total timesteps
+     - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{31}` steps (= :math:`2\,147\,483\,648`)
+   * - Atom ID values
+     - :math:`1 \le i \le 2^{31} (= 2\,147\,483\,648)`
+     - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
+     - :math:`1 \le i \le 2^{31} (= 2\,147\,483\,648)`
+   * - Image flag values
+     - :math:`-512 \le i \le 511` (= 10-bit)
+     - :math:`- 1\,048\,576 \le i \le 1\,048\,575` (= 21-bit)
+     - :math:`-512 \le i \le 511` (= 10-bit)
 
-The "bigbig" setting increases the latter two limits.  It allows for:
+The "bigbig" setting increases the size of image flags and atom IDs over
+"smallbig" and the "smallsmall" setting is only needed if your machine
+does not support 64-bit integers or incurs performance penalties when
+using them.
 
-* total atom count = 2\^63 atoms (about 9e18)
-* total timesteps = 2\^63 (about 9e18)
-* atom IDs = 2\^63 (about 9e18)
-* image flags = roll over at about 1 million (2\^20)
-
-The "smallsmall" setting is only needed if your machine does not
-support 64-bit integers.  It allows for:
-
-* total atom count = 2\^31 atoms (about 2 billion)
-* total timesteps = 2\^31 (about 2 billion)
-* atom IDs = 2\^31 (about 2 billion)
-* image flags = roll over at 512 (2\^9)
+These are limits for the core of the LAMMPS code, specific features or
+some styles may impose additional limits.  The :ref:`USER-ATC
+<PKG-USER-ATC>` package cannot be compiled with the "bigbig" setting.
+Also, there are limitations when using the library interface where some
+functions with known issues have been replaced by dummy calls printing a
+corresponding error message rather than crashing randomly or corrupting
+data.
 
 Atom IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
 :doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
-angles, dihedrals, etc).  Thus if you model a molecular system with
-more than 2 billion atoms, you need the "bigbig" setting.
+angles, dihedrals, etc).  Similarly, some force or compute or fix styles
+require atom IDs.  Thus if you model a molecular system or use one of
+those styles with more than 2 billion atoms, you need the "bigbig"
+setting.
 
 Regardless of the total system size limits, the maximum number of atoms
 per MPI rank (local + ghost atoms) is limited to 2 billion for atomic
@@ -251,11 +271,6 @@ atom moves through the periodic box more than this limit, the value will
 mean-squared displacement, as calculated by the :doc:`compute msd
 <compute_msd>` command, to be faulty.
 
-Note that the USER-ATC package is currently not compatible with the
-"bigbig" setting. Also, there are limitations when using the library
-interface. Some functions with known issues have been replaced by dummy
-calls printing a corresponding error rather than crashing randomly or
-corrupting data.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake

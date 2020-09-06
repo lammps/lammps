@@ -1,10 +1,10 @@
 .. index:: fix shardlow
+.. index:: fix shardlow/kk
 
 fix shardlow command
 ====================
 
-fix shardlow/kk command
-=======================
+Accelerator Variants: *shardlow/kk*
 
 Syntax
 """"""

@@ -22,19 +22,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dmi.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "fix.h"
-#include "neigh_list.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

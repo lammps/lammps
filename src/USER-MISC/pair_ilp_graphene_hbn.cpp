@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

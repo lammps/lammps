@@ -12,19 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_local.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
-#include "modify.h"
-#include "fix.h"
+
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -269,14 +266,14 @@ void DumpLocal::write_header(bigint ndump)
     fprintf(fp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic) {
       fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-      fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-      fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
     } else {
       fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-      fprintf(fp,"%g %g\n",boxylo,boxyhi);
-      fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
     }
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }

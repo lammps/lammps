@@ -16,15 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_molfile.h"
-#include <cstdlib>
-#include <cmath>
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-
 #include "molfile_interface.h"
-#include "math_const.h"
 
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
+
+#include <cmath>
 using namespace LAMMPS_NS;
 typedef MolfileInterface MFI;
 using namespace MathConst;

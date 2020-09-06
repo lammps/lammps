@@ -23,10 +23,10 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_smd_tlsph.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include <iostream>
 #include <Eigen/Eigen>
 #include "fix_smd_tlsph_reference_configuration.h"

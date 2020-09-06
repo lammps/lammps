@@ -111,6 +111,15 @@ command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
+.. warning::
+
+   When reading data from a restart, the fix command has to be specified
+   **exactly** the same way as before. LAMMPS will only check whether a
+   fix is of the same style and has the same fix ID and in case of a match
+   will then try to initialize the fix with the data stored in the binary
+   restart file.  If the fix store/state command does not match exactly,
+   data can be corrupted or LAMMPS may crash.
+
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 

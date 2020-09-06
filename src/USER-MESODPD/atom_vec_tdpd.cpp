@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "update.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

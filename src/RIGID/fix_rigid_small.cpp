@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_small.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <utility>
 #include "math_extra.h"
@@ -40,8 +40,8 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #include <map>
 

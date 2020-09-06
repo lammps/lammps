@@ -1,16 +1,12 @@
 .. index:: pair_style gayberne
+.. index:: pair_style gayberne/gpu
+.. index:: pair_style gayberne/intel
+.. index:: pair_style gayberne/omp
 
 pair_style gayberne command
 ===========================
 
-pair_style gayberne/gpu command
-===============================
-
-pair_style gayberne/intel command
-=================================
-
-pair_style gayberne/omp command
-===============================
+Accelerator Variants: *gayberne/gpu*, *gayberne/intel*, *gayberne/omp*
 
 Syntax
 """"""

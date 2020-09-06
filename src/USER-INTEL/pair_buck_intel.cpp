@@ -15,20 +15,20 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_buck_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "group.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "math_const.h"
 #include "memory.h"
-#include "suffix.h"
-#include "force.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

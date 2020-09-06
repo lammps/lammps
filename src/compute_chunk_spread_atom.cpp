@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_chunk_spread_atom.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

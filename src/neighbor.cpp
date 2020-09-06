@@ -16,38 +16,37 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "nbin.h"
-#include "nstencil.h"
-#include "npair.h"
-#include "ntopo.h"
-#include "style_nbin.h"
-#include "style_nstencil.h"
-#include "style_npair.h"
-#include "style_ntopo.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "citeme.h"
 #include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
 #include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "nbin.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "npair.h"
+#include "nstencil.h"
+#include "ntopo.h"
+#include "output.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "domain.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "update.h"
 #include "respa.h"
-#include "output.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "style_nbin.h"
+#include "style_npair.h"
+#include "style_nstencil.h"
+#include "style_ntopo.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;

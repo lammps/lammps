@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lcbop.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,7 +29,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

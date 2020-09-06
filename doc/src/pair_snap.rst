@@ -1,10 +1,10 @@
 .. index:: pair_style snap
+.. index:: pair_style snap/kk
 
 pair_style snap command
 =======================
 
-pair_style snap/kk command
-==========================
+Accelerator Variants: *snap/kk*
 
 Syntax
 """"""

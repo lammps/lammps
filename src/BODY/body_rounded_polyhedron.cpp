@@ -16,18 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "body_rounded_polyhedron.h"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include "my_pool_chunk.h"
-#include "atom_vec_body.h"
+
 #include "atom.h"
-#include "force.h"
+#include "atom_vec_body.h"
+#include "error.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "my_pool_chunk.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

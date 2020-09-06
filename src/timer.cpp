@@ -12,13 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "timer.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
+
 #include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "utils.h"
+
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>

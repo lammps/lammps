@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_group_group.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"

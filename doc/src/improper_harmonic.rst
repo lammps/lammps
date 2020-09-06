@@ -1,16 +1,12 @@
 .. index:: improper_style harmonic
+.. index:: improper_style harmonic/intel
+.. index:: improper_style harmonic/kk
+.. index:: improper_style harmonic/omp
 
 improper_style harmonic command
 ===============================
 
-improper_style harmonic/intel command
-=====================================
-
-improper_style harmonic/kk command
-==================================
-
-improper_style harmonic/omp command
-===================================
+Accelerator Variants: *harmonic/intel*, *harmonic/kk*, *harmonic/omp*
 
 Syntax
 """"""

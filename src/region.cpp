@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "region.h"
+
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "lattice.h"
+#include "math_extra.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "math_extra.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 

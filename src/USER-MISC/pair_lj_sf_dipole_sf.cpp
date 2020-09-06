@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sf_dipole_sf.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -27,7 +27,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "update.h"
 
 using namespace LAMMPS_NS;

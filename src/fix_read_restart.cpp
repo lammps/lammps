@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_read_restart.h"
+
 #include "atom.h"
 #include "memory.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

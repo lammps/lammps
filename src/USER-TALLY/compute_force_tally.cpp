@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_force_tally.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "group.h"

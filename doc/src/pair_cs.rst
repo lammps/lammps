@@ -1,37 +1,44 @@
 .. index:: pair_style born/coul/dsf/cs
+.. index:: pair_style born/coul/long/cs
+.. index:: pair_style born/coul/long/cs/gpu
+.. index:: pair_style born/coul/wolf/cs
+.. index:: pair_style born/coul/wolf/cs/gpu
+.. index:: pair_style buck/coul/long/cs
+.. index:: pair_style coul/long/cs
+.. index:: pair_style coul/long/cs/gpu
+.. index:: pair_style coul/wolf/cs
+.. index:: pair_style lj/cut/coul/long/cs
+.. index:: pair_style lj/class2/coul/long/cs
 
 pair_style born/coul/dsf/cs command
-====================================
+===================================
 
 pair_style born/coul/long/cs command
-=====================================
-
-pair_style born/coul/long/cs/gpu command
-=========================================
-
-pair_style born/coul/wolf/cs command
-=====================================
-
-pair_style born/coul/wolf/cs/gpu command
-=========================================
-
-pair_style buck/coul/long/cs command
-=====================================
-
-pair_style coul/long/cs command
-================================
-
-pair_style coul/long/cs/gpu command
 ====================================
 
+Accelerator Variants: *born/coul/long/cs/gpu*
+
+pair_style born/coul/wolf/cs command
+====================================
+
+Accelerator Variants: *born/coul/wolf/cs/gpu*
+
+pair_style buck/coul/long/cs command
+====================================
+
+pair_style coul/long/cs command
+===============================
+
+Accelerator Variants: *coul/long/cs/gpu*
+
 pair_style coul/wolf/cs command
-================================
+===============================
 
 pair_style lj/cut/coul/long/cs command
-=======================================
+======================================
 
 pair_style lj/class2/coul/long/cs command
-==========================================
+=========================================
 
 Syntax
 """"""

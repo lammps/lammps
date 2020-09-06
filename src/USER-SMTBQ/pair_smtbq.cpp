@@ -39,9 +39,9 @@
    ------------------------------------------------------------------------- */
 
 #include "pair_smtbq.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <algorithm>
 #include <vector>

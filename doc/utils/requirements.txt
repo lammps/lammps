@@ -1,5 +1,5 @@
 Sphinx
 sphinxcontrib-spelling
-sphinx-fortran
+git+https://github.com/akohlmey/sphinx-fortran@parallel-read
 breathe
 Pygments

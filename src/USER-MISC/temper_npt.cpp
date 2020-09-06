@@ -18,22 +18,23 @@
 ------------------------------------------------------------------------- */
 
 #include "temper_npt.h"
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
-#include "compute.h"
-#include "force.h"
-#include "fix.h"
 #include "random_park.h"
-#include "finish.h"
 #include "timer.h"
-#include "error.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

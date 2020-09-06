@@ -1,4 +1,8 @@
 .. index:: fix qeq/point
+.. index:: fix qeq/shielded
+.. index:: fix qeq/slater
+.. index:: fix qeq/dynamic
+.. index:: fix qeq/fire
 
 fix qeq/point command
 =====================

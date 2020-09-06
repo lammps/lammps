@@ -1,10 +1,10 @@
 .. index:: pair_style buck/long/coul/long
+.. index:: pair_style buck/long/coul/long/omp
 
 pair_style buck/long/coul/long command
-=======================================
+======================================
 
-pair_style buck/long/coul/long/omp command
-===========================================
+Accelerator Variants: *buck/long/coul/long/omp*
 
 Syntax
 """"""

@@ -16,7 +16,9 @@
    OpenMP based threading support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
+#include "fix_omp.h"
+#include "thr_data.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -25,10 +27,6 @@
 #include "neigh_request.h"
 #include "universe.h"
 #include "update.h"
-#include "timer.h"
-
-#include "fix_omp.h"
-#include "thr_data.h"
 
 #include "pair_hybrid.h"
 #include "bond_hybrid.h"
@@ -39,6 +37,7 @@
 
 #include <cstring>
 
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_angle.h"
-#include <mpi.h>
+
 #include "angle.h"
-#include "update.h"
-#include "force.h"
 #include "angle_hybrid.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_native.h"
-#include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "memory.h"
+
 #include "error.h"
-#include "utils.h"
+#include "memory.h"
 #include "tokenizer.h"
+
+#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 

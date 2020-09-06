@@ -13,7 +13,7 @@
 
 #include "fix_npt.h"
 #include <cstring>
-#include <string>
+
 #include "modify.h"
 #include "error.h"
 

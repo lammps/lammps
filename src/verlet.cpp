@@ -12,26 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "verlet.h"
-#include <cstring>
-#include <string>
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
 #include "timer.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_table_rx.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

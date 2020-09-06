@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
 #include "update.h"

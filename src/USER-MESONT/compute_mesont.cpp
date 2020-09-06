@@ -23,7 +23,7 @@
 #include "memory.h"
 #include "error.h"
 #include "pair.h"
-#include <string>
+
 
 using namespace LAMMPS_NS;
 

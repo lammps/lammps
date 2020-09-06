@@ -18,8 +18,8 @@
 
 #include "fix_lb_fluid.h"
 #include <cmath>
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <algorithm>
 #include <utility>

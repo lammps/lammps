@@ -12,19 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "kokkos.h"
-#include <mpi.h>
-#include <cstdio>
+
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "neigh_list_kokkos.h"
+#include "neighbor_kokkos.h"
+
 #include <cstring>
-#include <cstdlib>
 #include <cctype>
 #include <csignal>
 #include <unistd.h>
-#include "lammps.h"
-#include "force.h"
-#include "neighbor_kokkos.h"
-#include "neigh_list_kokkos.h"
-#include "error.h"
-#include "memory_kokkos.h"
 
 #ifdef KOKKOS_ENABLE_CUDA
 

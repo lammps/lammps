@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_improper.h"
-#include <mpi.h>
+
 #include "update.h"
 #include "force.h"
 #include "improper.h"

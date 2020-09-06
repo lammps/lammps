@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
+   Contributing authors: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "python_impl.h"
-#include <cstdlib>
-#include <cstring>
-#include <Python.h>  // IWYU pragma: keep
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
+
 #include "error.h"
+#include "input.h"
+#include "memory.h"
 #include "python_compat.h"
+#include "variable.h"
+
+#include <cstring>
+#include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 

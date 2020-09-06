@@ -26,10 +26,8 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "omp_compat.h"
 #include "reaxc_hydrogen_bonds_omp.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "fix_omp.h"
 #include "pair_reaxc_omp.h"
 #include "reaxc_defs.h"
@@ -37,6 +35,9 @@
 #include "reaxc_valence_angles.h"     // To access Calculate_Theta()
 #include "reaxc_valence_angles_omp.h" // To access Calculate_dCos_ThetaOMP()
 #include "reaxc_vector.h"
+
+#include <mpi.h>
+#include <cmath>
 
 #if defined(_OPENMP)
 #include  <omp.h>

@@ -1,10 +1,10 @@
 .. index:: pair_style exp6/rx
+.. index:: pair_style exp6/rx/kk
 
 pair_style exp6/rx command
 ==========================
 
-pair_style exp6/rx/kk command
-=============================
+Accelerator Variants: *exp6/rx/kk*
 
 Syntax
 """"""

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_extra.h"
 #include "math_eigen.h"
@@ -36,8 +36,8 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

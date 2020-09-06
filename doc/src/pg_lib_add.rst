@@ -12,7 +12,7 @@ there are now a few requirements for inclusion of changes.
     implement functionality that can already be achieved with the
     existing APIs.
   - All changes and additions should be documented with
-    `Doxygen <https://doxgygen.org>`_ style comments and references
+    `Doxygen <https://doxygen.nl>`_ style comments and references
     to those functions added to the corresponding files in the
     ``doc/src`` folder.
   - If possible, new unit tests to test those new features should

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "tokenizer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

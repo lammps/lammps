@@ -18,10 +18,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_poems.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "workspace.h"
 #include "atom.h"
 #include "domain.h"
@@ -34,8 +34,6 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 #include "math_eigen.h"
 
 using namespace LAMMPS_NS;

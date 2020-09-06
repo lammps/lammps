@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gle.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

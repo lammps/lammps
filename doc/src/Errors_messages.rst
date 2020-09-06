@@ -1903,6 +1903,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
 
+*Compute for fix pafi does not calculate a local array*
+   Self-explanatory.
+
+*Compute for fix pafi must have 9 fields per atom*
+   Self-explanatory.
+
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.
 

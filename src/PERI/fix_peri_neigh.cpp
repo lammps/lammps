@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_peri_neigh.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"

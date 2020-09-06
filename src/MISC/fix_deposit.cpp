@@ -12,26 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deposit.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "domain.h"
-#include "lattice.h"
-#include "region.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -14,7 +14,7 @@
 #ifndef LMP_FIX_NH_H
 #define LMP_FIX_NH_H
 
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

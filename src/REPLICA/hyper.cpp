@@ -12,28 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "hyper.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "update.h"
-#include "domain.h"
-#include "region.h"
-#include "integrate.h"
-#include "min.h"
-#include "force.h"
-#include "neighbor.h"
-#include "modify.h"
+
 #include "compute_event_displace.h"
-#include "fix_hyper.h"
-#include "fix_event_hyper.h"
-#include "output.h"
+#include "domain.h"
 #include "dump.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "finish.h"
+#include "fix_event_hyper.h"
+#include "fix_hyper.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "region.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

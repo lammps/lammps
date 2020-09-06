@@ -16,23 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom_kokkos.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
+
 #include "atom_kokkos.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor_kokkos.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "math_const.h"
 #include "atom_masks.h"
 #include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor_kokkos.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -25,28 +25,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_colvars.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <memory>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
-#include "citeme.h"
 
 #include "colvarproxy_lammps.h"
 #include "colvarmodule.h"
+
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"

@@ -1,7 +1,7 @@
 .. index:: compute sph/e/atom
 
 compute sph/e/atom command
-===========================
+==========================
 
 Syntax
 """"""

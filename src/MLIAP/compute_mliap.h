@@ -21,7 +21,7 @@ ComputeStyle(mliap,ComputeMLIAP)
 #define LMP_COMPUTE_MLIAP_H
 
 #include "compute.h"
-#include <string>
+
 
 namespace LAMMPS_NS {
 

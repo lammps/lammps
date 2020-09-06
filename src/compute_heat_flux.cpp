@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_heat_flux.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

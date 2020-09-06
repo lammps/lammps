@@ -1,10 +1,10 @@
 .. index:: angle_style dipole
+.. index:: angle_style dipole/omp
 
 angle_style dipole command
 ==========================
 
-angle_style dipole/omp command
-==============================
+Accelerator Variants: *dipole/omp*
 
 Syntax
 """"""

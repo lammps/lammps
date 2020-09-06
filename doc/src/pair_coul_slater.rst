@@ -1,4 +1,9 @@
 .. index:: pair_style coul/slater
+.. index:: pair_style coul/slater/cut
+.. index:: pair_style coul/slater/long
+
+pair_style coul/slater command
+==============================
 
 pair_style coul/slater/cut command
 ==================================

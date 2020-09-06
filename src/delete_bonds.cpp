@@ -12,20 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "delete_bonds.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "special.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

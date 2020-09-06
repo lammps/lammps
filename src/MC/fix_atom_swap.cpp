@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_atom_swap.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cctype>
 #include <cfloat>

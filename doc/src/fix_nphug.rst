@@ -1,10 +1,10 @@
 .. index:: fix nphug
+.. index:: fix nphug/omp
 
 fix nphug command
 =================
 
-fix nphug/omp command
-=====================
+Accelerator Variants: *nphug/omp*
 
 Syntax
 """"""

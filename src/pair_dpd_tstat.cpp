@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_tstat.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"
@@ -21,7 +21,7 @@
 #include "comm.h"
 #include "random_mars.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_e3b.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <algorithm>

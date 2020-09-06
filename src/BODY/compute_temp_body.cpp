@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_body.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"

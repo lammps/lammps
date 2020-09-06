@@ -16,24 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_pmb.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_peri_neigh.h"
+#include "force.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cfloat>
-#include <cstring>
-#include <string>
-#include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 

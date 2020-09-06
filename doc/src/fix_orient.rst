@@ -1,4 +1,5 @@
 .. index:: fix orient/fcc
+.. index:: fix orient/bcc
 
 fix orient/fcc command
 ======================

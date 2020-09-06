@@ -28,7 +28,7 @@
 #include "memory.h"
 #include "math_special.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

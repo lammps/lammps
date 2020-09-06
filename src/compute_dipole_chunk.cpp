@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dipole_chunk.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

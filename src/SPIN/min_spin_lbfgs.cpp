@@ -21,24 +21,22 @@
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "min_spin_lbfgs.h"
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
+#include "math_const.h"
+#include "memory.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
-#include "memory.h"
-#include "modify.h"
-#include "math_special.h"
-#include "math_const.h"
 #include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

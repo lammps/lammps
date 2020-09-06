@@ -12,17 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "body_nparticle.h"
-#include <cstring>
-#include <cstdlib>
-#include "my_pool_chunk.h"
+
+#include "atom.h"
+#include "atom_vec_body.h"
+#include "error.h"
 #include "math_extra.h"
 #include "math_eigen.h"
-#include "atom_vec_body.h"
-#include "atom.h"
-#include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

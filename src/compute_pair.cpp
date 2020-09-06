@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "update.h"

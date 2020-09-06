@@ -15,13 +15,13 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
+#include "npair_intel.h"
+
 #include "comm.h"
 #include "domain.h"
-#include "timer.h"
 #include "modify.h"
-#include "npair_intel.h"
-#include "nstencil.h"
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 

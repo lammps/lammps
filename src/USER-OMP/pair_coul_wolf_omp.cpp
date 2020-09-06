@@ -20,7 +20,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

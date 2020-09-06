@@ -14,7 +14,7 @@
 #include "fix_press_berendsen.h"
 #include <cstring>
 #include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"

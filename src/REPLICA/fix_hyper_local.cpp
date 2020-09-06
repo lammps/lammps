@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hyper_local.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -30,7 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

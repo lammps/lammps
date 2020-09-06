@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_gromacs_coul_gromacs.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -25,7 +25,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

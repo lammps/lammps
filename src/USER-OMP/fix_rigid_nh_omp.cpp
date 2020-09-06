@@ -15,10 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_rigid_nh_omp.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -29,17 +27,19 @@
 #include "error.h"
 #include "force.h"
 #include "kspace.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "modify.h"
+#include "rigid_const.h"
 #include "update.h"
-#include "timer.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
-#include "math_extra.h"
-#include "math_const.h"
-#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

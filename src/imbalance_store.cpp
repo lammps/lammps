@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_store.h"
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -240,10 +240,7 @@ namespace LAMMPS_NS {
 
     /** This version sets the separators argument to " \t\r\n\f" by default
      */
-    size_t trim_and_count_words(const std::string &text) {
-      std::string separators = " \t\r\n\f";
-      return trim_and_count_words(text, separators);
-    }
+    size_t trim_and_count_words(const std::string &text);
 
     /** Take text and split into non-whitespace words.
      *

@@ -1,7 +1,7 @@
 
 def replace_tabs_handler(app, docname, source):
     """ When builder is not 'html', remove 'tabs' directive
-    and replace 'tab' directive with 'admonition'"""
+    and replace any 'tab' directive with 'admonition'"""
     if app.builder.name != 'html':
         for i in range(len(source)):
             str = source[i].replace('.. tabs::','')

@@ -185,20 +185,25 @@ The default setting of "smallbig" is almost always adequate.
 
    .. tab:: CMake build
 
+      With CMake the choice of integer types is made via setting a
+      variable during configuration.
+
       .. code-block:: bash
 
          -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
+      If the variable is not set explicitly, "smallbig" is used.
+
    .. tab:: Traditional build
 
-      If you want a setting different from the default, you need to edit your
-      machine Makefile.
+      If you want a setting different from the default, you need to edit the
+      ``LMP_INC`` variable setting your machine Makefile.
 
-   .. code-block:: make
+      .. code-block:: make
 
-      LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
+         LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
-The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
+      The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
 
 LAMMPS system size restrictions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -218,7 +223,7 @@ The "bigbig" setting increases the latter two limits.  It allows for:
 * image flags = roll over at about 1 million (2\^20)
 
 The "smallsmall" setting is only needed if your machine does not
-support 8-byte integers.  It allows for:
+support 64-bit integers.  It allows for:
 
 * total atom count = 2\^31 atoms (about 2 billion)
 * total timesteps = 2\^31 (about 2 billion)
@@ -234,8 +239,9 @@ more than 2 billion atoms, you need the "bigbig" setting.
 
 Regardless of the total system size limits, the maximum number of atoms
 per MPI rank (local + ghost atoms) is limited to 2 billion for atomic
-systems and 500 million for systems with bonds (due to using the 2
-upper bits of the local atom index for storing special bonds labels).
+systems and 500 million for systems with bonds (the additional
+restriction is due to using the 2 upper bits of the local atom index
+in neighbor lists for storing special bonds info).
 
 Image flags store 3 values per atom in a single integer which count the
 number of times an atom has moved through the periodic box in each

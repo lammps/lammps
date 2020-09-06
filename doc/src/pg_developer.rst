@@ -1086,3 +1086,196 @@ A file that would be parsed by the reader code fragment looks like this:
    :project: progguide
    :members:
 
+Eigensolver classes
+===============================================================
+
+The "math_eigen.h" file contains the definition of 3 template classes
+used for calculating eigenvalues and eigenvectors of matrices:
+"Jacobi", "PeigenDense", and "LambdaLanczos".
+
+"Jacobi" calculates all of the eigenvalues and eigenvectors
+of a dense, symmetric, real matrix.
+
+The "PEigenDense" class only calculates the principal eigenvalue
+(ie. the largest or smallest eigenvalue), and its corresponding eigenvector.
+However it is much more efficient than "Jacobi" when applied to large matrices
+(larger than 13x13).  PEigenDense also can understand complex-valued
+Hermitian matrices.
+
+The "LambdaLanczos" class is a generalization of "PEigenDense" which can be
+applied to arbitrary sparse matrices.
+
+Together, these matrix eigensolvers cover a fairly wide range of use cases.
+
+Note: The code described here does not take advantage of parallelization.
+(It is assumed that the matrices are small enough
+that they can be diagonalized using individual CPU cores.)
+
+.. code-block:: C++
+   :caption: Jacobi usage example
+
+   #include "math_eigen.h"
+   using namespace MathEigen;
+
+   int n = 5;       // Matrix size
+   double **M;      // A symmetric n x n matrix you want to diagonalize
+   double *evals;   // Store the eigenvalues here.
+   double **evects; // Store the eigenvectors here.
+   // Allocate space for M, evals, and evects, and load contents of M (omitted)
+
+   // Now create an instance of Jacobi ("eigen_calc"). This will allocate space
+   // for storing intermediate calculations.  Once created, it can be reused
+   // multiple times without paying the cost of allocating memory on the heap.
+
+   Jacobi<double, double*, double**> eigen_calc(n);
+
+   // Note:
+   // If the matrix you plan to diagonalize (M) is read-only, use this instead:
+   // Jacobi<double, double*, double**, double const*const*> eigen_calc(n);
+
+   // Now, calculate the eigenvalues and eigenvectors of M
+   eigen_calc.Diagonalize(M, evals, evects);
+
+The Jacobi class is not limited to double** matrices.  It works on any C or C++
+object that supports indexing using [i][j] bracket notation.
+For example, if you prefer using std::vectors, then define a
+Jacobi instance this way instead:
+
+.. code-block:: C++
+   :caption: Jacobi std::vector example
+
+   Jacobi<double, vector<double>&, vector<vector<double>>&, const vector<vector<double>>&> eigen_calc(n);
+
+
+The PEigenDense class is useful for diagonalizing larger matrices
+which can be real (symmetric) or complex-valued (Hermitian):
+
+.. code-block:: C++
+   :caption: PEigenDense usage example
+
+   #include "math_eigen.h"
+   using namespace MathEigen;
+
+   const int n = 100;
+
+   PEigenDense<double, double*, double const*const*>  pe(n);
+
+   double **M;       // A symmetric n x n matrix you want to diagonalize
+   double evect[n];  // Store the principal eigenvector here.
+
+   // Now, allocate space for M and load it's contents. (omitted)
+
+   double eval = pe.PrincipalEigen(M, evect, true);
+
+   // This calculates only the maximum eigenvalue and its eigenvector
+
+
+The "LambdaLanczos" class generalizes "PEigenDense" by allowing the user
+to diagonalize arbitrary sparse matrices.  The "LambdaLanczos" class
+does not need to know how the matrices are implemented or stored in memory.
+Instead, users supply a function as an argument to the "LambdaLanczos"
+constructor (a lambda expression) that multiplies vectors by matrices. The
+specific implementation details are never revealed to the LambdaLanczos class.
+This allows users to choose arbitrary data structures to represent
+(sparse or dense) matrices.
+
+Note: If the matrix is not positive or negative definite,
+then user must specify an "eigenvalue_offset" parameter.  (See below.)
+
+Note: Both "LambdaLanczos" and "PEigenDense" use the Lanczos algorithm.
+
+.. code-block:: C++
+   :caption: LambdaLanczos usage example
+
+   #include "math_eigen.h"
+   using namespace MathEigen;
+
+   const int n = 3;
+   double M[n][n] = { {-1.0, -1.0, 1.0},
+                      {-1.0, 1.0, 1.0},
+                      { 1.0, 1.0, 1.0} };
+   // (Its eigenvalues are {-2, 1, 2})
+
+   // Specify the matrix-vector multiplication function
+   auto mv_mul = [&](const vector<double>& in, vector<double>& out) {
+     for(int i = 0;i < n;i++) {
+       for(int j = 0;j < n;j++) {
+         out[i] += M[i][j]*in[j];
+       }
+     }
+   };
+
+   LambdaLanczos<double> engine(mv_mul, n, true);
+   //(Setting 3rd arg (find_maximum) to true calculates the largest eigenvalue.)
+
+   engine.eigenvalue_offset = 3.0;   // = max_i{Σ_j|Mij|}  (see below)
+
+   double eigenvalue; //(must never be a complex number, even if M is complex)
+   vector<double> eigenvector(n);
+
+   int itern = engine.run(eigenvalue, eigenvector);
+
+   cout << "Iteration count: " << itern << endl;
+   cout << "Eigenvalue: " << eigenvalue << endl;
+   cout << "Eigenvector:";
+   for(int i = 0; i < n; i++) {
+     cout << eigenvector[i] << " ";
+   }
+   cout << endl;
+
+In this example, an small dense square matrix was used for simplicity.
+One could however, implement a large sparse matrix whose elements are
+stored as a list of {row-index, column-index, value} tuples,
+and modify the "mv_mult" function accordingly.
+
+
+IMPORTANT:
+The Lanczos algorithm finds the largest magnitude eigenvalue, so you
+MUST ensure that the eigenvalue you are seeking has the largest magnitude
+(regardless of whether it is the maximum or minimum eigenvalue).
+To insure that this is so, you can add or subtract a number to all
+of the eigenvalues of the matrix by specifying the "eigenvalue_offset".
+This number should exceed the largest magnitude eigenvalue of the matrix.
+According to the Gershgorin theorem, you can estimate this number using
+
+r = max_i{Σ_j|Mij|}
+or
+r = max_j{Σ_i|Mij|}
+
+(where Mij are the elements of the matrix and Σ_j denotes the sum over j).
+
+If you are seeking the maximum eigenvalue, then use:
+
+   eigenvalue_offset = +r
+
+If you are seeking the minimum eigenvalue, use:
+
+   eigenvalue_offset = -r
+
+You can omit this step if you are seeking the maximum eigenvalue,
+and the matrix is positive definite, or if you are seeking the minimum
+eigenvalue and the matrix is negative definite.)
+Otherwise, for dense (or mostly-dense) matrices, you can use the
+"ChooseOffset()" member function to pick the eigenvalue_offset automatically.
+Otherwise, the eigenvalue_offset MUST be specified by the user explicitly.
+(LambdaLanczos is ignorant of the way the matrix is implemented internally,
+so it does not have an efficient and general way to access the
+elements of a sparse matrix.)
+
+----------
+
+.. doxygenclass:: MathEigen::Jacobi
+   :project: progguide
+   :members:
+
+.. doxygenclass:: MathEigen::PEigenDense
+   :project: progguide
+   :members:
+
+.. doxygenclass:: MathEigen::LambdaLanczos
+   :project: progguide
+   :members:
+
+.. doxygenstruct:: MathEigen::realTypeMap
+   :project: progguide
+   :members:

@@ -19,26 +19,26 @@
 #ifndef LMP_MATH_EIGEN_H
 #define LMP_MATH_EIGEN_H
 
-/// @file  This file contains a library of functions and classes which can
-///        efficiently perform eigendecomposition for an extremely broad
-///        range of matrix types: both real and complex, dense and sparse.
-///        Matrices need not be of type "double **", for example.
-///        In principle, almost any type of C++ container can be used.
-///        Some general C++11 compatible functions for allocating matrices and
-///        calculating norms of real and complex vectors are also provided.
-/// @note
-///        The "Jacobi" and "PEigenDense" classes are used for calculating
-///        eigenvalues and eigenvectors of conventional dense square matrices.
-/// @note
-///        The "LambdaLanczos" class can calculate eigenalues and eigenvectors
-///        of more general types of matrices, especially large, sparse matrices.
-///        It uses C++ lambda expressions to simplify and generalize the way
-///        matrices can be represented.  This allows it to be applied to
-///        nearly any kind of sparse (or dense) matrix representation.
-/// @note
-///        The source code for Jacobi and LambdaLanczos is also available at:
-///        https://github.com/jewettaij/jacobi_pd   (CC0-1.0 license)
-///        https://github.com/mrcdr/lambda-lanczos  (MIT license)
+//        This file contains a library of functions and classes which can
+//        efficiently perform eigendecomposition for an extremely broad
+//        range of matrix types: both real and complex, dense and sparse.
+//        Matrices need not be of type "double **", for example.
+//        In principle, almost any type of C++ container can be used.
+//        Some general C++11 compatible functions for allocating matrices and
+//        calculating norms of real and complex vectors are also provided.
+// note
+//        The "Jacobi" and "PEigenDense" classes are used for calculating
+//        eigenvalues and eigenvectors of conventional dense square matrices.
+// note
+//        The "LambdaLanczos" class can calculate eigenalues and eigenvectors
+//        of more general types of matrices, especially large, sparse matrices.
+//        It uses C++ lambda expressions to simplify and generalize the way
+//        matrices can be represented.  This allows it to be applied to
+//        nearly any kind of sparse (or dense) matrix representation.
+// note
+//        The source code for Jacobi and LambdaLanczos is also available at:
+//        https://github.com/jewettaij/jacobi_pd   (CC0-1.0 license)
+//        https://github.com/mrcdr/lambda-lanczos  (MIT license)
 
 //#include <cassert>
 #include <numeric>
@@ -53,43 +53,37 @@ namespace MathEigen {
 
   // --- Memory allocation for matrices ---
 
-  /// @brief Allocate an arbitrary 2-dimensional array.  (Uses row-major order.)
-  /// @note  This function was intended for relatively small matrices (eg 4x4).
-  ///        For large arrays, please use the 2d create() function from "memory.h"
+  // Allocate an arbitrary 2-dimensional array.  (Uses row-major order.)
+  // note  This function was intended for relatively small matrices (eg 4x4).
+  //       For large arrays, please use the 2d create() function from "memory.h"
   template<typename Entry>
-  void Alloc2D(size_t nrows,          //!< size of the array (number of rows)
-               size_t ncols,          //!< size of the array (number of columns)
-               Entry ***paaX);        //!< pointer to a 2D C-style array
+  void Alloc2D(size_t nrows,          // size of the array (number of rows)
+               size_t ncols,          // size of the array (number of columns)
+               Entry ***paaX);        // pointer to a 2D C-style array
 
-  /// @brief Deallocate arrays that were created using Alloc2D().
+  // Deallocate arrays that were created using Alloc2D().
   template<typename Entry>
-  void Dealloc2D(Entry ***paaX);     //!< pointer to 2D multidimensional array
+  void Dealloc2D(Entry ***paaX);     // pointer to 2D multidimensional array
 
   // --- Complex numbers ---
+
   /// @brief
-  /// The "realTypeMap" struct is used to the define "real_t<T>" type mapper.
+  /// "realTypeMap" struct is used to the define "real_t<T>" type mapper.
   /// The "real_t" type mapper is used by the "LambdaLanczos" and "PEigenDense"
   /// classes, so it is documented here to help users understand those classes.
   /// "real_t<T>" returns the C++ type corresponding to the real component of T.
+  ///
   /// @details
-  /// For example, suppose you have a matrix of type std::complex<double> **.
+  /// For example, suppose you have a matrix of type std::complex<double>**.
   /// The eigenvalues calculated by "LambdaLanczos" and "PEigenDense" should be
   /// of type "double" (which is the same as "real_T<std::complex<double>>"),
-  /// (This is because the algorithm assumes the matrix is Hermetian, and the
-  ///  eigenvalues of a Hermetian matrix are always real.
-  ///  So if you attempt to pass a reference to a complex number as the first
-  ///  argument to LambdaLanczos::run(), the compiler will complain.)
-  /// For a simpler example, consider a function ("l2_norm()") that calculates
-  /// the (Euclidian) length of a vector of numbers (either real or complex):
-  /// @code
-  ///    template <typename T>  real_t<T>  l2_norm(const std::vector<T>& vec);
-  /// @endcode
-  /// Since it is a "length", the l2_norm is always real by definition.
-  /// (See https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm)
-  /// The return type of this function ("real_t<T>") indicates that it returns
-  /// a real number, even if the entries (of type T) are complex numbers.
-  /// (Implementation details: "real_t<T>" is defined using C++ template
-  ///  specializations.)
+  /// not "std::complex<double>".  (This is because the algorithm assumes the
+  /// matrix is Hermitian, and the eigenvalues of a Hermitian matrix are always
+  /// real.  So if you attempt to pass a reference to a complex number as the
+  /// first argument to LambdaLanczos::run(), the compiler will complain.)
+  ///
+  /// Implementation details: "real_t<T>" is defined using C++ template
+  /// specializations.
 
   template <typename T>
   struct realTypeMap {
@@ -105,65 +99,38 @@ namespace MathEigen {
 
   // --- Operations on vectors (of real and complex numbers) ---
 
-  /// @brief  Calculate the inner product of two vectors.
-  ///         (For vectors of complex numbers, std::conj() is used.)
+  //  Calculate the inner product of two vectors.
+  //  (For vectors of complex numbers, std::conj() is used.)
   template <typename T>
   T inner_prod(const std::vector<T>& v1, const std::vector<T>& v2);
 
-  /// @brief  Compute the sum of the absolute values of the entries in v
-  /// @returns a real number (of type real_t<T>).
+  //  Compute the sum of the absolute values of the entries in v
+  //  returns a real number (of type real_t<T>).
   template <typename T>
   real_t<T> l1_norm(const std::vector<T>& v);
 
-  /// @brief  Calculate the l2_norm (Euclidian length) of vector v.
-  /// @returns a real number (of type real_t<T>).
+  //  Calculate the l2_norm (Euclidian length) of vector v.
+  //  returns a real number (of type real_t<T>).
   template <typename T>
   real_t<T> l2_norm(const std::vector<T>& v);
 
-  /// @brief  Multiply a vector (v) by a scalar (c).
+  ///  Multiply a vector (v) by a scalar (c).
   template <typename T1, typename T2>
   void scalar_mul(T1 c, std::vector<T2>& v);
 
-  /// @brief  Divide vector "v" in-place by it's length (l2_norm(v)).
+  ///  Divide vector "v" in-place by it's length (l2_norm(v)).
   template <typename T>
   void normalize(std::vector<T>& v);
 
   // ---- Eigendecomposition of small dense symmetric matrices ----
 
   /// @class Jacobi
-  /// @brief Calculate the eigenvalues and eigevectors of a symmetric matrix
-  ///        using the Jacobi eigenvalue algorithm.  Code for the Jacobi class
-  ///        (along with tests and benchmarks) is available free of copyright at
+  /// @brief Calculate the eigenvalues and eigenvectors of a symmetric matrix
+  ///        using the Jacobi eigenvalue algorithm.  This code (along with tests
+  ///        and benchmarks) is available free of license restrictions at:
   ///        https://github.com/jewettaij/jacobi_pd
-  /// @note  The "Vector" and "Matrix" type arguments can be any
-  ///        C or C++ object that support indexing, including pointers or vectors.
-  /// @details
-  ///   Usage example:
-  /// @code
-  ///
-  /// int n = 5;       // Matrix size
-  /// double **M;      // A symmetric n x n matrix you want to diagonalize
-  /// double *evals;   // Store the eigenvalues here.
-  /// double **evects; // Store the eigenvectors here.
-  /// // Allocate space for M, evals, and evects, and load contents of M (omitted)
-  ///
-  /// // Now create an instance of Jacobi ("eigen_calc"). This will allocate space
-  /// // for storing intermediate calculations.  Once created, it can be reused
-  /// // multiple times without paying the cost of allocating memory on the heap.
-  ///
-  /// Jacobi<double, double*, double**> eigen_calc(n);
-  ///
-  /// // Note:
-  /// // If the matrix you plan to diagonalize (M) is read-only, use this instead:
-  /// // Jacobi<double, double*, double**, double const*const*> eigen_calc(n);
-  /// // If you prefer using vectors over C-style pointers, this works also:
-  /// // Jacobi<double, vector<double>&, vector<vector<double>>&> eigen_calc(n);
-  ///
-  /// // Now, calculate the eigenvalues and eigenvectors of M
-  ///
-  /// eigen_calc.Diagonalize(M, evals, evects);
-  ///
-  /// @endcode
+  /// @note  The "Vector", "Matrix", and "ConstMatrix" type arguments can be any
+  ///     C or C++ object that supports indexing, including pointers or vectors.
 
   template<typename Scalar,
            typename Vector,
@@ -202,7 +169,7 @@ namespace MathEigen {
       SORT_INCREASING_ABS_EVALS
     } SortCriteria;
 
-    /// @brief Calculate the eigenvalues and eigevectors of a symmetric matrix
+    /// @brief Calculate the eigenvalues and eigenvectors of a symmetric matrix
     ///        using the Jacobi eigenvalue algorithm.
     /// @returns 0 if the algorithm converged,
     ///          1 if the algorithm failed to converge. (IE, if the number of
@@ -266,11 +233,6 @@ namespace MathEigen {
   /// @brief
   ///   This version of jacobi3() finds the eigenvalues and eigenvectors
   ///   of a 3x3 matrix (which is in double (*)[3] format, instead of double **)
-  /// @param  mat   the 3x3 matrix you wish to diagonalize
-  /// @param  eval  store the eigenvalues here
-  /// @param  evec  store the eigenvectors here...
-  /// @param  evec_as_columns  ...in the columns or in rows?
-  /// @param  sort_criteria   sort the resulting eigenvalues?
   /// @note
   ///   When invoked using default arguments, this function is a stand-in for
   ///   the previous version of "jacobi()" that was declared in "math_extra.h".
@@ -288,15 +250,15 @@ namespace MathEigen {
 
 
 
-  // ---- Eigendecomposition of large sparse (and dense) matrices ----
+  // ---- Eigendecomposition of large sparse (or dense) matrices ----
 
   // The "LambdaLanczos" is a class useful for calculating eigenvalues
   // and eigenvectors of large sparse matrices.  Unfortunately, before the
   // LambdaLanczos class can be declared, several additional expressions,
   // classes and functions that it depends on must be declared first.
 
-  // @brief  Create random vectors used at the beginning of the Lanczos algorithm.
-  // @note "Partially specialization of function" is not allowed, so
+  // Create random vectors used at the beginning of the Lanczos algorithm.
+  // note "Partially specialization of function" is not allowed, so
   //       it is mimicked by wrapping the "init" function with a class template.
   template <typename T>
   struct VectorRandomInitializer {
@@ -310,14 +272,14 @@ namespace MathEigen {
     static void init(std::vector<std::complex<T>>&);
   };
 
-  /// @brief  Return the number of significant decimal digits of type T.
+  //  Return the number of significant decimal digits of type T.
   template <typename T>
   inline constexpr int sig_decimal_digit() {
     return (int)(std::numeric_limits<T>::digits *
                  std::log10(std::numeric_limits<T>::radix));
   }
 
-  /// @brief  Return 10^-n where n=number of significant decimal digits of type T.
+  //  Return 10^-n where n=number of significant decimal digits of type T.
   template <typename T>
   inline constexpr T minimum_effective_decimal() {
     return std::pow(10, -sig_decimal_digit<T>());
@@ -327,50 +289,11 @@ namespace MathEigen {
   /// @class LambdaLanczos
   /// @brief The LambdaLanczos class provides a general way to calculate
   ///        the smallest or largest eigenvalue and the corresponding eigenvector
-  ///        of a symmetric (Hermitian) matrix using the Lanczos algorithm.
+  ///        of a Hermitian matrix using the Lanczos algorithm.
   ///        The characteristic feature of LambdaLanczos is that the matrix-vector
   ///        multiplication routine used in the Lanczos algorithm is adaptable.
-  /// @details
-  /// @code
-  ///
-  /// //Example:
-  /// const int n = 3;
-  /// double M[n][n] = { {-1.0, -1.0, 1.0},
-  ///                    {-1.0, 1.0, 1.0},
-  ///                    { 1.0, 1.0, 1.0} };
-  /// // (Its eigenvalues are {-2, 1, 2})
-  ///
-  /// // Specify the matrix-vector multiplication function
-  /// auto mv_mul = [&](const vector<double>& in, vector<double>& out) {
-  ///   for(int i = 0;i < n;i++) {
-  ///     for(int j = 0;j < n;j++) {
-  ///       out[i] += M[i][j]*in[j];
-  ///     }
-  ///   }
-  /// };
-  ///
-  /// LambdaLanczos<double> engine(mv_mul, n, true);
-  ///     // ("true" means to calculate the largest eigenvalue.)
-  /// engine.eigenvalue_offset = 3.0;   // = max_i{Σ_j|Mij|}  (see below)
-  ///
-  /// double eigenvalue; //(must never be a complex number even if M is complex)
-  /// vector<double> eigenvector(n);
-  ///
-  /// int itern = engine.run(eigenvalue, eigenvector);
-  ///
-  /// cout << "Iteration count: " << itern << endl;
-  /// cout << "Eigen value: " << setprecision(16) << eigenvalue << endl;
-  /// cout << "Eigen vector:";
-  /// for(int i = 0; i < n; i++) {
-  ///   cout << eigenvector[i] << " ";
-  /// }
-  /// cout << endl;
-  ///
-  /// @endcode
-  /// This feature allows you to use a matrix whose elements are partially given,
-  /// e.g. a sparse matrix whose non-zero elements are stored as a list of
-  /// {row-index, column-index, value} tuples.  You can also easily combine
-  /// LambdaLanczos with existing matrix libraries (e.g. Eigen)
+  ///        This code (along with automatic unit tests) is also distributed
+  ///        under the MIT license at https://github.com/mrcdr/lambda-lanczos
   ///
   /// @note
   ///   If the matrices you want to analyze are ordinary square matrices, (as in
@@ -379,29 +302,8 @@ namespace MathEigen {
   ///
   /// @note
   ///  IMPORTANT:
-  ///  The Lanczos algorithm finds the largest magnitude eigenvalue, so you
-  ///  MUST ensure that the eigenvalue you are seeking has the largest magnitude
-  ///  (regardless of whether it is the maximum or minimum eigenvalue).
-  ///  To insure that this is so, you can add or subtract a number to all
-  ///  of the eigenvalues of the matrix by specifying the "eigenvalue_offset".
-  ///  This number should exceed the largest magnitude eigenvalue of the matrix.
-  ///  According to the Gershgorin theorem, you can estimate this number using
-  ///     r = max_i{Σ_j|Mij|} = max_j{Σ_i|Mij|}
-  ///  (where Mij are the elements of the matrix and Σ_j denotes the sum over j).
-  ///  If find_maximum == true (if you are seeking the maximum eigenvalue), then
-  ///    eigenvalue_offset = +r
-  ///  If find_maximum == false, then
-  ///    eigenvalue_offset = -r
-  ///  The eigenvalue_offset MUST be specified by the user.  LambdaLanczos does
-  ///  not have an efficient and general way to access the elements of the matrix.
-  ///
-  ///  (You can omit this step if you are seeking the maximum eigenvalue,
-  ///   and the matrix is positive definite, or if you are seeking the minimum
-  ///   eigenvalue and the matrix is negative definite.)
-  ///
-  /// @note
-  ///   LambdaLanczos is available under the MIT license and downloadable at:
-  ///   https://github.com/mrcdr/lambda-lanczos
+  /// Unless the matrix you are solving is positive or negative definite, you
+  /// MUST set the "eigenvalue_offset" parameter.  See the "pg_developer" docs.
 
   template <typename T>
   class LambdaLanczos {
@@ -484,29 +386,12 @@ namespace MathEigen {
   ///   PEigenDense is a class containing only one useful member function:
   ///   PrincipalEigen().  This function calculates the principal (largest
   ///   or smallest) eigenvalue and corresponding eigenvector of a square
-  ///   n x n matrix.  This can be faster than diagionalizing the entire matrix.
-  ///   (For example by using the Lanczos algorithm or something similar.)
+  ///   n x n matrix.  This can be faster than diagonalizing the entire matrix.
   /// @note
   ///   This code is a wrapper. Internally, it uses the "LambdaLanczos" class.
   /// @note
   ///   For dense matrices smaller than 13x13, Jacobi::Diagonalize(),
   ///   is usually faster than PEigenDense::PrincipleEigen().
-  /// @details
-  ///   Usage example:
-  /// @code
-  ///
-  /// const int n = 100;
-  ///
-  /// PEigenDense<double, double*, double**, double const*const*>  pe(n);
-  ///
-  /// double **M;       // A symmetric n x n matrix you want to diagonalize
-  /// double evect[n];  // Store the principal eigenvector here.
-  ///
-  /// // Now, allocate space for M and load it's contents. (omitted)
-  ///
-  /// double eval = pe.PrincipalEigen(M, evect, true);  //Returns the max eval
-  ///
-  /// @endcode
 
   template<typename Scalar, typename Vector, typename ConstMatrix>
   class PEigenDense
@@ -521,7 +406,7 @@ namespace MathEigen {
     /// @return Return the principal eigenvalue of the matrix.
     ///         If you want the eigenvector, pass a non-null "evector" argument.
     real_t<Scalar>
-    PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
+    PrincipalEigen(ConstMatrix matrix,   //!< the input matrix
                    Vector evector,       //!< the eigenvector is stored here
                    bool find_max=false); //!< want the max or min eigenvalue?
 
@@ -1028,7 +913,7 @@ template <typename T>
 inline LambdaLanczos<T>::LambdaLanczos() {
   this->matrix_size = 0;
   this->max_iteration = 0;
-  this->find_maximum = 0;
+  this->find_maximum = false;
 }
 
 

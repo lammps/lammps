@@ -325,6 +325,7 @@ Buyl
 Bybee
 bz
 cadetblue
+calc
 calibre
 caltech
 Caltech
@@ -639,7 +640,10 @@ dhex
 dia
 diag
 diagonalization
+diagonalize
 diagonalized
+diagonalizers
+diagonalizing
 Diallo
 diel
 differentiable
@@ -779,7 +783,13 @@ ehex
 eHEX
 Ei
 Eigen
+eigen
+Eigendecomposition
 Eigensolve
+eigenvalue
+eigenvalues
+eigenvector
+eigenvectors
 eij
 Eij
 Eijnden
@@ -893,6 +903,11 @@ eV
 evalue
 Evanseck
 evdwl
+evector
+evec
+evecs
+eval
+evals
 Everaers
 Evgeny
 evirials
@@ -1068,6 +1083,7 @@ Germann
 Germano
 gerolf
 Gerolf
+Gershgorin
 gettimeofday
 gewald
 Gezelter
@@ -1183,6 +1199,7 @@ Henkelman
 Henkes
 henrich
 Henrich
+Hermitian
 Herrmann
 Hertizian
 hertzian
@@ -1255,6 +1272,7 @@ icosahedral
 idealgas
 IDR
 idx
+ie
 ielement
 ieni
 ifdefs
@@ -1345,6 +1363,8 @@ isothermal
 isotropically
 isovolume
 Isralewitz
+iter
+iters
 iteratively
 Ith
 Itsets
@@ -1536,6 +1556,7 @@ LAMMPS
 lammpsplot
 Lampis
 Lamoureux
+Lanczos
 Lande
 Landron
 langevin
@@ -1841,6 +1862,7 @@ Microscale
 midnightblue
 mie
 Mie
+Mij
 Mikami
 Militzer
 Minary
@@ -1939,6 +1961,7 @@ Muccioli
 mui
 Mukherjee
 Mulders
+mult
 multi
 multibody
 Multibody
@@ -3455,3 +3478,25 @@ zz
 Zm
 PowerShell
 filesystems
+ε
+σ
+Σ
+π
+δ
+Δ
+θ
+Θ
+φ
+Φ
+Ψ
+ψ
+ρ
+β
+ω
+Ω
+κ
+τ
+λ
+γ
+μ
+ν

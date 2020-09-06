@@ -827,7 +827,7 @@ and parsing files or arguments.
 .. doxygenfunction:: count_words(const std::string &text, const std::string &separators)
    :project: progguide
 
-.. doxygenfunction:: trim_and_count_words
+.. doxygenfunction:: trim_and_count_words(const std::string &text, const std::string &separators)
    :project: progguide
 
 .. doxygenfunction:: split_words
@@ -1091,7 +1091,7 @@ Eigensolver classes
 
 The "math_eigen.h" file contains the definition of 3 template classes
 used for calculating eigenvalues and eigenvectors of matrices:
-"Jacobi", "PeigenDense", and "LambdaLanczos".
+"Jacobi", "PEigenDense", and "LambdaLanczos".
 
 "Jacobi" calculates all of the eigenvalues and eigenvectors
 of a dense, symmetric, real matrix.

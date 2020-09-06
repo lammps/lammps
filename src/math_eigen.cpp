@@ -137,4 +137,3 @@ jacobi3(double const* const* mat, // the 3x3 matrix you wish to diagonalize
 
   return ierror;
 }
-

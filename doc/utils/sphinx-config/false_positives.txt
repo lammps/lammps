@@ -398,6 +398,7 @@ ChiralIDs
 chiralIDs
 chirality
 Cho
+ChooseOffset
 chris
 Christoph
 Chu
@@ -470,6 +471,7 @@ config
 configfile
 configurational
 conformational
+ConstMatrix
 Contrib
 cooperativity
 coord
@@ -782,10 +784,11 @@ Eggebrecht
 ehex
 eHEX
 Ei
-Eigen
 eigen
-Eigendecomposition
-Eigensolve
+eigensolve
+eigensolver
+eigensolvers
+eigendecomposition
 eigenvalue
 eigenvalues
 eigenvector
@@ -1550,6 +1553,7 @@ Ladd
 lagrangian
 lambdai
 lamda
+LambdaLanczos
 lammps
 Lammps
 LAMMPS
@@ -2346,6 +2350,7 @@ peachpuff
 Pearlman
 Pedersen
 peID
+PEigenDense
 Peng
 peptide
 peratom
@@ -2574,6 +2579,8 @@ rdf
 RDideal
 rdx
 reacter
+realTypeMap
+real_t
 README
 realtime
 reamin
@@ -3146,6 +3153,8 @@ tu
 Tuckerman
 tue
 tunable
+tuple
+tuples
 Turkand
 Tutein
 tweakable

@@ -44,74 +44,71 @@ require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
-   -D FFT_SINGLE=value       # yes or no (default), no = double precision
-   -D FFT_PACK=value         # array (default) or pointer or memcpy
+      .. code-block:: bash
 
-.. note::
+         -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
+         -D FFT_SINGLE=value       # yes or no (default), no = double precision
+         -D FFT_PACK=value         # array (default) or pointer or memcpy
 
-   The values for the FFT variable must be in upper-case.  This is
-   an exception to the rule that all CMake variables can be specified
-   with lower-case values.
+      .. note::
 
-Usually these settings are all that is needed.  If FFTW3 is selected,
-then CMake will try to detect, if threaded FFTW libraries are available
-and enable them by default.  This setting is independent of whether
-OpenMP threads are enabled and a packages like KOKKOS or USER-OMP is
-used.  If CMake cannot detect the FFT library, you can set these variables
-to assist:
+         The values for the FFT variable must be in upper-case.  This is
+         an exception to the rule that all CMake variables can be specified
+         with lower-case values.
 
-.. code-block:: bash
+      Usually these settings are all that is needed.  If FFTW3 is
+      selected, then CMake will try to detect, if threaded FFTW
+      libraries are available and enable them by default.  This setting
+      is independent of whether OpenMP threads are enabled and a
+      packages like KOKKOS or USER-OMP is used.  If CMake cannot detect
+      the FFT library, you can set these variables to assist:
 
-   -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
-   -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
-   -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
-   -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
-   -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
-   -D MKL_LIBRARIES=path
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
+         -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
+         -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
+         -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
+         -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
+         -D MKL_LIBRARIES=path
 
-To change the FFT library to be used and its options, you have to edit
-your machine Makefile. Below are examples how the makefile variables
-could be changed.
+   .. tab:: Traditional make
 
-.. code-block:: make
+      To change the FFT library to be used and its options, you have to edit
+      your machine Makefile. Below are examples how the makefile variables
+      could be changed.
 
-   FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
-                                 # default is KISS if not specified
-   FFT_INC = -DFFT_SINGLE        # do not specify for double precision
-   FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
-   FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
-   FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
+      .. code-block:: make
 
-# default is FFT_PACK_ARRAY if not specified
+         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
+                                       # default is KISS if not specified
+         FFT_INC = -DFFT_SINGLE        # do not specify for double precision
+         FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
+         FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
+         FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
+                                       # default is FFT_PACK_ARRAY if not specified
 
-.. code-block:: make
+      .. code-block:: make
 
-   FFT_INC =       -I/usr/local/include
-   FFT_PATH =      -L/usr/local/lib
-   FFT_LIB =       -lfftw3             # FFTW3 double precision
-   FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
-   FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
-   FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
+         FFT_INC =       -I/usr/local/include
+         FFT_PATH =      -L/usr/local/lib
+         FFT_LIB =       -lfftw3             # FFTW3 double precision
+         FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
+         FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
+         FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
+         FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
+         FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
+         FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
+         FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
-As with CMake, you do not need to set paths in ``FFT_INC`` or ``FFT_PATH``, if
-the compiler can find the FFT header and library files in its default search path.
-You must specify ``FFT_LIB`` with the appropriate FFT libraries to include in the link.
-
-CMake build
-^^^^^^^^^^^
+      As with CMake, you do not need to set paths in ``FFT_INC`` or
+      ``FFT_PATH``, if the compiler can find the FFT header and library
+      files in its default search path.  You must specify ``FFT_LIB``
+      with the appropriate FFT libraries to include in the link.
 
 The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
 distribution.  It is portable across all platforms.  Depending on the size
@@ -177,34 +174,34 @@ ARRAY mode.
 
 .. _size:
 
-Size of LAMMPS integer types
-------------------------------------
+Size of LAMMPS integer types and size limits
+--------------------------------------------
 
 LAMMPS has a few integer data types which can be defined as either
 4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
 The default setting of "smallbig" is almost always adequate.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
+      .. code-block:: bash
 
-Traditional build
-^^^^^^^^^^^^^^^^^
+         -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
-If you want a setting different from the default, you need to edit your
-machine Makefile.
+   .. tab:: Traditional build
 
-.. code-block:: make
+      If you want a setting different from the default, you need to edit your
+      machine Makefile.
 
-   LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
+   .. code-block:: make
+
+      LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
 The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
 
-CMake and make info
-^^^^^^^^^^^^^^^^^^^
+LAMMPS system size restrictions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The default "smallbig" setting allows for simulations with:
 
@@ -235,18 +232,24 @@ IDs are required for molecular systems with bond topology (bonds,
 angles, dihedrals, etc).  Thus if you model a molecular system with
 more than 2 billion atoms, you need the "bigbig" setting.
 
-Image flags store 3 values per atom which count the number of times an
-atom has moved through the periodic box in each dimension.  See the
-:doc:`dump <dump>` doc page for a discussion.  If an atom moves through
-the periodic box more than this limit, the value will "roll over",
-e.g. from 511 to -512, which can cause diagnostics like the
-mean-squared displacement, as calculated by the :doc:`compute msd <compute_msd>` command, to be faulty.
+Regardless of the total system size limits, the maximum number of atoms
+per MPI rank (local + ghost atoms) is limited to 2 billion for atomic
+systems and 500 million for systems with bonds (due to using the 2
+upper bits of the local atom index for storing special bonds labels).
 
-Note that the USER-ATC package and the USER-INTEL package are currently
-not compatible with the "bigbig" setting. Also, there are limitations
-when using the library interface. Some functions with known issues
-have been replaced by dummy calls printing a corresponding error rather
-than crashing randomly or corrupting data.
+Image flags store 3 values per atom in a single integer which count the
+number of times an atom has moved through the periodic box in each
+dimension.  See the :doc:`dump <dump>` doc page for a discussion.  If an
+atom moves through the periodic box more than this limit, the value will
+"roll over", e.g. from 511 to -512, which can cause diagnostics like the
+mean-squared displacement, as calculated by the :doc:`compute msd
+<compute_msd>` command, to be faulty.
+
+Note that the USER-ATC package is currently not compatible with the
+"bigbig" setting. Also, there are limitations when using the library
+interface. Some functions with known issues have been replaced by dummy
+calls printing a corresponding error rather than crashing randomly or
+corrupting data.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
@@ -265,54 +268,51 @@ PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
 outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D WITH_JPEG=value      # yes or no
-                           # default = yes if CMake finds JPEG files, else no
-   -D WITH_PNG=value       # yes or no
-                           # default = yes if CMake finds PNG and ZLIB files, else no
-   -D WITH_FFMPEG=value    # yes or no
-                           # default = yes if CMake can find ffmpeg, else no
+      .. code-block:: bash
 
-Usually these settings are all that is needed.  If CMake cannot find
-the graphics header, library, executable files, you can set these
-variables:
+         -D WITH_JPEG=value      # yes or no
+                                 # default = yes if CMake finds JPEG files, else no
+         -D WITH_PNG=value       # yes or no
+                                 # default = yes if CMake finds PNG and ZLIB files, else no
+         -D WITH_FFMPEG=value    # yes or no
+                                 # default = yes if CMake can find ffmpeg, else no
 
-.. code-block:: bash
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
 
-   -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
-   -D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
-   -D PNG_INCLUDE_DIR=path     # path to png.h header file
-   -D PNG_LIBRARIES=path       # path to libpng.a (.so) file
-   -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-   -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
-   -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+         -D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
+         -D PNG_INCLUDE_DIR=path     # path to png.h header file
+         -D PNG_LIBRARIES=path       # path to libpng.a (.so) file
+         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+         -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
+         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_JPEG
-   LMP_INC = -DLAMMPS_PNG
-   LMP_INC = -DLAMMPS_FFMPEG
+      .. code-block:: make
 
-   JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
-   JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
-   JPG_LIB = -ljpeg -lpng -lz       # library names
+         LMP_INC = -DLAMMPS_JPEG
+         LMP_INC = -DLAMMPS_PNG
+         LMP_INC = -DLAMMPS_FFMPEG
 
-As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-if make can find the graphics header and library files.  You must
-specify ``JPG_LIB``
-with a list of graphics libraries to include in the link.  You must
-insure ffmpeg is in a directory where LAMMPS can find it at runtime,
-that is a directory in your PATH environment variable.
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
+         JPG_LIB = -ljpeg -lpng -lz       # library names
 
-CMake and make info
-^^^^^^^^^^^^^^^^^^^
+      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+      if make can find the graphics header and library files.  You must
+      specify ``JPG_LIB`` with a list of graphics libraries to include
+      in the link.  You must insure ffmpeg is in a directory where
+      LAMMPS can find it at runtime, that is a directory in your PATH
+      environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.

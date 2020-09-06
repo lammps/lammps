@@ -4,9 +4,7 @@ def replace_tabs_handler(app, docname, source):
     and replace any 'tab' directive with 'admonition'"""
     if app.builder.name != 'html':
         for i in range(len(source)):
-            str = source[i].replace('.. tabs::','')
-            str = str.replace('.. tab::','.. admonition::')
-            source[i] = str
+            source[i] = source[i].replace('.. tabs::','').replace('.. tab::','.. admonition::')
 
 def setup(app):
     app.connect('source-read', replace_tabs_handler)

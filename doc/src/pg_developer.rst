@@ -1208,7 +1208,7 @@ Note: Both "LambdaLanczos" and "PEigenDense" use the Lanczos algorithm.
    LambdaLanczos<double> engine(mv_mul, n, true);
    //(Setting 3rd arg (find_maximum) to true calculates the largest eigenvalue.)
 
-   engine.eigenvalue_offset = 3.0;   // = max_i{Σ_j|Mij|}  (see below)
+   engine.eigenvalue_offset = 3.0;   // = max_i{sum_j|Mij|}  (see below)
 
    double eigenvalue; //(must never be a complex number, even if M is complex)
    vector<double> eigenvector(n);
@@ -1238,11 +1238,11 @@ of the eigenvalues of the matrix by specifying the "eigenvalue_offset".
 This number should exceed the largest magnitude eigenvalue of the matrix.
 According to the Gershgorin theorem, you can estimate this number using
 
-r = max_i{Σ_j|Mij|}
+r = max_i{sum_j|Mij|}
 or
-r = max_j{Σ_i|Mij|}
+r = max_j{sum_i|Mij|}
 
-(where Mij are the elements of the matrix and Σ_j denotes the sum over j).
+(where Mij are the elements of the matrix and sum_j denotes the sum over j).
 
 If you are seeking the maximum eigenvalue, then use:
 

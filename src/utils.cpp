@@ -625,11 +625,6 @@ size_t utils::trim_and_count_words(const std::string &text, const std::string &s
   return utils::count_words(utils::trim_comment(text), separators);
 }
 
-size_t utils::trim_and_count_words(const std::string &text) {
-  std::string separators = " \t\r\n\f";
-  return trim_and_count_words(text, separators);
-}
-
 /* ----------------------------------------------------------------------
    Convert string into words on whitespace while handling single and
    double quotes.

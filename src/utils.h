@@ -236,11 +236,7 @@ namespace LAMMPS_NS {
      * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t trim_and_count_words(const std::string &text, const std::string &separators);
-
-    /** This version sets the separators argument to " \t\r\n\f" by default
-     */
-    size_t trim_and_count_words(const std::string &text);
+    size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
 
     /** Take text and split into non-whitespace words.
      *

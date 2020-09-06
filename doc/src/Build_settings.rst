@@ -213,6 +213,7 @@ LAMMPS system size restrictions
 .. list-table::
    :header-rows: 1
    :widths: auto
+   :align: center
 
    * -
      - smallbig
@@ -221,19 +222,19 @@ LAMMPS system size restrictions
    * - Total atom count
      - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
      - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
-     - :math:`2^{31}` atoms (= :math:`2\,147\,483\,648`)
+     - :math:`2^{31}` atoms (= :math:`2.147 \cdot 10^9`)
    * - Total timesteps
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
-     - :math:`2^{31}` steps (= :math:`2\,147\,483\,648`)
+     - :math:`2^{31}` steps (= :math:`2.147 \cdot 10^9`)
    * - Atom ID values
-     - :math:`1 \le i \le 2^{31} (= 2\,147\,483\,648)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
      - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
-     - :math:`1 \le i \le 2^{31} (= 2\,147\,483\,648)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
    * - Image flag values
-     - :math:`-512 \le i \le 511` (= 10-bit)
-     - :math:`- 1\,048\,576 \le i \le 1\,048\,575` (= 21-bit)
-     - :math:`-512 \le i \le 511` (= 10-bit)
+     - :math:`-512 \le i \le 511`
+     - :math:`- 1\,048\,576 \le i \le 1\,048\,575`
+     - :math:`-512 \le i \le 511`
 
 The "bigbig" setting increases the size of image flags and atom IDs over
 "smallbig" and the "smallsmall" setting is only needed if your machine

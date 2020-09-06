@@ -912,6 +912,12 @@ Convenience functions
 .. doxygenfunction:: date2num
    :project: progguide
 
+Customized standard functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: merge_sort
+   :project: progguide
+
 ---------------------------
 
 Tokenizer classes

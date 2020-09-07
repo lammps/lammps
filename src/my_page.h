@@ -52,8 +52,8 @@ class MyPage {
    *
    * \return total storage used in bytes */
 
-  int size() const {
-    return npage*pagesize*sizeof(T);
+  double size() const {
+    return (double)npage*pagesize*sizeof(T);
   }
 
   /** Return error status

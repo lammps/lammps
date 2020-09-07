@@ -55,13 +55,13 @@ TEST(MyPage, int) {
     ASSERT_EQ(p.nchunk,3);
 
     // restart with custom init. maxchunk=16, pagesize=256
-    int rv = p.init(16,256);
+    rv = p.init(16,64,2);
     ASSERT_EQ(rv,0);
 
     ASSERT_EQ(p.ndatum,0);
     ASSERT_EQ(p.nchunk,0);
 
-    int *iptr = p.vget();
+    iptr = p.vget();
     // second call to vget() should give same pointer without vgot()
     ASSERT_EQ(iptr,p.vget());
     p.vgot(16);
@@ -76,6 +76,7 @@ TEST(MyPage, int) {
     ASSERT_EQ(1,p.status());
 
     p.reset();
+    ASSERT_EQ(0,p.status());
     ASSERT_EQ(p.ndatum,0);
     ASSERT_EQ(p.nchunk,0);
 
@@ -87,6 +88,196 @@ TEST(MyPage, int) {
     ASSERT_EQ(iptr,p.get());
     ++iptr;
     ASSERT_EQ(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(int)*128.0);
     ASSERT_EQ(p.ndatum,37);
     ASSERT_EQ(p.nchunk,4);
+    p.get(16);
+    p.get(16);
+    // allocation on the same page
+    iptr = p.get(16);
+    iptr += 16;
+    ASSERT_EQ(iptr,p.get(16));
+    // allocation on different pages
+    p.get(16);
+    iptr += 16;
+    ASSERT_NE(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(int)*256.0);
+    ASSERT_EQ(p.ndatum,133);
+    ASSERT_EQ(p.nchunk,10);
+}
+
+TEST(MyPage, double) {
+    MyPage<double> p;
+
+    // default init. maxchunk=1, pagesize=1024
+    int rv = p.init();
+    ASSERT_EQ(rv,0);
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    double *iptr = p.vget();
+    // second call to vget() should give same pointer without vgot()
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(1);
+    ++iptr;
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+    ASSERT_EQ(iptr,p.vget());
+    // use too large chunk size
+    p.vgot(2);
+    ASSERT_EQ(1,p.status());
+
+    p.reset();
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    p.vgot(1);
+    ++iptr;
+    ASSERT_EQ(iptr,p.get());
+    ++iptr;
+    ASSERT_EQ(iptr,p.get(1));
+    ASSERT_EQ(p.ndatum,3);
+    ASSERT_EQ(p.nchunk,3);
+
+    // restart with custom init. maxchunk=16, pagesize=256
+    rv = p.init(16,64,2);
+    ASSERT_EQ(rv,0);
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    // second call to vget() should give same pointer without vgot()
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(16);
+    iptr += 16;
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,16);
+    ASSERT_EQ(p.nchunk,1);
+
+    // use too large chunk size
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(32);
+    ASSERT_EQ(1,p.status());
+
+    p.reset();
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    p.vgot(16);
+    iptr = p.vget();
+    p.vgot(4);
+    iptr += 4;
+    ASSERT_EQ(iptr,p.get());
+    ++iptr;
+    ASSERT_EQ(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(double)*128.0);
+    ASSERT_EQ(p.ndatum,37);
+    ASSERT_EQ(p.nchunk,4);
+    p.get(16);
+    p.get(16);
+    // allocation on the same page
+    iptr = p.get(16);
+    iptr += 16;
+    ASSERT_EQ(iptr,p.get(16));
+    // allocation on different pages
+    p.get(16);
+    iptr += 16;
+    ASSERT_NE(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(double)*256.0);
+    ASSERT_EQ(p.ndatum,133);
+    ASSERT_EQ(p.nchunk,10);
+}
+
+TEST(MyPage, bigint) {
+    MyPage<bigint> p;
+
+    // default init. maxchunk=1, pagesize=1024
+    int rv = p.init();
+    ASSERT_EQ(rv,0);
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    bigint *iptr = p.vget();
+    // second call to vget() should give same pointer without vgot()
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(1);
+    ++iptr;
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+    ASSERT_EQ(iptr,p.vget());
+    // use too large chunk size
+    p.vgot(2);
+    ASSERT_EQ(1,p.status());
+
+    p.reset();
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    p.vgot(1);
+    ++iptr;
+    ASSERT_EQ(iptr,p.get());
+    ++iptr;
+    ASSERT_EQ(iptr,p.get(1));
+    ASSERT_EQ(p.ndatum,3);
+    ASSERT_EQ(p.nchunk,3);
+
+    // restart with custom init. maxchunk=16, pagesize=256
+    rv = p.init(16,64,2);
+    ASSERT_EQ(rv,0);
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    // second call to vget() should give same pointer without vgot()
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(16);
+    iptr += 16;
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,16);
+    ASSERT_EQ(p.nchunk,1);
+
+    // use too large chunk size
+    ASSERT_EQ(iptr,p.vget());
+    p.vgot(32);
+    ASSERT_EQ(1,p.status());
+
+    p.reset();
+    ASSERT_EQ(0,p.status());
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+
+    iptr = p.vget();
+    p.vgot(16);
+    iptr = p.vget();
+    p.vgot(4);
+    iptr += 4;
+    ASSERT_EQ(iptr,p.get());
+    ++iptr;
+    ASSERT_EQ(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(bigint)*128.0);
+    ASSERT_EQ(p.ndatum,37);
+    ASSERT_EQ(p.nchunk,4);
+    p.get(16);
+    p.get(16);
+    // allocation on the same page
+    iptr = p.get(16);
+    iptr += 16;
+    ASSERT_EQ(iptr,p.get(16));
+    // allocation on different pages
+    p.get(16);
+    iptr += 16;
+    ASSERT_NE(iptr,p.get(16));
+    ASSERT_DOUBLE_EQ(p.size(),(double)sizeof(bigint)*256.0);
+    ASSERT_EQ(p.ndatum,133);
+    ASSERT_EQ(p.nchunk,10);
 }

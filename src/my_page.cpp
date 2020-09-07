@@ -207,6 +207,7 @@ void MyPage<T>::reset() {
   ndatum = nchunk = 0;
   index = ipage = 0;
   page = (pages != nullptr) ? pages[ipage] : nullptr;
+  errorflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -22,7 +22,14 @@
 #define LAMMPS_MEMALIGN 64
 #endif
 
+#include "lmptype.h"
+
 namespace LAMMPS_NS {
+
+struct HyperOneCoeff {
+  double biascoeff;
+  tagint tag;
+};
 
 template<class T>
 class MyPage {

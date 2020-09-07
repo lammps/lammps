@@ -257,12 +257,11 @@ void MyPage<T>::allocate() {
 }
 
 // explicit instantiations
-#include "fix.h"
-#include "REPLICA/fix_hyper_local.h"
+
 namespace LAMMPS_NS {
   template class MyPage<int>;
   template class MyPage<long>;
   template class MyPage<long long>;
   template class MyPage<double>;
-  template class MyPage<FixHyperLocal::OneCoeff>;
+  template class MyPage<HyperOneCoeff>;
 }

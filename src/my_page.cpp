@@ -56,11 +56,11 @@ using namespace LAMMPS_NS;
  *
  * The chunks are not returnable (i.e. cannot be freed individually).
  * One can only reset and start over.  The purpose of this
- * class is to replace many small mallocs with a few large
- * mallocs. Since the pages are never freed, they can be re-used
- * without having to re-allocate them.
+ * class is to replace many small memory allocations via malloc() with
+ * a few large ones. Since the pages are never freed, they can be
+ * re-used without having to re-allocate them.
  *
- * The settings *maxchunk*, *pagesize*, and *pagedelta* contol
+ * The settings *maxchunk*, *pagesize*, and *pagedelta* control
  * the memory allocation strategy. The *maxchunk* value represents
  * the expected largest number of items per chunk. If there is
  * less space left on the current page, a new page is allocated
@@ -213,7 +213,7 @@ T *MyPage<T>::vget() {
  * storage was not used.  A following call to vget() will then reserve the
  * same location again.  It is an error if *N* > *maxchunk*.
  *
- * \param  n  Number of iterms used in previously reserved chunk */
+ * \param  n  Number of items used in previously reserved chunk */
 
 template <class T>
 void MyPage<T>::vgot(int n) {

@@ -53,7 +53,7 @@ command, e.g. ``src/force.cpp`` and the :cpp:class:`LAMMPS_NS::Force`
 class.  They are discussed in the next section.
 
 A small number of C++ classes and utility functions are implemented with
-only a ``.h`` file. Examples are the Pointer class and the mergesort function.
+only a ``.h`` file. Examples are the Pointer class or the MyPool class.
 
 LAMMPS class topology
 =====================
@@ -1102,3 +1102,12 @@ A file that would be parsed by the reader code fragment looks like this:
    :project: progguide
    :members:
 
+
+----------
+
+Memory pool classes
+===================
+
+.. doxygenclass:: LAMMPS_NS::MyPage
+   :project: progguide
+   :members:

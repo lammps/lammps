@@ -1975,6 +1975,7 @@ MxN
 myCompute
 myIndex
 mylammps
+MyPool
 mysocket
 myTemp
 myVec

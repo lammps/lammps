@@ -39,12 +39,10 @@ class MyPage {
   MyPage();
   virtual ~MyPage();
 
-  int init(int user_maxchunk = 1, int user_pagesize = 1024,
-           int user_pagedelta = 1);
+  int init(int user_maxchunk=1, int user_pagesize=1024,
+           int user_pagedelta=1);
 
-  T *get();
-  T *get(int n);
-
+  T *get(int n=1);
   T *vget();
   void vgot(int n);
 
@@ -79,6 +77,7 @@ class MyPage {
                   // 1 = chunk size exceeded maxchunk
                   // 2 = memory allocation error
   void allocate();
+  void deallocate();
 };
 
 }

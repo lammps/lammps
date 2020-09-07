@@ -89,12 +89,9 @@ MyPage<T>::MyPage() : ndatum(0), nchunk(0), pages(nullptr), page(nullptr),
                       npage(0), ipage(-1), index(-1), maxchunk(-1),
                       pagesize(-1), pagedelta(1), errorflag(0) {};
 
-/** Free all allocated pages of this class instance */
-
 template <class T>
 MyPage<T>::~MyPage() {
-  for (int i = 0; i < npage; i++) free(pages[i]);
-  free(pages);
+  deallocate();
 }
 
 /** (Re-)initialize the set of pages and allocation parameters.
@@ -117,43 +114,17 @@ int MyPage<T>::init(int user_maxchunk, int user_pagesize,
     if (maxchunk <= 0 || pagesize <= 0 || pagedelta <= 0) return 1;
     if (maxchunk > pagesize) return 1;
 
-    // free any previously allocated pages
+    // free storage if re-initialized
 
-    for (int i = 0; i < npage; i++) free(pages[i]);
-    free(pages);
+    deallocate();
 
     // initial page allocation
 
-    ndatum = nchunk = 0;
-    pages = NULL;
-    npage = 0;
     allocate();
     if (errorflag) return 2;
-    ipage = index = 0;
-    page = pages[ipage];
+    reset();
     return 0;
   }
-
-/** Pointer to location that can store one item.
- *
- * This will allocate more pages as needed.
- *
- * \return  memory location or null pointer, if memory allocation failed */
-
-template <class T>
-T *MyPage<T>::get() {
-  ndatum++;
-  nchunk++;
-  if (index < pagesize) return &page[index++];
-  ipage++;
-  if (ipage == npage) {
-    allocate();
-    if (errorflag) return NULL;
-  }
-  page = pages[ipage];
-  index = 0;
-  return &page[index++];
-}
 
 /** Pointer to location that can store N items.
  *
@@ -172,11 +143,15 @@ T *MyPage<T>::get(int n) {
   }
   ndatum += n;
   nchunk++;
+
+  // return pointer from current page
   if (index+n <= pagesize) {
     int start = index;
     index += n;
     return &page[start];
   }
+
+  // allocate new page
   ipage++;
   if (ipage == npage) {
     allocate();
@@ -231,7 +206,7 @@ template <class T>
 void MyPage<T>::reset() {
   ndatum = nchunk = 0;
   index = ipage = 0;
-  page = pages[ipage];
+  page = (pages != nullptr) ? pages[ipage] : nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,6 +231,17 @@ void MyPage<T>::allocate() {
     if (!pages[i]) errorflag = 2;
 #endif
   }
+}
+
+/** Free all allocated pages of this class instance */
+
+template <class T>
+void MyPage<T>::deallocate() {
+  reset();
+  for (int i = 0; i < npage; i++) free(pages[i]);
+  free(pages);
+  pages = nullptr;
+  npage = 0;
 }
 
 // explicit instantiations

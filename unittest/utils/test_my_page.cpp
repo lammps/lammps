@@ -18,7 +18,7 @@
 
 using namespace LAMMPS_NS;
 
-TEST(MyPage, int_default) {
+TEST(MyPage, int) {
     MyPage<int> p;
 
     // default init. maxchunk=1, pagesize=1024
@@ -53,12 +53,8 @@ TEST(MyPage, int_default) {
     ASSERT_EQ(iptr,p.get(1));
     ASSERT_EQ(p.ndatum,3);
     ASSERT_EQ(p.nchunk,3);
-}
 
-TEST(MyPage, int_custom) {
-    MyPage<int> p;
-
-    // default init. maxchunk=16, pagesize=256
+    // restart with custom init. maxchunk=16, pagesize=256
     int rv = p.init(16,256);
     ASSERT_EQ(rv,0);
 

@@ -1108,6 +1108,57 @@ A file that would be parsed by the reader code fragment looks like this:
 Memory pool classes
 ===================
 
+The memory pool classes are used for cases where otherwise many
+small memory allocations would be needed and where the data would
+be either all used or all freed.  One example for that is the
+storage of neighbor lists.  The memory management strategy is
+based on the assumption that allocations will be in chunks of similar
+sizes.  The allocation is then not done per individual call for a
+reserved chunk of memory, but for a "page" that can hold multiple
+chunks of data.  A parameter for the maximum chunk size must be
+provided, as that is used to determine whether a new page of memory
+must be used.
+
+The :cpp:class:`MyPage <LAMMPS_NS::MyPage>` class offers two ways to
+reserve a chunk: 1) with :cpp:func:`get() <LAMMPS_NS::MyPage::get>` the
+chunk size needs to be known in advance, 2) with :cpp:func:`vget()
+<LAMMPS_NS::MyPage::vget>` a pointer to the next chunk is returned, but
+its size is registered later with :cpp:func:`vgot()
+<LAMMPS_NS::MyPage::vgot>`.
+
+.. code-block:: C++
+   :caption: Example of using :cpp:class:`MyPage <LAMMPS_NS::MyPage>`
+
+      #include "my_page.h"
+      using namespace LAMMPS_NS;
+
+      MyPage<double> *dpage = new MyPage<double>;
+      // max size of chunk: 256, size of page: 10240 doubles (=81920 bytes)
+      dpage->init(256,10240);
+
+      double **build_some_lists(int num)
+      {
+          dpage->reset();
+          double **dlist = new double*[num];
+          for (int i=0; i < num; ++i) {
+              double *dptr = dpage.vget();
+              int jnum = 0;
+              for (int j=0; j < jmax; ++j) {
+                  // compute some dvalue for eligible loop index j
+                  dptr[j] = dvalue;
+                  ++jnum;
+              }
+              if (dpage.status() != 0) {
+                  // handle out of memory or jnum too large errors
+              }
+              dpage.vgot(jnum);
+              dlist[i] = dptr;
+          }
+          return dlist;
+      }
+
+----------
+
 .. doxygenclass:: LAMMPS_NS::MyPage
    :project: progguide
    :members:

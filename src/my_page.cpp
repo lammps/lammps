@@ -11,36 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-usage:
-  request one datum at a time, repeat, clear
-  request chunks of datums in each get() or vget(), repeat, clear
-  chunk size can vary from request to request
-  chunk size can be known in advance or registered after usage via vgot()
-inputs:
-   template T = one datum, e.g. int, double, struct, int[3]
-     for int[3], access datum as ivec[i][2]
-methods:
-   T *get() = return ptr to one datum
-   T *get(N) = return ptr to N datums, N < maxchunk required
-   T *vget() = return ptr to maxchunk datums, use as needed, then call vgot()
-     all gets return NULL if error encountered
-   vgot(N) = used N datums of previous vget(), N < maxchunk required
-   void init(maxchunk, pagesize, pagedelta)
-     define allocation params and allocate first page(s)
-     call right after constructor
-       can call again to reset allocation params and free previous pages
-     maxchunk = max # of datums in one chunk, default = 1
-     pagesize = # of datums in one page, default = 1024
-       should be big enough to store multiple chunks
-     pagedelta = # of pages to allocate at a time, default = 1
-     return 1 if bad params
-   void reset() = clear pages w/out freeing
-   int size() = return total size of allocated pages in bytes
-   int status() = return error status
-     0 = ok, 1 = chunksize > maxchunk, 2 = allocation error
-------------------------------------------------------------------------- */
-
 #include "my_page.h"
 
 #include <cstdlib>
@@ -77,8 +47,11 @@ using namespace LAMMPS_NS;
  * setting, this determines how often blocks of memory get allocated
  * (fewer allocations will result in faster execution).
  *
- * This class is the "workhorse" for the memory management of
- * neighbor lists. */
+ * \note
+ * This is a template class with explicit instantiation. If the class
+ * is used with a new data type a new explicit instantiation may need to
+ * be added at the end of the file ``src/my_page.cpp`` to avoid symbol
+ * lookup errors. */
 
 /** Create a class instance
  *

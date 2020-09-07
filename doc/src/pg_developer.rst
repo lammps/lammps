@@ -834,7 +834,7 @@ and parsing files or arguments.
 .. doxygenfunction:: count_words(const std::string &text, const std::string &separators)
    :project: progguide
 
-.. doxygenfunction:: trim_and_count_words(const std::string &text, const std::string &separators)
+.. doxygenfunction:: trim_and_count_words
    :project: progguide
 
 .. doxygenfunction:: split_words

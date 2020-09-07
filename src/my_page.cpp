@@ -211,7 +211,7 @@ T *MyPage<T>::vget() {
  * This will advance the internal pointer inside the current memory page.
  * It is not necessary to call this function for *N* = 0, that is the reserved
  * storage was not used.  A following call to vget() will then reserve the
- * same location again.  It is an error if *N* > *maxchunk*. 
+ * same location again.  It is an error if *N* > *maxchunk*.
  *
  * \param  n  Number of iterms used in previously reserved chunk */
 
@@ -257,6 +257,7 @@ void MyPage<T>::allocate() {
 }
 
 // explicit instantiations
+#include "fix.h"
 #include "REPLICA/fix_hyper_local.h"
 namespace LAMMPS_NS {
   template class MyPage<int>;

@@ -34,7 +34,7 @@ class MyPage {
 
   int init(int user_maxchunk = 1, int user_pagesize = 1024,
            int user_pagedelta = 1);
-  
+
   T *get();
   T *get(int n);
 
@@ -51,7 +51,7 @@ class MyPage {
     return npage*pagesize*sizeof(T);
   }
 
-  /** Return error status 
+  /** Return error status
    *
    * \return 0 if no error, 1 requested chunk size > maxchunk, 2 if malloc failed */
 

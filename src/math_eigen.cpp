@@ -90,16 +90,18 @@ jacobi3(double const mat[3][3], // the 3x3 matrix you wish to diagonalize
                            {mat[2][0], mat[2][1], mat[2][2]} };
   double *M[3] = { &(mat_cpy[0][0]),  &(mat_cpy[1][0]), &(mat_cpy[2][0]) };
 
+  int midx[3];  // (another array which is preallocated to avoid using the heap)
+
   // variable "ecalc3" does all the work:
-  Jacobi<double,double*,double(*)[3],double const(*)[3]> ecalc3(3,M);
+  Jacobi<double,double*,double(*)[3],double const(*)[3]> ecalc3(3, M, midx);
   int ierror = ecalc3.Diagonalize(mat, eval, evec, sort_criteria);
 
   // This will store the eigenvectors in the rows of "evec".
   // Do we want to return the eigenvectors in columns instead of rows?
   if (evec_as_columns)
     for (int i=0; i<3; i++)
-      for (int j=0; j<3; j++)
-        std::swap(evec[i][j], evec[j][i]);
+      for (int j=i+1; j<3; j++)
+        std::swap(evec[i][j], evec[j][i]);  // transpose the evec matrix
 
   return ierror;
 }
@@ -124,16 +126,18 @@ jacobi3(double const* const* mat, // the 3x3 matrix you wish to diagonalize
                            {mat[2][0], mat[2][1], mat[2][2]} };
   double *M[3] = { &(mat_cpy[0][0]),  &(mat_cpy[1][0]), &(mat_cpy[2][0]) };
 
+  int midx[3];  // (another array which is preallocated to avoid using the heap)
+
   // variable "ecalc3" does all the work:
-  Jacobi<double,double*,double**,double const*const*> ecalc3(3,M);
+  Jacobi<double,double*,double**,double const*const*> ecalc3(3, M, midx);
   int ierror = ecalc3.Diagonalize(mat, eval, evec, sort_criteria);
 
   // This will store the eigenvectors in the rows of "evec".
   // Do we want to return the eigenvectors in columns instead of rows?
   if (evec_as_columns)
     for (int i=0; i<3; i++)
-      for (int j=0; j<3; j++)
-        std::swap(evec[i][j], evec[j][i]);
+      for (int j=i+1; j<3; j++)
+        std::swap(evec[i][j], evec[j][i]);  // transpose the evec matrix
 
   return ierror;
 }

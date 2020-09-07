@@ -150,9 +150,7 @@ namespace MathEigen {
   public:
     /// @brief  Specify the size of the matrices you want to diagonalize later.
     /// @param  n  the size (ie. number of rows) of the (square) matrix.
-    /// @param  workspace  optional array for storing intermediate calculations
-    ///                   (The vast majority of users can ignore this argument.)
-    Jacobi(int n = 0, Scalar **workspace=nullptr);
+    Jacobi(int n);
 
     ~Jacobi();
 
@@ -185,9 +183,25 @@ namespace MathEigen {
                 int max_num_sweeps=50    //!< limit the number of iterations
                 );
 
+    //        An alternative constructor is provided, if, for some reason,
+    //        you want to avoid allocating memory on the heap during
+    //        initialization.  In that case, you can allocate space for the "M"
+    //        and "max_idx_row" arrays on the stack in advance, and pass them
+    //        to the constructor.  (The vast majority of users probably
+    //        do not need this feature.  Unless you do, I encourage you
+    //        to use the regular constructor instead.)
+    //        n  the size (ie. number of rows) of the (square) matrix.
+    //        M            optional preallocated n x n array
+    //        max_idx_row  optional preallocated array of size n
+    //  note  If either the "M" or "max_idx_row" arguments are specified,
+    //        they both must be specified.
+    Jacobi(int n, Scalar **M, int *max_idx_row);
+
   private:
-    bool is_M_preallocated;
+    bool is_preallocated;
+
     // (Descriptions of private functions can be found in their implementation.)
+    void _Jacobi(int n, Scalar **M, int *max_idx_row);
     void CalcRot(Scalar const *const *M, int i, int j);
     void ApplyRot(Scalar **M, int i, int j);
     void ApplyRotLeft(Matrix E, int i, int j);
@@ -240,9 +254,9 @@ namespace MathEigen {
               double *eval,
               double evec[3][3],
               // optional arguments:
-              bool evec_as_columns=true,
+              bool evec_as_columns = true,
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
-              SortCriteria sort_criteria=
+              SortCriteria sort_criteria =
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
               SORT_DECREASING_EVALS
               );
@@ -505,18 +519,40 @@ inline real_t<T> l1_norm(const std::vector<T>& vec) {
 
 // --- Implementation: Eigendecomposition of small dense matrices ---
 
+
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-Jacobi(int n, Scalar **workspace) {
+Jacobi(int n) {
+  _Jacobi(n, nullptr, nullptr);
+}
+
+
+template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
+Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
+Jacobi(int n, Scalar **M, int *max_idx_row) {
+  _Jacobi(n, M, max_idx_row);
+}
+
+
+// _Jacobi() is a function which is invoked by the two constructors and it
+// does all of the work.  (Splitting the constructor into multiple functions
+// was technically unnecessary, but it makes documenting the code easier.)
+
+template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
+void
+Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
+_Jacobi(int n, Scalar **M, int *max_idx_row) {
   Init();
-  if (workspace) {
-    is_M_preallocated = true;
-    M = workspace;
+  if (M) { // if caller supplies their own "M" array, don't allocate M
+    is_preallocated = true;
     this->n = n;
+    this->M = M;
+    this->max_idx_row = max_idx_row;
+    //assert(this->max_idx_row);
   }
   else {
-    is_M_preallocated = false;
-    SetSize(n);
+    is_preallocated = false;
+    SetSize(n); // allocate the "M" and "max_int_row" arrays
   }
 }
 
@@ -524,7 +560,7 @@ Jacobi(int n, Scalar **workspace) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 ~Jacobi() {
-  if (! is_M_preallocated)
+  if (! is_preallocated)
     Dealloc();
 }
 
@@ -829,6 +865,7 @@ Init() {
   n = 0;
   M = nullptr;
   max_idx_row = nullptr;
+  is_preallocated = false;
 }
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
@@ -843,6 +880,7 @@ SetSize(int n) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Alloc(int n) {
+  //assert(! is_preallocated);
   this->n = n;
   if (n > 0) {
     max_idx_row = new int[n];
@@ -853,8 +891,7 @@ Alloc(int n) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Dealloc() {
-  if (max_idx_row)
-    delete [] max_idx_row;
+  //assert(! is_preallocated);
   Dealloc2D(&M);
   Init();
 }
@@ -867,6 +904,7 @@ Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source)
 {
   Init();
   SetSize(source.n);
+
   //assert(n == source.n);
   // The following lines aren't really necessary, because the contents
   // of source.M and source.max_idx_row are not needed (since they are
@@ -884,6 +922,7 @@ template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) {
   std::swap(n, other.n);
+  std::swap(is_preallocated, other.is_preallocated);
   std::swap(max_idx_row, other.max_idx_row);
   std::swap(M, other.M);
 }

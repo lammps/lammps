@@ -1286,6 +1286,3 @@ elements of a sparse matrix.)
    :project: progguide
    :members:
 
-.. doxygenstruct:: MathEigen::realTypeMap
-   :project: progguide
-   :members:

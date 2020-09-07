@@ -54,18 +54,20 @@ using namespace LAMMPS_NS;
 /** \class LAMMPS_NS::MyPage
  * \brief Templated class for storing chunks of datums in pages.
  *
- * The chunks are not returnable (i.e. cannot be freed individually).
- * One can only reset and start over.  The purpose of this
- * class is to replace many small memory allocations via malloc() with
- * a few large ones. Since the pages are never freed, they can be
- * re-used without having to re-allocate them.
+ * The size of the chunk may vary from call to call, but must be
+ * less or equal than the *maxchunk* setting.
+ * The chunks are not returnable like with malloc() (i.e. you cannot
+ * call free() on them individually).  One can only reset and start over.
+ * The purpose of this class is to replace many small memory allocations
+ * via malloc() with a few large ones.  Since the pages are never freed,
+ * they can be re-used without having to re-allocate them.
  *
  * The settings *maxchunk*, *pagesize*, and *pagedelta* control
- * the memory allocation strategy. The *maxchunk* value represents
- * the expected largest number of items per chunk. If there is
+ * the memory allocation strategy.  The *maxchunk* value represents
+ * the expected largest number of items per chunk.  If there is
  * less space left on the current page, a new page is allocated
  * for the next chunk.  The *pagesize* value represents how many
- * items can fit on a single page. It should have space for multiple
+ * items can fit on a single page.  It should have space for multiple
  * chunks of size *maxchunk*.  The combination of these two
  * parameters determines how much memory is wasted by either switching
  * to the next page too soon or allocating too large pages that never

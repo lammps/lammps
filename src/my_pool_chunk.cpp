@@ -180,7 +180,6 @@ void MyPoolChunk<T>::allocate(int ibin) {
     pages[i] = (T *) ptr;
 #else
     pages[i] = (T *) malloc(chunkperpage*chunksize[ibin]*sizeof(T));
-    size += chunkperpage*chunksize[ibin];
     if (!pages[i]) errorflag = 2;
 #endif
   }

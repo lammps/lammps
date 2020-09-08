@@ -13,6 +13,7 @@
 
 #include "lmptype.h"
 #include "my_page.h"
+#include "my_pool_chunk.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -281,3 +282,66 @@ TEST(MyPage, bigint) {
     ASSERT_EQ(p.ndatum,133);
     ASSERT_EQ(p.nchunk,10);
 }
+
+TEST(MyPoolChunk, int) {
+    // defaults to minchunk=1, maxchunk=1, nbin=1, chunksperpage=1024, pagedelta=1
+    MyPoolChunk<int> p;
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+    ASSERT_EQ(p.size(),0.0);
+
+    int idx=~0x0000;
+    int *iptr = p.get(idx);
+    ASSERT_NE(iptr,nullptr);
+    ASSERT_EQ(idx,0);
+
+    iptr = p.get(1,idx);
+    ASSERT_NE(iptr,nullptr);
+    ASSERT_EQ(idx,1);
+    // we have only one page allocated
+    ASSERT_EQ(p.size(),1024*sizeof(int)+1024*sizeof(int)+sizeof(void *)+sizeof(int));
+    ASSERT_EQ(p.ndatum,2);
+    ASSERT_EQ(p.nchunk,2);
+
+    p.put(0);
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+
+    iptr = p.get(2,idx);
+    ASSERT_EQ(iptr,nullptr);
+    ASSERT_EQ(p.status(),3);
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+}
+
+TEST(MyPoolChunk, double) {
+    // defaults to minchunk=1, maxchunk=1, nbin=1, chunksperpage=1024, pagedelta=1
+    MyPoolChunk<double> p;
+
+    ASSERT_EQ(p.ndatum,0);
+    ASSERT_EQ(p.nchunk,0);
+    ASSERT_EQ(p.size(),0.0);
+
+    int idx=~0x0000;
+    double *dptr = p.get(idx);
+    ASSERT_NE(dptr,nullptr);
+    ASSERT_EQ(idx,0);
+
+    dptr = p.get(1,idx);
+    ASSERT_NE(dptr,nullptr);
+    ASSERT_EQ(idx,1);
+    // we have only one page allocated
+    ASSERT_EQ(p.size(),1024*sizeof(int)+1024*sizeof(double)+sizeof(void *)+sizeof(int));
+
+    p.put(0);
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+
+    dptr = p.get(2,idx);
+    ASSERT_EQ(dptr,nullptr);
+    ASSERT_EQ(p.status(),3);
+    ASSERT_EQ(p.ndatum,1);
+    ASSERT_EQ(p.nchunk,1);
+}
+

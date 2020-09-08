@@ -84,7 +84,7 @@ a '/gz' suffix.  There are also styles using the
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
 
-      Support for Zstandard compression is autodetected and for that
+      Support for Zstandard compression is auto-detected and for that
       CMake depends on the `pkg-config
       <https://www.freedesktop.org/wiki/Software/pkg-config/>`_ tool to
       identify the necessary flags to compile with this library, so the

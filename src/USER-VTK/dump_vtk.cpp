@@ -237,9 +237,15 @@ void DumpVTK::init_style()
 
   int icustom;
   for (int i = 0; i < ncustom; i++) {
-    icustom = atom->find_custom(id_custom[i],flag_custom[i]);
+    int flag,cols;
+    icustom = atom->find_custom(id_custom[i],flag,cols);
     if (icustom < 0)
-      error->all(FLERR,"Could not find custom per-atom property ID");
+      error->all(FLERR,"Could not find dump vtk atom property name");
+    custom[i] = icustom;
+    if (!flag && !cols) custom_flag[i] = IVEC;
+    else if (flag && !cols) custom_flag[i] = DVEC;
+    else if (!flag && cols) custom_flag[i] = IARRAY;
+    else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
   // set index and check validity of region
@@ -1511,6 +1517,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
   name[Z] = "z";
 
   // customize by adding to if statement
+  
   int i;
   for (int iarg = 5; iarg < narg; iarg++) {
     i = iarg-5;
@@ -1825,49 +1832,67 @@ int DumpVTK::parse_fields(int narg, char **arg)
       name[ATTRIBUTES+i] = suffix;
       delete [] suffix;
 
-    // custom per-atom floating point value = d_ID
+    // custom per-atom integer value = i_ID or d_ID
 
-    } else if (strncmp(arg[iarg],"d_",2) == 0) {
+    } else if (strncmp(arg[iarg],"i_",2) == 0 ||
+	       strncmp(arg[iarg],"d_",2) == 0) {
+      int which = 0;
+      if (arg[iarg][0] == 'd') which = 1;
+
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+      if (!which) vtype[ATTRIBUTES+i] = Dump::INT;
+      else vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[iarg][2]);
       argindex[ATTRIBUTES+i] = 0;
 
-      int tmp = -1;
-      n = atom->find_custom(suffix,tmp);
-      if (n < 0)
-        error->all(FLERR,"Could not find custom per-atom property ID");
+      int flag,cols;
+      n = atom->find_custom(suffix,flag,cols);
+      if ((!which && (n < 0 || flag || cols)) ||
+	  (which && (n < 0 || !flag || cols)))
+        error->all(FLERR,"Dump vtk per-atom custom vector does not exist");
 
-      if (tmp != 1)
-        error->all(FLERR,"Custom per-atom property ID is not floating point");
-
-      field2index[ATTRIBUTES+i] = add_custom(suffix,1);
+      field2index[ATTRIBUTES+i] = add_custom(suffix);
       name[ATTRIBUTES+i] = suffix;
       delete [] suffix;
 
-    // custom per-atom integer value = i_ID
+    // custom per-atom array = i2_ID or d2_ID, must include bracketed index
 
-    } else if (strncmp(arg[iarg],"i_",2) == 0) {
+    } else if (strncmp(arg[iarg],"i2_",3) == 0 ||
+	       strncmp(arg[iarg],"d2_",3) == 0) {
+      int which = 0;
+      if (arg[iarg][0] == 'd') which = 1;
+
       pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = Dump::INT;
+      if (!which) vtype[ATTRIBUTES+i] = Dump::INT;
+      else vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-      argindex[ATTRIBUTES+i] = 0;
+      strcpy(suffix,&arg[iarg][3]);
 
-      int tmp = -1;
-      n = atom->find_custom(suffix,tmp);
-      if (n < 0)
-        error->all(FLERR,"Could not find custom per-atom property ID");
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Invalid attribute in dump custom command");
+	suffix[strlen(suffix)-1] = '\0';
+        argindex[ATTRIBUTES+i] = utils::inumeric(FLERR,ptr+1,true,lmp);
+        *ptr = '\0';
+      } else error->all(FLERR,"Dump custom per-atom custom array is not indexed");
 
-      if (tmp != 0)
-        error->all(FLERR,"Custom per-atom property ID is not integer");
+      int flag,cols;
+      n = atom->find_custom(suffix,flag,cols);
+      
+      if ((!which && (n < 0 || flag || !cols)) ||
+	  (which && (n < 0 || !flag || !cols)))
+	error->all(FLERR,"Dump vtk per-atom custom array does not exist");
+      if (argindex[i] <= 0 || argindex[i] > cols)
+        error->all(FLERR,
+                   "Dump vtk per-atom custom array is accessed out-of-range");
 
-      field2index[ATTRIBUTES+i] = add_custom(suffix,0);
+      field2index[i] = add_custom(suffix);
       name[ATTRIBUTES+i] = suffix;
       delete [] suffix;
 
@@ -2006,27 +2031,28 @@ int DumpVTK::add_variable(char *id)
 
 /* ----------------------------------------------------------------------
    add custom atom property to list used by dump
-   return index of where this property is in list
+   return index of where this property is in Atom class custom lists
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_custom(char *id, int flag)
+int DumpVTK::add_custom(char *id)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
-    if ((strcmp(id,id_custom[icustom]) == 0)
-        && (flag == flag_custom[icustom])) break;
+    if (strcmp(id,id_custom[icustom]) == 0) break;
   if (icustom < ncustom) return icustom;
 
   id_custom = (char **)
     memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
-  flag_custom = (int *)
-    memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
+
+  delete [] custom;
+  custom = new int[ncustom+1];
+  delete [] custom_flag;
+  custom_flag = new int[ncustom+1];
 
   int n = strlen(id) + 1;
   id_custom[ncustom] = new char[n];
   strcpy(id_custom[ncustom],id);
-  flag_custom[ncustom] = flag;
 
   ncustom++;
   return ncustom-1;

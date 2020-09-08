@@ -683,8 +683,8 @@ void FixBondReact::post_constructor()
       // initialize per-atom statted_flags to 1
       // (only if not already initialized by restart)
       if (fix3->restart_reset != 1) {
-        int flag;
-        int index = atom->find_custom("statted_tags",flag);
+        int flag,cols;
+        int index = atom->find_custom("statted_tags",flag,cols);
         int *i_statted_tags = atom->ivector[index];
 
         for (int i = 0; i < atom->nlocal; i++)
@@ -715,8 +715,8 @@ void FixBondReact::post_constructor()
 
       // initialize per-atom statted_tags to 1
       // need to correct for smooth restarts
-      //int flag;
-      //int index = atom->find_custom(statted_id,flag);
+      //int flag,cols;
+      //int index = atom->find_custom(statted_id,flag,cols);
       //int *i_statted_tags = atom->ivector[index];
       //for (int i = 0; i < atom->nlocal; i++)
       //  i_statted_tags[i] = 1;
@@ -1021,8 +1021,8 @@ void FixBondReact::far_partner()
   firstneigh = list->firstneigh;
 
   // per-atom property indicating if in bond/react master group
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   int i,j;
@@ -1108,8 +1108,8 @@ void FixBondReact::close_partner()
   int *mask = atom->mask;
 
   // per-atom property indicating if in bond/react master group
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   // loop over special list
@@ -1377,8 +1377,8 @@ void FixBondReact::make_a_guess()
   int nfirst_neighs = onemol_nxspecial[pion][0];
 
   // per-atom property indicating if in bond/react master group
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   if (status == GUESSFAIL && avail_guesses == 0) {
@@ -2341,17 +2341,17 @@ void FixBondReact::limit_bond(int limit_bond_mode)
   // we must keep our own list of limited atoms
   // this will be a new per-atom property!
 
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   int *i_statted_tags;
   if (stabilization_flag == 1) {
-    int index2 = atom->find_custom(statted_id,flag);
+    int index2 = atom->find_custom(statted_id,flag,cols);
     i_statted_tags = atom->ivector[index2];
   }
 
-  int index3 = atom->find_custom("react_tags",flag);
+  int index3 = atom->find_custom("react_tags",flag,cols);
   int *i_react_tags = atom->ivector[index3];
 
   for (int i = 0; i < temp_limit_num; i++) {
@@ -2374,17 +2374,17 @@ void FixBondReact::unlimit_bond()
   //let's now unlimit in terms of i_limit_tags
   //we just run through all nlocal, looking for > limit_duration
   //then we return i_limit_tag to 0 (which removes from dynamic group)
-  int flag;
-  int index1 = atom->find_custom("limit_tags",flag);
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   int *i_statted_tags;
   if (stabilization_flag == 1) {
-    int index2 = atom->find_custom(statted_id,flag);
+    int index2 = atom->find_custom(statted_id,flag,cols);
     i_statted_tags = atom->ivector[index2];
   }
 
-  int index3 = atom->find_custom("react_tags",flag);
+  int index3 = atom->find_custom("react_tags",flag,cols);
   int *i_react_tags = atom->ivector[index3];
 
   for (int i = 0; i < atom->nlocal; i++) {

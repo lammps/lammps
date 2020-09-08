@@ -848,27 +848,28 @@ version or a Python 3.x version.  Since support for Python 2.x has ended,
 using Python 3.x is strongly recommended. See ``lib/python/README`` for
 additional details.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D PYTHON_EXECUTABLE=path   # path to Python executable to use
+      .. code-block:: bash
 
-Without this setting, CMake will guess the default Python version on your
-system.  To use a different Python version, you can either create a
-virtualenv, activate it and then run cmake.  Or you can set the
-PYTHON_EXECUTABLE variable to specify which Python interpreter should
-be used.  Note note that you will also need to have the development
-headers installed for this version, e.g. python2-devel.
+         -D PYTHON_EXECUTABLE=path   # path to Python executable to use
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      Without this setting, CMake will guess the default Python version
+      on your system.  To use a different Python version, you can either
+      create a virtualenv, activate it and then run cmake.  Or you can
+      set the PYTHON_EXECUTABLE variable to specify which Python
+      interpreter should be used.  Note note that you will also need to
+      have the development headers installed for this version,
+      e.g. python2-devel.
 
-The build uses the ``lib/python/Makefile.lammps`` file in the compile/link
-process to find Python.  You should only need to create a new
-``Makefile.lammps.*`` file (and copy it to ``Makefile.lammps``) if
-the LAMMPS build fails.
+   .. tab:: Traditional make
+
+      The build uses the ``lib/python/Makefile.lammps`` file in the
+      compile/link process to find Python.  You should only need to
+      create a new ``Makefile.lammps.*`` file (and copy it to
+      ``Makefile.lammps``) if the LAMMPS build fails.
 
 ----------
 
@@ -877,46 +878,48 @@ the LAMMPS build fails.
 VORONOI package
 -----------------------------
 
-To build with this package, you must download and build the `Voro++ library <voro-home_>`_.
+To build with this package, you must download and build the
+`Voro++ library <http://math.lbl.gov/voro++>`_ or install a
+binary package provided by your operating system.
 
-.. _voro-home: http://math.lbl.gov/voro++
+.. tabs::
 
-CMake build
-^^^^^^^^^^^
+   .. tab:: CMake build
 
-.. code-block:: bash
+      .. code-block:: bash
 
-   -D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
-   -D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location)
-   -D VORO_INCLUDE_DIR=path  # Voro++ include directory (only needed if at custom location)
+         -D DOWNLOAD_VORO=value    # download Voro++ for build, value = no (default) or yes
+         -D VORO_LIBRARY=path      # Voro++ library file (only needed if at custom location)
+         -D VORO_INCLUDE_DIR=path  # Voro++ include directory (only needed if at custom location)
 
-If ``DOWNLOAD_VORO`` is set, the Voro++ library will be downloaded and
-built inside the CMake build directory.  If the Voro++ library is
-already on your system (in a location CMake cannot find it),
-``VORO_LIBRARY`` is the filename (plus path) of the Voro++ library file,
-not the directory the library file is in.  ``VORO_INCLUDE_DIR`` is the
-directory the Voro++ include file is in.
+      If ``DOWNLOAD_VORO`` is set, the Voro++ library will be downloaded
+      and built inside the CMake build directory.  If the Voro++ library
+      is already on your system (in a location CMake cannot find it),
+      ``VORO_LIBRARY`` is the filename (plus path) of the Voro++ library
+      file, not the directory the library file is in.
+      ``VORO_INCLUDE_DIR`` is the directory the Voro++ include file is
+      in.
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      .. tab:: Traditional make
 
-You can download and build the Voro++ library manually if you prefer;
-follow the instructions in ``lib/voronoi/README``.  You can also do it in
-one step from the ``lammps/src`` dir, using a command like these, which
-simply invoke the ``lib/voronoi/Install.py`` script with the specified
-args:
+         You can download and build the Voro++ library manually if you
+         prefer; follow the instructions in ``lib/voronoi/README``.  You
+         can also do it in one step from the ``lammps/src`` dir, using a
+         command like these, which simply invoke the
+         ``lib/voronoi/Install.py`` script with the specified args:
 
-.. code-block:: bash
+         .. code-block:: bash
 
-  $ make lib-voronoi                          # print help message
-  $ make lib-voronoi args="-b"                # download and build the default version in lib/voronoi/voro++-<version>
-  $ make lib-voronoi args="-p $HOME/voro++"   # use existing Voro++ installation in $HOME/voro++
-  $ make lib-voronoi args="-b -v voro++0.4.6" # download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6
+            $ make lib-voronoi                          # print help message
+            $ make lib-voronoi args="-b"                # download and build the default version in lib/voronoi/voro++-<version>
+            $ make lib-voronoi args="-p $HOME/voro++"   # use existing Voro++ installation in $HOME/voro++
+            $ make lib-voronoi args="-b -v voro++0.4.6" # download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6
 
-Note that 2 symbolic (soft) links, ``includelink`` and ``liblink``, are
-created in lib/voronoi to point to the Voro++ source dir.  When LAMMPS
-builds in ``src`` it will use these links.  You should not need to edit
-the ``lib/voronoi/Makefile.lammps`` file.
+         Note that 2 symbolic (soft) links, ``includelink`` and
+         ``liblink``, are created in lib/voronoi to point to the Voro++
+         source dir.  When LAMMPS builds in ``src`` it will use these
+         links.  You should not need to edit the
+         ``lib/voronoi/Makefile.lammps`` file.
 
 ----------
 
@@ -934,29 +937,30 @@ environment variables have been updated for the local ADIOS installation
 and the instructions below are followed for the respective build
 systems.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
-   -D PKG_USER-ADIOS=yes
+      .. code-block:: bash
 
-Traditional make
-^^^^^^^^^^^^^^^^
+         -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
+         -D PKG_USER-ADIOS=yes
 
-Turn on the USER-ADIOS package before building LAMMPS. If the ADIOS 2.x
-software is installed in PATH, there is nothing else to do:
+   .. tab:: Traditional make
 
-.. code-block:: bash
+      Turn on the USER-ADIOS package before building LAMMPS. If the
+      ADIOS 2.x software is installed in PATH, there is nothing else to
+      do:
 
-  $ make yes-user-adios
+      .. code-block:: bash
 
-otherwise, set ADIOS2_DIR environment variable when turning on the package:
+         $ make yes-user-adios
 
-.. code-block:: bash
+      otherwise, set ADIOS2_DIR environment variable when turning on the package:
 
-  $ ADIOS2_DIR=path make yes-user-adios   # path is where ADIOS 2.x is installed
+      .. code-block:: bash
+
+         $ ADIOS2_DIR=path make yes-user-adios   # path is where ADIOS 2.x is installed
 
 ----------
 
@@ -967,48 +971,50 @@ USER-ATC package
 
 The USER-ATC package requires the MANYBODY package also be installed.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-No additional settings are needed besides "-D PKG_USER-ATC=yes"
-and "-D PKG_MANYBODY=yes".
+   .. tab:: CMake build
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      No additional settings are needed besides "-D PKG_USER-ATC=yes"
+      and "-D PKG_MANYBODY=yes".
 
-Before building LAMMPS, you must build the ATC library in ``lib/atc``.
-You can do this manually if you prefer; follow the instructions in
-``lib/atc/README``.  You can also do it in one step from the
-``lammps/src`` dir, using a command like these, which simply invoke the
-``lib/atc/Install.py`` script with the specified args:
+   .. tab:: Traditional make
 
-.. code-block:: bash
+      Before building LAMMPS, you must build the ATC library in
+      ``lib/atc``.  You can do this manually if you prefer; follow the
+      instructions in ``lib/atc/README``.  You can also do it in one
+      step from the ``lammps/src`` dir, using a command like these,
+      which simply invoke the ``lib/atc/Install.py`` script with the
+      specified args:
 
-  $ make lib-atc                      # print help message
-  $ make lib-atc args="-m serial"     # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-  $ make lib-atc args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
-  $ make lib-atc args="-m icc"        # build with Intel icc compiler
+      .. code-block:: bash
 
-The build should produce two files: ``lib/atc/libatc.a`` and
-``lib/atc/Makefile.lammps``.  The latter is copied from an existing
-``Makefile.lammps.*`` and has settings needed to build LAMMPS with the
-ATC library.  If necessary, you can edit/create a new
-``lib/atc/Makefile.machine`` file for your system, which should define
-an ``EXTRAMAKE`` variable to specify a corresponding
-``Makefile.lammps.<machine>`` file.
+         $ make lib-atc                      # print help message
+         $ make lib-atc args="-m serial"     # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         $ make lib-atc args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         $ make lib-atc args="-m icc"        # build with Intel icc compiler
 
-Note that the Makefile.lammps file has settings for the BLAS and
-LAPACK linear algebra libraries.  As explained in ``lib/atc/README`` these
-can either exist on your system, or you can use the files provided in
-``lib/linalg``.  In the latter case you also need to build the library in
-``lib/linalg`` with a command like these:
+      The build should produce two files: ``lib/atc/libatc.a`` and
+      ``lib/atc/Makefile.lammps``.  The latter is copied from an
+      existing ``Makefile.lammps.*`` and has settings needed to build
+      LAMMPS with the ATC library.  If necessary, you can edit/create a
+      new ``lib/atc/Makefile.machine`` file for your system, which
+      should define an ``EXTRAMAKE`` variable to specify a corresponding
+      ``Makefile.lammps.<machine>`` file.
 
-.. code-block:: bash
+      Note that the Makefile.lammps file has settings for the BLAS and
+      LAPACK linear algebra libraries.  As explained in
+      ``lib/atc/README`` these can either exist on your system, or you
+      can use the files provided in ``lib/linalg``.  In the latter case
+      you also need to build the library in ``lib/linalg`` with a
+      command like these:
 
-  $ make lib-linalg                     # print help message
-  $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-  $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-  $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+      .. code-block:: bash
+
+         $ make lib-linalg                     # print help message
+         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
 ----------
 
@@ -1017,47 +1023,49 @@ can either exist on your system, or you can use the files provided in
 USER-AWPMD package
 ------------------
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-No additional settings are needed besides ``-D PKG_USER-AQPMD=yes``.
+   .. tab:: CMake build
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      No additional settings are needed besides ``-D PKG_USER-AQPMD=yes``.
 
-Before building LAMMPS, you must build the AWPMD library in ``lib/awpmd``.
-You can do this manually if you prefer; follow the instructions in
-``lib/awpmd/README``.  You can also do it in one step from the ``lammps/src``
-dir, using a command like these, which simply invoke the
-``lib/awpmd/Install.py`` script with the specified args:
+   .. tab:: Traditional make
 
-.. code-block:: bash
+      Before building LAMMPS, you must build the AWPMD library in
+      ``lib/awpmd``.  You can do this manually if you prefer; follow the
+      instructions in ``lib/awpmd/README``.  You can also do it in one
+      step from the ``lammps/src`` dir, using a command like these,
+      which simply invoke the ``lib/awpmd/Install.py`` script with the
+      specified args:
 
-  $ make lib-awpmd                   # print help message
-  $ make lib-awpmd args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-  $ make lib-awpmd args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
-  $ make lib-awpmd args="-m icc"     # build with Intel icc compiler
+      .. code-block:: bash
 
-The build should produce two files: ``lib/awpmd/libawpmd.a`` and
-``lib/awpmd/Makefile.lammps``.  The latter is copied from an existing
-``Makefile.lammps.*`` and has settings needed to build LAMMPS with the
-AWPMD library.  If necessary, you can edit/create a new
-``lib/awpmd/Makefile.machine`` file for your system, which should define
-an ``EXTRAMAKE`` variable to specify a corresponding
-``Makefile.lammps.<machine>`` file.
+         $ make lib-awpmd                   # print help message
+         $ make lib-awpmd args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         $ make lib-awpmd args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+         $ make lib-awpmd args="-m icc"     # build with Intel icc compiler
 
-Note that the ``Makefile.lammps`` file has settings for the BLAS and
-LAPACK linear algebra libraries.  As explained in ``lib/awpmd/README``
-these can either exist on your system, or you can use the files
-provided in ``lib/linalg``.  In the latter case you also need to build the
-library in ``lib/linalg`` with a command like these:
+      The build should produce two files: ``lib/awpmd/libawpmd.a`` and
+      ``lib/awpmd/Makefile.lammps``.  The latter is copied from an
+      existing ``Makefile.lammps.*`` and has settings needed to build
+      LAMMPS with the AWPMD library.  If necessary, you can edit/create
+      a new ``lib/awpmd/Makefile.machine`` file for your system, which
+      should define an ``EXTRAMAKE`` variable to specify a corresponding
+      ``Makefile.lammps.<machine>`` file.
 
-.. code-block:: bash
+      Note that the ``Makefile.lammps`` file has settings for the BLAS
+      and LAPACK linear algebra libraries.  As explained in
+      ``lib/awpmd/README`` these can either exist on your system, or you
+      can use the files provided in ``lib/linalg``.  In the latter case
+      you also need to build the library in ``lib/linalg`` with a
+      command like these:
 
-  $ make lib-linalg                     # print help message
-  $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-  $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-  $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+      .. code-block:: bash
+
+         $ make lib-linalg                     # print help message
+         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
 ----------
 
@@ -1066,54 +1074,56 @@ library in ``lib/linalg`` with a command like these:
 USER-COLVARS package
 ---------------------------------------
 
-This package includes into the LAMMPS distribution the Colvars library, which
-can be built for the most part with all major versions of the C++ language.
+This package includes the `Colvars library
+<https://colvars.github.io/>`_ into the LAMMPS distribution, which can
+be built for the most part with all major versions of the C++ language.
 
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-This is the recommended build recipe: no additional settings are normally
-needed besides ``-D PKG_USER-COLVARS=yes``.
+   .. tab:: CMake build
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      This is the recommended build recipe: no additional settings are normally
+      needed besides ``-D PKG_USER-COLVARS=yes``.
 
-Before building LAMMPS, one must build the Colvars library in lib/colvars.
+   .. tab:: Traditional make
 
-This can be done manually in the same folder by using or adapting one of
-the provided Makefiles: for example, ``Makefile.g++`` for the GNU C++
-compiler.  C++11 compatibility may need to be enabled for some older
-compilers (as is done in the example makefile).
+      Before building LAMMPS, one must build the Colvars library in lib/colvars.
 
-In general, it is safer to use build setting consistent with the rest of
-LAMMPS.  This is best carried out from the LAMMPS src directory using a
-command like these, which simply invoke the ``lib/colvars/Install.py`` script with
-the specified args:
+      This can be done manually in the same folder by using or adapting
+      one of the provided Makefiles: for example, ``Makefile.g++`` for
+      the GNU C++ compiler.  C++11 compatibility may need to be enabled
+      for some older compilers (as is done in the example makefile).
 
-.. code-block:: bash
+      In general, it is safer to use build setting consistent with the
+      rest of LAMMPS.  This is best carried out from the LAMMPS src
+      directory using a command like these, which simply invoke the
+      ``lib/colvars/Install.py`` script with the specified args:
 
-  $ make lib-colvars                      # print help message
-  $ make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
-  $ make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
-  $ make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled
+      .. code-block:: bash
 
-The "machine" argument of the "-m" flag is used to find a Makefile.machine to
-use as build recipe.  If it does not already exist in ``lib/colvars``, it will be
-auto-generated by using compiler flags consistent with those parsed from the
-core LAMMPS makefiles.
+         $ make lib-colvars                      # print help message
+         $ make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         $ make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         $ make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled
 
-Optional flags may be specified as environment variables:
+      The "machine" argument of the "-m" flag is used to find a
+      Makefile.machine to use as build recipe.  If it does not already
+      exist in ``lib/colvars``, it will be auto-generated by using
+      compiler flags consistent with those parsed from the core LAMMPS
+      makefiles.
 
-.. code-block:: bash
+      Optional flags may be specified as environment variables:
 
-    $ COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
-    $ COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
+      .. code-block:: bash
 
-The build should produce two files: the library ``lib/colvars/libcolvars.a``
-(which also includes Lepton objects if enabled) and the specification file
-``lib/colvars/Makefile.lammps``.  The latter is auto-generated, and normally does
-not need to be edited.
+         $ COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
+         $ COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
+
+      The build should produce two files: the library ``lib/colvars/libcolvars.a``
+      (which also includes Lepton objects if enabled) and the specification file
+      ``lib/colvars/Makefile.lammps``.  The latter is auto-generated, and normally does
+      not need to be edited.
 
 ----------
 
@@ -1159,84 +1169,91 @@ try a different one, switch to a different build system, consider a
 global PLUMED installation or consider downloading PLUMED during the
 LAMMPS build.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-When the ``-D PKG_USER-PLUMED=yes`` flag is included in the cmake
-command you must ensure that GSL is installed in locations that are
-specified in your environment.  There are then two additional variables
-that control the manner in which PLUMED is obtained and linked into
-LAMMPS.
+   .. tab:: CMake build
 
-.. code-block:: bash
+      When the ``-D PKG_USER-PLUMED=yes`` flag is included in the cmake
+      command you must ensure that GSL is installed in locations that
+      are specified in your environment.  There are then two additional
+      variables that control the manner in which PLUMED is obtained and
+      linked into LAMMPS.
 
-   -D DOWNLOAD_PLUMED=value   # download PLUMED for build, value = no (default) or yes
-   -D PLUMED_MODE=value       # Linkage mode for PLUMED, value = static (default), shared, or runtime
+      .. code-block:: bash
 
-If DOWNLOAD_PLUMED is set to "yes", the PLUMED library will be
-downloaded (the version of PLUMED that will be downloaded is hard-coded
-to a vetted version of PLUMED, usually a recent stable release version)
-and built inside the CMake build directory.  If ``DOWNLOAD_PLUMED`` is
-set to "no" (the default), CMake will try to detect and link to an
-installed version of PLUMED.  For this to work, the PLUMED library has
-to be installed into a location where the ``pkg-config`` tool can find
-it or the PKG_CONFIG_PATH environment variable has to be set up
-accordingly.  PLUMED should be installed in such a location if you
-compile it using the default make; make install commands.
+         -D DOWNLOAD_PLUMED=value   # download PLUMED for build, value = no (default) or yes
+         -D PLUMED_MODE=value       # Linkage mode for PLUMED, value = static (default), shared, or runtime
 
-The ``PLUMED_MODE`` setting determines the linkage mode for the PLUMED
-library.  The allowed values for this flag are "static" (default),
-"shared", or "runtime".  For a discussion of PLUMED linkage modes,
-please see above.  When ``DOWNLOAD_PLUMED`` is enabled the static
-linkage mode is recommended.
+      If DOWNLOAD_PLUMED is set to "yes", the PLUMED library will be
+      downloaded (the version of PLUMED that will be downloaded is
+      hard-coded to a vetted version of PLUMED, usually a recent stable
+      release version) and built inside the CMake build directory.  If
+      ``DOWNLOAD_PLUMED`` is set to "no" (the default), CMake will try
+      to detect and link to an installed version of PLUMED.  For this to
+      work, the PLUMED library has to be installed into a location where
+      the ``pkg-config`` tool can find it or the PKG_CONFIG_PATH
+      environment variable has to be set up accordingly.  PLUMED should
+      be installed in such a location if you compile it using the
+      default make; make install commands.
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      The ``PLUMED_MODE`` setting determines the linkage mode for the
+      PLUMED library.  The allowed values for this flag are "static"
+      (default), "shared", or "runtime".  If you want to switch the
+      linkage mode, just re-run CMake with a different setting. For a
+      discussion of PLUMED linkage modes, please see above.  When
+      ``DOWNLOAD_PLUMED`` is enabled the static linkage mode is
+      recommended.
 
-PLUMED needs to be installed before the USER-PLUMED package is installed
-so that LAMMPS can find the right settings when compiling and linking
-the LAMMPS executable.  You can either download and build PLUMED inside
-the LAMMPS plumed library folder or use a previously installed PLUMED
-library and point LAMMPS to its location. You also have to choose the
-linkage mode: "static" (default), "shared" or "runtime".  For a
-discussion of PLUMED linkage modes, please see above.
+   .. tab:: Traditional make
 
-Download/compilation/configuration of the plumed library can be done
-from the src folder through the following make args:
+      PLUMED needs to be installed before the USER-PLUMED package is
+      installed so that LAMMPS can find the right settings when
+      compiling and linking the LAMMPS executable.  You can either
+      download and build PLUMED inside the LAMMPS plumed library folder
+      or use a previously installed PLUMED library and point LAMMPS to
+      its location. You also have to choose the linkage mode: "static"
+      (default), "shared" or "runtime".  For a discussion of PLUMED
+      linkage modes, please see above.
 
-.. code-block:: bash
+      Download/compilation/configuration of the plumed library can be done
+      from the src folder through the following make args:
 
-  $ make lib-plumed                         # print help message
-  $ make lib-plumed args="-b"               # download and build PLUMED in lib/plumed/plumed2
-  $ make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
-  $ make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
-                                                   # /usr/local and use shared linkage mode
+      .. code-block:: bash
 
-Note that 2 symbolic (soft) links, ``includelink`` and ``liblink`` are
-created in lib/plumed that point to the location of the PLUMED build to
-use. A new file ``lib/plumed/Makefile.lammps`` is also created with settings
-suitable for LAMMPS to compile and link PLUMED using the desired linkage
-mode. After this step is completed, you can install the USER-PLUMED
-package and compile LAMMPS in the usual manner:
+         $ make lib-plumed                         # print help message
+         $ make lib-plumed args="-b"               # download and build PLUMED in lib/plumed/plumed2
+         $ make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
+         $ make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
+                                                           # /usr/local and use shared linkage mode
 
-.. code-block:: bash
+      Note that 2 symbolic (soft) links, ``includelink`` and ``liblink``
+      are created in lib/plumed that point to the location of the PLUMED
+      build to use. A new file ``lib/plumed/Makefile.lammps`` is also
+      created with settings suitable for LAMMPS to compile and link
+      PLUMED using the desired linkage mode. After this step is
+      completed, you can install the USER-PLUMED package and compile
+      LAMMPS in the usual manner:
 
-  $ make yes-user-plumed
-  $ make machine
+      .. code-block:: bash
 
-Once this compilation completes you should be able to run LAMMPS in the
-usual way.  For shared linkage mode, libplumed.so must be found by the
-LAMMPS executable, which on many operating systems means, you have to
-set the LD_LIBRARY_PATH environment variable accordingly.
+         $ make yes-user-plumed
+         $ make machine
 
-Support for the different linkage modes in LAMMPS varies for different
-operating systems, using the static linkage is expected to be the most
-portable, and thus set to be the default.
+      Once this compilation completes you should be able to run LAMMPS
+      in the usual way.  For shared linkage mode, libplumed.so must be
+      found by the LAMMPS executable, which on many operating systems
+      means, you have to set the LD_LIBRARY_PATH environment variable
+      accordingly.
 
-If you want to change the linkage mode, you have to re-run "make
-lib-plumed" with the desired settings **and** do a re-install if the
-USER-PLUMED package with "make yes-user-plumed" to update the required
-makefile settings with the changes in the lib/plumed folder.
+      Support for the different linkage modes in LAMMPS varies for
+      different operating systems, using the static linkage is expected
+      to be the most portable, and thus set to be the default.
+
+      If you want to change the linkage mode, you have to re-run "make
+      lib-plumed" with the desired settings **and** do a re-install if
+      the USER-PLUMED package with "make yes-user-plumed" to update the
+      required makefile settings with the changes in the lib/plumed
+      folder.
 
 ----------
 
@@ -1249,38 +1266,39 @@ To build with this package you must have the HDF5 software package
 installed on your system, which should include the h5cc compiler and
 the HDF5 library.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-No additional settings are needed besides ``-D PKG_USER-H5MD=yes``.
+   .. tab:: CMake build
 
-This should auto-detect the H5MD library on your system.  Several
-advanced CMake H5MD options exist if you need to specify where it is
-installed.  Use the ccmake (terminal window) or cmake-gui (graphical)
-tools to see these options and set them interactively from their user
-interfaces.
+      No additional settings are needed besides ``-D PKG_USER-H5MD=yes``.
 
-Traditional make
-^^^^^^^^^^^^^^^^
+      This should auto-detect the H5MD library on your system.  Several
+      advanced CMake H5MD options exist if you need to specify where it
+      is installed.  Use the ccmake (terminal window) or cmake-gui
+      (graphical) tools to see these options and set them interactively
+      from their user interfaces.
 
-Before building LAMMPS, you must build the CH5MD library in
-``lib/h5md``.  You can do this manually if you prefer; follow the
-instructions in ``lib/h5md/README``.  You can also do it in one step
-from the ``lammps/src`` dir, using a command like these, which simply
-invoke the ``lib/h5md/Install.py`` script with the specified args:
+   .. tab:: Traditional make
 
-.. code-block:: bash
+      Before building LAMMPS, you must build the CH5MD library in
+      ``lib/h5md``.  You can do this manually if you prefer; follow the
+      instructions in ``lib/h5md/README``.  You can also do it in one
+      step from the ``lammps/src`` dir, using a command like these,
+      which simply invoke the ``lib/h5md/Install.py`` script with the
+      specified args:
 
-  $ make lib-h5md                     # print help message
-  $ make lib-h5md args="-m h5cc"      # build with h5cc compiler
+      .. code-block:: bash
 
-The build should produce two files: ``lib/h5md/libch5md.a`` and
-``lib/h5md/Makefile.lammps``.  The latter is copied from an existing
-``Makefile.lammps.*`` and has settings needed to build LAMMPS with the
-system HDF5 library.  If necessary, you can edit/create a new
-``lib/h5md/Makefile.machine`` file for your system, which should define
-an EXTRAMAKE variable to specify a corresponding
-``Makefile.lammps.<machine>`` file.
+         $ make lib-h5md                     # print help message
+         $ make lib-h5md args="-m h5cc"      # build with h5cc compiler
+
+      The build should produce two files: ``lib/h5md/libch5md.a`` and
+      ``lib/h5md/Makefile.lammps``.  The latter is copied from an
+      existing ``Makefile.lammps.*`` and has settings needed to build
+      LAMMPS with the system HDF5 library.  If necessary, you can
+      edit/create a new ``lib/h5md/Makefile.machine`` file for your
+      system, which should define an EXTRAMAKE variable to specify a
+      corresponding ``Makefile.lammps.<machine>`` file.
 
 ----------
 

@@ -46,7 +46,7 @@ using namespace LAMMPS_NS;
  * \param  user_maxchunk      Maximal chunk size
  * \param  user_nbin          Number of bins of different chunk sizes
  * \param  user_chunkperpage  Number of chunks per page
- * \param  user_pagedelta     Numner of pages to allocate in one go */
+ * \param  user_pagedelta     Number of pages to allocate in one go */
 
 template <class T>
 MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,

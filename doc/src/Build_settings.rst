@@ -69,7 +69,7 @@ LAMMPS can use them if they are available on your system.
 
       .. code-block:: bash
 
-         -D FFTW3_INCLUDE_DIR=pat h  # path to FFTW3 include files
+         -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
          -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
          -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library

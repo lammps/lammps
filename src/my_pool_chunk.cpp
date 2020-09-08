@@ -132,7 +132,7 @@ template <class T>
 T *MyPoolChunk<T>::get(int n, int &index) {
   if (n < minchunk || n > maxchunk) {
     errorflag = 3;
-    index = -1
+    index = -1;
     return nullptr;
   }
 

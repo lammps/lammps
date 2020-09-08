@@ -36,7 +36,7 @@ class MyPoolChunk {
   // return pointer/index of unused chunk of size N
 
   T *get(int n, int &index);
-  
+
   // return indexed chunk to pool via free list
   // index = -1 if no allocated chunk
 

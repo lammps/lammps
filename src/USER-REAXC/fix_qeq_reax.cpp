@@ -85,7 +85,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"imax") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix qeq/reax command");
-      imax = force->numeric(FLERR,arg[iarg+1]);
+      imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
     } else error->all(FLERR,"Illegal fix qeq/reax command");
     iarg++;

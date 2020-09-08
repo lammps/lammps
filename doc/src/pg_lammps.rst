@@ -20,5 +20,3 @@ module.
    :project: progguide
    :members:
 
-.. doxygenfile:: lammps.cpp
-   :project: progguide

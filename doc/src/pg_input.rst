@@ -5,6 +5,3 @@ LAMMPS Input Base Class
       :project: progguide
       :members:
 
-.. doxygenfile:: input.cpp
-      :project: progguide
-

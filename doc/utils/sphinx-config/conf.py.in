@@ -47,7 +47,9 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.autodoc',
     'sphinxfortran.fortran_domain',
+    'sphinx_tabs.tabs',
     'table_from_list',
+    'tab_or_note',
     'breathe',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x

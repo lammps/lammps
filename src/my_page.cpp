@@ -29,8 +29,9 @@ using namespace LAMMPS_NS;
  * The chunks are not returnable like with malloc() (i.e. you cannot
  * call free() on them individually).  One can only reset and start over.
  * The purpose of this class is to replace many small memory allocations
- * via malloc() with a few large ones.  Since the pages are never freed,
- * they can be re-used without having to re-allocate them.
+ * via malloc() with a few large ones.  Since the pages are never freed
+ * until the class is re-initialized, they can be re-used without having
+ * to re-allocate them by calling the reset() method.
  *
  * The settings *maxchunk*, *pagesize*, and *pagedelta* control
  * the memory allocation strategy.  The *maxchunk* value represents

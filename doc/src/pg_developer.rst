@@ -1162,3 +1162,7 @@ its size is registered later with :cpp:func:`vgot()
 .. doxygenclass:: LAMMPS_NS::MyPage
    :project: progguide
    :members:
+
+.. doxygenclass:: LAMMPS_NS::MyPoolChunk
+   :project: progguide
+   :members:

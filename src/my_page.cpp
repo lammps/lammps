@@ -73,10 +73,10 @@ MyPage<T>::~MyPage() {
  * This also frees all previously allocated storage and allocates
  * the first page(s).
  *
- * \param  user_maxchunk    Expected maximum number of items for one chunk
- * \param  user_pagesize    Number of items on a single memory page
- * \param  user_page_delta  Number of pages to allocate with one malloc
- * \return                  1 if there was an error or 0 if successful */
+ * \param  user_maxchunk   Expected maximum number of items for one chunk
+ * \param  user_pagesize   Number of items on a single memory page
+ * \param  user_pagedelta  Number of pages to allocate with one malloc
+ * \return                 1 if there were invalid parameters, 2 if there was an allocation error or 0 if successful */
 
 template<class T>
 int MyPage<T>::init(int user_maxchunk, int user_pagesize,

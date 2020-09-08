@@ -40,7 +40,14 @@ using namespace LAMMPS_NS;
  * to be added at the end of the file ``src/my_pool_chunk.cpp`` to
  * avoid symbol lookup errors. */
 
-/** Create a class instance and set memory pool parameters */
+/** Create a class instance and set memory pool parameters
+ *
+ * \param  user_minchunk      Minimal chunk size
+ * \param  user_maxchunk      Maximal chunk size
+ * \param  user_nbin          Number of bins of different chunk sizes
+ * \param  user_chunkperpage  Number of chunks per page
+ * \param  user_pagedelta     Numner of pages to allocate in one go */
+
 template <class T>
 MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
                             int user_chunkperpage, int user_pagedelta) {
@@ -100,7 +107,10 @@ T *MyPoolChunk<T>::get(int &index) {
   int ibin = nbin-1;
   if (freehead[ibin] < 0) {
     allocate(ibin);
-    if (errorflag) return nullptr;
+    if (errorflag) {
+      index = -1;
+      return nullptr;
+    }
   }
 
   ndatum += maxchunk;
@@ -122,13 +132,17 @@ template <class T>
 T *MyPoolChunk<T>::get(int n, int &index) {
   if (n < minchunk || n > maxchunk) {
     errorflag = 3;
+    index = -1
     return nullptr;
   }
 
   int ibin = (n-minchunk) / binsize;
   if (freehead[ibin] < 0) {
     allocate(ibin);
-    if (errorflag) return nullptr;
+    if (errorflag) {
+      index = -1;
+      return nullptr;
+    }
   }
 
   ndatum += n;
@@ -141,8 +155,8 @@ T *MyPoolChunk<T>::get(int n, int &index) {
 }
 
 /** Put indexed chunk back into memory pool via free list
- */
-  // index = -1 if no allocated chunk
+ *
+ * \param index  Memory chunk index returned by call to get() */
 
 template <class T>
 void MyPoolChunk<T>::put(int index) {

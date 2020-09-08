@@ -40,35 +40,6 @@ using namespace LAMMPS_NS;
  * to be added at the end of the file ``src/my_pool_chunk.cpp`` to
  * avoid symbol lookup errors. */
 
-/* ----------------------------------------------------------------------
-MyPoolChunk = templated class for storing chunks of datums in pages
-  chunks can be returned to pool for reuse
-  chunks come in nbin different fixed sizes so can reuse
-  replaces many small mallocs with a few large mallocs
-  pages are never freed, so can reuse w/out reallocs
-usage:
-  continuously get() and put() chunks as needed
-  NOTE: could add a clear() if retain info on mapping of pages to bins
-inputs:
-   template T = one datum, e.g. int, double, struct
-   minchunk = min # of datums in one chunk, def = 1
-   maxchunk = max # of datums in one chunk, def = 1
-   nbin = # of bins between minchunk and maxchunk
-   chunkperpage = # of chunks in one page, def = 1024
-   pagedelta = # of pages to allocate at a time, def = 1
-methods:
-   T *get(index) = return ptr/index to unused chunk of size maxchunk
-   T *get(N,index) = return ptr/index to unused chunk of size N
-                     minchunk <= N <= maxchunk required
-   put(index) = return indexed chunk to pool (same index returned by get)
-   int size() = return total size of allocated pages in bytes
-public variables:
-   ndatum = total # of stored datums
-   nchunk = total # of stored chunks
-   size = total size of all allocated pages in daums
-   errorflag = flag for various error conditions
-------------------------------------------------------------------------- */
-
 /** Create a class instance and set memory pool parameters */
 template <class T>
 MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,

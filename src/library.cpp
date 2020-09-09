@@ -108,18 +108,23 @@ thus is otherwise ignored.  However ``argc`` may be set to 0 and then
 ``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
 will be called during creation of the LAMMPS class instance.
 
-The function returns a pointer to the created LAMMPS class. If for some
-reason the initialization of the LAMMPS instance fails, the function
-returns ``NULL``.  For backward compatibility it is also possible to
-provide the address of a pointer variable as argument *ptr*\ . This
-argument may be ``NULL`` and is then ignored.
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
+
+.. versionchanged:: 15Sep2020
+
+   This function now has the pointer to the created LAMMPS class
+   instance as return value.  For backward compatibility it is still
+   possible to provide the address of a pointer variable as final
+   argument *ptr*\ .  This use is deprecated and may be removed in
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
 
 .. note::
 
    This function is not declared when the code linking to the LAMMPS
    library interface is compiled with ``-DLAMMPS_LIB_NO_MPI``, or
    contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
-   ``#include "library.h"``.  In that case, you need to use the
+   ``#include "library.h"``.  In that case, you must use the
    :cpp:func:`lammps_open_no_mpi` function.
 
 \endverbatim
@@ -169,6 +174,17 @@ library was compiled in serial mode, but the calling code runs in
 parallel and the ``MPI_Comm`` data type of the STUBS library would not
 be compatible with that of the calling code.
 
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
+
+.. versionchanged:: 15Sep2020
+
+   This function now has the pointer to the created LAMMPS class
+   instance as return value.  For backward compatibility it is still
+   possible to provide the address of a pointer variable as final
+   argument *ptr*\ .  This use is deprecated and may be removed in
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+
 \endverbatim
  *
  * \param  argc  number of command line arguments
@@ -195,20 +211,23 @@ module.  Internally it converts the *f_comm* argument into a C-style MPI
 communicator with ``MPI_Comm_f2c()`` and then calls
 :cpp:func:`lammps_open`.
 
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
+
+.. versionadded:: 15Sep2020
+
 \endverbatim
  *
  * \param  argc   number of command line arguments
  * \param  argv   list of command line argument strings
  * \param  f_comm Fortran style MPI communicator for this LAMMPS instance
- * \param  ptr    pointer to a void pointer variable
- *                which serves as a handle; may be ``NULL``
  * \return        pointer to new LAMMPS instance cast to ``void *`` */
 
-void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr)
+void *lammps_open_fortran(int argc, char **argv, int f_comm)
 {
   lammps_mpi_init();
   MPI_Comm c_comm = MPI_Comm_f2c((MPI_Fint)f_comm);
-  return lammps_open(argc, argv, c_comm, ptr);
+  return lammps_open(argc, argv, c_comm, nullptr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -244,6 +263,8 @@ The MPI standard requires that any MPI application must call
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
 
+.. versionadded:: 15Sep2020
+
 \endverbatim */
 
 void lammps_mpi_init()
@@ -273,6 +294,8 @@ accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After this function no
 more MPI calls may be made.
+
+.. versionadded:: 15Sep2020
 
 \endverbatim */
 

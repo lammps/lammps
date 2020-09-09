@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 ResetIDs::AtomRvous *ResetIDs::sortrvous;
 static int compare_coords(const void *, const void *);
 #else
-#include "mergesort.h"
 // prototype for non-class function
 static int compare_coords(const int, const int, void *);
 #endif
@@ -509,7 +508,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
     sortrvous = in;
     qsort(order,count[ibin],sizeof(int),compare_coords);
 #else
-    merge_sort(order,count[ibin],(void *) in,compare_coords);
+    utils::merge_sort(order,count[ibin],(void *) in,compare_coords);
 #endif
 
     head[ibin] = last[ibin] = -1;

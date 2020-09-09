@@ -2,6 +2,8 @@ set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
 file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
+option(COLVARS_DEBUG "Debugging messages for Colvars (quite verbose)" OFF)
+
 # Build Lepton by default
 option(COLVARS_LEPTON "Build and link the Lepton library" ON)
 
@@ -20,6 +22,11 @@ target_compile_definitions(colvars PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(colvars PROPERTIES OUTPUT_NAME lammps_colvars${LAMMPS_MACHINE})
 target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 target_link_libraries(lammps PRIVATE colvars)
+
+if(COLVARS_DEBUG)
+  target_compile_definitions(colvars PRIVATE -DCOLVARS_DEBUG)
+  target_compile_definitions(lammps PRIVATE -DCOLVARS_DEBUG) # For the proxy
+endif()
 
 if(COLVARS_LEPTON)
   target_link_libraries(lammps PRIVATE lepton)

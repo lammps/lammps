@@ -39,8 +39,42 @@ class MyPage {
            int user_pagedelta=1);
 
   T *get(int n=1);
-  T *vget();
-  void vgot(int n);
+
+  /** Get pointer to location that can store *maxchunk* items.
+   *
+   * This will return the same pointer as the previous call to
+   * this function unless vgot() is called afterwards to record
+   * how many items of the chunk were actually used.
+   *
+   * \return pointer to chunk of memory or null pointer if run out of memory */
+
+  T *vget() {
+    if (index+maxchunk <= pagesize) return &page[index];
+    ipage++;
+    if (ipage == npage) {
+      allocate();
+      if (errorflag) return NULL;
+    }
+    page = pages[ipage];
+    index = 0;
+    return &page[index];
+  }
+
+  /** Mark *N* items as used of the chunk reserved with a preceding call to vget().
+   *
+   * This will advance the internal pointer inside the current memory page.
+   * It is not necessary to call this function for *N* = 0, that is the reserved
+   * storage was not used.  A following call to vget() will then reserve the
+   * same location again.  It is an error if *N* > *maxchunk*.
+   *
+   * \param  n  Number of items used in previously reserved chunk */
+
+  void vgot(int n) {
+    if (n > maxchunk) errorflag = 1;
+    ndatum += n;
+    nchunk++;
+    index += n;
+  }
 
   void reset();
 

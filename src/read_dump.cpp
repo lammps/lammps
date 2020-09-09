@@ -20,22 +20,19 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_dump.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "reader.h"
-#include "style_reader.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "irregular.h"
+#include "domain.h"
 #include "error.h"
+#include "irregular.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -110,7 +107,7 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  bigint nstep = force->bnumeric(FLERR,arg[1]);
+  bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
@@ -246,7 +243,7 @@ void ReadDump::setup_reader(int narg, char **arg)
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
   }
-#include "style_reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
@@ -1217,7 +1214,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      multiproc_nfile = force->inumeric(FLERR,arg[iarg+1]);
+      multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

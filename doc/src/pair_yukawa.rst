@@ -1,16 +1,12 @@
 .. index:: pair_style yukawa
+.. index:: pair_style yukawa/gpu
+.. index:: pair_style yukawa/omp
+.. index:: pair_style yukawa/kk
 
 pair_style yukawa command
 =========================
 
-pair_style yukawa/gpu command
-=============================
-
-pair_style yukawa/omp command
-=============================
-
-pair_style yukawa/kk command
-============================
+Accelerator Variants: *yukawa/gpu*, *yukawa/omp*, *yukawa/kk*
 
 Syntax
 """"""

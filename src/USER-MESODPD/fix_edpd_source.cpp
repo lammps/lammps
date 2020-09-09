@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_edpd_source.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -38,21 +39,21 @@ FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
 
   if(option == 0){
     if (narg != 9 ) error->all(FLERR,"Illegal fix edpd/source command (5 args for sphere)");
-    center[0] = force->numeric(FLERR,arg[iarg++]);
-    center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);
-    radius  = force->numeric(FLERR,arg[iarg++]);
-    value   = force->numeric(FLERR,arg[iarg++]);
+    center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[2] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    radius  = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    value   = utils::numeric(FLERR,arg[iarg++],false,lmp);
   }
   else if(option == 1){
     if (narg != 11 ) error->all(FLERR,"Illegal fix edpd/edpd command (7 args for cuboid)");
-    center[0] = force->numeric(FLERR,arg[iarg++]);
-    center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);
-    dLx = force->numeric(FLERR,arg[iarg++]);
-    dLy = force->numeric(FLERR,arg[iarg++]);
-    dLz = force->numeric(FLERR,arg[iarg++]);
-    value = force->numeric(FLERR,arg[iarg++]);
+    center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[2] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLx = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLy = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLz = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    value = utils::numeric(FLERR,arg[iarg++],false,lmp);
   }
   else error->all(FLERR,"Illegal fix edpd/source command");
 }

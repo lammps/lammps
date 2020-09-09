@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -300,10 +301,10 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  ap_global = force->inumeric(FLERR,arg[0]);
-  cut_inner_global = force->numeric(FLERR,arg[1]);
-  cut_outer_global = force->numeric(FLERR,arg[2]);
-  cut_angle_global = force->numeric(FLERR,arg[3]) * MY_PI/180.0;
+  ap_global = utils::inumeric(FLERR,arg[0],false,lmp);
+  cut_inner_global = utils::numeric(FLERR,arg[1],false,lmp);
+  cut_outer_global = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_angle_global = utils::numeric(FLERR,arg[3],false,lmp) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -317,30 +318,30 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
   else error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double epsilon_one = force->numeric(FLERR,arg[4]);
-  double sigma_one = force->numeric(FLERR,arg[5]);
+  double epsilon_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int ap_one = ap_global;
-  if (narg > 6) ap_one = force->inumeric(FLERR,arg[6]);
+  if (narg > 6) ap_one = utils::inumeric(FLERR,arg[6],false,lmp);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 8) {
-    cut_inner_one = force->numeric(FLERR,arg[7]);
-    cut_outer_one = force->numeric(FLERR,arg[8]);
+    cut_inner_one = utils::numeric(FLERR,arg[7],false,lmp);
+    cut_outer_one = utils::numeric(FLERR,arg[8],false,lmp);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = force->numeric(FLERR,arg[9]) * MY_PI/180.0;
+  if (narg == 10) cut_angle_one = utils::numeric(FLERR,arg[9],false,lmp) * MY_PI/180.0;
   // grow params array if necessary
 
   if (nparams == maxparam) {

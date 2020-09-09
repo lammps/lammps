@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -267,7 +267,7 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   // 2nd arg = angle sub-style name
   // allow for "none" or "skip" as valid sub-style name

@@ -28,9 +28,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_cmap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -41,8 +41,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -633,7 +633,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
 
   FILE *fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(cmapfile);
+    fp = utils::open_potential(cmapfile,lmp,nullptr);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open fix cmap file {}: {}",
                                    cmapfile, utils::getsyserror()));

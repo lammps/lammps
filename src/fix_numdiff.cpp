@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -50,8 +50,8 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 3;
   respa_level_support = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  delta = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  delta = utils::numeric(FLERR,arg[4],false,lmp);
   if (nevery <= 0 || delta <= 0.0)
     error->all(FLERR,"Illegal fix numdiff command");
 

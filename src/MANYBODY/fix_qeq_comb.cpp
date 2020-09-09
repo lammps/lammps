@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_comb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "pair_comb.h"
@@ -30,8 +30,8 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,8 +49,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  precision = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  precision = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (nevery <= 0 || precision <= 0.0)
     error->all(FLERR,"Illegal fix qeq/comb command");

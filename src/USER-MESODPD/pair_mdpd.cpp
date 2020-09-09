@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_mdpd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <ctime>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -211,9 +211,9 @@ void PairMDPD::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  temperature = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
-  seed = force->inumeric(FLERR,arg[2]);
+  temperature = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
+  seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -245,14 +245,14 @@ void PairMDPD::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double A_one = force->numeric(FLERR,arg[2]);
-  double B_one = force->numeric(FLERR,arg[3]);
-  double gamma_one = force->numeric(FLERR,arg[4]);
-  double cut_one = force->numeric(FLERR,arg[5]);
-  double cut_two = force->numeric(FLERR,arg[6]);
+  double A_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double B_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double gamma_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double cut_two = utils::numeric(FLERR,arg[6],false,lmp);
 
   if(cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
 

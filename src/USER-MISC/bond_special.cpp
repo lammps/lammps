@@ -13,18 +13,15 @@
    Contributing Author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_special.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 
@@ -143,10 +140,10 @@ void BondSpecial::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double factor_lj_one = force->numeric(FLERR,arg[1]);
-  double factor_coul_one = force->numeric(FLERR,arg[2]);
+  double factor_lj_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double factor_coul_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

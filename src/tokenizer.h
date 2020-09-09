@@ -18,10 +18,11 @@
 #ifndef LMP_TOKENIZER_H
 #define LMP_TOKENIZER_H
 
-#include <string>
-#include <vector>
 #include "lmptype.h"
-#include <exception>
+
+#include <exception>  // IWYU pragma: export
+#include <string>     // IWYU pragma: export
+#include <vector>     // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -33,7 +34,7 @@ class Tokenizer {
     size_t start;
     size_t ntokens;
 public:
-    Tokenizer(const std::string & str, const std::string & separators = TOKENIZER_DEFAULT_SEPARATORS);
+    Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     Tokenizer(Tokenizer &&);
     Tokenizer(const Tokenizer &);
     Tokenizer& operator=(const Tokenizer&) = default;
@@ -42,7 +43,7 @@ public:
     void reset();
     void skip(int n);
     bool has_next() const;
-    bool contains(const std::string & str) const;
+    bool contains(const std::string &str) const;
     std::string next();
 
     size_t count();
@@ -52,11 +53,17 @@ public:
 class TokenizerException : public std::exception {
   std::string message;
 public:
-  TokenizerException(const std::string & msg, const std::string & token);
+  /** Thrown during retrieving or skipping tokens
+   *
+   * \param  msg    String with error message
+   * \param  token  String of the token/word that caused the error */
+  TokenizerException(const std::string &msg, const std::string &token);
 
   ~TokenizerException() throw() {
   }
 
+  /** Retrieve message describing the thrown exception
+   * \return string with error message */
   virtual const char * what() const throw() {
     return message.c_str();
   }
@@ -64,20 +71,26 @@ public:
 
 class InvalidIntegerException : public TokenizerException {
 public:
-    InvalidIntegerException(const std::string & token) : TokenizerException("Not a valid integer number", token) {
-    }
+  /** Thrown during converting string to integer number
+   *
+   * \param  token  String of the token/word that caused the error */
+  InvalidIntegerException(const std::string &token)
+    : TokenizerException("Not a valid integer number", token) {}
 };
 
 class InvalidFloatException : public TokenizerException {
 public:
-    InvalidFloatException(const std::string & token) : TokenizerException("Not a valid floating-point number", token) {
-    }
+  /** Thrown during converting string to floating point number
+   *
+   * \param  token  String of the token/word that caused the error */
+  InvalidFloatException(const std::string &token)
+    : TokenizerException("Not a valid floating-point number", token) {}
 };
 
 class ValueTokenizer {
     Tokenizer tokens;
 public:
-    ValueTokenizer(const std::string & str, const std::string & separators = TOKENIZER_DEFAULT_SEPARATORS);
+    ValueTokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     ValueTokenizer(const ValueTokenizer &);
     ValueTokenizer(ValueTokenizer &&);
     ValueTokenizer& operator=(const ValueTokenizer&) = default;
@@ -90,7 +103,7 @@ public:
     double next_double();
 
     bool has_next() const;
-    bool contains(const std::string & value) const;
+    bool contains(const std::string &value) const;
     void skip(int ntokens);
 
     size_t count();

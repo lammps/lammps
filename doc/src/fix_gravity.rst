@@ -1,13 +1,11 @@
 .. index:: fix gravity
+.. index:: fix gravity/omp
+.. index:: fix gravity/kk
 
 fix gravity command
 ===================
 
-fix gravity/omp command
-=======================
-
-fix gravity/kk command
-======================
+Accelerator Variants: *gravity/omp*, *gravity/kk*
 
 Syntax
 """"""

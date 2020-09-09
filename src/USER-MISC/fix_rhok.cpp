@@ -14,18 +14,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rhok.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
 
 #include "atom.h"
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "math_const.h"
 #include "respa.h"
 #include "update.h"
-#include "citeme.h"
-#include "math_const.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -68,16 +67,16 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   // Parse fix options
   int n[3];
 
-  n[0]   = force->inumeric(FLERR,inArgv[3]);
-  n[1]   = force->inumeric(FLERR,inArgv[4]);
-  n[2]   = force->inumeric(FLERR,inArgv[5]);
+  n[0]   = utils::inumeric(FLERR,inArgv[3],false,lmp);
+  n[1]   = utils::inumeric(FLERR,inArgv[4],false,lmp);
+  n[2]   = utils::inumeric(FLERR,inArgv[5],false,lmp);
 
   mK[0] = n[0]*(2*MY_PI / (domain->boxhi[0] - domain->boxlo[0]));
   mK[1] = n[1]*(2*MY_PI / (domain->boxhi[1] - domain->boxlo[1]));
   mK[2] = n[2]*(2*MY_PI / (domain->boxhi[2] - domain->boxlo[2]));
 
-  mKappa = force->numeric(FLERR,inArgv[6]);
-  mRhoK0 = force->numeric(FLERR,inArgv[7]);
+  mKappa = utils::numeric(FLERR,inArgv[6],false,lmp);
+  mRhoK0 = utils::numeric(FLERR,inArgv[7],false,lmp);
 }
 
 // Methods that this fix implements

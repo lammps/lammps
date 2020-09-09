@@ -1,10 +1,10 @@
 .. index:: bond_style fene/expand
+.. index:: bond_style fene/expand/omp
 
 bond_style fene/expand command
 ==============================
 
-bond_style fene/expand/omp command
-==================================
+Accelerator Variants: *fene/expand/omp*
 
 Syntax
 """"""

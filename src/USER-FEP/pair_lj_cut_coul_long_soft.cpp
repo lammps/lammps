@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_long_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,7 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -566,13 +566,13 @@ void PairLJCutCoulLongSoft::settings(int narg, char **arg)
 {
  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphalj = force->numeric(FLERR,arg[1]);
-  alphac  = force->numeric(FLERR,arg[2]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
 
-  cut_lj_global = force->numeric(FLERR,arg[3]);
+  cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[4]);
+  else cut_coul = utils::numeric(FLERR,arg[4],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -595,17 +595,17 @@ void PairLJCutCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double lambda_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (sigma_one <= 0.0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 6) cut_lj_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

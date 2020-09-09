@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "force.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "input.h"
+#include "lattice.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -79,7 +80,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
         strcpy(varstr[nwall],&arg[iarg+1][2]);
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       nwall++;

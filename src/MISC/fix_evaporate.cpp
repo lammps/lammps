@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_evaporate.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -41,13 +41,13 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nflux = force->inumeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nflux = utils::inumeric(FLERR,arg[4],false,lmp);
   iregion = domain->find_region(arg[5]);
   int n = strlen(arg[5]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (nevery <= 0 || nflux <= 0)
     error->all(FLERR,"Illegal fix evaporate command");

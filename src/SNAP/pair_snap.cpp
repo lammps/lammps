@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -515,7 +515,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
@@ -662,7 +662,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpparam;
   if (comm->me == 0) {
-    fpparam = force->open_potential(paramfilename);
+    fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open SNAP parameter file %s",paramfilename);

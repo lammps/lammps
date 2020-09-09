@@ -1,37 +1,29 @@
 .. index:: fix nvt
+.. index:: fix nvt/intel
+.. index:: fix nvt/kk
+.. index:: fix nvt/omp
+.. index:: fix npt
+.. index:: fix npt/intel
+.. index:: fix npt/kk
+.. index:: fix npt/omp
+.. index:: fix nph
+.. index:: fix nph/kk
+.. index:: fix nph/omp
 
 fix nvt command
 ===============
 
-fix nvt/intel command
-=====================
-
-fix nvt/kk command
-==================
-
-fix nvt/omp command
-===================
+Accelerator Variants: *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-fix npt/intel command
-=====================
-
-fix npt/kk command
-==================
-
-fix npt/omp command
-===================
+Accelerator Variants: *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============
 
-fix nph/kk command
-==================
-
-fix nph/omp command
-===================
+Accelerator Variants: *nph/kk*, *nph/omp*
 
 Syntax
 """"""

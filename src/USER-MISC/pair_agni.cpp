@@ -16,22 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_agni.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
-#include "math_special.h"
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
-#include "utils.h"
+#include "math_special.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -358,7 +356,7 @@ void PairAGNI::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open AGNI potential file %s",file);

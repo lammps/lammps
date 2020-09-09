@@ -13,7 +13,7 @@
 
 #include "compute_snap.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -118,9 +118,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
-      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       for(int i = 0; i < ntypes; i++) {
-        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snap command");
         map[i+1] = jelem;

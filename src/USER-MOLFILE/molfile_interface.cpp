@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "molfile_interface.h"
+#include "molfile_plugin.h"
 
 #include <sys/types.h>
 #include <cstdio>
-#include <dirent.h>
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
@@ -30,8 +30,6 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #endif
-
-#include "molfile_plugin.h"
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"

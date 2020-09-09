@@ -13,7 +13,7 @@
 
 #include "fix_temp_berendsen.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,13 +57,13 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr,&arg[3][2]);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[3]);
+    t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
 
   // error checks
 

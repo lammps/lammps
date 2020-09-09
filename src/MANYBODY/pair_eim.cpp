@@ -16,20 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eim.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1061,7 +1059,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   int unit_convert = auto_convert;
-  FILE *fp = force->open_potential(filename.c_str(), &unit_convert);
+  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == NULL) {

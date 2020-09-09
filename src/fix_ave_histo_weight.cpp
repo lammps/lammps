@@ -15,7 +15,7 @@
    Contributing author: Shawn Coleman (ARL)
 ------------------------------------------------------------------------- */
 #include "fix_ave_histo_weight.h"
-#include <mpi.h>
+
 #include <unistd.h>
 #include "fix.h"
 #include "atom.h"

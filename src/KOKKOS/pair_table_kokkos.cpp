@@ -428,7 +428,7 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords

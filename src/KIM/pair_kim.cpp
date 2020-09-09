@@ -55,21 +55,20 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
-#include <cstring>
-#include <cstdlib>
-#include <string>
-#include <sstream>
+
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "memory.h"
-#include "domain.h"
-#include "utils.h"
-#include "error.h"
+
+#include <cstring>
+#include <sstream>
 
 using namespace LAMMPS_NS;
 
@@ -343,8 +342,8 @@ void PairKIM::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =

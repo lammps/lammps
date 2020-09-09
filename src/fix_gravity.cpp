@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gravity.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "math_const.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -58,7 +58,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     strcpy(mstr,&arg[3][2]);
     mstyle = EQUAL;
   } else {
-    magnitude = force->numeric(FLERR,arg[3]);
+    magnitude = utils::numeric(FLERR,arg[3],false,lmp);
     mstyle = CONSTANT;
   }
 
@@ -73,7 +73,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(vstr,&arg[5][2]);
       vstyle = EQUAL;
     } else {
-      vert = force->numeric(FLERR,arg[5]);
+      vert = utils::numeric(FLERR,arg[5],false,lmp);
       vstyle = CONSTANT;
     }
     iarg = 6;
@@ -87,7 +87,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(pstr,&arg[5][2]);
       pstyle = EQUAL;
     } else {
-      phi = force->numeric(FLERR,arg[5]);
+      phi = utils::numeric(FLERR,arg[5],false,lmp);
       pstyle = CONSTANT;
     }
     if (strstr(arg[6],"v_") == arg[6]) {
@@ -96,7 +96,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(tstr,&arg[6][2]);
       tstyle = EQUAL;
     } else {
-      theta = force->numeric(FLERR,arg[6]);
+      theta = utils::numeric(FLERR,arg[6],false,lmp);
       tstyle = CONSTANT;
     }
     iarg = 7;
@@ -110,7 +110,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(xstr,&arg[5][2]);
       xstyle = EQUAL;
     } else {
-      xdir = force->numeric(FLERR,arg[5]);
+      xdir = utils::numeric(FLERR,arg[5],false,lmp);
       xstyle = CONSTANT;
     }
     if (strstr(arg[6],"v_") == arg[6]) {
@@ -119,7 +119,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(ystr,&arg[6][2]);
       ystyle = EQUAL;
     } else {
-      ydir = force->numeric(FLERR,arg[6]);
+      ydir = utils::numeric(FLERR,arg[6],false,lmp);
       ystyle = CONSTANT;
     }
     if (strstr(arg[7],"v_") == arg[7]) {
@@ -128,7 +128,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(zstr,&arg[7][2]);
       zstyle = EQUAL;
     } else {
-      zdir = force->numeric(FLERR,arg[7]);
+      zdir = utils::numeric(FLERR,arg[7],false,lmp);
       zstyle = CONSTANT;
     }
     iarg = 8;

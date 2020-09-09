@@ -22,19 +22,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dmi.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "fix.h"
-#include "neigh_list.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -65,7 +62,7 @@ void PairSpinDmi::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_dmi_global = force->numeric(FLERR,arg[0]);
+  cut_spin_dmi_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -98,14 +95,14 @@ void PairSpinDmi::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  const double rij = force->numeric(FLERR,arg[3]);
-  const double dm = (force->numeric(FLERR,arg[4]));
-  double dmx = force->numeric(FLERR,arg[5]);
-  double dmy = force->numeric(FLERR,arg[6]);
-  double dmz = force->numeric(FLERR,arg[7]);
+  const double rij = utils::numeric(FLERR,arg[3],false,lmp);
+  const double dm = utils::numeric(FLERR,arg[4],false,lmp);
+  double dmx = utils::numeric(FLERR,arg[5],false,lmp);
+  double dmy = utils::numeric(FLERR,arg[6],false,lmp);
+  double dmz = utils::numeric(FLERR,arg[7],false,lmp);
 
   double inorm = 1.0/(dmx*dmx+dmy*dmy+dmz*dmz);
   dmx *= inorm;

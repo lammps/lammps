@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke_history.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -33,7 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -358,16 +358,16 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  kn = force->numeric(FLERR,arg[0]);
+  kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = force->numeric(FLERR,arg[1]);
+  else kt = utils::numeric(FLERR,arg[1],false,lmp);
 
-  gamman = force->numeric(FLERR,arg[2]);
+  gamman = utils::numeric(FLERR,arg[2],false,lmp);
   if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = force->numeric(FLERR,arg[3]);
+  else gammat = utils::numeric(FLERR,arg[3],false,lmp);
 
-  xmu = force->numeric(FLERR,arg[4]);
-  dampflag = force->inumeric(FLERR,arg[5]);
+  xmu = utils::numeric(FLERR,arg[4],false,lmp);
+  dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
@@ -385,8 +385,8 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

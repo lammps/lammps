@@ -1,4 +1,7 @@
 .. index:: compute sna/atom
+.. index:: compute snad/atom
+.. index:: compute snav/atom
+.. index:: compute snap
 
 compute sna/atom command
 ========================

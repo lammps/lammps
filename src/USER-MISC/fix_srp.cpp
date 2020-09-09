@@ -16,19 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_srp.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "domain.h"
-#include "modify.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "neighbor.h"
-#include "atom_vec.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -642,11 +642,11 @@ void FixSRP::restart(char *buf)
 int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   if (strcmp(arg[0],"bptype") == 0) {
-    bptype = force->inumeric(FLERR,arg[1]);
+    bptype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

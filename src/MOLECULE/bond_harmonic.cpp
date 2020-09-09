@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_harmonic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -124,10 +124,10 @@ void BondHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double r0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

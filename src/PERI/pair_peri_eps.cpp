@@ -16,24 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_eps.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_peri_neigh.h"
+#include "force.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cstring>
-#include <string>
-#include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -450,15 +448,15 @@ void PairPeriEPS::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double bulkmodulus_one = force->numeric(FLERR,arg[2]);
-  double shearmodulus_one = force->numeric(FLERR,arg[3]);
-  double cut_one = force->numeric(FLERR,arg[4]);
-  double s00_one = force->numeric(FLERR,arg[5]);
-  double alpha_one = force->numeric(FLERR,arg[6]);
-  double myieldstress_one = force->numeric(FLERR,arg[7]);
+  double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double shearmodulus_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double s00_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double myieldstress_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

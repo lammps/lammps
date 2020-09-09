@@ -16,28 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_awpmd_cut.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <map>
-#include <utility>
+
 #include "atom.h"
-#include "update.h"
-#include "min.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
+#include "min.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+#include "update.h"
 
 #include "logexc.h"
 #include "vector_3.h"
 #include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
+
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -237,7 +238,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       etmap[etag[i]].push_back(i);
     }
     else
-      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
+      error->all(FLERR,logfmt("Invalid spin value (%d) for particle %d !",spin[i],i));
   }
   // ion force vector
   Vector_3 *fi=NULL;
@@ -254,7 +255,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     for(size_t k=0;k<el.size();k++){
       int i=el[k];
       if(spin[el[0]]!=spin[i])
-        error->all(FLERR,fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
+        error->all(FLERR,logfmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
       double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
@@ -407,7 +408,7 @@ void PairAWPMDCut::allocate()
 void PairAWPMDCut::settings(int narg, char **arg){
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   ermscale=1.;
   width_pbc=0.;
@@ -427,21 +428,21 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'fix' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(FLERR,arg[i]);
+      wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"harm")){
       wpmd->constraint=AWPMD::HARM;
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'harm' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(FLERR,arg[i]);
+      wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
       wpmd->set_harm_constr(wpmd->w0);
     }
     else if(!strcmp(arg[i],"pbc")){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'pbc' should be followed by a number in awpmd/cut");
-      width_pbc=force->numeric(FLERR,arg[i]);
+      width_pbc=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"relax"))
       wpmd->constraint=AWPMD::RELAX;
@@ -449,7 +450,7 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'ermscale' should be followed by a number in awpmd/cut");
-      ermscale=force->numeric(FLERR,arg[i]);
+      ermscale=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"flex_press"))
       flexible_pressure_flag = 1;
@@ -484,11 +485,11 @@ void PairAWPMDCut::coeff(int narg, char **arg)
   }
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+  if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

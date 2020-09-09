@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_atom_ids.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
-#include "modify.h"
-#include "fix.h"
-#include "special.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "special.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 ResetIDs::AtomRvous *ResetIDs::sortrvous;
 static int compare_coords(const void *, const void *);
 #else
-#include "mergesort.h"
 // prototype for non-class function
 static int compare_coords(const int, const int, void *);
 #endif
@@ -509,7 +508,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
     sortrvous = in;
     qsort(order,count[ibin],sizeof(int),compare_coords);
 #else
-    merge_sort(order,count[ibin],(void *) in,compare_coords);
+    utils::merge_sort(order,count[ibin],(void *) in,compare_coords);
 #endif
 
     head[ibin] = last[ibin] = -1;

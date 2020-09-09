@@ -18,10 +18,10 @@
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -37,7 +37,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -753,7 +753,7 @@ void PairGranular::allocate()
 void PairGranular::settings(int narg, char **arg)
 {
   if (narg == 1) {
-    cutoff_global = force->numeric(FLERR,arg[0]);
+    cutoff_global = utils::numeric(FLERR,arg[0],false,lmp);
   } else {
     cutoff_global = -1; // will be set based on particle sizes, model choice
   }
@@ -784,8 +784,8 @@ void PairGranular::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   //Defaults
   normal_model_one = tangential_model_one = -1;
@@ -800,35 +800,35 @@ void PairGranular::coeff(int narg, char **arg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hooke option");
       normal_model_one = HOOKE;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // kn
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz") == 0) {
       if (iarg + 2 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = HERTZ;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // kn
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz/material") == 0) {
       if (iarg + 3 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz/material option");
       normal_model_one = HERTZ_MATERIAL;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
       iarg += 4;
     } else if (strcmp(arg[iarg], "dmt") == 0) {
       if (iarg + 4 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = DMT;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
+      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "jkr") == 0) {
       if (iarg + 4 >= narg)
@@ -836,10 +836,10 @@ void PairGranular::coeff(int narg, char **arg)
                    "not enough parameters provided for JKR option");
       beyond_contact = 1;
       normal_model_one = JKR;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
+      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "damping") == 0) {
       if (iarg+1 >= narg)
@@ -871,8 +871,8 @@ void PairGranular::coeff(int narg, char **arg)
         tangential_model_one = TANGENTIAL_NOHISTORY;
         tangential_coeffs_one[0] = 0;
         // gammat and friction coeff
-        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]);
-        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]);
+        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         iarg += 4;
       } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
                (strcmp(arg[iarg+1], "mindlin") == 0) ||
@@ -905,11 +905,11 @@ void PairGranular::coeff(int narg, char **arg)
           }
           tangential_coeffs_one[0] = -1;
         } else {
-          tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); // kt
+          tangential_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // kt
         }
         // gammat and friction coeff
-        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -928,9 +928,9 @@ void PairGranular::coeff(int narg, char **arg)
         roll_model_one = ROLL_SDS;
         roll_history = 1;
         // kR and gammaR and rolling friction coeff
-        roll_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
-        roll_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        roll_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        roll_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        roll_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        roll_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -953,9 +953,9 @@ void PairGranular::coeff(int narg, char **arg)
         twist_model_one = TWIST_SDS;
         twist_history = 1;
         // kt and gammat and friction coeff
-        twist_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
-        twist_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        twist_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        twist_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        twist_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        twist_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -964,7 +964,7 @@ void PairGranular::coeff(int narg, char **arg)
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      cutoff_one = force->numeric(FLERR,arg[iarg+1]);
+      cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR, "Illegal pair coeff command");
   }

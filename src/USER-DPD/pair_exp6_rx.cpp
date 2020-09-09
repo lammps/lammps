@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_exp6_rx.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cfloat>
 #include "atom.h"
@@ -24,7 +24,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "modify.h"
 #include "fix.h"
 
@@ -549,7 +549,7 @@ void PairExp6rx::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // optional keywords
 
@@ -589,8 +589,8 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   int ilo,ihi,jlo,jhi;
   int n;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   nspecies = atom->nspecies_dpd;
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
@@ -666,10 +666,10 @@ void PairExp6rx::coeff(int narg, char **arg)
   double cut_one = cut_global;
   if (strcmp(arg[5],"exponent") == 0){
     scalingFlag = EXPONENT;
-    exponentR = force->numeric(FLERR,arg[6]);
-    exponentEpsilon = force->numeric(FLERR,arg[7]);
+    exponentR = utils::numeric(FLERR,arg[6],false,lmp);
+    exponentEpsilon = utils::numeric(FLERR,arg[7],false,lmp);
     if (narg > 9) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 9) cut_one = force->numeric(FLERR,arg[8]);
+    if (narg == 9) cut_one = utils::numeric(FLERR,arg[8],false,lmp);
   } else if (strcmp(arg[5],"polynomial") == 0){
     scalingFlag = POLYNOMIAL;
     memory->create(coeffAlpha,6,"pair:coeffAlpha");
@@ -677,11 +677,11 @@ void PairExp6rx::coeff(int narg, char **arg)
     memory->create(coeffRm,6,"pair:coeffRm");
     read_file2(arg[6]);
     if (narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+    if (narg == 8) cut_one = utils::numeric(FLERR,arg[7],false,lmp);
   } else if (strcmp(arg[5],"none") == 0){
     scalingFlag = NONE;
     if (narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 7) cut_one = force->numeric(FLERR,arg[6]);
+    if (narg == 7) cut_one = utils::numeric(FLERR,arg[6],false,lmp);
   } else {
     error->all(FLERR,"Incorrect args for pair coefficients");
   }
@@ -725,7 +725,7 @@ void PairExp6rx::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open exp6/rx potential file %s",file);

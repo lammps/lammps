@@ -16,12 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_deprecated.h"
-#include <string>
 #include "angle_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 

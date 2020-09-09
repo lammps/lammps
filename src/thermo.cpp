@@ -16,37 +16,36 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "thermo.h"
-#include <mpi.h>
+
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "input.h"
+#include "kspace.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "timer.h"
+#include "tokenizer.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "comm.h"
-#include "domain.h"
-#include "universe.h"
-#include "lattice.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "output.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -126,7 +125,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     int expand = 0;
     char **earg;
-    int nvalues = input->expand_args(narg-1,&arg[1],0,earg);
+    int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
     line = new char[256+nvalues*64];
@@ -608,7 +607,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_float_user = new char[n];
         strcpy(format_float_user,arg[iarg+2]);
       } else {
-        int i = force->inumeric(FLERR,arg[iarg+1]) - 1;
+        int i = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
         if (i < 0 || i >= nfield_initial+1)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_column_user[i]) delete [] format_column_user[i];

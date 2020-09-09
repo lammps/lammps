@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_comb_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "pair_comb.h"

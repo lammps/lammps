@@ -20,6 +20,7 @@
 #include "error.h"
 #include "domain.h"
 
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -209,11 +210,11 @@ void PairSPHIdealGas::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double viscosity_one = force->numeric(FLERR,arg[2]);
-  double cut_one = force->numeric(FLERR,arg[3]);
+  double viscosity_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

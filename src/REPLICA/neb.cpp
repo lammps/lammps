@@ -12,28 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neb.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "universe.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "min.h"
-#include "modify.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix.h"
 #include "fix_neb.h"
+#include "math_const.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "finish.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "math_const.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -110,11 +108,11 @@ void NEB::command(int narg, char **arg)
 
   if (narg < 6) error->universe_all(FLERR,"Illegal NEB command");
 
-  etol = force->numeric(FLERR,arg[0]);
-  ftol = force->numeric(FLERR,arg[1]);
-  n1steps = force->inumeric(FLERR,arg[2]);
-  n2steps = force->inumeric(FLERR,arg[3]);
-  nevery = force->inumeric(FLERR,arg[4]);
+  etol = utils::numeric(FLERR,arg[0],false,lmp);
+  ftol = utils::numeric(FLERR,arg[1],false,lmp);
+  n1steps = utils::inumeric(FLERR,arg[2],false,lmp);
+  n2steps = utils::inumeric(FLERR,arg[3],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // error checks
 

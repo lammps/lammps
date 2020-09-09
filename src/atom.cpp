@@ -12,31 +12,27 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include <mpi.h>
-#include <climits>
-#include <cstdlib>
-#include <cstring>
-#include <algorithm>
-#include <string>
-#include "style_atom.h"
 #include "atom_vec.h"
-#include "atom_vec_ellipsoid.h"
+#include "style_atom.h"  // IWYU pragma: keep
+
 #include "comm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "molecule.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neighbor.h"
+#include "update.h"
+#include "variable.h"
+
+#include <algorithm>
+#include <cstring>
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
@@ -50,6 +46,33 @@ using namespace MathConst;
 #define EPSILON 1.0e-6
 
 /* ---------------------------------------------------------------------- */
+
+/** \class LAMMPS_NS::Atom
+ *  \brief Class to provide access to atom data
+
+\verbatim embed:rst
+The Atom class provides access to atom style related global settings and
+per-atom data that is stored with atoms and migrates with them from
+sub-domain to sub-domain as atoms move around.  This includes topology
+data, which is stored with either one specific atom or all atoms involved
+depending on the settings of the :doc:`newton command <newton>`.
+
+The actual per-atom data is allocated and managed by one of the various
+classes derived from the AtomVec class as determined by
+the :doc:`atom_style command <atom_style>`.  The pointers in the Atom class
+are updated by the AtomVec class as needed.
+\endverbatim
+ */
+
+/** Atom class constructor
+ *
+ * This resets and initialized all kinds of settings,
+ * parameters, and pointer variables for per-atom arrays.
+ * This also initializes the factory for creating
+ * instances of classes derived from the AtomVec base
+ * class, which correspond to the selected atom style.
+ *
+ * \param  lmp  pointer to the base LAMMPS class */
 
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
@@ -692,7 +715,6 @@ AtomVec *Atom::avec_creator(LAMMPS *lmp)
   return new T(lmp);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void Atom::init()
@@ -795,8 +817,8 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
-      sortfreq = force->inumeric(FLERR,arg[iarg+1]);
-      userbinsize = force->numeric(FLERR,arg[iarg+2]);
+      sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (sortfreq < 0 || userbinsize < 0.0)
         error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname)
@@ -1576,8 +1598,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    ninteger = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
+    ndouble = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1592,9 +1614,9 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
       }
 
       for (j = 0; j < ninteger; j++)
-        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+        ivalues[j] = utils::inumeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
       for (j = 0; j < ndouble; j++)
-        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+        dvalues[j] = utils::numeric(FLERR,strtok(NULL," \t\n\r\f"),false,lmp);
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
@@ -1702,7 +1724,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
   int lo,hi;
-  force->bounds(file,line,arg[0],ntypes,lo,hi);
+  utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
   if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
@@ -2305,12 +2327,17 @@ int Atom::find_custom(const char *name, int &flag)
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   add a custom variable with name of type flag = 0/1 for int/double
-   assumes name does not already exist
-   return index in ivector or dvector of its location
-------------------------------------------------------------------------- */
+/** \brief Add a custom per-atom property with the given name and type
+\verbatim embed:rst
 
+This function will add a custom per-atom property with the name "name"
+as either list of int or double to the list of custom properties.  This
+function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
+\endverbatim
+ * \param name Name of the property (w/o a "d_" or "i_" prefix)
+ * \param flag Data type of property: 0 for int, 1 for double
+ * \return Index of property in the respective list of properties
+ */
 int Atom::add_custom(const char *name, int flag)
 {
   int index;
@@ -2342,12 +2369,19 @@ int Atom::add_custom(const char *name, int flag)
   return index;
 }
 
-/* ----------------------------------------------------------------------
-   remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
-   ivector/dvector and iname/dname lists never shrink
-------------------------------------------------------------------------- */
-
+/*! \brief Remove a custom per-atom property of a given type
+ *
+\verbatim embed:rst
+This will remove a property that was requested e.g. by the
+:doc:`fix property/atom <fix_property_atom>` command.  It frees the
+allocated memory and sets the pointer to ``NULL`` to the entry in
+the list can be reused. The lists of those pointers will never be
+compacted or never shrink, so that index to name mappings remain valid.
+\endverbatim
+ *
+ * \param flag whether the property is integer (=0) or double (=1)
+ * \param index of that property in the respective list.
+ */
 void Atom::remove_custom(int flag, int index)
 {
   if (flag == 0) {
@@ -2363,16 +2397,123 @@ void Atom::remove_custom(int flag, int index)
   }
 }
 
-/* ----------------------------------------------------------------------
-   return a pointer to a named internal variable
-   if don't recognize name, return NULL
-------------------------------------------------------------------------- */
+/** Provide access to internal data of the Atom class by keyword
+ *
+\verbatim embed:rst
+
+This function is a way to access internal per-atom data.  This data is
+distributed across MPI ranks and thus only the data for "local" atoms
+are expected to be available.  Whether also data for "ghost" atoms is
+stored and up-to-date depends on various simulation settings.
+
+This table lists a large part of the supported names, their data types,
+length of the data area, and a short description.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Items per atom
+     - Description
+   * - mass
+     - double
+     - 1
+     - per-type mass. This array is **NOT** a per-atom array
+       but of length ``ntypes+1``, element 0 is ignored.
+   * - id
+     - tagint
+     - 1
+     - atom ID of the particles
+   * - type
+     - int
+     - 1
+     - atom type of the particles
+   * - mask
+     - int
+     - 1
+     - bitmask for mapping to groups. Individual bits are set
+       to 0 or 1 for each group.
+   * - image
+     - imageint
+     - 1
+     - 3 image flags encoded into a single integer.
+       See :cpp:func:`lammps_encode_image_flags`.
+   * - x
+     - double
+     - 3
+     - x-, y-, and z-coordinate of the particles
+   * - v
+     - double
+     - 3
+     - x-, y-, and z-component of the velocity of the particles
+   * - f
+     - double
+     - 3
+     - x-, y-, and z-component of the force on the particles
+   * - molecule
+     - int
+     - 1
+     - molecule ID of the particles
+   * - q
+     - double
+     - 1
+     - charge of the particles
+   * - mu
+     - double
+     - 3
+     - dipole moment of the particles
+   * - omega
+     - double
+     - 3
+     - x-, y-, and z-component of rotational velocity of the particles
+   * - angmom
+     - double
+     - 3
+     - x-, y-, and z-component of angular momentum of the particles
+   * - torque
+     - double
+     - 3
+     - x-, y-, and z-component of the torque on the particles
+   * - radius
+     - double
+     - 1
+     - radius of the (extended) particles
+   * - rmass
+     - double
+     - 1
+     - per-atom mass of the particles. ``NULL`` if per-type masses are
+       used. See the :cpp:func:`rmass_flag<lammps_extract_setting>` setting.
+   * - ellipsoid
+     - int
+     - 1
+     - 1 if the particle is an ellipsoidal particle, 0 if not
+   * - line
+     - int
+     - 1
+     - 1 if the particle is a line particle, 0 if not
+   * - tri
+     - int
+     - 1
+     - 1 if the particle is a triangulated particle, 0 if not
+   * - body
+     - int
+     - 1
+     - 1 if the particle is a body particle, 0 if not
+
+\endverbatim
+ *
+ * \param  name  string with the keyword of the desired property.
+                 Typically the name of the pointer variable returned
+ * \return       pointer to the requested data cast to ``void *`` or NULL */
 
 void *Atom::extract(char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name
 
+  /* NOTE: this array is only of length ntypes+1 */
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
   if (strcmp(name,"id") == 0) return (void *) tag;
@@ -2393,6 +2534,7 @@ void *Atom::extract(char *name)
   if (strcmp(name,"ellipsoid") == 0) return (void *) ellipsoid;
   if (strcmp(name,"line") == 0) return (void *) line;
   if (strcmp(name,"tri") == 0) return (void *) tri;
+  if (strcmp(name,"body") == 0) return (void *) body;
 
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;

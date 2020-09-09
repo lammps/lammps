@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_table.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -28,10 +28,10 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -190,7 +190,7 @@ void AngleTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in angle style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
@@ -218,7 +218,7 @@ void AngleTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);

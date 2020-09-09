@@ -18,7 +18,7 @@
 #include "pair_dpd_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"

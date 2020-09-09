@@ -12,20 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "bond.h"
-#include <mpi.h>
-#include <ctime>
-#include <string>
+
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -236,16 +234,16 @@ void Bond::write_file(int narg, char **arg)
   int itype = 0;
   int jtype = 0;
   if (narg == 8) {
-    itype = force->inumeric(FLERR,arg[6]);
-    jtype = force->inumeric(FLERR,arg[7]);
+    itype = utils::inumeric(FLERR,arg[6],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[7],false,lmp);
     if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in bond_write command");
   }
 
-  int btype = force->inumeric(FLERR,arg[0]);
-  int n = force->inumeric(FLERR,arg[1]);
-  double inner = force->numeric(FLERR,arg[2]);
-  double outer = force->numeric(FLERR,arg[3]);
+  int btype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int n = utils::inumeric(FLERR,arg[1],false,lmp);
+  double inner = utils::numeric(FLERR,arg[2],false,lmp);
+  double outer = utils::numeric(FLERR,arg[3],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid rlo/rhi values in bond_write command");
 

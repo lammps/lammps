@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ttm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,8 +29,8 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;
@@ -58,17 +58,17 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   restart_global = 1;
 
-  seed = force->inumeric(FLERR,arg[3]);
-  electronic_specific_heat = force->numeric(FLERR,arg[4]);
-  electronic_density = force->numeric(FLERR,arg[5]);
-  electronic_thermal_conductivity = force->numeric(FLERR,arg[6]);
-  gamma_p = force->numeric(FLERR,arg[7]);
-  gamma_s = force->numeric(FLERR,arg[8]);
-  v_0 = force->numeric(FLERR,arg[9]);
-  nxnodes = force->inumeric(FLERR,arg[10]);
-  nynodes = force->inumeric(FLERR,arg[11]);
-  nznodes = force->inumeric(FLERR,arg[12]);
-  nfileevery = force->inumeric(FLERR,arg[14]);
+  seed = utils::inumeric(FLERR,arg[3],false,lmp);
+  electronic_specific_heat = utils::numeric(FLERR,arg[4],false,lmp);
+  electronic_density = utils::numeric(FLERR,arg[5],false,lmp);
+  electronic_thermal_conductivity = utils::numeric(FLERR,arg[6],false,lmp);
+  gamma_p = utils::numeric(FLERR,arg[7],false,lmp);
+  gamma_s = utils::numeric(FLERR,arg[8],false,lmp);
+  v_0 = utils::numeric(FLERR,arg[9],false,lmp);
+  nxnodes = utils::inumeric(FLERR,arg[10],false,lmp);
+  nynodes = utils::inumeric(FLERR,arg[11],false,lmp);
+  nznodes = utils::inumeric(FLERR,arg[12],false,lmp);
+  nfileevery = utils::inumeric(FLERR,arg[14],false,lmp);
 
   if (nfileevery) {
     if (narg != 16) error->all(FLERR,"Illegal fix ttm command");

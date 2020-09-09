@@ -1,10 +1,10 @@
 .. index:: fix nve/asphere
+.. index:: fix nve/asphere/intel
 
 fix nve/asphere command
 =======================
 
-fix nve/asphere/intel command
-=============================
+Accelerator Variants: *nve/asphere/intel*
 
 Syntax
 """"""

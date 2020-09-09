@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_meamc.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
-#include <string>
+
 #include "meam.h"
 #include "atom.h"
 #include "force.h"
@@ -29,8 +29,8 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 
@@ -364,7 +364,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(globalfile.c_str());
+    fp = utils::open_potential(globalfile,lmp,nullptr);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
                                    globalfile));
@@ -563,7 +563,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
   // open user param file on proc 0
 
   if (comm->me == 0) {
-    fp = force->open_potential(userfile.c_str());
+    fp = utils::open_potential(userfile,lmp,nullptr);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
                                    userfile));

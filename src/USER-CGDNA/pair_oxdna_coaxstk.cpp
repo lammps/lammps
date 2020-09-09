@@ -15,21 +15,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna_coaxstk.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "mf_oxdna.h"
+#include "neigh_list.h"
+
 #include <cmath>
 #include <cstring>
-#include "mf_oxdna.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "atom_vec_ellipsoid.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -685,8 +684,8 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // cross-stacking interaction
   count = 0;
@@ -709,32 +708,32 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
   double a_cxst3p_one, cosphi_cxst3p_ast_one, b_cxst3p_one, cosphi_cxst3p_c_one;
   double a_cxst4p_one, cosphi_cxst4p_ast_one, b_cxst4p_one, cosphi_cxst4p_c_one;
 
-  k_cxst_one = force->numeric(FLERR,arg[2]);
-  cut_cxst_0_one = force->numeric(FLERR,arg[3]);
-  cut_cxst_c_one = force->numeric(FLERR,arg[4]);
-  cut_cxst_lo_one = force->numeric(FLERR,arg[5]);
-  cut_cxst_hi_one = force->numeric(FLERR,arg[6]);
+  k_cxst_one = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_cxst_0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_cxst_c_one = utils::numeric(FLERR,arg[4],false,lmp);
+  cut_cxst_lo_one = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_cxst_hi_one = utils::numeric(FLERR,arg[6],false,lmp);
 
-  a_cxst1_one = force->numeric(FLERR,arg[7]);
-  theta_cxst1_0_one = force->numeric(FLERR,arg[8]);
-  dtheta_cxst1_ast_one = force->numeric(FLERR,arg[9]);
+  a_cxst1_one = utils::numeric(FLERR,arg[7],false,lmp);
+  theta_cxst1_0_one = utils::numeric(FLERR,arg[8],false,lmp);
+  dtheta_cxst1_ast_one = utils::numeric(FLERR,arg[9],false,lmp);
 
-  a_cxst4_one = force->numeric(FLERR,arg[10]);
-  theta_cxst4_0_one = force->numeric(FLERR,arg[11]);
-  dtheta_cxst4_ast_one = force->numeric(FLERR,arg[12]);
+  a_cxst4_one = utils::numeric(FLERR,arg[10],false,lmp);
+  theta_cxst4_0_one = utils::numeric(FLERR,arg[11],false,lmp);
+  dtheta_cxst4_ast_one = utils::numeric(FLERR,arg[12],false,lmp);
 
-  a_cxst5_one = force->numeric(FLERR,arg[13]);
-  theta_cxst5_0_one = force->numeric(FLERR,arg[14]);
-  dtheta_cxst5_ast_one = force->numeric(FLERR,arg[15]);
+  a_cxst5_one = utils::numeric(FLERR,arg[13],false,lmp);
+  theta_cxst5_0_one = utils::numeric(FLERR,arg[14],false,lmp);
+  dtheta_cxst5_ast_one = utils::numeric(FLERR,arg[15],false,lmp);
 
-  a_cxst6_one = force->numeric(FLERR,arg[16]);
-  theta_cxst6_0_one = force->numeric(FLERR,arg[17]);
-  dtheta_cxst6_ast_one = force->numeric(FLERR,arg[18]);
+  a_cxst6_one = utils::numeric(FLERR,arg[16],false,lmp);
+  theta_cxst6_0_one = utils::numeric(FLERR,arg[17],false,lmp);
+  dtheta_cxst6_ast_one = utils::numeric(FLERR,arg[18],false,lmp);
 
-  a_cxst3p_one = force->numeric(FLERR,arg[19]);
-  cosphi_cxst3p_ast_one = force->numeric(FLERR,arg[20]);
-  a_cxst4p_one = force->numeric(FLERR,arg[21]);
-  cosphi_cxst4p_ast_one = force->numeric(FLERR,arg[22]);
+  a_cxst3p_one = utils::numeric(FLERR,arg[19],false,lmp);
+  cosphi_cxst3p_ast_one = utils::numeric(FLERR,arg[20],false,lmp);
+  a_cxst4p_one = utils::numeric(FLERR,arg[21],false,lmp);
+  cosphi_cxst4p_ast_one = utils::numeric(FLERR,arg[22],false,lmp);
 
   b_cxst_lo_one = 0.25 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -

@@ -15,22 +15,19 @@
  *     Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_slater_long.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -209,8 +206,8 @@ void PairCoulSlaterLong::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  lamda = force->numeric(FLERR,arg[0]);
-  cut_coul = force->numeric(FLERR,arg[1]);
+  lamda = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -223,8 +220,8 @@ void PairCoulSlaterLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

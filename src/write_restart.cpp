@@ -12,32 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "write_restart.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "mpiio.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "mpiio.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 
 #include "lmprestart.h"
 
@@ -159,7 +157,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
 
       multiproc = nprocs/nper;
@@ -177,7 +175,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
       nfile = MIN(nfile,nprocs);
 

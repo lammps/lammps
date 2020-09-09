@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_extep.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "math_const.h"
 
@@ -589,7 +589,7 @@ void PairExTeP::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open ExTeP potential file %s",file);

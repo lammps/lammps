@@ -1,4 +1,6 @@
 .. index:: pair_style lj/mdf
+.. index:: pair_style buck/mdf
+.. index:: pair_style lennard/mdf
 
 pair_style lj/mdf command
 =========================

@@ -16,8 +16,8 @@
                         Anupama Kurpad (Intel) - Host Affinitization
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_intel.h"
+
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -25,16 +25,9 @@
 #include "neigh_request.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
-#include "timer.h"
-#include "universe.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <cmath>
 
 #ifdef _LMP_INTEL_OFFLOAD
 #ifndef INTEL_OFFLOAD_NOAFFINITY
@@ -59,7 +52,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal package intel command");
 
-  int ncops = force->inumeric(FLERR,arg[3]);
+  int ncops = utils::inumeric(FLERR,arg[3],false,lmp);
 
   _nbor_pack_width = 1;
   _three_body_neighbor = 0;
@@ -106,7 +99,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"omp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      nomp = force->inumeric(FLERR,arg[iarg+1]);
+      nomp = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
@@ -120,7 +113,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"balance") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_balance = force->numeric(FLERR,arg[iarg+1]);
+      _offload_balance = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ghost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");

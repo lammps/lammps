@@ -1,4 +1,6 @@
 .. index:: fix mvv/dpd
+.. index:: fix mvv/edpd
+.. index:: fix mvv/tdpd
 
 fix mvv/dpd command
 ===================

@@ -27,9 +27,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_smd_hertz.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -40,6 +40,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -239,7 +240,7 @@ void PairHertz::settings(int narg, char **arg) {
         if (narg != 1)
                 error->all(FLERR, "Illegal number of args for pair_style hertz");
 
-        scale = force->numeric(FLERR, arg[0]);
+        scale = utils::numeric(FLERR, arg[0],false,lmp);
         if (comm->me == 0) {
                 printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
                 printf("SMD/HERTZ CONTACT SETTINGS:\n");
@@ -260,8 +261,8 @@ void PairHertz::coeff(int narg, char **arg) {
                 allocate();
 
         int ilo, ihi, jlo, jhi;
-        force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-        force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+        utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+        utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
         double bulkmodulus_one = atof(arg[2]);
 

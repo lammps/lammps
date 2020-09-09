@@ -12,45 +12,42 @@
 ------------------------------------------------------------------------- */
 
 #include "input.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <errno.h>
-#include <cctype>
-#include <unistd.h>
-#include <sys/stat.h>
-#include "style_command.h"
-#include "universe.h"
+
+#include "accelerator_kokkos.h"
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "bond.h"
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
-#include "group.h"
-#include "domain.h"
-#include "output.h"
-#include "thermo.h"
-#include "force.h"
-#include "pair.h"
-#include "min.h"
-#include "modify.h"
 #include "compute.h"
-#include "fix.h"
-#include "bond.h"
-#include "angle.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "update.h"
-#include "neighbor.h"
-#include "special.h"
-#include "timer.h"
-#include "variable.h"
-#include "accelerator_kokkos.h"
-#include "error.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "special.h"
+#include "style_command.h"
+#include "thermo.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
+#include <errno.h>
+#include <cctype>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -62,6 +59,37 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
+
+/** \class LAMMPS_NS::Input
+ *  \brief Class for processing commands and input files
+ *
+\verbatim embed:rst
+
+The Input class contains methods for reading, pre-processing and
+parsing LAMMPS commands and input files and will dispatch commands
+to the respective class instances or contains the code to execute
+the commands directly.  It also contains the instance of the
+Variable class which performs computations and text substitutions.
+
+\endverbatim */
+
+/** Input class constructor
+ *
+\verbatim embed:rst
+
+This sets up the input processing, processes the *-var* and *-echo*
+command line flags, holds the factory of commands and creates and
+initializes an instance of the Variable class.
+
+To execute a command, a specific class instance, derived from
+:cpp:class:`Pointers`, is created, then its ``command()`` member
+function executed, and finally the class instance is deleted.
+
+\endverbatim
+ *
+ * \param  lmp   pointer to the base LAMMPS class
+ * \param  argc  number of entries in *argv*
+ * \param  argv  argument vector  */
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 {
@@ -140,10 +168,15 @@ Input::~Input()
   delete command_map;
 }
 
-/* ----------------------------------------------------------------------
-   process all input from infile
-   infile = stdin or file if command-line arg "-in" was used
-------------------------------------------------------------------------- */
+/** Process all input from the ``FILE *`` pointer *infile*
+ *
+\verbatim embed:rst
+
+This will read lines from *infile*, parse and execute them until the end
+of the file is reached.  The *infile* pointer will usually point to
+``stdin`` or the input file given with the ``-in`` command line flag.
+
+\endverbatim */
 
 void Input::file()
 {
@@ -232,10 +265,21 @@ void Input::file()
   }
 }
 
-/* ----------------------------------------------------------------------
-   process all input from file at filename
-   mostly called from library interface
-------------------------------------------------------------------------- */
+/** Process all input from the file *filename*
+ *
+\verbatim embed:rst
+
+This function opens the file at the path *filename*, put the current
+file pointer stored in *infile* on a stack and instead assign *infile*
+with the newly opened file pointer.  Then it will call the
+:cpp:func:`Input::file() <LAMMPS_NS::Input::file()>` function to read,
+parse and execute the contents of that file.  When the end of the file
+is reached, it is closed and the previous file pointer from the infile
+file pointer stack restored to *infile*.
+
+\endverbatim
+ *
+ * \param  filename  name of file with LAMMPS commands */
 
 void Input::file(const char *filename)
 {
@@ -266,11 +310,19 @@ void Input::file(const char *filename)
   }
 }
 
-/* ----------------------------------------------------------------------
-   invoke one command in single
-   first copy to line, then parse, then execute it
-   return command name to caller
-------------------------------------------------------------------------- */
+/** Process a single command from a string in *single*
+ *
+\verbatim embed:rst
+
+This function takes the text in *single*, makes a copy, parses that,
+executes the command and returns the name of the command (without the
+arguments).  If there was no command in *single* it will return
+``NULL``.
+
+\endverbatim
+ *
+ * \param  single  string with LAMMPS command
+ * \return         string with name of the parsed command w/o arguments */
 
 char *Input::one(const std::string &single)
 {
@@ -597,141 +649,6 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
   if (max2 > max) reallocate(str,max,max2);
   strcpy(str,str2);
-}
-
-/* ----------------------------------------------------------------------
-   expand arg to earg, for arguments with syntax c_ID[*] or f_ID[*]
-   fields to consider in input arg range from iarg to narg
-   return new expanded # of values, and copy them w/out "*" into earg
-   if any expansion occurs, earg is new allocation, must be freed by caller
-   if no expansion occurs, earg just points to arg, caller need not free
-------------------------------------------------------------------------- */
-
-int Input::expand_args(int narg, char **arg, int mode, char **&earg)
-{
-  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
-  char *ptr1,*ptr2,*str;
-
-  ptr1 = NULL;
-  for (iarg = 0; iarg < narg; iarg++) {
-    ptr1 = strchr(arg[iarg],'*');
-    if (ptr1) break;
-  }
-
-  if (!ptr1) {
-    earg = arg;
-    return narg;
-  }
-
-  // maxarg should always end up equal to newarg, so caller can free earg
-
-  int maxarg = narg-iarg;
-  earg = (char **) memory->smalloc(maxarg*sizeof(char *),"input:earg");
-
-  int newarg = 0;
-  for (iarg = 0; iarg < narg; iarg++) {
-    expandflag = 0;
-
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0) {
-
-      ptr1 = strchr(&arg[iarg][2],'[');
-      if (ptr1) {
-        ptr2 = strchr(ptr1,']');
-        if (ptr2) {
-          *ptr2 = '\0';
-          if (strchr(ptr1,'*')) {
-            if (arg[iarg][0] == 'c') {
-              *ptr1 = '\0';
-              icompute = modify->find_compute(&arg[iarg][2]);
-              *ptr1 = '[';
-
-              // check for global vector/array, peratom array, local array
-
-              if (icompute >= 0) {
-                if (mode == 0 && modify->compute[icompute]->vector_flag) {
-                  nmax = modify->compute[icompute]->size_vector;
-                  expandflag = 1;
-                } else if (mode == 1 && modify->compute[icompute]->array_flag) {
-                  nmax = modify->compute[icompute]->size_array_cols;
-                  expandflag = 1;
-                } else if (modify->compute[icompute]->peratom_flag &&
-                           modify->compute[icompute]->size_peratom_cols) {
-                  nmax = modify->compute[icompute]->size_peratom_cols;
-                  expandflag = 1;
-                } else if (modify->compute[icompute]->local_flag &&
-                           modify->compute[icompute]->size_local_cols) {
-                  nmax = modify->compute[icompute]->size_local_cols;
-                  expandflag = 1;
-                }
-              }
-            } else if (arg[iarg][0] == 'f') {
-              *ptr1 = '\0';
-              ifix = modify->find_fix(&arg[iarg][2]);
-              *ptr1 = '[';
-
-              // check for global vector/array, peratom array, local array
-
-              if (ifix >= 0) {
-                if (mode == 0 && modify->fix[ifix]->vector_flag) {
-                  nmax = modify->fix[ifix]->size_vector;
-                  expandflag = 1;
-                } else if (mode == 1 && modify->fix[ifix]->array_flag) {
-                  nmax = modify->fix[ifix]->size_array_cols;
-                  expandflag = 1;
-                } else if (modify->fix[ifix]->peratom_flag &&
-                           modify->fix[ifix]->size_peratom_cols) {
-                  nmax = modify->fix[ifix]->size_peratom_cols;
-                  expandflag = 1;
-                } else if (modify->fix[ifix]->local_flag &&
-                           modify->fix[ifix]->size_local_cols) {
-                  nmax = modify->fix[ifix]->size_local_cols;
-                  expandflag = 1;
-                }
-              }
-            }
-          }
-          *ptr2 = ']';
-        }
-      }
-    }
-
-    if (expandflag) {
-      *ptr2 = '\0';
-      force->bounds(FLERR,ptr1+1,nmax,nlo,nhi);
-      *ptr2 = ']';
-      if (newarg+nhi-nlo+1 > maxarg) {
-        maxarg += nhi-nlo+1;
-        earg = (char **)
-          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
-      }
-      for (index = nlo; index <= nhi; index++) {
-        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
-        str = earg[newarg] = new char[n];
-        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
-        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
-        strcat(str,ptr2);
-        newarg++;
-      }
-
-    } else {
-      if (newarg == maxarg) {
-        maxarg++;
-        earg = (char **)
-          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
-      }
-      n = strlen(arg[iarg]) + 1;
-      earg[newarg] = new char[n];
-      strcpy(earg[newarg],arg[iarg]);
-      newarg++;
-    }
-  }
-
-  //printf("NEWARG %d\n",newarg);
-  //for (int i = 0; i < newarg; i++)
-  //  printf("  arg %d: %s\n",i,earg[i]);
-
-  return newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -1139,7 +1056,7 @@ void Input::partition()
   else error->all(FLERR,"Illegal partition command");
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
+  utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
   // copy original line to copy, since will use strtok() on it
   // ptr = start of 4th word
@@ -1235,7 +1152,7 @@ void Input::python()
 void Input::quit()
 {
   if (narg == 0) error->done(0); // 1 would be fully backwards compatible
-  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  if (narg == 1) error->done(utils::inumeric(FLERR,arg[0],false,lmp));
   error->all(FLERR,"Illegal quit command");
 }
 
@@ -1509,7 +1426,7 @@ void Input::compute_modify()
 void Input::dielectric()
 {
   if (narg != 1) error->all(FLERR,"Illegal dielectric command");
-  force->dielectric = force->numeric(FLERR,arg[0]);
+  force->dielectric = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1543,7 +1460,7 @@ void Input::dimension()
   if (narg != 1) error->all(FLERR,"Illegal dimension command");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
-  domain->dimension = force->inumeric(FLERR,arg[0]);
+  domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
   if (domain->dimension != 2 && domain->dimension != 3)
     error->all(FLERR,"Illegal dimension command");
 
@@ -1953,7 +1870,7 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
-  update->dt = force->numeric(FLERR,arg[0]);
+  update->dt = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ---------------------------------------------------------------------- */

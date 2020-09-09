@@ -16,22 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "msm.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
-
+#include "force.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -108,7 +106,7 @@ MSM::MSM(LAMMPS *lmp)
 void MSM::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------

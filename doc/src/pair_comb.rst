@@ -1,10 +1,11 @@
 .. index:: pair_style comb
+.. index:: pair_style comb/omp
+.. index:: pair_style comb3
 
 pair_style comb command
 =======================
 
-pair_style comb/omp command
-===========================
+Accelerator Variants: *comb/omp*
 
 pair_style comb3 command
 ========================
@@ -129,10 +130,10 @@ For style *comb3*\ , in addition to ffield.comb3, a special parameter
 file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
-directory pointed to by the environment variable LAMMPS_POTENTIALS, as
+directories listed in the environment variable ``LAMMPS_POTENTIALS``, as
 described on the :doc:`pair_coeff <pair_coeff>` command doc page.
 
-Keyword *polar* indicates whether the force field includes
+The keyword *polar* indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
 has not yet been implemented, it can only set polar_off at present.
 

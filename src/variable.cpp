@@ -12,36 +12,33 @@
 ------------------------------------------------------------------------- */
 
 #include "variable.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <cctype>
-#include <unistd.h>
-#include <string>
-#include "universe.h"
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "domain.h"
 #include "comm.h"
-#include "region.h"
-#include "modify.h"
 #include "compute.h"
-#include "input.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
-#include "force.h"
-#include "output.h"
-#include "thermo.h"
-#include "random_mars.h"
-#include "math_const.h"
-#include "lmppython.h"
-#include "memory.h"
+#include "group.h"
 #include "info.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "input.h"
+#include "lmppython.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "random_mars.h"
+#include "region.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
+#include <unistd.h>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -189,7 +186,7 @@ void Variable::set(int narg, char **arg)
     int nfirst = 0,nlast = 0;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
-      nlast = force->inumeric(FLERR,arg[2]);
+      nlast = utils::inumeric(FLERR,arg[2],false,lmp);
       if (nlast <= 0) error->all(FLERR,"Illegal variable command");
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
         char digits[12];
@@ -197,8 +194,8 @@ void Variable::set(int narg, char **arg)
         pad[nvar] = strlen(digits);
       } else pad[nvar] = 0;
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
-      nfirst = force->inumeric(FLERR,arg[2]);
-      nlast = force->inumeric(FLERR,arg[3]);
+      nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
+      nlast = utils::inumeric(FLERR,arg[3],false,lmp);
       if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
@@ -252,7 +249,7 @@ void Variable::set(int narg, char **arg)
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
-      num[nvar] = force->inumeric(FLERR,arg[2]);
+      num[nvar] = utils::inumeric(FLERR,arg[2],false,lmp);
       data[nvar] = new char*[1];
       data[nvar][0] = NULL;
       if (narg == 4) {
@@ -508,7 +505,7 @@ void Variable::set(int narg, char **arg)
     if (ivar >= 0) {
       if (style[ivar] != INTERNAL)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -518,7 +515,7 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = new char[VALUELENGTH];
-      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
     }
 
   } else error->all(FLERR,"Illegal variable command");
@@ -5198,7 +5195,7 @@ int VarReader::read_peratom()
   if (n == 0) return 1;
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = force->bnumeric(FLERR,str);
+  bigint nlines = utils::bnumeric(FLERR,str,false,lmp);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;

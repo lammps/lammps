@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -136,8 +136,8 @@ void PairILPGrapheneHBN::settings(int narg, char **arg)
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  if (narg == 2) tap_flag = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -256,7 +256,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open ILP potential file %s",filename);

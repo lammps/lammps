@@ -1,4 +1,8 @@
 .. index:: compute force/tally
+.. index:: compute heat/flux/tally
+.. index:: compute pe/tally
+.. index:: compute pe/mol/tally
+.. index:: compute stress/tally
 
 compute force/tally command
 ===========================

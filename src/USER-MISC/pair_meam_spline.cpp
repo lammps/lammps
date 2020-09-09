@@ -33,7 +33,7 @@
 
 #include "pair_meam_spline.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -43,7 +43,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -458,7 +458,7 @@ void PairMEAMSpline::read_file(const char* filename)
   int nmultichoose2; // = (n+1)*n/2;
 
   if(comm->me == 0) {
-    FILE *fp = force->open_potential(filename);
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
     if(fp == NULL) {
       char str[1024];
       snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);

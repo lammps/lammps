@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_table.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,10 +26,10 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -142,7 +142,7 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of bond table entries");
 
   // delete old tables, since cannot just change settings
@@ -170,7 +170,7 @@ void BondTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);

@@ -20,7 +20,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_inversion_harmonic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -29,7 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -276,10 +276,10 @@ void ImproperInversionHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double w_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double w_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert w0 from degrees to radians
 

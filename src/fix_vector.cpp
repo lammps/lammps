@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_vector.h"
-#include <cstdlib>
-#include <cstring>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
+
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,7 +42,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix vector command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix vector command");
 
   nvalues = narg-4;

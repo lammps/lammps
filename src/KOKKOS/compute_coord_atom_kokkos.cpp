@@ -12,22 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_coord_atom_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "compute_orientorder_atom_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "update.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute_orientorder_atom_kokkos.h"
+#include "error.h"
+#include "memory_kokkos.h"
 #include "modify.h"
-#include "neighbor_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "group.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

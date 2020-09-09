@@ -15,21 +15,21 @@
    Contributing authors: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_intel.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

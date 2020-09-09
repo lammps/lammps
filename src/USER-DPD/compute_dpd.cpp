@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dpd.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "error.h"

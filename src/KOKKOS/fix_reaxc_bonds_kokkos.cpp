@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_bonds_kokkos.h"
+
 #include "atom.h"
-#include "pair_reaxc_kokkos.h"
-#include "force.h"
-#include "compute.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "reaxc_defs.h"
 #include "atom_masks.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

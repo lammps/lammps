@@ -15,14 +15,10 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lammps.h"
-#include "error.h"
 #include "table_file_reader.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "fmt/format.h"
 
-#include <cstring>
+#include "text_file_reader.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 

@@ -12,22 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "universe.h"
-#include <mpi.h>
-#include <cctype>
-#include <cstdlib>
-#include <cstring>
-#include "version.h"
+
 #include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "version.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 256
-
-static char *date2num(const char *version);
 
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
@@ -36,7 +31,9 @@ static char *date2num(const char *version);
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
   version = (const char *) LAMMPS_VERSION;
-  num_ver = date2num(version);
+  auto tmp_ver = new char[10];
+  snprintf(tmp_ver,10,"%08d",utils::date2num(version));
+  num_ver = tmp_ver;
 
   uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);
@@ -84,7 +81,7 @@ void Universe::reorder(char *style, char *arg)
   if (uworld != uorig) MPI_Comm_free(&uworld);
 
   if (strcmp(style,"nth") == 0) {
-    int n = force->inumeric(FLERR,arg);
+    int n = utils::inumeric(FLERR,arg,false,lmp);
     if (n <= 0)
       error->universe_all(FLERR,"Invalid -reorder N value");
     if (nprocs % n)
@@ -236,44 +233,4 @@ int Universe::consistent()
   for (int i = 0; i < nworlds; i++) n += procs_per_world[i];
   if (n == nprocs) return 1;
   else return 0;
-}
-
-// helper function to convert the LAMMPS date string to a version id
-// that can be used for both string and numerical comparisons
-// where newer versions are larger than older ones.
-
-char *date2num(const char *version)
-{
-  int day,month,year;
-  day = month = year = 0;
-
-  if (version) {
-
-    day = atoi(version);
-
-    while (*version != '\0' && (isdigit(*version) || *version == ' '))
-      ++version;
-
-    if (strncmp(version,"Jan",3) == 0) month = 1;
-    if (strncmp(version,"Feb",3) == 0) month = 2;
-    if (strncmp(version,"Mar",3) == 0) month = 3;
-    if (strncmp(version,"Apr",3) == 0) month = 4;
-    if (strncmp(version,"May",3) == 0) month = 5;
-    if (strncmp(version,"Jun",3) == 0) month = 6;
-    if (strncmp(version,"Jul",3) == 0) month = 7;
-    if (strncmp(version,"Aug",3) == 0) month = 8;
-    if (strncmp(version,"Sep",3) == 0) month = 9;
-    if (strncmp(version,"Oct",3) == 0) month = 10;
-    if (strncmp(version,"Nov",3) == 0) month = 11;
-    if (strncmp(version,"Dec",3) == 0) month = 12;
-
-    while (*version != '\0' && !isdigit(*version))
-      ++version;
-
-    year = atoi(version);
-  }
-
-  char *ver = new char[12];
-  snprintf(ver,12,"%04d%02d%02d", year % 10000, month, day % 100);
-  return ver;
 }

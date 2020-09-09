@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_switch3_coulgauss_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -31,7 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -267,14 +267,14 @@ void PairLJSwitch3CoulGaussLong::settings(int narg, char **arg)
 {
  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(FLERR,arg[0]);
+  cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 2) {
     cut_coul = cut_lj_global;
-    truncw = force->numeric(FLERR,arg[1]);
+    truncw = utils::numeric(FLERR,arg[1],false,lmp);
   }
   else {
-    cut_coul = force->numeric(FLERR,arg[1]);
-    truncw = force->numeric(FLERR,arg[2]);
+    cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
+    truncw = utils::numeric(FLERR,arg[2],false,lmp);
   }
   if (truncw>0.0) truncwi = 1.0/truncw;
   else truncwi = 0.0;
@@ -299,15 +299,15 @@ void PairLJSwitch3CoulGaussLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double gamma_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double gamma_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 6) cut_lj_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

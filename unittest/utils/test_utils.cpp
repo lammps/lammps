@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <cerrno>
 #include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -24,6 +24,10 @@ using namespace LAMMPS_NS;
 using ::testing::EndsWith;
 using ::testing::Eq;
 using ::testing::StrEq;
+
+#if !defined(FLERR)
+#define FLERR __FILE__,__LINE__
+#endif
 
 TEST(Utils, trim)
 {
@@ -362,6 +366,136 @@ TEST(Utils, strmatch_whitespace_nonwhitespace)
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
 }
 
+TEST(Utils, bounds_case1)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "9", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,9);
+    ASSERT_EQ(nhi,9);
+    utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,1);
+    ASSERT_EQ(nhi,1);
+}
+
+TEST(Utils, bounds_case2)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, bounds_case3)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,3);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, bounds_case4)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,2);
+    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, bounds_case5)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,5);
+    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-2);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, boundsbig_case1)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "9", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,9);
+    ASSERT_EQ(nhi,9);
+    utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,1);
+    ASSERT_EQ(nhi,1);
+}
+
+TEST(Utils, boundsbig_case2)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, boundsbig_case3)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,10);
+    utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,3);
+    ASSERT_EQ(nhi,5);
+}
+
+TEST(Utils, boundsbig_case4)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,0);
+    ASSERT_EQ(nhi,2);
+    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-10);
+    ASSERT_EQ(nhi,3);
+}
+
+TEST(Utils, boundsbig_case5)
+{
+    bigint nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,2);
+    ASSERT_EQ(nhi,5);
+    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo,-2);
+    ASSERT_EQ(nhi,3);
+}
+
 TEST(Utils, guesspath)
 {
     char buf[256];
@@ -476,4 +610,21 @@ TEST(Utils, timespec2seconds_mmss)
 TEST(Utils, timespec2seconds_hhmmss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
+}
+
+
+TEST(Utils, date2num)
+{
+    ASSERT_EQ(utils::date2num("1Jan05"),20050101);
+    ASSERT_EQ(utils::date2num("10Feb2005"),20050210);
+    ASSERT_EQ(utils::date2num("02Mar10"),20100302);
+    ASSERT_EQ(utils::date2num(" 5Apr1900"),19000405);
+    ASSERT_EQ(utils::date2num("10May22 "),20220510);
+    ASSERT_EQ(utils::date2num("1 Jun 05"),20050601);
+    ASSERT_EQ(utils::date2num("10 Jul 2005"),20050710);
+    ASSERT_EQ(utils::date2num("02 Aug 10"),20100802);
+    ASSERT_EQ(utils::date2num("  5  September  99"),20990905);
+    ASSERT_EQ(utils::date2num("10October22 "),20221010);
+    ASSERT_EQ(utils::date2num("30November 02"),20021130);
+    ASSERT_EQ(utils::date2num("31December100"),1001231);
 }

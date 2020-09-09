@@ -12,31 +12,29 @@
 ------------------------------------------------------------------------- */
 
 #include "comm.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "universe.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "fix.h"
-#include "compute.h"
-#include "domain.h"
-#include "output.h"
-#include "dump.h"
-#include "group.h"
-#include "procmap.h"
-#include "irregular.h"
+
 #include "accelerator_kokkos.h"
-#include "memory.h"
+#include "atom.h"               // IWYU pragma: keep
+#include "atom_vec.h"
+#include "bond.h"
+#include "compute.h"
+#include "domain.h"             // IWYU pragma: keep
+#include "dump.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"             // IWYU pragma: keep
+#include "modify.h"
+#include "neighbor.h"           // IWYU pragma: keep
+#include "output.h"
+#include "pair.h"
+#include "procmap.h"
+#include "universe.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -300,7 +298,7 @@ void Comm::modify_params(int narg, char **arg)
       if (mode == Comm::MULTI)
         error->all(FLERR,
                    "Use cutoff/multi keyword to set cutoff in multi mode");
-      cutghostuser = force->numeric(FLERR,arg[iarg+1]);
+      cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       iarg += 2;
@@ -320,8 +318,8 @@ void Comm::modify_params(int narg, char **arg)
         for (i=0; i < ntypes+1; ++i)
           cutusermulti[i] = -1.0;
       }
-      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
-      cut = force->numeric(FLERR,arg[iarg+2]);
+      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -348,11 +346,11 @@ void Comm::set_processors(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Illegal processors command");
 
   if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
-  else user_procgrid[0] = force->inumeric(FLERR,arg[0]);
+  else user_procgrid[0] = utils::inumeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
-  else user_procgrid[1] = force->inumeric(FLERR,arg[1]);
+  else user_procgrid[1] = utils::inumeric(FLERR,arg[1],false,lmp);
   if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
-  else user_procgrid[2] = force->inumeric(FLERR,arg[2]);
+  else user_procgrid[2] = utils::inumeric(FLERR,arg[2],false,lmp);
 
   if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0)
     error->all(FLERR,"Illegal processors command");
@@ -373,13 +371,13 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = TWOLEVEL;
 
-        ncores = force->inumeric(FLERR,arg[iarg+2]);
+        ncores = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
-        else user_coregrid[0] = force->inumeric(FLERR,arg[iarg+3]);
+        else user_coregrid[0] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
-        else user_coregrid[1] = force->inumeric(FLERR,arg[iarg+4]);
+        else user_coregrid[1] = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
         if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
-        else user_coregrid[2] = force->inumeric(FLERR,arg[iarg+5]);
+        else user_coregrid[2] = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
 
         if (ncores <= 0 || user_coregrid[0] < 0 ||
             user_coregrid[1] < 0 || user_coregrid[2] < 0)
@@ -422,8 +420,8 @@ void Comm::set_processors(int narg, char **arg)
         error->all(FLERR,
                    "Cannot use processors part command "
                    "without using partitions");
-      int isend = force->inumeric(FLERR,arg[iarg+1]);
-      int irecv = force->inumeric(FLERR,arg[iarg+2]);
+      int isend = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      int irecv = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (isend < 1 || isend > universe->nworlds ||
           irecv < 1 || irecv > universe->nworlds || isend == irecv)
         error->all(FLERR,"Invalid partitions in processors part command");

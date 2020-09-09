@@ -16,28 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <string>
-#include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "compute.h"
-#include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -161,23 +159,23 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ncoultablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ndisptablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner = force->numeric(FLERR,arg[iarg+1]);
+      tabinner = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner_disp = force->numeric(FLERR,arg[iarg+1]);
+      tabinner_disp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -1622,12 +1620,12 @@ void Pair::write_file(int narg, char **arg)
 
   // parse arguments
 
-  int itype = force->inumeric(FLERR,arg[0]);
-  int jtype = force->inumeric(FLERR,arg[1]);
+  int itype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int jtype = utils::inumeric(FLERR,arg[1],false,lmp);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in pair_write command");
 
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
 
   int style = NONE;
   if (strcmp(arg[3],"r") == 0) style = RLINEAR;
@@ -1635,8 +1633,8 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
-  double inner = force->numeric(FLERR,arg[4]);
-  double outer = force->numeric(FLERR,arg[5]);
+  double inner = utils::numeric(FLERR,arg[4],false,lmp);
+  double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
@@ -1709,8 +1707,8 @@ void Pair::write_file(int narg, char **arg)
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
-    q[0] = force->numeric(FLERR,arg[8]);
-    q[1] = force->numeric(FLERR,arg[9]);
+    q[0] = utils::numeric(FLERR,arg[8],false,lmp);
+    q[1] = utils::numeric(FLERR,arg[9],false,lmp);
   }
   double *q_hold;
 

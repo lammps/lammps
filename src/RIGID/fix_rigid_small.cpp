@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_small.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <utility>
 #include "math_extra.h"
@@ -39,8 +39,8 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #include <map>
 
@@ -210,10 +210,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
           (strcmp(style,"rigid/nph/small") != 0))
         error->all(FLERR,"Illegal fix rigid/small command");
       langflag = 1;
-      t_start = force->numeric(FLERR,arg[iarg+1]);
-      t_stop = force->numeric(FLERR,arg[iarg+2]);
-      t_period = force->numeric(FLERR,arg[iarg+3]);
-      seed = force->inumeric(FLERR,arg[iarg+4]);
+      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      seed = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (t_period <= 0.0)
         error->all(FLERR,"Fix rigid/small langevin period must be > 0.0");
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
@@ -252,9 +252,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (!utils::strmatch(style,"^rigid/n.t/small"))
         error->all(FLERR,"Illegal fix rigid command");
       tstat_flag = 1;
-      t_start = force->numeric(FLERR,arg[iarg+1]);
-      t_stop = force->numeric(FLERR,arg[iarg+2]);
-      t_period = force->numeric(FLERR,arg[iarg+3]);
+      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
@@ -262,10 +262,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
+        utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
               p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -277,10 +277,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
+        utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -292,9 +292,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = 1;
       iarg += 4;
 
@@ -302,9 +302,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[1] = 1;
       iarg += 4;
 
@@ -312,9 +312,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[2] = 1;
       iarg += 4;
 
@@ -349,16 +349,16 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/n.t/small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      t_chain = force->inumeric(FLERR,arg[iarg+1]);
-      t_iter = force->inumeric(FLERR,arg[iarg+2]);
-      t_order = force->inumeric(FLERR,arg[iarg+3]);
+      t_chain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      t_iter = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      t_order = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       if (!utils::strmatch(style,"^rigid/np./small"))
         error->all(FLERR,"Illegal fix rigid/small command");
-      p_chain = force->inumeric(FLERR,arg[iarg+1]);
+      p_chain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"gravity") == 0) {

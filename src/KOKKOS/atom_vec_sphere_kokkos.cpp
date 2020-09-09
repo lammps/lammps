@@ -12,26 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_sphere_kokkos.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
 #include "memory_kokkos.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10
-
-static const double MY_PI  = 3.14159265358979323846; // pi
 
 /* ---------------------------------------------------------------------- */
 

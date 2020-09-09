@@ -12,19 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "replicate.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "domain.h"
 #include "comm.h"
-#include "special.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "memory.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -52,9 +50,9 @@ void Replicate::command(int narg, char **arg)
 
   // nrep = total # of replications
 
-  int nx = force->inumeric(FLERR,arg[0]);
-  int ny = force->inumeric(FLERR,arg[1]);
-  int nz = force->inumeric(FLERR,arg[2]);
+  int nx = utils::inumeric(FLERR,arg[0],false,lmp);
+  int ny = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
 
   int bbox_flag = 0;

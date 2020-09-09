@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_charmmfsw.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,7 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -348,16 +348,16 @@ void DihedralCharmmfsw::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   // require integer values of shift for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break
   //   backwards compatibility and is probably not needed
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  int multiplicity_one = force->inumeric(FLERR,arg[2]);
-  int shift_one = force->inumeric(FLERR,arg[3]);
-  double weight_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int multiplicity_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int shift_one = utils::inumeric(FLERR,arg[3],false,lmp);
+  double weight_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (multiplicity_one < 0)
     error->all(FLERR,"Incorrect multiplicity arg for dihedral coefficients");

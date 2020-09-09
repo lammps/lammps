@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_neigh.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +36,7 @@ ImbalanceNeigh::ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp)
 int ImbalanceNeigh::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  factor = force->numeric(FLERR,arg[0]);
+  factor = utils::numeric(FLERR,arg[0],false,lmp);
   if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }

@@ -80,7 +80,7 @@ stdin.
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
-in :doc:`Speed kokkos <Speed_kokkos>`, this switch must be set to enable
+in the :doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set to enable
 running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
@@ -98,7 +98,8 @@ Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Examples of when to use these options and what
-settings to use on different platforms is given on the :doc:`Speed kokkos <Speed_kokkos>` doc page.
+settings to use on different platforms is given on the :doc:`KOKKOS package <Speed_kokkos>`
+doc page.
 
 * d or device
 * g or gpus
@@ -268,7 +269,7 @@ machine (e.g. your desktop), you can run on more (virtual) processors
 than you have physical processors.
 
 To run multiple independent simulations from one input script, using
-multiple partitions, see the :doc:`Howto multiple <Howto_multiple>` doc
+multiple partitions, see the :doc:`Howto multiple <Howto_multiple>`
 page.  World- and universe-style :doc:`variables <variable>` are useful
 in this context.
 
@@ -326,7 +327,7 @@ cores within each node are ranked in a desired order.  Or when using
 the :doc:`run_style verlet/split <run_style>` command with 2 partitions
 to insure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
-See the :doc:`Speed tips <Speed_tips>` doc page for more details.
+See the :doc:`General tips <Speed_tips>` page for more details.
 
 If the keyword *nth* is used with a setting *N*\ , then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
@@ -385,7 +386,7 @@ implementations, either by environment variables that specify how to
 order physical processors, or by config files that specify what
 physical processors to assign to each MPI rank.  The -reorder switch
 simply gives you a portable way to do this without relying on MPI
-itself.  See the :doc:`processors out <processors>` command for how
+itself.  See the :doc:`processors file <processors>` command for how
 to output info on the final assignment of physical processors to
 the LAMMPS simulation domain.
 
@@ -523,10 +524,10 @@ lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix
 (gpu,intel,kk,omp,opt) is automatically appended whenever your input
-script command creates a new :doc:`atom <atom_style>`,
-:doc:`pair <pair_style>`, :doc:`fix <fix>`, :doc:`compute <compute>`, or
-:doc:`run <run_style>` style.  If the variant version does not exist,
-the standard version is created.
+script command creates a new :doc:`atom style <atom_style>`,
+:doc:`pair style <pair_style>`, :doc:`fix <fix>`,
+:doc:`compute <compute>`, or :doc:`run style <run_style>`.  If the
+variant version does not exist, the standard version is created.
 
 For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu 1" were used at
@@ -579,8 +580,8 @@ index variable in the input script, since index variables cannot be
 re-defined.
 
 See the :doc:`variable <variable>` command for more info on defining
-index and other kinds of variables and the :doc:`Commands parse <Commands_parse>` page for more info on using variables in
-input scripts.
+index and other kinds of variables and the :doc:`Parsing rules <Commands_parse>`
+page for more info on using variables in input scripts.
 
 .. note::
 

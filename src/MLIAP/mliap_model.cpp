@@ -12,17 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model.h"
-#include "pair_mliap.h"
-#include <cstring>
-#include <cmath>
-#include "atom.h"
-#include "force.h"
+
 #include "comm.h"
-#include "utils.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -85,7 +80,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == NULL)
       error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
                                    coefffilename,utils::getsyserror()));

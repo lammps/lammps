@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_respa.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -28,7 +29,7 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
 {
   // nlevels = # of rRESPA levels
 
-  nlevels = force->inumeric(FLERR,arg[3]);
+  nlevels = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // optional arguments
   store_torque = 0;

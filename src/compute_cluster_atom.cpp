@@ -12,22 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cluster_atom.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
-#include "group.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +41,7 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   cutsq = cutoff*cutoff;
 
   peratom_flag = 1;

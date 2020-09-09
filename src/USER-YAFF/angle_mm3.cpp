@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_mm3.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -180,12 +180,12 @@ void AngleMM3::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int count = 0;
 
-  double k2_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
+  double k2_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert theta0 from degrees to radians
 

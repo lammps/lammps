@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edip.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cfloat>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -35,7 +35,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -883,7 +883,7 @@ void PairEDIP::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open EDIP potential file %s",file);

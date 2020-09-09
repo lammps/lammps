@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ffl.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -64,21 +64,22 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   scalar_flag = 1;
 
-  //gamma = 1/ time constant(tau)
-  if (force->numeric(FLERR,arg[3]) <= 0)
+  //gamma = 1 / time constant(tau)
+  gamma = utils::numeric(FLERR,arg[3],false,lmp);
+  if (gamma <= 0.0)
     error->all(FLERR,"Illegal fix ffl tau value, should be greater than 0");
-  gamma = 1.0/force->numeric(FLERR,arg[3]);
+  gamma = 1.0/gamma;
   ffl_every=1;
   ffl_step=0;
 
   // start temperature (t ramp)
-  t_start = force->numeric(FLERR,arg[4]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
 
   // final temperature (t ramp)
-  t_stop = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
 
   // PRNG seed
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // Flip type used, uses rescale if no flip is given
   if (narg == 8) {

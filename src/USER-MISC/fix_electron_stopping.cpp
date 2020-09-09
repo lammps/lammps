@@ -17,21 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_electron_stopping.h"
-#include <cmath>
-#include <cstring>
-#include "mpi.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "fix.h"
-#include "memory.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
-#include "neighbor.h"
+#include "fix.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,7 +58,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all(FLERR,
       "Illegal fix electron/stopping command: too few arguments");
 
-  Ecut = force->numeric(FLERR, arg[3]);
+  Ecut = utils::numeric(FLERR, arg[3],false,lmp);
   if (Ecut <= 0.0) error->all(FLERR,
       "Illegal fix electron/stopping command: Ecut <= 0");
 
@@ -83,7 +84,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
       minneighflag = true;
       if (iarg+2 > narg) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh number missing");
-      minneigh = force->inumeric(FLERR, arg[iarg+1]);
+      minneigh = utils::inumeric(FLERR, arg[iarg+1],false,lmp);
       if (minneigh < 0) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh < 0");
       iarg += 2;
@@ -240,7 +241,7 @@ void FixElectronStopping::read_table(const char *file)
 {
   char line[MAXLINE];
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     char str[128];
     snprintf(str, 128, "Cannot open stopping range table %s", file);
@@ -261,7 +262,7 @@ void FixElectronStopping::read_table(const char *file)
 
     int i = 0;
     for ( ; i < ncol && pch != NULL; i++) {
-      elstop_ranges[i][l] = force->numeric(FLERR, pch);
+      elstop_ranges[i][l] = utils::numeric(FLERR, pch,false,lmp);
       pch = strtok(NULL, " \t\n\r");
     }
 

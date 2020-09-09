@@ -12,18 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_tri.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_long_coul_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_vector.h"
@@ -33,8 +33,8 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 
@@ -97,10 +97,10 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off) & (1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/coul/long");
-  cut_lj_global = force->numeric(FLERR,*(arg++));
+  cut_lj_global = utils::numeric(FLERR,*(arg++),false,lmp);
   if (narg == 4 && ((ewald_order & 0x42) == 0x42))
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
-  if (narg == 4) cut_coul = force->numeric(FLERR,*arg);
+  if (narg == 4) cut_coul = utils::numeric(FLERR,*arg,false,lmp);
   else cut_coul = cut_lj_global;
 
   if (allocated) {
@@ -198,14 +198,14 @@ void PairLJLongCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
+  if (narg == 5) cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

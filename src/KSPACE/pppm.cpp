@@ -19,28 +19,25 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cmath>
-#include "atom.h"
-#include "comm.h"
-#include "gridcomm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "domain.h"
-#include "fft3d_wrap.h"
-#include "remap_wrap.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_wrap.h"
+#include "force.h"
+#include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "remap_wrap.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -164,7 +161,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
 void PPPM::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------

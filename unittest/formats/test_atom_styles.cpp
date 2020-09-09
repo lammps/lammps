@@ -28,6 +28,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 #include <mpi.h>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)

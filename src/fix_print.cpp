@@ -12,17 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_print.h"
-#include <mpi.h>
-#include <cstring>
-#include "update.h"
-#include "input.h"
-#include "modify.h"
-#include "variable.h"
-#include "memory.h"
+
 #include "error.h"
-#include "force.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +38,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
     strcpy(var_print,&arg[3][2]);
     nevery = 1;
   } else {
-    nevery = force->inumeric(FLERR,arg[3]);
+    nevery = utils::inumeric(FLERR,arg[3],false,lmp);
     if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
   }
 

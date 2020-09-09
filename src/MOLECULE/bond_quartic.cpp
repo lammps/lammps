@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_quartic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -25,7 +25,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -201,13 +201,13 @@ void BondQuartic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double b1_one = force->numeric(FLERR,arg[2]);
-  double b2_one = force->numeric(FLERR,arg[3]);
-  double rc_one = force->numeric(FLERR,arg[4]);
-  double u0_one = force->numeric(FLERR,arg[5]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double b1_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double b2_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double rc_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double u0_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

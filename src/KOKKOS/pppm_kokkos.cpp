@@ -16,26 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include "atom_kokkos.h"
-#include "comm.h"
-#include "gridcomm_kokkos.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "domain.h"
-#include "fft3d_kokkos.h"
-#include "remap_kokkos.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "kokkos.h"
-#include "utils.h"
-#include "fmt/format.h"
 
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_kokkos.h"
+#include "force.h"
+#include "gridcomm_kokkos.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
+#include "memory_kokkos.h"
+#include "pair.h"
+#include "remap_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -144,7 +140,7 @@ template<class DeviceType>
 void PPPMKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/kk command");
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------

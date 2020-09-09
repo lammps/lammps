@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qtb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -32,8 +32,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -64,28 +64,28 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_target = force->numeric(FLERR,arg[iarg+1]);
+      t_target = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (t_target < 0.0) error->all(FLERR,"Fix qtb temp must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_period = force->numeric(FLERR,arg[iarg+1]);
+      t_period = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0");
       fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      seed = force->inumeric(FLERR,arg[iarg+1]);
+      seed = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (seed <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"f_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      f_max = force->numeric(FLERR,arg[iarg+1]);
+      f_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (f_max <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"N_f") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      N_f = force->inumeric(FLERR,arg[iarg+1]);
+      N_f = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qtb command");

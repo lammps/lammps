@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_gyration.h"
-#include <mpi.h>
+
 #include "update.h"
 #include "atom.h"
 #include "group.h"

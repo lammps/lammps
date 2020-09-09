@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edpd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <ctime>
 #include <cstring>
@@ -31,7 +31,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -270,8 +270,8 @@ void PairEDPD::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -306,16 +306,16 @@ void PairEDPD::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double gamma_one = force->numeric(FLERR,arg[3]);
-  double power_one = force->numeric(FLERR,arg[4]);
-  double cut_one   = force->numeric(FLERR,arg[5]);
-  double kappa_one = force->numeric(FLERR,arg[6]);
-  double powerT_one= force->numeric(FLERR,arg[7]);
-  double cutT_one  = force->numeric(FLERR,arg[8]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double power_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one   = utils::numeric(FLERR,arg[5],false,lmp);
+  double kappa_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double powerT_one= utils::numeric(FLERR,arg[7],false,lmp);
+  double cutT_one  = utils::numeric(FLERR,arg[8],false,lmp);
 
   int iarg = 9;
   power_flag = kappa_flag = 0;
@@ -325,14 +325,14 @@ void PairEDPD::coeff(int narg, char **arg)
     if (strcmp(arg[iarg],"power") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
       for (int i = 0; i < 4; i++)
-        sc_one[i] = force->numeric(FLERR,arg[iarg+i+1]);
+        sc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       power_flag = 1;
       memory->create(sc,n+1,n+1,4,"pair:sc");
     } else if (strcmp(arg[iarg],"kappa") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
       for (int i = 0; i < 4; i++)
-        kc_one[i] = force->numeric(FLERR,arg[iarg+i+1]);
+        kc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       kappa_flag = 1;
       memory->create(kc,n+1,n+1,4,"pair:kc");

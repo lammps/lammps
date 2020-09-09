@@ -18,10 +18,9 @@
 #ifndef LMP_TEXT_FILE_READER_H
 #define LMP_TEXT_FILE_READER_H
 
-#include <cstdio>
-#include <string>
-#include <exception>
 #include "tokenizer.h"
+
+#include <cstdio>
 
 namespace LAMMPS_NS
 {
@@ -33,7 +32,7 @@ namespace LAMMPS_NS
     FILE *fp;
 
   public:
-    bool ignore_comments;
+    bool ignore_comments; //!< Controls whether comments are ignored
 
     TextFileReader(const std::string &filename, const std::string &filetype);
     ~TextFileReader();

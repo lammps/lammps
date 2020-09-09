@@ -16,20 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "gridcomm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "neighbor.h"
-#include "memory.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
 #include "remap.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -66,7 +64,7 @@ void PPPMCG::settings(int narg, char **arg)
 
   PPPM::settings(narg,arg);
 
-  if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
+  if (narg == 2) smallq = fabs(utils::numeric(FLERR,arg[1],false,lmp));
   else smallq = SMALLQ;
 }
 

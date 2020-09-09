@@ -16,8 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "meam.h"
-#include <cstddef>
+
 #include "memory.h"
+
+#include <cstddef>
 
 using namespace LAMMPS_NS;
 

@@ -16,24 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_kokkos.h"
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list_kokkos.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
+
+#include <cmath>
 
 
 #define TEAMSIZE 128

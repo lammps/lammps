@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gauss.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -25,7 +25,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -164,7 +164,7 @@ void PairGauss::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -187,14 +187,14 @@ void PairGauss::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
-  double b_one = force->numeric(FLERR,arg[3]);
+  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double b_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
+  if (narg == 5) cut_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

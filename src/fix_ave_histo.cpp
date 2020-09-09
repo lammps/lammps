@@ -12,21 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_histo.h"
-#include <mpi.h>
-#include <cstdlib>
+
+#include "atom.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,9 +54,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
   vector_flag = 1;
@@ -70,9 +67,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
   dynamic_group_allow = 1;
 
-  lo = force->numeric(FLERR,arg[6]);
-  hi = force->numeric(FLERR,arg[7]);
-  nbins = force->inumeric(FLERR,arg[8]);
+  lo = utils::numeric(FLERR,arg[6],false,lmp);
+  hi = utils::numeric(FLERR,arg[7],false,lmp);
+  nbins = utils::inumeric(FLERR,arg[8],false,lmp);
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -107,7 +104,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[9],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[9],mode,earg,lmp);
 
   if (earg != &arg[9]) expand = 1;
   arg = earg;
@@ -985,14 +982,14 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       else error->all(FLERR,"Illegal fix ave/histo command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/histo command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");

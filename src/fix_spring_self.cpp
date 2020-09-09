@@ -16,15 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_self.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,7 +44,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   respa_level_support = 1;
 
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;

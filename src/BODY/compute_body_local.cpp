@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_body_local.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,7 +47,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"type") == 0) which[nvalues++] = TYPE;
     else {
       which[nvalues] = INDEX;
-      index[nvalues] = force->inumeric(FLERR,arg[iarg]) - 1;
+      index[nvalues] = utils::inumeric(FLERR,arg[iarg],false,lmp) - 1;
       nvalues++;
     }
   }

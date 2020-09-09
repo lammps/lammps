@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_msst.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -90,7 +90,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     box_change |= BOX_CHANGE_Z;
   } else error->all(FLERR,"Illegal fix msst command");
 
-  velocity = force->numeric(FLERR,arg[4]);
+  velocity = utils::numeric(FLERR,arg[4],false,lmp);
   if (velocity < 0) error->all(FLERR,"Illegal fix msst command");
 
   // optional args
@@ -99,30 +99,30 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      qmass = force->numeric(FLERR,arg[iarg+1]);
+      qmass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      mu = force->numeric(FLERR,arg[iarg+1]);
+      mu = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"p0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      p0 = force->numeric(FLERR,arg[iarg+1]);
+      p0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"v0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      v0 = force->numeric(FLERR,arg[iarg+1]);
+      v0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       v0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"e0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      e0 = force->numeric(FLERR,arg[iarg+1]);
+      e0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       e0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tscale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      tscale = force->numeric(FLERR,arg[iarg+1]);
+      tscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (tscale < 0.0 || tscale > 1.0)
         error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg += 2;
@@ -134,7 +134,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      beta = force->numeric(FLERR,arg[iarg+1]);
+      beta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (beta < 0.0 || beta > 1.0)
         error->all(FLERR,"Illegal fix msst command");
       iarg += 2;

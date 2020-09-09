@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_native.h"
-#include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "memory.h"
+
 #include "error.h"
-#include "utils.h"
+#include "memory.h"
 #include "tokenizer.h"
+
+#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -320,7 +320,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
     // tokenize the line
     std::vector<std::string> words = Tokenizer(line).as_vector();
 
-    if (words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
+    if ((int)words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
 
     // convert selected fields to floats
 

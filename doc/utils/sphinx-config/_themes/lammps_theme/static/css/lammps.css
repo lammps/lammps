@@ -3,3 +3,7 @@
     display: block;
     margin-bottom: 0.809em;
 }
+
+.versionmodified {
+    font-weight: bold;
+}

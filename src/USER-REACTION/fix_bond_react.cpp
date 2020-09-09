@@ -16,34 +16,36 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_react.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <string>
-#include "update.h"
-#include "modify.h"
-#include "respa.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
-#include "reset_mol_ids.h"
-#include "molecule.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
-#include "citeme.h"
+#include "input.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "input.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
+#include "reset_mol_ids.h"
+#include "respa.h"
+#include "update.h"
 #include "variable.h"
-#include "fmt/format.h"
+
+#include "superpose3d.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 #include <algorithm>
 
@@ -78,7 +80,7 @@ static const char cite_fix_bond_react[] =
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
@@ -168,7 +170,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) ; // default
+      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
       if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
@@ -262,7 +264,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[NEVERY][rxn] = 1;
       delete [] str;
     } else {
-      nevery[rxn] = force->inumeric(FLERR,arg[iarg]);
+      nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "'Nevery' must be a positive integer");
     }
@@ -282,7 +284,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMIN][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
                                    "'Rmin' cannot be negative");
       cutsq[rxn][0] = cutoff*cutoff;
@@ -303,7 +305,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       var_flag[RMAX][rxn] = 1;
       delete [] str;
     } else {
-      double cutoff = force->numeric(FLERR,arg[iarg]);
+      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
                                    "'Rmax' cannot be negative");
       cutsq[rxn][1] = cutoff*cutoff;
@@ -341,9 +343,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           delete [] str;
         } else {
           // otherwise probability should be a number
-          fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+          fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         }
-        seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
+        seed[rxn] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
           error->all(FLERR,"Illegal fix bond/react command: "
                      "probability fraction must between 0 and 1, inclusive");
@@ -353,7 +355,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'max_rxn' has too few arguments");
-        max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+        max_rxn[rxn] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
                                          "'max_rxn' cannot be negative");
         iarg += 2;
@@ -362,7 +364,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                                 "used without stabilization keyword");
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'stabilize_steps' has too few arguments");
-        limit_duration[rxn] = force->numeric(FLERR,arg[iarg+1]);
+        limit_duration[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         stabilize_steps_flag[rxn] = 1;
         iarg += 2;
       } else if (strcmp(arg[iarg],"update_edges") == 0) {
@@ -1857,6 +1859,43 @@ int FixBondReact::check_constraints()
         prrhob = constraints[i][3]*pow(t,constraints[i][4])*
           exp(-constraints[i][5]/(force->boltz*t));
         if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
+      } else if (constraints[i][1] == RMSD) {
+        // call superpose
+        int n2superpose = 0;
+        double **xfrozen; // coordinates for the "frozen" target molecule
+        double **xmobile; // coordinates for the "mobile" molecule
+        int ifragment = constraints[i][3];
+        if (ifragment >= 0) {
+          for (int j = 0; j < onemol->natoms; j++)
+            if (onemol->fragmentmask[ifragment][j]) n2superpose++;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          int myincr = 0;
+          for (int j = 0; j < onemol->natoms; j++) {
+            if (onemol->fragmentmask[ifragment][j]) {
+              for (int k = 0; k < 3; k++) {
+                xfrozen[myincr][k] = x[atom->map(glove[j][1])][k];
+                xmobile[myincr][k] = onemol->x[j][k];
+              }
+              myincr++;
+            }
+          }
+        } else {
+          n2superpose = onemol->natoms;
+          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+          for (int j = 0; j < n2superpose; j++) {
+            for (int k = 0; k < 3; k++) {
+              xfrozen[j][k] = x[atom->map(glove[j][1])][k];
+              xmobile[j][k] = onemol->x[j][k];
+            }
+          }
+        }
+        Superpose3D<double, double **> superposer(n2superpose);
+        double rmsd = superposer.Superpose(xfrozen, xmobile);
+        if (rmsd > constraints[i][2]) return 0;
+        memory->destroy(xfrozen);
+        memory->destroy(xmobile);
       }
     }
   }
@@ -3322,6 +3361,17 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][4] = tmp[1];
       constraints[nconstraints][5] = tmp[2];
       constraints[nconstraints][6] = tmp[3];
+    } else if (strcmp(constraint_type,"rmsd") == 0) {
+      constraints[nconstraints][1] = RMSD;
+      strcpy(strargs[0],"0");
+      sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      constraints[nconstraints][2] = tmp[0]; // RMSDmax
+      constraints[nconstraints][3] = -1; // optional molecule fragment
+      if (isalpha(strargs[0][0])) {
+        int ifragment = onemol->findfragment(strargs[0]);
+        if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
+        else constraints[nconstraints][3] = ifragment;
+      }
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
     nconstraints++;

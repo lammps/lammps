@@ -21,7 +21,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

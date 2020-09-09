@@ -12,28 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "dump.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "output.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #if defined(LMP_QSORT)
 // allocate space for static class variable
 Dump *Dump::dumpptr;
-#else
-#include "mergesort.h"
 #endif
 
 #define BIG 1.0e20
@@ -116,6 +114,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   // check file suffixes
   //   if ends in .bin = binary file
   //   else if ends in .gz = gzipped text file
+  //   else if ends in .zst = Zstd compressed text file
   //   else ASCII text file
 
   fp = NULL;
@@ -153,6 +152,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (suffix > filename && strcmp(suffix,".bin") == 0) binary = 1;
   suffix = filename + strlen(filename) - strlen(".gz");
   if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
+  suffix = filename + strlen(filename) - strlen(".zst");
+  if (suffix > filename && strcmp(suffix,".zst") == 0) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -763,9 +764,9 @@ void Dump::sort()
 #else
   if (!reorderflag) {
     for (i = 0; i < nme; i++) index[i] = i;
-    if (sortcol == 0) merge_sort(index,nme,(void *)this,idcompare);
-    else if (sortorder == ASCEND) merge_sort(index,nme,(void *)this,bufcompare);
-    else merge_sort(index,nme,(void *)this,bufcompare_reverse);
+    if (sortcol == 0) utils::merge_sort(index,nme,(void *)this,idcompare);
+    else if (sortorder == ASCEND) utils::merge_sort(index,nme,(void *)this,bufcompare);
+    else utils::merge_sort(index,nme,(void *)this,bufcompare_reverse);
   }
 #endif
 
@@ -938,7 +939,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      delaystep = force->bnumeric(FLERR,arg[iarg+1]);
+      delaystep = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (delaystep >= 0) delay_flag = 1;
       else delay_flag = 0;
       iarg += 2;
@@ -956,7 +957,7 @@ void Dump::modify_params(int narg, char **arg)
         strcpy(output->var_dump[idump],&arg[iarg+1][2]);
         n = 0;
       } else {
-        n = force->inumeric(FLERR,arg[iarg+1]);
+        n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
       output->every_dump[idump] = n;
@@ -967,7 +968,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify fileper "
                    "without % in dump file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
 
       multiproc = nprocs/nper;
@@ -1048,7 +1049,7 @@ void Dump::modify_params(int narg, char **arg)
           delete[] nameslist[idx];
         delete[] nameslist;
       }
-      maxfiles = force->inumeric(FLERR,arg[iarg+1]);
+      maxfiles = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (maxfiles == 0) error->all(FLERR,"Illegal dump_modify command");
       if (maxfiles > 0) {
         nameslist = new char*[maxfiles];
@@ -1063,7 +1064,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify nfile "
                    "without % in dump file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
       nfile = MIN(nfile,nprocs);
 
@@ -1093,7 +1094,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"pad") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      padflag = force->inumeric(FLERR,arg[iarg+1]);
+      padflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
@@ -1113,7 +1114,7 @@ void Dump::modify_params(int narg, char **arg)
         sortorder = ASCEND;
       } else {
         sort_flag = 1;
-        sortcol = force->inumeric(FLERR,arg[iarg+1]);
+        sortcol = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         sortorder = ASCEND;
         if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
         if (sortcol < 0) {

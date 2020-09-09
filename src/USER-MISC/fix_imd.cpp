@@ -48,17 +48,16 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 #include "fix_imd.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
-#include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
+#include "respa.h"
+#include "update.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -446,7 +445,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix imd command");
 
-  imd_port = force->inumeric(FLERR,arg[3]);
+  imd_port = utils::inumeric(FLERR,arg[3],false,lmp);
   if (imd_port < 1024)
     error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
@@ -473,9 +472,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
         nowait_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = force->numeric(FLERR,arg[argsdone+1]);
+      imd_fscale = utils::numeric(FLERR,arg[argsdone+1],false,lmp);
     } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = force->inumeric(FLERR,arg[argsdone+1]);
+      imd_trate = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }

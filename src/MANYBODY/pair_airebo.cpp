@@ -21,23 +21,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo.h"
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
-#include "neighbor.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "my_page.h"
+#include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -154,15 +154,15 @@ void PairAIREBO::settings(int narg, char **arg)
   if (narg != 1 && narg != 3 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cutlj = force->numeric(FLERR,arg[0]);
+  cutlj = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (narg >= 3) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
+    ljflag = utils::inumeric(FLERR,arg[1],false,lmp);
+    torflag = utils::inumeric(FLERR,arg[2],false,lmp);
   }
   if (narg == 4) {
     sigcut = cutlj;
-    sigmin = force->numeric(FLERR,arg[3]);
+    sigmin = utils::numeric(FLERR,arg[3],false,lmp);
     sigwid = sigcut - sigmin;
   }
 

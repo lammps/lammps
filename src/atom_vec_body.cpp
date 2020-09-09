@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include <cstring>
-#include <string>
-#include "my_pool_chunk.h"
-#include "style_body.h"
-#include "body.h"
+#include "style_body.h"    // IWYU pragma: keep
+
 #include "atom.h"
-#include "domain.h"
-#include "modify.h"
+#include "body.h"
+#include "error.h"
 #include "fix.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -556,7 +555,7 @@ bigint AtomVecBody::memory_usage_bonus()
 {
   bigint bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
-  bytes += icp->size + dcp->size;
+  bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -24,7 +24,7 @@
 #include "fix_store.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

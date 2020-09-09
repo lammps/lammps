@@ -16,17 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "body_rounded_polygon.h"
-#include <cmath>
-#include <cstring>
-#include "my_pool_chunk.h"
-#include "atom_vec_body.h"
+
 #include "atom.h"
-#include "force.h"
+#include "atom_vec_body.h"
 #include "domain.h"
+#include "error.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "my_pool_chunk.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -46,8 +46,8 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   // nmin and nmax are minimum and maximum number of vertices
 
-  int nmin = force->inumeric(FLERR,arg[1]);
-  int nmax = force->inumeric(FLERR,arg[2]);
+  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body rounded/polygon command");
 

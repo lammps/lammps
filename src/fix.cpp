@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix.h"
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "error.h"
+#include "group.h"
+#include "memory.h"
+
 #include <cstring>
 #include <cctype>
-#include "atom.h"
-#include "group.h"
-#include "force.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -163,7 +164,7 @@ void Fix::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
-      int lvl = force->inumeric(FLERR,arg[iarg+1]);
+      int lvl = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
       respa_level = lvl-1;
       iarg += 2;

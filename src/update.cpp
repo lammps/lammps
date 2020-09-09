@@ -15,8 +15,8 @@
 #include <cstring>
 #include "integrate.h"
 #include "min.h"
-#include "style_integrate.h"
-#include "style_minimize.h"
+#include "style_integrate.h"  // IWYU pragma: keep
+#include "style_minimize.h"   // IWYU pragma: keep
 #include "neighbor.h"
 #include "force.h"
 #include "modify.h"
@@ -61,7 +61,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
   (*integrate_map)[#key] = &integrate_creator<Class>;
-#include "style_integrate.h"
+#include "style_integrate.h"   // IWYU pragma: keep
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
@@ -70,7 +70,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 #define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) \
   (*minimize_map)[#key] = &minimize_creator<Class>;
-#include "style_minimize.h"
+#include "style_minimize.h"    // IWYU pragma: keep
 #undef MinimizeStyle
 #undef MINIMIZE_CLASS
 
@@ -446,7 +446,7 @@ Min *Update::minimize_creator(LAMMPS *lmp)
 void Update::reset_timestep(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal reset_timestep command");
-  bigint newstep = force->bnumeric(FLERR,arg[0]);
+  bigint newstep = utils::bnumeric(FLERR,arg[0],false,lmp);
   reset_timestep(newstep);
 }
 

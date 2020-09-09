@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edip_multi.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -640,7 +640,7 @@ void PairEDIPMulti::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open EDIP potential file %s",file);

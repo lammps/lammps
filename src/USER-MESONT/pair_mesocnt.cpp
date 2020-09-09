@@ -20,9 +20,9 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 
 #include "atom.h"
 #include "comm.h"
@@ -33,8 +33,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -759,7 +759,7 @@ void PairMesoCNT::read_file()
 
     // open file
 
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open mesocnt file: {}",file));
 

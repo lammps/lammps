@@ -19,25 +19,15 @@
 
 #include "fix_propel_self.h"
 
-#include <cstdio>
-#include <cstring>
-#include <string>
-
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "citeme.h"
-#include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "group.h"
-#include "math.h"
 #include "math_const.h"
 #include "math_extra.h"
-#include "math_vector.h"
-#include "modify.h"
-#include "random_mars.h"
-#include "respa.h"
-#include "update.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -82,7 +72,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
     error->all(FLERR, msg);
   }
 
-  magnitude = force->numeric( FLERR, argv[4] );
+  magnitude = utils::numeric( FLERR, argv[4] ,false,lmp);
 
   // Handle rest of args:
 
@@ -100,7 +90,7 @@ FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
       int flag=0;
       while (iarg < narg) {
         if (isdigit(argv[iarg][0])) {
-          int thistype = force->inumeric(FLERR,argv[iarg]);
+          int thistype = utils::inumeric(FLERR,argv[iarg],false,lmp);
           if ((thistype < 1) || (thistype > atom->ntypes))
             error->all(FLERR,"Illegal atom type to types keyword");
           apply_to_type[thistype] = 1;

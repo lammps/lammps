@@ -16,24 +16,24 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "msm_cg_omp.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 
 #include "atom.h"
-#include "gridcomm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "gridcomm.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "thr_omp.h"
-#include "timer.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -62,7 +62,7 @@ void MSMCGOMP::settings(int narg, char **arg)
 
   MSMOMP::settings(narg,arg);
 
-  if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
+  if (narg == 2) smallq = fabs(utils::numeric(FLERR,arg[1],false,Pointers::lmp));
   else smallq = SMALLQ;
 }
 

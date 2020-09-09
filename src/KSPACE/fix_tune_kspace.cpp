@@ -16,24 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tune_kspace.h"
-#include <cmath>
-#include <cstring>
-#include <limits>
-#include <string>
+
 #include "comm.h"
-#include "update.h"
+#include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "info.h"
 #include "kspace.h"
-#include "pair.h"
-#include "error.h"
-#include "memory.h"
-#include "timer.h"
-#include "neighbor.h"
 #include "modify.h"
-#include "compute.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <limits>
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -64,7 +62,7 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
 
   // parse arguments
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix tune/kspace command");
 
   // set up reneighboring

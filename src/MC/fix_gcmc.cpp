@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gcmc.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -87,14 +87,14 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nexchanges = force->inumeric(FLERR,arg[4]);
-  nmcmoves = force->inumeric(FLERR,arg[5]);
-  ngcmc_type = force->inumeric(FLERR,arg[6]);
-  seed = force->inumeric(FLERR,arg[7]);
-  reservoir_temperature = force->numeric(FLERR,arg[8]);
-  chemical_potential = force->numeric(FLERR,arg[9]);
-  displace = force->numeric(FLERR,arg[10]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nexchanges = utils::inumeric(FLERR,arg[4],false,lmp);
+  nmcmoves = utils::inumeric(FLERR,arg[5],false,lmp);
+  ngcmc_type = utils::inumeric(FLERR,arg[6],false,lmp);
+  seed = utils::inumeric(FLERR,arg[7],false,lmp);
+  reservoir_temperature = utils::numeric(FLERR,arg[8],false,lmp);
+  chemical_potential = utils::numeric(FLERR,arg[9],false,lmp);
+  displace = utils::numeric(FLERR,arg[10],false,lmp);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix gcmc command");
   if (nexchanges < 0) error->all(FLERR,"Illegal fix gcmc command");
@@ -287,9 +287,9 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
   } else if (strcmp(arg[iarg],"mcmoves") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      patomtrans = force->numeric(FLERR,arg[iarg+1]);
-      pmoltrans = force->numeric(FLERR,arg[iarg+2]);
-      pmolrotate = force->numeric(FLERR,arg[iarg+3]);
+      patomtrans = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      pmoltrans = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      pmolrotate = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (patomtrans < 0 || pmoltrans < 0 || pmolrotate < 0)
         error->all(FLERR,"Illegal fix gcmc command");
       pmctot = patomtrans + pmoltrans + pmolrotate;
@@ -308,21 +308,21 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_rotation_angle = force->numeric(FLERR,arg[iarg+1]);
+      max_rotation_angle = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       max_rotation_angle *= MY_PI/180;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      pressure = force->numeric(FLERR,arg[iarg+1]);
+      pressure = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       pressure_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      fugacity_coeff = force->numeric(FLERR,arg[iarg+1]);
+      fugacity_coeff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      charge = force->numeric(FLERR,arg[iarg+1]);
+      charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       charge_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
@@ -369,7 +369,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngrouptypesmax*sizeof(char *),
                            "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = force->inumeric(FLERR,arg[iarg+1]);
+      grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int n = strlen(arg[iarg+2]) + 1;
       grouptypestrings[ngrouptypes] = new char[n];
       strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
@@ -377,25 +377,25 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      energy_intra = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tfac_insert") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      tfac_insert = force->numeric(FLERR,arg[iarg+1]);
+      tfac_insert = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap_cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      double rtmp = force->numeric(FLERR,arg[iarg+1]);
+      double rtmp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      min_ngas = force->numeric(FLERR,arg[iarg+1]);
+      min_ngas = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_ngas = force->numeric(FLERR,arg[iarg+1]);
+      max_ngas = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }

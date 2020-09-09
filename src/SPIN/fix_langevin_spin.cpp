@@ -34,7 +34,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,9 +53,9 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   nevery = 1;
 
-  temp = force->numeric(FLERR,arg[3]);
-  alpha_t = force->numeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
+  temp = utils::numeric(FLERR,arg[3],false,lmp);
+  alpha_t = utils::numeric(FLERR,arg[4],false,lmp);
+  seed = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");

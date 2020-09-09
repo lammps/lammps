@@ -12,18 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_chunk.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "compute_com_chunk.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,7 +46,7 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  k_spring = force->numeric(FLERR,arg[3]);
+  k_spring = utils::numeric(FLERR,arg[3],false,lmp);
 
   int n = strlen(arg[4]) + 1;
   idchunk = new char[n];

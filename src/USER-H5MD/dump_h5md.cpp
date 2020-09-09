@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include <climits>
 #include "ch5md.h"
@@ -74,7 +74,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   datafile_from_dump = -1;
   author_name=NULL;
 
-  every_dump = force->inumeric(FLERR,arg[3]);
+  every_dump = utils::inumeric(FLERR,arg[3],false,lmp);
   every_position = every_image = -1;
   every_velocity = every_force = every_species = -1;
   every_charge = -1;

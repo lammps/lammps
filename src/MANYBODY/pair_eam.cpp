@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -378,8 +378,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct

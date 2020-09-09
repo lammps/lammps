@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -26,9 +26,9 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
-#include "utils.h"
+
 #include "suffix.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -438,8 +438,8 @@ void PairHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times
@@ -456,7 +456,7 @@ void PairHybrid::coeff(int narg, char **arg)
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
         if (!isdigit(arg[3][0]))
           error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = force->inumeric(FLERR,arg[3]);
+        int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;
       } else break;
@@ -864,7 +864,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 
     if (multiple[m]) {
       if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
-      int multiflag = force->inumeric(FLERR,arg[2]);
+      int multiflag = utils::inumeric(FLERR,arg[2],false,lmp);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
@@ -934,9 +934,9 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   int i;
 
   special[0] = 1.0;
-  special[1] = force->numeric(FLERR,arg[1]);
-  special[2] = force->numeric(FLERR,arg[2]);
-  special[3] = force->numeric(FLERR,arg[3]);
+  special[1] = utils::numeric(FLERR,arg[1],false,lmp);
+  special[2] = utils::numeric(FLERR,arg[2],false,lmp);
+  special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   // have to cast to PairHybrid to work around C++ access restriction
 

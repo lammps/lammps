@@ -16,23 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_streitz.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -112,11 +111,11 @@ void PairCoulStreitz::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_coul = force->numeric(FLERR,arg[0]);
+  cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (strcmp(arg[1],"wolf") == 0){
     kspacetype = 1;
-    g_wolf = force->numeric(FLERR,arg[2]);
+    g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
   } else if (strcmp(arg[1],"ewald") == 0){
     ewaldflag = pppmflag = 1;
     kspacetype = 2;

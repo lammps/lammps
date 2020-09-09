@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_sphere.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "atom_vec.h"
-#include "force.h"
 #include "error.h"
-#include "math_vector.h"
+#include "force.h"
 #include "math_extra.h"
+#include "math_vector.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

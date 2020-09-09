@@ -30,8 +30,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,7 +46,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   dynamic_group_allow = 1;
@@ -98,10 +98,10 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       adapt[nadapt].pparam = new char[n];
       adapt[nadapt].pair = NULL;
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
-                    adapt[nadapt].jlo,adapt[nadapt].jhi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
+                    adapt[nadapt].jlo,adapt[nadapt].jhi,error);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -120,8 +120,8 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       adapt[nadapt].bparam = new char[n];
       adapt[nadapt].bond = NULL;
       strcpy(adapt[nadapt].bparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->nbondtypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         n = strlen(&arg[iarg+4][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -354,7 +354,7 @@ void FixAdapt::init()
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
         *cptr = '\0';
-        nsub = force->inumeric(FLERR,cptr+1);
+        nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
       if (lmp->suffix_enable) {

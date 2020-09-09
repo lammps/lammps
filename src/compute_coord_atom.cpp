@@ -12,22 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_coord_atom.h"
-#include <cmath>
-#include <cstring>
-#include "compute_orientorder_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "compute_orientorder_atom.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -48,7 +49,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"cutoff") == 0) {
     cstyle = CUTOFF;
-    double cutoff = force->numeric(FLERR,arg[4]);
+    double cutoff = utils::numeric(FLERR,arg[4],false,lmp);
     cutsq = cutoff*cutoff;
 
     int iarg = 5;
@@ -75,7 +76,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     } else {
       ncol = 0;
       while (iarg < narg) {
-        force->bounds(FLERR,arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
+        utils::bounds(FLERR,arg[iarg],1,ntypes,typelo[ncol],typehi[ncol],error);
         if (typelo[ncol] > typehi[ncol])
           error->all(FLERR,"Illegal compute coord/atom command");
         ncol++;
@@ -97,7 +98,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
       error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
-    threshold = force->numeric(FLERR,arg[5]);
+    threshold = utils::numeric(FLERR,arg[5],false,lmp);
     if (threshold <= -1.0 || threshold >= 1.0)
       error->all(FLERR,"Compute coord/atom threshold not between -1 and 1");
 

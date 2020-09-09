@@ -12,19 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_momentum_chunk.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
 #include "compute_com_chunk.h"
 #include "domain.h"
-#include "group.h"
 #include "error.h"
-#include "force.h"
+#include "group.h"
 #include "modify.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,7 +40,7 @@ FixMomentumChunk::FixMomentumChunk(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix momentum/chunk command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix momentum/chunk command");
 
   id_chunk = arg[4];
@@ -60,9 +59,9 @@ FixMomentumChunk::FixMomentumChunk(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"linear") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix momentum command");
       linear = 1;
-      xflag = force->inumeric(FLERR,arg[iarg+1]);
-      yflag = force->inumeric(FLERR,arg[iarg+2]);
-      zflag = force->inumeric(FLERR,arg[iarg+3]);
+      xflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      yflag = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      zflag = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angular") == 0) {
       angular = 1;

@@ -16,21 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cna_atom.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -51,7 +51,7 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cna/atom command");
   cutsq = cutoff*cutoff;
 

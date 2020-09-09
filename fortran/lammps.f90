@@ -54,12 +54,11 @@ MODULE LIBLAMMPS
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
-      FUNCTION lammps_open(argc,argv,comm,handle) &
+      FUNCTION lammps_open(argc,argv,comm) &
           BIND(C, name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
         INTEGER(c_int), VALUE, INTENT(in)     :: argc, comm
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
-        TYPE(c_ptr), INTENT(out)              :: handle
         TYPE(c_ptr)                           :: lammps_open
       END FUNCTION lammps_open
 
@@ -161,7 +160,7 @@ CONTAINS
     ENDIF
 
     IF (PRESENT(comm)) THEN
-        lmp_open%handle = lammps_open(argc,argv,comm,dummy)
+        lmp_open%handle = lammps_open(argc,argv,comm)
     ELSE
         lmp_open%handle = lammps_open_no_mpi(argc,argv,dummy)
     END IF

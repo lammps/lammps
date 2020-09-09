@@ -205,20 +205,20 @@ module.  Internally it converts the *f_comm* argument into a C-style MPI
 communicator with ``MPI_Comm_f2c()`` and then calls
 :cpp:func:`lammps_open`.
 
+.. versionadded:: 15Sep2020
+
 \endverbatim
  *
  * \param  argc   number of command line arguments
  * \param  argv   list of command line argument strings
  * \param  f_comm Fortran style MPI communicator for this LAMMPS instance
- * \param  ptr    pointer to a void pointer variable
- *                which serves as a handle; may be ``NULL``
  * \return        pointer to new LAMMPS instance cast to ``void *`` */
 
-void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr)
+void *lammps_open_fortran(int argc, char **argv, int f_comm)
 {
   lammps_mpi_init();
   MPI_Comm c_comm = MPI_Comm_f2c((MPI_Fint)f_comm);
-  return lammps_open(argc, argv, c_comm, ptr);
+  return lammps_open(argc, argv, c_comm, nullptr);
 }
 
 /* ---------------------------------------------------------------------- */

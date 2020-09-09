@@ -240,7 +240,7 @@ namespace MathEigen {
               Jacobi<double,double*,double**,double const*const*>::
               SortCriteria sort_criteria =
               Jacobi<double,double*,double**,double const*const*>::
-              DO_NOT_SORT
+              SORT_DECREASING_EVALS
               );
 
 
@@ -258,7 +258,7 @@ namespace MathEigen {
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
               SortCriteria sort_criteria =
               Jacobi<double,double*,double(*)[3],double const(*)[3]>::
-              DO_NOT_SORT
+              SORT_DECREASING_EVALS
               );
 
 

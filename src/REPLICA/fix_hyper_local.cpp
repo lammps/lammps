@@ -164,7 +164,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   maxbondperatom = FCCBONDS;
   numcoeff = NULL;
   clist = NULL;
-  cpage = new MyPage<OneCoeff>;
+  cpage = new MyPage<HyperOneCoeff>;
   cpage->init(maxbondperatom,1024*maxbondperatom,1);
 
   // set comm sizes needed by this fix
@@ -976,7 +976,7 @@ void FixHyperLocal::build_bond_list(int natom)
     memory->sfree(clist);
     maxcoeff = atom->nmax;
     memory->create(numcoeff,maxcoeff,"hyper/local:numcoeff");
-    clist = (OneCoeff **) memory->smalloc(maxcoeff*sizeof(OneCoeff *),
+    clist = (HyperOneCoeff **) memory->smalloc(maxcoeff*sizeof(HyperOneCoeff *),
                                          "hyper/local:clist");
   }
 
@@ -1741,7 +1741,7 @@ double FixHyperLocal::memory_usage()
   bytes += 2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
   if (checkbias) bytes += maxall * sizeof(tagint);  // biasflag
   bytes += maxcoeff * sizeof(int);                // numcoeff
-  bytes += maxcoeff * sizeof(OneCoeff *);         // clist
-  bytes += maxlocal*maxbondperatom * sizeof(OneCoeff);  // cpage estimate
+  bytes += maxcoeff * sizeof(HyperOneCoeff *);         // clist
+  bytes += maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
   return bytes;
 }

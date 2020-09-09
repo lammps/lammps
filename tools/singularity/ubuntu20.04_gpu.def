@@ -1,5 +1,5 @@
 BootStrap: docker
-From: ubuntu:18.04
+From: ubuntu:20.04
 
 %environment
     export PATH=/usr/lib/ccache:/usr/local/cuda-11.0/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
@@ -15,6 +15,7 @@ From: ubuntu:18.04
     apt-get install -y --no-install-recommends curl libnuma-dev gnupg
 
     curl -sL http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -
+    # AMD is using xenial folder also for focal
     printf "deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main" > /etc/apt/sources.list.d/rocm.list
 
     apt-get update
@@ -68,10 +69,6 @@ From: ubuntu:18.04
         mpi-default-bin \
         mpi-default-dev \
         ninja-build \
-        python-dev \
-        python-pip \
-        python-pygments \
-        python-virtualenv \
         python3-dev \
         python3-pip \
         python3-pkg-resources \
@@ -95,10 +92,10 @@ From: ubuntu:18.04
     # CUDA
     ###########################################################################
 
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
-    mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+    mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
+    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
     apt-get update
 
     export CUDA_PKG_VERSION=11.0
@@ -182,7 +179,7 @@ From: ubuntu:18.04
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[ubuntu18.04/gpu:\u@\h] \W> "
+PS1="[ubuntu20.04/gpu:\u@\h] \W> "
 EOF
     chmod 755 $CUSTOM_PROMPT_ENV
 

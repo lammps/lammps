@@ -555,7 +555,7 @@ bigint AtomVecBody::memory_usage_bonus()
 {
   bigint bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
-  bytes += icp->size + dcp->size;
+  bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {

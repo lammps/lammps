@@ -80,14 +80,30 @@ struct LAMMPS_NS::package_styles_lists {
 
 using namespace LAMMPS_NS;
 
-/* ----------------------------------------------------------------------
-   start up LAMMPS
-   allocate fundamental classes (memory, error, universe, input)
-   parse input switches
-   initialize communicators, screen & logfile output
-   input is allocated at end after MPI info is setup
-------------------------------------------------------------------------- */
+/** \class LAMMPS_NS::LAMMPS
+ * \brief LAMMPS simulation instance
+ *
+ * The LAMMPS class contains pointers of all constituent class instances
+ * and global variables that are used by a LAMMPS simulation. Its contents
+ * represent the entire state of the simulation.
+ *
+ * The LAMMPS class manages the components of an MD simulation by creating,
+ * deleting, and initializing instances of the classes it is composed of,
+ * processing command line flags, and providing access to some global properties.
+ * The specifics of setting up and running a simulation are handled by the
+ * individual component class instances. */
 
+/** Create a LAMMPS simulation instance
+ *
+ * The LAMMPS constructor starts up a simulation by allocating all
+ * fundamental classes in the necessary order, parses input switches
+ * and their arguments, initializes communicators, screen and logfile
+ * output FILE pointers.
+ *
+ * \param narg number of arguments
+ * \param arg list of arguments
+ * \param communicator MPI communicator used by this LAMMPS instance
+ */
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),
   update(NULL), neighbor(NULL), comm(NULL), domain(NULL), force(NULL),
@@ -636,14 +652,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   }
 }
 
-/* ----------------------------------------------------------------------
-   shutdown LAMMPS
-   delete top-level classes
-   close screen and log files in world and universe
-   output files were already closed in destroy()
-   delete fundamental classes
-------------------------------------------------------------------------- */
-
+/** Shut down a LAMMPS simulation instance
+ *
+ * The LAMMPS destructor shuts down the simulation by deleting top-level class
+ * instances, closing screen and log files for the global instance (aka "world")
+ * and files and MPI communicators in sub-partitions ("universes"). Then it
+ * deletes the fundamental class instances and copies of data inside the class.
+ */
 LAMMPS::~LAMMPS()
 {
   const int me = comm->me;
@@ -989,6 +1004,11 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
+/** Return true if a LAMMPS package is enabled in this binary
+ *
+ * \param pkg name of package
+ * \return true if yes, else false
+ */
 bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
@@ -1005,6 +1025,16 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
     }                                                                   \
   }
 
+/** \brief Return name of package that a specific style belongs to
+ *
+ * This function checks the given name against all list of styles
+ * for all type of styles and if the name and the style match, it
+ * returns which package this style belongs to.
+ *
+ * \param style Type of style (e.g. atom, pair, fix, etc.)
+ * \param name Name of style
+ * \return Name of the package this style is part of
+ */
 const char *LAMMPS::match_style(const char *style, const char *name)
 {
   check_for_match(angle,style,name);

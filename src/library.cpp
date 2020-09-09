@@ -263,6 +263,8 @@ The MPI standard requires that any MPI application must call
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
 
+.. versionadded:: 15Sep2020
+
 \endverbatim */
 
 void lammps_mpi_init()
@@ -292,6 +294,8 @@ accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After this function no
 more MPI calls may be made.
+
+.. versionadded:: 15Sep2020
 
 \endverbatim */
 

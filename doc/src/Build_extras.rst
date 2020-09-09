@@ -82,7 +82,7 @@ a '/gz' suffix.  There are also styles using the
       .. code-block:: bash
 
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-         -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
 
       Support for Zstandard compression is auto-detected and for that
       CMake depends on the `pkg-config
@@ -1430,11 +1430,11 @@ USER-MOLFILE package
 
       .. code-block:: bash
 
-         -D MOLFILE_INCLUDE_DIRS=path   # (optional) path where VMD molfile plugin headers are installed
+         -D MOLFILE_INCLUDE_DIR=path   # (optional) path where VMD molfile plugin headers are installed
          -D PKG_USER-MOLFILE=yes
 
       Using ``-D PKG_USER-MOLFILE=yes`` enables the package, and setting
-      ``-D MOLFILE_INCLUDE_DIRS`` allows to provide a custom location for
+      ``-D MOLFILE_INCLUDE_DIR`` allows to provide a custom location for
       the molfile plugin header files. These should match the ABI of the
       plugin files used, and thus one typically sets them to include
       folder of the local VMD installation in use. LAMMPS ships with a

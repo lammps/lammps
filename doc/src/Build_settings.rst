@@ -69,12 +69,12 @@ LAMMPS can use them if they are available on your system.
 
       .. code-block:: bash
 
-         -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
-         -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
+         -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
+         -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
          -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
-         -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
+         -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
-         -D MKL_LIBRARIES=path
+         -D MKL_LIBRARY=path         # path to MKL libraries
 
    .. tab:: Traditional make
 
@@ -310,11 +310,11 @@ following settings:
       .. code-block:: bash
 
          -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
-         -D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
+         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
          -D PNG_INCLUDE_DIR=path     # path to png.h header file
-         -D PNG_LIBRARIES=path       # path to libpng.a (.so) file
+         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-         -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
          -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
    .. tab:: Traditional make

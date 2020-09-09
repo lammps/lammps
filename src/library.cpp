@@ -108,11 +108,13 @@ thus is otherwise ignored.  However ``argc`` may be set to 0 and then
 ``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
 will be called during creation of the LAMMPS class instance.
 
-The function returns a pointer to the created LAMMPS class. If for some
-reason the initialization of the LAMMPS instance fails, the function
-returns ``NULL``.  For backward compatibility it is also possible to
-provide the address of a pointer variable as argument *ptr*\ . This
-argument may be ``NULL`` and is then ignored.
+.. versionchanged:: 15Sep2020
+
+   The function now returns a pointer to the created LAMMPS class.
+   If for some reason the initialization of the LAMMPS instance fails,
+   the function returns ``NULL``.  For backward compatibility it is
+   still possible to provide the address of a pointer variable as
+   argument *ptr*\ . This argument may be ``NULL`` and is then ignored.
 
 .. note::
 
@@ -168,6 +170,14 @@ Outside of the convenience, this function is useful, when the LAMMPS
 library was compiled in serial mode, but the calling code runs in
 parallel and the ``MPI_Comm`` data type of the STUBS library would not
 be compatible with that of the calling code.
+
+.. versionchanged:: 15Sep2020
+
+   The function now returns a pointer to the created LAMMPS class.
+   If for some reason the initialization of the LAMMPS instance fails,
+   the function returns ``NULL``.  For backward compatibility it is
+   still possible to provide the address of a pointer variable as
+   argument *ptr*\ . This argument may be ``NULL`` and is then ignored.
 
 \endverbatim
  *

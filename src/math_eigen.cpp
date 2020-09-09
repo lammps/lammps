@@ -48,25 +48,7 @@ template class MathEigen::PEigenDense<double,
                                       vector<double>&,
                                       const vector<vector<double> >&>;
 
-// ----------------- now create instances for floats ----------------
-
-template class MathEigen::Jacobi<float, float*, float**, float const*const*>;
-template class MathEigen::Jacobi<float, float*, float (*)[3], float const (*)[3]>;
-template class MathEigen::Jacobi<float,
-                                 vector<float>&,
-                                 vector<vector<float> >&,
-                                 const vector<vector<float> >& >;
-template class MathEigen::Jacobi<float,
-                                 array<float, 3>&,
-                                 array<array<float, 3>, 3 >&,
-                                 const array<array<float, 3>, 3 >& >;
-template class MathEigen::LambdaLanczos<float>;
-template class MathEigen::PEigenDense<float, float*, float const*const*>;
-template class MathEigen::PEigenDense<float,
-                                      vector<float>&,
-                                      const vector<vector<float> >&>;
-
-// If you plan to use other numeric types, add them below...
+// If you plan to use other numeric types (eg floats), add them to this list.
 
 
 

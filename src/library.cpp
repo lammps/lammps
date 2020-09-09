@@ -108,20 +108,23 @@ thus is otherwise ignored.  However ``argc`` may be set to 0 and then
 ``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
 will be called during creation of the LAMMPS class instance.
 
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
+
 .. versionchanged:: 15Sep2020
 
-   The function now returns a pointer to the created LAMMPS class.
-   If for some reason the initialization of the LAMMPS instance fails,
-   the function returns ``NULL``.  For backward compatibility it is
-   still possible to provide the address of a pointer variable as
-   argument *ptr*\ . This argument may be ``NULL`` and is then ignored.
+   This function now has the pointer to the created LAMMPS class
+   instance as return value.  For backward compatibility it is still
+   possible to provide the address of a pointer variable as final
+   argument *ptr*\ .  This use is deprecated and may be removed in
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
 
 .. note::
 
    This function is not declared when the code linking to the LAMMPS
    library interface is compiled with ``-DLAMMPS_LIB_NO_MPI``, or
    contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
-   ``#include "library.h"``.  In that case, you need to use the
+   ``#include "library.h"``.  In that case, you must use the
    :cpp:func:`lammps_open_no_mpi` function.
 
 \endverbatim
@@ -171,13 +174,16 @@ library was compiled in serial mode, but the calling code runs in
 parallel and the ``MPI_Comm`` data type of the STUBS library would not
 be compatible with that of the calling code.
 
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
+
 .. versionchanged:: 15Sep2020
 
-   The function now returns a pointer to the created LAMMPS class.
-   If for some reason the initialization of the LAMMPS instance fails,
-   the function returns ``NULL``.  For backward compatibility it is
-   still possible to provide the address of a pointer variable as
-   argument *ptr*\ . This argument may be ``NULL`` and is then ignored.
+   This function now has the pointer to the created LAMMPS class
+   instance as return value.  For backward compatibility it is still
+   possible to provide the address of a pointer variable as final
+   argument *ptr*\ .  This use is deprecated and may be removed in
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
 
 \endverbatim
  *
@@ -204,6 +210,9 @@ is used in the :f:func:`lammps` constructor of the LAMMPS Fortran
 module.  Internally it converts the *f_comm* argument into a C-style MPI
 communicator with ``MPI_Comm_f2c()`` and then calls
 :cpp:func:`lammps_open`.
+
+If for some reason the creation or initialization of the LAMMPS instance
+fails a null pointer is returned.
 
 .. versionadded:: 15Sep2020
 

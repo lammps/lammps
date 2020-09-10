@@ -98,6 +98,7 @@ void  lammps_commands_string(void *handle, const char *str);
  * ----------------------------------------------------------------------- */
 
 int    lammps_version(void *handle);
+int    lammps_get_mpi_comm(void* handle);
 double lammps_get_natoms(void *handle);
 double lammps_get_thermo(void *handle, char *keyword);
 

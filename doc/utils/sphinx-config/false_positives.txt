@@ -1003,6 +1003,7 @@ formatarg
 formulae
 Forschungszentrum
 Fortran
+fortran
 Fosado
 fourier
 fp

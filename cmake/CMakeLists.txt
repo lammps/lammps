@@ -664,7 +664,7 @@ include(CodeCoverage)
 # Print package summary
 ###############################################################################
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
-feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND ENABLED_FEATURES)
+feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND ENABLED_FEATURES DISABLED_FEATURES)
 message(STATUS "<<< Build configuration >>>
    Build type:       ${CMAKE_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}

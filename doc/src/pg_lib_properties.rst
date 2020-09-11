@@ -21,6 +21,11 @@ event as atoms are migrating between sub-domains.
 
 -----------------------
 
+.. doxygenfunction:: lammps_get_mpi_comm
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_get_natoms
    :project: progguide
 

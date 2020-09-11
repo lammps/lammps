@@ -332,6 +332,8 @@ class lammps(object):
 
     self.lib.lammps_version.argtypes = [c_void_p]
 
+    self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
+
     self.lib.lammps_decode_image_flags.argtypes = [self.c_imageint, POINTER(c_int*3)]
 
     self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
@@ -598,6 +600,28 @@ class lammps(object):
     :rtype:  int
     """
     return self.lib.lammps_version(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  def get_mpi_comm(self):
+    """Get the MPI communicator in use by the current LAMMPS instance
+
+    This is a wrapper around the :cpp:func:`lammps_get_mpi_comm` function
+    of the C-library interface.  It will return ``None`` if either the
+    LAMMPS library was compiled without MPI support or the mpi4py
+    Python module is not available.
+
+    :return: MPI communicator
+    :rtype:  MPI_Comm
+    """
+
+    if self.has_mpi4py and self.has_mpi_support:
+        from mpi4py import MPI
+        f_comm = self.lib.lammps_get_mpi_comm(self.lmp)
+        c_comm = MPI.Comm.f2py(f_comm)
+        return c_comm
+    else:
+        return None
 
   # -------------------------------------------------------------------------
 

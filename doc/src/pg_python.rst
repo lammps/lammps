@@ -171,8 +171,244 @@ functions. Below is a detailed documentation of the API.
 The ``PyLammps`` class API
 **************************
 
+The :py:class:`PyLammps <lammps.PyLammps>` class is a wrapper that creates a
+simpler, more "Pythonic" interface to common LAMMPS functionality. LAMMPS data
+structures are exposed through objects and properties. This makes Python scripts
+shorter and more concise.
+
+Creating a new instance of PyLammps
+-----------------------------------
+
+To create a PyLammps object you need to first import the class from the lammps
+module. By using the default constructor, a new :py:class:`lammps <lammps.lammps>` instance is created.
+
+.. code-block:: Python
+
+   from lammps import PyLammps
+   L = PyLammps()
+
+You can also initialize PyLammps on top of this existing :py:class:`lammps <lammps.lammps>` object:
+
+.. code-block:: Python
+
+   from lammps import lammps, PyLammps
+   lmp = lammps()
+   L = PyLammps(ptr=lmp)
+
+This is useful if you have create the :py:class:`lammps <lammps.lammps>`
+instance is a specific way, but want to take advantage of the
+:py:class:`PyLammps <lammps.PyLammps>` interface.
+
+Commands
+--------
+
+Sending a LAMMPS command with the existing library interfaces is done using
+the command method of the lammps object instance.
+
+For instance, let's take the following LAMMPS command:
+
+.. code-block:: LAMMPS
+
+   region box block 0 10 0 5 -0.5 0.5
+
+In the original interface this command can be executed with the following
+Python code if *L* was a lammps instance:
+
+.. code-block:: Python
+
+   L.command("region box block 0 10 0 5 -0.5 0.5")
+
+With the PyLammps interface, any command can be split up into arbitrary parts
+separated by white-space, passed as individual arguments to a region method.
+
+.. code-block:: Python
+
+   L.region("box block", 0, 10, 0, 5, -0.5, 0.5)
+
+Note that each parameter is set as Python literal floating-point number. In the
+PyLammps interface, each command takes an arbitrary parameter list and transparently
+merges it to a single command string, separating individual parameters by white-space.
+
+The benefit of this approach is avoiding redundant command calls and easier
+parameterization. In the original interface parameterization needed to be done
+manually by creating formatted strings.
+
+.. code-block:: Python
+
+   L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
+
+In contrast, methods of PyLammps accept parameters directly and will convert
+them automatically to a final command string.
+
+.. code-block:: Python
+
+   L.region("box block", xlo, xhi, ylo, yhi, zlo, zhi)
+
+System state
+------------
+
+In addition to dispatching commands directly through the PyLammps object, it
+also provides several properties which allow you to query the system state.
+
+:py:attr:`lammps.PyLammps.system`
+   Is a dictionary describing the system such as the bounding box or number of atoms
+
+L.system.xlo, L.system.xhi
+   bounding box limits along x-axis
+
+L.system.ylo, L.system.yhi
+   bounding box limits along y-axis
+
+L.system.zlo, L.system.zhi
+   bounding box limits along z-axis
+
+L.communication
+   configuration of communication subsystem, such as the number of threads or processors
+
+L.communication.nthreads
+   number of threads used by each LAMMPS process
+
+L.communication.nprocs
+   number of MPI processes used by LAMMPS
+
+L.fixes
+   List of fixes in the current system
+
+L.computes
+   List of active computes in the current system
+
+L.dump
+   List of active dumps in the current system
+
+L.groups
+   List of groups present in the current system
+
+Working with LAMMPS variables
+-----------------------------
+
+LAMMPS variables can be both defined and accessed via the PyLammps interface.
+
+To define a variable you can use the :doc:`variable <variable>` command:
+
+.. code-block:: Python
+
+   L.variable("a index 2")
+
+A dictionary of all variables is returned by L.variables
+
+you can access an individual variable by retrieving a variable object from the
+L.variables dictionary by name
+
+.. code-block:: Python
+
+   a = L.variables['a']
+
+The variable value can then be easily read and written by accessing the value
+property of this object.
+
+.. code-block:: Python
+
+   print(a.value)
+   a.value = 4
+
+Retrieving the value of an arbitrary LAMMPS expressions
+-------------------------------------------------------
+
+LAMMPS expressions can be immediately evaluated by using the eval method. The
+passed string parameter can be any expression containing global thermo values,
+variables, compute or fix data.
+
+.. code-block:: Python
+
+   result = L.eval("ke") # kinetic energy
+   result = L.eval("pe") # potential energy
+
+   result = L.eval("v_t/2.0")
+
+Accessing atom data
+-------------------
+
+All atoms in the current simulation can be accessed by using the L.atoms list.
+Each element of this list is an object which exposes its properties (id, type,
+position, velocity, force, etc.).
+
+.. code-block:: Python
+
+   # access first atom
+   L.atoms[0].id
+   L.atoms[0].type
+
+   # access second atom
+   L.atoms[1].position
+   L.atoms[1].velocity
+   L.atoms[1].force
+
+Some properties can also be used to set:
+
+.. code-block:: Python
+
+   # set position in 2D simulation
+   L.atoms[0].position = (1.0, 0.0)
+
+   # set position in 3D simulation
+   L.atoms[0].position = (1.0, 0.0, 1.)
+
+Evaluating thermo data
+----------------------
+
+Each simulation run usually produces thermo output based on system state,
+computes, fixes or variables. The trajectories of these values can be queried
+after a run via the L.runs list. This list contains a growing list of run data.
+The first element is the output of the first run, the second element that of
+the second run.
+
+.. code-block:: Python
+
+   L.run(1000)
+   L.runs[0] # data of first 1000 time steps
+
+   L.run(1000)
+   L.runs[1] # data of second 1000 time steps
+
+Each run contains a dictionary of all trajectories. Each trajectory is
+accessible through its thermo name:
+
+.. code-block:: Python
+
+   L.runs[0].thermo.Step # list of time steps in first run
+   L.runs[0].thermo.Ke   # list of kinetic energy values in first run
+
+Together with matplotlib plotting data out of LAMMPS becomes simple:
+
+.. code-block:: Python
+
+   import matplotlib.plot as plt
+   steps = L.runs[0].thermo.Step
+   ke    = L.runs[0].thermo.Ke
+   plt.plot(steps, ke)
+
+Error handling with PyLammps
+----------------------------
+
+Compiling the shared library with C++ exception support provides a better error
+handling experience.  Without exceptions the LAMMPS code will terminate the
+current Python process with an error message.  C++ exceptions allow capturing
+them on the C++ side and rethrowing them on the Python side. This way you
+can handle LAMMPS errors through the Python exception handling mechanism.
+
+.. warning::
+
+   Capturing a LAMMPS exception in Python can still mean that the
+   current LAMMPS process is in an illegal state and must be terminated. It is
+   advised to save your data and terminate the Python instance as quickly as
+   possible.
+
 .. autoclass:: lammps.PyLammps
    :members:
+
+.. autoclass:: lammps.AtomList
+   :members:
+
 
 ----------
 

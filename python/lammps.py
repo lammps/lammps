@@ -1719,15 +1719,38 @@ class Variable(object):
 # -------------------------------------------------------------------------
 
 class AtomList(object):
+  """
+  A dynamic list of atoms that returns either an Atom or Atom2D instance for
+  each atom. Instances are only allocated when accessed.
+
+  :ivar natoms: total number of atoms
+  :ivar dimensions: number of dimensions in system
+  """
   def __init__(self, lammps_wrapper_instance):
-    self.lmp = lammps_wrapper_instance
+    self._lmp = lammps_wrapper_instance
     self.natoms = self.lmp.system.natoms
     self.dimensions = self.lmp.system.dimensions
+    self._loaded = {}
 
   def __getitem__(self, index):
-    if self.dimensions == 2:
-        return Atom2D(self.lmp, index + 1)
-    return Atom(self.lmp, index + 1)
+    """
+    Return Atom with given local index
+
+    :param index: Local index of atom
+    :type index: int
+    :rtype: Atom
+    """
+    if index not in self._loaded:
+        if self.dimensions == 2:
+            atom = Atom2D(self.lmp, index + 1)
+        else:
+            atom = Atom(self.lmp, index + 1)
+        self._loaded[index] = atom
+    return self._loaded[index]
+
+  def __len__(self):
+    return self.natoms
+
 
 # -------------------------------------------------------------------------
 
@@ -1954,10 +1977,22 @@ class PyLammps(object):
 
   @property
   def atoms(self):
+    """
+    All atoms of this LAMMPS instance
+
+    :getter: Returns a list of atoms currently in the system
+    :type: AtomList
+    """
     return AtomList(self)
 
   @property
   def system(self):
+    """
+    The system state of this LAMMPS instance
+
+    :getter: Returns an object with properties storing the current system state
+    :type: namedtuple
+    """
     output = self.info("system")
     d = self._parse_info_system(output)
     return namedtuple('System', d.keys())(*d.values())

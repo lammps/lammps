@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpCFG(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
 
   compression_level = Z_BEST_COMPRESSION;
 
@@ -41,8 +41,8 @@ DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpCFGGZ::~DumpCFGGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -106,8 +106,8 @@ void DumpCFGGZ::openfile()
 
     gzFp = gzopen(filecurrent, mode.c_str());
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -163,7 +163,7 @@ void DumpCFGGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);

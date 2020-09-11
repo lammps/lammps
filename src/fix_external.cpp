@@ -29,7 +29,7 @@ enum{PF_CALLBACK,PF_ARRAY};
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fexternal(NULL), caller_vector(NULL)
+  fexternal(nullptr), caller_vector(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
@@ -53,7 +53,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
     if (napply <= 0) error->all(FLERR,"Illegal fix external command");
   } else error->all(FLERR,"Illegal fix external command");
 
-  callback = NULL;
+  callback = nullptr;
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -66,7 +66,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   // optional vector of values provided by caller
   // vector_flag and size_vector are setup via set_vector_length()
 
-  caller_vector = NULL;
+  caller_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,7 +99,7 @@ int FixExternal::setmask()
 
 void FixExternal::init()
 {
-  if (mode == PF_CALLBACK && callback == NULL)
+  if (mode == PF_CALLBACK && callback == nullptr)
     error->all(FLERR,"Fix external callback function not set");
 }
 

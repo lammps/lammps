@@ -40,7 +40,7 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 MSMCG::MSMCG(LAMMPS *lmp) : MSM(lmp),
-  is_charged(NULL)
+  is_charged(nullptr)
 {
   triclinic_support = 0;
 

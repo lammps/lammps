@@ -63,8 +63,8 @@ enum {ROLL_NONE, ROLL_SDS};
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), history_one(NULL),
-  fix_rigid(NULL), mass_rigid(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), history_one(nullptr),
+  fix_rigid(nullptr), mass_rigid(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
 
@@ -303,7 +303,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   // wallstyle args
 
-  idregion = NULL;
+  idregion = nullptr;
 
   if (strcmp(arg[iarg],"xplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
@@ -407,16 +407,16 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  history_one = NULL;
+  history_one = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
   // initialize history as if particle is not touching region
-  // history_one will be NULL for wallstyle = REGION
+  // history_one will be nullptr for wallstyle = REGION
 
   if (use_history && history_one) {
     int nlocal = atom->nlocal;
@@ -471,7 +471,7 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -576,7 +576,7 @@ void FixWallGran::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to NULL, it's skipped since lo/hi are infinity
+  //   if wall was set to nullptr, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
   // set history if pair potential stores history
@@ -681,7 +681,7 @@ void FixWallGran::post_force(int /*vflag*/)
         if (peratom_flag)
           contact = array_atom[i];
         else
-          contact = NULL;
+          contact = nullptr;
 
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],

@@ -50,7 +50,7 @@ TAD::TAD(LAMMPS *lmp) : Pointers(lmp) {}
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != NULL) delete [] neb_logfilename;
+  if (neb_logfilename != nullptr) delete [] neb_logfilename;
   delete [] min_style;
   delete [] min_style_neb;
 }
@@ -62,7 +62,7 @@ TAD::~TAD()
 
 void TAD::command(int narg, char **arg)
 {
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
   nmin_event_list = 10;
@@ -226,8 +226,8 @@ void TAD::command(int narg, char **arg)
 
   ulogfile_lammps = universe->ulogfile;
   uscreen_lammps = universe->uscreen;
-  ulogfile_neb = NULL;
-  uscreen_neb = NULL;
+  ulogfile_neb = nullptr;
+  uscreen_neb = nullptr;
   if (me_universe == 0 && neb_logfilename)
     ulogfile_neb = fopen(neb_logfilename,"w");
 
@@ -421,7 +421,7 @@ void TAD::command(int narg, char **arg)
   modify->delete_fix("tad_revert");
   delete_event_list();
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -586,7 +586,7 @@ void TAD::options(int narg, char **arg)
   min_style_neb = new char[n];
   strcpy(min_style_neb,"quickmin");
   dt_neb = update->dt;
-  neb_logfilename = NULL;
+  neb_logfilename = nullptr;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -630,7 +630,7 @@ void TAD::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
       delete [] neb_logfilename;
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = NULL;
+      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
         int n = strlen(arg[iarg+1]) + 1;
         neb_logfilename = new char[n];
@@ -885,7 +885,7 @@ void TAD::delete_event_list() {
     modify->delete_fix(str);
   }
   memory->sfree(fix_event_list);
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
 

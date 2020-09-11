@@ -28,7 +28,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL)
+  Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr)
 {
   options(narg-6,&arg[6]);
 

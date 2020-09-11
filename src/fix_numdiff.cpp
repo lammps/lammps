@@ -40,8 +40,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), numdiff_forces(NULL),
-  temp_x(NULL), temp_f(NULL)
+  Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr),
+  temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 

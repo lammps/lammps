@@ -140,7 +140,7 @@ void PairHybridOverlay::copy_svector(int itype, int jtype)
       if (m == map[itype][jtype][k]) {
         this_style = styles[m];
       } else {
-        this_style = NULL;
+        this_style = nullptr;
       }
     }
     for (int l = 0; l < styles[m]->single_extra; ++l) {

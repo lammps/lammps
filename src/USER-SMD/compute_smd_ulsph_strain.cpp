@@ -46,7 +46,7 @@ ComputeSMDULSPHstrain::ComputeSMDULSPHstrain(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 6;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

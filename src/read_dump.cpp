@@ -55,22 +55,22 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   triclinic = domain->triclinic;
 
   nfile = 0;
-  files = NULL;
+  files = nullptr;
 
   nnew = maxnew = 0;
   nfield = 0;
-  fieldtype = NULL;
-  fieldlabel = NULL;
-  fields = NULL;
-  buf = NULL;
+  fieldtype = nullptr;
+  fieldlabel = nullptr;
+  fields = nullptr;
+  buf = nullptr;
 
   int n = strlen("native") + 1;
   readerstyle = new char[n];
   strcpy(readerstyle,"native");
 
   nreader = 0;
-  readers = NULL;
-  nsnapatoms = NULL;
+  readers = nullptr;
+  nsnapatoms = nullptr;
   clustercomm = MPI_COMM_NULL;
   filereader = 0;
   parallel = 0;
@@ -111,9 +111,9 @@ void ReadDump::command(int narg, char **arg)
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
-  else nremain = fields_and_keywords(0,NULL);
+  else nremain = fields_and_keywords(0,nullptr);
   if (nremain) setup_reader(nremain,&arg[narg-nremain]);
-  else setup_reader(0,NULL);
+  else setup_reader(0,nullptr);
 
   // find the snapshot and read/bcast/process header info
 
@@ -713,7 +713,7 @@ void ReadDump::read_atoms()
 
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);    // avoid NULL ptr
+        maxnew = MAX(nnew,1);    // avoid nullptr ptr
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -753,7 +753,7 @@ void ReadDump::read_atoms()
       nnew = static_cast<int> (olast - ofirst);
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);     // avoid NULL ptr
+        maxnew = MAX(nnew,1);     // avoid nullptr ptr
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -779,7 +779,7 @@ void ReadDump::read_atoms()
     nnew = static_cast<int> (sum);
     if (nnew > maxnew || maxnew == 0) {
       memory->destroy(fields);
-      maxnew = MAX(nnew,1);     // avoid NULL ptr
+      maxnew = MAX(nnew,1);     // avoid nullptr ptr
       memory->create(fields,maxnew,nfield,"read_dump:fields");
     }
 
@@ -1105,7 +1105,7 @@ void ReadDump::migrate_new_atoms()
   Irregular *irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
-  newmaxnew = MAX(newmaxnew,1);    // avoid NULL ptr
+  newmaxnew = MAX(newmaxnew,1);    // avoid nullptr ptr
   memory->create(newfields,newmaxnew,nfield,"read_dump:newfields");
   irregular->exchange_data((char *) &fields[0][0],nfield*sizeof(double),
                            (char *) &newfields[0][0]);
@@ -1207,7 +1207,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   purgeflag = 0;
   trimflag = 0;
   addflag = NOADD;
-  for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
+  for (int i = 0; i < nfield; i++) fieldlabel[i] = nullptr;
   scaleflag = 0;
   wrapflag = 1;
 

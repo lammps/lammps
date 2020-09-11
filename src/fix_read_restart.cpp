@@ -23,7 +23,7 @@ using namespace FixConst;
 
 FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  count(NULL), extra(NULL)
+  count(nullptr), extra(nullptr)
 {
   nextra = utils::inumeric(FLERR,arg[3],false,lmp);
   int nfix = utils::inumeric(FLERR,arg[4],false,lmp);

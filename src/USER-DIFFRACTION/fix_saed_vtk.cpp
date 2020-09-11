@@ -40,8 +40,8 @@ enum{FIRST,MULTI};
 /* ---------------------------------------------------------------------- */
 
 FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ids(NULL), fp(NULL), vector(NULL),
-  vector_total(NULL), vector_list(NULL), compute_saed(NULL), filename(NULL)
+  Fix(lmp, narg, arg), ids(nullptr), fp(nullptr), vector(nullptr),
+  vector_total(nullptr), vector_list(nullptr), compute_saed(nullptr), filename(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");
 
@@ -66,7 +66,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   options(narg,arg);
 
   which = 0;
-  ids = NULL;
+  ids = nullptr;
 
   nvalues = 0;
 
@@ -136,8 +136,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for averaging
 
-  vector = vector_total = NULL;
-  vector_list = NULL;
+  vector = vector_total = nullptr;
+  vector_list = nullptr;
 
   if (ave == WINDOW)
     memory->create(vector_list,nwindow,nvalues,"saed/vtk:vector_list");
@@ -145,7 +145,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   memory->create(vector,nrows,"saed/vtk:vector");
   memory->create(vector_total,nrows,"saed/vtk:vector_total");
 
-  extlist = NULL;
+  extlist = nullptr;
 
   vector_flag = 1;
   size_vector = nrows;
@@ -425,7 +425,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
       fp = fopen(nName,"w");
 
-      if (fp == NULL) {
+      if (fp == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
         error->one(FLERR,str);
@@ -531,7 +531,7 @@ void FixSAEDVTK::options(int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   ave = ONE;
   startstep = 0;
   overwrite = 0;
@@ -552,7 +552,7 @@ void FixSAEDVTK::options(int narg, char **arg)
          snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
          fp = fopen(nName,"w");
 
-        if (fp == NULL) {
+        if (fp == nullptr) {
           char str[128];
           snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
           error->one(FLERR,str);

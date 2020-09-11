@@ -33,8 +33,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
-  cfa = NULL;
-  cca = NULL;
+  cfa = nullptr;
+  cca = nullptr;
 
   // default settings
 

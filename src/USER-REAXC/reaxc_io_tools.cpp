@@ -50,7 +50,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
 
       /* init potentials file */
       sprintf( temp, "%s.pot", control->sim_name );
-      if ((out_control->pot = fopen( temp, "w" )) != NULL) {
+      if ((out_control->pot = fopen( temp, "w" )) != nullptr) {
         fflush( out_control->pot );
       } else {
         strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
@@ -65,7 +65,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
         control->ensemble == iNPT ||
         control->ensemble == sNPT ) {
       sprintf( temp, "%s.prs", control->sim_name );
-      if ((out_control->prs = fopen( temp, "w" )) != NULL) {
+      if ((out_control->prs = fopen( temp, "w" )) != nullptr) {
         fprintf(out_control->prs,"%8s%13s%13s%13s%13s%13s%13s%13s\n",
                 "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
                 "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
@@ -91,12 +91,12 @@ int Close_Output_Files( reax_system *system, control_params * /* control */,
   if (system->my_rank == MASTER_NODE) {
     if (out_control->pot) {
       fclose( out_control->pot );
-      out_control->pot = NULL;
+      out_control->pot = nullptr;
     }
 
     if (out_control->prs) {
       fclose(out_control->prs);
-      out_control->prs = NULL;
+      out_control->prs = nullptr;
     }
   }
 

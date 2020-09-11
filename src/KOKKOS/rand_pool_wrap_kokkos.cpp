@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 RandPoolWrap::RandPoolWrap(int, LAMMPS *lmp) : Pointers(lmp)
 {
-  random_thr =  NULL;
+  random_thr =  nullptr;
   nthreads = lmp->kokkos->nthreads;
 }
 
@@ -42,7 +42,7 @@ void RandPoolWrap::destroy()
       delete random_thr[i];
 
     delete[] random_thr;
-    random_thr = NULL;
+    random_thr = nullptr;
   }
 }
 

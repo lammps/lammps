@@ -31,15 +31,15 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), randomt(NULL), gfactor1(NULL), gfactor2(NULL)
+  Fix(lmp, narg, arg), randomt(nullptr), gfactor1(nullptr), gfactor2(nullptr)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 
-  randomt = NULL;
-  gfactor1 = gfactor2 = NULL;
+  randomt = nullptr;
+  gfactor1 = gfactor2 = nullptr;
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;

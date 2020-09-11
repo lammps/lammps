@@ -261,7 +261,7 @@ class UCL_Device {
   /// Select the platform that has accelerators (for compatibility with OpenCL)
   inline int set_platform_accelerator(int pid=-1) { return UCL_SUCCESS; }
 
-  inline int load_module(const void* program, hipModule_t& module, std::string *log=NULL){
+  inline int load_module(const void* program, hipModule_t& module, std::string *log=nullptr){
     auto it = _loaded_modules.emplace(program, hipModule_t());
     if(!it.second){
       module = it.first->second;
@@ -281,7 +281,7 @@ class UCL_Device {
 
     hipError_t err=hipModuleLoadDataEx(&module,program,num_opts, options,(void **)values);
 
-    if (log!=NULL)
+    if (log!=nullptr)
       *log=std::string(clog);
 
     if (err != hipSuccess) {

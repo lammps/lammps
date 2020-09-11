@@ -37,7 +37,7 @@ enum{CLUSTER,MASK,COORDS};
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  clusterID(NULL)
+  clusterID(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
@@ -64,7 +64,7 @@ void ComputeClusterAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,

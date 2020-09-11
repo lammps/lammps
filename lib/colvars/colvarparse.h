@@ -275,12 +275,12 @@ public:
     /// The keyword that identifies the block
     std::string const key;
 
-    /// Where to keep the data (may be NULL)
+    /// Where to keep the data (may be nullptr)
     std::string * const data;
 
   public:
 
-    read_block(std::string const &key_in, std::string *data_in = NULL);
+    read_block(std::string const &key_in, std::string *data_in = nullptr);
 
     ~read_block();
 
@@ -300,8 +300,8 @@ public:
   /// within "conf", useful when doing multiple calls
   bool key_lookup(std::string const &conf,
                   char const *key,
-                  std::string *data = NULL,
-                  size_t *save_pos = NULL);
+                  std::string *data = nullptr,
+                  size_t *save_pos = nullptr);
 
   /// \brief Reads a configuration line, adds it to config_string, and returns
   /// the stream \param is Input stream \param line String that will hold the

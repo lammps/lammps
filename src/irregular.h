@@ -30,7 +30,7 @@ class Irregular : protected Pointers {
   Irregular(class LAMMPS *);
   ~Irregular();
   void migrate_atoms(int sortflag = 0, int preassign = 0,
-                     int *procassign = NULL);
+                     int *procassign = nullptr);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);
   int create_data_grouped(int, int *, int sortflag = 0);

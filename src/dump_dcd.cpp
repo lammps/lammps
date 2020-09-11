@@ -51,7 +51,7 @@ static inline void fwrite_int32(FILE* fd, uint32_t i)
 /* ---------------------------------------------------------------------- */
 
 DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  coords(NULL)
+  coords(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump dcd command");
   if (binary || compressed || multifile || multiproc)
@@ -62,7 +62,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sortcol = 0;
 
   unwrap_flag = 0;
-  format_default = NULL;
+  format_default = nullptr;
 
   // allocate global array for atom coords
 
@@ -115,7 +115,7 @@ void DumpDCD::openfile()
 {
   if (me == 0) {
     fp = fopen(filename,"wb");
-    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
+    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
   }
 }
 
@@ -342,7 +342,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   strncpy(title_string,remarks,80);
   title_string[79] = '\0';
   fwrite(title_string,80,1,fp);
-  cur_time=time(NULL);
+  cur_time=time(nullptr);
   tmbuf=localtime(&cur_time);
   memset(title_string,' ',81);
   strftime(title_string,80,"REMARKS Created %d %B,%Y at %H:%M",tmbuf);

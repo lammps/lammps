@@ -964,7 +964,7 @@ colvar::rmsd::rmsd(std::string const &conf)
   }
 
   bool b_Jacobian_derivative = true;
-  if (atoms->fitting_group != NULL && b_Jacobian_derivative) {
+  if (atoms->fitting_group != nullptr && b_Jacobian_derivative) {
     cvm::log("The option \"fittingGroup\" (alternative group for fitting) was enabled: "
               "Jacobian derivatives of the RMSD will not be calculated.\n");
     b_Jacobian_derivative = false;

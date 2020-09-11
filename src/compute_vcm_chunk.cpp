@@ -29,7 +29,7 @@ enum{ONCE,NFREQ,EVERY};
 
 ComputeVCMChunk::ComputeVCMChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), vcm(nullptr), vcmall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute vcm/chunk command");
 

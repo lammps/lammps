@@ -48,7 +48,7 @@ using std::string;
 /* ------------------------------------------------------------------------- */
 
 FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  lammps_(lmp), atc_(NULL)
+  lammps_(lmp), atc_(nullptr)
 {
   // ID GROUP atc PHYSICSTYPE [PARAMETERFILE]
   if (narg < 4 || narg > 5) lmp->error->all(FLERR,"Illegal fix atc command");

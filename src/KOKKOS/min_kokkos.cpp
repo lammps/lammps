@@ -49,7 +49,7 @@ using namespace LAMMPS_NS;
 MinKokkos::MinKokkos(LAMMPS *lmp) : Min(lmp)
 {
   atomKK = (AtomKokkos *) atom;
-  fix_minimize_kk = NULL;
+  fix_minimize_kk = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

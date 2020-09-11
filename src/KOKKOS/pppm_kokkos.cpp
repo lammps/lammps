@@ -77,25 +77,25 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  //density_brick = d_vdx_brick = d_vdy_brick = d_vdz_brick = NULL;
-  //d_density_fft = NULL;
-  //d_u_brick = NULL;
-  //d_v0_brick = d_v1_brick = d_v2_brick = d_v3_brick = d_v4_brick = d_v5_brick = NULL;
-  //greensfn = NULL;
-  //d_work1 = d_work2 = NULL;
-  //vg = NULL;
-  //d_fkx = d_fky = d_fkz = NULL;
+  //density_brick = d_vdx_brick = d_vdy_brick = d_vdz_brick = nullptr;
+  //d_density_fft = nullptr;
+  //d_u_brick = nullptr;
+  //d_v0_brick = d_v1_brick = d_v2_brick = d_v3_brick = d_v4_brick = d_v5_brick = nullptr;
+  //greensfn = nullptr;
+  //d_work1 = d_work2 = nullptr;
+  //vg = nullptr;
+  //d_fkx = d_fky = d_fkz = nullptr;
 
 
-  //gf_b = NULL;
-  //rho1d = rho_coeff = drho1d = drho_coeff = NULL;
+  //gf_b = nullptr;
+  //rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  gc = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  gc = nullptr;
 
   nmax = 0;
-  //part2grid = NULL;
+  //part2grid = nullptr;
 
   peratom_allocate_flag = 0;
 
@@ -160,8 +160,8 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  eatom = NULL;
-  vatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -212,7 +212,7 @@ void PPPMKokkos<DeviceType>::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -247,7 +247,7 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridCommKokkos<DeviceType> *gctmp = NULL;
+  GridCommKokkos<DeviceType> *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -851,22 +851,22 @@ template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
   memoryKK->destroy_kokkos(d_density_fft,density_fft);
-  density_fft = NULL;
+  density_fft = nullptr;
   memoryKK->destroy_kokkos(d_greensfn,greensfn);
-  greensfn = NULL;
+  greensfn = nullptr;
   memoryKK->destroy_kokkos(d_work1,work1);
-  work1 = NULL;
+  work1 = nullptr;
   memoryKK->destroy_kokkos(d_work2,work2);
-  work2 = NULL;
+  work2 = nullptr;
 
   delete fft1;
-  fft1 = NULL;
+  fft1 = nullptr;
   delete fft2;
-  fft2 = NULL;
+  fft2 = nullptr;
   delete remap;
-  remap = NULL;
+  remap = nullptr;
   delete gc;
-  gc = NULL;
+  gc = nullptr;
 }
 
 /* ----------------------------------------------------------------------

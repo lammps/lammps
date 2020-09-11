@@ -48,13 +48,13 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 
   eflag_global = vflag_global = -1;
 
-  unit_style = NULL;
+  unit_style = nullptr;
   set_units("lj");
 
-  integrate_style = NULL;
-  integrate = NULL;
-  minimize_style = NULL;
-  minimize = NULL;
+  integrate_style = nullptr;
+  integrate = nullptr;
+  minimize_style = nullptr;
+  minimize = nullptr;
 
   integrate_map = new IntegrateCreatorMap();
 

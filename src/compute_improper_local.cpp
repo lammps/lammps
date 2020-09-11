@@ -35,7 +35,7 @@ using namespace MathConst;
 
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vlocal(NULL), alocal(NULL)
+  vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
@@ -57,8 +57,8 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,7 +73,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 
 void ComputeImproperLocal::init()
 {
-  if (force->improper == NULL)
+  if (force->improper == nullptr)
     error->all(FLERR,"No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
@@ -135,7 +135,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
       if (cflag >= 0) cbuf = vlocal;
     } else {
       if (cflag >= 0 && alocal) cbuf = &alocal[0][cflag];
-      else cbuf = NULL;
+      else cbuf = nullptr;
     }
   }
 

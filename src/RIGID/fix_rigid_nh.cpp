@@ -42,12 +42,12 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL),
-  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL),
-  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL),
-  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL),
-  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL),
-  id_press(NULL), temperature(NULL), pressure(NULL)
+  FixRigid(lmp, narg, arg), conjqm(nullptr), w(nullptr),
+  wdti1(nullptr), wdti2(nullptr), wdti4(nullptr), q_t(nullptr), q_r(nullptr),
+  eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr), eta_dot_r(nullptr),
+  f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
+  eta_dot_b(nullptr), f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr),
+  id_press(nullptr), temperature(nullptr), pressure(nullptr)
 {
   // error checks: could be moved up to FixRigid
 
@@ -145,7 +145,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   // rigid body pointers
 
   nrigidfix = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   vol0 = 0.0;
   t0 = 1.0;
@@ -153,8 +153,8 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   tcomputeflag = 0;
   pcomputeflag = 0;
 
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -304,7 +304,7 @@ void FixRigidNH::init()
 
     if (rfix) delete [] rfix;
     nrigidfix = 0;
-    rfix = NULL;
+    rfix = nullptr;
 
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->rigid_flag) nrigidfix++;

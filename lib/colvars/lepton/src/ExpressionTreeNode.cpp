@@ -59,14 +59,14 @@ ExpressionTreeNode::ExpressionTreeNode(Operation* operation) : operation(operati
         throw Exception("wrong number of arguments to function: "+operation->getName());
 }
 
-ExpressionTreeNode::ExpressionTreeNode(const ExpressionTreeNode& node) : operation(node.operation == NULL ? NULL : node.operation->clone()), children(node.getChildren()) {
+ExpressionTreeNode::ExpressionTreeNode(const ExpressionTreeNode& node) : operation(node.operation == nullptr ? nullptr : node.operation->clone()), children(node.getChildren()) {
 }
 
-ExpressionTreeNode::ExpressionTreeNode() : operation(NULL) {
+ExpressionTreeNode::ExpressionTreeNode() : operation(nullptr) {
 }
 
 ExpressionTreeNode::~ExpressionTreeNode() {
-    if (operation != NULL)
+    if (operation != nullptr)
         delete operation;
 }
 
@@ -91,7 +91,7 @@ bool ExpressionTreeNode::operator==(const ExpressionTreeNode& node) const {
 }
 
 ExpressionTreeNode& ExpressionTreeNode::operator=(const ExpressionTreeNode& node) {
-    if (operation != NULL)
+    if (operation != nullptr)
         delete operation;
     operation = node.getOperation().clone();
     children = node.getChildren();

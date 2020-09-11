@@ -307,11 +307,11 @@ namespace ATC {
     RegulatorShapeFunction(kinetostat,regulatorPrefix),
     mdMassMatrix_(atc_->set_mass_mat_md(VELOCITY)),
     timeFilter_(atomicRegulator_->time_filter()),
-    nodalAtomicLambdaForce_(NULL),
-    lambdaForceFiltered_(NULL),
-    atomKinetostatForce_(NULL),
-    atomVelocities_(NULL),
-    atomMasses_(NULL)
+    nodalAtomicLambdaForce_(nullptr),
+    lambdaForceFiltered_(nullptr),
+    atomKinetostatForce_(nullptr),
+    atomVelocities_(nullptr),
+    atomMasses_(nullptr)
   {
     // data associated with stage 3 in ATC_Method::initialize
     lambda_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaMomentum",nsd_);
@@ -376,7 +376,7 @@ namespace ATC {
   //--------------------------------------------------------
   GlcKinetostat::GlcKinetostat(AtomicRegulator *kinetostat) :
     KinetostatShapeFunction(kinetostat),
-    atomPositions_(NULL)
+    atomPositions_(nullptr)
   {
     // do nothing
   }
@@ -462,7 +462,7 @@ namespace ATC {
   //--------------------------------------------------------
   DisplacementGlc::DisplacementGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
-    nodalAtomicMassWeightedDisplacement_(NULL),
+    nodalAtomicMassWeightedDisplacement_(nullptr),
     nodalDisplacements_(atc_->field(DISPLACEMENT))
   {
     // do nothing
@@ -763,7 +763,7 @@ namespace ATC {
   //--------------------------------------------------------
   VelocityGlc::VelocityGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
-    nodalAtomicMomentum_(NULL),
+    nodalAtomicMomentum_(nullptr),
     nodalVelocities_(atc_->field(VELOCITY))
   {
     // do nothing
@@ -1095,8 +1095,8 @@ namespace ATC {
   StressFlux::StressFlux(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
     nodalForce_(atc_->field_rhs(VELOCITY)),
-    nodalAtomicForce_(NULL),
-    nodalGhostForce_(NULL),
+    nodalAtomicForce_(nullptr),
+    nodalGhostForce_(nullptr),
     momentumSource_(atc_->atomic_source(VELOCITY))
   {
     // flag for performing boundary flux calculation
@@ -1540,14 +1540,14 @@ namespace ATC {
     KinetostatShapeFunction(kinetostat,regulatorPrefix),
     velocity_(atc_->field(VELOCITY)),
     //timeFilter_(atomicRegulator_->time_filter()),
-    //nodalAtomicLambdaForce_(NULL),
-    //lambdaPowerFiltered_(NULL),
-    //atomKinetostatForces_(NULL),
-    //atomMasses_(NULL),
-    nodalAtomicMomentum_(NULL),
+    //nodalAtomicLambdaForce_(nullptr),
+    //lambdaPowerFiltered_(nullptr),
+    //atomKinetostatForces_(nullptr),
+    //atomMasses_(nullptr),
+    nodalAtomicMomentum_(nullptr),
     isFirstTimestep_(true),
-    atomPredictedVelocities_(NULL),
-    nodalAtomicPredictedMomentum_(NULL),
+    atomPredictedVelocities_(nullptr),
+    nodalAtomicPredictedMomentum_(nullptr),
     dtFactor_(0.)
   {
     // constuct/obtain data corresponding to stage 3 of ATC_Method::initialize
@@ -1796,8 +1796,8 @@ namespace ATC {
                                  const string & regulatorPrefix) :
     KinetostatGlcFs(kinetostat,regulatorPrefix),
     momentumSource_(atc_->atomic_source(VELOCITY)),
-    nodalGhostForce_(NULL),
-    nodalGhostForceFiltered_(NULL)
+    nodalGhostForce_(nullptr),
+    nodalGhostForceFiltered_(nullptr)
   {
     // flag for performing boundary flux calculation
     fieldMask_(VELOCITY,FLUX) = true;
@@ -2403,9 +2403,9 @@ namespace ATC {
   KinetostatFluxFixed::KinetostatFluxFixed(AtomicRegulator * kinetostat,
                                            bool constructKinetostats) :
     RegulatorMethod(kinetostat),
-    kinetostatFlux_(NULL),
-    kinetostatFixed_(NULL),
-    kinetostatBcs_(NULL)
+    kinetostatFlux_(nullptr),
+    kinetostatFixed_(nullptr),
+    kinetostatBcs_(nullptr)
   {
     if (constructKinetostats) {
       if (kinetostat->coupling_mode(VELOCITY) == AtomicRegulator::GHOST_FLUX) {

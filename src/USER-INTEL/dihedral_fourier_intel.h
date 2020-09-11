@@ -63,7 +63,7 @@ class DihedralFourierIntel : public DihedralFourier {
     fc_packed1 **bp;
 
     ForceConst() : _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL, NULL, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr, nullptr, nullptr); }
 
     void set_ntypes(const int nbondtypes, int *setflag, int *nterms,
                     Memory *memory);

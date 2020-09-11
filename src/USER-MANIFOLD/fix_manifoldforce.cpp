@@ -76,7 +76,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   ptr_m->params = new double[nvars];
-  if (ptr_m->params == NULL) {
+  if (ptr_m->params == nullptr) {
     error->all(FLERR,"Parameter pointer was NULL!");
   }
 

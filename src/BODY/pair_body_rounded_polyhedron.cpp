@@ -58,20 +58,20 @@ enum {EF_INVALID=0,EF_NONE,EF_PARALLEL,EF_SAME_SIDE_OF_FACE,
 PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
   facmax = facnummax = 0;
-  face = NULL;
-  facnum = facfirst = NULL;
+  face = nullptr;
+  facnum = facfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
-  maxerad = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
+  maxerad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -81,8 +81,8 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
   mu = 0.0;
   A_ua = 1.0;
 
-  k_n = NULL;
-  k_na = NULL;
+  k_n = nullptr;
+  k_na = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -440,7 +440,7 @@ void PairBodyRoundedPolyhedron::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = facnum[i] = 0;
 
-  double *merad = NULL;
+  double *merad = nullptr;
   memory->create(merad,ntypes+1,"pair:merad");
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
@@ -884,7 +884,7 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 
     project_pt_plane(x[jbody], xi1, xi2, xi3, h, d, inside);
 
-    inside_polygon(ibody, ni, x[ibody], h, NULL, inside, tmp);
+    inside_polygon(ibody, ni, x[ibody], h, nullptr, inside, tmp);
     if (inside == 0) continue;
 
     delx = h[0] - x[jbody][0];
@@ -1880,7 +1880,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
     face_index  = face index of the body
     xmi         = atom i's coordinates
     q1          = tested point on the face (e.g. the projection of a point)
-    q2          = another point (can be NULL) for face-edge intersection
+    q2          = another point (can be nullptr) for face-edge intersection
   Output:
     inside1     = 1 if q1 is inside the polygon, 0 otherwise
     inside2     = 1 if q2 is inside the polygon, 0 otherwise
@@ -1929,7 +1929,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
       anglesum1 += acos(costheta);
     }
 
-    if (q2 != NULL) {
+    if (q2 != nullptr) {
       MathExtra::sub3(xi1,q2,u);
       MathExtra::sub3(xi2,q2,v);
       magu = MathExtra::len3(u);
@@ -1945,7 +1945,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
   if (fabs(anglesum1 - MY_2PI) < EPSILON) inside1 = 1;
   else inside1 = 0;
 
-  if (q2 != NULL) {
+  if (q2 != nullptr) {
     if (fabs(anglesum2 - MY_2PI) < EPSILON) inside2 = 1;
     else inside2 = 0;
   }

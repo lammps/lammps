@@ -51,11 +51,11 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   nelements = 0;
 
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -143,7 +143,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if nullptr
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -152,7 +152,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -215,7 +215,7 @@ void PairCoulStreitz::init_style()
   // insure use of KSpace long-range solver when ewald specified, set g_ewald
 
   if (ewaldflag) {
-    if (force->kspace == NULL)
+    if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
@@ -799,5 +799,5 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
     if (kspacetype == 1) return (void *) &g_wolf;
     if (kspacetype == 2) return (void *) &g_ewald;
   }
-  return NULL;
+  return nullptr;
 }

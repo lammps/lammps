@@ -45,7 +45,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 {
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
-  sendlist = NULL;
+  sendlist = nullptr;
   k_sendlist = DAT::tdual_int_2d();
   k_total_send = DAT::tdual_int_scalar("comm::k_total_send");
 
@@ -54,9 +54,9 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // initialize comm buffers & exchange memory
 
   memory->destroy(buf_send);
-  buf_send = NULL;
+  buf_send = nullptr;
   memory->destroy(buf_recv);
-  buf_recv = NULL;
+  buf_recv = nullptr;
 
   k_exchange_lists = DAT::tdual_int_2d("comm:k_exchange_lists",2,100);
   k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
@@ -65,7 +65,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
 
   memory->destroy(maxsendlist);
-  maxsendlist = NULL;
+  maxsendlist = nullptr;
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
@@ -82,11 +82,11 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 CommKokkos::~CommKokkos()
 {
   memoryKK->destroy_kokkos(k_sendlist,sendlist);
-  sendlist = NULL;
+  sendlist = nullptr;
   memoryKK->destroy_kokkos(k_buf_send,buf_send);
-  buf_send = NULL;
+  buf_send = nullptr;
   memoryKK->destroy_kokkos(k_buf_recv,buf_recv);
-  buf_recv = NULL;
+  buf_recv = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

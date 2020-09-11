@@ -57,7 +57,7 @@ static const char cite_user_uef_package[] =
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), uefbox(NULL)
+  FixNH(lmp, narg, arg), uefbox(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 

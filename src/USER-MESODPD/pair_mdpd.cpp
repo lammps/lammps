@@ -54,7 +54,7 @@ PairMDPD::PairMDPD(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
 
   writedata = 1;
-  random = NULL;
+  random = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -348,15 +348,15 @@ void PairMDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&A_att[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&B_rep[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_r[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&A_att[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&B_rep[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_r[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&A_att[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&B_rep[i][j],1,MPI_DOUBLE,0,world);
@@ -386,10 +386,10 @@ void PairMDPD::write_restart_settings(FILE *fp)
 void PairMDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&temperature,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&temperature,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&temperature,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);

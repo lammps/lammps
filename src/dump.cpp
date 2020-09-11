@@ -32,8 +32,6 @@ using namespace LAMMPS_NS;
 #if defined(LMP_QSORT)
 // allocate space for static class variable
 Dump *Dump::dumpptr;
-#else
-#include "mergesort.h"
 #endif
 
 #define BIG 1.0e20
@@ -766,9 +764,9 @@ void Dump::sort()
 #else
   if (!reorderflag) {
     for (i = 0; i < nme; i++) index[i] = i;
-    if (sortcol == 0) merge_sort(index,nme,(void *)this,idcompare);
-    else if (sortorder == ASCEND) merge_sort(index,nme,(void *)this,bufcompare);
-    else merge_sort(index,nme,(void *)this,bufcompare_reverse);
+    if (sortcol == 0) utils::merge_sort(index,nme,(void *)this,idcompare);
+    else if (sortorder == ASCEND) utils::merge_sort(index,nme,(void *)this,bufcompare);
+    else utils::merge_sort(index,nme,(void *)this,bufcompare_reverse);
   }
 #endif
 

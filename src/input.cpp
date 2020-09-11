@@ -60,6 +60,37 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
+/** \class LAMMPS_NS::Input
+ *  \brief Class for processing commands and input files
+ *
+\verbatim embed:rst
+
+The Input class contains methods for reading, pre-processing and
+parsing LAMMPS commands and input files and will dispatch commands
+to the respective class instances or contains the code to execute
+the commands directly.  It also contains the instance of the
+Variable class which performs computations and text substitutions.
+
+\endverbatim */
+
+/** Input class constructor
+ *
+\verbatim embed:rst
+
+This sets up the input processing, processes the *-var* and *-echo*
+command line flags, holds the factory of commands and creates and
+initializes an instance of the Variable class.
+
+To execute a command, a specific class instance, derived from
+:cpp:class:`Pointers`, is created, then its ``command()`` member
+function executed, and finally the class instance is deleted.
+
+\endverbatim
+ *
+ * \param  lmp   pointer to the base LAMMPS class
+ * \param  argc  number of entries in *argv*
+ * \param  argv  argument vector  */
+
 Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
@@ -137,10 +168,15 @@ Input::~Input()
   delete command_map;
 }
 
-/* ----------------------------------------------------------------------
-   process all input from infile
-   infile = stdin or file if command-line arg "-in" was used
-------------------------------------------------------------------------- */
+/** Process all input from the ``FILE *`` pointer *infile*
+ *
+\verbatim embed:rst
+
+This will read lines from *infile*, parse and execute them until the end
+of the file is reached.  The *infile* pointer will usually point to
+``stdin`` or the input file given with the ``-in`` command line flag.
+
+\endverbatim */
 
 void Input::file()
 {
@@ -229,10 +265,21 @@ void Input::file()
   }
 }
 
-/* ----------------------------------------------------------------------
-   process all input from file at filename
-   mostly called from library interface
-------------------------------------------------------------------------- */
+/** Process all input from the file *filename*
+ *
+\verbatim embed:rst
+
+This function opens the file at the path *filename*, put the current
+file pointer stored in *infile* on a stack and instead assign *infile*
+with the newly opened file pointer.  Then it will call the
+:cpp:func:`Input::file() <LAMMPS_NS::Input::file()>` function to read,
+parse and execute the contents of that file.  When the end of the file
+is reached, it is closed and the previous file pointer from the infile
+file pointer stack restored to *infile*.
+
+\endverbatim
+ *
+ * \param  filename  name of file with LAMMPS commands */
 
 void Input::file(const char *filename)
 {
@@ -263,11 +310,19 @@ void Input::file(const char *filename)
   }
 }
 
-/* ----------------------------------------------------------------------
-   invoke one command in single
-   first copy to line, then parse, then execute it
-   return command name to caller
-------------------------------------------------------------------------- */
+/** Process a single command from a string in *single*
+ *
+\verbatim embed:rst
+
+This function takes the text in *single*, makes a copy, parses that,
+executes the command and returns the name of the command (without the
+arguments).  If there was no command in *single* it will return
+``NULL``.
+
+\endverbatim
+ *
+ * \param  single  string with LAMMPS command
+ * \return         string with name of the parsed command w/o arguments */
 
 char *Input::one(const std::string &single)
 {

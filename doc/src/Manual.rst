@@ -72,8 +72,6 @@ every LAMMPS command.
    pg_library
    Modify
    pg_developer
-..   pg_modify
-..   pg_base
 
 .. toctree::
    :caption: Index

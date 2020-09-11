@@ -1300,6 +1300,7 @@ initializations
 initio
 InP
 inregion
+instantiation
 Institut
 integrators
 Integrators
@@ -1752,6 +1753,7 @@ Mattox
 Mattson
 maxangle
 maxbond
+maxchunk
 maxelt
 maxeval
 maxfiles
@@ -1975,6 +1977,7 @@ MxN
 myCompute
 myIndex
 mylammps
+MyPool
 mysocket
 myTemp
 myVec
@@ -3460,6 +3463,7 @@ zz
 Zm
 PowerShell
 filesystems
+Zstandard
 Zstd
 zstd
 checksum

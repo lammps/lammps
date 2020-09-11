@@ -164,7 +164,7 @@ TEST(lammps_open_fortran, no_args) {
     MPI_Comm_split(MPI_COMM_WORLD, 0, 1, &mycomm);
     int fcomm = MPI_Comm_c2f(mycomm);
     ::testing::internal::CaptureStdout();
-    void *handle = lammps_open_fortran(0, NULL, fcomm, NULL);
+    void *handle = lammps_open_fortran(0, NULL, fcomm);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;

@@ -123,7 +123,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   tagint *s = NULL;
   int tag_size = 0, special_size;
   if (buffers->need_tag()) tag_size = e_nall;
-  if (molecular) {
+  if (molecular != Atom::ATOMIC) {
     s = atom->special[0];
     ns = atom->nspecial[0];
     special_size = aend;
@@ -153,7 +153,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   #endif
 
   int moltemplate;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
   if (moltemplate)
     error->all(FLERR,

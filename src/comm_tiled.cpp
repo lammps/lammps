@@ -777,7 +777,7 @@ void CommTiled::exchange()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -1163,7 +1163,7 @@ void CommTiled::borders()
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
+  if (map_style != Atom::MAP_NONE) atom->map_set();
 }
 
 /* ----------------------------------------------------------------------

@@ -1300,7 +1300,7 @@ void Neighbor::init_topology()
 
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
-  // bonds,etc can only be broken for atom->molecular = 1, not 2
+  // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
@@ -1314,7 +1314,7 @@ void Neighbor::init_topology()
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
-  if (atom->avec->bonds_allow && atom->molecular == 1) {
+  if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (bond_off) break;
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -1322,7 +1322,7 @@ void Neighbor::init_topology()
     }
   }
 
-  if (atom->avec->angles_allow && atom->molecular == 1) {
+  if (atom->avec->angles_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (angle_off) break;
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -1331,7 +1331,7 @@ void Neighbor::init_topology()
   }
 
   int dihedral_off = 0;
-  if (atom->avec->dihedrals_allow && atom->molecular == 1) {
+  if (atom->avec->dihedrals_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -1340,7 +1340,7 @@ void Neighbor::init_topology()
   }
 
   int improper_off = 0;
-  if (atom->avec->impropers_allow && atom->molecular == 1) {
+  if (atom->avec->impropers_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -1367,7 +1367,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->bonds_allow) {
     int old_bondwhich = bondwhich;
-    if (atom->molecular == 2) bondwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) bondwhich = TEMPLATE;
     else if (bond_off) bondwhich = PARTIAL;
     else bondwhich = ALL;
     if (!neigh_bond || bondwhich != old_bondwhich) {
@@ -1383,7 +1383,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->angles_allow) {
     int old_anglewhich = anglewhich;
-    if (atom->molecular == 2) anglewhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) anglewhich = TEMPLATE;
     else if (angle_off) anglewhich = PARTIAL;
     else anglewhich = ALL;
     if (!neigh_angle || anglewhich != old_anglewhich) {
@@ -1399,7 +1399,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->dihedrals_allow) {
     int old_dihedralwhich = dihedralwhich;
-    if (atom->molecular == 2) dihedralwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) dihedralwhich = TEMPLATE;
     else if (dihedral_off) dihedralwhich = PARTIAL;
     else dihedralwhich = ALL;
     if (!neigh_dihedral || dihedralwhich != old_dihedralwhich) {
@@ -1415,7 +1415,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->impropers_allow) {
     int old_improperwhich = improperwhich;
-    if (atom->molecular == 2) improperwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) improperwhich = TEMPLATE;
     else if (improper_off) improperwhich = PARTIAL;
     else improperwhich = ALL;
     if (!neigh_improper || improperwhich != old_improperwhich) {
@@ -1799,7 +1799,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
     // if molecular on, do not match ATOMONLY (b/c a MOLONLY Npair exists)
     // if molecular off, do not match MOLONLY (b/c an ATOMONLY Npair exists)
 
-    if (molecular) {
+    if (molecular != Atom::ATOMIC) {
       if (mask & NP_ATOMONLY) continue;
     } else if (!molecular) {
       if (mask & NP_MOLONLY) continue;

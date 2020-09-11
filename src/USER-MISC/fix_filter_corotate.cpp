@@ -71,10 +71,10 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix filter/corotate "
       "with non-molecular system");
-  if (molecular == 2)
+  if (molecular == Atom::TEMPLATE)
     error->all(FLERR,"Cannot use fix filter/corotate "
       "with molecular template system");
 
@@ -155,7 +155,7 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   shake_type = NULL;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);    //calls grow_arrays
+  atom->add_callback(Atom::GROW);    //calls grow_arrays
 
   x_store = NULL;
 
@@ -212,7 +212,7 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

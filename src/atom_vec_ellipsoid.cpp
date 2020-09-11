@@ -34,7 +34,7 @@ using namespace MathConst;
 
 AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 4;

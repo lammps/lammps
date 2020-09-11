@@ -133,7 +133,7 @@ void ThirdOrder::command(int narg, char **arg)
   else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
   del = utils::numeric(FLERR, arg[2],false,lmp);
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"third_order command requires an atom map, see atom_modify");
 
   // move atoms by 3-vector or specified variable(s)
@@ -408,7 +408,7 @@ void ThirdOrder::update_force()
     force->pair->compute(eflag,vflag);
     timer->stamp(Timer::PAIR);
   }
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);

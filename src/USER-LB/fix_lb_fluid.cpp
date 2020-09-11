@@ -242,7 +242,7 @@ a z wall velocity without implementing fixed BCs in z");
   //--------------------------------------------------------------------------
   hydroF = NULL;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   for(int i=0; i<atom->nmax; i++)
     for(int j=0; j<3; j++)
@@ -510,7 +510,7 @@ a z wall velocity without implementing fixed BCs in z");
 FixLbFluid::~FixLbFluid()
 {
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
   memory->destroy(hydroF);
 
   memory->destroy(Ng_lb);

@@ -82,8 +82,8 @@ vstore(NULL), astore(NULL), rbuf(NULL)
   }
   if (flavor == PERATOM) {
     grow_arrays(atom->nmax);
-    atom->add_callback(0);
-    if (restart_peratom) atom->add_callback(1);
+    atom->add_callback(Atom::GROW);
+    if (restart_peratom) atom->add_callback(Atom::RESTART);
     rbuf = NULL;
   }
 
@@ -117,8 +117,8 @@ FixStore::~FixStore()
   // unregister callbacks to this fix from Atom class
 
   if (flavor == PERATOM) {
-    atom->delete_callback(id,0);
-    if (restart_peratom) atom->delete_callback(id,1);
+    atom->delete_callback(id,Atom::GROW);
+    if (restart_peratom) atom->delete_callback(id,Atom::RESTART);
   }
 
   memory->destroy(vstore);

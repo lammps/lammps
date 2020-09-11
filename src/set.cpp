@@ -1254,7 +1254,7 @@ void Set::topology(int keyword)
 
   // error check
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Cannot set bond topology types for atom style template");
 
   // border swap to acquire ghost atom info

@@ -118,7 +118,7 @@ void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned in
 
 void AtomKokkos::allocate_type_arrays()
 {
-  if (avec->mass_type) {
+  if (avec->mass_type == AtomVec::PER_TYPE) {
     k_mass = DAT::tdual_float_1d("Mass",ntypes+1);
     mass = k_mass.h_view.data();
     mass_setflag = new int[ntypes+1];

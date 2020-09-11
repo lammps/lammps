@@ -36,7 +36,7 @@ using namespace MathConst;
 
 AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
 
   comm_x_only = 1;
   comm_f_only = 0;

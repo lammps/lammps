@@ -20,8 +20,8 @@ using namespace LAMMPS_NS;
 
 AtomVecCharge::AtomVecCharge(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   atom->q_flag = 1;
 

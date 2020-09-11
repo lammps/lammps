@@ -568,7 +568,7 @@ void CommKokkos::exchange_device()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -1043,7 +1043,7 @@ void CommKokkos::borders_device() {
   // reset global->local map
 
   atomKK->modified(exec_space,ALL_MASK);
-  if (map_style) {
+  if (map_style != Atom::MAP_NONE) {
     atomKK->sync(Host,TAG_MASK);
     atom->map_set();
   }

@@ -135,7 +135,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix pour mol command");
 
-      if (atom->molecular == 2 && onemols != atom->avec->onemols)
+      if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix pour molecule template ID must be same "
                    "as atom style template ID");
       onemols[i]->check_attributes(0);
@@ -644,7 +644,7 @@ void FixPour::pre_exchange()
               atom->molecule[n] = maxmol_all+1;
             }
           }
-          if (atom->molecular == 2) {
+          if (atom->molecular == Atom::TEMPLATE) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
           }
@@ -712,7 +712,7 @@ void FixPour::pre_exchange()
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style) {
+    if (atom->map_style != Atom::MAP_NONE) {
       atom->map_init();
       atom->map_set();
     }

@@ -70,7 +70,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
@@ -85,7 +85,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   vtmp = NULL;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix
 
@@ -242,7 +242,7 @@ FixShake::~FixShake()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom
@@ -715,7 +715,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   int max = 0;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
   } else {
     for (i = 0; i < nlocal; i++) {
@@ -749,7 +749,7 @@ void FixShake::find_clusters()
   // set npartner and partner_tag from special arrays
   // -----------------------------------------------------
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) {
       npartner[i] = nspecial[i][0];
       for (j = 0; j < npartner[i]; j++)
@@ -2568,7 +2568,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nbonds;
   int *btype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint *tag = atom->tag;
     tagint **bond_atom = atom->bond_atom;
     nbonds = atom->num_bond[i];
@@ -2595,10 +2595,10 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nbonds) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->bond_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->bond_type[i][m];
       else return btype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->bond_type[i][m] > 0) ||
           (setflag > 0 && atom->bond_type[i][m] < 0))
         atom->bond_type[i][m] = -atom->bond_type[i][m];
@@ -2624,7 +2624,7 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nangles;
   int *atype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint **angle_atom1 = atom->angle_atom1;
     tagint **angle_atom3 = atom->angle_atom3;
     nangles = atom->num_angle[i];
@@ -2652,10 +2652,10 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nangles) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->angle_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->angle_type[i][m];
       else return atype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->angle_type[i][m] > 0) ||
           (setflag > 0 && atom->angle_type[i][m] < 0))
         atom->angle_type[i][m] = -atom->angle_type[i][m];

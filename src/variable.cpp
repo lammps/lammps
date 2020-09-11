@@ -4525,7 +4525,7 @@ void Variable::peratom2global(int flag, char *word,
   // error check for ID larger than any atom
   // int_between_brackets() already checked for ID <= 0
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,
                "Indexed per-atom vector in variable formula without atom map");
 
@@ -5087,7 +5087,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   buffer = NULL;
 
   if (style == ATOMFILE) {
-    if (atom->map_style == 0)
+    if (atom->map_style == Atom::MAP_NONE)
       error->all(FLERR,"Cannot use atomfile-style "
                  "variable unless an atom map exists");
 

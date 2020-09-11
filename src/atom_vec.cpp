@@ -39,9 +39,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   nmax = 0;
   ngrow = 0;
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
-  mass_type = dipole_type = 0;
+  mass_type = dipole_type = PER_ATOM;
   forceclearflag = 0;
   maxexchange = 0;
   bonus_flag = 0;

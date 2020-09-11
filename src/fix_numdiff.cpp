@@ -64,7 +64,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays

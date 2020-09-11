@@ -127,8 +127,8 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   extvector   = 1;
   comm_forward = 3;
 
-  atom->add_callback(0); // Call LAMMPS to allocate memory for per-atom array
-  atom->add_callback(1); // Call LAMMPS to re-assign restart-data for per-atom array
+  atom->add_callback(Atom::GROW); // Call LAMMPS to allocate memory for per-atom array
+  atom->add_callback(Atom::RESTART); // Call LAMMPS to re-assign restart-data for per-atom array
 
   grow_arrays(atom->nmax);
 
@@ -152,7 +152,7 @@ int FixPIMD::setmask()
 
 void FixPIMD::init()
 {
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
 
   if(universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");

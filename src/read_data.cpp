@@ -773,14 +773,14 @@ void ReadData::command(int narg, char **arg)
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }
 
   // for atom style template systems, count total bonds,angles,etc
 
-  if (atom->molecular == 2) {
+  if (atom->molecular == Atom::TEMPLATE) {
     Molecule **onemols = atom->avec->onemols;
     int *molindex = atom->molindex;
     int *molatom = atom->molatom;
@@ -831,7 +831,7 @@ void ReadData::command(int narg, char **arg)
   // insure nbondtypes,etc are still consistent with template molecules,
   //   in case data file re-defined them
 
-  if (atom->molecular == 2) atom->avec->onemols[0]->check_attributes(1);
+  if (atom->molecular == Atom::TEMPLATE) atom->avec->onemols[0]->check_attributes(1);
 
   // if adding atoms, migrate atoms to new processors
   // use irregular() b/c box size could have changed dramaticaly
@@ -1183,7 +1183,7 @@ void ReadData::header(int firstpass)
   if (atom->nimpropers > 0 && atom->nimpropertypes <= 0)
     error->all(FLERR,"Impropers defined but no improper types");
 
-  if (atom->molecular == 2) {
+  if (atom->molecular == Atom::TEMPLATE) {
     if (atom->nbonds || atom->nangles || atom->ndihedrals || atom->nimpropers)
       error->all(FLERR,"No molecule topology allowed with atom style template");
   }
@@ -1231,7 +1231,7 @@ void ReadData::atoms()
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
@@ -1249,7 +1249,7 @@ void ReadData::velocities()
   if (me == 0) utils::logmesg(lmp,"  reading velocities ...\n");
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -1267,7 +1267,7 @@ void ReadData::velocities()
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   if (me == 0) utils::logmesg(lmp,fmt::format("  {} velocities\n",natoms));
@@ -1579,7 +1579,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
   int nchunk,eof;
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -1598,7 +1598,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   if (me == 0)
@@ -1618,7 +1618,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   char *eof;
 
   int mapflag = 0;
-  if (atom->map_style == 0 && firstpass) {
+  if (atom->map_style == Atom::MAP_NONE && firstpass) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -1702,7 +1702,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
   if (mapflag && firstpass) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   if (me == 0 && firstpass)

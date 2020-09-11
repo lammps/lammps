@@ -88,7 +88,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
   int molecular = atom->molecular;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
 
   int *ilist = list->ilist;
@@ -198,7 +198,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
             delz = ztmp - x[j][2];
             rsq = delx*delx + dely*dely + delz*delz;
             if (rsq <= cutneighsq[itype][jtype]) {
-              if (molecular) {
+              if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(special[i],nspecial[i],tag[j]);
                 else if (imol >= 0)
@@ -279,7 +279,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
           rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular) {
+            if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
                 which = find_special(special[j],nspecial[j],tag[i]);
               else {

@@ -152,21 +152,21 @@ void WriteData::write(const std::string &file)
   // sum up bond,angle,dihedral,improper counts
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
-  if (atom->molecular == 1 && (atom->nbonds || atom->nbondtypes)) {
+  if (atom->molecular == Atom::MOLECULAR && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(NULL);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
-  if (atom->molecular == 1 && (atom->nangles || atom->nangletypes)) {
+  if (atom->molecular == Atom::MOLECULAR && (atom->nangles || atom->nangletypes)) {
     nangles_local = atom->avec->pack_angle(NULL);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
-  if (atom->molecular == 1 && (atom->ndihedrals || atom->ndihedraltypes)) {
+  if (atom->molecular == Atom::MOLECULAR && (atom->ndihedrals || atom->ndihedraltypes)) {
     ndihedrals_local = atom->avec->pack_dihedral(NULL);
     MPI_Allreduce(&ndihedrals_local,&ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
-  if (atom->molecular == 1 && (atom->nimpropers || atom->nimpropertypes)) {
+  if (atom->molecular == Atom::MOLECULAR && (atom->nimpropers || atom->nimpropertypes)) {
     nimpropers_local = atom->avec->pack_improper(NULL);
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
@@ -196,7 +196,7 @@ void WriteData::write(const std::string &file)
   // molecular topology info if defined
   // do not write molecular topology for atom_style template
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds && nbonds) bonds();
     if (atom->nangles && nangles) angles();
     if (atom->ndihedrals) dihedrals();
@@ -235,7 +235,7 @@ void WriteData::header()
 
   // do not write molecular topology info for atom_style template
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds || atom->nbondtypes)
       fmt::print(fp,"{} bonds\n{} bond types\n",
                  nbonds,atom->nbondtypes);

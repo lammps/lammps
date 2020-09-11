@@ -1273,7 +1273,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown
 
-    if (lmp->atom->map_style) {
+    if (lmp->atom->map_style != Atom::MAP_NONE) {
       lmp->atom->map_init();
       lmp->atom->map_set();
     }
@@ -2252,7 +2252,7 @@ void lammps_scatter_atoms(void *handle, char *name,
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
@@ -2382,7 +2382,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");
@@ -3228,7 +3228,7 @@ void lammps_scatter(void *ptr, char *name,
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter");
@@ -3432,7 +3432,7 @@ void lammps_scatter_subset(void *ptr, char *name,
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");

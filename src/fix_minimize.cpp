@@ -28,7 +28,7 @@ FixMinimize::FixMinimize(LAMMPS *lmp, int narg, char **arg) :
   // register callback to this fix from Atom class
   // don't perform initial allocation here, must wait until add_vector()
 
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -37,7 +37,7 @@ FixMinimize::~FixMinimize()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored data
 

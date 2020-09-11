@@ -368,7 +368,7 @@ void PairList::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style list requires atom IDs");
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style list requires an atom map");
 
   if (offset_flag) {

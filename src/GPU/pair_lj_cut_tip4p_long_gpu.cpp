@@ -179,9 +179,9 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (force->angle == NULL)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
-  if (atom->map_style == 2)
+  if (atom->map_style == Atom::MAP_HASH)
     error->all(FLERR,"GPU-accelerated lj/cut/tip4p/long currently"
-        " requires map style 'array' (atom_modify map array)");
+        " requires 'array' style atom map (atom_modify map array)");
 
   //PairLJCutCoulLong::init_style();
   // Repeat cutsq calculation because done after call to init_style

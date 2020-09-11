@@ -63,7 +63,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 
   if(gjfflag){
     grow_arrays(atomKK->nmax);
-    atom->add_callback(0);
+    atom->add_callback(Atom::GROW);
     // initialize franprev to zero
     for (int i = 0; i < atomKK->nlocal; i++) {
       franprev[i][0] = 0.0;

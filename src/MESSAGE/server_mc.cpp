@@ -47,7 +47,7 @@ void ServerMC::loop()
   if (domain->box_exist == 0)
     error->all(FLERR,"Server command before simulation box is defined");
 
-  if (!atom->map_style) error->all(FLERR,"Server mc requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Server mc requires atom map");
   if (atom->tag_enable == 0) error->all(FLERR,"Server mc requires atom IDs");
   if (sizeof(tagint) != 4) error->all(FLERR,"Server mc requires 32-bit atom IDs");
 

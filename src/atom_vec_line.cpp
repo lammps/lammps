@@ -33,7 +33,7 @@ using namespace MathConst;
 
 AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 1;

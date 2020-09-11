@@ -42,7 +42,7 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->clientserver != 1)
     error->all(FLERR,"Fix client/md requires LAMMPS be running as a client");
-  if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Fix client/md requires atom map");
 
   if (sizeof(tagint) != 4)
     error->all(FLERR,"Fix client/md only supports 32-bit atom IDs");

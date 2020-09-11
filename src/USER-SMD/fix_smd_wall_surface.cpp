@@ -43,8 +43,8 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
         restart_peratom = 0;
         first = 1;
 
-        //atom->add_callback(0);
-        //atom->add_callback(1);
+        //atom->add_callback(Atom::GROW);
+        //atom->add_callback(Atom::RESTART);
 
         if (narg != 6)
                 error->all(FLERR, "Illegal number of arguments for fix smd/wall_surface");
@@ -72,8 +72,8 @@ FixSMDWallSurface::~FixSMDWallSurface() {
         filename = NULL;
         // unregister this fix so atom class doesn't invoke it any more
 
-        //atom->delete_callback(id, 0);
-        //atom->delete_callback(id, 1);
+        //atom->delete_callback(id,Atom::GROW);
+        //atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -465,7 +465,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 // create global mapping of atoms
 // zero nghost in case are adding new atoms to existing atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();

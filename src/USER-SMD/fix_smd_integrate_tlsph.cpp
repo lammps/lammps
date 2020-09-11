@@ -95,7 +95,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
 
         // set comm sizes needed by this fix
 
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
 }
 

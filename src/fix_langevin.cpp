@@ -178,7 +178,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   if (gjfflag) {
     grow_arrays(atom->nmax);
-    atom->add_callback(0);
+    atom->add_callback(Atom::GROW);
 
   // initialize franprev to zero
 
@@ -211,7 +211,7 @@ FixLangevin::~FixLangevin()
   if (gjfflag) {
     memory->destroy(franprev);
     memory->destroy(lv);
-    atom->delete_callback(id,0);
+    atom->delete_callback(id,Atom::GROW);
   }
 }
 

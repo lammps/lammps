@@ -92,8 +92,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   s_gld = NULL;
   grow_arrays(atom->nmax);
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // read in the Prony series coefficients
   int iarg = narg_min;
@@ -179,8 +179,8 @@ FixGLD::~FixGLD()
   memory->destroy(s_gld);
 
   // remove callbacks to fix, so atom class stops calling it
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ----------------------------------------------------------------------

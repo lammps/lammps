@@ -296,7 +296,7 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
 colvarproxy_smp::colvarproxy_smp()
 {
   b_smp_active = true; // May be disabled by user option
-  omp_lock_state = nullptr;
+  omp_lock_state = NULL;
 #if defined(_OPENMP)
   if (smp_thread_id() == 0) {
     omp_lock_state = reinterpret_cast<void *>(new omp_lock_t);
@@ -459,7 +459,7 @@ int colvarproxy_smp::smp_unlock()
 
 colvarproxy_script::colvarproxy_script()
 {
-  script = nullptr;
+  script = NULL;
 }
 
 
@@ -507,7 +507,7 @@ int colvarproxy_script::run_colvar_gradient_callback(std::string const & /* name
 
 colvarproxy_tcl::colvarproxy_tcl()
 {
-  tcl_interp_ = nullptr;
+  tcl_interp_ = NULL;
 }
 
 
@@ -528,7 +528,7 @@ char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
 #if defined(COLVARS_TCL)
   return Tcl_GetString(reinterpret_cast<Tcl_Obj *>(obj));
 #else
-  return nullptr;
+  return NULL;
 #endif
 }
 
@@ -666,7 +666,7 @@ std::ostream * colvarproxy_io::output_stream(std::string const &output_name,
   }
 
   std::ostream *os = get_output_stream(output_name);
-  if (os != nullptr) return os;
+  if (os != NULL) return os;
 
   if (!(mode & (std::ios_base::app | std::ios_base::ate))) {
     backup_file(output_name);
@@ -675,7 +675,7 @@ std::ostream * colvarproxy_io::output_stream(std::string const &output_name,
   if (!osf->is_open()) {
     cvm::error("Error: cannot write to file/channel \""+output_name+"\".\n",
                FILE_ERROR);
-    return nullptr;
+    return NULL;
   }
   output_stream_names.push_back(output_name);
   output_files.push_back(osf);
@@ -692,7 +692,7 @@ std::ostream *colvarproxy_io::get_output_stream(std::string const &output_name)
       return *osi;
     }
   }
-  return nullptr;
+  return NULL;
 }
 
 
@@ -794,7 +794,7 @@ int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
 
 colvarproxy::colvarproxy()
 {
-  colvars = nullptr;
+  colvars = NULL;
   b_simulation_running = true;
   b_delete_requested = false;
 }

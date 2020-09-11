@@ -47,7 +47,7 @@ int colvarbias::init(std::string const &conf)
 
     {
       colvarbias *bias_with_name = cvm::bias_by_name(this->name);
-      if (bias_with_name != nullptr) {
+      if (bias_with_name != NULL) {
         if ((bias_with_name->rank != this->rank) ||
             (bias_with_name->bias_type != this->bias_type)) {
           cvm::error("Error: this bias cannot have the same name, \""+this->name+
@@ -295,8 +295,8 @@ int colvarbias::update()
     colvar_values[i] = colvars[i]->value();
   }
 
-  error_code |= calc_energy(nullptr);
-  error_code |= calc_forces(nullptr);
+  error_code |= calc_energy(NULL);
+  error_code |= calc_forces(NULL);
 
   return error_code;
 }
@@ -547,8 +547,8 @@ colvarbias_ti::colvarbias_ti(char const *key)
   : colvarbias(key)
 {
   provide(f_cvb_calc_ti_samples);
-  ti_avg_forces = nullptr;
-  ti_count = nullptr;
+  ti_avg_forces = NULL;
+  ti_count = NULL;
 }
 
 
@@ -560,13 +560,13 @@ colvarbias_ti::~colvarbias_ti()
 
 int colvarbias_ti::clear_state_data()
 {
-  if (ti_avg_forces != nullptr) {
+  if (ti_avg_forces != NULL) {
     delete ti_avg_forces;
-    ti_avg_forces = nullptr;
+    ti_avg_forces = NULL;
   }
-  if (ti_count != nullptr) {
+  if (ti_count != NULL) {
     delete ti_count;
-    ti_count = nullptr;
+    ti_count = NULL;
   }
   return COLVARS_OK;
 }
@@ -622,7 +622,7 @@ int colvarbias_ti::init(std::string const &conf)
 int colvarbias_ti::init_grids()
 {
   if (is_enabled(f_cvb_calc_ti_samples)) {
-    if (ti_avg_forces == nullptr) {
+    if (ti_avg_forces == NULL) {
       ti_bin.resize(num_variables());
       ti_system_forces.resize(num_variables());
       for (size_t icv = 0; icv < num_variables(); icv++) {
@@ -643,7 +643,7 @@ int colvarbias_ti::init_grids()
 
 int colvarbias_ti::update()
 {
-  return update_system_forces(nullptr);
+  return update_system_forces(NULL);
 }
 
 
@@ -679,7 +679,7 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
           ti_system_forces[i] = variables(i)->total_force();
         } else {
           ti_system_forces[i] = variables(i)->total_force() -
-            ((subtract_forces != nullptr) ?
+            ((subtract_forces != NULL) ?
              (*subtract_forces)[i] : previous_colvar_forces[i]);
         }
       }
@@ -759,7 +759,7 @@ int colvarbias_ti::write_output_files()
 
   std::string const ti_output_prefix = cvm::output_prefix()+"."+this->name;
 
-  std::ostream *os = nullptr;
+  std::ostream *os = NULL;
 
   if (is_enabled(f_cvb_write_ti_samples)) {
     std::string const ti_count_file_name(ti_output_prefix+".ti.count");

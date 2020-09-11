@@ -607,7 +607,7 @@ public:
                                       std::ios_base::openmode mode =
                                       std::ios_base::out);
 
-  /// Returns a reference to output_name if it exists, nullptr otherwise
+  /// Returns a reference to output_name if it exists, NULL otherwise
   virtual std::ostream *get_output_stream(std::string const &output_name);
 
   /// \brief Flushes the given output channel

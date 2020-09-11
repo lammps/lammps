@@ -135,7 +135,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
                                           char const *group_key,
                                           bool optional)
 {
-  cvm::atom_group *group = nullptr;
+  cvm::atom_group *group = NULL;
   std::string group_conf;
 
   if (key_lookup(conf, group_key, &group_conf)) {
@@ -298,7 +298,7 @@ colvar::cvc::~cvc()
   free_children_deps();
   remove_all_children();
   for (size_t i = 0; i < atom_groups.size(); i++) {
-    if (atom_groups[i] != nullptr) delete atom_groups[i];
+    if (atom_groups[i] != NULL) delete atom_groups[i];
   }
 }
 
@@ -344,7 +344,7 @@ colvarvalue const *colvar::cvc::get_param_grad(std::string const &param_name)
 {
   colvarvalue const *ptr =
     reinterpret_cast<colvarvalue const *>(get_param_grad_ptr(param_name));
-  return ptr != nullptr ? ptr : nullptr;
+  return ptr != NULL ? ptr : NULL;
 }
 
 
@@ -553,7 +553,7 @@ void colvar::cvc::debug_gradients()
       }
     }
 
-    if ((group->is_enabled(f_ag_fit_gradients)) && (group->fitting_group != nullptr)) {
+    if ((group->is_enabled(f_ag_fit_gradients)) && (group->fitting_group != NULL)) {
       cvm::atom_group *ref_group = group->fitting_group;
       group->read_positions();
       group->calc_required_properties();

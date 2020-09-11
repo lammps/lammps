@@ -15,7 +15,7 @@
 
 colvarbias_histogram::colvarbias_histogram(char const *key)
   : colvarbias(key),
-    grid(nullptr), out_name("")
+    grid(NULL), out_name("")
 {
   provide(f_cvb_bypass_ext_lagrangian); // Allow histograms of actual cv for extended-Lagrangian
 }
@@ -105,7 +105,7 @@ colvarbias_histogram::~colvarbias_histogram()
 {
   if (grid) {
     delete grid;
-    grid = nullptr;
+    grid = NULL;
   }
 }
 

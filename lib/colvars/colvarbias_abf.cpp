@@ -18,16 +18,16 @@ colvarbias_abf::colvarbias_abf(char const *key)
     b_UI_estimator(false),
     b_CZAR_estimator(false),
     pabf_freq(0),
-    system_force(nullptr),
-    gradients(nullptr),
-    samples(nullptr),
-    pmf(nullptr),
-    z_gradients(nullptr),
-    z_samples(nullptr),
-    czar_gradients(nullptr),
-    czar_pmf(nullptr),
-    last_gradients(nullptr),
-    last_samples(nullptr)
+    system_force(NULL),
+    gradients(NULL),
+    samples(NULL),
+    pmf(NULL),
+    z_gradients(NULL),
+    z_samples(NULL),
+    czar_gradients(NULL),
+    czar_pmf(NULL),
+    last_gradients(NULL),
+    last_samples(NULL)
 {
 }
 
@@ -261,37 +261,37 @@ colvarbias_abf::~colvarbias_abf()
 {
   if (samples) {
     delete samples;
-    samples = nullptr;
+    samples = NULL;
   }
 
   if (gradients) {
     delete gradients;
-    gradients = nullptr;
+    gradients = NULL;
   }
 
   if (pmf) {
     delete pmf;
-    pmf = nullptr;
+    pmf = NULL;
   }
 
   if (z_samples) {
     delete z_samples;
-    z_samples = nullptr;
+    z_samples = NULL;
   }
 
   if (z_gradients) {
     delete z_gradients;
-    z_gradients = nullptr;
+    z_gradients = NULL;
   }
 
   if (czar_gradients) {
     delete czar_gradients;
-    czar_gradients = nullptr;
+    czar_gradients = NULL;
   }
 
   if (czar_pmf) {
     delete czar_pmf;
-    czar_pmf = nullptr;
+    czar_pmf = NULL;
   }
 
   // shared ABF
@@ -299,17 +299,17 @@ colvarbias_abf::~colvarbias_abf()
   // but now we can call shared externally
   if (last_samples) {
     delete last_samples;
-    last_samples = nullptr;
+    last_samples = NULL;
   }
 
   if (last_gradients) {
     delete last_gradients;
-    last_gradients = nullptr;
+    last_gradients = NULL;
   }
 
   if (system_force) {
     delete [] system_force;
-    system_force = nullptr;
+    system_force = NULL;
   }
 }
 
@@ -488,7 +488,7 @@ int colvarbias_abf::update()
   }
 
   /// Add the bias energy for 1D ABF
-  bias_energy = calc_energy(nullptr);
+  bias_energy = calc_energy(NULL);
 
   return COLVARS_OK;
 }

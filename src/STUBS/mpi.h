@@ -50,7 +50,7 @@ extern "C" {
 #define MPI_GROUP_EMPTY -1
 
 #define MPI_ANY_SOURCE -1
-#define MPI_STATUS_IGNORE nullptr
+#define MPI_STATUS_IGNORE NULL
 
 #define MPI_Comm int
 #define MPI_Request int
@@ -60,7 +60,7 @@ extern "C" {
 #define MPI_Group int
 #define MPI_Offset long
 
-#define MPI_IN_PLACE nullptr
+#define MPI_IN_PLACE NULL
 
 #define MPI_MAX_PROCESSOR_NAME 128
 #define MPI_MAX_LIBRARY_VERSION_STRING 128

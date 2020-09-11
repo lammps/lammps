@@ -53,10 +53,26 @@ if(ENABLE_COVERAGE)
     endif()
 
     if(COVERAGE_FOUND)
+        set(PYTHON_COVERAGE_HTML_DIR ${CMAKE_BINARY_DIR}/python_coverage_html)
+        add_custom_command(
+            OUTPUT ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            COMMAND ${COVERAGE_BINARY} combine
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
+            COMMENT "Combine Python coverage files..."
+        )
+
+        add_custom_target(
+            gen_python_coverage_html
+            COMMAND ${COVERAGE_BINARY} html -d ${PYTHON_COVERAGE_HTML_DIR}
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
+            COMMENT "Generating HTML Python coverage report..."
+        )
+
         add_custom_target(
             gen_python_coverage_xml
-            COMMAND ${COVERAGE_BINARY} combine
             COMMAND ${COVERAGE_BINARY} xml -o ${CMAKE_BINARY_DIR}/python_coverage.xml
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
             COMMENT "Generating XML Python coverage report..."
         )

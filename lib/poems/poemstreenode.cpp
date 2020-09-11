@@ -18,7 +18,7 @@
 #include "poemstreenode.h"
 
 // constructor; initialize the data and pointer fields
-// The pointer value nullptr assigns a empty subtree
+// The pointer value NULL assigns a empty subtree
 TreeNode::TreeNode (const int & item, TreeNode *lptr,TreeNode *rptr,
 					int balfac):data(item), left(lptr), right(rptr), balanceFactor(balfac)
 {

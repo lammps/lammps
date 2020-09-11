@@ -82,7 +82,7 @@ public:
       DeleteAuxData = callback;
     }
 
-        void Insert(const int& item, const int& data, void * AuxData = nullptr);
+        void Insert(const int& item, const int& data, void * AuxData = NULL);
         void Delete(const int& item);
         void AVLInsert(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);
         void ClearList(void);
@@ -99,7 +99,7 @@ Tree::Tree(void)
         root = 0;
         current = 0;
         size = 0;
-    DeleteAuxData = nullptr;
+    DeleteAuxData = NULL;
 }
 
 
@@ -131,18 +131,18 @@ Tree& Tree::operator = (const Tree& rhs)
 }
 
 // search for data item in the tree. if found, return its node
-// address and a pointer to its parent; otherwise, return nullptr
+// address and a pointer to its parent; otherwise, return NULL
 TreeNode *Tree::FindNode(const int& item,
                                                                    TreeNode* & parent) const
 {
         // cycle t through the tree starting with root
         TreeNode *t = root;
 
-        // the parent of the root is nullptr
-        parent = nullptr;
+        // the parent of the root is NULL
+        parent = NULL;
 
         // terminate on empty subtree
-        while(t != nullptr)
+        while(t != NULL)
         {
                 // stop on a match
                 if (item == t->data)
@@ -158,7 +158,7 @@ TreeNode *Tree::FindNode(const int& item,
                 }
         }
 
-        // return pointer to node; nullptr if not found
+        // return pointer to node; NULL if not found
         return t;
 }
 
@@ -172,14 +172,14 @@ void * Tree::Find(int& item)
         current = FindNode (item, parent);
 
         // if item found, assign data to item and return True
-        if (current != nullptr)
+        if (current != NULL)
         {
                 item = current->data;
         return current->GetAuxData();
         }
         else
                 // item not found in the tree. return False
-                return nullptr;
+                return NULL;
 }
 
 
@@ -194,7 +194,7 @@ void Tree::Insert(const int& item, const int& data, void * AuxData)
         int reviseBalanceFactor = 0;
 
         // get a new AVL tree node with empty pointer fields
-        newNode = GetTreeNode(item,nullptr,nullptr);
+        newNode = GetTreeNode(item,NULL,NULL);
         newNode->data = data;
         newNode->SetAuxData(AuxData);
         // call recursive routine to actually insert the element
@@ -213,7 +213,7 @@ void Tree::AVLInsert(TreeNode *&tree, TreeNode *newNode, int &reviseBalanceFacto
         int rebalanceCurrNode;
 
         // scan reaches an empty tree; time to insert the new node
-        if (tree == nullptr)
+        if (tree == NULL)
         {
                 // update the parent to point at newNode
                 tree = newNode;
@@ -456,16 +456,16 @@ void Tree::Delete(const int& item)
 
         // search for a node containing data value item. obtain its
         // node address and that of its parent
-        if ((DNodePtr = FindNode (item, PNodePtr)) == nullptr)
+        if ((DNodePtr = FindNode (item, PNodePtr)) == NULL)
                 return;
 
-        // If D has nullptr pointer, the
+        // If D has NULL pointer, the
         // replacement node is the one on the other branch
-        if (DNodePtr->right == nullptr)
+        if (DNodePtr->right == NULL)
                 RNodePtr = DNodePtr->left;
-        else if (DNodePtr->left == nullptr)
+        else if (DNodePtr->left == NULL)
                 RNodePtr = DNodePtr->right;
-        // Both pointers of DNodePtr are non-nullptr
+        // Both pointers of DNodePtr are non-NULL
         else
         {
                 // Find and unlink replacement node for D
@@ -483,7 +483,7 @@ void Tree::Delete(const int& item)
                 // descend down right subtree of the left child of D
                 // keeping a record of current node and its parent.
                 // when we stop, we have found the replacement
-                while (RNodePtr->right != nullptr)
+                while (RNodePtr->right != NULL)
                 {
                         PofRNodePtr = RNodePtr;
                         RNodePtr = RNodePtr;
@@ -508,7 +508,7 @@ void Tree::Delete(const int& item)
 
         // complete the link to the parent node
         // deleting the root node. assign new root
-        if (PNodePtr == nullptr)
+        if (PNodePtr == NULL)
                 root = RNodePtr;
         // attach R to the correct branch of P
         else if (DNodePtr->data < PNodePtr->data)
@@ -529,7 +529,7 @@ void Tree::Delete(const int& item)
 // assign node value to item; otherwise, insert item in tree
 void Tree::Update(const int& item)
 {
-        if (current !=nullptr && current->data == item)
+        if (current !=NULL && current->data == item)
                 current->data = item;
         else
                 Insert(item, item);
@@ -545,25 +545,25 @@ TreeNode *Tree::CopyTree(TreeNode *t)
         TreeNode *newlptr, *newrptr, *newnode;
 
         // stop the recursive scan when we arrive at an empty tree
-        if (t == nullptr)
-                return nullptr;
+        if (t == NULL)
+                return NULL;
 
         // CopyTree builds a new tree by scanning the nodes of t.
         // At each node in t, CopyTree checks for a left child. if
-        // present it makes a copy of left child or returns nullptr.
+        // present it makes a copy of left child or returns NULL.
         // the algorithm similarly checks for a right child.
         // CopyTree builds a copy of node using GetTreeNode and
         // appends copy of left and right children to node.
 
-        if (t->Left() !=nullptr)
+        if (t->Left() !=NULL)
                 newlptr = CopyTree(t->Left());
         else
-                newlptr = nullptr;
+                newlptr = NULL;
 
-        if (t->Right() !=nullptr)
+        if (t->Right() !=NULL)
                 newrptr = CopyTree(t->Right());
         else
-                newrptr = nullptr;
+                newrptr = NULL;
 
 
         // Build new tree from the bottom up by building the two
@@ -579,12 +579,12 @@ TreeNode *Tree::CopyTree(TreeNode *t)
 // the tree and delete each node at the visit operation
 void Tree::DeleteTree(TreeNode *t)
 {
-  if (t != nullptr) {
+  if (t != NULL) {
     DeleteTree(t->Left());
     DeleteTree(t->Right());
     void *aux = t->GetAuxData();
-    if (aux != nullptr) {
-      if (DeleteAuxData != nullptr) {
+    if (aux != NULL) {
+      if (DeleteAuxData != NULL) {
         (*DeleteAuxData)(aux);
       } else {
         delete (TreeNode *) aux;
@@ -595,11 +595,11 @@ void Tree::DeleteTree(TreeNode *t)
 }
 
 // call the function DeleteTree to deallocate the nodes. then
-// set the root pointer back to nullptr
+// set the root pointer back to NULL
 void Tree::ClearTree(TreeNode * &t)
 {
         DeleteTree(t);
-        t = nullptr;               // root now nullptr
+        t = NULL;               // root now NULL
 }
 
 // delete all nodes in list

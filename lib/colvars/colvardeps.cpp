@@ -33,7 +33,7 @@ colvardeps::~colvardeps() {
   // Do not delete features if it's a static object
   // may change in the future though
 //     for (i=0; i<features.size(); i++) {
-//       if (features[i] != nullptr) delete features[i];
+//       if (features[i] != NULL) delete features[i];
 //     }
 
   remove_all_children();

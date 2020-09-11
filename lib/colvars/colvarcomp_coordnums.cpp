@@ -91,7 +91,7 @@ cvm::real colvar::coordnum::switching_function(cvm::real const &r0,
 
 
 colvar::coordnum::coordnum(std::string const &conf)
-  : cvc(conf), b_anisotropic(false), pairlist(nullptr)
+  : cvc(conf), b_anisotropic(false), pairlist(NULL)
 
 {
   function_type = "coordnum";
@@ -102,7 +102,7 @@ colvar::coordnum::coordnum(std::string const &conf)
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
-  if (group1 == nullptr || group2 == nullptr) {
+  if (group1 == NULL || group2 == NULL) {
     cvm::error("Error: failed to initialize atom groups.\n",
                 INPUT_ERROR);
     return;
@@ -183,7 +183,7 @@ colvar::coordnum::coordnum(std::string const &conf)
 
 colvar::coordnum::~coordnum()
 {
-  if (pairlist != nullptr) {
+  if (pairlist != NULL) {
     delete [] pairlist;
   }
 }
@@ -218,11 +218,11 @@ template<int flags> void colvar::coordnum::main_loop(bool **pairlist_elem)
 
 template<int compute_flags> int colvar::coordnum::compute_coordnum()
 {
-  bool const use_pairlist = (pairlist != nullptr);
-  bool const rebuild_pairlist = (pairlist != nullptr) &&
+  bool const use_pairlist = (pairlist != NULL);
+  bool const rebuild_pairlist = (pairlist != NULL) &&
     (cvm::step_relative() % pairlist_freq == 0);
 
-  bool *pairlist_elem = use_pairlist ? pairlist : nullptr;
+  bool *pairlist_elem = use_pairlist ? pairlist : NULL;
 
   if (b_anisotropic) {
 
@@ -239,7 +239,7 @@ template<int compute_flags> int colvar::coordnum::compute_coordnum()
     } else {
 
       int const flags = compute_flags | ef_anisotropic;
-      main_loop<flags>(nullptr);
+      main_loop<flags>(NULL);
     }
 
   } else {
@@ -257,7 +257,7 @@ template<int compute_flags> int colvar::coordnum::compute_coordnum()
     } else {
 
       int const flags = compute_flags;
-      main_loop<flags>(nullptr);
+      main_loop<flags>(NULL);
     }
   }
 
@@ -367,7 +367,7 @@ void colvar::h_bond::calc_value()
     coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                         (*atom_groups[0])[0],
                                         (*atom_groups[0])[1],
-                                        nullptr, 0.0);
+                                        NULL, 0.0);
 }
 
 
@@ -378,7 +378,7 @@ void colvar::h_bond::calc_gradients()
   coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                       (*atom_groups[0])[0],
                                       (*atom_groups[0])[1],
-                                      nullptr, 0.0);
+                                      NULL, 0.0);
 }
 
 
@@ -393,7 +393,7 @@ simple_scalar_dist_functions(h_bond)
 
 
 colvar::selfcoordnum::selfcoordnum(std::string const &conf)
-  : cvc(conf), pairlist(nullptr)
+  : cvc(conf), pairlist(NULL)
 {
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
@@ -438,7 +438,7 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
 
 colvar::selfcoordnum::~selfcoordnum()
 {
-  if (pairlist != nullptr) {
+  if (pairlist != NULL) {
     delete [] pairlist;
   }
 }
@@ -448,11 +448,11 @@ template<int compute_flags> int colvar::selfcoordnum::compute_selfcoordnum()
 {
   cvm::rvector const r0_vec(0.0); // TODO enable the flag?
 
-  bool const use_pairlist = (pairlist != nullptr);
-  bool const rebuild_pairlist = (pairlist != nullptr) &&
+  bool const use_pairlist = (pairlist != NULL);
+  bool const rebuild_pairlist = (pairlist != NULL) &&
     (cvm::step_relative() % pairlist_freq == 0);
 
-  bool *pairlist_elem = use_pairlist ? pairlist : nullptr;
+  bool *pairlist_elem = use_pairlist ? pairlist : NULL;
   size_t i = 0, j = 0;
   size_t const n = group1->size();
 
@@ -601,13 +601,13 @@ void colvar::groupcoordnum::calc_value()
     x.real_value = coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                                        group1_com_atom,
                                                        group2_com_atom,
-                                                       nullptr, 0.0);
+                                                       NULL, 0.0);
   } else {
     int const flags = coordnum::ef_null;
     x.real_value = coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                                        group1_com_atom,
                                                        group2_com_atom,
-                                                       nullptr, 0.0);
+                                                       NULL, 0.0);
   }
 }
 
@@ -624,13 +624,13 @@ void colvar::groupcoordnum::calc_gradients()
     coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                         group1_com_atom,
                                         group2_com_atom,
-                                        nullptr, 0.0);
+                                        NULL, 0.0);
   } else {
     int const flags = coordnum::ef_gradients;
     coordnum::switching_function<flags>(r0, r0_vec, en, ed,
                                         group1_com_atom,
                                         group2_com_atom,
-                                        nullptr, 0.0);
+                                        NULL, 0.0);
   }
 
   group1->set_weighted_gradient(group1_com_atom.grad);

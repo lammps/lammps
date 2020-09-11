@@ -59,7 +59,7 @@ public:
     if (data.size() > 0) {
       return &(data[0]);
     } else {
-      return nullptr;
+      return NULL;
     }
   }
 
@@ -520,7 +520,7 @@ public:
     if (rows.size() > 0) {
       return &(pointers[0]);
     } else {
-      return nullptr;
+      return NULL;
     }
   }
 

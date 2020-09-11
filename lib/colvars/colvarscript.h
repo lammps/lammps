@@ -278,7 +278,7 @@ extern "C" {
            1, 1,
            { "E (float) - Amount of energy to add" },
            cvm::main()->total_bias_energy +=
-             strtod(script->obj_to_str(objv[2]), nullptr);
+             strtod(script->obj_to_str(objv[2]), NULL);
            return COLVARS_OK;
            )
 

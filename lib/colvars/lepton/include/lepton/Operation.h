@@ -186,7 +186,7 @@ public:
     }
     bool operator!=(const Operation& op) const {
         const Constant* o = dynamic_cast<const Constant*>(&op);
-        return (o == nullptr || o->value != value);
+        return (o == NULL || o->value != value);
     }
 private:
     double value;
@@ -217,7 +217,7 @@ public:
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
     bool operator!=(const Operation& op) const {
         const Variable* o = dynamic_cast<const Variable*>(&op);
-        return (o == nullptr || o->name != name);
+        return (o == NULL || o->name != name);
     }
 private:
     std::string name;
@@ -264,7 +264,7 @@ public:
     }
     bool operator!=(const Operation& op) const {
         const Custom* o = dynamic_cast<const Custom*>(&op);
-        return (o == nullptr || o->name != name || o->isDerivative != isDerivative || o->derivOrder != derivOrder);
+        return (o == NULL || o->name != name || o->isDerivative != isDerivative || o->derivOrder != derivOrder);
     }
 private:
     std::string name;
@@ -955,7 +955,7 @@ public:
     }
     bool operator!=(const Operation& op) const {
         const AddConstant* o = dynamic_cast<const AddConstant*>(&op);
-        return (o == nullptr || o->value != value);
+        return (o == NULL || o->value != value);
     }
 private:
     double value;
@@ -988,7 +988,7 @@ public:
     }
     bool operator!=(const Operation& op) const {
         const MultiplyConstant* o = dynamic_cast<const MultiplyConstant*>(&op);
-        return (o == nullptr || o->value != value);
+        return (o == NULL || o->value != value);
     }
 private:
     double value;
@@ -1042,7 +1042,7 @@ public:
     }
     bool operator!=(const Operation& op) const {
         const PowerConstant* o = dynamic_cast<const PowerConstant*>(&op);
-        return (o == nullptr || o->value != value);
+        return (o == NULL || o->value != value);
     }
     bool isInfixOperator() const {
         return true;

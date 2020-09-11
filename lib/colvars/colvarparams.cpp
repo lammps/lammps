@@ -76,7 +76,7 @@ void const *colvarparams::get_param_ptr(std::string const &param_name)
     return param_map[param_name];
   }
   cvm::error("Error: parameter \""+param_name+"\" not found.\n", INPUT_ERROR);
-  return nullptr;
+  return NULL;
 }
 
 
@@ -87,7 +87,7 @@ void const *colvarparams::get_param_grad_ptr(std::string const &param_name)
   }
   cvm::error("Error: gradient of parameter \""+param_name+"\" not found.\n",
              INPUT_ERROR);
-  return nullptr;
+  return NULL;
 }
 
 
@@ -95,7 +95,7 @@ cvm::real colvarparams::get_param(std::string const &param_name)
 {
   cvm::real const *ptr =
     reinterpret_cast<cvm::real const *>(get_param_ptr(param_name));
-  return ptr != nullptr ? *ptr : 0.0;
+  return ptr != NULL ? *ptr : 0.0;
 }
 
 

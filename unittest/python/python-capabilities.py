@@ -20,7 +20,7 @@ class PythonCapabilities(unittest.TestCase):
                     if len(parts) > 1:
                         value = parts[1]
                         if value_type == "BOOL":
-                            value = (value == "ON")
+                            value = (value.upper() == "ON")
                     else:
                         value = None
                     self.cmake_cache[key] = value
@@ -36,6 +36,19 @@ class PythonCapabilities(unittest.TestCase):
 
     def test_has_jpeg_support(self):
         self.assertEqual(self.lmp.has_jpeg_support, self.cmake_cache['WITH_JPEG'])
+
+    def test_has_ffmpeg_support(self):
+        self.assertEqual(self.lmp.has_ffmpeg_support, self.cmake_cache['WITH_FFMPEG'])
+
+    def test_installed_packages(self):
+        installed_packages = self.lmp.installed_packages
+        selected_packages = [key[4:] for key in self.cmake_cache.keys() if not key.startswith('PKG_CONFIG') and key.startswith('PKG_') and self.cmake_cache[key]]
+
+        for pkg in selected_packages:
+            self.assertIn(pkg, installed_packages)
+
+    def test_has_style(self):
+        self.assertTrue(self.lmp.has_style('pair_style', 'lj/cut'))
 
 if __name__ == "__main__":
     unittest.main()

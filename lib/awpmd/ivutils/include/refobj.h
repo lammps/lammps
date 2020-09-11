@@ -158,7 +158,7 @@ public:
   using base_t::second;
   using base_t::first;
 
-  mngptr(T* ptr=nullptr, int managed=0): pair<T*,int>(ptr,managed){
+  mngptr(T* ptr=NULL, int managed=0): pair<T*,int>(ptr,managed){
     //if(managed==2)ptr= new T(*ptr);
   }
   mngptr(const mngarg<T> &arg): pair<T*,int>(arg.first,arg.second){}
@@ -166,7 +166,7 @@ public:
     reset(arg.first,arg.second);
     return *this;
   }
-  void reset(T* ptr=nullptr, int managed=0){
+  void reset(T* ptr=NULL, int managed=0){
     if(second && first && first!=ptr){
       if(second&0x8)delete [] first;
       else delete first;
@@ -313,7 +313,7 @@ template<class T, class delete_t=delete_ptr<T> >
 class shptr{
   template<class Y, class Z> friend class shptr;
   T *p;
-  int *num; //if num==nullptr than p is not managed (as in mngptr)
+  int *num; //if num==NULL than p is not managed (as in mngptr)
 
   void set(T *p_, int managed){
     p=p_;
@@ -321,7 +321,7 @@ class shptr{
       num=new int;
       *num=1;
     }
-    else num=nullptr;
+    else num=NULL;
   }
   template<class Y>
   void set(const Y &other){
@@ -330,7 +330,7 @@ class shptr{
       num=other.num;
       if(num)(*num)++;
     }
-    else num=nullptr;
+    else num=NULL;
   }
   void set(const shptr &other){
     p=other.p;
@@ -338,11 +338,11 @@ class shptr{
       num=other.num;
       if(num)(*num)++;
     }
-    else num=nullptr;
+    else num=NULL;
   }
 
 public:
-  shptr(T* p=nullptr, int managed=1){
+  shptr(T* p=NULL, int managed=1){
     set(p,managed);
   }
   shptr(const mngarg<T> &arg){
@@ -398,14 +398,14 @@ public:
           delete_t()(p);
           delete num;
         }
-        num=nullptr;
+        num=NULL;
       }
-      p=nullptr;
+      p=NULL;
     }
   }
 
   bool valid() const {
-    return p!=nullptr;
+    return p!=NULL;
   }
 
   T* ptr() const {

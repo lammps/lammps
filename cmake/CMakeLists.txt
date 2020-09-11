@@ -118,7 +118,7 @@ set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
 set(SUFFIX_PACKAGES CORESHELL USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
-  add_feature_info(PKG_${PKG} PKG_${PKG} "Enable ${PKG} package")
+  add_feature_info(PKG_${PKG} PKG_${PKG} "The ${PKG} package")
 endforeach()
 
 ######################################################
@@ -142,7 +142,7 @@ if(NOT CMAKE_CROSSCOMPILING)
 else()
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
-add_feature_info(BUILD_MPI BUILD_MPI "Build MPI version")
+add_feature_info(BUILD_MPI BUILD_MPI "Build with MPI")
 
 if(BUILD_MPI)
   # We use a non-standard procedure to cross-compile with MPI on Windows

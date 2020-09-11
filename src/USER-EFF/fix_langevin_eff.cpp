@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include "fix_langevin_eff.h"
 #include "atom.h"
 #include "update.h"

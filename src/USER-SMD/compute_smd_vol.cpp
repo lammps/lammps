@@ -23,7 +23,7 @@
  ------------------------------------------------------------------------- */
 
 #include "compute_smd_vol.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"

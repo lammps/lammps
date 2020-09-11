@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -263,7 +263,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   // 2nd arg = improper sub-style name
   // allow for "none" as valid sub-style name

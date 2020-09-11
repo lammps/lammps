@@ -34,7 +34,7 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"
@@ -48,7 +48,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "timer.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -508,7 +508,7 @@ int PairReaxCOMP::estimate_reax_lists()
     num_nbrs += numneigh[i];
   }
 
-  int new_estimate = MAX (num_nbrs, mincap*MIN_NBRS);
+  int new_estimate = MAX(num_nbrs, mincap*REAX_MIN_NBRS);
 
   return new_estimate;
 }

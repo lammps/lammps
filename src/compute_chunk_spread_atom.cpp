@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_chunk_spread_atom.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,7 +53,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;

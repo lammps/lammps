@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cosine_squared.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -172,10 +172,10 @@ void AngleCosineSquared::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert theta0 from degrees to radians
 

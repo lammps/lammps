@@ -1,22 +1,19 @@
 .. index:: pair_style lj/long/coul/long
+.. index:: pair_style lj/long/coul/long/intel
+.. index:: pair_style lj/long/coul/long/omp
+.. index:: pair_style lj/long/coul/long/opt
+.. index:: pair_style lj/long/tip4p/long
+.. index:: pair_style lj/long/tip4p/long/omp
 
 pair_style lj/long/coul/long command
 ====================================
 
-pair_style lj/long/coul/long/intel command
-==========================================
-
-pair_style lj/long/coul/long/omp command
-========================================
-
-pair_style lj/long/coul/long/opt command
-========================================
+Accelerator Variants: *lj/long/coul/long/intel*, *lj/long/coul/long/omp*, *lj/long/coul/long/opt*
 
 pair_style lj/long/tip4p/long command
 =====================================
 
-pair_style lj/long/tip4p/long/omp command
-=========================================
+Accelerator Variants: *lj/long/tip4p/long/omp*
 
 Syntax
 """"""
@@ -186,27 +183,12 @@ only available if LAMMPS was built with that package. See the :doc:`Build packag
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/long pair styles can be mixed.
@@ -247,7 +229,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

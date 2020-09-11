@@ -17,12 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_table_cut.h"
-#include <mpi.h>
+
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 
@@ -35,7 +35,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -764,7 +764,7 @@ void DihedralTableCut::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in dihedral style table_cut");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 3)
     error->all(FLERR,"Illegal number of dihedral table entries");
   // delete old tables, since cannot just change settings
@@ -794,11 +794,11 @@ void DihedralTableCut::coeff(int narg, char **arg)
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[2]);
-  double theta0_1_one = force->numeric(FLERR,arg[3]);
-  double theta0_2_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double theta0_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double theta0_2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // convert theta0's from degrees to radians
 
@@ -824,13 +824,13 @@ void DihedralTableCut::coeff(int narg, char **arg)
     string err_msg;
     err_msg = string("Invalid dihedral table length (")
       + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
   else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
     string err_msg;
     err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
       + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // check for monotonicity
@@ -843,7 +843,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
         string(arg[5]) + string(", ")+i_str.str()+string("th entry)");
       if (i==0)
         err_msg += string("\n(This is probably a mistake with your table format.)\n");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -855,7 +855,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 360 degrees (")
         +string(arg[5]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
   else {
@@ -863,7 +863,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
         + string(arg[5]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -1078,10 +1078,10 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
   if (fp == NULL) {
     string err_msg = string("Cannot open file ") + string(file);
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // loop until section found with matching keyword
@@ -1090,7 +1090,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
     if (fgets(line,MAXLINE,fp) == NULL) {
       string err_msg=string("Did not find keyword \"")
         +string(keyword)+string("\" in dihedral table file.");
-      error->one(FLERR, err_msg.c_str());
+      error->one(FLERR, err_msg);
     }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
@@ -1376,7 +1376,7 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
     else {
       string err_msg("Invalid keyword in dihedral angle table parameters");
       err_msg += string(" (") + string(word) + string(")");
-      error->one(FLERR,err_msg.c_str());
+      error->one(FLERR, err_msg);
     }
     word = strtok(NULL," \t\n\r\f");
   }

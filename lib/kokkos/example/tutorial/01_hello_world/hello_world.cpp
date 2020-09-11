@@ -67,10 +67,10 @@
 // instance method.
 struct hello_world {
   // If a functor has an "execution_space" (or "execution_space", for
-  // backwards compatibility) public typedef, parallel_* will only run
+  // backwards compatibility) public alias, parallel_* will only run
   // the functor in that execution space.  That's a good way to mark a
   // functor as specific to an execution space.  If the functor lacks
-  // this typedef, parallel_for will run it in the default execution
+  // this alias, parallel_for will run it in the default execution
   // space, unless you tell it otherwise (that's an advanced topic;
   // see "execution policies").
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
   // Run the above functor on the default Kokkos execution space in
   // parallel, with a parallel for loop count of 15.
   //
-  // The Kokkos::DefaultExecutionSpace typedef gives the default
+  // The Kokkos::DefaultExecutionSpace alias gives the default
   // execution space.  Depending on how Kokkos was configured, this
   // could be OpenMP, Threads, Cuda, Serial, or even some other
   // execution space.

@@ -119,7 +119,8 @@ Here is an example of how to do this:
    compute 2 all angle/local theta eng
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_2[1] c_2[2]
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of values.  The length of the vector or number of rows in the
@@ -142,4 +143,7 @@ Related commands
 
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
-**Default:** none
+Default
+"""""""
+
+none

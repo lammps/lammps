@@ -49,8 +49,8 @@ namespace Test {
 
 template <class Device, class WorkSpec = size_t>
 struct TestScan {
-  typedef Device execution_space;
-  typedef long int value_type;
+  using execution_space = Device;
+  using value_type      = int64_t;
 
   Kokkos::View<int, Device, Kokkos::MemoryTraits<Kokkos::Atomic> > errors;
 
@@ -76,7 +76,8 @@ struct TestScan {
         int fail = errors()++;
 
         if (fail < 20) {
-          printf("TestScan(%d,%ld) != %ld\n", iwork, update, answer);
+          printf("TestScan(%d,%ld) != %ld\n", iwork, static_cast<long>(update),
+                 static_cast<long>(answer));
         }
       }
     }
@@ -98,15 +99,17 @@ struct TestScan {
 
     Kokkos::parallel_scan(N, *this);
 
-    long long int total = 0;
+    int64_t total = 0;
     Kokkos::parallel_scan(N, *this, total);
 
-    run_check(size_t((N + 1) * N / 2), size_t(total));
+    // We can't return a value in a constructor so use a lambda as wrapper to
+    // ignore it.
+    [&] { ASSERT_EQ(size_t((N + 1) * N / 2), size_t(total)); }();
     check_error();
   }
 
   TestScan(const WorkSpec& Start, const WorkSpec& N) {
-    typedef Kokkos::RangePolicy<execution_space> exec_policy;
+    using exec_policy = Kokkos::RangePolicy<execution_space>;
 
     Kokkos::View<int, Device> errors_a("Errors");
     Kokkos::deep_copy(errors_a, 0);
@@ -129,10 +132,6 @@ struct TestScan {
       (void)TestScan(i);
     }
   }
-
-  void run_check(const size_t& expected, const size_t& actual) {
-    ASSERT_EQ(expected, actual);
-  }
 };
 
 TEST(TEST_CATEGORY, scan) {
@@ -145,8 +144,8 @@ TEST(TEST_CATEGORY, scan) {
 
 /*TEST( TEST_CATEGORY, scan_small )
 {
-  typedef TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall >
-TestScanFunctor;
+  using TestScanFunctor =
+      TestScan< TEST_EXECSPACE, Kokkos::Impl::ThreadsExecUseScanSmall >;
 
   for ( int i = 0; i < 1000; ++i ) {
     TestScanFunctor( 10 );

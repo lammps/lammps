@@ -45,6 +45,7 @@
 #ifndef KOKKOS_NUMERICTRAITS_HPP
 #define KOKKOS_NUMERICTRAITS_HPP
 
+#include <Kokkos_Macros.hpp>
 #include <climits>
 #include <cfloat>
 
@@ -160,8 +161,8 @@ struct reduction_identity<long> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long prod() {
     return static_cast<long>(1);
   }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long max() { return LLONG_MIN; }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long min() { return LLONG_MAX; }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static long max() { return LONG_MIN; }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static long min() { return LONG_MAX; }
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long bor() {
     return static_cast<long>(0x0);
   }
@@ -368,7 +369,8 @@ struct reduction_identity<double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double min() { return DBL_MAX; }
 };
 
-#if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
+#if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
+    !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
 template <>
 struct reduction_identity<long double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static long double sum() {

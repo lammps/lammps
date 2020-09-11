@@ -133,8 +133,8 @@ struct getView<Kokkos::LayoutStride, Space> {
 
 template <class ViewType, class Space>
 struct fill_1D {
-  typedef typename Space::execution_space execution_space;
-  typedef typename ViewType::size_type size_type;
+  using execution_space = typename Space::execution_space;
+  using size_type       = typename ViewType::size_type;
 
   ViewType a;
   double val;
@@ -147,8 +147,8 @@ struct fill_1D {
 
 template <class ViewType, class Space>
 struct fill_2D {
-  typedef typename Space::execution_space execution_space;
-  typedef typename ViewType::size_type size_type;
+  using execution_space = typename Space::execution_space;
+  using size_type       = typename ViewType::size_type;
 
   ViewType a;
   double val;
@@ -165,8 +165,8 @@ struct fill_2D {
 
 template <class Layout, class Space>
 void test_auto_1d() {
-  typedef Kokkos::View<double**, Layout, Space> mv_type;
-  typedef typename mv_type::size_type size_type;
+  using mv_type   = Kokkos::View<double**, Layout, Space>;
+  using size_type = typename mv_type::size_type;
 
   const double ZERO = 0.0;
   const double ONE  = 1.0;
@@ -311,10 +311,20 @@ void test_1d_strided_assignment() {
                                   Space>(true, true, true, true, 17, 1);
 }
 
+template <class NewView, class OrigView, class... Args>
+void make_subview(bool use_constructor, NewView& v, OrigView org,
+                  Args... args) {
+  if (use_constructor) {
+    v = NewView(org, args...);
+  } else {
+    v = Kokkos::subview(org, args...);
+  }
+}
+
 template <class Space>
-void test_left_0() {
-  typedef Kokkos::View<int[2][3][4][5][2][3][4][5], Kokkos::LayoutLeft, Space>
-      view_static_8_type;
+void test_left_0(bool constr) {
+  using view_static_8_type =
+      Kokkos::View<int[2][3][4][5][2][3][4][5], Kokkos::LayoutLeft, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
@@ -322,22 +332,41 @@ void test_left_0() {
 
     ASSERT_TRUE(x_static_8.span_is_contiguous());
 
-    Kokkos::View<int, Kokkos::LayoutLeft, Space> x0 =
-        Kokkos::subview(x_static_8, 0, 0, 0, 0, 0, 0, 0, 0);
+    Kokkos::View<int, Kokkos::LayoutLeft, Space> x0;
+    make_subview(constr, x0, x_static_8, 0, 0, 0, 0, 0, 0, 0, 0);
 
     ASSERT_TRUE(x0.span_is_contiguous());
+    ASSERT_EQ(x0.span(), 1);
     ASSERT_TRUE(&x0() == &x_static_8(0, 0, 0, 0, 0, 0, 0, 0));
 
-    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1 = Kokkos::subview(
-        x_static_8, Kokkos::pair<int, int>(0, 2), 1, 2, 3, 0, 1, 2, 3);
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1;
+    make_subview(constr, x1, x_static_8, Kokkos::pair<int, int>(0, 2), 1, 2, 3,
+                 0, 1, 2, 3);
 
     ASSERT_TRUE(x1.span_is_contiguous());
+    ASSERT_EQ(x1.span(), 2);
     ASSERT_TRUE(&x1(0) == &x_static_8(0, 1, 2, 3, 0, 1, 2, 3));
     ASSERT_TRUE(&x1(1) == &x_static_8(1, 1, 2, 3, 0, 1, 2, 3));
 
-    Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2 =
-        Kokkos::subview(x_static_8, Kokkos::pair<int, int>(0, 2), 1, 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x_deg1;
+    make_subview(constr, x_deg1, x_static_8, Kokkos::pair<int, int>(0, 0), 1, 2,
+                 3, 0, 1, 2, 3);
+
+    ASSERT_TRUE(x_deg1.span_is_contiguous());
+    ASSERT_EQ(x_deg1.span(), 0);
+    ASSERT_EQ(x_deg1.data(), &x_static_8(0, 1, 2, 3, 0, 1, 2, 3));
+
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x_deg2;
+    make_subview(constr, x_deg2, x_static_8, Kokkos::pair<int, int>(2, 2), 2, 3,
+                 4, 1, 2, 3, 4);
+
+    ASSERT_TRUE(x_deg2.span_is_contiguous());
+    ASSERT_EQ(x_deg2.span(), 0);
+    ASSERT_EQ(x_deg2.data(), x_static_8.data() + x_static_8.span());
+
+    Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2;
+    make_subview(constr, x2, x_static_8, Kokkos::pair<int, int>(0, 2), 1, 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(!x2.span_is_contiguous());
     ASSERT_TRUE(&x2(0, 0) == &x_static_8(0, 1, 2, 3, 0, 1, 2, 3));
@@ -346,9 +375,9 @@ void test_left_0() {
     ASSERT_TRUE(&x2(1, 1) == &x_static_8(1, 1, 2, 3, 1, 1, 2, 3));
 
     // Kokkos::View< int**, Kokkos::LayoutLeft, Space > error_2 =
-    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2 =
-        Kokkos::subview(x_static_8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
+    make_subview(constr, sx2, x_static_8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(!sx2.span_is_contiguous());
     ASSERT_TRUE(&sx2(0, 0) == &x_static_8(1, 0, 2, 3, 0, 1, 2, 3));
@@ -356,15 +385,16 @@ void test_left_0() {
     ASSERT_TRUE(&sx2(0, 1) == &x_static_8(1, 0, 2, 3, 1, 1, 2, 3));
     ASSERT_TRUE(&sx2(1, 1) == &x_static_8(1, 1, 2, 3, 1, 1, 2, 3));
 
-    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4 =
-        Kokkos::subview(x_static_8, 0, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        1, Kokkos::pair<int, int>(1, 3) /* of [5] */
-                        ,
-                        1, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        2, Kokkos::pair<int, int>(2, 4) /* of [5] */
-        );
+    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
+    make_subview(constr, sx4, x_static_8, 0,
+                 Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 1, Kokkos::pair<int, int>(1, 3) /* of [5] */
+                 ,
+                 1, Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 2, Kokkos::pair<int, int>(2, 4) /* of [5] */
+    );
 
     ASSERT_TRUE(!sx4.span_is_contiguous());
 
@@ -380,9 +410,15 @@ void test_left_0() {
 }
 
 template <class Space>
-void test_left_1() {
-  typedef Kokkos::View<int*** * [2][3][4][5], Kokkos::LayoutLeft, Space>
-      view_type;
+void test_left_0() {
+  test_left_0<Space>(true);
+  test_left_0<Space>(false);
+}
+
+template <class Space>
+void test_left_1(bool use_constr) {
+  using view_type =
+      Kokkos::View<int*** * [2][3][4][5], Kokkos::LayoutLeft, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
@@ -390,22 +426,39 @@ void test_left_1() {
 
     ASSERT_TRUE(x8.span_is_contiguous());
 
-    Kokkos::View<int, Kokkos::LayoutLeft, Space> x0 =
-        Kokkos::subview(x8, 0, 0, 0, 0, 0, 0, 0, 0);
+    Kokkos::View<int, Kokkos::LayoutLeft, Space> x0;
+    make_subview(use_constr, x0, x8, 0, 0, 0, 0, 0, 0, 0, 0);
 
     ASSERT_TRUE(x0.span_is_contiguous());
     ASSERT_TRUE(&x0() == &x8(0, 0, 0, 0, 0, 0, 0, 0));
 
-    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1 =
-        Kokkos::subview(x8, Kokkos::pair<int, int>(0, 2), 1, 2, 3, 0, 1, 2, 3);
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1;
+    make_subview(use_constr, x1, x8, Kokkos::pair<int, int>(0, 2), 1, 2, 3, 0,
+                 1, 2, 3);
 
     ASSERT_TRUE(x1.span_is_contiguous());
     ASSERT_TRUE(&x1(0) == &x8(0, 1, 2, 3, 0, 1, 2, 3));
     ASSERT_TRUE(&x1(1) == &x8(1, 1, 2, 3, 0, 1, 2, 3));
 
-    Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2 =
-        Kokkos::subview(x8, Kokkos::pair<int, int>(0, 2), 1, 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1_deg1;
+    make_subview(use_constr, x1_deg1, x8, Kokkos::pair<int, int>(0, 0), 1, 2, 3,
+                 0, 1, 2, 3);
+
+    ASSERT_TRUE(x1_deg1.span_is_contiguous());
+    ASSERT_EQ(0, x1_deg1.span());
+    ASSERT_EQ(x1_deg1.data(), &x8(0, 1, 2, 3, 0, 1, 2, 3));
+
+    Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1_deg2;
+    make_subview(use_constr, x1_deg2, x8, Kokkos::pair<int, int>(2, 2), 2, 3, 4,
+                 1, 2, 3, 4);
+
+    ASSERT_EQ(0, x1_deg2.span());
+    ASSERT_TRUE(x1_deg2.span_is_contiguous());
+    ASSERT_EQ(x1_deg2.data(), x8.data() + x8.span());
+
+    Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2;
+    make_subview(use_constr, x2, x8, Kokkos::pair<int, int>(0, 2), 1, 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(!x2.span_is_contiguous());
     ASSERT_TRUE(&x2(0, 0) == &x8(0, 1, 2, 3, 0, 1, 2, 3));
@@ -413,10 +466,15 @@ void test_left_1() {
     ASSERT_TRUE(&x2(0, 1) == &x8(0, 1, 2, 3, 1, 1, 2, 3));
     ASSERT_TRUE(&x2(1, 1) == &x8(1, 1, 2, 3, 1, 1, 2, 3));
 
+    Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2_deg2;
+    make_subview(use_constr, x2_deg2, x8, Kokkos::pair<int, int>(2, 2), 2, 3, 4,
+                 1, 2, Kokkos::pair<int, int>(2, 3), 4);
+    ASSERT_EQ(0, x2_deg2.span());
+
     // Kokkos::View< int**, Kokkos::LayoutLeft, Space > error_2 =
-    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2 =
-        Kokkos::subview(x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
+    make_subview(use_constr, sx2, x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(!sx2.span_is_contiguous());
     ASSERT_TRUE(&sx2(0, 0) == &x8(1, 0, 2, 3, 0, 1, 2, 3));
@@ -424,15 +482,21 @@ void test_left_1() {
     ASSERT_TRUE(&sx2(0, 1) == &x8(1, 0, 2, 3, 1, 1, 2, 3));
     ASSERT_TRUE(&sx2(1, 1) == &x8(1, 1, 2, 3, 1, 1, 2, 3));
 
-    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4 =
-        Kokkos::subview(x8, 0, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        1, Kokkos::pair<int, int>(1, 3) /* of [5] */
-                        ,
-                        1, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        2, Kokkos::pair<int, int>(2, 4) /* of [5] */
-        );
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2_deg;
+    make_subview(use_constr, sx2, x8, 1, Kokkos::pair<int, int>(0, 0), 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    ASSERT_EQ(0, sx2_deg.span());
+
+    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
+    make_subview(use_constr, sx4, x8, 0,
+                 Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 1, Kokkos::pair<int, int>(1, 3) /* of [5] */
+                 ,
+                 1, Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 2, Kokkos::pair<int, int>(2, 4) /* of [5] */
+    );
 
     ASSERT_TRUE(!sx4.span_is_contiguous());
 
@@ -447,8 +511,14 @@ void test_left_1() {
 }
 
 template <class Space>
+void test_left_1() {
+  test_left_1<Space>(true);
+  test_left_1<Space>(false);
+}
+
+template <class Space>
 void test_left_2() {
-  typedef Kokkos::View<int****, Kokkos::LayoutLeft, Space> view_type;
+  using view_type = Kokkos::View<int****, Kokkos::LayoutLeft, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
@@ -514,7 +584,7 @@ void test_left_2() {
 
 template <class Space>
 void test_left_3() {
-  typedef Kokkos::View<int**, Kokkos::LayoutLeft, Space> view_type;
+  using view_type = Kokkos::View<int**, Kokkos::LayoutLeft, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
@@ -570,29 +640,31 @@ void test_left_3() {
 //----------------------------------------------------------------------------
 
 template <class Space>
-void test_right_0() {
-  typedef Kokkos::View<int[2][3][4][5][2][3][4][5], Kokkos::LayoutRight, Space>
-      view_static_8_type;
+void test_right_0(bool use_constr) {
+  using view_static_8_type =
+      Kokkos::View<int[2][3][4][5][2][3][4][5], Kokkos::LayoutRight, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
     view_static_8_type x_static_8("x_static_right_8");
 
-    Kokkos::View<int, Kokkos::LayoutRight, Space> x0 =
-        Kokkos::subview(x_static_8, 0, 0, 0, 0, 0, 0, 0, 0);
+    Kokkos::View<int, Kokkos::LayoutRight, Space> x0;
+    make_subview(use_constr, x0, x_static_8, 0, 0, 0, 0, 0, 0, 0, 0);
 
     ASSERT_TRUE(&x0() == &x_static_8(0, 0, 0, 0, 0, 0, 0, 0));
 
-    Kokkos::View<int*, Kokkos::LayoutRight, Space> x1 = Kokkos::subview(
-        x_static_8, 0, 1, 2, 3, 0, 1, 2, Kokkos::pair<int, int>(1, 3));
+    Kokkos::View<int*, Kokkos::LayoutRight, Space> x1;
+    make_subview(use_constr, x1, x_static_8, 0, 1, 2, 3, 0, 1, 2,
+                 Kokkos::pair<int, int>(1, 3));
 
     ASSERT_TRUE(x1.extent(0) == 2);
     ASSERT_TRUE(&x1(0) == &x_static_8(0, 1, 2, 3, 0, 1, 2, 1));
     ASSERT_TRUE(&x1(1) == &x_static_8(0, 1, 2, 3, 0, 1, 2, 2));
 
-    Kokkos::View<int**, Kokkos::LayoutRight, Space> x2 =
-        Kokkos::subview(x_static_8, 0, 1, 2, Kokkos::pair<int, int>(1, 3), 0, 1,
-                        2, Kokkos::pair<int, int>(1, 3));
+    Kokkos::View<int**, Kokkos::LayoutRight, Space> x2;
+    make_subview(use_constr, x2, x_static_8, 0, 1, 2,
+                 Kokkos::pair<int, int>(1, 3), 0, 1, 2,
+                 Kokkos::pair<int, int>(1, 3));
 
     ASSERT_TRUE(x2.extent(0) == 2);
     ASSERT_TRUE(x2.extent(1) == 2);
@@ -602,9 +674,9 @@ void test_right_0() {
     ASSERT_TRUE(&x2(1, 1) == &x_static_8(0, 1, 2, 2, 0, 1, 2, 2));
 
     // Kokkos::View< int**, Kokkos::LayoutRight, Space > error_2 =
-    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2 =
-        Kokkos::subview(x_static_8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
+    make_subview(use_constr, sx2, x_static_8, 1, Kokkos::pair<int, int>(0, 2),
+                 2, 3, Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(sx2.extent(0) == 2);
     ASSERT_TRUE(sx2.extent(1) == 2);
@@ -613,15 +685,16 @@ void test_right_0() {
     ASSERT_TRUE(&sx2(0, 1) == &x_static_8(1, 0, 2, 3, 1, 1, 2, 3));
     ASSERT_TRUE(&sx2(1, 1) == &x_static_8(1, 1, 2, 3, 1, 1, 2, 3));
 
-    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4 =
-        Kokkos::subview(x_static_8, 0, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        1, Kokkos::pair<int, int>(1, 3) /* of [5] */
-                        ,
-                        1, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        2, Kokkos::pair<int, int>(2, 4) /* of [5] */
-        );
+    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
+    make_subview(use_constr, sx4, x_static_8, 0,
+                 Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 1, Kokkos::pair<int, int>(1, 3) /* of [5] */
+                 ,
+                 1, Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 2, Kokkos::pair<int, int>(2, 4) /* of [5] */
+    );
 
     ASSERT_TRUE(sx4.extent(0) == 2);
     ASSERT_TRUE(sx4.extent(1) == 2);
@@ -639,53 +712,76 @@ void test_right_0() {
 }
 
 template <class Space>
-void test_right_1() {
-  typedef Kokkos::View<int*** * [2][3][4][5], Kokkos::LayoutRight, Space>
-      view_type;
+void test_right_0() {
+  test_right_0<Space>(true);
+  test_right_0<Space>(false);
+}
+
+template <class Space>
+void test_right_1(bool use_constr) {
+  using view_type =
+      Kokkos::View<int*** * [2][3][4][5], Kokkos::LayoutRight, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
     view_type x8("x_right_8", 2, 3, 4, 5);
 
-    Kokkos::View<int, Kokkos::LayoutRight, Space> x0 =
-        Kokkos::subview(x8, 0, 0, 0, 0, 0, 0, 0, 0);
+    Kokkos::View<int, Kokkos::LayoutRight, Space> x0;
+    make_subview(use_constr, x0, x8, 0, 0, 0, 0, 0, 0, 0, 0);
 
     ASSERT_TRUE(&x0() == &x8(0, 0, 0, 0, 0, 0, 0, 0));
 
-    Kokkos::View<int*, Kokkos::LayoutRight, Space> x1 =
-        Kokkos::subview(x8, 0, 1, 2, 3, 0, 1, 2, Kokkos::pair<int, int>(1, 3));
+    Kokkos::View<int*, Kokkos::LayoutRight, Space> x1;
+    make_subview(use_constr, x1, x8, 0, 1, 2, 3, 0, 1, 2,
+                 Kokkos::pair<int, int>(1, 3));
 
     ASSERT_TRUE(&x1(0) == &x8(0, 1, 2, 3, 0, 1, 2, 1));
     ASSERT_TRUE(&x1(1) == &x8(0, 1, 2, 3, 0, 1, 2, 2));
 
-    Kokkos::View<int**, Kokkos::LayoutRight, Space> x2 =
-        Kokkos::subview(x8, 0, 1, 2, Kokkos::pair<int, int>(1, 3), 0, 1, 2,
-                        Kokkos::pair<int, int>(1, 3));
+    Kokkos::View<int*, Kokkos::LayoutRight, Space> x1_deg1;
+    make_subview(use_constr, x1_deg1, x8, 0, 1, 2, 3, 0, 1, 2,
+                 Kokkos::pair<int, int>(3, 3));
+    ASSERT_EQ(0, x1_deg1.span());
+
+    Kokkos::View<int**, Kokkos::LayoutRight, Space> x2;
+    make_subview(use_constr, x2, x8, 0, 1, 2, Kokkos::pair<int, int>(1, 3), 0,
+                 1, 2, Kokkos::pair<int, int>(1, 3));
 
     ASSERT_TRUE(&x2(0, 0) == &x8(0, 1, 2, 1, 0, 1, 2, 1));
     ASSERT_TRUE(&x2(1, 0) == &x8(0, 1, 2, 2, 0, 1, 2, 1));
     ASSERT_TRUE(&x2(0, 1) == &x8(0, 1, 2, 1, 0, 1, 2, 2));
     ASSERT_TRUE(&x2(1, 1) == &x8(0, 1, 2, 2, 0, 1, 2, 2));
 
+    Kokkos::View<int**, Kokkos::LayoutRight, Space> x2_deg2;
+    make_subview(use_constr, x2_deg2, x8, 0, 1, 2, Kokkos::pair<int, int>(1, 3),
+                 0, 1, 2, Kokkos::pair<int, int>(3, 3));
+    ASSERT_EQ(0, x2_deg2.span());
+
     // Kokkos::View< int**, Kokkos::LayoutRight, Space > error_2 =
-    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2 =
-        Kokkos::subview(x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
-                        Kokkos::pair<int, int>(0, 2), 1, 2, 3);
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
+    make_subview(use_constr, sx2, x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
+                 Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
     ASSERT_TRUE(&sx2(0, 0) == &x8(1, 0, 2, 3, 0, 1, 2, 3));
     ASSERT_TRUE(&sx2(1, 0) == &x8(1, 1, 2, 3, 0, 1, 2, 3));
     ASSERT_TRUE(&sx2(0, 1) == &x8(1, 0, 2, 3, 1, 1, 2, 3));
     ASSERT_TRUE(&sx2(1, 1) == &x8(1, 1, 2, 3, 1, 1, 2, 3));
 
-    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4 =
-        Kokkos::subview(x8, 0, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        1, Kokkos::pair<int, int>(1, 3) /* of [5] */
-                        ,
-                        1, Kokkos::pair<int, int>(0, 2) /* of [3] */
-                        ,
-                        2, Kokkos::pair<int, int>(2, 4) /* of [5] */
-        );
+    Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2_deg;
+    make_subview(use_constr, sx2_deg, x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
+                 1, 1, 2, Kokkos::pair<int, int>(3, 3));
+    ASSERT_EQ(0, sx2_deg.span());
+
+    Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
+    make_subview(use_constr, sx4, x8, 0,
+                 Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 1, Kokkos::pair<int, int>(1, 3) /* of [5] */
+                 ,
+                 1, Kokkos::pair<int, int>(0, 2) /* of [3] */
+                 ,
+                 2, Kokkos::pair<int, int>(2, 4) /* of [5] */
+    );
 
     for (int i0 = 0; i0 < (int)sx4.extent(0); ++i0)
       for (int i1 = 0; i1 < (int)sx4.extent(1); ++i1)
@@ -698,8 +794,14 @@ void test_right_1() {
 }
 
 template <class Space>
+void test_right_1() {
+  test_right_1<Space>(true);
+  test_right_1<Space>(false);
+}
+
+template <class Space>
 void test_right_3() {
-  typedef Kokkos::View<int**, Kokkos::LayoutRight, Space> view_type;
+  using view_type = Kokkos::View<int**, Kokkos::LayoutRight, Space>;
 
   if (Kokkos::Impl::SpaceAccessibility<
           Kokkos::HostSpace, typename Space::memory_space>::accessible) {
@@ -761,76 +863,360 @@ constexpr int N2 = 17;
 constexpr int N3 = 5;
 constexpr int N4 = 7;
 
+template <class Layout, class Space>
+struct FillView_1D {
+  using view_t = Kokkos::View<int*, Layout, Space>;
+  view_t a;
+  using policy_t = Kokkos::RangePolicy<typename Space::execution_space>;
+
+  FillView_1D(view_t a_) : a(a_) {}
+
+  void run() {
+    Kokkos::parallel_for("FillView_1D", policy_t(0, a.extent(0)), *this);
+  }
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i) const { a(i) = i; }
+};
+
+template <class Layout, class Space>
+struct FillView_3D {
+  using exec_t = typename Space::execution_space;
+  using view_t = Kokkos::View<int***, Layout, Space>;
+  using rank_t = Kokkos::Rank<
+      view_t::Rank,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right>;
+  using policy_t = Kokkos::MDRangePolicy<exec_t, rank_t>;
+
+  view_t a;
+
+  FillView_3D(view_t a_) : a(a_) {}
+
+  void run() {
+    Kokkos::parallel_for(
+        "FillView_3D",
+        policy_t({0, 0, 0}, {a.extent(0), a.extent(1), a.extent(2)}), *this);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i0, int i1, int i2) const {
+    a(i0, i1, i2) = 1000000 * i0 + 1000 * i1 + i2;
+  }
+};
+
+template <class Layout, class Space>
+struct FillView_4D {
+  using exec_t = typename Space::execution_space;
+  using view_t = Kokkos::View<int****, Layout, Space>;
+  using rank_t = Kokkos::Rank<
+      view_t::Rank,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right>;
+  using policy_t = Kokkos::MDRangePolicy<exec_t, rank_t>;
+
+  view_t a;
+
+  FillView_4D(view_t a_) : a(a_) {}
+
+  void run() {
+    Kokkos::parallel_for("FillView_4D",
+                         policy_t({0, 0, 0, 0}, {a.extent(0), a.extent(1),
+                                                 a.extent(2), a.extent(3)}),
+                         *this);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i0, int i1, int i2, int i3) const {
+    a(i0, i1, i2, i3) = 1000000 * i0 + 10000 * i1 + 100 * i2 + i3;
+  }
+};
+
+template <class Layout, class Space>
+struct FillView_5D {
+  using exec_t = typename Space::execution_space;
+  using view_t = Kokkos::View<int*****, Layout, Space>;
+  using rank_t = Kokkos::Rank<
+      view_t::Rank,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right,
+      std::is_same<Layout, Kokkos::LayoutLeft>::value ? Kokkos::Iterate::Left
+                                                      : Kokkos::Iterate::Right>;
+  using policy_t = Kokkos::MDRangePolicy<exec_t, rank_t>;
+
+  view_t a;
+
+  FillView_5D(view_t a_) : a(a_) {}
+
+  void run() {
+    Kokkos::parallel_for(
+        "FillView_5D",
+        policy_t({0, 0, 0, 0, 0}, {a.extent(0), a.extent(1), a.extent(2),
+                                   a.extent(3), a.extent(4)}),
+        *this);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i0, int i1, int i2, int i3, int i4) const {
+    a(i0, i1, i2, i3, i4) = 1000000 * i0 + 10000 * i1 + 100 * i2 + 10 * i3 + i4;
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_1D_1D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  View a;
+  SubView b;
+  int offset;
+
+  CheckSubviewCorrectness_1D_1D(View a_, SubView b_, int o)
+      : a(a_), b(b_), offset(o) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_1D_1D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& i, int& e) const {
+    if (a(i + offset) != b(i)) {
+      e++;
+    }
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_1D_2D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  View a;
+  SubView b;
+  int i0;
+  int offset;
+
+  CheckSubviewCorrectness_1D_2D(View a_, SubView b_, int i0_, int o)
+      : a(a_), b(b_), i0(i0_), offset(o) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_1D_2D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& i1, int& e) const {
+    if (a(i0, i1 + offset) != b(i1)) {
+      e++;
+    }
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_2D_3D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  using layout   = typename View::array_layout;
+  View a;
+  SubView b;
+  int i0;
+  int offset_1;
+  int offset_2;
+
+  CheckSubviewCorrectness_2D_3D(View a_, SubView b_, int i0_, int o1, int o2)
+      : a(a_), b(b_), i0(i0_), offset_1(o1), offset_2(o2) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_2D_3D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& ii, int& e) const {
+    const int i1 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii % b.extent(0)
+                       : ii / b.extent(1);
+
+    const int i2 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii / b.extent(0)
+                       : ii % b.extent(1);
+
+    if (a(i0, i1 + offset_1, i2 + offset_2) != b(i1, i2)) {
+      e++;
+    }
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_3D_3D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  using layout   = typename View::array_layout;
+  View a;
+  SubView b;
+  int offset_0;
+  int offset_2;
+
+  CheckSubviewCorrectness_3D_3D(View a_, SubView b_, int o0, int o2)
+      : a(a_), b(b_), offset_0(o0), offset_2(o2) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_3D_3D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& ii, int& e) const {
+    const int i0 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii % b.extent(0)
+                       : ii / (b.extent(1) * b.extent(2));
+
+    const int i1 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? (ii / b.extent(0)) % b.extent(1)
+                       : (ii / b.extent(2)) % b.extent(1);
+
+    const int i2 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii / (b.extent(0) * b.extent(1))
+                       : ii % b.extent(2);
+
+    if (a(i0 + offset_0, i1, i2 + offset_2) != b(i0, i1, i2)) {
+      e++;
+    }
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_3D_4D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  using layout   = typename View::array_layout;
+  View a;
+  SubView b;
+  int index;
+  int offset_0, offset_2;
+
+  CheckSubviewCorrectness_3D_4D(View a_, SubView b_, int index_, int o0, int o2)
+      : a(a_), b(b_), index(index_), offset_0(o0), offset_2(o2) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_3D_4D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& ii, int& e) const {
+    const int i = std::is_same<layout, Kokkos::LayoutLeft>::value
+                      ? ii % b.extent(0)
+                      : ii / (b.extent(1) * b.extent(2));
+
+    const int j = std::is_same<layout, Kokkos::LayoutLeft>::value
+                      ? (ii / b.extent(0)) % b.extent(1)
+                      : (ii / b.extent(2)) % b.extent(1);
+
+    const int k = std::is_same<layout, Kokkos::LayoutLeft>::value
+                      ? ii / (b.extent(0) * b.extent(1))
+                      : ii % b.extent(2);
+
+    int i0, i1, i2, i3;
+
+    if (std::is_same<layout, Kokkos::LayoutLeft>::value) {
+      i0 = i + offset_0;
+      i1 = j;
+      i2 = k + offset_2;
+      i3 = index;
+    } else {
+      i0 = index;
+      i1 = i + offset_0;
+      i2 = j;
+      i3 = k + offset_2;
+    }
+
+    if (a(i0, i1, i2, i3) != b(i, j, k)) e++;
+  }
+};
+
+template <class View, class SubView>
+struct CheckSubviewCorrectness_3D_5D {
+  using policy_t = Kokkos::RangePolicy<typename View::execution_space>;
+  using layout   = typename View::array_layout;
+  View a;
+  SubView b;
+  int i0, i1;
+  int offset_2, offset_3, offset_4;
+
+  CheckSubviewCorrectness_3D_5D(View a_, SubView b_, int i0_, int i1_, int o2,
+                                int o3, int o4)
+      : a(a_),
+        b(b_),
+        i0(i0_),
+        i1(i1_),
+        offset_2(o2),
+        offset_3(o3),
+        offset_4(o4) {}
+
+  void run() {
+    int errors = 0;
+    Kokkos::parallel_reduce("CheckSubView_3D_5D", policy_t(0, b.size()), *this,
+                            errors);
+    ASSERT_TRUE(errors == 0);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int& ii, int& e) const {
+    const int i2 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii % b.extent(0)
+                       : ii / (b.extent(1) * b.extent(2));
+
+    const int i3 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? (ii / b.extent(0)) % b.extent(1)
+                       : (ii / b.extent(2)) % b.extent(1);
+
+    const int i4 = std::is_same<layout, Kokkos::LayoutLeft>::value
+                       ? ii / (b.extent(0) * b.extent(1))
+                       : ii % b.extent(2);
+
+    if (a(i0, i1, i2 + offset_2, i3 + offset_3, i4 + offset_4) !=
+        b(i2, i3, i4)) {
+      e++;
+    }
+  }
+};
+
 template <class SubView, class View>
-void test_Check1D(SubView a, View b, std::pair<int, int> range) {
-  int errors = 0;
-
-  for (int i = 0; i < range.second - range.first; i++) {
-    if (a(i) != b(i + range.first)) errors++;
-  }
-
-  if (errors > 0) {
-    std::cout << "Error Suviews test_Check1D: " << errors << std::endl;
-  }
-
-  ASSERT_TRUE(errors == 0);
+void test_Check1D(SubView a, View b, Kokkos::pair<int, int> range) {
+  CheckSubviewCorrectness_1D_1D<View, SubView> check(b, a, range.first);
+  check.run();
 }
 
 template <class SubView, class View>
 void test_Check1D2D(SubView a, View b, int i0, std::pair<int, int> range) {
-  int errors = 0;
-
-  for (int i1 = 0; i1 < range.second - range.first; i1++) {
-    if (a(i1) != b(i0, i1 + range.first)) errors++;
-  }
-
-  if (errors > 0) {
-    std::cout << "Error Suviews test_Check1D2D: " << errors << std::endl;
-  }
-
-  ASSERT_TRUE(errors == 0);
+  CheckSubviewCorrectness_1D_2D<View, SubView> check(b, a, i0, range.first);
+  check.run();
 }
 
 template <class SubView, class View>
 void test_Check2D3D(SubView a, View b, int i0, std::pair<int, int> range1,
                     std::pair<int, int> range2) {
-  int errors = 0;
-
-  for (int i1 = 0; i1 < range1.second - range1.first; i1++) {
-    for (int i2 = 0; i2 < range2.second - range2.first; i2++) {
-      if (a(i1, i2) != b(i0, i1 + range1.first, i2 + range2.first)) errors++;
-    }
-  }
-
-  if (errors > 0) {
-    std::cout << "Error Suviews test_Check2D3D: " << errors << std::endl;
-  }
-
-  ASSERT_TRUE(errors == 0);
+  CheckSubviewCorrectness_2D_3D<View, SubView> check(b, a, i0, range1.first,
+                                                     range2.first);
+  check.run();
 }
 
 template <class SubView, class View>
 void test_Check3D5D(SubView a, View b, int i0, int i1,
-                    std::pair<int, int> range2, std::pair<int, int> range3,
-                    std::pair<int, int> range4) {
-  int errors = 0;
-
-  for (int i2 = 0; i2 < range2.second - range2.first; i2++) {
-    for (int i3 = 0; i3 < range3.second - range3.first; i3++) {
-      for (int i4 = 0; i4 < range4.second - range4.first; i4++) {
-        if (a(i2, i3, i4) != b(i0, i1, i2 + range2.first, i3 + range3.first,
-                               i4 + range4.first)) {
-          errors++;
-        }
-      }
-    }
-  }
-
-  if (errors > 0) {
-    std::cout << "Error Suviews test_Check3D5D: " << errors << std::endl;
-  }
-
-  ASSERT_TRUE(errors == 0);
+                    Kokkos::pair<int, int> range2,
+                    Kokkos::pair<int, int> range3,
+                    Kokkos::pair<int, int> range4) {
+  CheckSubviewCorrectness_3D_5D<View, SubView> check(
+      b, a, i0, i1, range2.first, range3.first, range4.first);
+  check.run();
 }
 
 template <class Space, class LayoutSub, class Layout, class LayoutOrg,
@@ -840,7 +1226,9 @@ void test_1d_assign_impl() {
     Kokkos::View<int*, LayoutOrg, Space> a_org("A", N0);
     Kokkos::View<int*, LayoutOrg, Space, MemTraits> a(a_org);
     Kokkos::fence();
-    for (int i = 0; i < N0; i++) a_org(i) = i;
+
+    Impl::FillView_1D<LayoutOrg, Space> fill(a_org);
+    fill.run();
 
     Kokkos::View<int[N0], Layout, Space, MemTraits> a1(a);
     Kokkos::fence();
@@ -876,11 +1264,8 @@ void test_2d_subview_3d_impl_type() {
   Kokkos::View<int***, LayoutOrg, Space> a_org("A", N0, N1, N2);
   Kokkos::View<Type, Layout, Space, MemTraits> a(a_org);
 
-  for (int i0 = 0; i0 < N0; i0++)
-    for (int i1 = 0; i1 < N1; i1++)
-      for (int i2 = 0; i2 < N2; i2++) {
-        a_org(i0, i1, i2) = i0 * 1000000 + i1 * 1000 + i2;
-      }
+  Impl::FillView_3D<LayoutOrg, Space> fill(a_org);
+  fill.run();
 
   Kokkos::View<TypeSub, LayoutSub, Space, MemTraits> a1;
   a1 = Kokkos::subview(a, 3, Kokkos::ALL, Kokkos::ALL);
@@ -961,14 +1346,8 @@ void test_3d_subview_5d_impl_type() {
   Kokkos::View<int*****, LayoutOrg, Space> a_org("A", N0, N1, N2, N3, N4);
   Kokkos::View<Type, Layout, Space, MemTraits> a(a_org);
 
-  for (int i0 = 0; i0 < N0; i0++)
-    for (int i1 = 0; i1 < N1; i1++)
-      for (int i2 = 0; i2 < N2; i2++)
-        for (int i3 = 0; i3 < N3; i3++)
-          for (int i4 = 0; i4 < N4; i4++) {
-            a_org(i0, i1, i2, i3, i4) =
-                i0 * 1000000 + i1 * 10000 + i2 * 100 + i3 * 10 + i4;
-          }
+  Impl::FillView_5D<LayoutOrg, Space> fill(a_org);
+  fill.run();
 
   Kokkos::View<TypeSub, LayoutSub, Space, MemTraits> a1;
   a1 = Kokkos::subview(a, 3, 5, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
@@ -1245,7 +1624,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t, int,
@@ -1253,7 +1632,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>, int,
@@ -1261,7 +1640,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t, int,
@@ -1269,7 +1648,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>, int,
@@ -1278,7 +1657,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(1, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t,
@@ -1286,7 +1665,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
@@ -1294,7 +1673,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(1, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
@@ -1302,7 +1681,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
@@ -1315,7 +1694,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(1, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
@@ -1323,7 +1702,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
@@ -1331,7 +1710,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
@@ -1339,7 +1718,7 @@ inline void test_subview_legal_args_right() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutRight, Kokkos::LayoutRight, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
 }
 
 inline void test_subview_legal_args_left() {
@@ -1490,7 +1869,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t, int,
@@ -1498,7 +1877,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>, int,
@@ -1506,7 +1885,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t, int,
@@ -1514,7 +1893,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>, int,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>, int,
@@ -1523,7 +1902,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::Impl::ALL_t,
@@ -1531,7 +1910,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::Impl::ALL_t, Kokkos::pair<int, int>,
@@ -1539,7 +1918,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
@@ -1547,7 +1926,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 5, 0, int, int,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
@@ -1557,7 +1936,7 @@ inline void test_subview_legal_args_left() {
       1,
       (Kokkos::Impl::SubviewLegalArgsCompileTime<
           Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0, Kokkos::Impl::ALL_t,
-          Kokkos::Impl::ALL_t, Kokkos::pair<int, int> >::value));
+          Kokkos::Impl::ALL_t, Kokkos::pair<int, int>>::value));
   ASSERT_EQ(
       1,
       (Kokkos::Impl::SubviewLegalArgsCompileTime<
@@ -1566,7 +1945,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(1, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
   ASSERT_EQ(1, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::Impl::ALL_t,
@@ -1580,7 +1959,7 @@ inline void test_subview_legal_args_left() {
       0,
       (Kokkos::Impl::SubviewLegalArgsCompileTime<
           Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0, Kokkos::Impl::ALL_t,
-          Kokkos::pair<int, int>, Kokkos::pair<int, int> >::value));
+          Kokkos::pair<int, int>, Kokkos::pair<int, int>>::value));
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
@@ -1588,7 +1967,7 @@ inline void test_subview_legal_args_left() {
   ASSERT_EQ(0, (Kokkos::Impl::SubviewLegalArgsCompileTime<
                    Kokkos::LayoutLeft, Kokkos::LayoutLeft, 3, 3, 0,
                    Kokkos::pair<int, int>, Kokkos::pair<int, int>,
-                   Kokkos::pair<int, int> >::value));
+                   Kokkos::pair<int, int>>::value));
 }
 
 }  // namespace Impl
@@ -1653,203 +2032,46 @@ void test_3d_subview_5d_left() {
                                        MemTraits>();
 }
 
-namespace Impl {
-
-template <class Layout, class Space>
-struct FillView_3D {
-  Kokkos::View<int***, Layout, Space> a;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int& ii) const {
-    const int i = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii % a.extent(0)
-                      : ii / (a.extent(1) * a.extent(2));
-
-    const int j = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? (ii / a.extent(0)) % a.extent(1)
-                      : (ii / a.extent(2)) % a.extent(1);
-
-    const int k = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii / (a.extent(0) * a.extent(1))
-                      : ii % a.extent(2);
-
-    a(i, j, k) = 1000000 * i + 1000 * j + k;
-  }
-};
-
-template <class Layout, class Space>
-struct FillView_4D {
-  Kokkos::View<int****, Layout, Space> a;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int& ii) const {
-    const int i = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii % a.extent(0)
-                      : ii / (a.extent(1) * a.extent(2) * a.extent(3));
-
-    const int j = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? (ii / a.extent(0)) % a.extent(1)
-                      : (ii / (a.extent(2) * a.extent(3)) % a.extent(1));
-
-    const int k = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? (ii / (a.extent(0) * a.extent(1))) % a.extent(2)
-                      : (ii / a.extent(3)) % a.extent(2);
-
-    const int l = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii / (a.extent(0) * a.extent(1) * a.extent(2))
-                      : ii % a.extent(3);
-
-    a(i, j, k, l) = 1000000 * i + 10000 * j + 100 * k + l;
-  }
-};
-
-template <class Layout, class Space, class MemTraits>
-struct CheckSubviewCorrectness_3D_3D {
-  Kokkos::View<const int***, Layout, Space, MemTraits> a;
-  Kokkos::View<const int***, Layout, Space, MemTraits> b;
-  int offset_0, offset_2;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int& ii) const {
-    const int i = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii % b.extent(0)
-                      : ii / (b.extent(1) * b.extent(2));
-
-    const int j = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? (ii / b.extent(0)) % b.extent(1)
-                      : (ii / b.extent(2)) % b.extent(1);
-
-    const int k = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii / (b.extent(0) * b.extent(1))
-                      : ii % b.extent(2);
-
-    if (a(i + offset_0, j, k + offset_2) != b(i, j, k)) {
-      Kokkos::abort(
-          "Error: check_subview_correctness 3D-3D (LayoutLeft -> LayoutLeft or "
-          "LayoutRight -> LayoutRight)");
-    }
-  }
-};
-
-template <class Layout, class Space, class MemTraits>
-struct CheckSubviewCorrectness_3D_4D {
-  Kokkos::View<const int****, Layout, Space, MemTraits> a;
-  Kokkos::View<const int***, Layout, Space, MemTraits> b;
-  int offset_0, offset_2, index;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int& ii) const {
-    const int i = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii % b.extent(0)
-                      : ii / (b.extent(1) * b.extent(2));
-
-    const int j = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? (ii / b.extent(0)) % b.extent(1)
-                      : (ii / b.extent(2)) % b.extent(1);
-
-    const int k = std::is_same<Layout, Kokkos::LayoutLeft>::value
-                      ? ii / (b.extent(0) * b.extent(1))
-                      : ii % b.extent(2);
-
-    int i0, i1, i2, i3;
-
-    if (std::is_same<Layout, Kokkos::LayoutLeft>::value) {
-      i0 = i + offset_0;
-      i1 = j;
-      i2 = k + offset_2;
-      i3 = index;
-    } else {
-      i0 = index;
-      i1 = i + offset_0;
-      i2 = j;
-      i3 = k + offset_2;
-    }
-
-    if (a(i0, i1, i2, i3) != b(i, j, k)) {
-      Kokkos::abort(
-          "Error: check_subview_correctness 3D-4D (LayoutLeft -> LayoutLeft or "
-          "LayoutRight -> LayoutRight)");
-    }
-  }
-};
-
-}  // namespace Impl
-
 template <class Space, class MemTraits = void>
 void test_layoutleft_to_layoutleft() {
   Impl::test_subview_legal_args_left();
 
+  using view3D_t = Kokkos::View<int***, Kokkos::LayoutLeft, Space>;
+  using view4D_t = Kokkos::View<int****, Kokkos::LayoutLeft, Space>;
   {
-    Kokkos::View<int***, Kokkos::LayoutLeft, Space> a("A", 100, 4, 3);
-    Kokkos::View<int***, Kokkos::LayoutLeft, Space> b(
-        a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL, Kokkos::ALL);
+    view3D_t a("A", 100, 4, 3);
+    view3D_t b(a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL, Kokkos::ALL);
 
-    Impl::FillView_3D<Kokkos::LayoutLeft, Space> fill;
-    fill.a = a;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, a.extent(0) * a.extent(1) * a.extent(2)),
-                         fill);
+    Impl::FillView_3D<Kokkos::LayoutLeft, Space> fill(a);
+    fill.run();
 
-    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutLeft, Space, MemTraits>
-        check;
-    check.a        = a;
-    check.b        = b;
-    check.offset_0 = 16;
-    check.offset_2 = 0;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, b.extent(0) * b.extent(1) * b.extent(2)),
-                         check);
-    Kokkos::fence();
+    Impl::CheckSubviewCorrectness_3D_3D<view3D_t, view3D_t> check(a, b, 16, 0);
+    check.run();
   }
 
   {
-    Kokkos::View<int***, Kokkos::LayoutLeft, Space> a("A", 100, 4, 5);
-    Kokkos::View<int***, Kokkos::LayoutLeft, Space> b(
-        a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL,
-        Kokkos::pair<int, int>(1, 3));
+    view3D_t a("A", 100, 4, 5);
+    view3D_t b(a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL,
+               Kokkos::pair<int, int>(1, 3));
 
-    Impl::FillView_3D<Kokkos::LayoutLeft, Space> fill;
-    fill.a = a;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, a.extent(0) * a.extent(1) * a.extent(2)),
-                         fill);
+    Impl::FillView_3D<Kokkos::LayoutLeft, Space> fill(a);
+    fill.run();
 
-    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutLeft, Space, MemTraits>
-        check;
-    check.a        = a;
-    check.b        = b;
-    check.offset_0 = 16;
-    check.offset_2 = 1;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, b.extent(0) * b.extent(1) * b.extent(2)),
-                         check);
-    Kokkos::fence();
+    Impl::CheckSubviewCorrectness_3D_3D<view3D_t, view3D_t> check(a, b, 16, 1);
+    check.run();
   }
 
   {
-    Kokkos::View<int****, Kokkos::LayoutLeft, Space> a("A", 100, 4, 5, 3);
-    Kokkos::View<int***, Kokkos::LayoutLeft, Space> b(
-        a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL,
-        Kokkos::pair<int, int>(1, 3), 1);
+    view4D_t a("A", 100, 4, 5, 3);
+    view3D_t b(a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL,
+               Kokkos::pair<int, int>(1, 3), 1);
 
-    Impl::FillView_4D<Kokkos::LayoutLeft, Space> fill;
-    fill.a = a;
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<typename Space::execution_space>(
-            0, a.extent(0) * a.extent(1) * a.extent(2) * a.extent(3)),
-        fill);
+    Impl::FillView_4D<Kokkos::LayoutLeft, Space> fill(a);
+    fill.run();
 
-    Impl::CheckSubviewCorrectness_3D_4D<Kokkos::LayoutLeft, Space, MemTraits>
-        check;
-    check.a        = a;
-    check.b        = b;
-    check.offset_0 = 16;
-    check.offset_2 = 1;
-    check.index    = 1;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, b.extent(0) * b.extent(1) * b.extent(2)),
-                         check);
-    Kokkos::fence();
+    Impl::CheckSubviewCorrectness_3D_4D<view4D_t, view3D_t> check(a, b, 1, 16,
+                                                                  1);
+    check.run();
   }
 }
 
@@ -1857,55 +2079,30 @@ template <class Space, class MemTraits = void>
 void test_layoutright_to_layoutright() {
   Impl::test_subview_legal_args_right();
 
+  using view3D_t = Kokkos::View<int***, Kokkos::LayoutRight, Space>;
+  using view4D_t = Kokkos::View<int****, Kokkos::LayoutRight, Space>;
   {
-    Kokkos::View<int***, Kokkos::LayoutRight, Space> a("A", 100, 4, 3);
-    Kokkos::View<int***, Kokkos::LayoutRight, Space> b(
-        a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL, Kokkos::ALL);
+    view3D_t a("A", 100, 4, 3);
+    view3D_t b(a, Kokkos::pair<int, int>(16, 32), Kokkos::ALL, Kokkos::ALL);
 
-    Impl::FillView_3D<Kokkos::LayoutRight, Space> fill;
-    fill.a = a;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, a.extent(0) * a.extent(1) * a.extent(2)),
-                         fill);
+    Impl::FillView_3D<Kokkos::LayoutRight, Space> fill(a);
+    fill.run();
 
-    Impl::CheckSubviewCorrectness_3D_3D<Kokkos::LayoutRight, Space, MemTraits>
-        check;
-    check.a        = a;
-    check.b        = b;
-    check.offset_0 = 16;
-    check.offset_2 = 0;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, b.extent(0) * b.extent(1) * b.extent(2)),
-                         check);
-    Kokkos::fence();
+    Impl::CheckSubviewCorrectness_3D_3D<view3D_t, view3D_t> check(a, b, 16, 0);
+    check.run();
   }
-
   {
-    Kokkos::View<int****, Kokkos::LayoutRight, Space> a("A", 3, 4, 5, 100);
-    Kokkos::View<int***, Kokkos::LayoutRight, Space> b(
-        a, 1, Kokkos::pair<int, int>(1, 3), Kokkos::ALL, Kokkos::ALL);
+    view4D_t a("A", 3, 4, 5, 100);
+    view3D_t b(a, 1, Kokkos::pair<int, int>(1, 3), Kokkos::ALL, Kokkos::ALL);
 
-    Impl::FillView_4D<Kokkos::LayoutRight, Space> fill;
-    fill.a = a;
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<typename Space::execution_space>(
-            0, a.extent(0) * a.extent(1) * a.extent(2) * a.extent(3)),
-        fill);
+    Impl::FillView_4D<Kokkos::LayoutRight, Space> fill(a);
+    fill.run();
 
-    Impl::CheckSubviewCorrectness_3D_4D<Kokkos::LayoutRight, Space, MemTraits>
-        check;
-    check.a        = a;
-    check.b        = b;
-    check.offset_0 = 1;
-    check.offset_2 = 0;
-    check.index    = 1;
-    Kokkos::parallel_for(Kokkos::RangePolicy<typename Space::execution_space>(
-                             0, b.extent(0) * b.extent(1) * b.extent(2)),
-                         check);
-    Kokkos::fence();
+    Impl::CheckSubviewCorrectness_3D_4D<view4D_t, view3D_t> check(a, b, 1, 1,
+                                                                  0);
+    check.run();
   }
 }
-
 //----------------------------------------------------------------------------
 
 template <class Space>
@@ -1940,7 +2137,7 @@ template <class T>
 struct get_view_type;
 
 template <class T, class... Args>
-struct get_view_type<Kokkos::View<T, Args...> > {
+struct get_view_type<Kokkos::View<T, Args...>> {
   using type = T;
 };
 

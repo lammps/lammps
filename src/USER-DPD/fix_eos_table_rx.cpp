@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_table_rx.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "memory.h"
 #include "comm.h"
 #include "modify.h"
-#include "utils.h"
+
 
 #define MAXLINE 1024
 
@@ -60,7 +60,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in fix eos/table/rx");
 
-  tablength = force->inumeric(FLERR,arg[5]);
+  tablength = utils::inumeric(FLERR,arg[5],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of eos/table/rx entries");
 
   ntables = 0;
@@ -337,7 +337,7 @@ void FixEOStableRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -356,7 +356,7 @@ void FixEOStableRX::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != min_params_per_line && nwords != max_params_per_line)
@@ -475,7 +475,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   for (int i = 0; i < ninputs; i++) {
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(utils::trim_comment(line));
     if(nwords != nspecies+2){
       printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
       error->all(FLERR,"Illegal fix eos/table/rx command");

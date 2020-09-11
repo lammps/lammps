@@ -16,18 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_time.h"
-#include <mpi.h>
-#include <cstdlib>
+
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -54,9 +53,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
@@ -86,7 +85,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[6],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[6],mode,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -1043,11 +1042,9 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/time file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == NULL)
+          error->one(FLERR,fmt::format("Cannot open fix ave/time file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
@@ -1058,14 +1055,14 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       else error->all(FLERR,"Illegal fix ave/time command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/time command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/time command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
@@ -1076,7 +1073,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
     } else if (strcmp(arg[iarg],"off") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       memory->grow(offlist,noff+1,"ave/time:offlist");
-      offlist[noff++] = force->inumeric(FLERR,arg[iarg+1]);
+      offlist[noff++] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;

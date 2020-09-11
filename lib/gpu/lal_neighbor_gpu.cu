@@ -12,7 +12,7 @@
 //
 //    begin                :
 //    email                : penwang@nvidia.com, brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_preprocessor.h"

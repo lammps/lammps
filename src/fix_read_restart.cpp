@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_read_restart.h"
+
 #include "atom.h"
 #include "memory.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -25,8 +25,8 @@ FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   count(NULL), extra(NULL)
 {
-  nextra = force->inumeric(FLERR,arg[3]);
-  int nfix = force->inumeric(FLERR,arg[4]);
+  nextra = utils::inumeric(FLERR,arg[3],false,lmp);
+  int nfix = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // perform initial allocation of atom-based array
   // register with Atom class

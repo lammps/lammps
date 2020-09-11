@@ -16,10 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_movie.h"
-#include <cstring>
+
 #include "comm.h"
-#include "force.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -58,11 +59,9 @@ void DumpMovie::openfile()
     fp = popen(moviecmd,"w");
 #endif
 
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Failed to open FFmpeg pipeline to file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Failed to open FFmpeg pipeline to "
+                                   "file {}",filename));
   }
 }
 /* ---------------------------------------------------------------------- */
@@ -85,14 +84,14 @@ int DumpMovie::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"bitrate") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    bitrate = force->inumeric(FLERR,arg[1]);
+    bitrate = utils::inumeric(FLERR,arg[1],false,lmp);
     if (bitrate <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"framerate") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    framerate = force->numeric(FLERR,arg[1]);
+    framerate = utils::numeric(FLERR,arg[1],false,lmp);
     if ((framerate <= 0.1) || (framerate > 24.0))
       error->all(FLERR,"Illegal dump_modify framerate command");
     return 2;

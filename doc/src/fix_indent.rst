@@ -176,7 +176,8 @@ contains *xlat*\ , *ylat*\ , *zlat* keywords of the
    variable k equal 100.0/xlat/xlat
    fix 1 all indent $k sphere ...
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -212,7 +213,11 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

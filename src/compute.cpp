@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute.h"
+
+#include "atom_masks.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+
 #include <cstring>
 #include <cctype>
-#include "domain.h"
-#include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -102,6 +103,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   datamask_modify = ALL_MASK;
 
   copymode = 0;
+  kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +130,7 @@ void Compute::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"extra") == 0 ||
         strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      extra_dof = force->numeric(FLERR,arg[iarg+1]);
+      extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0 ||
                strcmp(arg[iarg],"dynamic/dof") == 0) {

@@ -3,7 +3,8 @@
 fix poems command
 =================
 
-Syntax:
+Syntax
+""""""
 
 .. parsed-literal::
 
@@ -38,7 +39,7 @@ useful for treating a large biomolecule as a collection of connected,
 coarse-grained particles.
 
 The coupling, associated motion constraints, and time integration is
-performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS) <poems_>`_ which computes the
+performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS)` which computes the
 constrained rigid-body motion of articulated (jointed) multibody
 systems :ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed
 by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
@@ -46,8 +47,6 @@ and other members of his group at Rensselaer Polytechnic Institute
 (RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
 copyright information on POEMS and other details, please refer to the
 documents in the poems directory distributed with LAMMPS.
-
-.. _poems: http://www.rpi.edu/~anderk5/lab
 
 This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
@@ -105,7 +104,8 @@ body contribution to the pressure virial is also accounted for.  The
 latter is only correct if forces within the bodies have been turned
 off, and there is only a single fix poems defined.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -122,7 +122,7 @@ command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the POEMS package.  It is only enabled if LAMMPS
+This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
 built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -132,7 +132,10 @@ Related commands
 :doc:`fix rigid <fix_rigid>`, :doc:`delete_bonds <delete_bonds>`,
 :doc:`neigh_modify <neigh_modify>` exclude
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

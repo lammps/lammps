@@ -21,7 +21,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -103,7 +103,7 @@ void BondGromosOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     fbond = -4.0 * kdr;
 
-    if (EFLAG) ebond = kdr;
+    if (EFLAG) ebond = kdr*dr;
 
     // apply force to each of 2 atoms
 

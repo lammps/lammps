@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reduce_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,6 +25,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -64,7 +65,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;

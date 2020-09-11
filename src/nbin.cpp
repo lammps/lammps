@@ -26,10 +26,12 @@ using namespace LAMMPS_NS;
 NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
   last_bin = -1;
-  maxbin = maxatom = 0;
+  mbins = maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
   atom2bin = NULL;
+
+  neighbor->last_setup_bins = -1;
 
   // geometry settings
 

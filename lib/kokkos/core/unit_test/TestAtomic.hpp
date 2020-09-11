@@ -160,9 +160,9 @@ std::ostream& operator<<(std::ostream& os, const SuperScalar<N>& dt) {
 
 template <class T, class DEVICE_TYPE>
 struct ZeroFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<T, execution_space> type;
-  typedef typename Kokkos::View<T, execution_space>::HostMirror h_type;
+  using execution_space = DEVICE_TYPE;
+  using type            = typename Kokkos::View<T, execution_space>;
+  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
 
   type data;
 
@@ -176,8 +176,8 @@ struct ZeroFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct AddFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
 
@@ -187,8 +187,8 @@ struct AddFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct AddFunctorReduce {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
 
@@ -246,8 +246,8 @@ T AddLoopSerial(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct CASFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
 
@@ -266,8 +266,8 @@ struct CASFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct CASFunctorReduce {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
 
@@ -341,8 +341,8 @@ T CASLoopSerial(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct ExchFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data, data2;
 
@@ -355,8 +355,8 @@ struct ExchFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct ExchFunctorReduce {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data, data2;
 
@@ -527,7 +527,19 @@ TEST(TEST_CATEGORY, atomics) {
   ASSERT_TRUE((TestAtomic::Loop<float, TEST_EXECSPACE>(100, 3)));
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
-#ifndef KOKKOS_ENABLE_ROCM  // ROCM doesn't yet support atomics for >64bit types
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 1)));
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 2)));
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 3)));
+
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 1)));
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 2)));
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 3)));
+
+  // FIXME_HIP HIP doesn't yet support atomics for >64bit types properly
+#ifndef KOKKOS_ENABLE_HIP
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(1, 1)));
   ASSERT_TRUE(
@@ -542,23 +554,15 @@ TEST(TEST_CATEGORY, atomics) {
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(100, 3)));
 
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 1)));
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 2)));
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 3)));
-
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 1)));
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 2)));
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 3)));
-
+// WORKAROUND MSVC
+#ifndef _WIN32
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 1)));
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 2)));
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 3)));
+#endif
 #endif
 #endif
 }

@@ -22,14 +22,15 @@
 ------------------------------------------------------------------------- */
 
 #include "min_linesearch.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
-#include "modify.h"
 #include "fix_minimize.h"
-#include "pair.h"
+#include "modify.h"
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

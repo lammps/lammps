@@ -15,7 +15,7 @@ Syntax
 * dir = *x* or *y* or *z*
 * shockvel = shock velocity (strictly positive, velocity units)
 * zero or more keyword/value pairs may be appended
-* keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *damp* or *seed*\ or *f_max* or *N_f* or *eta* or *beta* or *T_init*
+* keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *damp* or *seed* or *f_max* or *N_f* or *eta* or *beta* or *T_init*
 
   .. parsed-literal::
 
@@ -144,7 +144,8 @@ supported by LAMMPS, but are not implemented for QBMSST.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Because the state of the random number generator is not written to
 :doc:`binary restart files <restart>`, this fix cannot be restarted

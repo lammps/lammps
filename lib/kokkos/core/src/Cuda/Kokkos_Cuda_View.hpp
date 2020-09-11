@@ -84,8 +84,8 @@ struct CudaTextureFetch {
   KOKKOS_INLINE_FUNCTION
   CudaTextureFetch() : m_obj(), m_ptr(), m_offset() {}
 
-  KOKKOS_INLINE_FUNCTION
-  ~CudaTextureFetch() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  ~CudaTextureFetch() = default;
 
   KOKKOS_INLINE_FUNCTION
   CudaTextureFetch(const CudaTextureFetch& rhs)
@@ -153,8 +153,8 @@ struct CudaLDGFetch {
   KOKKOS_INLINE_FUNCTION
   CudaLDGFetch() : m_ptr() {}
 
-  KOKKOS_INLINE_FUNCTION
-  ~CudaLDGFetch() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  ~CudaLDGFetch() = default;
 
   KOKKOS_INLINE_FUNCTION
   CudaLDGFetch(const CudaLDGFetch& rhs) : m_ptr(rhs.m_ptr) {}
@@ -250,15 +250,15 @@ class ViewDataHandle<
   KOKKOS_INLINE_FUNCTION
   static handle_type assign(value_type* arg_data_ptr,
                             track_type const& arg_tracker) {
-    if (arg_data_ptr == NULL) return handle_type();
+    if (arg_data_ptr == nullptr) return handle_type();
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     // Assignment of texture = non-texture requires creation of a texture object
     // which can only occur on the host.  In addition, 'get_record' is only
     // valid if called in a host execution space
 
-    typedef typename Traits::memory_space memory_space;
-    typedef typename Impl::SharedAllocationRecord<memory_space, void> record;
+    using memory_space = typename Traits::memory_space;
+    using record = typename Impl::SharedAllocationRecord<memory_space, void>;
 
     record* const r = arg_tracker.template get_record<memory_space>();
 
@@ -273,6 +273,7 @@ class ViewDataHandle<
     return handle_type(arg_data_ptr, r);
 
 #else
+    (void)arg_tracker;
     Kokkos::Impl::cuda_abort(
         "Cannot create Cuda texture object from within a Cuda kernel");
     return handle_type();

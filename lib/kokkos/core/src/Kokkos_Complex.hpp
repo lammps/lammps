@@ -47,7 +47,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_NumericTraits.hpp>
 #include <complex>
-#include <iostream>
+#include <iosfwd>
 
 namespace Kokkos {
 
@@ -73,14 +73,14 @@ class
   using value_type = RealType;
 
   //! Default constructor (initializes both real and imaginary parts to zero).
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   complex() noexcept = default;
 
   //! Copy constructor.
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   complex(const complex&) noexcept = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   complex& operator=(const complex&) noexcept = default;
 
   /// \brief Conversion constructor from compatible RType
@@ -298,8 +298,21 @@ class
   /// complex& </tt>.  See Kokkos Issue #177 for the
   /// explanation.  In practice, this means that you should not chain
   /// assignments with volatile lvalues.
-  KOKKOS_INLINE_FUNCTION void operator=(
-      const complex<RealType>& src) volatile noexcept {
+  //
+  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
+  // Intended to behave as
+  //    void operator=(const complex&) volatile noexcept
+  //
+  // Use cases:
+  //    complex r;
+  //    const complex cr;
+  //    volatile complex vl;
+  //    vl = r;
+  //    vl = cr;
+  template <class Complex,
+            typename std::enable_if<std::is_same<Complex, complex>::value,
+                                    int>::type = 0>
+  KOKKOS_INLINE_FUNCTION void operator=(const Complex& src) volatile noexcept {
     re_ = src.re_;
     im_ = src.im_;
     // We deliberately do not return anything here.  See explanation
@@ -308,16 +321,45 @@ class
 
   //! Assignment operator, volatile LHS and volatile RHS
   // TODO Should this return void like the other volatile assignment operators?
+  //
+  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
+  // Intended to behave as
+  //    volatile complex& operator=(const volatile complex&) volatile noexcept
+  //
+  // Use cases:
+  //    volatile complex vr;
+  //    const volatile complex cvr;
+  //    volatile complex vl;
+  //    vl = vr;
+  //    vl = cvr;
+  template <class Complex,
+            typename std::enable_if<std::is_same<Complex, complex>::value,
+                                    int>::type = 0>
   KOKKOS_INLINE_FUNCTION volatile complex& operator=(
-      const volatile complex<RealType>& src) volatile noexcept {
+      const volatile Complex& src) volatile noexcept {
     re_ = src.re_;
     im_ = src.im_;
     return *this;
   }
 
   //! Assignment operator, volatile RHS and non-volatile LHS
+  //
+  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
+  // Intended to behave as
+  //    complex& operator=(const volatile complex&) noexcept
+  //
+  // Use cases:
+  //    volatile complex vr;
+  //    const volatile complex cvr;
+  //    complex l;
+  //    l = vr;
+  //    l = cvr;
+  //
+  template <class Complex,
+            typename std::enable_if<std::is_same<Complex, complex>::value,
+                                    int>::type = 0>
   KOKKOS_INLINE_FUNCTION complex& operator=(
-      const volatile complex<RealType>& src) noexcept {
+      const volatile Complex& src) noexcept {
     re_ = src.re_;
     im_ = src.im_;
     return *this;
@@ -650,10 +692,7 @@ KOKKOS_INLINE_FUNCTION RealType real(const complex<RealType>& x) noexcept {
 //! Absolute value (magnitude) of a complex number.
 template <class RealType>
 KOKKOS_INLINE_FUNCTION RealType abs(const complex<RealType>& x) {
-#ifndef __CUDA_ARCH__
-  using std::hypot;
-#endif
-  return hypot(x.real(), x.imag());
+  return std::hypot(x.real(), x.imag());
 }
 
 //! Power of a complex number
@@ -720,8 +759,8 @@ KOKKOS_INLINE_FUNCTION
   // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
   // If the real part is +/-Inf and the imaginary part is -/+Inf,
   // this won't change the result.
-  typedef
-      typename std::common_type<RealType1, RealType2>::type common_real_type;
+  using common_real_type =
+      typename std::common_type<RealType1, RealType2>::type;
   const common_real_type s = std::fabs(real(y)) + std::fabs(imag(y));
 
   // If s is 0, then y is zero, so x/y == real(x)/0 + i*imag(x)/0.
@@ -768,7 +807,7 @@ std::istream& operator>>(std::istream& is, complex<RealType>& x) {
 
 template <class T>
 struct reduction_identity<Kokkos::complex<T> > {
-  typedef reduction_identity<T> t_red_ident;
+  using t_red_ident = reduction_identity<T>;
   KOKKOS_FORCEINLINE_FUNCTION constexpr static Kokkos::complex<T>
   sum() noexcept {
     return Kokkos::complex<T>(t_red_ident::sum(), t_red_ident::sum());

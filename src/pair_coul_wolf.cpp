@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_wolf.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -172,8 +172,8 @@ void PairCoulWolf::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  alf = force->numeric(FLERR,arg[0]);
-  cut_coul = force->numeric(FLERR,arg[1]);
+  alf = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -186,8 +186,8 @@ void PairCoulWolf::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

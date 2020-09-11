@@ -12,30 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "delete_atoms.h"
-#include <mpi.h>
-#include <cstring>
-#include <utility>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "region.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "error.h"
+#include "region.h"
 
+#include <cstring>
 #include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -176,53 +176,23 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndelete_impropers = nimpropers_previous - atom->nimpropers;
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Deleted " BIGINT_FORMAT
-              " atoms, new total = " BIGINT_FORMAT "\n",
-              ndelete,atom->natoms);
-      if (bond_flag || mol_flag) {
-        if (nbonds_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " bonds, new total = " BIGINT_FORMAT "\n",
-                  ndelete_bonds,atom->nbonds);
-        if (nangles_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " angles, new total = " BIGINT_FORMAT "\n",
-                  ndelete_angles,atom->nangles);
-        if (ndihedrals_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " dihedrals, new total = " BIGINT_FORMAT "\n",
-                  ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " impropers, new total = " BIGINT_FORMAT "\n",
-                  ndelete_impropers,atom->nimpropers);
-      }
+    std::string mesg = fmt::format("Deleted {} atoms, new total = {}\n",
+                                   ndelete,atom->natoms);
+    if (bond_flag || mol_flag) {
+      if (nbonds_previous)
+        mesg += fmt::format("Deleted {} bonds, new total = {}\n",
+                            ndelete_bonds,atom->nbonds);
+      if (nangles_previous)
+        mesg += fmt::format("Deleted {} angles, new total = {}\n",
+                            ndelete_angles,atom->nangles);
+      if (ndihedrals_previous)
+        mesg += fmt::format("Deleted {} dihedrals, new total = {}\n",
+                            ndelete_dihedrals,atom->ndihedrals);
+      if (nimpropers_previous)
+        mesg += fmt::format("Deleted {} impropers, new total = {}\n",
+                            ndelete_impropers,atom->nimpropers);
     }
-
-    if (logfile) {
-      fprintf(logfile,"Deleted " BIGINT_FORMAT
-              " atoms, new total = " BIGINT_FORMAT "\n",
-              ndelete,atom->natoms);
-      if (bond_flag || mol_flag) {
-        if (nbonds_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " bonds, new total = " BIGINT_FORMAT "\n",
-                  ndelete_bonds,atom->nbonds);
-        if (nangles_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " angles, new total = " BIGINT_FORMAT "\n",
-                  ndelete_angles,atom->nangles);
-        if (ndihedrals_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " dihedrals, new total = " BIGINT_FORMAT "\n",
-                  ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " impropers, new total = " BIGINT_FORMAT "\n",
-                  ndelete_impropers,atom->nimpropers);
-      }
-    }
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -297,7 +267,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // read args
 
-  double cut = force->numeric(FLERR,arg[1]);
+  double cut = utils::numeric(FLERR,arg[1],false,lmp);
   double cutsq = cut*cut;
 
   int igroup1 = group->find(arg[2]);
@@ -309,8 +279,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int group1bit = group->bitmask[igroup1];
   int group2bit = group->bitmask[igroup2];
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for delete_atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"System init for delete_atoms ...\n");
 
   // request a full neighbor list for use by this command
 
@@ -458,8 +427,8 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
   domain->regions[iregion]->prematch();
 
-  double porosity_fraction = force->numeric(FLERR,arg[2]);
-  int seed = force->inumeric(FLERR,arg[3]);
+  double porosity_fraction = utils::numeric(FLERR,arg[2],false,lmp);
+  int seed = utils::inumeric(FLERR,arg[3],false,lmp);
   options(narg-4,&arg[4]);
 
   RanMars *random = new RanMars(lmp,seed + comm->me);

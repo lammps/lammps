@@ -189,7 +189,8 @@ interaction energy is 0.0 at the cutoff distance.
 For a full description of these wall styles, see fix_style
 :doc:`wall <fix_wall>`
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -239,4 +240,7 @@ Related commands
 :doc:`fix wall/harmonic <fix_wall>`,
 :doc:`fix wall/gran <fix_wall_gran>`
 
-**Default:** none
+Default
+"""""""
+
+none

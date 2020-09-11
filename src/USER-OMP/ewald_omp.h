@@ -34,6 +34,7 @@ namespace LAMMPS_NS {
 
  protected:
   virtual void eik_dot_r();
+  virtual void eik_dot_r_triclinic();
 };
 
 }

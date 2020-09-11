@@ -102,7 +102,7 @@ void VerletLRTIntel::setup(int flag)
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
-  #if defined(__linux)
+  #if defined(__linux__)
   if (comm->me == 0) {
     cpu_set_t cpuset;
     sched_getaffinity(0, sizeof(cpuset), &cpuset);

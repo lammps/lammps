@@ -51,19 +51,17 @@ each timestep.  In the bond-boost hyperdynamics context, a "bond" is
 not a covalent bond between a pair of atoms in a molecule.  Rather it
 is simply a pair of nearby atoms as discussed below.
 
-Both global and local HD are described in :ref:`(Voter2013) <Voter2013>` by
-Art Voter and collaborators.  Similar to parallel replica dynamics
-(PRD), global and local HD are methods for performing accelerated
-dynamics that are suitable for infrequent-event systems that obey
-first-order kinetics.  A good overview of accelerated dynamics methods
-for such systems in given in :ref:`(Voter2002) <Voter2002hd>` from the same
-group.  To quote from the review paper: "The dynamical evolution is
-characterized by vibrational excursions within a potential basin,
-punctuated by occasional transitions between basins."  The transition
-probability is characterized by p(t) = k\*exp(-kt) where k is the rate
-constant.  Running multiple replicas gives an effective enhancement in
-the timescale spanned by the multiple simulations, while waiting for
-an event to occur.
+Both global and local HD are described in :ref:`(Voter2013)
+<Voter2013>` by Art Voter and collaborators.  Similar to parallel
+replica dynamics (PRD), global and local HD are methods for performing
+accelerated dynamics that are suitable for infrequent-event systems
+that obey first-order kinetics.  A good overview of accelerated
+dynamics methods (AMD) for such systems in given in :ref:`(Voter2002)
+<Voter2002hd>` from the same group.  To quote from the review paper:
+"The dynamical evolution is characterized by vibrational excursions
+within a potential basin, punctuated by occasional transitions between
+basins.  The transition probability is characterized by p(t) =
+k\*exp(-kt) where k is the rate constant."
 
 Both HD and PRD produce a time-accurate trajectory that effectively
 extends the timescale over which a system can be simulated, but they

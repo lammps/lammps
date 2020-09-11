@@ -23,14 +23,16 @@
  ------------------------------------------------------------------------- */
 
 #include "compute_smd_tlsph_defgrad.h"
-#include <cstring>
-#include <Eigen/Eigen>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
+#include <Eigen/Eigen>          // IWYU pragma: export
 
 using namespace Eigen;
 using namespace std;

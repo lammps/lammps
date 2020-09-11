@@ -16,22 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_bond_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "update.h"
 #include "domain_kokkos.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "modify.h"
-#include "fix.h"
-#include <cstring>
-#include "atom_masks.h"
-#include "domain.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
@@ -217,7 +217,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   int* map_array_host = atom->get_map_array();
   int map_size = atom->get_map_size();
   int map_maxarray = atom->get_map_maxarray();
-  if (map_maxarray > k_map_array.extent(0))
+  if (map_maxarray > (int)k_map_array.extent(0))
     k_map_array = DAT::tdual_int_1d("NeighBond:map_array",map_maxarray);
   for (int i=0; i<map_size; i++)
     k_map_array.h_view[i] = map_array_host[i];
@@ -226,7 +226,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   map_array = k_map_array.view<DeviceType>();
 
   int* sametag_host = atomKK->sametag;
-  if (nmax > k_sametag.extent(0))
+  if (nmax > (int)k_sametag.extent(0))
     k_sametag = DAT::tdual_int_1d("NeighBond:sametag",nmax);
   for (int i=0; i<nall; i++)
     k_sametag.h_view[i] = sametag_host[i];
@@ -1305,7 +1305,7 @@ void NeighBondKokkos<DeviceType>::update_domain_variables()
 
 namespace LAMMPS_NS {
 template class NeighBondKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NeighBondKokkos<LMPHostType>;
 #endif
 }

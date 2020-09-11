@@ -16,32 +16,32 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_data.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "molecule.h"
-#include "group.h"
+#include "bond.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "domain.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
+#include "group.h"
 #include "improper.h"
-#include "special.h"
 #include "irregular.h"
-#include "error.h"
 #include "memory.h"
-#include "utils.h"
+#include "modify.h"
+#include "molecule.h"
+#include "pair.h"
+#include "special.h"
+#include "update.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -70,7 +70,6 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   line = new char[MAXLINE];
-  copy = new char[MAXLINE];
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
@@ -79,7 +78,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   fp = NULL;
 
   // customize for new sections
-  // pointers to atom styles that store extra info
+  // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
@@ -96,7 +95,6 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 ReadData::~ReadData()
 {
   delete [] line;
-  delete [] copy;
   delete [] keyword;
   delete [] style;
   delete [] buffer;
@@ -148,13 +146,13 @@ void ReadData::command(int narg, char **arg)
         if (atom->molecule_flag && (iarg+3 > narg))
           error->all(FLERR,"Illegal read_data command");
         addflag = VALUE;
-        bigint offset = force->bnumeric(FLERR,arg[iarg+1]);
+        bigint offset = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
         if (offset > MAXTAGINT)
           error->all(FLERR,"Read data add atomID offset is too big");
         id_offset = offset;
 
         if (atom->molecule_flag) {
-          offset = force->bnumeric(FLERR,arg[iarg+2]);
+          offset = utils::bnumeric(FLERR,arg[iarg+2],false,lmp);
           if (offset > MAXTAGINT)
             error->all(FLERR,"Read data add molID offset is too big");
           mol_offset = offset;
@@ -165,11 +163,11 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal read_data command");
       offsetflag = 1;
-      toffset = force->inumeric(FLERR,arg[iarg+1]);
-      boffset = force->inumeric(FLERR,arg[iarg+2]);
-      aoffset = force->inumeric(FLERR,arg[iarg+3]);
-      doffset = force->inumeric(FLERR,arg[iarg+4]);
-      ioffset = force->inumeric(FLERR,arg[iarg+5]);
+      toffset = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      boffset = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      aoffset = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      doffset = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      ioffset = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (toffset < 0 || boffset < 0 || aoffset < 0 ||
           doffset < 0 || ioffset < 0)
         error->all(FLERR,"Illegal read_data command");
@@ -177,9 +175,9 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"shift") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal read_data command");
       shiftflag = 1;
-      shift[0] = force->numeric(FLERR,arg[iarg+1]);
-      shift[1] = force->numeric(FLERR,arg[iarg+2]);
-      shift[2] = force->numeric(FLERR,arg[iarg+3]);
+      shift[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      shift[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      shift[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (domain->dimension == 2 && shift[2] != 0.0)
         error->all(FLERR,"Non-zero read_data shift z value for 2d simulation");
       iarg += 4;
@@ -188,28 +186,28 @@ void ReadData::command(int narg, char **arg)
       iarg ++;
     } else if (strcmp(arg[iarg],"extra/atom/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      extra_atom_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_atom_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_atom_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/bond/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->bonds_allow)
         error->all(FLERR,"No bonds allowed with this atom style");
-      extra_bond_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_bond_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_bond_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/angle/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->angles_allow)
         error->all(FLERR,"No angles allowed with this atom style");
-      extra_angle_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_angle_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_angle_types < 0) error->all(FLERR,"Illegal read_data command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/dihedral/types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->dihedrals_allow)
         error->all(FLERR,"No dihedrals allowed with this atom style");
-      extra_dihedral_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_dihedral_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_dihedral_types < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -217,7 +215,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (!atom->avec->impropers_allow)
         error->all(FLERR,"No impropers allowed with this atom style");
-      extra_improper_types = force->inumeric(FLERR,arg[iarg+1]);
+      extra_improper_types = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (extra_improper_types < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -225,7 +223,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No bonds allowed with this atom style");
-      atom->extra_bond_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_bond_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_bond_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -233,7 +231,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No angles allowed with this atom style");
-      atom->extra_angle_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_angle_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_angle_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -241,7 +239,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No dihedrals allowed with this atom style");
-      atom->extra_dihedral_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_dihedral_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_dihedral_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -249,7 +247,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No impropers allowed with this atom style");
-      atom->extra_improper_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      atom->extra_improper_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_improper_per_atom < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -257,7 +255,7 @@ void ReadData::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
       if (! atom->molecular)
         error->all(FLERR,"No bonded interactions allowed with this atom style");
-      force->special_extra = force->inumeric(FLERR,arg[iarg+1]);
+      force->special_extra = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (force->special_extra < 0)
         error->all(FLERR,"Illegal read_data command");
       iarg += 2;
@@ -414,7 +412,7 @@ void ReadData::command(int narg, char **arg)
     // open file on proc 0
 
     if (me == 0) {
-      if (firstpass && screen) fprintf(screen,"Reading data file ...\n");
+      if (firstpass) utils::logmesg(lmp,"Reading data file ...\n");
       open(arg[0]);
     } else fp = NULL;
 
@@ -574,7 +572,7 @@ void ReadData::command(int narg, char **arg)
         if (!avec_body)
           error->all(FLERR,"Invalid data file section: Bodies");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bodies");
-        bodies(firstpass);
+        bodies(firstpass,(AtomVec *) avec_body);
 
       } else if (strcmp(keyword,"Masses") == 0) {
         if (firstpass) mass();
@@ -711,11 +709,8 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else {
-        char str[128];
-        snprintf(str,128,"Unknown identifier in data file: %s",keyword);
-        error->all(FLERR,str);
-      }
+      } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
+                                          keyword));
 
       parse_keyword(0);
     }
@@ -817,36 +812,18 @@ void ReadData::command(int narg, char **arg)
     }
 
     if (me == 0) {
-      if (atom->nbonds) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
-      }
-      if (atom->nangles) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template angles\n",
-                  atom->nangles);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template angles\n",
-                  atom->nangles);
-      }
-      if (atom->ndihedrals) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template dihedrals\n",
-                  atom->nbonds);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",
-                  atom->ndihedrals);
-      }
-      if (atom->nimpropers) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template impropers\n",
-                  atom->nimpropers);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template impropers\n",
-                  atom->nimpropers);
-      }
+      std::string mesg;
+
+      if (atom->nbonds)
+        mesg += fmt::format("  {} template bonds\n",atom->nbonds);
+      if (atom->nangles)
+        mesg += fmt::format("  {} template angles\n",atom->nangles);
+      if (atom->ndihedrals)
+        mesg += fmt::format("  {} template dihedrals\n",atom->ndihedrals);
+      if (atom->nimpropers)
+        mesg += fmt::format("  {} template impropers\n",atom->nimpropers);
+
+      utils::logmesg(lmp,mesg);
     }
   }
 
@@ -916,14 +893,10 @@ void ReadData::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  read_data CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  read_data CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  read_data CPU = {:.3f} seconds\n",
+                                   MPI_Wtime()-time1));
 }
 
 /* ----------------------------------------------------------------------
@@ -1182,11 +1155,8 @@ void ReadData::header(int firstpass)
   parse_keyword(1);
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS) {
-    char str[128];
-    sprintf(str,"Unknown identifier in data file: %s",keyword);
-    error->all(FLERR,str);
-  }
+  if (n == NSECTIONS)
+    error->all(FLERR,fmt::format("Unknown identifier in data file: {}",keyword));
 
   // error checks on header values
   // must be consistent with atom style and other header values
@@ -1227,10 +1197,7 @@ void ReadData::atoms()
 {
   int nchunk,eof;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  reading atoms ...\n");
-    if (logfile) fprintf(logfile,"  reading atoms ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"  reading atoms ...\n");
 
   bigint nread = 0;
 
@@ -1249,10 +1216,7 @@ void ReadData::atoms()
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   bigint nassign = sum - (atom->natoms - natoms);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",nassign);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",nassign);
-  }
+  if (me == 0) utils::logmesg(lmp,fmt::format("  {} atoms\n",nassign));
 
   if (sum != atom->natoms)
     error->all(FLERR,"Did not assign all atoms correctly");
@@ -1282,10 +1246,7 @@ void ReadData::velocities()
 {
   int nchunk,eof;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  reading velocities ...\n");
-    if (logfile) fprintf(logfile,"  reading velocities ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"  reading velocities ...\n");
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -1309,10 +1270,7 @@ void ReadData::velocities()
     atom->map_style = 0;
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " velocities\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " velocities\n",natoms);
-  }
+  if (me == 0) utils::logmesg(lmp,fmt::format("  {} velocities\n",natoms));
 }
 
 /* ----------------------------------------------------------------------
@@ -1324,13 +1282,8 @@ void ReadData::bonds(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning bonds ...\n");
-      if (logfile) fprintf(logfile,"  scanning bonds ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading bonds ...\n");
-      if (logfile) fprintf(logfile,"  reading bonds ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning bonds ...\n");
+    else utils::logmesg(lmp,"  reading bonds ...\n");
   }
 
   // allocate count if firstpass
@@ -1365,10 +1318,8 @@ void ReadData::bonds(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_bond_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max bonds/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max bonds/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->bond_per_atom)
@@ -1389,10 +1340,8 @@ void ReadData::bonds(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 2;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} bonds\n",sum/factor));
 
   if (sum != factor*nbonds)
     error->all(FLERR,"Bonds assigned incorrectly");
@@ -1407,13 +1356,8 @@ void ReadData::angles(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning angles ...\n");
-      if (logfile) fprintf(logfile,"  scanning angles ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading angles ...\n");
-      if (logfile) fprintf(logfile,"  reading angles ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning angles ...\n");
+    else utils::logmesg(lmp,"  reading angles ...\n");
   }
 
   // allocate count if firstpass
@@ -1448,10 +1392,8 @@ void ReadData::angles(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_angle_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max angles/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max angles/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max angles/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->angle_per_atom)
@@ -1472,10 +1414,8 @@ void ReadData::angles(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 3;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} angles\n",sum/factor));
 
   if (sum != factor*nangles)
     error->all(FLERR,"Angles assigned incorrectly");
@@ -1490,13 +1430,8 @@ void ReadData::dihedrals(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning dihedrals ...\n");
-      if (logfile) fprintf(logfile,"  scanning dihedrals ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading dihedrals ...\n");
-      if (logfile) fprintf(logfile,"  reading dihedrals ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning dihedrals ...\n");
+    else utils::logmesg(lmp,"  reading dihedrals ...\n");
   }
 
   // allocate count if firstpass
@@ -1531,10 +1466,8 @@ void ReadData::dihedrals(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max dihedrals/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max dihedrals/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max dihedrals/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->dihedral_per_atom)
@@ -1555,10 +1488,8 @@ void ReadData::dihedrals(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} dihedrals\n",sum/factor));
 
   if (sum != factor*ndihedrals)
     error->all(FLERR,"Dihedrals assigned incorrectly");
@@ -1573,13 +1504,8 @@ void ReadData::impropers(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning impropers ...\n");
-      if (logfile) fprintf(logfile,"  scanning impropers ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading impropers ...\n");
-      if (logfile) fprintf(logfile,"  reading impropers ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning impropers ...\n");
+    else utils::logmesg(lmp,"  reading impropers ...\n");
   }
 
   // allocate count if firstpass
@@ -1614,10 +1540,8 @@ void ReadData::impropers(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_improper_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max impropers/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max impropers/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max impropers/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->improper_per_atom)
@@ -1638,10 +1562,8 @@ void ReadData::impropers(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} impropers\n",sum/factor));
 
   if (sum != factor*nimpropers)
     error->all(FLERR,"Impropers assigned incorrectly");
@@ -1679,10 +1601,8 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
     atom->map_style = 0;
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " %s\n",natoms,type);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " %s\n",natoms,type);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} {}\n",natoms,type));
 }
 
 /* ----------------------------------------------------------------------
@@ -1692,7 +1612,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
    if not firstpass, just read past data, but no processing of data
 ------------------------------------------------------------------------- */
 
-void ReadData::bodies(int firstpass)
+void ReadData::bodies(int firstpass, AtomVec *ptr)
 {
   int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp,rv;
   char *eof;
@@ -1736,7 +1656,7 @@ void ReadData::bodies(int firstpass)
         while (nword < ninteger) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = atom->count_words(&buffer[m],copy);
+          ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;
@@ -1750,7 +1670,7 @@ void ReadData::bodies(int firstpass)
         while (nword < ndouble) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = atom->count_words(&buffer[m],copy);
+          ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;
@@ -1776,7 +1696,7 @@ void ReadData::bodies(int firstpass)
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    if (firstpass) atom->data_bodies(nchunk,buffer,avec_body,id_offset);
+    if (firstpass) atom->data_bodies(nchunk,buffer,ptr,id_offset);
     nread += nchunk;
   }
 
@@ -1785,10 +1705,8 @@ void ReadData::bodies(int firstpass)
     atom->map_style = 0;
   }
 
-  if (me == 0 && firstpass) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " bodies\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bodies\n",natoms);
-  }
+  if (me == 0 && firstpass)
+    utils::logmesg(lmp,fmt::format("  {} bodies\n",natoms));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2015,25 +1933,21 @@ void ReadData::open(char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
-
+    std::string gunzip = fmt::format("gzip -c -d {}",file);
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file: " + utils::getsyserror());
 #endif
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------
@@ -2159,11 +2073,11 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
   if (narg == 0) return;
 
   if (noffset) {
-    int value = force->inumeric(FLERR,arg[0]);
+    int value = utils::inumeric(FLERR,arg[0],false,lmp);
     sprintf(argoffset1,"%d",value+offset);
     arg[0] = argoffset1;
     if (noffset == 2) {
-      value = force->inumeric(FLERR,arg[1]);
+      value = utils::inumeric(FLERR,arg[1],false,lmp);
       sprintf(argoffset2,"%d",value+offset);
       arg[1] = argoffset2;
     }

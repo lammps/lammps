@@ -49,6 +49,15 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
+Potential or table files may have a ``UNITS:`` tag included in the
+first line indicating the unit style those files were created for.
+If the tag exists, its value will be compared to the chosen unit style
+and LAMMPS will stop with an error message if there is a mismatch.
+In some select cases and for specific combinations of unit styles,
+LAMMPS is capable of automatically converting potential parameters
+from a file. In those cases, a warning message signaling that an
+automatic conversion has happened is printed to the screen.
+
 ----------
 
 For style *lj*\ , all quantities are unitless.  Without loss of
@@ -203,7 +212,7 @@ For style *nano*\ , these are the units:
 The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 
-* For style *lj* these are dt = 0.005 tau and skin = 0.3 sigma.
+* For style *lj* these are dt = 0.005 :math:`\tau` and skin = 0.3 :math:`\sigma`.
 * For style *real* these are dt = 1.0 femtoseconds and skin = 2.0 Angstroms.
 * For style *metal* these are dt = 0.001 picoseconds and skin = 2.0 Angstroms.
 * For style *si* these are dt = 1.0e-8 seconds and skin = 0.001 meters.
@@ -218,7 +227,11 @@ Restrictions
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

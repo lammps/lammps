@@ -520,4 +520,7 @@ Related commands
 
 :doc:`shell <shell>`, :doc:`variable <variable>`, :doc:`fix python/invoke <fix_python_invoke>`
 
-**Default:** none
+Default
+"""""""
+
+none

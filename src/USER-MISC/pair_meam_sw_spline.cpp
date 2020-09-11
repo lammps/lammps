@@ -25,7 +25,7 @@
 
 #include "pair_meam_sw_spline.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -35,7 +35,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -460,7 +460,7 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 void PairMEAMSWSpline::read_file(const char* filename)
 {
   if(comm->me == 0) {
-    FILE *fp = force->open_potential(filename);
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
     if(fp == NULL) {
       char str[1024];
       snprintf(str,1024,"Cannot open spline MEAM potential file %s", filename);
@@ -674,6 +674,7 @@ void PairMEAMSWSpline::SplineFunction::prepareSpline(Error* error)
                 Y2[i] /= h*6.0;
 #endif
         }
+        inv_h = 1/h;
         xmax_shifted = xmax - xmin;
 }
 
@@ -689,6 +690,7 @@ void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
         MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
         MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
         if(me != 0) {
                 X = new double[N];
                 Xs = new double[N];

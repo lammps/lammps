@@ -12,20 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect_kokkos.h"
-#include <cstdlib>
-#include <cstring>
-#include "atom_kokkos.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "error.h"
-#include "force.h"
-#include "atom_masks.h"
 
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -107,7 +102,7 @@ void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate
 
 namespace LAMMPS_NS {
 template class FixWallReflectKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixWallReflectKokkos<LMPHostType>;
 #endif
 }

@@ -18,17 +18,18 @@
 ------------------------------------------------------------------------- */
 
 #include "min_hftn.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
 #include "fix_minimize.h"
 #include "modify.h"
 #include "output.h"
 #include "pair.h"
-#include "update.h"
 #include "timer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

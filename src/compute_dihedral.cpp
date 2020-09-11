@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dihedral.h"
-#include <mpi.h>
-#include "update.h"
-#include "force.h"
+
 #include "dihedral.h"
 #include "dihedral_hybrid.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

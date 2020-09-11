@@ -54,8 +54,8 @@
 
 /** KOKKOS_IMPL_HAS_TYPE( Type )
  *
- * defines a meta-function that check if a type expose an internal typedef or
- * type alias which matches Type
+ * defines a meta-function that check if a type expose an internal alias which
+ * matches Type
  *
  * e.g.
  *   KOKKOS_IMPL_HAS_TYPE( array_layout );
@@ -73,7 +73,7 @@
         : std::true_type {};                                                   \
                                                                                \
    public:                                                                     \
-    typedef typename X<T>::type type;                                          \
+    using type = typename X<T>::type;                                          \
     enum : bool { value = type::value };                                       \
   };
 

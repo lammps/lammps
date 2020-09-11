@@ -33,7 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -682,10 +682,10 @@ void PairLJCharmmfswCoulLong::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(FLERR,arg[0]);
-  cut_lj = force->numeric(FLERR,arg[1]);
+  cut_lj_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -698,16 +698,16 @@ void PairLJCharmmfswCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = force->numeric(FLERR,arg[4]);
-    sigma14_one = force->numeric(FLERR,arg[5]);
+    eps14_one = utils::numeric(FLERR,arg[4],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   int count = 0;
@@ -739,37 +739,18 @@ void PairLJCharmmfswCoulLong::init_style()
 
   int irequest;
 
+  int respa = 0;
   if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
 
-    if (respa == 0) irequest = neighbor->request(this,instance_me);
-    else if (respa == 1) {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
-
-  } else irequest = neighbor->request(this,instance_me);
+  irequest = neighbor->request(this,instance_me);
+  if (respa >= 1) {
+    neighbor->requests[irequest]->respaouter = 1;
+    neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   // require cut_lj_inner < cut_lj
 

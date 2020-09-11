@@ -12,20 +12,21 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_langevin_kokkos.h"
-#include <cmath>
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "update.h"
-#include "error.h"
-#include "memory_kokkos.h"
-#include "compute.h"
-#include "comm.h"
-#include "modify.h"
 #include "input.h"
-#include "region.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "update.h"
 #include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -137,7 +138,7 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::initial_integrate(int vflag)
+void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
@@ -168,7 +169,7 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::post_force(int vflag)
+void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // sync the device views which might have been modified on host
   atomKK->sync(execution_space,datamask_read);
@@ -873,7 +874,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
    ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   h_franprev(j,0) = h_franprev(i,0);
   h_franprev(j,1) = h_franprev(i,1);
@@ -909,7 +910,7 @@ void FixLangevinKokkos<DeviceType>::cleanup_copy()
 
 namespace LAMMPS_NS {
 template class FixLangevinKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixLangevinKokkos<LMPHostType>;
 #endif
 }

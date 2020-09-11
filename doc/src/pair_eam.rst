@@ -1,70 +1,44 @@
 .. index:: pair_style eam
+.. index:: pair_style eam/gpu
+.. index:: pair_style eam/intel
+.. index:: pair_style eam/kk
+.. index:: pair_style eam/omp
+.. index:: pair_style eam/opt
+.. index:: pair_style eam/alloy
+.. index:: pair_style eam/alloy/gpu
+.. index:: pair_style eam/alloy/intel
+.. index:: pair_style eam/alloy/kk
+.. index:: pair_style eam/alloy/omp
+.. index:: pair_style eam/alloy/opt
+.. index:: pair_style eam/cd
+.. index:: pair_style eam/cd/old
+.. index:: pair_style eam/fs
+.. index:: pair_style eam/fs/gpu
+.. index:: pair_style eam/fs/intel
+.. index:: pair_style eam/fs/kk
+.. index:: pair_style eam/fs/omp
+.. index:: pair_style eam/fs/opt
 
 pair_style eam command
 ======================
 
-pair_style eam/gpu command
-==========================
-
-pair_style eam/intel command
-============================
-
-pair_style eam/kk command
-=========================
-
-pair_style eam/omp command
-==========================
-
-pair_style eam/opt command
-==========================
+Accelerator Variants: *eam/gpu*, *eam/intel*, *eam/kk*, *eam/omp*, *eam/opt*
 
 pair_style eam/alloy command
 ============================
 
-pair_style eam/alloy/gpu command
-================================
-
-pair_style eam/alloy/intel command
-==================================
-
-pair_style eam/alloy/kk command
-===============================
-
-pair_style eam/alloy/omp command
-================================
-
-pair_style eam/alloy/opt command
-================================
+Accelerator Variants: *eam/alloy/gpu*, *eam/alloy/intel*, *eam/alloy/kk*, *eam/alloy/omp*, *eam/alloy/opt*
 
 pair_style eam/cd command
 =========================
 
-pair_style eam/cd/omp command
-=============================
-
 pair_style eam/cd/old command
 =============================
-
-pair_style eam/cd/old/omp command
-=================================
 
 pair_style eam/fs command
 =========================
 
-pair_style eam/fs/gpu command
-=============================
-
-pair_style eam/fs/intel command
-===============================
-
-pair_style eam/fs/kk command
-============================
-
-pair_style eam/fs/omp command
-=============================
-
-pair_style eam/fs/opt command
-=============================
+Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
 """"""
@@ -82,7 +56,7 @@ Examples
 
    pair_style eam
    pair_coeff * * cuu3
-   pair_coeff 1*3 1\*3 niu3.eam
+   pair_coeff 1*3 1*3 niu3.eam
 
    pair_style eam/alloy
    pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
@@ -268,15 +242,15 @@ As an example, the potentials/NiAlH_jea.eam.alloy file is a *setfl*
 file which has tabulated EAM values for 3 elements and their alloy
 interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
-If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
-be Ni, and the 4th to be Al, you would use the following pair_coeff
+If your LAMMPS simulation has 4 atoms types and you want the first 3 to
+be Ni, and the fourth to be Al, you would use the following pair_coeff
 command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
 element in the *setfl* file.  The final Al argument maps LAMMPS atom
 type 4 to the Al element in the *setfl* file.  Note that there is no
@@ -315,7 +289,7 @@ element, each with the following format:
 
 As with the *funcfl* files, only the mass (in mass :doc:`units <units>`,
 e.g. mass number or grams/mole for metal units) is used by LAMMPS from
-the 1st line.  The cubic lattice constant is in Angstroms.  The F and
+the first line.  The cubic lattice constant is in Angstroms.  The F and
 rho arrays are unique to a single element and have the same format and
 units as in a *funcfl* file.
 
@@ -442,27 +416,12 @@ are listed.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -493,7 +452,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

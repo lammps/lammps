@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rx.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <cmath>
 #include <cfloat> // DBL_EPSILON
@@ -31,6 +31,7 @@
 #include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
+
 
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
@@ -123,7 +124,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     else {
       std::string errmsg = "Illegal command " + std::string(word)
                              + " expected \"sparse\" or \"dense\"\n";
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
 
     if (comm->me == 0 and Verbosity > 1){
@@ -133,7 +134,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       else
          msg += std::string("dense");
 
-      error->message(FLERR, msg.c_str());
+      error->message(FLERR, msg);
     }
   }
 
@@ -148,7 +149,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       odeIntegrationFlag = ODE_LAMMPS_RKF45;
     else {
       std::string errmsg = "Illegal ODE integration type: " + std::string(word);
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
   }
 
@@ -265,7 +266,7 @@ void FixRX::post_constructor()
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(kineticsFile);
+    fp = utils::open_potential(kineticsFile,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",kineticsFile);
@@ -296,7 +297,7 @@ void FixRX::post_constructor()
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line
@@ -317,7 +318,7 @@ void FixRX::post_constructor()
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
         tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
-        tmpmaxstrlen = MAX(tmpmaxstrlen,strlen(word));
+        tmpmaxstrlen = MAX(tmpmaxstrlen,(int)strlen(word));
         nUniqueSpecies++;
       }
       word = strtok(NULL, " \t\n\r\f");
@@ -542,7 +543,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int)sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;
@@ -560,7 +561,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int) sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;
@@ -854,7 +855,7 @@ void FixRX::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
+    fp = utils::open_potential(file,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",file);
@@ -884,14 +885,14 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     nreactions++;
   }
 
   // open file on proc 0
-  if (comm->me == 0) fp = force->open_potential(file);
+  if (comm->me == 0) fp = utils::open_potential(file,lmp,nullptr);
 
   // read each reaction from kinetics file
   eof=0;
@@ -938,7 +939,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line

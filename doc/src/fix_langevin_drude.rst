@@ -188,7 +188,7 @@ particles.
 *damp_com* is the characteristic time for reaching thermal equilibrium
 of the centers of mass.  For example, a value of 100.0 means to relax
 the temperature of the centers of mass in a timespan of (roughly) 100
-time units (tau or fmsec or psec - see the :doc:`units <units>`
+time units (tau or fs or ps - see the :doc:`units <units>`
 command).  *damp_drude* is the characteristic time for reaching
 thermal equilibrium of the dipoles. It is typically a few timesteps.
 
@@ -256,7 +256,8 @@ Comments:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"

@@ -12,21 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_addforce.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_masks.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +59,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
   if (strstr(arg[4],"v_") == arg[4]) {
@@ -68,7 +67,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -76,7 +75,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 

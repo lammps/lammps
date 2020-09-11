@@ -55,19 +55,9 @@
 
 # Check for CUDA support
 
-IF (NOT TPL_ENABLE_CUDA OR CUDA_VERSION VERSION_LESS "4.1")
-  MESSAGE(FATAL_ERROR "\nCUSPARSE: did not find acceptable version of CUDA libraries (4.1 or greater)")
+IF (NOT TPL_ENABLE_CUDA)
+  MESSAGE(FATAL_ERROR "\nCUSPARSE requires CUDA")
 ELSE()
-  IF(CMAKE_VERSION VERSION_LESS "2.8.8")
-    # FindCUDA before CMake 2.8.8 does not find cusparse library; therefore, we must
-    find_library(CUDA_cusparse_LIBRARY
-      cusparse
-      HINTS ${CUDA_TOOLKIT_ROOT_DIR}/lib
-      )
-    IF(CUDA_cusparse_LIBRARY STREQUAL "CUDA_cusparse_LIBRARY-NOTFOUND") 
-      MESSAGE(FATAL_ERROR "\nCUSPARSE: could not find cuspasre library.")
-    ENDIF()
-  ENDIF()
   GLOBAL_SET(TPL_CUSPARSE_LIBRARY_DIRS)
   GLOBAL_SET(TPL_CUSPARSE_INCLUDE_DIRS ${TPL_CUDA_INCLUDE_DIRS})
   GLOBAL_SET(TPL_CUSPARSE_LIBRARIES    ${CUDA_cusparse_LIBRARY})

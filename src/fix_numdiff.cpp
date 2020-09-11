@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -50,22 +50,17 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 3;
   respa_level_support = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  delta = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  delta = utils::numeric(FLERR,arg[4],false,lmp);
   if (nevery <= 0 || delta <= 0.0)
     error->all(FLERR,"Illegal fix numdiff command");
 
-  int n = strlen(id) + 6;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
+  std::string cmd = id + std::string("_pe");
+  id_pe = new char[cmd.size()+1];
+  strcpy(id_pe,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  cmd += " all pe";
+  modify->add_compute(cmd);
 
   maxatom = 0;
 

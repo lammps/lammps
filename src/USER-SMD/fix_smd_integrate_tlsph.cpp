@@ -74,7 +74,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                                 error->all(FLERR, "expected number following limit_velocity");
                         }
 
-                        vlimit = force->numeric(FLERR, arg[iarg]);
+                        vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
                         if (comm->me == 0) {
                                 printf("... will limit velocities to <= %g\n", vlimit);
                         }
@@ -203,8 +203,8 @@ void FixSMDIntegrateTlsph::final_integrate() {
 
         double **v = atom->v;
         double **f = atom->f;
-        double *e = atom->e;
-        double *de = atom->de;
+        double *esph = atom->esph;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -231,7 +231,7 @@ void FixSMDIntegrateTlsph::final_integrate() {
                                 }
                         }
 
-                        e[i] += dtv * de[i];
+                        esph[i] += dtv * desph[i];
                 }
         }
 }

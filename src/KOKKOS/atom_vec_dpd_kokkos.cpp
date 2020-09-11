@@ -20,7 +20,7 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +93,7 @@ void AtomVecDPDKokkos::grow(int n)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 }
 
@@ -101,7 +101,7 @@ void AtomVecDPDKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecDPDKokkos::grow_reset()
+void AtomVecDPDKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <strings.h>
 #include "atom.h"
@@ -39,7 +39,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -244,9 +244,10 @@ void PairReaxC::settings(int narg, char **arg)
   qeqflag = 1;
   control->lgflag = 0;
   control->enobondsflag = 1;
-  system->mincap = MIN_CAP;
-  system->safezone = SAFE_ZONE;
-  system->saferzone = SAFER_ZONE;
+  system->mincap = REAX_MIN_CAP;
+  system->minhbonds = REAX_MIN_HBONDS;
+  system->safezone = REAX_SAFE_ZONE;
+  system->saferzone = REAX_SAFER_ZONE;
 
   // process optional keywords
 
@@ -265,7 +266,7 @@ void PairReaxC::settings(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) control->enobondsflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-  } else if (strcmp(arg[iarg],"lgvdw") == 0) {
+    } else if (strcmp(arg[iarg],"lgvdw") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;
@@ -273,16 +274,22 @@ void PairReaxC::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->safezone = force->numeric(FLERR,arg[iarg+1]);
+      system->safezone = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (system->safezone < 0.0)
         error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->mincap = force->inumeric(FLERR,arg[iarg+1]);
+      system->mincap = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (system->mincap < 0)
         error->all(FLERR,"Illegal pair_style reax/c mincap command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"minhbonds") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      system->minhbonds = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (system->minhbonds < 0)
+        error->all(FLERR,"Illegal pair_style reax/c minhbonds command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -310,7 +317,7 @@ void PairReaxC::coeff( int nargs, char **args )
 
   char *file = args[2];
   FILE *fp;
-  fp = force->open_potential(file);
+  fp = utils::open_potential(file,lmp,nullptr);
   if (fp != NULL)
     Read_Force_Field(fp, &(system->reax_param), control);
   else {
@@ -461,9 +468,11 @@ void PairReaxC::setup( )
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
+    if (num_nbrs < 0)
+      error->all(FLERR,"Too many neighbors for pair style reax/c");
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS))
-      error->one(FLERR,"Pair reax/c problem in far neighbor list");
+      error->all(FLERR,"Pair reax/c problem in far neighbor list");
     (lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();
@@ -712,7 +721,7 @@ int PairReaxC::estimate_reax_lists()
 
   free( marked );
 
-  return static_cast<int> (MAX( num_nbrs*safezone, mincap*MIN_NBRS ));
+  return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }
 
 /* ---------------------------------------------------------------------- */

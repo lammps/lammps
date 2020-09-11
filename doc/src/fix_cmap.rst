@@ -66,7 +66,7 @@ in the body of the data file like this with N lines:
           N       3     314     315     317      318    330
 
 The first column is an index from 1 to N to enumerate the CMAP terms;
-it is ignored by LAMMPS.  The 2nd column is the "type" of the
+it is ignored by LAMMPS.  The second column is the "type" of the
 interaction; it is an index into the CMAP force field file.  The
 remaining 5 columns are the atom IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP 5-body interaction.  Note
@@ -90,7 +90,8 @@ the note below about how to include the CMAP energy when performing an
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
@@ -140,7 +141,10 @@ Related commands
 
 :doc:`fix_modify <fix_modify>`, :doc:`read_data <read_data>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -45,8 +45,6 @@
 #include <Kokkos_Core.hpp>
 #include <cstdio>
 
-extern "C" void print_fortran_();
-
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   Kokkos::DefaultExecutionSpace::print_configuration(std::cout);
@@ -57,7 +55,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  const long n = strtol(argv[1], NULL, 10);
+  const long n = strtol(argv[1], nullptr, 10);
 
   printf("Number of even integers from 0 to %ld\n", n - 1);
 
@@ -83,8 +81,6 @@ int main(int argc, char* argv[]) {
 
   count_time = timer.seconds();
   printf("Sequential: %ld    %10.6f\n", seq_count, count_time);
-
-  print_fortran_();
 
   Kokkos::finalize();
 

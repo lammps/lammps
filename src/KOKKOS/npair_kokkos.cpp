@@ -55,6 +55,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+  k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info
 
@@ -97,19 +98,19 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (neighbor->last_setup_bins == update->ntimestep) {
+  if (ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     int maxstencil = ns->get_maxstencil();
 
-    if (maxstencil > k_stencil.extent(0))
+    if (maxstencil > (int)k_stencil.extent(0))
       k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
     for (int k = 0; k < maxstencil; k++)
       k_stencil.h_view(k) = ns->stencil[k];
-      k_stencil.modify<LMPHostType>();
-      k_stencil.sync<DeviceType>();
+    k_stencil.modify<LMPHostType>();
+    k_stencil.sync<DeviceType>();
     if (GHOST) {
-      if (maxstencil > k_stencilxyz.extent(0))
+      if (maxstencil > (int)k_stencilxyz.extent(0))
         k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
       for (int k = 0; k < maxstencil; k++) {
         k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
@@ -219,7 +220,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 
     if (GHOST) {
-      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data);
       Kokkos::parallel_for(nall, f);
     } else {
       if (newton_pair) {
@@ -232,7 +233,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -247,7 +251,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -264,7 +271,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -279,7 +289,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -292,7 +305,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
     if(data.h_resize()) {
       list->maxneighs = data.h_new_maxneighs() * 1.2;
-      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->k_neighbors = DAT::tdual_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->d_neighbors = list->k_neighbors.template view<DeviceType>();
       data.neigh_list.d_neighbors = list->d_neighbors;
       data.neigh_list.maxneighs = list->maxneighs;
     }
@@ -307,6 +321,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   }
 
   list->k_ilist.template modify<DeviceType>();
+  list->k_numneigh.template modify<DeviceType>();
+  list->k_neighbors.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1138,7 +1154,7 @@ template class NPairKokkos<LMPDeviceType,1,1,0,0>;
 template class NPairKokkos<LMPDeviceType,1,0,1,0>;
 template class NPairKokkos<LMPDeviceType,1,0,0,1>;
 template class NPairKokkos<LMPDeviceType,1,0,1,1>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairKokkos<LMPHostType,0,0,0,0>;
 template class NPairKokkos<LMPHostType,0,1,0,0>;
 template class NPairKokkos<LMPHostType,1,0,0,0>;

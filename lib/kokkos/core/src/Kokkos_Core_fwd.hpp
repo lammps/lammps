@@ -52,7 +52,6 @@
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
-#include <Kokkos_UniqueToken.hpp>
 #include <Kokkos_MasterLock.hpp>
 
 //----------------------------------------------------------------------------
@@ -99,10 +98,6 @@ class HBWSpace;  /// Memory space for hbw_malloc from memkind (e.g. for KNL
 class Serial;  ///< Execution space main process on CPU.
 #endif
 
-#if defined(KOKKOS_ENABLE_QTHREADS)
-class Qthreads;  ///< Execution space with Qthreads back-end.
-#endif
-
 #if defined(KOKKOS_ENABLE_HPX)
 namespace Experimental {
 class HPX;  ///< Execution space with HPX back-end.
@@ -124,13 +119,6 @@ class OpenMPTargetSpace;
 }  // namespace Experimental
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA)
-class CudaSpace;            ///< Memory space on Cuda GPU
-class CudaUVMSpace;         ///< Memory space on Cuda GPU with UVM
-class CudaHostPinnedSpace;  ///< Memory space on Host accessible to Cuda GPU
-class Cuda;                 ///< Execution space for Cuda GPU
-#endif
-
 #if defined(KOKKOS_ENABLE_ROCM)
 namespace Experimental {
 class ROCmSpace;  ///< Memory space on ROCm GPU
@@ -138,10 +126,19 @@ class ROCm;       ///< Execution space for ROCm GPU
 }  // namespace Experimental
 #endif
 
+#if defined(KOKKOS_ENABLE_HIP)
+namespace Experimental {
+class HIPSpace;  ///< Memory space on HIP GPU
+class HIP;       ///< Execution space for HIP GPU
+}  // namespace Experimental
+#endif
+
 template <class ExecutionSpace, class MemorySpace>
 struct Device;
 
 }  // namespace Kokkos
+
+#include "Cuda/Kokkos_Cuda_fwd.hpp"
 
 //----------------------------------------------------------------------------
 // Set the default execution space.
@@ -151,50 +148,70 @@ struct Device;
 /// Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP,
 /// Kokkos::Threads, Kokkos::Serial
 
+#if defined(__clang_analyzer__)
+#define KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION \
+  [[clang::annotate("DefaultExecutionSpace")]]
+#define KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION \
+  [[clang::annotate("DefaultHostExecutionSpace")]]
+#else
+#define KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION
+#define KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION
+#endif
+
 namespace Kokkos {
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA)
-typedef Cuda DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Cuda;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET)
-typedef Experimental::OpenMPTarget DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
+    Experimental::OpenMPTarget;
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
+    Experimental::HIP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM)
-typedef Experimental::ROCm DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
+    Experimental::ROCm;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
-typedef OpenMP DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = OpenMP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
-typedef Threads DefaultExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
-//  typedef Qthreads DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Threads;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
-typedef Kokkos::Experimental::HPX DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
+    Kokkos::Experimental::HPX;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL)
-typedef Serial DefaultExecutionSpace;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
-typedef OpenMP DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    OpenMP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
-typedef Threads DefaultHostExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
-//  typedef Qthreads DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Threads;
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Kokkos::Experimental::HPX;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL)
-typedef Serial DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Serial;
 #elif defined(KOKKOS_ENABLE_OPENMP)
-typedef OpenMP DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    OpenMP;
 #elif defined(KOKKOS_ENABLE_THREADS)
-typedef Threads DefaultHostExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_QTHREADS )
-//  typedef Qthreads DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Threads;
 #elif defined(KOKKOS_ENABLE_HPX)
-typedef Kokkos::Experimental::HPX DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Kokkos::Experimental::HPX;
 #elif defined(KOKKOS_ENABLE_SERIAL)
-typedef Serial DefaultHostExecutionSpace;
+using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
+    Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 }  // namespace Kokkos
@@ -210,13 +227,15 @@ namespace Impl {
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
     defined(KOKKOS_ENABLE_CUDA)
-typedef Kokkos::CudaSpace ActiveExecutionMemorySpace;
+using ActiveExecutionMemorySpace = Kokkos::CudaSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
-typedef Kokkos::HostSpace ActiveExecutionMemorySpace;
+using ActiveExecutionMemorySpace = Kokkos::HostSpace;
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+using ActiveExecutionMemorySpace = Kokkos::Experimental::HIPSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-typedef Kokkos::HostSpace ActiveExecutionMemorySpace;
+using ActiveExecutionMemorySpace = Kokkos::HostSpace;
 #else
-typedef void ActiveExecutionMemorySpace;
+using ActiveExecutionMemorySpace = void;
 #endif
 
 template <class ActiveSpace, class MemorySpace>
@@ -252,31 +271,22 @@ void fence();
 
 namespace Kokkos {
 
+template <class DataType, class... Properties>
+class View;
+
 namespace Impl {
 
 template <class DstSpace, class SrcSpace,
           class ExecutionSpace = typename DstSpace::execution_space>
 struct DeepCopy;
 
-template <class ViewType, class Layout, class ExecSpace, int Rank,
-          typename iType>
-struct ViewFillETIAvail;
-
 template <class ViewType, class Layout = typename ViewType::array_layout,
           class ExecSpace = typename ViewType::execution_space,
-          int Rank = ViewType::Rank, typename iType = int64_t,
-          bool EtiAvail =
-              ViewFillETIAvail<ViewType, Layout, ExecSpace, Rank, iType>::value>
+          int Rank = ViewType::Rank, typename iType = int64_t>
 struct ViewFill;
 
 template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
           int Rank, typename iType>
-struct ViewCopyETIAvail;
-
-template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
-          int Rank, typename iType,
-          bool EtiAvail = ViewCopyETIAvail<ViewTypeA, ViewTypeB, Layout,
-                                           ExecSpace, Rank, iType>::value>
 struct ViewCopy;
 
 template <class Functor, class Policy, class EnableFunctor = void,
@@ -349,33 +359,5 @@ template <class ScalarType, class Space = HostSpace>
 struct LOr;
 
 }  // namespace Kokkos
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-namespace Kokkos {
-template <class ScalarType>
-struct MinMaxScalar;
-template <class ScalarType, class Index>
-struct MinMaxLocScalar;
-template <class ScalarType, class Index>
-struct ValLocScalar;
-
-namespace Experimental {
-using Kokkos::BAnd;
-using Kokkos::BOr;
-using Kokkos::LAnd;
-using Kokkos::LOr;
-using Kokkos::Max;
-using Kokkos::MaxLoc;
-using Kokkos::Min;
-using Kokkos::MinLoc;
-using Kokkos::MinMax;
-using Kokkos::MinMaxLoc;
-using Kokkos::MinMaxLocScalar;
-using Kokkos::MinMaxScalar;
-using Kokkos::Prod;
-using Kokkos::Sum;
-using Kokkos::ValLocScalar;
-}  // namespace Experimental
-}  // namespace Kokkos
-#endif
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */

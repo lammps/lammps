@@ -16,14 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke_history.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -31,7 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +45,6 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   history = 1;
   size_history = 3;
-  fix_history = NULL;
 
   single_extra = 10;
   svector = new double[10];
@@ -60,6 +61,13 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // keep default behavior of history[i][j] = -history[j][i]
 
   nondefault_history_transfer = 0;
+
+  // create dummy fix as placeholder for FixNeighHistory
+  // this is so final order of Modify:fix will conform to input script
+
+  fix_history = NULL;
+  modify->add_fix("NEIGH_HISTORY_HH_DUMMY all DUMMY");
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +77,9 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (copymode) return;
 
   delete [] svector;
-  if (fix_history) modify->delete_fix("NEIGH_HISTORY");
+
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_HH");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -348,16 +358,16 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  kn = force->numeric(FLERR,arg[0]);
+  kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = force->numeric(FLERR,arg[1]);
+  else kt = utils::numeric(FLERR,arg[1],false,lmp);
 
-  gamman = force->numeric(FLERR,arg[2]);
+  gamman = utils::numeric(FLERR,arg[2],false,lmp);
   if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = force->numeric(FLERR,arg[3]);
+  else gammat = utils::numeric(FLERR,arg[3],false,lmp);
 
-  xmu = force->numeric(FLERR,arg[4]);
-  dampflag = force->inumeric(FLERR,arg[5]);
+  xmu = utils::numeric(FLERR,arg[4],false,lmp);
+  dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
@@ -375,8 +385,8 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -412,19 +422,22 @@ void PairGranHookeHistory::init_style()
 
   dt = update->dt;
 
-  // if first init, create Fix needed for storing shear history
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
@@ -491,7 +504,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }

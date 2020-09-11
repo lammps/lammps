@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_disp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include "math_vector.h"
-#include "math_const.h"
-#include "math_special.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_special.h"
+#include "math_vector.h"
+#include "memory.h"
+#include "pair.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -66,7 +67,7 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
 void EwaldDisp::settings(int narg, char **arg)
 {
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 
@@ -89,10 +90,7 @@ void EwaldDisp::init()
   nbox = -1;
   bytes = 0.0;
 
-  if (!comm->me) {
-    if (screen) fprintf(screen,"EwaldDisp initialization ...\n");
-    if (logfile) fprintf(logfile,"EwaldDisp initialization ...\n");
-  }
+  if (!comm->me) utils::logmesg(lmp,"EwaldDisp initialization ...\n");
 
   triclinic_check();
   if (domain->dimension == 2)
@@ -139,14 +137,16 @@ void EwaldDisp::init()
       nsums += n[k];
     }
 
-  if (!gewaldflag) g_ewald = g_ewald_6 = 1.0;
+  if (!gewaldflag) g_ewald = 1.0;
+  if (!gewaldflag_6) g_ewald_6 = 1.0;
   pair->init();  // so B is defined
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
   else qsqsum = qsum = 0.0;
   natoms_original = atom->natoms;
-  if (!gewaldflag) g_ewald = g_ewald_6 = 0.0;
+  if (!gewaldflag) g_ewald = 0.0;
+  if (!gewaldflag_6) g_ewald_6 = 0.0;
 
   // turn off coulombic if no charge
 
@@ -169,11 +169,9 @@ void EwaldDisp::init()
   if (qsqsum == 0.0 && bsbsum == 0.0 && M2 == 0.0)
       error->all(FLERR,"Cannot use Ewald/disp solver "
                  "on system with no charge, dipole, or LJ particles");
-  if (fabs(qsum) > SMALL && comm->me == 0) {
-      char str[128];
-      sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-      error->warning(FLERR,str);
-  }
+  if (fabs(qsum) > SMALL && comm->me == 0)
+    error->warning(FLERR,fmt::format("System is not charge neutral, "
+                                     "net charge = {:.8g}",qsum));
 
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;
@@ -229,12 +227,13 @@ void EwaldDisp::init()
     }
   }
 
-  if (!comm->me) {
-      if (screen) fprintf(screen, "  G vector = %g,   accuracy = %g\n", g_ewald,accuracy);
-      if (logfile) fprintf(logfile, "  G vector = %g   accuracy = %g\n", g_ewald,accuracy);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  G vector = {:.8g},   accuracy = {:.8g}\n",
+                                   g_ewald,accuracy));
 
-  g_ewald_6 = g_ewald;
+  // apply coulomb g_ewald to dispersion unless it is explicitly set
+
+  if (!gewaldflag_6) g_ewald_6 = g_ewald;
   deallocate_peratom();
   peratom_allocate_flag = 0;
 }
@@ -294,10 +293,8 @@ void EwaldDisp::setup()
 
   if (!(first_output||comm->me)) {
     first_output = 1;
-    if (screen) fprintf(screen,
-               "  vectors: nbox = %d, nkvec = %d\n", nbox, nkvec);
-    if (logfile) fprintf(logfile,
-        "  vectors: nbox = %d, nkvec = %d\n", nbox, nkvec);
+    utils::logmesg(lmp,fmt::format("  vectors: nbox = {}, nkvec = {}\n",
+                                   nbox, nkvec));
   }
 }
 
@@ -512,6 +509,7 @@ void EwaldDisp::init_coeffs()
   if (function[2]) {                                        // arithmetic 1/r^6
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
     double **sigma = (double **) force->pair->extract("sigma",tmp);
+    delete [] B;
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};

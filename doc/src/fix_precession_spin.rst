@@ -131,7 +131,8 @@ Those styles can be combined within one single command line.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 By default, the energy associated to this fix is not added to the potential
 energy of the system.
@@ -158,14 +159,16 @@ atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` do
 The *precession/spin* style can only be declared once. If more
 than one precession type (for example combining an anisotropy and a Zeeman interactions)
 has to be declared, they have to be chained in the same command
-line (as shown in the examples above). 
+line (as shown in the examples above).
 
 Related commands
 """"""""""""""""
 
 :doc:`atom_style spin <atom_style>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

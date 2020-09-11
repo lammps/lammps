@@ -63,6 +63,10 @@
 #include <ROCm/KokkosExp_ROCm_IterateTile_Refactor.hpp>
 #endif
 
+#if defined(__HIPCC__) && defined(KOKKOS_ENABLE_HIP)
+#include <HIP/KokkosExp_HIP_IterateTile.hpp>
+#endif
+
 namespace Kokkos {
 
 // ------------------------------------------------------------------ //
@@ -79,7 +83,8 @@ enum class Iterate
 template <typename ExecSpace>
 struct default_outer_direction {
   using type = Iterate;
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM) || \
+    defined(KOKKOS_ENABLE_HIP)
   static constexpr Iterate value = Iterate::Left;
 #else
   static constexpr Iterate value = Iterate::Right;
@@ -89,7 +94,8 @@ struct default_outer_direction {
 template <typename ExecSpace>
 struct default_inner_direction {
   using type = Iterate;
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM) || \
+    defined(KOKKOS_ENABLE_HIP)
   static constexpr Iterate value = Iterate::Left;
 #else
   static constexpr Iterate value = Iterate::Right;
@@ -124,8 +130,9 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
       RangePolicy<typename traits::execution_space,
                   typename traits::schedule_type, typename traits::index_type>;
 
-  typedef MDRangePolicy
-      execution_policy;  // needed for is_execution_space interrogation
+  using execution_policy =
+      MDRangePolicy<Properties...>;  // needed for is_execution_space
+                                     // interrogation
 
   template <class... OtherProperties>
   friend struct MDRangePolicy;
@@ -257,6 +264,10 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
         && !std::is_same<typename traits::execution_space,
                          Kokkos::Experimental::ROCm>::value
 #endif
+#if defined(KOKKOS_ENABLE_HIP)
+        && !std::is_same<typename traits::execution_space,
+                         Kokkos::Experimental::HIP>::value
+#endif
     ) {
       index_type span;
       for (int i = 0; i < rank; ++i) {
@@ -275,7 +286,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
         m_prod_tile_dims *= m_tile[i];
       }
     }
-#if defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     else  // Cuda
     {
       index_type span;
@@ -287,15 +298,21 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
         rank_start = rank - 1;
         rank_end   = -1;
       }
+      bool is_cuda_exec_space =
+#if defined(KOKKOS_ENABLE_CUDA)
+          std::is_same<typename traits::execution_space, Kokkos::Cuda>::value;
+#else
+          false;
+#endif
       for (int i = rank_start; i != rank_end; i += increment) {
         span = m_upper[i] - m_lower[i];
         if (m_tile[i] <= 0) {
-          // TODO: determine what is a good default tile size for cuda
+          // TODO: determine what is a good default tile size for cuda and HIP
           // may be rank dependent
           if (((int)inner_direction == (int)Right && (i < rank - 1)) ||
               ((int)inner_direction == (int)Left && (i > 0))) {
             if (m_prod_tile_dims < 256) {
-              m_tile[i] = 2;
+              m_tile[i] = (is_cuda_exec_space) ? 2 : 4;
             } else {
               m_tile[i] = 1;
             }
@@ -311,13 +328,18 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
       if (m_prod_tile_dims >
           1024) {  // Match Cuda restriction for ParallelReduce; 1024,1024,64
                    // max per dim (Kepler), but product num_threads < 1024
-        printf(" Tile dimensions exceed Cuda limits\n");
-        Kokkos::abort(
-            " Cuda ExecSpace Error: MDRange tile dims exceed maximum number of "
-            "threads per block - choose smaller tile dims");
-        // Kokkos::Impl::throw_runtime_exception( " Cuda ExecSpace Error:
-        // MDRange tile dims exceed maximum number of threads per block - choose
-        // smaller tile dims");
+        if (is_cuda_exec_space) {
+          printf(" Tile dimensions exceed Cuda limits\n");
+          Kokkos::abort(
+              " Cuda ExecSpace Error: MDRange tile dims exceed maximum number "
+              "of "
+              "threads per block - choose smaller tile dims");
+        } else {
+          printf(" Tile dimensions exceed HIP limits\n");
+          Kokkos::abort(
+              "HIP ExecSpace Error: MDRange tile dims exceed maximum number of "
+              "threads per block - choose smaller tile dims");
+        }
       }
     }
 #endif
@@ -397,6 +419,10 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
         && !std::is_same<typename traits::execution_space,
                          Kokkos::Experimental::ROCm>::value
 #endif
+#if defined(KOKKOS_ENABLE_HIP)
+        && !std::is_same<typename traits::execution_space,
+                         Kokkos::Experimental::HIP>::value
+#endif
     ) {
       index_type span;
       for (int i = 0; i < rank; ++i) {
@@ -415,8 +441,8 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
         m_prod_tile_dims *= m_tile[i];
       }
     }
-#if defined(KOKKOS_ENABLE_CUDA)
-    else  // Cuda
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    else  // Cuda or HIP
     {
       index_type span;
       int increment  = 1;
@@ -451,13 +477,17 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
       if (m_prod_tile_dims >
           1024) {  // Match Cuda restriction for ParallelReduce; 1024,1024,64
                    // max per dim (Kepler), but product num_threads < 1024
+#if defined(KOKKOS_ENABLE_CUDA)
         printf(" Tile dimensions exceed Cuda limits\n");
         Kokkos::abort(
             " Cuda ExecSpace Error: MDRange tile dims exceed maximum number of "
             "threads per block - choose smaller tile dims");
-        // Kokkos::Impl::throw_runtime_exception( " Cuda ExecSpace Error:
-        // MDRange tile dims exceed maximum number of threads per block - choose
-        // smaller tile dims");
+#else
+        printf(" Tile dimensions exceed HIP limits\n");
+        Kokkos::abort(
+            " HIP ExecSpace Error: MDRange tile dims exceed maximum number of "
+            "threads per block - choose smaller tile dims");
+#endif
       }
     }
 #endif
@@ -522,148 +552,6 @@ using Kokkos::Rank;
 }  // namespace Kokkos
 // ------------------------------------------------------------------ //
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-// ------------------------------------------------------------------ //
-// md_parallel_for - deprecated use parallel_for
-// ------------------------------------------------------------------ //
-
-namespace Kokkos {
-namespace Experimental {
-
-template <typename MDRange, typename Functor, typename Enable = void>
-void md_parallel_for(
-    MDRange const& range, Functor const& f, const std::string& str = "",
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Cuda>::value
-#endif
-#if defined(KOKKOS_ENABLE_ROCM)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Experimental::ROCm>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, void> g(range, f);
-
-  using range_policy = typename MDRange::impl_range_policy;
-
-  Kokkos::parallel_for(range_policy(0, range.m_num_tiles).set_chunk_size(1), g,
-                       str);
-}
-
-template <typename MDRange, typename Functor>
-void md_parallel_for(
-    const std::string& str, MDRange const& range, Functor const& f,
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Cuda>::value
-#endif
-#if defined(KOKKOS_ENABLE_ROCM)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Experimental::ROCm>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, void> g(range, f);
-
-  using range_policy = typename MDRange::impl_range_policy;
-
-  Kokkos::parallel_for(range_policy(0, range.m_num_tiles).set_chunk_size(1), g,
-                       str);
-}
-
-// Cuda specialization
-#if defined(__CUDACC__) && defined(KOKKOS_ENABLE_CUDA)
-template <typename MDRange, typename Functor>
-void md_parallel_for(
-    const std::string& str, MDRange const& range, Functor const& f,
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && std::is_same<typename MDRange::range_policy::execution_space,
-                         Kokkos::Cuda>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag>
-      closure(range, f);
-  closure.execute();
-}
-
-template <typename MDRange, typename Functor>
-void md_parallel_for(
-    MDRange const& range, Functor const& f, const std::string& str = "",
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && std::is_same<typename MDRange::range_policy::execution_space,
-                         Kokkos::Cuda>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::DeviceIterateTile<MDRange, Functor, typename MDRange::work_tag>
-      closure(range, f);
-  closure.execute();
-}
-#endif
-// ------------------------------------------------------------------ //
-
-// ------------------------------------------------------------------ //
-// md_parallel_reduce - deprecated use parallel_reduce
-// ------------------------------------------------------------------ //
-template <typename MDRange, typename Functor, typename ValueType>
-void md_parallel_reduce(
-    MDRange const& range, Functor const& f, ValueType& v,
-    const std::string& str = "",
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Cuda>::value
-#endif
-#if defined(KOKKOS_ENABLE_ROCM)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Experimental::ROCm>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, ValueType> g(range,
-                                                                       f);
-
-  using range_policy = typename MDRange::impl_range_policy;
-  Kokkos::parallel_reduce(
-      str, range_policy(0, range.m_num_tiles).set_chunk_size(1), g, v);
-}
-
-template <typename MDRange, typename Functor, typename ValueType>
-void md_parallel_reduce(
-    const std::string& str, MDRange const& range, Functor const& f,
-    ValueType& v,
-    typename std::enable_if<
-        (true
-#if defined(KOKKOS_ENABLE_CUDA)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Cuda>::value
-#endif
-#if defined(KOKKOS_ENABLE_ROCM)
-         && !std::is_same<typename MDRange::range_policy::execution_space,
-                          Kokkos::Experimental::ROCm>::value
-#endif
-         )>::type* = 0) {
-  Kokkos::Impl::Experimental::MDFunctor<MDRange, Functor, ValueType> g(range,
-                                                                       f);
-
-  using range_policy = typename MDRange::impl_range_policy;
-
-  Kokkos::parallel_reduce(
-      str, range_policy(0, range.m_num_tiles).set_chunk_size(1), g, v);
-}
-
-// Cuda - md_parallel_reduce not implemented - use parallel_reduce
-
-}  // namespace Experimental
-}  // namespace Kokkos
-#endif
-
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
@@ -671,15 +559,15 @@ namespace Impl {
 template <unsigned long P, class... Properties>
 struct PolicyPropertyAdaptor<WorkItemProperty::ImplWorkItemProperty<P>,
                              MDRangePolicy<Properties...>> {
-  typedef MDRangePolicy<Properties...> policy_in_t;
-  typedef MDRangePolicy<typename policy_in_t::traits::execution_space,
-                        typename policy_in_t::traits::schedule_type,
-                        typename policy_in_t::traits::work_tag,
-                        typename policy_in_t::traits::index_type,
-                        typename policy_in_t::traits::iteration_pattern,
-                        typename policy_in_t::traits::launch_bounds,
-                        WorkItemProperty::ImplWorkItemProperty<P>>
-      policy_out_t;
+  using policy_in_t = MDRangePolicy<Properties...>;
+  using policy_out_t =
+      MDRangePolicy<typename policy_in_t::traits::execution_space,
+                    typename policy_in_t::traits::schedule_type,
+                    typename policy_in_t::traits::work_tag,
+                    typename policy_in_t::traits::index_type,
+                    typename policy_in_t::traits::iteration_pattern,
+                    typename policy_in_t::traits::launch_bounds,
+                    WorkItemProperty::ImplWorkItemProperty<P>>;
 };
 
 }  // namespace Impl

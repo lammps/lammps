@@ -16,21 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_fdt.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "error.h"
-#include "utils.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -249,9 +248,9 @@ void PairDPDfdt::settings(int narg, char **arg)
   // process keywords
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  temperature = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
-  seed = force->inumeric(FLERR,arg[2]);
+  temperature = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
+  seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -279,16 +278,16 @@ void PairDPDfdt::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double cut_one = cut_global;
 
   a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
-  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
+  if (narg == 5) cut_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

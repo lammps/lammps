@@ -15,7 +15,7 @@ that supports the `MPI <mpi_>`_ message-passing library.  This includes
 shared-memory boxes and distributed-memory clusters and
 supercomputers.
 
-.. _mpi: http://www-unix.mcs.anl.gov/mpi
+.. _mpi: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _lws: https://lammps.sandia.gov
 
 LAMMPS is written in C++.  Earlier versions were written in F77 and

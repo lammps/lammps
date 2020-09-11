@@ -20,21 +20,19 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_dump.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "reader.h"
-#include "style_reader.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "irregular.h"
+#include "domain.h"
 #include "error.h"
+#include "irregular.h"
 #include "memory.h"
-#include "utils.h"
+#include "reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -109,7 +107,7 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  bigint nstep = force->bnumeric(FLERR,arg[1]);
+  bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
@@ -119,7 +117,7 @@ void ReadDump::command(int narg, char **arg)
 
   // find the snapshot and read/bcast/process header info
 
-  if (me == 0 && screen) fprintf(screen,"Scanning dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
 
   bigint ntimestep = seek(nstep,1);
   if (ntimestep < 0)
@@ -134,8 +132,7 @@ void ReadDump::command(int narg, char **arg)
 
   // read in the snapshot and reset system
 
-  if (me == 0 && screen)
-    fprintf(screen,"Reading snapshot from dump file ...\n");
+  if (me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
 
   bigint natoms_prev = atom->natoms;
   atoms();
@@ -165,26 +162,14 @@ void ReadDump::command(int narg, char **arg)
 
   domain->print_box("  ");
 
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  " BIGINT_FORMAT " atoms before read\n",natoms_prev);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms in snapshot\n",nsnap_all);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms purged\n",npurge_all);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms replaced\n",nreplace_all);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms trimmed\n",ntrim_all);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms added\n",nadd_all);
-      fprintf(screen,"  " BIGINT_FORMAT " atoms after read\n",atom->natoms);
-    }
-    if (logfile) {
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms before read\n",natoms_prev);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms in snapshot\n",nsnap_all);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms purged\n",npurge_all);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms replaced\n",nreplace_all);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms trimmed\n",ntrim_all);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms added\n",nadd_all);
-      fprintf(logfile,"  " BIGINT_FORMAT " atoms after read\n",atom->natoms);
-    }
-  }
+  if (me == 0)
+    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
+                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
+                   + fmt::format("  {} atoms purged\n",npurge_all)
+                   + fmt::format("  {} atoms replaced\n",nreplace_all)
+                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
+                   + fmt::format("  {} atoms added\n",nadd_all)
+                   + fmt::format("  {} atoms after read\n",atom->natoms));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -258,12 +243,12 @@ void ReadDump::setup_reader(int narg, char **arg)
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
   }
-#include "style_reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
+  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios
@@ -300,13 +285,9 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     for (ifile = 0; ifile < nfile; ifile++) {
       ntimestep = -1;
       if (multiproc) {
-        char *ptr = strchr(files[ifile],'%');
-        char *multiname = new char[strlen(files[ifile]) + 16];
-        *ptr = '\0';
-        sprintf(multiname,"%s%d%s",files[ifile],0,ptr+1);
-        *ptr = '%';
-        readers[0]->open_file(multiname);
-        delete [] multiname;
+        std::string multiname = files[ifile];
+        multiname.replace(multiname.find("%"),1,"0");
+        readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
       while (1) {
@@ -348,13 +329,9 @@ bigint ReadDump::seek(bigint nrequest, int exact)
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
-      char *ptr = strchr(files[currentfile],'%');
-      char *multiname = new char[strlen(files[currentfile]) + 16];
-      *ptr = '\0';
-      sprintf(multiname,"%s%d%s",files[currentfile],firstfile+i,ptr+1);
-      *ptr = '%';
-      readers[i]->open_file(multiname);
-      delete [] multiname;
+      std::string multiname = files[currentfile];
+      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      readers[i]->open_file(multiname.c_str());
 
       bigint step;
       while (1) {
@@ -400,13 +377,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       ntimestep = -1;
       if (ifile != currentfile) {
         if (multiproc) {
-          char *ptr = strchr(files[ifile],'%');
-          char *multiname = new char[strlen(files[ifile]) + 16];
-          *ptr = '\0';
-          sprintf(multiname,"%s%d%s",files[ifile],0,ptr+1);
-          *ptr = '%';
-          readers[0]->open_file(multiname);
-          delete [] multiname;
+          std::string multiname = files[ifile];
+          multiname.replace(multiname.find("%"),1,"0");
+          readers[0]->open_file(multiname.c_str());
         } else readers[0]->open_file(files[ifile]);
       }
 
@@ -458,13 +431,9 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;
-      char *ptr = strchr(files[currentfile],'%');
-      char *multiname = new char[strlen(files[currentfile]) + 16];
-      *ptr = '\0';
-      sprintf(multiname,"%s%d%s",files[currentfile],firstfile+i,ptr+1);
-      *ptr = '%';
-      readers[i]->open_file(multiname);
-      delete [] multiname;
+      std::string multiname = files[currentfile];
+      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      readers[i]->open_file(multiname.c_str());
 
       bigint step;
       while (1) {
@@ -1245,7 +1214,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      multiproc_nfile = force->inumeric(FLERR,arg[iarg+1]);
+      multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

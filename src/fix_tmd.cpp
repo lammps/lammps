@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tmd.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,7 +29,8 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,8 +45,8 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
-  rho_stop = force->numeric(FLERR,arg[3]);
-  nfileevery = force->inumeric(FLERR,arg[5]);
+  rho_stop = utils::numeric(FLERR,arg[3],false,lmp);
+  nfileevery = utils::inumeric(FLERR,arg[5],false,lmp);
   if (rho_stop < 0 || nfileevery < 0)
     error->all(FLERR,"Illegal fix tmd command");
   if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");
@@ -73,11 +74,9 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
     if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix tmd file %s",arg[6]);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror()));
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -447,12 +446,12 @@ void FixTMD::readfile(char *file)
           zprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (atom->count_words(bufptr) == 4) {
+        } else if (utils::trim_and_count_words(bufptr) == 4) {
           if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 0;
           firstline = 0;
-        } else if (atom->count_words(bufptr) == 7) {
+        } else if (utils::trim_and_count_words(bufptr) == 7) {
           if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 1;

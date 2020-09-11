@@ -12,16 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_buck_coul_cut_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -137,7 +138,7 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
         } else forcebuck = 0.0;
 
-        fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcebuck)*r2inv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;

@@ -18,7 +18,7 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#include "timer.h"
+#include "timer.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

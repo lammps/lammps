@@ -15,19 +15,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_dh.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "atom_vec_ellipsoid.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 
@@ -277,16 +276,16 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   count = 0;
 
   double T, rhos_dh_one, qeff_dh_one;
 
-  T = force->numeric(FLERR,arg[2]);
-  rhos_dh_one = force->numeric(FLERR,arg[3]);
-  qeff_dh_one  = force->numeric(FLERR,arg[4]);
+  T = utils::numeric(FLERR,arg[2],false,lmp);
+  rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  qeff_dh_one  = utils::numeric(FLERR,arg[4],false,lmp);
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
   double b_dh_one, cut_dh_ast_one, cut_dh_c_one;

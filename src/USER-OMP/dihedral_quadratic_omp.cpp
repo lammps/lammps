@@ -24,7 +24,7 @@
 #include "force.h"
 #include "update.h"
 #include "error.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;

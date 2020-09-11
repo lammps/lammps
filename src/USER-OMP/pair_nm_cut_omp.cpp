@@ -12,16 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_nm_cut_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -147,6 +148,7 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           evdwl = e0nmi[jtype] *
             (mmi[jtype]*r0ni[jtype]*rninv -
              nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,

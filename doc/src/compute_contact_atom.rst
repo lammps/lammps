@@ -34,7 +34,8 @@ sum of the radii of the two particles.
 The value of the contact number will be 0.0 for atoms not in the
 specified compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, whose values can be
 accessed by any command that uses per-atom values from a compute as
@@ -55,4 +56,7 @@ Related commands
 
 :doc:`compute coord/atom <compute_coord_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

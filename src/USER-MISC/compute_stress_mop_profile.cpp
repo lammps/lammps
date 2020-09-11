@@ -16,7 +16,7 @@
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop_profile.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 
@@ -65,8 +65,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
   if (originflag == COORD)
-    origin = force->numeric(FLERR,arg[4]);
-  delta = force->numeric(FLERR,arg[5]);
+    origin = utils::numeric(FLERR,arg[4],false,lmp);
+  delta = utils::numeric(FLERR,arg[5],false,lmp);
   invdelta = 1.0/delta;
 
   // parse values until one isn't recognized

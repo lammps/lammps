@@ -1442,7 +1442,7 @@ public:
 
 /// \brief Colvar component: alternative path collective variable using geometry, variable s
 /// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
-/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+/// Diaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
 class colvar::gspath
   : public colvar::CartesianBasedPath, public GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::S>
 {
@@ -1534,7 +1534,7 @@ public:
 /// \brief Colvar component: alternative path collective variable using geometry, variable s
 /// Allow any combination of existing (scalar) CVs
 /// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
-/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+/// Diaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
 class colvar::gspathCV
   : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::S>
 {

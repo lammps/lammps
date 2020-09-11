@@ -26,9 +26,9 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
 #include "pair_srp.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -44,7 +44,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "thermo.h"
 #include "output.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -79,13 +79,18 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   segment = NULL;
 
   // generate unique fix-id for this pair style instance
+
   fix_id = strdup("XX_FIX_SRP");
   fix_id[0] = '0' + srp_instance / 10;
   fix_id[1] = '0' + srp_instance % 10;
   ++srp_instance;
 
-  // create fix SRP instance here, as it has to
-  // be executed before all other fixes
+  // create fix SRP instance here
+  // similar to granular pair styles with history,
+  //   this should be early enough that FixSRP::pre_exchange()
+  //   will be invoked before other fixes that migrate atoms
+  //   this is checked for in FixSRP
+
   char **fixarg = new char*[3];
   fixarg[0] = fix_id;
   fixarg[1] = (char *) "all";
@@ -143,7 +148,6 @@ PairSRP::~PairSRP()
  ------------------------------------------------------------------------- */
 
 void PairSRP::compute(int eflag, int vflag)
-
 {
     // setup energy and virial
     ev_init(eflag, vflag);
@@ -358,12 +362,12 @@ void PairSRP::settings(int narg, char **arg)
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair_style srp requires atom IDs");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   // wildcard
   if (strcmp(arg[1],"*") == 0) {
     btype = 0;
   } else {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");
   }
@@ -397,7 +401,7 @@ void PairSRP::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      bptype = force->inumeric(FLERR,arg[iarg+1]);
+      bptype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if ((bptype < 1) || (bptype > atom->ntypes))
         error->all(FLERR,"Illegal bond particle type for srp");
       iarg += 2;
@@ -425,12 +429,12 @@ void PairSRP::coeff(int narg, char **arg)
 
     // set ij bond-bond cutoffs
     int ilo, ihi, jlo, jhi;
-    force->bounds(FLERR,arg[0], bptype, ilo, ihi);
-    force->bounds(FLERR,arg[1], bptype, jlo, jhi);
+    utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
+    utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
 
-    double a0_one = force->numeric(FLERR,arg[2]);
+    double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
     double cut_one = cut_global;
-    if (narg == 4)  cut_one = force->numeric(FLERR,arg[3]);
+    if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++)
@@ -458,6 +462,7 @@ void PairSRP::init_style()
     error->all(FLERR,"PairSRP: Pair srp requires newton pair on");
 
   // verify that fix SRP is still defined and has not been changed.
+
   int ifix = modify->find_fix(fix_id);
   if (f_srp != (FixSRP *)modify->fix[ifix])
     error->all(FLERR,"Fix SRP has been changed unexpectedly");
@@ -471,6 +476,7 @@ void PairSRP::init_style()
   // bonds of this type will be represented by bond particles
   // if bond type is 0, then all bonds have bond particles
   // btype = bond type
+
   char c0[20];
   char* arg0[2];
   sprintf(c0, "%d", btype);
@@ -506,7 +512,6 @@ void PairSRP::init_style()
 
 double PairSRP::init_one(int i, int j)
 {
-
  if (setflag[i][j] == 0) error->all(FLERR,"PairSRP: All pair coeffs are not set");
 
   cut[j][i] = cut[i][j];

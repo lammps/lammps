@@ -58,13 +58,9 @@
 #include <Kokkos_OpenMP.hpp>
 #endif
 
-//#if defined( KOKKOS_ENABLE_OPENMPTARGET )
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
 #include <Kokkos_OpenMPTarget.hpp>
 #include <Kokkos_OpenMPTargetSpace.hpp>
-//#endif
-
-#if defined(KOKKOS_ENABLE_QTHREADS)
-#include <Kokkos_Qthreads.hpp>
 #endif
 
 #if defined(KOKKOS_ENABLE_HPX)
@@ -82,6 +78,9 @@
 #if defined(KOKKOS_ENABLE_ROCM)
 #include <Kokkos_ROCm.hpp>
 #endif
+#if defined(KOKKOS_ENABLE_HIP)
+#include <Kokkos_HIP.hpp>
+#endif
 
 #include <Kokkos_AnonymousSpace.hpp>
 #include <Kokkos_Pair.hpp>
@@ -93,9 +92,7 @@
 #include <Kokkos_hwloc.hpp>
 #include <Kokkos_Timer.hpp>
 #include <Kokkos_TaskScheduler.hpp>
-
 #include <Kokkos_Complex.hpp>
-
 #include <Kokkos_CopyViews.hpp>
 #include <functional>
 #include <iosfwd>
@@ -123,7 +120,15 @@ struct InitArguments {
 
 void initialize(int& narg, char* arg[]);
 
-void initialize(const InitArguments& args = InitArguments());
+void initialize(InitArguments args = InitArguments());
+
+namespace Impl {
+
+void pre_initialize(const InitArguments& args);
+
+void post_initialize(const InitArguments& args);
+
+}  // namespace Impl
 
 bool is_initialized() noexcept;
 
@@ -176,28 +181,28 @@ namespace Kokkos {
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const std::string& arg_alloc_label,
                            const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), arg_alloc_label, arg_alloc_size);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), "no-label", arg_alloc_size);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void kokkos_free(void* arg_alloc) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::deallocate_tracked(
       arg_alloc);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_realloc(void* arg_alloc, const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::reallocate_tracked(
       arg_alloc, arg_alloc_size);
 }
@@ -250,6 +255,14 @@ class ScopeGuard {
 
 #include <Kokkos_Crs.hpp>
 #include <Kokkos_WorkGraphPolicy.hpp>
+// Including this in Kokkos_Parallel_Reduce.hpp led to a circular dependency
+// because Kokkos::Sum is used in Kokkos_Combined_Reducer.hpp and the default.
+// The real answer is to finally break up Kokkos_Parallel_Reduce.hpp into
+// smaller parts...
+#include <impl/Kokkos_Combined_Reducer.hpp>
+// Yet another workaround to deal with circular dependency issues because the
+// implementation of the RAII wrapper is using Kokkos::single.
+#include <Kokkos_AcquireUniqueTokenImpl.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

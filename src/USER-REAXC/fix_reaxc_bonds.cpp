@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_bonds.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -44,7 +44,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   ntypes = atom->ntypes;
   nmax = atom->nmax;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
   if (nevery <= 0 )
     error->all(FLERR,"Illegal fix reax/c/bonds command");

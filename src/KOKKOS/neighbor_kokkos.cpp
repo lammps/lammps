@@ -12,25 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor_kokkos.h"
-#include "atom_kokkos.h"
-#include "pair.h"
-#include "fix.h"
-#include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "update.h"
-#include "atom_masks.h"
-#include "error.h"
-#include "kokkos.h"
-#include "force.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "style_nbin.h"
-#include "style_nstencil.h"
-#include "style_npair.h"
-#include "style_ntopo.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "bond.h"
 #include "comm.h"
+#include "dihedral.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "improper.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neigh_request.h"
+#include "pair.h"
+#include "style_nbin.h"
+#include "style_npair.h"
+#include "style_nstencil.h"
+#include "style_ntopo.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -163,8 +164,6 @@ int NeighborKokkos::check_distance()
 template<class DeviceType>
 int NeighborKokkos::check_distance_kokkos()
 {
-  typedef DeviceType device_type;
-
   double delx,dely,delz;
   double delta,delta1,delta2;
 
@@ -216,7 +215,6 @@ int NeighborKokkos::check_distance_kokkos()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int &i, int &flag) const {
-  typedef DeviceType device_type;
   const X_FLOAT delx = x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0);
   const X_FLOAT dely = x.view<DeviceType>()(i,1) - xhold.view<DeviceType>()(i,1);
   const X_FLOAT delz = x.view<DeviceType>()(i,2) - xhold.view<DeviceType>()(i,2);
@@ -242,8 +240,6 @@ void NeighborKokkos::build(int topoflag)
 template<class DeviceType>
 void NeighborKokkos::build_kokkos(int topoflag)
 {
-  typedef DeviceType device_type;
-
   int i,m;
 
   ago = 0;
@@ -326,7 +322,6 @@ void NeighborKokkos::build_kokkos(int topoflag)
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) const {
-  typedef DeviceType device_type;
   xhold.view<DeviceType>()(i,0) = x.view<DeviceType>()(i,0);
   xhold.view<DeviceType>()(i,1) = x.view<DeviceType>()(i,1);
   xhold.view<DeviceType>()(i,2) = x.view<DeviceType>()(i,2);

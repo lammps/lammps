@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_drip.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -116,8 +117,8 @@ void PairDRIP::allocate()
 void PairDRIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid/overlay")!=0)
-    error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
+  if (!utils::strmatch(force->pair_style,"^hybrid/overlay"))
+    error->all(FLERR,"Pair style drip must be used as sub-style with hybrid/overlay");
 }
 
 /* ----------------------------------------------------------------------
@@ -222,7 +223,7 @@ void PairDRIP::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open DRIP potential file %s",filename);
@@ -253,7 +254,7 @@ void PairDRIP::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -272,7 +273,7 @@ void PairDRIP::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -301,6 +302,11 @@ void PairDRIP::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;

@@ -12,26 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_sphere_kokkos.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
 #include "memory_kokkos.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10
-
-static const double MY_PI  = 3.14159265358979323846; // pi
 
 /* ---------------------------------------------------------------------- */
 
@@ -119,7 +118,7 @@ void AtomVecSphereKokkos::grow(int n)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 }
 
@@ -127,7 +126,7 @@ void AtomVecSphereKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereKokkos::grow_reset()
+void AtomVecSphereKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

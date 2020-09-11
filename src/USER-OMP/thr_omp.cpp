@@ -24,7 +24,7 @@
 #include "force.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "thr_omp.h"
 

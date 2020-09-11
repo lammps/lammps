@@ -43,7 +43,8 @@ that calculate temperature can subtract out different non-thermal
 components of velocity and/or include different degrees of freedom
 (translational, rotational, etc).
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the summed KE).  This value
 can be used by any command that uses a global scalar value from a
@@ -62,4 +63,7 @@ Related commands
 
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -135,8 +136,8 @@ void PairILPGrapheneHBN::settings(int narg, char **arg)
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  if (narg == 2) tap_flag = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -255,7 +256,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
+    fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == NULL) {
       char str[128];
       snprintf(str,128,"Cannot open ILP potential file %s",filename);
@@ -286,7 +287,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -305,7 +306,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -334,6 +335,11 @@ void PairILPGrapheneHBN::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -680,7 +686,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 
 void PairILPGrapheneHBN::ILP_neigh()
 {
-  int i,j,ii,jj,n,allnum,inum,jnum,itype,jtype;
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -696,7 +702,6 @@ void PairILPGrapheneHBN::ILP_neigh()
     ILP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),"ILPGrapheneHBN:firstneigh");
   }
 
-  inum = list->inum;
   allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;

@@ -1,13 +1,11 @@
 .. index:: dihedral_style class2
+.. index:: dihedral_style class2/omp
+.. index:: dihedral_style class2/kk
 
 dihedral_style class2 command
 =============================
 
-dihedral_style class2/omp command
-=================================
-
-dihedral_style class2/kk command
-================================
+Accelerator Variants: *class2/omp*, *class2/kk*
 
 Syntax
 """"""
@@ -111,34 +109,34 @@ be listed under a *AngleTorsion Coeffs* heading and you must leave out
 the *at*, i.e. only list 8 coefficients after the dihedral type.
 
 * *at*
-* :math:`D_1` (energy/radian)
-* :math:`D_2` (energy/radian)
-* :math:`D_3` (energy/radian)
-* :math:`E_1` (energy/radian)
-* :math:`E_2` (energy/radian)
-* :math:`E_3` (energy/radian)
+* :math:`D_1` (energy)
+* :math:`D_2` (energy)
+* :math:`D_3` (energy)
+* :math:`E_1` (energy)
+* :math:`E_2` (energy)
+* :math:`E_3` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 
-:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
-them to radians internally; hence the units of :math:`D` and :math:`E` are in
-energy/radian.
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but
+LAMMPS converts them to radians internally; hence the various
+:math:`D` and :math:`E` are effectively energy per radian.
 
-For the :math:`E_{aat}` formula, each line in a
-:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
-4 coefficients, the first of which is *aat* to indicate they are
-AngleAngleTorsion coefficients.  In a data file, these coefficients
-should be listed under a *AngleAngleTorsion Coeffs* heading and you
-must leave out the *aat*, i.e. only list 3 coefficients after the
-dihedral type.
+For the :math:`E_{aat}` formula, each line in a :doc:`dihedral_coeff
+<dihedral_coeff>` command in the input script lists 4 coefficients,
+the first of which is *aat* to indicate they are AngleAngleTorsion
+coefficients.  In a data file, these coefficients should be listed
+under a *AngleAngleTorsion Coeffs* heading and you must leave out the
+*aat*, i.e. only list 3 coefficients after the dihedral type.
 
 * *aat*
-* :math:`M` (energy/radian\^2)
+* :math:`M` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 
-:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
-them to radians internally; hence the units of M are in energy/radian\^2.
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but
+LAMMPS converts them to radians internally; hence :math:`M` is
+effectively energy per radian\^2.
 
 For the :math:`E_{bb13}` formula, each line in a
 :doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
@@ -154,23 +152,7 @@ listed under a *BondBond13 Coeffs* heading and you must leave out the
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -186,7 +168,10 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

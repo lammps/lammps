@@ -1,5 +1,4 @@
 variable	sname index ch4_ionized
-log		${sname}.nvt.log
 
 units 		electron
 newton		on
@@ -15,6 +14,7 @@ pair_coeff	* *
 comm_modify	vel yes	
 
 # minimize
+
 min_style       cg
 min_modify      line quadratic 
 minimize        0 1.0e-6 10000 100000

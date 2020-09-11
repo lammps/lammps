@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
 
-#include <Kokkos_Cuda.hpp>
+#include <type_traits>
 #include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
 
 namespace Kokkos {
@@ -55,7 +55,7 @@ namespace Kokkos {
 namespace Impl {
 
 // Include all lanes
-constexpr unsigned shfl_all_mask = 0xffffffff;
+constexpr unsigned shfl_all_mask = 0xffffffffu;
 
 //----------------------------------------------------------------------------
 // Shuffle operations require input to be a register (stack) variable
@@ -71,20 +71,33 @@ struct in_place_shfl_op {
     return *static_cast<Derived const*>(this);
   }
 
-  // sizeof(Scalar) == sizeof(int) case
+  // sizeof(Scalar) <= sizeof(int) case
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
-  __device__ inline typename std::enable_if<sizeof(Scalar) == sizeof(int)>::type
+  __device__ inline typename std::enable_if<sizeof(Scalar) <= sizeof(int)>::type
   operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width,
              unsigned mask = shfl_all_mask) const noexcept {
+    using shfl_type = int;
+    union conv_type {
+      Scalar orig;
+      shfl_type conv;
+      // This should be fine, members get explicitly reset, which changes the
+      // active member
+      KOKKOS_FUNCTION conv_type() { conv = 0; }
+    };
+    conv_type tmp_in;
+    tmp_in.orig = in;
+    shfl_type tmp_out;
+    tmp_out = reinterpret_cast<shfl_type&>(tmp_in.orig);
+    conv_type res;
     //------------------------------------------------
-    reinterpret_cast<int&>(out) = self().do_shfl_op(
-        mask, reinterpret_cast<int const&>(in), lane_or_delta, width);
+    res.conv = self().do_shfl_op(mask, tmp_out, lane_or_delta, width);
     //------------------------------------------------
+    out = reinterpret_cast<Scalar&>(res.conv);
   }
 
 // TODO: figure out why 64-bit shfl fails in Clang
-#if (CUDA_VERSION >= 9000) && (!defined(KOKKOS_COMPILER_CLANG))
+#if !defined(KOKKOS_COMPILER_CLANG)
   // sizeof(Scalar) == sizeof(double) case
   // requires _assignable_from_bits<Scalar>
   template <class Scalar>
@@ -140,6 +153,10 @@ struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
   __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
                                                   int lane, int width) const
       noexcept {
+    (void)mask;
+    (void)val;
+    (void)lane;
+    (void)width;
     return KOKKOS_IMPL_CUDA_SHFL_MASK(mask, val, lane, width);
   }
 };
@@ -167,6 +184,10 @@ struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
   __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
                                                   int lane, int width) const
       noexcept {
+    (void)mask;
+    (void)val;
+    (void)lane;
+    (void)width;
     return KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK(mask, val, lane, width);
   }
 };

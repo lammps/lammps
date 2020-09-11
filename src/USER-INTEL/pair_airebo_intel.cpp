@@ -15,41 +15,37 @@
    Contributing author: Markus Hohnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
-#include <unistd.h>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include <cstdio>
-#include <stdint.h> // <cstdint> requires C++-11
+#include "pair_airebo_intel.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
 #include <cassert>
-#include <cstddef>
-#include "lmptype.h"
+#include <cmath>
+#include <cstring>
+
 #include "intel_preprocess.h"
 #include "intel_intrinsics_airebo.h"
+
 #ifdef __INTEL_OFFLOAD
 #pragma offload_attribute(pop)
+#endif
+
+#ifdef __INTEL_OFFLOAD
+#pragma offload_attribute(push, target(mic))
 #endif
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-#include "pair_airebo_intel.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "group.h"
-#include "kspace.h"
-#include "modify.h"
-#include "suffix.h"
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -46,6 +46,7 @@
 #define KOKKOS_SCRATCHSPACE_HPP
 
 #include <cstdio>
+#include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Concepts.hpp>
 
@@ -84,13 +85,15 @@ class ScratchMemorySpace {
 
  public:
   //! Tag this class as a memory space
-  typedef ScratchMemorySpace memory_space;
-  typedef ExecSpace execution_space;
+  using memory_space    = ScratchMemorySpace<ExecSpace>;
+  using execution_space = ExecSpace;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef typename ExecSpace::array_layout array_layout;
-  typedef typename ExecSpace::size_type size_type;
+  using array_layout = typename ExecSpace::array_layout;
+  using size_type    = typename ExecSpace::size_type;
+
+  static constexpr const char* name() { return "ScratchMemorySpace"; }
 
   template <typename IntType>
   KOKKOS_INLINE_FUNCTION static IntType align(const IntType& size) {
@@ -108,13 +111,13 @@ class ScratchMemorySpace {
 #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L0 - m_iter_L0));
 #endif  // KOKKOS_DEBUG
-        tmp = 0;
+        tmp = nullptr;
       }
       return tmp;
     } else {
@@ -124,13 +127,13 @@ class ScratchMemorySpace {
 #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L1 - m_iter_L1));
 #endif  // KOKKOS_DEBUG
-        tmp = 0;
+        tmp = nullptr;
       }
       return tmp;
     }
@@ -151,13 +154,13 @@ class ScratchMemorySpace {
 #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L0 - m_iter_L0));
 #endif  // KOKKOS_DEBUG
-        tmp = 0;
+        tmp = nullptr;
       }
       return tmp;
     } else {
@@ -171,13 +174,13 @@ class ScratchMemorySpace {
 #ifdef KOKKOS_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L1 - m_iter_L1));
 #endif  // KOKKOS_DEBUG
-        tmp = 0;
+        tmp = nullptr;
       }
       return tmp;
     }
@@ -186,7 +189,7 @@ class ScratchMemorySpace {
   template <typename IntType>
   KOKKOS_INLINE_FUNCTION ScratchMemorySpace(void* ptr_L0,
                                             const IntType& size_L0,
-                                            void* ptr_L1           = NULL,
+                                            void* ptr_L1           = nullptr,
                                             const IntType& size_L1 = 0)
       : m_iter_L0((char*)ptr_L0),
         m_end_L0(m_iter_L0 + size_L0),

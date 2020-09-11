@@ -213,11 +213,11 @@ void PairTersoffMODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short.extent(1) != max_neighs) ||
-     (d_neighbors_short.extent(0) != ignum)) {
+  if (((int)d_neighbors_short.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int**,DeviceType>("Tersoff::neighbors_short",ignum,max_neighs);
   }
-  if (d_numneigh_short.extent(0)!=ignum)
+  if ((int)d_numneigh_short.extent(0)!=ignum)
     d_numneigh_short = Kokkos::View<int*,DeviceType>("Tersoff::numneighs_short",ignum);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairTersoffMODComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
 
@@ -324,8 +324,8 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODComputeHalf<N
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (i >= nlocal) return;
@@ -1142,11 +1142,11 @@ void PairTersoffMODKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_eatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (eflag_atom) {
     const E_FLOAT epairhalf = 0.5 * epair;
@@ -1210,8 +1210,8 @@ void PairTersoffMODKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
 {
   // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT v[6];
 
@@ -1248,8 +1248,10 @@ void PairTersoffMODKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffMODKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
-        F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const
+void PairTersoffMODKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i,
+                                                     const int & /*j*/, const int & /*k*/,
+                                                     F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji,
+                                                     F_FLOAT *drjk) const
 {
   F_FLOAT v[6];
 
@@ -1285,7 +1287,7 @@ int PairTersoffMODKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairTersoffMODKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairTersoffMODKokkos<LMPHostType>;
 #endif
 }

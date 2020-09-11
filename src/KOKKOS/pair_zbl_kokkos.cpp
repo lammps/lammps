@@ -103,9 +103,6 @@ void PairZBLKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
@@ -426,7 +423,7 @@ void PairZBLKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairZBLKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairZBLKokkos<LMPHostType>;
 #endif
 }

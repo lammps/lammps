@@ -17,14 +17,15 @@
 
 #include "omp_compat.h"
 #include "dump_cfg_mpiio.h"
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 #ifdef LMP_USER_IO_TIMER
 #include <sys/times.h>
@@ -452,7 +453,7 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';

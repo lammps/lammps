@@ -25,13 +25,13 @@ class ImbalanceTime : public Imbalance {
 
  public:
   // parse options, return number of arguments consumed
-  virtual int options(int, char **);
+  virtual int options(int, char **) override;
   // reinitialize internal data
-  virtual void init(int);
+  virtual void init(int) override;
   // compute and apply weight factors to local atom array
-  virtual void compute(double *);
+  virtual void compute(double *) override;
   // print information about the state of this imbalance compute
-  virtual void info(FILE *);
+  virtual std::string info() override;
 
  private:
   double factor;               // weight factor for time imbalance

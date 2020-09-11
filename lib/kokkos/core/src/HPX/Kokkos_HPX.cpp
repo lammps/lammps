@@ -53,9 +53,12 @@ namespace Kokkos {
 namespace Experimental {
 
 bool HPX::m_hpx_initialized = false;
-Kokkos::Impl::thread_buffer HPX::m_buffer;
+std::atomic<uint32_t> HPX::m_next_instance_id{1};
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-hpx::future<void> HPX::m_future = hpx::make_ready_future<void>();
+std::atomic<uint32_t> HPX::m_active_parallel_region_count{0};
+HPX::instance_data HPX::m_global_instance_data;
+#else
+Kokkos::Impl::thread_buffer HPX::m_global_buffer;
 #endif
 
 int HPX::concurrency() {
@@ -85,6 +88,9 @@ void HPX::impl_initialize(int thread_count) {
     char *argv_hpx[] = {name, nullptr};
     hpx::start(nullptr, argc_hpx, argv_hpx, config);
 
+#if HPX_VERSION_FULL < 0x010400
+    // This has been fixed in HPX 1.4.0.
+    //
     // NOTE: Wait for runtime to start. hpx::start returns as soon as
     // possible, meaning some operations are not allowed immediately
     // after hpx::start. Notably, hpx::stop needs state_running. This
@@ -94,6 +100,7 @@ void HPX::impl_initialize(int thread_count) {
     rt = hpx::get_runtime_ptr();
     hpx::util::yield_while(
         [rt]() { return rt->get_state() < hpx::state_running; });
+#endif
 
     m_hpx_initialized = true;
   }

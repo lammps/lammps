@@ -15,18 +15,15 @@
  *     Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_slater_cut.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -123,8 +120,8 @@ void PairCoulSlaterCut::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  lamda = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  lamda = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 

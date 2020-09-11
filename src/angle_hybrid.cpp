@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +33,9 @@ AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
 {
   writedata = 0;
   nstyles = 0;
+  nanglelist = nullptr;
+  maxangle = nullptr;
+  anglelist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +107,18 @@ void AngleHybrid::compute(int eflag, int vflag)
   // accumulate sub-style global/peratom energy/virial in hybrid
 
   ev_init(eflag,vflag);
+
+  // need to clear per-thread storage here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (comm->nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nanglelist = nanglelist[m];
@@ -252,7 +267,7 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   // 2nd arg = angle sub-style name
   // allow for "none" or "skip" as valid sub-style name

@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "minimize.h"
+
 #include "domain.h"
-#include "update.h"
-#include "min.h"
-#include "finish.h"
-#include "timer.h"
 #include "error.h"
-#include "force.h"
+#include "finish.h"
+#include "min.h"
+#include "timer.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,10 +38,10 @@ void Minimize::command(int narg, char **arg)
   // ignore minimize command, if walltime limit was already reached
   if (timer->is_timeout()) return;
 
-  update->etol = force->numeric(FLERR,arg[0]);
-  update->ftol = force->numeric(FLERR,arg[1]);
-  update->nsteps = force->inumeric(FLERR,arg[2]);
-  update->max_eval = force->inumeric(FLERR,arg[3]);
+  update->etol = utils::numeric(FLERR,arg[0],false,lmp);
+  update->ftol = utils::numeric(FLERR,arg[1],false,lmp);
+  update->nsteps = utils::inumeric(FLERR,arg[2],false,lmp);
+  update->max_eval = utils::inumeric(FLERR,arg[3],false,lmp);
 
   if (update->etol < 0.0 || update->ftol < 0.0)
     error->all(FLERR,"Illegal minimize command");

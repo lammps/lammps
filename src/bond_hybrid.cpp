@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -34,6 +34,9 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;
+  nbondlist = nullptr;
+  maxbond = nullptr;
+  bondlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +107,18 @@ void BondHybrid::compute(int eflag, int vflag)
   // accumulate sub-style global/peratom energy/virial in hybrid
 
   ev_init(eflag,vflag);
+
+  // need to clear per-thread storage once here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];
@@ -253,7 +268,7 @@ void BondHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   // 2nd arg = bond sub-style name
   // allow for "none" as valid sub-style name

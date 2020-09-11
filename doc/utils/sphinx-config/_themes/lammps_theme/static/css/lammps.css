@@ -1,0 +1,9 @@
+.lammps_version {
+    text-align: center;
+    display: block;
+    margin-bottom: 0.809em;
+}
+
+.versionmodified {
+    font-weight: bold;
+}

@@ -12,20 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_group.h"
-#include <cstring>
-#include "group.h"
-#include "update.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
-#include "region.h"
-#include "modify.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -86,7 +87,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
       iarg += 2;
     } else error->all(FLERR,"Illegal group command");

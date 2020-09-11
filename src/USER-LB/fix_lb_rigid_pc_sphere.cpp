@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_rigid_pc_sphere.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -233,7 +234,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
       int mlo,mhi;
-      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
+      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -260,7 +261,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
       int mlo,mhi;
-      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
+      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;

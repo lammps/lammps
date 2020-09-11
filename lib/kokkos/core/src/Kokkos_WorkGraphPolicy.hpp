@@ -45,6 +45,9 @@
 #ifndef KOKKOS_WORKGRAPHPOLICY_HPP
 #define KOKKOS_WORKGRAPHPOLICY_HPP
 
+#include <impl/Kokkos_AnalyzePolicy.hpp>
+#include <Kokkos_Crs.hpp>
+
 namespace Kokkos {
 namespace Impl {
 
@@ -199,6 +202,8 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
     if (0 == count_queue[w]) push_work(w);
   }
 
+  execution_space space() const { return execution_space(); }
+
   WorkGraphPolicy(const graph_type& arg_graph)
       : m_graph(arg_graph),
         m_queue(view_alloc("queue", WithoutInitializing),
@@ -241,6 +246,10 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
 #ifdef KOKKOS_ENABLE_CUDA
 #include "Cuda/Kokkos_Cuda_WorkGraphPolicy.hpp"
+#endif
+
+#ifdef KOKKOS_ENABLE_HIP
+#include "HIP/Kokkos_HIP_WorkGraphPolicy.hpp"
 #endif
 
 #ifdef KOKKOS_ENABLE_THREADS

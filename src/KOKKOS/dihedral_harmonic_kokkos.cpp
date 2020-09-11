@@ -16,17 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_harmonic_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -530,7 +529,7 @@ void DihedralHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 namespace LAMMPS_NS {
 template class DihedralHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class DihedralHarmonicKokkos<LMPHostType>;
 #endif
 }

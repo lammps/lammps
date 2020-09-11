@@ -20,7 +20,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -250,12 +250,12 @@ void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
   if (narg != 2 && narg != 3)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(FLERR,arg[0]);
-  cut_lj = force->numeric(FLERR,arg[1]);
+  cut_lj_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) {
     cut_coul = cut_lj;
   } else {
-    cut_coul = force->numeric(FLERR,arg[2]);
+    cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
   }
 }
 
@@ -270,16 +270,16 @@ void PairLJCharmmfswCoulCharmmfsh::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = force->numeric(FLERR,arg[4]);
-    sigma14_one = force->numeric(FLERR,arg[5]);
+    eps14_one = utils::numeric(FLERR,arg[4],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   int count = 0;

@@ -29,7 +29,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
-#include "utils.h"
+
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
@@ -247,11 +247,11 @@ void PairBuck6dCoulGaussDSF::settings(int narg, char **arg)
 {
   if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  vdwl_smooth = force->numeric(FLERR,arg[0]);
+  vdwl_smooth = utils::numeric(FLERR,arg[0],false,lmp);
 
-  cut_lj_global = force->numeric(FLERR,arg[1]);
+  cut_lj_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -275,17 +275,17 @@ void PairBuck6dCoulGaussDSF::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double buck6d1_one = force->numeric(FLERR,arg[2]);
-  double buck6d2_one = force->numeric(FLERR,arg[3]);
-  double buck6d3_one = force->numeric(FLERR,arg[4]);
-  double buck6d4_one = force->numeric(FLERR,arg[5]);
-  double alpha_one = force->numeric(FLERR,arg[6]);
+  double buck6d1_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double buck6d2_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double buck6d3_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double buck6d4_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 8) cut_lj_one = force->numeric(FLERR,arg[7]);
+  if (narg == 8) cut_lj_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -14,7 +14,7 @@
 #ifndef LMP_MEMORY_KOKKOS_H
 #define LMP_MEMORY_KOKKOS_H
 
-#include "memory.h"
+#include "memory.h"             // IWYU pragma: export
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {

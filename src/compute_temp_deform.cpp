@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_deform.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "domain.h"
 #include "atom.h"

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint*
 
   .. parsed-literal::
 
@@ -45,9 +45,8 @@ Syntax
        *scaleyz* value = *yes* or *no* = scale yz with lz
        *scalexz* value = *yes* or *no* = scale xz with lz
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
-       *cauchystat* cauchystat values = alpha continue
-         alpha = strength of Cauchy stress control parameter
-         continue = *yes* or *no* = whether of not to continue from a previous run
+       *alpha* value = strength of Cauchy stress control parameter
+       *continue* value = *yes* or *no* = whether of not to continue from a previous run
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
 
@@ -56,7 +55,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0 alpha 0.001
 
 Description
 """""""""""
@@ -103,8 +102,8 @@ description below.  The desired temperature at each timestep is a
 ramped value during the run from *Tstart* to *Tstop*\ .  The *Tdamp*
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
-the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the :doc:`units <units>` command).  The atoms in the
+the temperature in a timespan of (roughly) 10 time units (e.g. :math:`\tau`
+or fs or ps - see the :doc:`units <units>` command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
@@ -154,8 +153,8 @@ simulation box must be triclinic, even if its initial tilt factors are
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 .. note::
 
@@ -354,7 +353,7 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-One exception to this rule is if the 1st dimension in the tilt factor
+One exception to this rule is if the first dimension in the tilt factor
 (x for xy) is non-periodic.  In that case, the limits on the tilt
 factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
@@ -467,7 +466,8 @@ of the underlying non-Hamiltonian equations of motion.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -555,7 +555,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 *X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
 periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
-simulation domain is triclinic and the 2nd dimension in the keyword
+simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
 barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -569,18 +569,11 @@ is not allowed in the Nose/Hoover formulation.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
 for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 
-Without the *cauchystat* keyword, the barostat algorithm
-controls the Second-Piola Kirchhoff stress, which is a stress measure
-referred to the unmodified (initial) simulation box.  If the box
-deforms substantially during the equilibration, the difference between
-the set values and the final true (Cauchy) stresses can be
-considerable.
-
-The *cauchystat* keyword modifies the barostat as per Miller et
+The *alpha* keyword modifies the barostat as per Miller et
 al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggressively the algorithm drives the system
@@ -598,13 +591,12 @@ sequence over several fixes.
 
 Setting *alpha* to zero is not permitted.  To "turn off" the
 cauchystat control and thus restore the equilibrium stress
-fluctuations, two subsequent fixes should be used.  In the first, the
-cauchystat flag is used and the simulation box equilibrates to the
-correct shape for the desired stresses.  In the second, the *fix*
-statement is identical except that the *cauchystat* keyword is removed
-(along with related *alpha* and *continue* values). This restores the
-original Parrinello-Rahman algorithm, but now with the correct simulation
-box shape from the first fix.
+fluctuations, two subsequent fixes should be used.  In the first, fix
+npt/cauchy is used and the simulation box equilibrates to the
+correct shape for the desired stresses.  In the second,
+:doc:`fix npt <fix_nh>` is used instead which uses the
+original Parrinello-Rahman algorithm, but now with the corrected
+simulation box shape from using fix npt/cauchy.
 
 This fix can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to
@@ -626,7 +618,7 @@ Default
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 cauchystat = no,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
+scaleyz = scalexz = scalexy = yes if periodic in second dimension and
 not coupled to barostat, otherwise no.
 
 ----------

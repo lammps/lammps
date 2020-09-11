@@ -17,21 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dipole_long.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "fix.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -81,7 +78,7 @@ void PairSpinDipoleLong::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_long_global = force->numeric(FLERR,arg[0]);
+  cut_spin_long_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -109,10 +106,10 @@ void PairSpinDipoleLong::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
+  double spin_long_cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

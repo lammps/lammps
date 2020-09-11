@@ -435,7 +435,7 @@ column is only used if the *compress* keyword was set to *yes* for the
 the original chunk IDs (e.g. molecule IDs) will have been compressed
 to remove chunk IDs with no atoms assigned to them.  Thus a compressed
 chunk ID of 3 may correspond to an original chunk ID or molecule ID of
-415.  The OrigID column will list 415 for the 3rd chunk.
+415.  The OrigID column will list 415 for the third chunk.
 
 The CoordN columns only appear if a *binning* style was used in the
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  For *bin/1d*\ ,
@@ -456,7 +456,8 @@ dimensions.  Those values are always in distance :doc:`units <units>`.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

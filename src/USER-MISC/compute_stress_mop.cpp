@@ -16,7 +16,7 @@
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 
@@ -65,7 +65,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     pos = domain->boxhi[dir];
   } else if (strcmp(arg[4],"center")==0) {
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
-  } else pos = force->numeric(FLERR,arg[4]);
+  } else pos = utils::numeric(FLERR,arg[4],false,lmp);
 
   if ( pos < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
     pos1 = pos + domain->prd[dir];

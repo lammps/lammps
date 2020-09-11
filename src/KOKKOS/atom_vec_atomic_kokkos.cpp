@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_atomic_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -74,7 +74,7 @@ void AtomVecAtomicKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
   memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -86,7 +86,7 @@ void AtomVecAtomicKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomicKokkos::grow_reset()
+void AtomVecAtomicKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

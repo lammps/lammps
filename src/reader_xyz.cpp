@@ -16,10 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_xyz.h"
-#include <cstdlib>
+
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,7 +64,7 @@ int ReaderXYZ::read_time(bigint &ntimestep)
       break;
     }
   }
-  natoms = force->bnumeric(FLERR,line);
+  natoms = utils::bnumeric(FLERR,line,false,lmp);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
 

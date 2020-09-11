@@ -61,12 +61,14 @@ class FixBondReact : public Fix {
   int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
+  int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;
   int nconstraints;
   int narrhenius;
   double **constraints;
+  int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
 
@@ -92,6 +94,7 @@ class FixBondReact : public Fix {
   class RanMars **random; // random number for 'prob' keyword
   class RanMars **rrhandom; // random number for Arrhenius constraint
   class NeighList *list;
+  class ResetMolIDs *reset_mol_ids; // class for resetting mol IDs
 
   int *reacted_mol,*unreacted_mol;
   int *limit_duration; // indicates how long to relax
@@ -146,12 +149,13 @@ class FixBondReact : public Fix {
   int glove_counter; // used to determine when to terminate Superimpose Algorithm
 
   void read(int);
-  void EdgeIDs(char *,int);
-  void Equivalences(char *,int);
-  void CustomEdges(char *,int);
-  void DeleteAtoms(char *,int);
-  void ChiralCenters(char *,int);
-  void Constraints(char *,int);
+  void EdgeIDs(char *, int);
+  void Equivalences(char *, int);
+  void CustomEdges(char *, int);
+  void DeleteAtoms(char *, int);
+  void ChiralCenters(char *, int);
+  void Constraints(char *, int);
+  void readID(char *, int, int, int);
 
   void make_a_guess ();
   void neighbor_loop();
@@ -160,6 +164,7 @@ class FixBondReact : public Fix {
   void inner_crosscheck_loop();
   void ring_check();
   int check_constraints();
+  void get_IDcoords(int, int, double *);
   double get_temperature();
   int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
@@ -237,8 +242,10 @@ E: Bond/react: Invalid template atom ID in map file
 Atom IDs in molecule templates range from 1 to the number of atoms in the template.
 
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
+        Bond/react: Atom type affected by reaction %s too close to template edge
+        Bond/react: Bond type affected by reaction %s too close to template edge
 
-This means an atom which changes type or connectivity during the
+This means an atom (or bond) that changes type or connectivity during the
 reaction is too close to an 'edge' atom defined in the map file. This
 could cause incorrect assignment of bonds, angle, etc. Generally, this
 means you must include more atoms in your templates, such that there
@@ -278,5 +285,17 @@ E: Bond/react topology/atom exceed system topology/atom
 The number of bonds, angles etc per-atom created by a reaction exceeds
 the system setting. See the read_data or create_box command for how to
 specify this value.
+
+E: Bond/react: Variable name does not exist
+
+Self-explanatory.
+
+E: Bond/react: Variable is not equal-style
+
+Self-explanatory.
+
+E: Bond/react: Molecule fragment does not exist
+
+Self-explanatory.
 
 */

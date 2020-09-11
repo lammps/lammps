@@ -16,17 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_python.h"
-#include <Python.h>  // IWYU pragma: keep
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "update.h"
-#include "neigh_list.h"
-#include "lmppython.h"
 #include "error.h"
+#include "force.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "neigh_list.h"
 #include "python_compat.h"
+#include "update.h"
+
+#include <cstring>
+#include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 
@@ -233,7 +234,7 @@ void PairPython::settings(int narg, char **arg)
   if (narg != 1)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

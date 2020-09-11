@@ -322,7 +322,6 @@ void PPPMTIP4P::fieldforce_ad()
         }
       }
     }
-
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;

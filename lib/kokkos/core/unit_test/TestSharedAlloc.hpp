@@ -66,12 +66,12 @@ struct SharedAllocDestroy {
 template <class MemorySpace, class ExecutionSpace>
 void test_shared_alloc() {
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  typedef const Kokkos::Impl::SharedAllocationHeader Header;
-  typedef Kokkos::Impl::SharedAllocationTracker Tracker;
-  typedef Kokkos::Impl::SharedAllocationRecord<void, void> RecordBase;
-  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, void> RecordMemS;
-  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, SharedAllocDestroy>
-      RecordFull;
+  using Header     = const Kokkos::Impl::SharedAllocationHeader;
+  using Tracker    = Kokkos::Impl::SharedAllocationTracker;
+  using RecordBase = Kokkos::Impl::SharedAllocationRecord<void, void>;
+  using RecordMemS = Kokkos::Impl::SharedAllocationRecord<MemorySpace, void>;
+  using RecordFull =
+      Kokkos::Impl::SharedAllocationRecord<MemorySpace, SharedAllocDestroy>;
 
   static_assert(sizeof(Tracker) == sizeof(int*),
                 "SharedAllocationTracker has wrong size!");
@@ -116,7 +116,7 @@ void test_shared_alloc() {
 #endif
 
     Kokkos::parallel_for(range, [=](size_t i) {
-      while (0 !=
+      while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
@@ -157,7 +157,7 @@ void test_shared_alloc() {
 #endif
 
     Kokkos::parallel_for(range, [=](size_t i) {
-      while (0 !=
+      while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);

@@ -1,5 +1,4 @@
 variable        sname index h2bulk
-log		${sname}.npt.log
 
 units 		electron
 newton		on
@@ -41,7 +40,8 @@ dump		2 all xyz 10000 ${sname}.npt.xyz
 compute         1 all property/atom spin eradius
 dump		3 all custom 10000 ${sname}.npt.lammpstrj id type x y z c_1[1] c_1[2]
 
-run		10000000
+thermo          1
+run		10
 
 unfix		1
 undump		2

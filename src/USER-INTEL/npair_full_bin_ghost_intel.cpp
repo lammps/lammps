@@ -16,15 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bin_ghost_intel.h"
-#include "neighbor.h"
-#include "nstencil.h"
-#include "neigh_list.h"
+
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
-#include "domain.h"
-#include "molecule.h"
 #include "error.h"
+#include "molecule.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 

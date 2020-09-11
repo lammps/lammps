@@ -68,8 +68,8 @@ void impl_test_local_deepcopy_teampolicy_rank_1(const int N) {
       Kokkos::subview(A, 1, 1, 1, 1, 1, 1, Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -130,8 +130,8 @@ void impl_test_local_deepcopy_teampolicy_rank_2(const int N) {
                               Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -195,8 +195,8 @@ void impl_test_local_deepcopy_teampolicy_rank_3(const int N) {
                               Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -260,8 +260,8 @@ void impl_test_local_deepcopy_teampolicy_rank_4(const int N) {
                               Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -329,8 +329,8 @@ void impl_test_local_deepcopy_teampolicy_rank_5(const int N) {
                       Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -398,8 +398,8 @@ void impl_test_local_deepcopy_teampolicy_rank_6(const int N) {
                               Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -464,8 +464,8 @@ void impl_test_local_deepcopy_teampolicy_rank_7(const int N) {
   // Initialize A matrix.
   Kokkos::deep_copy(A, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -934,10 +934,9 @@ void impl_test_local_deepcopy_rangepolicy_rank_7(const int N) {
 //-------------------------------------------------------------------------------------------------------------
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -963,8 +962,8 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);
@@ -990,8 +989,8 @@ TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -1017,8 +1016,8 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutright) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);
@@ -1043,5 +1042,73 @@ TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutright) {
   }
 }
 #endif
-#endif
+
+namespace Impl {
+template <typename T, typename SHMEMTYPE>
+using ShMemView =
+    Kokkos::View<T, Kokkos::LayoutRight, SHMEMTYPE, Kokkos::MemoryUnmanaged>;
+
+struct DeepCopyScratchFunctor {
+  DeepCopyScratchFunctor(
+      Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_1,
+      Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_2)
+      : check_view_1_(check_view_1),
+        check_view_2_(check_view_2),
+        N_(check_view_1.extent(0)) {}
+
+  KOKKOS_INLINE_FUNCTION void operator()(
+      Kokkos::TeamPolicy<TEST_EXECSPACE,
+                         Kokkos::Schedule<Kokkos::Dynamic>>::member_type team)
+      const {
+    using ShmemType = TEST_EXECSPACE::scratch_memory_space;
+    auto shview =
+        Impl::ShMemView<double**, ShmemType>(team.team_scratch(1), N_, 1);
+
+    Kokkos::parallel_for(
+        Kokkos::TeamThreadRange(team, N_), KOKKOS_LAMBDA(const size_t& index) {
+          auto thread_shview = Kokkos::subview(shview, index, Kokkos::ALL());
+          Kokkos::Experimental::local_deep_copy(thread_shview, index);
+        });
+    Kokkos::Experimental::local_deep_copy(
+        team, check_view_1_, Kokkos::subview(shview, Kokkos::ALL(), 0));
+
+    Kokkos::Experimental::local_deep_copy(team, shview, 6.);
+    Kokkos::Experimental::local_deep_copy(
+        team, check_view_2_, Kokkos::subview(shview, Kokkos::ALL(), 0));
+  }
+
+  Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_1_;
+  Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_2_;
+  int const N_;
+};
+}  // namespace Impl
+
+TEST(TEST_CATEGORY, deep_copy_scratch) {
+  using TestDeviceTeamPolicy = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+
+  const int N = 8;
+  const int bytes_per_team =
+      Impl::ShMemView<double**,
+                      TEST_EXECSPACE::scratch_memory_space>::shmem_size(N, 1);
+
+  TestDeviceTeamPolicy policy(1, Kokkos::AUTO);
+  auto team_exec = policy.set_scratch_size(1, Kokkos::PerTeam(bytes_per_team));
+
+  Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_1("check_1",
+                                                                   N);
+  Kokkos::View<double*, TEST_EXECSPACE::memory_space> check_view_2("check_2",
+                                                                   N);
+
+  Kokkos::parallel_for(
+      team_exec, Impl::DeepCopyScratchFunctor{check_view_1, check_view_2});
+  auto host_copy_1 =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), check_view_1);
+  auto host_copy_2 =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), check_view_2);
+
+  for (unsigned int i = 0; i < N; ++i) {
+    ASSERT_EQ(host_copy_1(i), i);
+    ASSERT_EQ(host_copy_2(i), 6.0);
+  }
+}
 }  // namespace Test

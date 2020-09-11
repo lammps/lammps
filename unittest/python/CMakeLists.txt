@@ -32,7 +32,7 @@ if (Python_EXECUTABLE)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
     
     if(COVERAGE_FOUND)
-        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} ${COVERAGE_BINARY} run --parallel-mode)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} ${COVERAGE_BINARY} run --parallel-mode -m lammps)
     else()
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE})
     endif()

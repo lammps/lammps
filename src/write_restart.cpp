@@ -49,7 +49,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -231,7 +231,7 @@ void WriteRestart::write(std::string file)
     if (multiproc) base.replace(base.find("%"),1,"base");
 
     fp = fopen(base.c_str(),"wb");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                     base, utils::getsyserror()));
   }
@@ -286,7 +286,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
 
     std::string multiname = file;
@@ -294,7 +294,7 @@ void WriteRestart::write(std::string file)
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                       multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
@@ -363,7 +363,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
     mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
@@ -393,7 +393,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
 
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -661,7 +661,7 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char string (including NULL) into restart file
+   write a flag and a char string (including nullptr) into restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_string(int flag, const char *value)

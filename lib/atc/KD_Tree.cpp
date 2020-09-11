@@ -83,17 +83,17 @@ KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
     if (foundElemRight) rightElems->push_back(*elit);
   }
 
-  // Create child tree, or NULL if there's nothing to create
+  // Create child tree, or nullptr if there's nothing to create
   if (candElems_->size() - leftElems->size() < 4 || leftElems->size() == 0) {
-    leftChild_ = NULL;
+    leftChild_ = nullptr;
     delete leftPts;
     delete leftElems;
   } else {
     leftChild_ = new KD_Tree(leftPts, leftElems, (dimension+1) % 3);
   }
-  // Create child tree, or NULL if there's nothing to create
+  // Create child tree, or nullptr if there's nothing to create
   if (candElems_->size() - rightElems->size() < 4 || rightElems->size() == 0) {
-    rightChild_ = NULL;
+    rightChild_ = nullptr;
     delete rightPts;
     delete rightElems;
   } else {
@@ -109,7 +109,7 @@ vector<int> KD_Tree::find_nearest_elements(Node query, int dimension) {
   // tree, either recurse to the left or return this node's elements
   // if there is no left child.
   if (query.lessThanInDimension(value_, dimension)) {
-    if (leftChild_ == NULL) {
+    if (leftChild_ == nullptr) {
       vector<int> result = vector<int>();
       for (vector<Elem>::iterator elem = candElems_->begin();
            elem != candElems_->end(); elem++) {
@@ -119,7 +119,7 @@ vector<int> KD_Tree::find_nearest_elements(Node query, int dimension) {
     }
     return leftChild_->find_nearest_elements(query, (dimension+1) % 3);
   } else {
-    if (rightChild_ == NULL) {
+    if (rightChild_ == nullptr) {
       vector<int> result = vector<int>();
       for (vector<Elem>::iterator elem = candElems_->begin();
            elem != candElems_->end(); elem++) {
@@ -147,7 +147,7 @@ vector<vector<int> > KD_Tree::getElemIDs(int depth) {
     sort(candElemIDs.begin(), candElemIDs.end());
     result.push_back(candElemIDs);
 
-  } else if (leftChild_ == NULL || rightChild_ == NULL) {
+  } else if (leftChild_ == nullptr || rightChild_ == nullptr) {
     // Insert all nodes at this level once,
     // then insert a bunch of empty vectors.
     temp = this->getElemIDs(0);

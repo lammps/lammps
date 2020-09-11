@@ -674,12 +674,12 @@ bool colvarparse::key_lookup(std::string const &conf,
   std::string const conf_lower(to_lower_cppstr(conf));
 
   // by default, there is no value, unless we found one
-  if (data != NULL) {
+  if (data != nullptr) {
     data->clear();
   }
 
   // start from the first occurrence of key
-  size_t pos = conf_lower.find(key, (save_pos != NULL) ? *save_pos : 0);
+  size_t pos = conf_lower.find(key, (save_pos != nullptr) ? *save_pos : 0);
 
   // iterate over all instances of the substring until it finds it as isolated keyword
   while (true) {
@@ -727,7 +727,7 @@ bool colvarparse::key_lookup(std::string const &conf,
     }
   }
 
-  if (save_pos != NULL) {
+  if (save_pos != nullptr) {
   // save the pointer for a future call (when iterating over multiple
   // valid instances of the same keyword)
     *save_pos = pos + key.size();
@@ -820,7 +820,7 @@ bool colvarparse::key_lookup(std::string const &conf,
                                        data_end) + 1;
     }
 
-    if (data != NULL) {
+    if (data != nullptr) {
       data->append(line, data_begin, (data_end-data_begin));
 
       if (cvm::debug()) {
@@ -834,7 +834,7 @@ bool colvarparse::key_lookup(std::string const &conf,
     }
   }
 
-  if (save_pos != NULL) *save_pos = line_end;
+  if (save_pos != nullptr) *save_pos = line_end;
 
   return true;
 }

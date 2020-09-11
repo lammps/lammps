@@ -60,7 +60,7 @@ static const char cite_fix_qeq_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pertype_option(NULL)
+  Fix(lmp, narg, arg), pertype_option(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax);
 
@@ -83,33 +83,33 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[8],"dual") == 0) dual_enabled = 1;
     else error->all(FLERR,"Illegal fix qeq/reax command");
   }
-  shld = NULL;
+  shld = nullptr;
 
   n = n_cap = 0;
   N = nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
-  s = NULL;
-  t = NULL;
+  s = nullptr;
+  t = nullptr;
   nprev = 4;
 
-  Hdia_inv = NULL;
-  b_s = NULL;
-  b_t = NULL;
-  b_prc = NULL;
-  b_prm = NULL;
+  Hdia_inv = nullptr;
+  b_s = nullptr;
+  b_t = nullptr;
+  b_prc = nullptr;
+  b_prm = nullptr;
 
   // CG
-  p = NULL;
-  q = NULL;
-  r = NULL;
-  d = NULL;
+  p = nullptr;
+  q = nullptr;
+  r = nullptr;
+  d = nullptr;
 
   // H matrix
-  H.firstnbr = NULL;
-  H.numnbrs = NULL;
-  H.jlist = NULL;
-  H.val = NULL;
+  H.firstnbr = nullptr;
+  H.numnbrs = nullptr;
+  H.jlist = nullptr;
+  H.val = nullptr;
 
   // dual CG support
   // Update comm sizes for this fix
@@ -119,10 +119,10 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxc = NULL;
+  reaxc = nullptr;
   reaxc = (PairReaxC *) force->pair_match("^reax/c",0);
 
-  s_hist = t_hist = NULL;
+  s_hist = t_hist = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   for (int i = 0; i < atom->nmax; i++)
@@ -184,13 +184,13 @@ void FixQEqReax::pertype_parameters(char *arg)
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
     Pair *pair = force->pair_match("reax/c",0);
-    if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax");
+    if (pair == nullptr) error->all(FLERR,"No pair reax/c for fix qeq/reax");
 
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
-    if (chi == NULL || eta == NULL || gamma == NULL)
+    if (chi == nullptr || eta == nullptr || gamma == nullptr)
       error->all(FLERR,
                  "Fix qeq/reax could not extract params from pair reax/c");
     return;
@@ -208,7 +208,7 @@ void FixQEqReax::pertype_parameters(char *arg)
   memory->create(gamma,ntypes+1,"qeq/reax:gamma");
 
   if (comm->me == 0) {
-    if ((pf = fopen(arg,"r")) == NULL)
+    if ((pf = fopen(arg,"r")) == nullptr)
       error->one(FLERR,"Fix qeq/reax parameter file could not be found");
 
     for (i = 1; i <= ntypes && !feof(pf); i++) {
@@ -390,7 +390,7 @@ void FixQEqReax::init_shielding()
   int ntypes;
 
   ntypes = atom->ntypes;
-  if (shld == NULL)
+  if (shld == nullptr)
     memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
   for (i = 1; i <= ntypes; ++i)

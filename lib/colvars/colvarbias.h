@@ -58,12 +58,12 @@ public:
   virtual int update();
 
   /// Compute the energy of the bias
-  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// Uses the vector of colvar values provided if not nullptr, and the values
   /// currently cached in the bias instance otherwise
   virtual int calc_energy(std::vector<colvarvalue> const *values);
 
   /// Compute the forces due to the bias
-  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// Uses the vector of colvar values provided if not nullptr, and the values
   /// currently cached in the bias instance otherwise
   virtual int calc_forces(std::vector<colvarvalue> const *values);
 

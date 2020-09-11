@@ -36,7 +36,7 @@ PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 

@@ -34,7 +34,7 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   image_flag = 0;
   buffer_allow = 1;
   buffer_flag = 1;
-  format_default = NULL;
+  format_default = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

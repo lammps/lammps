@@ -59,7 +59,7 @@ class BaseThree {
                  const double gpu_split, FILE *screen,
                  const void *pair_program, const char *k_two,
                  const char *k_three_center, const char *k_three_end,
-                 const char *k_short_nbor=NULL);
+                 const char *k_short_nbor=nullptr);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();

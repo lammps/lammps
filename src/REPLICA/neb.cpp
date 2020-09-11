@@ -391,7 +391,7 @@ void NEB::readfile(char *file, int flag)
       open(file);
       while (1) {
         eof = fgets(line,MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of NEB file");
+        if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
         start = &line[strspn(line," \t\n\v\f\r")];
         if (*start != '\0' && *start != '#') break;
       }
@@ -407,7 +407,7 @@ void NEB::readfile(char *file, int flag)
         open(file);
         while (1) {
           eof = fgets(line,MAXLINE,fp);
-          if (eof == NULL) error->one(FLERR,"Unexpected end of NEB file");
+          if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
           start = &line[strspn(line," \t\n\v\f\r")];
           if (*start != '\0' && *start != '#') break;
         }
@@ -460,7 +460,7 @@ void NEB::readfile(char *file, int flag)
 
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok(nullptr," \t\n\r\f");
 
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
@@ -561,7 +561,7 @@ void NEB::open(char *file)
 #endif
   }
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);

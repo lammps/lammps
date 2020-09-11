@@ -326,11 +326,11 @@ void ImproperFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&all[1],sizeof(int),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&all[1],sizeof(int),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&C0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

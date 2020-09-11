@@ -60,9 +60,9 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(NULL), spin_pairs(NULL),
-  rsec(NULL), stack_head(NULL), stack_foot(NULL),
-  backward_stacks(NULL), forward_stacks(NULL)
+  pair(nullptr), spin_pairs(nullptr),
+  rsec(nullptr), stack_head(nullptr), stack_foot(nullptr),
+  backward_stacks(nullptr), forward_stacks(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nve_spin);
 

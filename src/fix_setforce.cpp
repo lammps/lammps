@@ -35,7 +35,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL), sforce(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr), sforce(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix setforce command");
 
@@ -46,7 +46,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
@@ -82,7 +82,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -228,7 +228,7 @@ void FixSetForce::post_force(int /*vflag*/)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -305,7 +305,7 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
     foriginal[1] += foriginal_saved[1];
     foriginal[2] += foriginal_saved[2];
   } else {
-    Region *region = NULL;
+    Region *region = nullptr;
     if (iregion >= 0) {
       region = domain->regions[iregion];
       region->prematch();

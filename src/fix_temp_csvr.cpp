@@ -120,7 +120,7 @@ double FixTempCSVR::resamplekin(double ekin_old, double ekin_new){
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), random(NULL)
+  tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csvr command");
 
@@ -133,7 +133,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
   extscalar = 1;
 
-  tstr = NULL;
+  tstr = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
@@ -383,5 +383,5 @@ void *FixTempCSVR::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

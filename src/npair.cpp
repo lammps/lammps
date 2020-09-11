@@ -27,10 +27,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NPair::NPair(LAMMPS *lmp)
-  : Pointers(lmp), nb(NULL), ns(NULL), bins(NULL), stencil(NULL)
+  : Pointers(lmp), nb(nullptr), ns(nullptr), bins(nullptr), stencil(nullptr)
 {
   last_build = -1;
-  mycutneighsq = NULL;
+  mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;
   execution_space = Host;

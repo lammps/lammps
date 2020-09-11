@@ -69,7 +69,7 @@ void PairEAMFSIntel::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if nullptr
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {

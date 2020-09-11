@@ -27,7 +27,7 @@ using namespace FixConst;
 
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  gamma(NULL)
+  gamma(nullptr)
 {
   dynamic_group_allow = 1;
 

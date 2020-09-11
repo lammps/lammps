@@ -958,7 +958,7 @@ void PairGayBerneIntel::pack_force_const(ForceConst<flt_t> &fc,
   FC_PACKED2_T *olj34 = fc.lj34[0];
   FC_PACKED3_T *oic = fc.ic;
   int tp1sq = tp1 * tp1;
-  if (oijc != NULL && oic != NULL) {
+  if (oijc != nullptr && oic != nullptr) {
     #pragma offload_transfer target(mic:_cop) \
       in(special_lj: length(4) alloc_if(0) free_if(0)) \
       in(oijc,olj34: length(tp1sq) alloc_if(0) free_if(0)) \
@@ -990,9 +990,9 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int * ojtype_form = jtype_form[0];
       int * ojlist_form = jlist_form[0];
 
-      if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-          orsq_form != NULL && odelx_form != NULL && odely_form != NULL &&
-          odelz_form != NULL && ojtype_form != NULL && ojlist_form != NULL &&
+      if (ospecial_lj != nullptr && oijc != nullptr && olj34 != nullptr &&
+          orsq_form != nullptr && odelx_form != nullptr && odely_form != nullptr &&
+          odelz_form != nullptr && ojtype_form != nullptr && ojlist_form != nullptr &&
           _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(ospecial_lj, oijc, olj34, oic: alloc_if(0) free_if(1)) \
@@ -1048,10 +1048,10 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int off_onel = one_length * nthreads;
 
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-          oic != NULL && orsq_form != NULL && odelx_form != NULL &&
-          odely_form != NULL && odelz_form != NULL && ojtype_form !=NULL &&
-          ojlist_form !=NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oijc != nullptr && olj34 != nullptr &&
+          oic != nullptr && orsq_form != nullptr && odelx_form != nullptr &&
+          odely_form != nullptr && odelz_form != nullptr && ojtype_form !=nullptr &&
+          ojlist_form !=nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(oijc,olj34: length(tp1sq) alloc_if(1) free_if(0)) \

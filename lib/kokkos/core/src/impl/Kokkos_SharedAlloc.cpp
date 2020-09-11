@@ -215,7 +215,7 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
 
   } else {
     Kokkos::Impl::throw_runtime_exception(
-        "Kokkos::Impl::SharedAllocationRecord given nullptr allocation");
+        "Kokkos::Impl::SharedAllocationRecord given NULL allocation");
   }
 }
 

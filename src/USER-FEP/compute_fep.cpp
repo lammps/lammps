@@ -158,14 +158,14 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate space for charge, force, energy, virial arrays
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 
   allocate_storage();
 
-  fixgpu = NULL;
+  fixgpu = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,17 +210,17 @@ void ComputeFEP::init()
     if (!input->variable->equalstyle(pert->ivar))
       error->all(FLERR,"Variable for compute fep is of invalid style");
 
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
 
       Pair *pair = force->pair_match(pert->pstyle,1);
-      if (pair == NULL) error->all(FLERR,"compute fep pair style "
+      if (pair == nullptr) error->all(FLERR,"compute fep pair style "
                                    "does not exist");
       void *ptr = pair->extract(pert->pparam,pert->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"compute fep pair style param not supported");
 
       pert->array = (double **) ptr;
@@ -497,10 +497,10 @@ void ComputeFEP::deallocate_storage()
   memory->destroy(keatom_orig);
   memory->destroy(kvatom_orig);
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 }
 
 

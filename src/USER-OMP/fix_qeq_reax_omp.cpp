@@ -65,7 +65,7 @@ FixQEqReaxOMP::FixQEqReaxOMP(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg<8 || narg>9) error->all(FLERR,"Illegal fix qeq/reax/omp command");
 
-  b_temp = NULL;
+  b_temp = nullptr;
 
   // ASPC: Kolafa, J. Comp. Chem., 25(3), 335 (2003)
   do_aspc = 0;
@@ -73,7 +73,7 @@ FixQEqReaxOMP::FixQEqReaxOMP(LAMMPS *lmp, int narg, char **arg) :
   // Must be consistent with nprev to store history: nprev = aspc_order + 2
   aspc_order_max = nprev - 2;
   aspc_omega = 0.0;
-  aspc_b = NULL;
+  aspc_b = nullptr;
 }
 
 FixQEqReaxOMP::~FixQEqReaxOMP()

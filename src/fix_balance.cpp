@@ -35,7 +35,7 @@ enum{SHIFT,BISECTION};
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), balance(NULL), irregular(NULL)
+  Fix(lmp, narg, arg), balance(nullptr), irregular(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 

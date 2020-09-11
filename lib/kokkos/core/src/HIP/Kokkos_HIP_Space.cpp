@@ -640,7 +640,7 @@ void SharedAllocationRecord<Kokkos::Experimental::HIPSpace, void>::
 /*--------------------------------------------------------------------------*/
 
 void* hip_resize_scratch_space(size_t bytes, bool force_shrink) {
-  static void* ptr           = NULL;
+  static void* ptr           = nullptr;
   static size_t current_size = 0;
   if (current_size == 0) {
     current_size = bytes;

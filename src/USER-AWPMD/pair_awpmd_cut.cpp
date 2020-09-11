@@ -49,8 +49,8 @@ PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
 
   nmax = 0;
-  min_var = NULL;
-  min_varforce = NULL;
+  min_var = nullptr;
+  min_varforce = nullptr;
   nextra = 4;
   pvector = new double[nextra];
 
@@ -82,7 +82,7 @@ PairAWPMDCut::~PairAWPMDCut()
 struct cmp_x{
   double **xx;
   double tol;
-  cmp_x(double **xx_=NULL, double tol_=1e-12):xx(xx_),tol(tol_){}
+  cmp_x(double **xx_=nullptr, double tol_=1e-12):xx(xx_),tol(tol_){}
   bool operator()(const pair<int,int> &left, const pair<int,int> &right) const {
     if(left.first==right.first){
       double d=xx[left.second][0]-xx[right.second][0];
@@ -241,7 +241,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       error->all(FLERR,logfmt("Invalid spin value (%d) for particle %d !",spin[i],i));
   }
   // ion force vector
-  Vector_3 *fi=NULL;
+  Vector_3 *fi=nullptr;
   if(wpmd->ni)
     fi= new Vector_3[wpmd->ni];
 
@@ -269,7 +269,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       atom->ervel[i]=pv/(m*ermscale);
     }
   }
-  wpmd->set_pbc(NULL); // not required for LAMMPS
+  wpmd->set_pbc(nullptr); // not required for LAMMPS
   wpmd->interaction(0x1|0x4|0x10,fi);
 
    // get forces from the AWPMD solver object
@@ -602,10 +602,10 @@ void PairAWPMDCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -629,9 +629,9 @@ void PairAWPMDCut::write_restart_settings(FILE *fp)
 void PairAWPMDCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

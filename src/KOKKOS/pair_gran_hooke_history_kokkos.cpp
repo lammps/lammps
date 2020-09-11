@@ -48,8 +48,8 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -64,7 +64,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (history && fix_history == NULL) {
+  if (history && fix_history == nullptr) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",3);
     char **fixarg = new char*[4];

@@ -179,9 +179,9 @@ int colvarproxy_lammps::read_state_file(char const *state_filename)
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-  if (colvars != NULL) {
+  if (colvars != nullptr) {
     delete colvars;
-    colvars = NULL;
+    colvars = nullptr;
   }
 }
 

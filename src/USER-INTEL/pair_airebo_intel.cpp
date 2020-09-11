@@ -159,10 +159,10 @@ void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torsion_flag);
 PairAIREBOIntel::PairAIREBOIntel(LAMMPS *lmp) : PairAIREBO(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  REBO_cnumneigh = NULL;
-  REBO_num_skin = NULL;
-  REBO_list_data = NULL;
-  fix = NULL;
+  REBO_cnumneigh = nullptr;
+  REBO_num_skin = nullptr;
+  REBO_list_data = nullptr;
+  fix = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -697,7 +697,7 @@ inline flt_t gSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, flt_t cos, 
   flt_t NCmin = ka->params.NCmin;
   flt_t NCmax = ka->params.NCmax;
   int index = 0;
-  flt_t * gDom = NULL;
+  flt_t * gDom = nullptr;
   int nDom = 0;
   int offs = 0;
   if (itype == 0) {
@@ -921,7 +921,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       if (pass == 0) {
         sum_pij += wik * g * ex_lam;
         sum_dpij_dN += wik * dgdN * ex_lam;
-        flt_t cutN = Sp<flt_t>(Nki, Nmin, Nmax, NULL);
+        flt_t cutN = Sp<flt_t>(Nki, Nmin, Nmax, nullptr);
         *sum_N += (1 - ktype) * wik * cutN;
       } else {
         flt_t tmp = -0.5 * pij * pij * pij;
@@ -1583,9 +1583,9 @@ void ref_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
         flt_t rcmin = ka->params.rcmin[itype][jtype];
         flt_t rcmax = ka->params.rcmax[itype][jtype];
         if (jtype == CARBON)
-          ka->nC[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, NULL);
+          ka->nC[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, nullptr);
         else
-          ka->nH[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, NULL);
+          ka->nH[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, nullptr);
       }
     }
     ka->neigh_rebo.num[i] = n;
@@ -2408,7 +2408,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
                                   bvec /*active_mask*/, int itype, fvec cosjik,
                                   fvec Nij, fvec *dgdc, fvec *dgdN) {
   int i;
-  flt_t * gDom = NULL;
+  flt_t * gDom = nullptr;
   int nDom = 0;
   ivec offs = ivec::setzero();
   fvec NCmin = fvec::set1(ka->params.NCmin);

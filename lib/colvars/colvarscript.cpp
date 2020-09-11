@@ -97,7 +97,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     }
     std::string const name(obj_to_str(objv[2]));
     colvar *cv = cvm::colvar_by_name(name);
-    if (cv == NULL) {
+    if (cv == nullptr) {
       result = "Colvar not found: " + name;
       return COLVARSCRIPT_ERROR;
     }
@@ -111,7 +111,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     }
     std::string const name(obj_to_str(objv[2]));
     colvarbias *b = cvm::bias_by_name(name);
-    if (b == NULL) {
+    if (b == nullptr) {
       result = "Bias not found: " + name;
       return COLVARSCRIPT_ERROR;
     }
@@ -186,7 +186,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   /// Parse config from string
   if (cmd == "config") {
-    return exec_command(cv_config, NULL, objc, objv);
+    return exec_command(cv_config, nullptr, objc, objv);
   }
 
   /// Load an input state file
@@ -247,7 +247,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     } else if (objc == 3) {
       // Failure of this function does not trigger an error, but
       // returns nonzero, to let scripts detect available frames
-      int error = proxy->set_frame(strtol(obj_to_str(objv[2]), NULL, 10));
+      int error = proxy->set_frame(strtol(obj_to_str(objv[2]), nullptr, 10));
       result = cvm::to_str(error == COLVARS_OK ? 0 : -1);
       return COLVARS_OK;
     } else {
@@ -258,7 +258,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 
   if (cmd == "addenergy") {
     if (objc == 3) {
-      colvars->total_bias_energy += strtod(obj_to_str(objv[2]), NULL);
+      colvars->total_bias_energy += strtod(obj_to_str(objv[2]), nullptr);
       return COLVARS_OK;
     } else {
       result = "Wrong arguments to command \"addenergy\"\n" + help_string();
@@ -267,7 +267,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
   }
 
   if (cmd == "help") {
-    return exec_command(cv_help, NULL, objc, objv);
+    return exec_command(cv_help, nullptr, objc, objv);
   }
 
   result = "Syntax error\n" + help_string();
@@ -320,7 +320,7 @@ int colvarscript::proc_colvar(colvar *cv, int objc, unsigned char *const objv[])
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
-    if (colvars->cv_traj_os != NULL) {
+    if (colvars->cv_traj_os != nullptr) {
       colvars->write_traj_label(*(colvars->cv_traj_os));
     }
     return COLVARS_OK;
@@ -513,7 +513,7 @@ int colvarscript::proc_bias(colvarbias *b, int objc, unsigned char *const objv[]
     // the bias destructor takes care of the cleanup at cvm level
     delete b;
     // TODO this could be done by the destructors
-    if (colvars->cv_traj_os != NULL) {
+    if (colvars->cv_traj_os != nullptr) {
       colvars->write_traj_label(*(colvars->cv_traj_os));
     }
     return COLVARS_OK;
@@ -564,7 +564,7 @@ int colvarscript::proc_features(colvardeps *obj,
   if ((subcmd == "get") || (subcmd == "set")) {
     std::vector<colvardeps::feature *> const &features = obj->features();
     std::string const req_feature(obj_to_str(objv[3]));
-    colvardeps::feature *f = NULL;
+    colvardeps::feature *f = nullptr;
     int fid = 0;
     for (fid = 0; fid < int(features.size()); fid++) {
       if (features[fid]->description ==
@@ -574,7 +574,7 @@ int colvarscript::proc_features(colvardeps *obj,
       }
     }
 
-    if (f == NULL) {
+    if (f == nullptr) {
 
       result = "Error: feature \""+req_feature+"\" does not exist.\n";
       return COLVARSCRIPT_ERROR;

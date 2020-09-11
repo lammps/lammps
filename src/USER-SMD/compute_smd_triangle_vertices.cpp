@@ -46,7 +46,7 @@ ComputeSMDTriangleVertices::ComputeSMDTriangleVertices(LAMMPS *lmp, int narg, ch
     size_peratom_cols = 9;
 
     nmax = 0;
-    outputVector = NULL;
+    outputVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

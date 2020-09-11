@@ -66,10 +66,10 @@ enum{MOVEATOM,MOVEMOL}; // movemode
 
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0), ngroups(0), groupstrings(NULL), ngrouptypes(0), grouptypestrings(NULL),
-  grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
-  random_equal(NULL), random_unequal(NULL),
-  fixrigid(NULL), fixshake(NULL), idrigid(NULL), idshake(NULL)
+  idregion(nullptr), full_flag(0), ngroups(0), groupstrings(nullptr), ngrouptypes(0), grouptypestrings(nullptr),
+  grouptypebits(nullptr), grouptypes(nullptr), local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+  random_equal(nullptr), random_unequal(nullptr),
+  fixrigid(nullptr), fixshake(nullptr), idrigid(nullptr), idshake(nullptr)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
 
@@ -167,7 +167,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix gcmc molecule must have atom types");
     if (ngcmc_type != 0)
       error->all(FLERR,"Atom type must be zero in fix gcmc mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == NULL)
+    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
       error->all(FLERR,"Fix gcmc molecule has charges, but atom style does not");
 
     if (atom->molecular == 2 && onemols != atom->avec->onemols)
@@ -176,7 +176,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     onemols[imol]->check_attributes(0);
   }
 
-  if (charge_flag && atom->q == NULL)
+  if (charge_flag && atom->q == nullptr)
     error->all(FLERR,"Fix gcmc atom has charge, but atom style does not");
 
   if (rigidflag && exchmode == EXCHATOM)
@@ -219,7 +219,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   ninsertion_successes = 0.0;
 
   gcmc_nmax = 0;
-  local_gas_list = NULL;
+  local_gas_list = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -258,12 +258,12 @@ void FixGCMC::options(int narg, char **arg)
   full_flag = false;
   ngroups = 0;
   int ngroupsmax = 0;
-  groupstrings = NULL;
+  groupstrings = nullptr;
   ngrouptypes = 0;
   int ngrouptypesmax = 0;
-  grouptypestrings = NULL;
-  grouptypes = NULL;
-  grouptypebits = NULL;
+  grouptypestrings = nullptr;
+  grouptypes = nullptr;
+  grouptypebits = nullptr;
   energy_intra = 0.0;
   tfac_insert = 1.0;
   overlap_cutoffsq = 0.0;
@@ -481,7 +481,7 @@ void FixGCMC::init()
 
   if (!full_flag) {
     if ((force->kspace) ||
-        (force->pair == NULL) ||
+        (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("^hybrid",0)) ||
         (force->pair_match("^eam",0)) ||
@@ -542,7 +542,7 @@ void FixGCMC::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix gcmc rigid fix does not exist");
@@ -557,7 +557,7 @@ void FixGCMC::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix gcmc shake fix does not exist");

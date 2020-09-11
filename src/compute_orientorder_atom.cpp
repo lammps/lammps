@@ -49,8 +49,8 @@ using namespace MathConst;
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL), cglist(NULL)
+  qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
+  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), cglist(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -186,7 +186,7 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 
 void ComputeOrientOrderAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute orientorder/atom requires a "
                "pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;

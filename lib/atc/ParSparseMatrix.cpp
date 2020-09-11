@@ -233,8 +233,8 @@ DenseMatrix<double> ParSparseMatrix<double>::transMat(
  SparseMatrix<double> C_local = ((SparseMatrix<double>)A_local) * B;
 
  // destroy newA intelligently
- A_local._val = NULL;
- A_local._ja = NULL;
+ A_local._val = nullptr;
+ A_local._ja = nullptr;
 
  // Add all the result vectors together on each processor.
  sumSparse(C_local, C);
@@ -285,8 +285,8 @@ void ParSparseMatrix<double>::partition(
 // Prepare an A_local matrix for deletion after it has been loaded with
 //   data members from another matrix.
 void ParSparseMatrix<double>::finalize() {
-  _val = NULL;
-  _ja = NULL;
+  _val = nullptr;
+  _ja = nullptr;
 }
 
 void ParSparseMatrix<double>::operator=(const SparseMatrix<double> &source)

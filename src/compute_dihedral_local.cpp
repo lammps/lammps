@@ -38,7 +38,7 @@ enum{PHI,VARIABLE};
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), pstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), pstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
@@ -74,7 +74,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  pstr = NULL;
+  pstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -122,8 +122,8 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,7 +145,7 @@ ComputeDihedralLocal::~ComputeDihedralLocal()
 
 void ComputeDihedralLocal::init()
 {
-  if (force->dihedral == NULL)
+  if (force->dihedral == nullptr)
     error->all(FLERR,"No dihedral style is defined for compute dihedral/local");
 
   if (nvar) {

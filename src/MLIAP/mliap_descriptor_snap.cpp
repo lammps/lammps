@@ -35,10 +35,10 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename):
   MLIAPDescriptor(lmp)
 {
   nelements = 0;
-  elements = NULL;
-  radelem = NULL;
-  wjelem = NULL;
-  snaptr = NULL;
+  elements = nullptr;
+  radelem = nullptr;
+  wjelem = nullptr;
+  snaptr = nullptr;
   read_paramfile(paramfilename);
 
   snaptr = new SNA(lmp, rfac0, twojmax,
@@ -374,7 +374,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   FILE *fpparam;
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
-    if (fpparam == NULL)
+    if (fpparam == nullptr)
       error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
                                    paramfilename, utils::getsyserror()));
   }
@@ -386,7 +386,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpparam);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fpparam);
       } else n = strlen(line) + 1;
@@ -406,7 +406,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     // strip single and double quotes from words
 
     char* keywd = strtok(line,"' \t\n\r\f");
-    char* keyval = strtok(NULL,"' \t\n\r\f");
+    char* keyval = strtok(nullptr,"' \t\n\r\f");
 
     if (comm->me == 0) {
       utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
@@ -427,19 +427,19 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
           int n = strlen(elemtmp) + 1;
           elements[ielem] = new char[n];
           strcpy(elements[ielem],elemtmp);
-          keyval = strtok(NULL,"' \t\n\r\f");
+          keyval = strtok(nullptr,"' \t\n\r\f");
         }
         elementsflag = 1;
       } else if (strcmp(keywd,"radelems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
           radelem[ielem] = atof(keyval);
-          keyval = strtok(NULL,"' \t\n\r\f");
+          keyval = strtok(nullptr,"' \t\n\r\f");
         }
         radelemflag = 1;
       } else if (strcmp(keywd,"welems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
           wjelem[ielem] = atof(keyval);
-          keyval = strtok(NULL,"' \t\n\r\f");
+          keyval = strtok(nullptr,"' \t\n\r\f");
         }
         wjelemflag = 1;
       }

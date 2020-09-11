@@ -18,7 +18,7 @@
 #ifndef TREENODE_H
 #define TREENODE_H
 
-//#define NULL 0
+//#define nullptr 0
 
 
 //Tree depends on TreeNode

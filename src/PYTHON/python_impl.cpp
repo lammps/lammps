@@ -38,15 +38,15 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
   ninput = noutput = 0;
-  istr = NULL;
-  ostr = NULL;
-  format = NULL;
+  istr = nullptr;
+  ostr = nullptr;
+  format = nullptr;
   length_longstr = 0;
 
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
-  pfuncs = NULL;
+  pfuncs = nullptr;
 
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
@@ -104,7 +104,7 @@ void PythonImpl::command(int narg, char **arg)
     int ifunc = find(arg[0]);
     if (ifunc < 0) error->all(FLERR,"Python invoke of undefined function");
 
-    char *str = NULL;
+    char *str = nullptr;
     if (noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname,
                                          pfuncs[ifunc].name);
@@ -122,7 +122,7 @@ void PythonImpl::command(int narg, char **arg)
     int err;
 
     FILE *fp = fopen(arg[2],"r");
-    if (fp == NULL)
+    if (fp == nullptr)
       err = execute_string(arg[2]);
     else
       err = execute_file(arg[2]);
@@ -136,12 +136,12 @@ void PythonImpl::command(int narg, char **arg)
   // parse optional args, invoke is not allowed in this mode
 
   ninput = noutput = 0;
-  istr = NULL;
-  ostr = NULL;
-  format = NULL;
+  istr = nullptr;
+  ostr = nullptr;
+  format = nullptr;
   length_longstr = 0;
-  char *pyfile = NULL;
-  char *herestr = NULL;
+  char *pyfile = nullptr;
+  char *herestr = nullptr;
   int existflag = 0;
 
   int iarg = 1;
@@ -206,7 +206,7 @@ void PythonImpl::command(int narg, char **arg)
   if (pyfile) {
     FILE *fp = fopen(pyfile,"r");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
       PyGILState_Release(gstate);
       error->all(FLERR,"Could not open Python file");
     }
@@ -422,7 +422,7 @@ int PythonImpl::create_entry(char *name)
   pfuncs[ifunc].svalue = new char*[ninput];
 
   for (int i = 0; i < ninput; i++) {
-    pfuncs[ifunc].svalue[i] = NULL;
+    pfuncs[ifunc].svalue[i] = nullptr;
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
@@ -470,8 +470,8 @@ int PythonImpl::create_entry(char *name)
 
   // process output as value or variable
 
-  pfuncs[ifunc].ovarname = NULL;
-  pfuncs[ifunc].longstr = NULL;
+  pfuncs[ifunc].ovarname = nullptr;
+  pfuncs[ifunc].longstr = nullptr;
   if (!noutput) return ifunc;
 
   char type = format[ninput];
@@ -512,7 +512,7 @@ int PythonImpl::execute_string(char *cmd)
 int PythonImpl::execute_file(char *fname)
 {
   FILE *fp = fopen(fname,"r");
-  if (fp == NULL) return -1;
+  if (fp == nullptr) return -1;
 
   PyGILState_STATE gstate = PyGILState_Ensure();
   int err = PyRun_SimpleFile(fp,fname);

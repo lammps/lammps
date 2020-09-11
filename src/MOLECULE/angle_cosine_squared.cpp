@@ -37,8 +37,8 @@ using namespace MathConst;
 
 AngleCosineSquared::AngleCosineSquared(LAMMPS *lmp) : Angle(lmp)
 {
-  k = NULL;
-  theta0 = NULL;
+  k = nullptr;
+  theta0 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,8 +216,8 @@ void AngleCosineSquared::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

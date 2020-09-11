@@ -55,7 +55,7 @@ void ComputePressureGrem::init()
   int dim;
   scale_grem = (double *)modify->fix[ifix]->extract("scale_grem",dim);
 
-  if (scale_grem == NULL || dim != 0)
+  if (scale_grem == nullptr || dim != 0)
     error->all(FLERR,"Cannot extract gREM scale factor from fix grem");
 }
 

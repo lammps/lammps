@@ -143,7 +143,7 @@ void PairEAMAlloyGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_alloy_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_alloy_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_alloy_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }
@@ -324,7 +324,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if nullptr
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {

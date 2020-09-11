@@ -38,8 +38,8 @@ using namespace LAMMPS_NS;
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
-  group2(NULL), id_orientorder(NULL), normv(NULL)
+  typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
+  group2(nullptr), id_orientorder(nullptr), normv(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
@@ -147,7 +147,7 @@ void ComputeCoordAtom::init()
                  "option in compute orientorder/atom");
   }
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,

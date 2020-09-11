@@ -61,8 +61,8 @@ PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 

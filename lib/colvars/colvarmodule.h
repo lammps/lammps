@@ -459,13 +459,13 @@ public:
   /// Backup a file before writing it
   static int backup_file(char const *filename);
 
-  /// Look up a bias by name; returns NULL if not found
+  /// Look up a bias by name; returns nullptr if not found
   static colvarbias * bias_by_name(std::string const &name);
 
-  /// Look up a colvar by name; returns NULL if not found
+  /// Look up a colvar by name; returns nullptr if not found
   static colvar * colvar_by_name(std::string const &name);
 
-  /// Look up a named atom group by name; returns NULL if not found
+  /// Look up a named atom group by name; returns nullptr if not found
   static atom_group * atom_group_by_name(std::string const &name);
 
   /// Load new configuration for the given bias -

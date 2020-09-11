@@ -30,7 +30,7 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), pe(NULL), id_pe(NULL)
+  FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
 
   // Prevent masses from being updated every timestep

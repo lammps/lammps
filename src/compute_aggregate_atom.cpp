@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  aggregateID(NULL)
+  aggregateID(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute aggregate/atom command");
 
@@ -71,10 +71,10 @@ void ComputeAggregateAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute aggregate/atom unless atoms have IDs");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Compute aggregate/atom requires a bond style to be defined");
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,

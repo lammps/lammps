@@ -38,7 +38,7 @@ enum{THETA,ENG,VARIABLE};
 
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), tstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), tstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 
@@ -77,7 +77,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  tstr = NULL;
+  tstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -123,8 +123,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,7 +146,7 @@ ComputeAngleLocal::~ComputeAngleLocal()
 
 void ComputeAngleLocal::init()
 {
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"No angle style is defined for compute angle/local");
 
   if (nvar) {

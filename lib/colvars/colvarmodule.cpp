@@ -30,11 +30,11 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   depth_s = 0;
   log_level_ = 10;
 
-  cv_traj_os = NULL;
+  cv_traj_os = nullptr;
 
   xyz_reader_use_count = 0;
 
-  if (proxy == NULL) {
+  if (proxy == nullptr) {
     proxy = proxy_in; // Pointer to the proxy object
     parse = new colvarparse(); // Parsing object for global options
     version_int = proxy->get_version_from_string(COLVARS_VERSION);
@@ -573,7 +573,7 @@ colvarbias * colvarmodule::bias_by_name(std::string const &name)
       return (*bi);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 
@@ -587,7 +587,7 @@ colvar *colvarmodule::colvar_by_name(std::string const &name)
       return (*cvi);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 
@@ -601,7 +601,7 @@ cvm::atom_group *colvarmodule::atom_group_by_name(std::string const &name)
       return (*agi);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 
@@ -631,7 +631,7 @@ int colvarmodule::change_configuration(std::string const &bias_name,
   cvm::increase_depth();
   colvarbias *b;
   b = bias_by_name(bias_name);
-  if (b == NULL) {
+  if (b == nullptr) {
     cvm::error("Error: bias not found: " + bias_name);
     return COLVARS_ERROR;
   }
@@ -647,7 +647,7 @@ std::string colvarmodule::read_colvar(std::string const &name)
   colvar *c;
   std::stringstream ss;
   c = colvar_by_name(name);
-  if (c == NULL) {
+  if (c == nullptr) {
     cvm::error("Error: colvar not found: " + name);
     return std::string();
   }
@@ -663,7 +663,7 @@ cvm::real colvarmodule::energy_difference(std::string const &bias_name,
   colvarbias *b;
   cvm::real energy_diff = 0.;
   b = bias_by_name(bias_name);
-  if (b == NULL) {
+  if (b == nullptr) {
     cvm::error("Error: bias not found: " + bias_name);
     return 0.;
   }
@@ -678,7 +678,7 @@ int colvarmodule::bias_current_bin(std::string const &bias_name)
   int ret;
   colvarbias *b = bias_by_name(bias_name);
 
-  if (b != NULL) {
+  if (b != nullptr) {
     ret = b->current_bin();
   } else {
     cvm::error("Error: bias not found.\n");
@@ -695,7 +695,7 @@ int colvarmodule::bias_bin_num(std::string const &bias_name)
   int ret;
   colvarbias *b = bias_by_name(bias_name);
 
-  if (b != NULL) {
+  if (b != nullptr) {
     ret = b->bin_num();
   } else {
     cvm::error("Error: bias not found.\n");
@@ -712,7 +712,7 @@ int colvarmodule::bias_bin_count(std::string const &bias_name, size_t bin_index)
   int ret;
   colvarbias *b = bias_by_name(bias_name);
 
-  if (b != NULL) {
+  if (b != nullptr) {
     ret = b->bin_count(bin_index);
   } else {
     cvm::error("Error: bias not found.\n");
@@ -729,7 +729,7 @@ int colvarmodule::bias_share(std::string const &bias_name)
   int ret;
   colvarbias *b = bias_by_name(bias_name);
 
-  if (b != NULL) {
+  if (b != nullptr) {
     b->replica_share();
     ret = COLVARS_OK;
   } else {
@@ -1037,7 +1037,7 @@ int colvarmodule::write_restart_file(std::string const &out_name)
 
 int colvarmodule::write_traj_files()
 {
-  if (cv_traj_os == NULL) {
+  if (cv_traj_os == nullptr) {
     if (open_traj_file(cv_traj_name) != COLVARS_OK) {
       return cvm::get_error();
     } else {
@@ -1057,7 +1057,7 @@ int colvarmodule::write_traj_files()
     write_traj(*cv_traj_os);
   }
 
-  if (restart_out_freq && (cv_traj_os != NULL)) {
+  if (restart_out_freq && (cv_traj_os != nullptr)) {
     // flush the trajectory file if we are at the restart frequency
     if ( (cvm::step_relative() > 0) &&
          ((cvm::step_absolute() % restart_out_freq) == 0) ) {
@@ -1151,8 +1151,8 @@ colvarmodule::~colvarmodule()
     atom_group::delete_features();
 
     delete parse;
-    parse = NULL;
-    proxy = NULL;
+    parse = nullptr;
+    proxy = nullptr;
   }
 }
 
@@ -1184,7 +1184,7 @@ int colvarmodule::reset()
 
   proxy->reset();
 
-  if (cv_traj_os != NULL) {
+  if (cv_traj_os != nullptr) {
     // Do not close traj file here, as we might not be done with it yet.
     proxy->flush_output_stream(cv_traj_os);
   }
@@ -1395,7 +1395,7 @@ std::istream & colvarmodule::read_objects_state(std::istream &is)
     if (static_cast<size_t>(is.tellg()) == pos) {
       // This block has not been read by any object: discard it and move on
       // to the next one
-      is >> colvarparse::read_block(word, NULL);
+      is >> colvarparse::read_block(word, nullptr);
     }
 
     if (!is) break;
@@ -1456,7 +1456,7 @@ int colvarmodule::write_output_files()
   }
   cvm::decrease_depth();
 
-  if (cv_traj_os != NULL) {
+  if (cv_traj_os != nullptr) {
     // do not close, there may be another run command
     proxy->flush_output_stream(cv_traj_os);
   }
@@ -1575,7 +1575,7 @@ std::ostream & colvarmodule::write_restart(std::ostream &os)
 
 int colvarmodule::open_traj_file(std::string const &file_name)
 {
-  if (cv_traj_os != NULL) {
+  if (cv_traj_os != nullptr) {
     return COLVARS_OK;
   }
 
@@ -1591,7 +1591,7 @@ int colvarmodule::open_traj_file(std::string const &file_name)
     cv_traj_os = (cvm::proxy)->output_stream(file_name);
   }
 
-  if (cv_traj_os == NULL) {
+  if (cv_traj_os == nullptr) {
     cvm::error("Error: cannot write to file \""+file_name+"\".\n",
                FILE_ERROR);
   }
@@ -1602,9 +1602,9 @@ int colvarmodule::open_traj_file(std::string const &file_name)
 
 int colvarmodule::close_traj_file()
 {
-  if (cv_traj_os != NULL) {
+  if (cv_traj_os != nullptr) {
     proxy->close_output_stream(cv_traj_name);
-    cv_traj_os = NULL;
+    cv_traj_os = nullptr;
   }
   return cvm::get_error();
 }
@@ -1672,7 +1672,7 @@ void cvm::log(std::string const &message, int min_log_level)
 {
   if (cvm::log_level() < min_log_level) return;
   // allow logging when the module is not fully initialized
-  size_t const d = (cvm::main() != NULL) ? depth() : 0;
+  size_t const d = (cvm::main() != nullptr) ? depth() : 0;
   if (d > 0) {
     proxy->log((std::string(2*d, ' '))+message);
   } else {
@@ -1780,7 +1780,7 @@ int cvm::read_index_file(char const *filename)
       }
       if (index_of_group < 0) {
         index_group_names.push_back(group_name);
-        index_groups.push_back(NULL);
+        index_groups.push_back(nullptr);
         index_of_group = index_groups.size()-1;
       }
     } else {
@@ -1799,7 +1799,7 @@ int cvm::read_index_file(char const *filename)
       pos = is.tellg();
     }
 
-    if (old_index_group != NULL) {
+    if (old_index_group != nullptr) {
       bool equal = false;
       if (new_index_group->size() == old_index_group->size()) {
         if (std::equal(new_index_group->begin(), new_index_group->end(),
@@ -1810,13 +1810,13 @@ int cvm::read_index_file(char const *filename)
       if (! equal) {
         new_index_group->clear();
         delete new_index_group;
-        new_index_group = NULL;
+        new_index_group = nullptr;
         return cvm::error("Error: the index group \""+group_name+
                           "\" was redefined.\n", INPUT_ERROR);
       } else {
         old_index_group->clear();
         delete old_index_group;
-        old_index_group = NULL;
+        old_index_group = nullptr;
       }
     }
 
@@ -1850,7 +1850,7 @@ int colvarmodule::reset_index_groups()
   size_t i = 0;
   for ( ; i < index_groups.size(); i++) {
     delete index_groups[i];
-    index_groups[i] = NULL;
+    index_groups[i] = nullptr;
   }
   index_group_names.clear();
   index_groups.clear();
@@ -2179,7 +2179,7 @@ std::string cvm::wrap_string(std::string const &s, size_t nchars)
 
 
 // shared pointer to the proxy object
-colvarproxy *colvarmodule::proxy = NULL;
+colvarproxy *colvarmodule::proxy = nullptr;
 
 // static runtime data
 cvm::real colvarmodule::debug_gradients_step_size = 1.0e-07;

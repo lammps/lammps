@@ -132,19 +132,19 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   time_origin = update->ntimestep;
 
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
   facmax = facnummax = 0;
-  face = NULL;
-  facnum = facfirst = NULL;
+  face = nullptr;
+  facnum = facfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -233,7 +233,7 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to NULL, it's skipped since lo/hi are infinity
+  //   if wall was set to nullptr, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
 

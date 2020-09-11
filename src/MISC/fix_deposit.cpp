@@ -44,9 +44,9 @@ enum{DIST_UNIFORM,DIST_GAUSSIAN};
 /* ---------------------------------------------------------------------- */
 
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), idrigid(NULL),
-  idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), imageflags(NULL),
-  fixrigid(NULL), fixshake(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), idrigid(nullptr),
+  idshake(nullptr), onemols(nullptr), molfrac(nullptr), coords(nullptr), imageflags(nullptr),
+  fixrigid(nullptr), fixshake(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
@@ -233,7 +233,7 @@ void FixDeposit::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix deposit rigid fix does not exist");
@@ -248,7 +248,7 @@ void FixDeposit::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
@@ -658,13 +658,13 @@ void FixDeposit::options(int narg, char **arg)
   // defaults
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
   mode = ATOM;
-  molfrac = NULL;
+  molfrac = nullptr;
   rigidflag = 0;
-  idrigid = NULL;
+  idrigid = nullptr;
   shakeflag = 0;
-  idshake = NULL;
+  idshake = nullptr;
   idnext = 0;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
@@ -904,5 +904,5 @@ void *FixDeposit::extract(const char *str, int &itype)
     return &oneradius;
   }
 
-  return NULL;
+  return nullptr;
 }

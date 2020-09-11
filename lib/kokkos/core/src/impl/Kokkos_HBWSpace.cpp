@@ -139,7 +139,7 @@ void *HBWSpace::allocate(const char *arg_label, const size_t arg_alloc_size,
     }
     msg << " ]( " << arg_alloc_size << " ) FAILED";
     if (ptr == nullptr) {
-      msg << " nullptr";
+      msg << " NULL";
     } else {
       msg << " NOT ALIGNED " << ptr;
     }

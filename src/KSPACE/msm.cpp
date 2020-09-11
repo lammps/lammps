@@ -45,19 +45,19 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 MSM::MSM(LAMMPS *lmp)
   : KSpace(lmp),
-    factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
-    ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
-    nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
-    nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
-    active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL),
-    peratom_allocate_flag(0),levels(0),world_levels(NULL),qgrid(NULL),egrid(NULL),
-    v0grid(NULL), v1grid(NULL),v2grid(NULL),v3grid(NULL),v4grid(NULL),v5grid(NULL),
-    g_direct(NULL),v0_direct(NULL),v1_direct(NULL),v2_direct(NULL),v3_direct(NULL),
-    v4_direct(NULL),v5_direct(NULL),g_direct_top(NULL),v0_direct_top(NULL),
-    v1_direct_top(NULL),v2_direct_top(NULL),v3_direct_top(NULL),v4_direct_top(NULL),
-    v5_direct_top(NULL),phi1d(NULL),dphi1d(NULL),procneigh_levels(NULL),gcall(NULL),
-    gc(NULL),gcall_buf1(NULL),gcall_buf2(NULL),gc_buf1(NULL),gc_buf2(NULL),
-    ngc_buf1(NULL),ngc_buf2(NULL),part2grid(NULL),boxlo(NULL)
+    factors(nullptr), delxinv(nullptr), delyinv(nullptr), delzinv(nullptr), nx_msm(nullptr),
+    ny_msm(nullptr), nz_msm(nullptr), nxlo_in(nullptr), nylo_in(nullptr), nzlo_in(nullptr),
+    nxhi_in(nullptr), nyhi_in(nullptr), nzhi_in(nullptr), nxlo_out(nullptr), nylo_out(nullptr),
+    nzlo_out(nullptr), nxhi_out(nullptr), nyhi_out(nullptr), nzhi_out(nullptr), ngrid(nullptr),
+    active_flag(nullptr), alpha(nullptr), betax(nullptr), betay(nullptr), betaz(nullptr),
+    peratom_allocate_flag(0),levels(0),world_levels(nullptr),qgrid(nullptr),egrid(nullptr),
+    v0grid(nullptr), v1grid(nullptr),v2grid(nullptr),v3grid(nullptr),v4grid(nullptr),v5grid(nullptr),
+    g_direct(nullptr),v0_direct(nullptr),v1_direct(nullptr),v2_direct(nullptr),v3_direct(nullptr),
+    v4_direct(nullptr),v5_direct(nullptr),g_direct_top(nullptr),v0_direct_top(nullptr),
+    v1_direct_top(nullptr),v2_direct_top(nullptr),v3_direct_top(nullptr),v4_direct_top(nullptr),
+    v5_direct_top(nullptr),phi1d(nullptr),dphi1d(nullptr),procneigh_levels(nullptr),gcall(nullptr),
+    gc(nullptr),gcall_buf1(nullptr),gcall_buf2(nullptr),gc_buf1(nullptr),gc_buf2(nullptr),
+    ngc_buf1(nullptr),ngc_buf2(nullptr),part2grid(nullptr),boxlo(nullptr)
 {
   msmflag = 1;
 
@@ -67,32 +67,32 @@ MSM::MSM(LAMMPS *lmp)
 
   MPI_Comm_rank(world,&me);
 
-  phi1d = dphi1d = NULL;
+  phi1d = dphi1d = nullptr;
 
   nmax = 0;
-  part2grid = NULL;
+  part2grid = nullptr;
 
-  g_direct = NULL;
-  g_direct_top = NULL;
+  g_direct = nullptr;
+  g_direct_top = nullptr;
 
-  v0_direct = v1_direct = v2_direct = NULL;
-  v3_direct = v4_direct = v5_direct = NULL;
+  v0_direct = v1_direct = v2_direct = nullptr;
+  v3_direct = v4_direct = v5_direct = nullptr;
 
-  v0_direct_top = v1_direct_top = v2_direct_top = NULL;
-  v3_direct_top = v4_direct_top = v5_direct_top = NULL;
+  v0_direct_top = v1_direct_top = v2_direct_top = nullptr;
+  v3_direct_top = v4_direct_top = v5_direct_top = nullptr;
 
-  ngrid = NULL;
+  ngrid = nullptr;
 
-  alpha = betax = betay = betaz = NULL;
-  nx_msm = ny_msm = nz_msm = NULL;
-  nxlo_in = nylo_in = nzlo_in = NULL;
-  nxhi_in = nyhi_in = nzhi_in = NULL;
-  nxlo_out = nylo_out = nzlo_out = NULL;
-  nxhi_out = nyhi_out = nzhi_out = NULL;
-  delxinv = delyinv = delzinv = NULL;
-  qgrid = NULL;
-  egrid = NULL;
-  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = NULL;
+  alpha = betax = betay = betaz = nullptr;
+  nx_msm = ny_msm = nz_msm = nullptr;
+  nxlo_in = nylo_in = nzlo_in = nullptr;
+  nxhi_in = nyhi_in = nzhi_in = nullptr;
+  nxlo_out = nylo_out = nzlo_out = nullptr;
+  nxhi_out = nyhi_out = nzhi_out = nullptr;
+  delxinv = delyinv = delzinv = nullptr;
+  qgrid = nullptr;
+  egrid = nullptr;
+  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = nullptr;
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
@@ -176,7 +176,7 @@ void MSM::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -825,18 +825,18 @@ void MSM::allocate_levels()
   v5grid = new double***[levels];
 
   for (int n=0; n<levels; n++) {
-    gc[n] = NULL;
+    gc[n] = nullptr;
     world_levels[n] = MPI_COMM_NULL;
 
-    qgrid[n] = NULL;
-    egrid[n] = NULL;
+    qgrid[n] = nullptr;
+    egrid[n] = nullptr;
 
-    v0grid[n] = NULL;
-    v1grid[n] = NULL;
-    v2grid[n] = NULL;
-    v3grid[n] = NULL;
-    v4grid[n] = NULL;
-    v5grid[n] = NULL;
+    v0grid[n] = nullptr;
+    v1grid[n] = nullptr;
+    v2grid[n] = nullptr;
+    v3grid[n] = nullptr;
+    v4grid[n] = nullptr;
+    v5grid[n] = nullptr;
   }
 }
 

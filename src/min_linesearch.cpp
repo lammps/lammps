@@ -54,8 +54,8 @@ using namespace LAMMPS_NS;
 MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
 {
   searchflag = 1;
-  gextra = hextra = NULL;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  gextra = hextra = nullptr;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,12 +81,12 @@ void MinLineSearch::init()
 
   delete [] gextra;
   delete [] hextra;
-  gextra = hextra = NULL;
+  gextra = hextra = nullptr;
 
   delete [] x0extra_atom;
   delete [] gextra_atom;
   delete [] hextra_atom;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

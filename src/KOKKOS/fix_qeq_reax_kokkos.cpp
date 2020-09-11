@@ -1424,7 +1424,7 @@ void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double 
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
+  id = style = nullptr;
 }
 
 /* ----------------------------------------------------------------------

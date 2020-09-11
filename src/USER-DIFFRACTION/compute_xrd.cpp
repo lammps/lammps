@@ -50,7 +50,7 @@ static const char cite_compute_xrd_c[] =
 /* ---------------------------------------------------------------------- */
 
 ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), ztype(NULL), store_tmp(NULL)
+  Compute(lmp, narg, arg), ztype(nullptr), store_tmp(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 

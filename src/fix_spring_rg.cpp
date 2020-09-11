@@ -67,7 +67,7 @@ void FixSpringRG::init()
 {
   masstotal = group->mass(igroup);
 
-  // if rg0 was specified as NULL, compute current Rg
+  // if rg0 was specified as nullptr, compute current Rg
   // only occurs on 1st run
 
   if (rg0_flag) {

@@ -98,7 +98,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

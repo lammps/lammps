@@ -99,12 +99,12 @@ void MsgZMQ::send(int nheader, int *header, int nbuf, char *buf)
 
   if (me == 0) {
     zmq_send(socket,lengths,2*sizeof(int),0);
-    zmq_recv(socket,NULL,0,0);
+    zmq_recv(socket,nullptr,0,0);
   }
 
   if (me == 0) {
     zmq_send(socket,header,nheader*sizeof(int),0);
-    zmq_recv(socket,NULL,0,0);
+    zmq_recv(socket,nullptr,0,0);
   }
 
   if (me == 0) zmq_send(socket,buf,nbuf,0);
@@ -125,7 +125,7 @@ void MsgZMQ::recv(int &maxheader, int *&header, int &maxbuf, char *&buf)
 {
   if (me == 0) {
     zmq_recv(socket,lengths,2*sizeof(int),0);
-    zmq_send(socket,NULL,0,0);
+    zmq_send(socket,nullptr,0,0);
   }
   if (nprocs > 1) MPI_Bcast(lengths,2,MPI_INT,0,world);
 
@@ -135,7 +135,7 @@ void MsgZMQ::recv(int &maxheader, int *&header, int &maxbuf, char *&buf)
 
   if (me == 0) {
     zmq_recv(socket,header,nheader*sizeof(int),0);
-    zmq_send(socket,NULL,0,0);
+    zmq_send(socket,nullptr,0,0);
   }
   if (nprocs > 1) MPI_Bcast(header,nheader,MPI_INT,0,world);
 

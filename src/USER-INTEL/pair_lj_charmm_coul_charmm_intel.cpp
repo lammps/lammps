@@ -555,8 +555,8 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
       flt_t * ospecial_coul = special_coul;
       flt_t * ocutsq = cutsq[0];
       typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
-      if (ospecial_lj != NULL && ocutsq != NULL && olj != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
           nocopy(ocutsq, olj: alloc_if(0) free_if(1))
@@ -577,8 +577,8 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
       flt_t * ocutsq = cutsq[0];
       typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && ocutsq != NULL && olj != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \

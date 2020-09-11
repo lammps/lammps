@@ -74,7 +74,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
 {
   quat_nmax = 0;
   reinitflag = 0;
-  quat = NULL;
+  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

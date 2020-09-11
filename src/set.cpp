@@ -74,7 +74,7 @@ void Set::command(int narg, char **arg)
   int n = strlen(arg[1]) + 1;
   id = new char[n];
   strcpy(id,arg[1]);
-  select = NULL;
+  select = nullptr;
   selection(atom->nlocal);
 
   // loop over keyword/value pairs
@@ -689,7 +689,7 @@ void Set::set(int keyword)
 {
   // evaluate atom-style variable(s) if necessary
 
-  vec1 = vec2 = vec3 = vec4 = NULL;
+  vec1 = vec2 = vec3 = vec4 = nullptr;
 
   if (varflag) {
     int nlocal = atom->nlocal;
@@ -907,7 +907,7 @@ void Set::set(int keyword)
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
-      double *quat = NULL;
+      double *quat = nullptr;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)

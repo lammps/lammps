@@ -137,7 +137,7 @@ void DumpXTC::init_style()
 void DumpXTC::openfile()
 {
   // XTC maintains it's own XDR file ptr
-  // set fp to nullptr so parent dump class will not use it
+  // set fp to a null pointer so parent dump class will not use it
 
   fp = nullptr;
   if (me == 0)

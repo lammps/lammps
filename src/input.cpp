@@ -338,7 +338,7 @@ char *Input::one(const std::string &single)
   }
 
   // parse the line
-  // if no command, just return nullptr
+  // if no command, just return a null pointer
 
   parse();
   if (command == nullptr) return nullptr;
@@ -450,7 +450,7 @@ void Input::parse()
    treat text between single/double/triple quotes as one arg
    matching quote must be followed by whitespace char if not end of string
    strip quotes from returned word
-   return ptr to start of word or nullptr if no word in string
+   return ptr to start of word or null pointer if no word in string
    also return next = ptr after word
 ------------------------------------------------------------------------- */
 

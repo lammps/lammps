@@ -282,7 +282,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
 
 /* ----------------------------------------------------------------------
    remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to nullptr
+   free memory for vector and name and set ptrs to a null pointer
    ivector/dvector and iname/dname lists never shrink
 ------------------------------------------------------------------------- */
 

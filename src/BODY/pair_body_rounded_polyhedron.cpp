@@ -1880,7 +1880,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
     face_index  = face index of the body
     xmi         = atom i's coordinates
     q1          = tested point on the face (e.g. the projection of a point)
-    q2          = another point (can be nullptr) for face-edge intersection
+    q2          = another point (can be a null pointer) for face-edge intersection
   Output:
     inside1     = 1 if q1 is inside the polygon, 0 otherwise
     inside2     = 1 if q2 is inside the polygon, 0 otherwise

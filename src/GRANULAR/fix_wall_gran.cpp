@@ -416,7 +416,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   mass_rigid = nullptr;
 
   // initialize history as if particle is not touching region
-  // history_one will be nullptr for wallstyle = REGION
+  // history_one will be a null pointer for wallstyle = REGION
 
   if (use_history && history_one) {
     int nlocal = atom->nlocal;
@@ -576,7 +576,7 @@ void FixWallGran::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to nullptr, it's skipped since lo/hi are infinity
+  //   if wall was set to a null pointer, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
   // set history if pair potential stores history

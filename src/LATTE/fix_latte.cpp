@@ -74,7 +74,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
-  // nullptr means LATTE will compute Coulombic potential
+  // null pointer means LATTE will compute Coulombic potential
 
   coulomb = 0;
   id_pe = nullptr;

@@ -94,7 +94,7 @@ struct PairComputeFunctor  {
     dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
   };
 
-  // Call cleanup_copy which sets allocations nullptr which are destructed by the PairStyle
+  // Call cleanup_copy which sets allocations to null which are destructed by the PairStyle
   ~PairComputeFunctor() {c.cleanup_copy();list.copymode = 1;};
 
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {

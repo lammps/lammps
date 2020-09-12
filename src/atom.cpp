@@ -2201,10 +2201,10 @@ void Atom::add_callback(int flag)
   int ifix;
 
   // find the fix
-  // if find nullptr:
+  // if find null pointer:
   //   it's this one, since it is being replaced and has just been deleted
   //   at this point in re-creation
-  // if don't find nullptr:
+  // if don't find null pointer:
   //   i is set to nfix = new one currently being added at end of list
 
   for (ifix = 0; ifix < modify->nfix; ifix++)

@@ -162,7 +162,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
   memory->create(fft_data, MAX(1,mynq)*2, "fix_phonon:fft_data");
 
-  // allocate variables; MAX(1,... is used because nullptr buffer will result in error for MPI
+  // allocate variables; MAX(1,... is used because a null buffer will result in error for MPI
   memory->create(RIloc,ngroup,(sysdim+1),"fix_phonon:RIloc");
   memory->create(RIall,ngroup,(sysdim+1),"fix_phonon:RIall");
   memory->create(Rsort,ngroup, sysdim, "fix_phonon:Rsort");

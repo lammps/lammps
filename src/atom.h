@@ -55,7 +55,7 @@ class Atom : protected Pointers {
 
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc
-  char *firstgroupname;         // group-ID to store first, nullptr if unset
+  char *firstgroupname;         // group-ID to store first, null pointer if unset
 
   // --------------------------------------------------------------------
   // 1st customization section: customize by adding new per-atom variable

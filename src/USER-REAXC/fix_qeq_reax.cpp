@@ -82,7 +82,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
-    else if (strcmp(arg[iarg],"imax") == 0) {
+    else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix qeq/reax command");
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);

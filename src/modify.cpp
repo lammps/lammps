@@ -821,7 +821,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   warn if new group != old group
   //   delete old fix, but do not call update_callback(),
   //     since will replace this fix and thus other fix locs will not change
-  //   set ptr to nullptr in case new fix scans list of fixes,
+  //   set ptr to a null pointer in case new fix scans list of fixes,
   //     e.g. scan will occur in add_callback() if called by new fix
   // if fix ID does not exist:
   //   set newflag = 1 so create new fix

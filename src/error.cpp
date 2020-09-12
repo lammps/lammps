@@ -69,7 +69,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be nullptr when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -95,7 +95,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be nullptr when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -143,7 +143,7 @@ void Error::all(const std::string &file, int line, const std::string &str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be nullptr when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -192,7 +192,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be nullptr when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 

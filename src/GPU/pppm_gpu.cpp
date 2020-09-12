@@ -117,7 +117,7 @@ void PPPMGPU::init()
   //      thru its deallocate(), allocate()
   // NOTE: could free density_brick and vdxyz_brick after PPPM allocates them,
   //       before allocating db_gpu and vd_brick down below, if don't need,
-  //       if do this, make sure to set them to nullptr
+  //       if do this, make sure to set them to a null pointer
 
   destroy_3d_offset(density_brick_gpu,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);

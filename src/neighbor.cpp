@@ -378,7 +378,7 @@ void Neighbor::init()
   // We cannot remove special neighbors with kspace or kspace-like pair styles
   // as the exclusion needs to remove the full coulomb and not the damped interaction.
   // Special treatment is required for hybrid pair styles since Force::pair_match()
-  // will only return a non-nullptr pointer if there is only one substyle of the kind.
+  // will only return a non-null pointer if there is only one substyle of the kind.
 
   if (force->kspace) {
     special_flag[1] = special_flag[2] = special_flag[3] = 2;

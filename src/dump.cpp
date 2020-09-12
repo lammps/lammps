@@ -202,7 +202,7 @@ Dump::~Dump()
     delete[] nameslist;
   }
 
-  // XTC style sets fp to nullptr since it closes file in its destructor
+  // XTC style sets fp to a null pointer since it closes file in its destructor
 
   if (multifile == 0 && fp != nullptr) {
     if (compressed) {

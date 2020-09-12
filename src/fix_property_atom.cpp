@@ -152,7 +152,7 @@ FixPropertyAtom::~FixPropertyAtom()
   if (border) atom->delete_callback(id,2);
 
   // deallocate per-atom vectors in Atom class
-  // set ptrs to nullptr, so they no longer exist for Atom class
+  // set ptrs to a null pointer, so they no longer exist for Atom class
 
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) {

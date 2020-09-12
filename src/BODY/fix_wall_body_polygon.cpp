@@ -226,7 +226,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to nullptr, it's skipped since lo/hi are infinity
+  //   if wall was set to a null pointer, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
 

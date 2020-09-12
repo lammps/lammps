@@ -108,7 +108,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   // check if we had a kim_init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
-  // validate model name if not given as nullptr.
+  // validate model name if not given as null pointer.
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {

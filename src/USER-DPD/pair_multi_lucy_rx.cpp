@@ -727,7 +727,7 @@ void PairMultiLucyRX::compute_table(Table *tb)
 }
 
 /* ----------------------------------------------------------------------
-   set all ptrs in a table to nullptr, so can be freed safely
+   set all ptrs in a table to a null pointer, so can be freed safely
 ------------------------------------------------------------------------- */
 
 void PairMultiLucyRX::null_table(Table *tb)

@@ -373,7 +373,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
 /* ----------------------------------------------------------------------
    pack data struct for one body into buf for writing to data file
-   if buf is nullptr, just return buffer size
+   if buf is a null pointer, just return buffer size
 ------------------------------------------------------------------------- */
 
 int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf)

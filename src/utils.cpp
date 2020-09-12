@@ -171,7 +171,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += "'";
 
     if (error) error->one(srcname,srcline,errmsg);
-    if (s) *s = '\0'; // truncate string to empty in case error is nullptr
+    if (s) *s = '\0'; // truncate string to empty in case error is null pointer
   }
   return;
 }

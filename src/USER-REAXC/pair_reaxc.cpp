@@ -327,7 +327,7 @@ void PairReaxC::coeff( int nargs, char **args )
   }
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if nullptr
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   int itmp = 0;
   int nreax_types = system->reax_param.num_atom_types;

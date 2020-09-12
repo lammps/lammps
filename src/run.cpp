@@ -91,7 +91,7 @@ void Run::command(int narg, char **arg)
 
       // all remaining args are commands
       // first,last = arg index of first/last commands
-      // set ncommands = 0 if single command and it is nullptr
+      // set ncommands = 0 if single command and it is "NULL"
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal run command");

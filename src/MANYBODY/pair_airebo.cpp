@@ -185,7 +185,7 @@ void PairAIREBO::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
-  // map[i] = which element (0,1) the Ith atom type is, -1 if nullptr
+  // map[i] = which element (0,1) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {

@@ -228,7 +228,7 @@ void PairLebedevaZ::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if nullptr
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 

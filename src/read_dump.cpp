@@ -713,7 +713,7 @@ void ReadDump::read_atoms()
 
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);    // avoid nullptr ptr
+        maxnew = MAX(nnew,1);    // avoid nullptr
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -753,7 +753,7 @@ void ReadDump::read_atoms()
       nnew = static_cast<int> (olast - ofirst);
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);     // avoid nullptr ptr
+        maxnew = MAX(nnew,1);     // avoid nullptr
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -779,7 +779,7 @@ void ReadDump::read_atoms()
     nnew = static_cast<int> (sum);
     if (nnew > maxnew || maxnew == 0) {
       memory->destroy(fields);
-      maxnew = MAX(nnew,1);     // avoid nullptr ptr
+      maxnew = MAX(nnew,1);     // avoid nullptr
       memory->create(fields,maxnew,nfield,"read_dump:fields");
     }
 
@@ -1105,7 +1105,7 @@ void ReadDump::migrate_new_atoms()
   Irregular *irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
-  newmaxnew = MAX(newmaxnew,1);    // avoid nullptr ptr
+  newmaxnew = MAX(newmaxnew,1);    // avoid nullptr
   memory->create(newfields,newmaxnew,nfield,"read_dump:newfields");
   irregular->exchange_data((char *) &fields[0][0],nfield*sizeof(double),
                            (char *) &newfields[0][0]);

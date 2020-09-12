@@ -135,8 +135,8 @@ void PairLCBOP::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // read args that map atom types to C and nullptr
-  // map[i] = which element (0 for C) the Ith atom type is, -1 if nullptr
+  // read args that map atom types to C and "NULL"
+  // map[i] = which element (0 for C) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {

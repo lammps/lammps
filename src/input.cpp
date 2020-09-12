@@ -467,10 +467,10 @@ char *Input::nextword(char *str, char **next)
   //   start = first char beyond quote
   //   stop = first char of matching quote
   //   next = first char beyond matching quote
-  //   next must be nullptr or whitespace
+  //   next must be null char or whitespace
   // if start is not single/double/triple quote:
   //   stop = first whitespace char after start
-  //   next = char after stop, or stop itself if stop is nullptr
+  //   next = char after stop, or stop itself if stop is null char
 
   if (strstr(start,"\"\"\"") == start) {
     stop = strstr(&start[3],"\"\"\"");
@@ -492,7 +492,7 @@ char *Input::nextword(char *str, char **next)
     else *next = stop+1;
   }
 
-  // set stop to nullptr to terminate word
+  // set stop to null char to terminate word
 
   *stop = '\0';
   return start;
@@ -510,9 +510,9 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   // use str2 as scratch space to expand str, then copy back to str
   // reallocate str and str2 as necessary
   // do not replace $ inside single/double/triple quotes
-  // var = pts at variable name, ended by nullptr
-  //   if $ is followed by '{', trailing '}' becomes nullptr
-  //   else $x becomes x followed by nullptr
+  // var = pts at variable name, ended by null char
+  //   if $ is followed by '{', trailing '}' becomes null char
+  //   else $x becomes x followed by null char
   // beyond = points to text following variable
 
   int i,n,paren_count;

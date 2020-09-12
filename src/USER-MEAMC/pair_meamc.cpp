@@ -556,7 +556,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
   delete [] rozero;
   delete [] found;
 
-  // done if user param file is nullptr
+  // done if user param file is "NULL"
 
   if (userfile == "NULL") return;
 

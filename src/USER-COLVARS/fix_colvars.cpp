@@ -961,7 +961,7 @@ void FixColvars::write_restart(FILE *fp)
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();
-    int len = strlen(cvm_state) + 1; // need to include terminating nullptr byte.
+    int len = strlen(cvm_state) + 1; // need to include terminating null byte.
     fwrite(&len,sizeof(int),1,fp);
     fwrite(cvm_state,1,len,fp);
   }

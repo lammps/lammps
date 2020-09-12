@@ -1152,6 +1152,14 @@ void CommTiled::borders()
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
   }
 
+  // For molecular systems we lose some bits for local atom indices due
+  // to encoding of special pairs in neighbor lists. Check for overflows.
+
+  if ((atom->molecular != Atom::ATOMIC)
+      && ((atom->nlocal + atom->nghost) > NEIGHMASK))
+    error->one(FLERR,"Per-processor number of atoms is too large for "
+               "molecular neighbor lists");
+
   // insure send/recv buffers are long enough for all forward & reverse comm
   // send buf is for one forward or reverse sends to one proc
   // recv buf is for all forward or reverse recvs in one swap

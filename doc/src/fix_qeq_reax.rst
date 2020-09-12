@@ -20,8 +20,14 @@ Syntax
 * cutlo,cuthi = lo and hi cutoff for Taper radius
 * tolerance = precision to which charges will be equilibrated
 * params = reax/c or a filename
-* args   = *dual* (optional)
-* args   = *maxiter value* (optional)
+* one or more keywords or keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+     keyword = *dual* or *maxiter*
+       *dual* = process S and T matrix in parallel (only for qeq/reax/omp)
+       *maxiter* N = limit the number of iterations to *N*
+
 
 Examples
 """"""""

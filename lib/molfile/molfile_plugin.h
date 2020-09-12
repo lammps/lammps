@@ -11,7 +11,7 @@
  *
  *      $RCSfile: molfile_plugin.h,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.108 $       $Date: 2016/02/26 03:17:01 $
+ *      $Revision: 1.112 $       $Date: 2019/10/17 06:12:24 $
  *
  ***************************************************************************/
 
@@ -111,7 +111,7 @@ typedef struct {
   char resname[8];    /**< required residue name string          */
   int resid;          /**< required integer residue ID           */
   char segid[8];      /**< required segment name string, or ""   */
-#if 0 && vmdplugin_ABIVERSION > 17
+#if 0 && vmdplugin_ABIVERSION > 10000
   /* The new PDB file formats allows for much larger structures, */
   /* which can therefore require longer chain ID strings.  The   */
   /* new PDBx/mmCIF file formats do not have length limits on    */
@@ -187,13 +187,58 @@ typedef struct molfile_timestep_metadata {
   int has_velocities;                  /**< if timesteps have velocities     */
 } molfile_timestep_metadata_t;
 
+
 /*
- * Per-timestep atom coordinates and periodic cell information
+ *
+ * Per-timestep atom coordinates, velocities, forces, energies,
+ * and periodic cell information
+ *
+ */
+
+#if 0
+/**
+ * Periodically stored energies of various kinds
+ */
+typedef struct {
+  int energyflags;         // XXX indicate use and semantics of data fields
+
+  double total_energy;     // XXX these copied from DESRES_READ_TIMESTEP2 case
+  double potential_energy;
+  double kinetic_energy;
+  double extended_energy;
+  double force_energy;
+  double total_pressure;
+
+  // Alchemical free energy methods need to store individual energy samples.
+  // We don't really want pre-averaged quantities, they lead to problems later.
+  double lambda;       // data gen sim parm: + aux scheduling + soft core parm
+  double temperature;  // temp set by thermostat
+  // either we use deltaU, or we store U and Uprime...
+  double deltaU;       // Ulambda - Ulambdaprime
+  double Ulambda;      // U for lambda
+  double Ulambdaprime; // U for lambdaprime
+
+  // IDWS methods
+  // XXX both values of lambdaprime and required de-interleaving information
+
+  // Replica exchange methods
+  // XXX rectangle sample params?
+
+  // REST2 method
+  // XXX
+
+} molfile_energies_t;
+#endif
+
+
+/**
+ * Per-timestep atom coordinates, velocities, time, energies
+ * and periodic cell info
  */
 typedef struct {
   float *coords;        /**< coordinates of all atoms, arranged xyzxyzxyz   */
   float *velocities;    /**< space for velocities of all atoms; same layout */
-                        /**< nullptr unless has_velocities is set              */
+                        /**< NULL unless has_velocities is set              */
 
   /*@{*/
   /**
@@ -517,7 +562,7 @@ typedef struct {
                              *   form {orbital1(c1),orbital1(c2),.....,orbitalM(cN)} */
   float *orbital_energies;  /**< list of orbital energies for wavefunction */
   float *occupancies;       /**< orbital occupancies */
-  int   *orbital_ids;       /**< orbital ID numbers; If nullptr then VMD will
+  int   *orbital_ids;       /**< orbital ID numbers; If NULL then VMD will
                              *   assume 1,2,3,...num_orbs.     */
 } molfile_qm_wavefunction_t;
 
@@ -588,7 +633,7 @@ color       r, g, b
 
 
 /**
- * Main file reader API.  Any function in this struct may be nullptr
+ * Main file reader API.  Any function in this struct may be NULL
  * if not implemented by the plugin; the application checks this to determine
  * what functionality is present in the plugin.
  */
@@ -599,7 +644,7 @@ typedef struct {
   vmdplugin_HEAD
 
   /**
-   * Filename extension for this file type.  May be nullptr if no filename
+   * Filename extension for this file type.  May be NULL if no filename
    * extension exists and/or is known.  For file types that match several
    * common extensions, list them in a comma separated list such as:
    *  "pdb,ent,foo,bar,baz,ban"
@@ -611,7 +656,7 @@ typedef struct {
   const char *filename_extension;
 
   /**
-   * Try to open the file for reading.  Return an opaque handle, or nullptr on
+   * Try to open the file for reading.  Return an opaque handle, or NULL on
    * failure. Set the number of atoms; if the number of atoms cannot be
    * determined, set natoms to MOLFILE_NUMATOMS_UNKNOWN.
    * Filetype should be the name under which this plugin was registered;
@@ -638,20 +683,20 @@ typedef struct {
    * the caller.
    * If the plugin provides bond information, but the file loaded doesn't
    * actually contain any bond info, the nbonds parameter should be
-   * set to 0 and from/to should be set to nullptr to indicate that no bond
+   * set to 0 and from/to should be set to NULL to indicate that no bond
    * information was actually present, and automatic bond search should be
    * performed.
    *
    * If the plugin provides bond order information, the bondorder array
    * will contain the bond order for each from/to pair.  If not, the bondorder
-   * pointer should be set to nullptr, in which case the caller will provide a
+   * pointer should be set to NULL, in which case the caller will provide a
    * default bond order value of 1.0.
    *
    * If the plugin provides bond type information, the bondtype array
    * will contain the bond type index for each from/to pair. These numbers
    * are consecutive integers starting from 0.
    * the bondtypenames list, contains the corresponding names, if available,
-   * as a nullptr string terminated list. nbondtypes is provided for convenience
+   * as a NULL string terminated list. nbondtypes is provided for convenience
    * and consistency checking.
    *
    * These arrays must be freed by the plugin in the close_file_read function.
@@ -662,11 +707,11 @@ typedef struct {
                     int **bondtype, int *nbondtypes, char ***bondtypename);
 
   /**
-   * XXX this function will be augmented and possibly superseded by a
+   * XXX this function will be augmented and possibly superceded by a
    *     new QM-capable version named read_timestep(), when finished.
    *
    * Read the next timestep from the file.  Return MOLFILE_SUCCESS, or
-   * MOLFILE_EOF on EOF.  If the molfile_timestep_t argument is nullptr, then
+   * MOLFILE_EOF on EOF.  If the molfile_timestep_t argument is NULL, then
    * the frame should be skipped.  Otherwise, the application must prepare
    * molfile_timestep_t by allocating space in coords for the corresponding
    * number of coordinates.
@@ -684,7 +729,7 @@ typedef struct {
 
   /**
    * Open a coordinate file for writing using the given header information.
-   * Return an opaque handle, or nullptr on failure.  The application must
+   * Return an opaque handle, or NULL on failure.  The application must
    * specify the number of atoms to be written.
    * filetype should be the name under which this plugin was registered.
    */
@@ -757,7 +802,7 @@ typedef struct {
    * from/to and to/from versions of each.
    * This function must be called before write_structure().
    *
-   * Like the read_bonds() routine, the bondorder pointer is set to nullptr
+   * Like the read_bonds() routine, the bondorder pointer is set to NULL
    * if the caller doesn't have such information, in which case the
    * plugin should assume a bond order of 1.0 if the file format requires
    * bond order information.
@@ -767,7 +812,7 @@ typedef struct {
    * index (consecutive integers starting from 0) and bondtypenames
    * contain the corresponding strings, in case the naming/numbering
    * scheme is different from the index numbers.
-   * if the pointers are set to nullptr, then this information is not available.
+   * if the pointers are set to NULL, then this information is not available.
    * bondtypenames can only be used of bondtypes is also given.
    * Return MOLFILE_SUCCESS if no errors occur.
    */
@@ -840,15 +885,38 @@ typedef struct {
 
 
   /**
+   * Query the molfile plugin to determine whether or not memory
+   * allocations used for atomic coordinates and PBC unit cell information
+   * need to be aligned to a particular virtual memory or filesystem
+   * page size boundary to facilitate kernel-bypass unbuffered I/O,
+   * e.g., as used by jsplugin.  This API should be called prior to the
+   * first call to read a timestep.  The required page alignment size
+   * (in bytes) is returned to the caller.  If this API has not been
+   * called, then the molfile plugin should revert to standard
+   * kernel-buffered I/O and suffer the associated performance loss.
+   * The caller can be assured that the plugin will not request any
+   * page alignment size that is greater than the value of
+   * MOLFILE_DIRECTIO_MAX_BLOCK_SIZE, both as a runtime sanity check,
+   * and to ensure that a caller that is unable to perform the max
+   * aligned allocation doesn't call the API in the first place.
+   * If a page-aligned allocation is not required for the file being read,
+   * the plugin will return an alignment size of 1.
+   */
+#if vmdplugin_ABIVERSION > 17
+  int (* read_timestep_pagealign_size)(void *, int *pagealignsize);
+#endif
+
+
+  /**
    * Read the next timestep from the file.  Return MOLFILE_SUCCESS, or
    * MOLFILE_EOF on EOF.  If the molfile_timestep_t or molfile_qm_metadata_t
-   * arguments are nullptr, then the coordinate or qm data should be skipped.
+   * arguments are NULL, then the coordinate or qm data should be skipped.
    * Otherwise, the application must prepare molfile_timestep_t and
    * molfile_qm_timestep_t by allocating space for the corresponding
    * number of coordinates, orbital wavefunction coefficients, etc.
    * Since it is common for users to want to load only the final timestep
    * data from a QM run, the application may provide any combination of
-   * valid, or nullptr pointers for the molfile_timestep_t and
+   * valid, or NULL pointers for the molfile_timestep_t and
    * molfile_qm_timestep_t parameters, depending on what information the
    * user is interested in.
    * The natoms and qm metadata parameters exist because some file formats
@@ -861,6 +929,25 @@ typedef struct {
 
   int (* read_timestep_metadata)(void *, molfile_timestep_metadata_t *);
   int (* read_qm_timestep_metadata)(void *, molfile_qm_timestep_metadata_t *);
+
+
+#if defined(EXPERIMENTAL_DIRECTIO_APIS)
+  /**
+    * Calculate file offsets and I/O lengths for performing
+    * kernel-bypass direct I/O or using GPU-Direct Storage APIs,
+    * thereby enabling peak I/O rates to be achieved for analysis
+    * worksloads like clustering of trajectories.
+    */
+  int (* calc_fileoffsets_timestep)(void *,
+                                    molfile_ssize_t frameindex,
+                                    int firstatom,
+                                    int lastatom,
+                                    int *firstatom,
+                                    int *pageoffset,
+                                    molfile_ssize_t *startoffset,
+                                    molfile_ssize_t *readlen);
+#endif
+
 
 #if defined(DESRES_READ_TIMESTEP2)
   /**
@@ -886,9 +973,9 @@ typedef struct {
    *  caller the ability to prioritize, buffer, and redirect console messages
    *  to an appropriate output channel, window, etc.  This enables the use of
    *  graphical consoles like TkCon without losing console output from plugins.
-   *  If the function pointer is nullptr, no console output service is provided
+   *  If the function pointer is NULL, no console output service is provided
    *  by the calling application, and the output should default to stdout
-   *  stream.  If the function pointer is non-nullptr, all output will be
+   *  stream.  If the function pointer is non-NULL, all output will be
    *  subsequently dealt with by the calling application.
    *
    *  XXX this should really be put into a separate block of

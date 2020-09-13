@@ -3840,7 +3840,7 @@ Please see :cpp:func:`lammps_has_style` for a list of valid categories.
  * \return 1 if successful, otherwise 0
  */
 int lammps_style_name(void *handle, const char *category, int idx,
-                      const char *buffer, int buf_size) {
+                      char *buffer, int buf_size) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);

@@ -163,7 +163,7 @@ int lammps_config_has_exceptions();
 
 int lammps_has_style(void *, const char *, const char *);
 int lammps_style_count(void *, const char *);
-int lammps_style_name(void *, const char *, int, const char *, int);
+int lammps_style_name(void *, const char *, int, char *, int);
 
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists

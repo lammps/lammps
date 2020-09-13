@@ -69,7 +69,7 @@ using namespace LAMMPS_NS;
 
 #ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
-  Error * error = lmp->error; \
+  Error *error = lmp->error; \
   try
 
 #define END_CAPTURE \
@@ -807,7 +807,7 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the queried setting or -1 if unknown */
 
-int lammps_extract_setting(void * handle, char *keyword)
+int lammps_extract_setting(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1073,7 +1073,7 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
  * \return          pointer (cast to ``void *``) to the location of the
                     requested property. NULL if name is not known. */
 
-void *lammps_extract_global(void *handle, char *name)
+void *lammps_extract_global(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1165,7 +1165,7 @@ of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_atom(void *handle, char *name)
+void *lammps_extract_atom(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
@@ -3792,7 +3792,7 @@ Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
  * \param name     name of the style
  * \return 1 if included, 0 if not.
  */
-int lammps_has_style(void * handle, char * category, char * name) {
+int lammps_has_style(void *handle, const char *category, const char *name) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.has_style(category, name) ? 0 : 1;
@@ -3813,7 +3813,7 @@ categories.
  * \param category category of styles
  * \return number of styles in category
  */
-int lammps_style_count(void * handle, char * category) {
+int lammps_style_count(void *handle, const char *category) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.get_available_styles(category).size();
@@ -3839,7 +3839,8 @@ Please see :cpp:func:`lammps_has_style` for a list of valid categories.
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_style_name(void* handle, char * category, int idx, char * buffer, int buf_size) {
+int lammps_style_name(void *handle, const char *category, int idx,
+                      const char *buffer, int buf_size) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);

@@ -108,9 +108,9 @@ void   lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 void   lammps_reset_box(void *handle, double *boxlo, double *boxhi,
                         double xy, double yz, double xz);
 
-int    lammps_extract_setting(void *handle, char *keyword);
-void  *lammps_extract_global(void *handle, char *name);
-void  *lammps_extract_atom(void *handle, char *name);
+int    lammps_extract_setting(void *handle, const char *keyword);
+void  *lammps_extract_global(void *handle, const char *name);
+void  *lammps_extract_atom(void *handle, const char *name);
 
 #if !defined(LAMMPS_BIGBIG)
 int    lammps_create_atoms(void *handle, int n, int *id, int *type,
@@ -161,9 +161,9 @@ int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
-int lammps_has_style(void *, char *, char *);
-int lammps_style_count(void *, char *);
-int lammps_style_name(void *, char *, int, char *, int);
+int lammps_has_style(void *, const char *, const char *);
+int lammps_style_count(void *, const char *);
+int lammps_style_name(void *, const char *, int, const char *, int);
 
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists

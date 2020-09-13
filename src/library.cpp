@@ -594,7 +594,7 @@ double lammps_get_natoms(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  double natoms = static_cast<double> (lmp->atom->natoms);
+  double natoms = static_cast<double>(lmp->atom->natoms);
   if (natoms > 9.0e15) return 0; // TODO:XXX why not -1?
   return natoms;
 }
@@ -616,7 +616,7 @@ a double, so it can also return information that is computed on-the-fly.
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the requested thermo property or 0.0 */
 
-double lammps_get_thermo(void *handle, char *keyword)
+double lammps_get_thermo(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   double dval = 0.0;

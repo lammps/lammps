@@ -74,6 +74,7 @@ TEST_F(LAMMPS_properties, natoms)
 
 TEST_F(LAMMPS_properties, thermo)
 {
+    if (!lammps_has_style(lmp,"atom","full")) GTEST_SKIP();
     std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());

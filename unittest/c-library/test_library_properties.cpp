@@ -1,7 +1,7 @@
 // unit tests for checking and changing simulation properties through the library interface
 
-#include "lammps.h"
 #include "library.h"
+#include "lammps.h"
 #include <string>
 
 #include "gmock/gmock.h"

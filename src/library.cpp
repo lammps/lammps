@@ -4266,10 +4266,10 @@ the failing MPI ranks to send messages.
  * \param buf_size size of the provided string buffer
  * \return 1 when all ranks had the error, 1 on a single rank error.
  */
-int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Error *error = lmp->error;
 
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();

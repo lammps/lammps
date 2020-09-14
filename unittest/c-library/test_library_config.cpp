@@ -1,7 +1,7 @@
 // unit tests for checking LAMMPS configuration settings  through the library interface
 
-#include "library.h"
 #include "lammps.h"
+#include "library.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -14,14 +14,15 @@
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
+using ::testing::StrEq;
 
-class LAMMPS_config : public ::testing::Test {
+class LibraryConfig : public ::testing::Test {
 protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LAMMPS_config(){};
-    ~LAMMPS_config() override{};
+    LibraryConfig(){};
+    ~LibraryConfig() override{};
 
     void SetUp() override
     {
@@ -49,13 +50,70 @@ protected:
     }
 };
 
-TEST(LAMMPS_config, package_count)
+TEST(LAMMPSConfig, package_count)
 {
     EXPECT_EQ(lammps_config_package_count(), NUM_LAMMPS_PACKAGES);
 };
 
-TEST(LAMMPS_config, has_package)
+TEST(LAMMPSConfig, has_package)
 {
     EXPECT_EQ(lammps_config_has_package("MANYBODY"), LAMMPS_HAS_MANYBODY);
 };
 
+TEST(LAMMPSConfig, package_name)
+{
+    char buf[128];
+    int numpkgs = lammps_config_package_count();
+    if (numpkgs > 0) {
+        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 1);
+        EXPECT_EQ(lammps_config_package_name(numpkgs + 10, buf, 128), 0);
+        EXPECT_THAT(buf, StrEq(""));
+    } else {
+        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 1);
+        EXPECT_THAT(buf, StrEq(""));
+    }
+};
+
+TEST_F(LibraryConfig, has_style)
+{
+    EXPECT_EQ(lammps_has_style(lmp, "atom", "atomic"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "compute", "temp"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "fix", "nve"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "pair", "lj/cut"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "bond", "zero"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "dump", "custom"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "region", "sphere"), 1);
+    EXPECT_EQ(lammps_has_style(lmp, "xxxxx", "lj/cut"), 0);
+    EXPECT_EQ(lammps_has_style(lmp, "pair", "xxxxxx"), 0);
+#if LAMMPS_HAS_MANYBODY
+    EXPECT_EQ(lammps_has_style(lmp, "pair", "sw"), 1);
+#else
+    EXPECT_EQ(lammps_has_style(lmp, "pair", "sw"), 0);
+#endif
+};
+
+TEST_F(LibraryConfig, style_count)
+{
+    EXPECT_GT(lammps_style_count(lmp, "atom"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "bond"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "angle"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "dihedral"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "improper"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "pair"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "kspace"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "compute"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "fix"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "region"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "dump"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "integrate"), 1);
+    EXPECT_GT(lammps_style_count(lmp, "minimize"), 1);
+};
+
+TEST_F(LibraryConfig, style_name)
+{
+    char buf[128];
+    int numstyles = lammps_style_count(lmp, "atom");
+    EXPECT_EQ(lammps_style_name(lmp, "atom", 0, buf, 128), 1);
+    EXPECT_EQ(lammps_style_name(lmp, "atom", numstyles + 10, buf, 128), 0);
+    EXPECT_THAT(buf, StrEq(""));
+};

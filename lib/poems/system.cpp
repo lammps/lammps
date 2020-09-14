@@ -23,7 +23,7 @@
 
 
 System::System(){
-	mappings = NULL;
+	mappings = nullptr;
 }
 
 System::~System(){
@@ -238,7 +238,7 @@ void System::Create_DegenerateSystem(int& nfree, int*freelist, double *&masstota
  //-------------------------------------------------------------------------//    
   // Declaring Temporary Entities 
   //-------------------------------------------------------------------------//   
-     Body* body = NULL;
+     Body* body = nullptr;
      Body* prev;
      Body* Inertial;
      Point* origin;
@@ -246,7 +246,7 @@ void System::Create_DegenerateSystem(int& nfree, int*freelist, double *&masstota
      Point* point_CM; 
      Point* point_p;  
      Point* point_k;  
-     Point* point_ch = NULL;
+     Point* point_ch = nullptr;
      Vect3 r1,r2,r3,v1,v2,v3; 
      Mat3x3 IM, N, PKCK,PKCN ;
      ColMatrix qo, uo, q, qdot,w;
@@ -391,7 +391,7 @@ void System::Create_System_LAMMPS(int numbodies, double *mass,double **inertia, 
   // Declaring Temporary Entities 
 	//-------------------------------------------------------------------------//   
   	
-	Body* body = NULL;
+	Body* body = nullptr;
 	Body* prev;
 	Body* Inertial;
 	Point* origin;
@@ -399,7 +399,7 @@ void System::Create_System_LAMMPS(int numbodies, double *mass,double **inertia, 
 	Point* point_CM;   
 	Point* point_p;    
 	Point* point_k;    
-	Point* point_ch = NULL;  
+	Point* point_ch = nullptr;  
 	Vect3 r1,r2,r3,v1,v2,v3; 
 	Mat3x3 IM, N, PKCK,PKCN ;
 	ColMatrix qo, uo, q, qdot,w;

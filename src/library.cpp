@@ -3724,7 +3724,7 @@ specific :doc:`LAMMPS package <Packages>` provided as argument.
  * \param name string with the name of the package
  * \return 1 if included, 0 if not.
  */
-int lammps_config_has_package(char * name) {
+int lammps_config_has_package(const char *name) {
   return Info::has_package(name) ? 1 : 0;
 }
 

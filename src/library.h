@@ -152,7 +152,7 @@ void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
  * ---------------------------------------------------------------------- */
 
 int lammps_config_has_mpi_support();
-int lammps_config_has_package(char *);
+int lammps_config_has_package(const char *);
 int lammps_config_package_count();
 int lammps_config_package_name(int, char *, int);
 int lammps_config_has_gzip_support();

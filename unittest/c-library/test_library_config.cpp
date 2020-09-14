@@ -117,3 +117,28 @@ TEST_F(LibraryConfig, style_name)
     EXPECT_EQ(lammps_style_name(lmp, "atom", numstyles + 10, buf, 128), 0);
     EXPECT_THAT(buf, StrEq(""));
 };
+
+TEST(LAMMPSConfig, mpi_support)
+{
+    EXPECT_EQ(lammps_config_has_mpi_support(), LAMMPS_HAS_MPI);
+};
+
+TEST(LAMMPSConfig, png_support)
+{
+    EXPECT_EQ(lammps_config_has_png_support(), LAMMPS_HAS_PNG);
+};
+
+TEST(LAMMPSConfig, jpeg_support)
+{
+    EXPECT_EQ(lammps_config_has_jpeg_support(), LAMMPS_HAS_JPEG);
+};
+
+TEST(LAMMPSConfig, gzip_support)
+{
+    EXPECT_EQ(lammps_config_has_gzip_support(), LAMMPS_HAS_GZIP);
+};
+
+TEST(LAMMPSConfig, ffmpeg_support)
+{
+    EXPECT_EQ(lammps_config_has_ffmpeg_support(), LAMMPS_HAS_FFMPEG);
+};

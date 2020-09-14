@@ -15,7 +15,7 @@ enabling :ref:`exceptions <exceptions>`, avoiding them proactively is
 a safer approach.
 
 .. code-block:: C
-   :caption: Handle errors using a LAMMPS library with exceptions
+   :caption: Example for using configuration settings functions
 
    #include "library.h"
    #include <stdio.h>
@@ -32,6 +32,16 @@ a safer approach.
        errtype = lammps_get_last_error_message(handle, errmsg, 256);
        fprintf(stderr, "LAMMPS failed with error: %s\n", errmsg);
        return 1;
+     }
+     /* write compressed dump file depending on available of options */
+     if (lammps_has_style(handle, "dump", "atom/zstd")) {
+       lammps_command(handle, "dump d1 all atom/zstd 100 dump.zst");
+     } else if (lammps_has_style(handle, "dump", "atom/gz")) {
+       lammps_command(handle, "dump d1 all atom/gz 100 dump.gz");
+     } else if (lammps_config_has_gzip_support()) {
+       lammps_command(handle, "dump d1 all atom 100 dump.gz");
+     } else {
+       lammps_command(handle, "dump d1 all atom 100 dump");
      }
      lammps_close(handle);
      return 0;

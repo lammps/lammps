@@ -3788,14 +3788,14 @@ Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param category category of the style
- * \param name     name of the style
- * \return 1 if included, 0 if not.
+ * \param  category  category of the style
+ * \param  name      name of the style
+ * \return           1 if included, 0 if not.
  */
 int lammps_has_style(void * handle, char * category, char * name) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
-  return info.has_style(category, name) ? 0 : 1;
+  return info.has_style(category, name) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -3764,7 +3764,7 @@ the function returns 0 and *buffer* is set to an empty string, otherwise 1;
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_config_package_name(int idx, char * buffer, int buf_size) {
+int lammps_config_package_name(int idx, char *buffer, int buf_size) {
   int maxidx = lammps_config_package_count();
   if ((idx < 0) || (idx >= maxidx)) {
       buffer[0] = '\0';

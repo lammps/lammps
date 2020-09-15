@@ -16,11 +16,11 @@ const char *demo_input[] = {"region       box block 0 $x 0 2 0 2", "create_box 1
                             "create_atoms 1 single 1.0 1.0 ${zpos}"};
 const char *cont_input[] = {"create_atoms 1 single &", "0.2 0.1 0.1"};
 
-class LAMMPS_commands : public ::testing::Test {
+class LibraryCommands : public ::testing::Test {
 protected:
     void *lmp;
-    LAMMPS_commands(){};
-    ~LAMMPS_commands() override{};
+    LibraryCommands(){};
+    ~LibraryCommands() override{};
 
     void SetUp() override
     {
@@ -47,7 +47,7 @@ protected:
     }
 };
 
-TEST_F(LAMMPS_commands, from_file)
+TEST_F(LibraryCommands, from_file)
 {
     FILE *fp;
     const char demo_file[] = "in.test";
@@ -80,7 +80,7 @@ TEST_F(LAMMPS_commands, from_file)
     unlink(cont_file);
 };
 
-TEST_F(LAMMPS_commands, from_line)
+TEST_F(LibraryCommands, from_line)
 {
     EXPECT_EQ(lammps_get_natoms(lmp), 0);
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -91,7 +91,7 @@ TEST_F(LAMMPS_commands, from_line)
     EXPECT_EQ(lammps_get_natoms(lmp), 1);
 };
 
-TEST_F(LAMMPS_commands, from_list)
+TEST_F(LibraryCommands, from_list)
 {
     EXPECT_EQ(lammps_get_natoms(lmp), 0);
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -101,7 +101,7 @@ TEST_F(LAMMPS_commands, from_list)
     EXPECT_EQ(lammps_get_natoms(lmp), 2);
 };
 
-TEST_F(LAMMPS_commands, from_string)
+TEST_F(LibraryCommands, from_string)
 {
     std::string cmds("");
 

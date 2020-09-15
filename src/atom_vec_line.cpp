@@ -380,9 +380,9 @@ void AtomVecLine::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecLine::memory_usage_bonus()
+double AtomVecLine::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   return bytes;
 }

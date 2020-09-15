@@ -241,7 +241,7 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBinIntel::memory_usage()
+double NBinIntel::memory_usage()
 {
   return NBinStandard::memory_usage() + maxatom*2*sizeof(int);
 }

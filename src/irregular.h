@@ -36,7 +36,7 @@ class Irregular : protected Pointers {
   int create_data_grouped(int, int *, int sortflag = 0);
   void exchange_data(char *, int, char *);
   void destroy_data();
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   int me,nprocs;

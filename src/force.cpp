@@ -836,9 +836,9 @@ void Force::set_special(int narg, char **arg)
    memory usage of force classes
 ------------------------------------------------------------------------- */
 
-bigint Force::memory_usage()
+double Force::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (pair) bytes += static_cast<bigint> (pair->memory_usage());
   if (bond) bytes += static_cast<bigint> (bond->memory_usage());
   if (angle) bytes += static_cast<bigint> (angle->memory_usage());

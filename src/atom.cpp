@@ -2586,9 +2586,9 @@ void *Atom::extract(const char *name)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-bigint Atom::memory_usage()
+double Atom::memory_usage()
 {
-  bigint bytes = avec->memory_usage();
+  double bytes = avec->memory_usage();
 
   bytes += max_same*sizeof(int);
   if (map_style == 1)

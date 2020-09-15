@@ -1499,9 +1499,9 @@ void *CommBrick::extract(const char *str, int &dim)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommBrick::memory_usage()
+double CommBrick::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);

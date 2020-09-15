@@ -580,8 +580,8 @@ void VerletSplit::k2r_comm()
    memory usage of Kspace force array on master procs
 ------------------------------------------------------------------------- */
 
-bigint VerletSplit::memory_usage()
+double VerletSplit::memory_usage()
 {
-  bigint bytes = maxatom*3 * sizeof(double);
+  double bytes = maxatom*3 * sizeof(double);
   return bytes;
 }

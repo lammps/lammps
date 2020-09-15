@@ -104,7 +104,7 @@ class Comm : protected Pointers {
 
   // memory usage
 
-  virtual bigint memory_usage() = 0;
+  virtual double memory_usage() = 0;
 
   // non-virtual functions common to all Comm styles
 

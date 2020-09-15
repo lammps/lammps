@@ -2249,8 +2249,8 @@ void CommTiled::deallocate_swap(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommTiled::memory_usage()
+double CommTiled::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   return bytes;
 }

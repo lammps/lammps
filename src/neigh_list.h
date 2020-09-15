@@ -107,7 +107,7 @@ class NeighList : protected Pointers {
   void grow(int,int);                   // grow all data structs
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatom;}
-  bigint memory_usage();
+  double memory_usage();
 };
 
 }

@@ -2390,9 +2390,9 @@ int Neighbor::exclude_setting()
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Neighbor::memory_usage()
+double Neighbor::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += memory->usage(xhold,maxhold,3);
 
   for (int i = 0; i < nlist; i++)

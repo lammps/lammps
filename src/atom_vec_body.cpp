@@ -551,9 +551,9 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecBody::memory_usage_bonus()
+double AtomVecBody::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   bytes += icp->size() + dcp->size();
 

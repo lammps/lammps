@@ -35,14 +35,16 @@ class PairCACLJ : public PairCAC {
 
  protected:
 
-  double **cut;
+  double **cut, *special_lj;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
+  double factor_lj, r2inv, r6inv;
   
   void allocate();
   void force_densities(int,double,double,double, double,double
     &fx, double &fy, double &fz);
   virtual void settings(int, char **);
+  virtual double pair_interaction(double, int, int);
 };
 
 }

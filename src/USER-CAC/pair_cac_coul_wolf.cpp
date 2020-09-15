@@ -44,9 +44,7 @@ PairCACCoulWolf::PairCACCoulWolf(LAMMPS *lmp) : PairCAC(lmp)
   restartinfo = 0;
   nmax = 0;
   outer_neighflag = 0;
-  inner_neighbor_coords = NULL;
-  inner_neighbor_types = NULL;
-  inner_neighbor_charges = NULL;
+  flux_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,9 +130,6 @@ void PairCACCoulWolf::coeff(int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 double PairCACCoulWolf::init_one(int i, int j) {
-
-
-
   return cut_global_s;
 }
 
@@ -143,19 +138,15 @@ double PairCACCoulWolf::init_one(int i, int j) {
 
 void PairCACCoulWolf::init_style()
 {
-  check_existence_flags();
+  PairCAC::init_style();
+  atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
+  atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style cac/coul/wolf requires atom IDs");
   atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
   atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (!atom->q_flag)
     error->all(FLERR, "Pair coul/wolf requires atom attribute q for charges");
-  // need a full neighbor list
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->cac = 1;
   cut_coulsq = cut_coul*cut_coul;
 }
 
@@ -171,19 +162,15 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
   double r6inv;
   double shape_func;
   double shape_func2;
-  double unit_cell_mapped[3];
-  double scanning_unit_cell[3];
-  double  fpair, forcecoul, factor_coul;
+  double fpair;
   double prefactor;
   double r;
 
-  double erfcc, erfcd, v_sh, dvdrr, e_self, e_shift, f_shift, qisq;
+  double e_self, qisq;
   double *special_coul = force->special_coul;
   double qqrd2e = force->qqrd2e;
   int *type = atom->type;
-  double unit_cell[3];
   double distancesq;
-  double current_position[3];
   double scan_position[3];
   double rcut;
   int current_type = poly_counter;
@@ -193,123 +180,101 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
   int *nodes_count_list = atom->nodes_per_element_list;
   int neighbor_nodes_per_element;
 
-//equivalent isoparametric cutoff range for a cube of rcut
-
-
-  unit_cell_mapped[0] = 2 / double(current_element_scale[0]);
-  unit_cell_mapped[1] = 2 / double(current_element_scale[1]);
-  unit_cell_mapped[2] = 2 / double(current_element_scale[2]);
-
-  unit_cell[0] = s;
-  unit_cell[1] = t;
-  unit_cell[2] = w;
-
-  //scan the surrounding unit cell locations in a cartesian grid
-  //of isoparametric space until the cutoff is exceeded
-  //for each grid scan
-
-  int distanceflag=0;
-  current_position[0]=0;
-  current_position[1]=0;
-  current_position[2]=0;
-
-  if (!atomic_flag) {
-    nodes_per_element = nodes_count_list[current_element_type];
-    for (int kkk = 0; kkk < nodes_per_element; kkk++) {
-      shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kkk + 1);
-      current_position[0] += current_nodal_positions[kkk][0] * shape_func;
-      current_position[1] += current_nodal_positions[kkk][1] * shape_func;
-      current_position[2] += current_nodal_positions[kkk][2] * shape_func;
-    }
-  }
-  else {
-    current_position[0] = s;
-    current_position[1] = t;
-    current_position[2] = w;
-  }
-
-
   rcut = cut_global_s;
   int origin_type = type_array[poly_counter];
 
+  int listtype;
+  int listindex;
+  int poly_index;
+  int scan_type;
+  int element_index;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int neigh_max = inner_quad_lists_counts[pqi];
+  e_shift = erfc(alf*cut_coul) / cut_coul;
+  f_shift = -(e_shift + 2.0*alf / MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+  cut_coul;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  jlist = firstneigh[iii];
+  double ****nodal_positions = atom->nodal_positions;
+  int **node_types = atom->node_types;
+  double **node_charges = atom->node_charges;
+  double origin_element_charge= node_charges[iii][poly_counter];
+  double neighbor_element_charge;
+  int **inner_quad_indices = inner_quad_lists_index[pqi];
+  qisq = origin_element_charge*origin_element_charge;
+  e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
 
-      int listtype;
-      int listindex;
-      int poly_index;
-      int scan_type;
-      int element_index;
-      int *ilist, *jlist, *numneigh, **firstneigh;
-      int neigh_max = inner_quad_lists_counts[pqi];
-      e_shift = erfc(alf*cut_coul) / cut_coul;
-      f_shift = -(e_shift + 2.0*alf / MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
-        cut_coul;
-      ilist = list->ilist;
-      numneigh = list->numneigh;
-      firstneigh = list->firstneigh;
-      jlist = firstneigh[iii];
-      double ****nodal_positions = atom->nodal_positions;
-      int **node_types = atom->node_types;
-      double **node_charges = atom->node_charges;
-      double origin_element_charge= node_charges[iii][poly_counter];
-      double neighbor_element_charge;
-      int **inner_quad_indices = inner_quad_lists_index[pqi];
-      qisq = origin_element_charge*origin_element_charge;
-      e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
+  //allocate arrays that store neighbor information around just this quadrature point
+  allocate_quad_memory();
+  //set virtual neighbor types, etc.
+  init_quad_arrays();
+  //interpolate virtual atom coordinates from shape functions corresponding to unit cells
+  interpolation(iii,s,t,w);
+  for (int l = 0; l < neigh_max; l++) {
 
-      if(neigh_max>local_inner_max){
-        memory->grow(inner_neighbor_coords, neigh_max+EXPAND, 3, "Pair_CAC_coul_wolf:neighbor_coords");
-        memory->grow(inner_neighbor_types, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_types");
-        memory->grow(inner_neighbor_charges, neigh_max+EXPAND, "Pair_CAC_coul_wolf:neighbor_charges");
-        local_inner_max=neigh_max+EXPAND;
+    scan_type = inner_neighbor_types[l];
+    scan_position[0] = inner_neighbor_coords[l][0];
+    scan_position[1] = inner_neighbor_coords[l][1];
+    scan_position[2] = inner_neighbor_coords[l][2];
+    neighbor_element_charge = inner_neighbor_charges[l];
+
+    delx = current_position[0] - scan_position[0];
+    dely = current_position[1] - scan_position[1];
+    delz = current_position[2] - scan_position[2];
+    distancesq = delx*delx + dely*dely + delz*delz;
+    if (distancesq < cut_coulsq) {
+      factor_coul = special_coul[sbmask(inner_quad_indices[l][0])];
+      fpair = pair_interaction_q(distancesq, origin_type, scan_type,
+        origin_element_charge, neighbor_element_charge);
+
+      force_densityx += delx*fpair;
+      force_densityy += dely*fpair;
+      force_densityz += delz*fpair;
+      if(atom->CAC_virial){
+      virial_density[0] += 0.5*delx*delx*fpair;
+      virial_density[1] += 0.5*dely*dely*fpair;
+      virial_density[2] += 0.5*delz*delz*fpair;
+      virial_density[3] += 0.5*delx*dely*fpair;
+      virial_density[4] += 0.5*delx*delz*fpair;
+      virial_density[5] += 0.5*dely*delz*fpair;
       }
-      for (int l = 0; l < neigh_max; l++) {
-        element_index = inner_quad_indices[l][0];
-        poly_index = inner_quad_indices[l][1];
-        inner_neighbor_types[l] = node_types[element_index][poly_index];
-        inner_neighbor_charges[l] = node_charges[element_index][poly_index];
+      if (quad_eflag)
+        quadrature_energy += v_sh/2;
+      //cac flux contribution due to current quadrature point and neighbor pair interactions
+      if(quad_flux_flag){
+        current_quad_flux(l,delx*fpair,dely*fpair,delz*fpair);
       }
+    }
+  }
+  //end of force density loop
+  
+  //additional cac flux contributions due to neighbors interacting with neighbors
+  //  in the vicinity of this quadrature point
+  if (quad_flux_flag) {
+    //compute_intersections();
+    quad_neigh_flux();
+  }
+}
 
-      //interpolate virtual atom coordinates from shape functions corresponding to unit cells
-      interpolation(iii);
-      for (int l = 0; l < neigh_max; l++) {
+/* ---------------------------------------------------------------------- */
 
-        scan_type = inner_neighbor_types[l];
-        scan_position[0] = inner_neighbor_coords[l][0];
-        scan_position[1] = inner_neighbor_coords[l][1];
-        scan_position[2] = inner_neighbor_coords[l][2];
-        neighbor_element_charge = inner_neighbor_charges[l];
+double PairCACCoulWolf::pair_interaction_q(double distancesq, int itype, int jtype
+                                          , double qi, double qj)
+{
+  double fpair, forcecoul, prefactor, dvdrr;
+  double r, erfcc, erfcd;
+  double qqrd2e = force->qqrd2e;
 
-        delx = current_position[0] - scan_position[0];
-        dely = current_position[1] - scan_position[1];
-        delz = current_position[2] - scan_position[2];
-        distancesq = delx*delx + dely*dely + delz*delz;
-        if (distancesq < cut_coulsq) {
-          r = sqrt(distancesq);
-          prefactor = qqrd2e*origin_element_charge*neighbor_element_charge / r;
-          erfcc = erfc(alf*r);
-          erfcd = exp(-alf*alf*r*r);
-          v_sh = (erfcc - e_shift*r) * prefactor;
-          dvdrr = (erfcc / distancesq + 2.0*alf / MY_PIS * erfcd / r) + f_shift;
-          forcecoul = dvdrr*distancesq*prefactor;
-          //if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul)*prefactor;
-          fpair = forcecoul / distancesq;
-
-          force_densityx += delx*fpair;
-          force_densityy += dely*fpair;
-          force_densityz += delz*fpair;
-          if(atom->CAC_virial){
-          virial_density[0] += 0.5*delx*delx*fpair;
-          virial_density[1] += 0.5*dely*dely*fpair;
-          virial_density[2] += 0.5*delz*delz*fpair;
-          virial_density[3] += 0.5*delx*dely*fpair;
-          virial_density[4] += 0.5*delx*delz*fpair;
-          virial_density[5] += 0.5*dely*delz*fpair;
-          }
-
-          if (quad_eflag)
-            quadrature_energy += v_sh/2;
-
-        }
-      }
-//end of scanning loop
+  r = sqrt(distancesq);
+  prefactor = qqrd2e*qi*qj / r;
+  erfcc = erfc(alf*r);
+  erfcd = exp(-alf*alf*r*r);
+  v_sh = (erfcc - e_shift*r) * prefactor;
+  dvdrr = (erfcc / distancesq + 2.0*alf / MY_PIS * erfcd / r) + f_shift;
+  forcecoul = dvdrr*distancesq*prefactor;
+  if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul)*prefactor;
+  fpair = forcecoul / distancesq;
+  return fpair;
 }

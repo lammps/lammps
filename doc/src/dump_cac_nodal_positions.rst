@@ -8,14 +8,13 @@ Syntax
 
 .. parsed-literal::
 
-   dump ID group-ID cac/nodal/positions N file args
+   dump ID group-ID cac/nodal/positions N file
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms/elements to be dumped
 * cac/nodal/positions = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
 * file = name of file to write dump info to
-* args = same as arguments for :doc:`dump_style custom <dump>`
 
 Examples
 """"""""

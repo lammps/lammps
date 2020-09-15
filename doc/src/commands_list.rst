@@ -33,10 +33,12 @@ Commands
    dump
    dump_adios
    dump_cac_atom
+   dump_cac_flux
    dump_cac_initial_nodes
    dump_cac_kinetic
    dump_cac_nodal_positions
    dump_cac_nodal_displacements
+   dump_cac_nodal_flux
    dump_cac_nodal_velocities
    dump_cac_nodal_virial
    dump_cac_nodal_forces

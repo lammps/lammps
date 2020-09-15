@@ -68,14 +68,15 @@ class NPairCAC : public NPair {
 
 protected:
   int max_atom_count;
-  int neigh_allocated, quad_allocated;
-  int maxneigh, quad_count_max;
+  int neigh_allocated, quad_allocated, add_quad_allocated;
+  int maxneigh, quad_count_max, add_quad_count_max;
   int nmax;
-  int sector_flag, outer_neigh_flag, ghost_quad_flag;
-  double ***inner_quad_lists_ucell, ***outer_quad_lists_ucell;
+  int sector_flag, outer_neigh_flag, ghost_quad_flag, add_neigh_flag, cac_flux_flag;
+  double ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, ***add_quad_lists_ucell;
   int **surface_counts, ***inner_quad_lists_index, *inner_quad_lists_counts,
-    ***outer_quad_lists_index, *outer_quad_lists_counts;
-  int *inner_quad_neigh_maxes, *outer_quad_neigh_maxes;
+    ***outer_quad_lists_index, *outer_quad_lists_counts, ***add_quad_lists_index,
+    *add_quad_lists_counts;
+  int *inner_quad_neigh_maxes, *outer_quad_neigh_maxes, *add_quad_neigh_maxes;
   int surface_counts_max[3];
   double **interior_scales;
 	int surface_counts_max_old[3];
@@ -99,7 +100,7 @@ protected:
   void allocate_local_arrays();
   void allocate_quad_neigh_list();
   void quad_list_build(int, double, double, double);
-  void neighbor_accumulate(double,double,double,int, int,int);
+  void neighbor_accumulate(double,double,double,int, int,int,int);
   void compute_quad_neighbors(int);
   void grow_quad_data();
   virtual int pack_forward_comm(int, int *, double *, int, int *);

@@ -26,13 +26,13 @@ namespace LAMMPS_NS {
 
 class PairCACEAM : public PairCAC {
  public:
-	 friend class FixSemiGrandCanonicalMC;   // Alex Stukowski option
-  // potentials as array data
 
   int nrho, nr;
   int nfrho, nrhor, nz2r;
   double **frho, **rhor, **z2r;
   int *type2frho, **type2rhor, **type2z2r;
+  
+  int flux_count, add_density_count, add_density_max;
 
 	// potentials in spline form used for force computation
 
@@ -66,7 +66,8 @@ class PairCACEAM : public PairCAC {
   double **scale;
 
 	// per-atom arrays
-  double *rho, *fp;
+  double *rho, *fp, *add_rho, *add_fp;
+  int *add_index;
   double density;
  
   virtual void allocate();
@@ -109,6 +110,7 @@ class PairCACEAM : public PairCAC {
 
   virtual void interpolate(int, double, double *, double **);
   virtual void grab(FILE *, int, double *);
+  virtual void quad_neigh_flux();
 
   //further CAC functions 
   virtual void force_densities(int, double, double, double, double, double

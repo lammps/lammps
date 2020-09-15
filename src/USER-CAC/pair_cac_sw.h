@@ -32,7 +32,7 @@ class PairCACSW : public PairCAC {
   void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
-  
+
   static const int NPARAMS_PER_LINE = 14;
 
 	struct Param {
@@ -49,14 +49,19 @@ class PairCACSW : public PairCAC {
 
  protected:
 	//potential params
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
-
+  int nelements;                    // # of unique elements
+  char **elements;                  // names of unique elements
+  int ***elem2param;                // mapping from element triplets to parameters
+  int *map;                         // mapping from atom types to elements
+  int nparams;                      // # of stored parameter sets
+  int maxparam;                     // max # of parameter sets
+  Param *params;                    // parameter set for an I-J-K interaction
+  int **cluster_neighbors;          // stores neighbors of neighbors within cutshort for the given quadrature point
+  int *cluster_neighbor_counts;     // number of neighbors withing cutshort for each neighbor within cutshort
+  int flux_max;                     // array storage maximum for additional cluster neighbor array for flux calculation
+  int add_ncluster;                 // number of additional sites to store neighbors around for the flux calculation
+  int **add_cluster_neighbors;      // stores neighbors of neighbors for flux calculation around the quadrature point
+  int *add_cluster_neighbor_counts; // stores neighbors of neighbors counts for flux calculation around the quadrature point
   double **cut;
  
   void allocate();
@@ -69,6 +74,7 @@ class PairCACSW : public PairCAC {
   
   void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
+  virtual void quad_neigh_flux();
   
 };
 

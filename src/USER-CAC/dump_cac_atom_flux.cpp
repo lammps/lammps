@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include "dump_cac_atom.h"
+#include "dump_cac_atom_flux.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "group.h"
 #include "error.h"
 #include "memory.h"
@@ -22,15 +23,15 @@
 
 using namespace LAMMPS_NS;
 
-#define ONELINE 128
+#define ONELINE 2048
 #define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
-DumpCACAtom::DumpCACAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
+DumpCACAtomFlux::DumpCACAtomFlux(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(NULL)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Illegal dump cac/atom command");
+  if (narg != 5 ) error->all(FLERR,"Illegal dump cac/atom command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump cac/atom filename");
 
   
@@ -39,23 +40,14 @@ DumpCACAtom::DumpCACAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, ar
   buffer_flag = 1;
   sort_flag = 0;
   sortcol = 0;
-  charge_flag = 0;
-  while(iarg<narg){
-  if (strcmp(arg[iarg], "charge") == 0) charge_flag = 1;
-  else error->all(FLERR, "Unexpected argument in dump cac/atom command");
-  iarg++;
-  }
+
 
   if (format_default) delete [] format_default;
   char *str;
-  if(charge_flag){
-    size_one = 12;
-    str = (char *) "%d %d %g %g %g %g %g %g %g %g %g %g";
-  }
-  else{
-    size_one = 11;
-    str = (char *) "%d %d %g %g %g %g %g %g %g %g %g";
-  }
+
+  size_one = 29;
+  str = (char *) "%d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g";
+    
   
   int n = strlen(str) + 1;
   format_default = new char[n];
@@ -67,7 +59,7 @@ DumpCACAtom::DumpCACAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, ar
 
 /* ---------------------------------------------------------------------- */
 
-DumpCACAtom::~DumpCACAtom()
+DumpCACAtomFlux::~DumpCACAtomFlux()
 {
   delete[] format_default;
   format_default = NULL;
@@ -82,7 +74,7 @@ DumpCACAtom::~DumpCACAtom()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::init_style()
+void DumpCACAtomFlux::init_style()
 {
   //check if CAC atom style is defined
   if(!atom->CAC_flag)
@@ -92,9 +84,8 @@ void DumpCACAtom::init_style()
   if(sort_flag)
   error->all(FLERR, "CAC dump styles cannot currently be sorted");
 
-  //check charge existence
-  if(charge_flag&&!atom->q_flag)
-  error->all(FLERR, "outputting charge in dump cac/atom requires a cac atom style with charge");
+  if(!atom->cac_flux_flag)
+  error->all(FLERR, "outputting flux in dump cac/atom/flux requires a cac/nodal/flux dump");
   
   // format = copy of default or user-specified line format
   delete [] format;
@@ -120,8 +111,8 @@ void DumpCACAtom::init_style()
 
   // setup function ptr
 
-  if (buffer_flag == 1) write_choice = &DumpCACAtom::write_string;
-  else write_choice = &DumpCACAtom::write_lines;
+  if (buffer_flag == 1) write_choice = &DumpCACAtomFlux::write_string;
+  else write_choice = &DumpCACAtomFlux::write_lines;
 
   // open single file, one time only
 
@@ -129,7 +120,7 @@ void DumpCACAtom::init_style()
 }
 
 /*------------------------------------------------------------------------*/
-int DumpCACAtom::count()
+int DumpCACAtomFlux::count()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -149,7 +140,7 @@ int DumpCACAtom::count()
 }
 /* ---------------------------------------------------------------------- */
 
-int DumpCACAtom::modify_param(int narg, char **arg)
+int DumpCACAtomFlux::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
@@ -178,7 +169,7 @@ int DumpCACAtom::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::write_header(bigint n)
+void DumpCACAtomFlux::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
@@ -187,7 +178,7 @@ void DumpCACAtom::write_header(bigint n)
 }
 //-------------------------------------------------------------------------
 
-double DumpCACAtom::shape_function(double s, double t, double w, int flag, int index){
+double DumpCACAtomFlux::shape_function(double s, double t, double w, int flag, int index){
 double shape_function=0;
 if(flag==2){
 
@@ -223,7 +214,7 @@ return shape_function;
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::pack(tagint *ids)
+void DumpCACAtomFlux::pack(tagint *ids)
 {
   int m,n;
 
@@ -232,12 +223,13 @@ void DumpCACAtom::pack(tagint *ids)
   int *mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
-  double xmap[3], vmap[3], fmap[3];
+  double xmap[3], vmap[3], fmap[3], fluxmap[24];
   double unit_cell[3];
   double unit_cell_mapped[3];
   double ***current_nodal_positions;
   double ***current_nodal_velocities;
   double ***current_nodal_forces;
+  double ***current_nodal_fluxes;
   double shape_func;
   int nodes_per_element;
   bigint natoms = atom->natoms;
@@ -250,11 +242,11 @@ void DumpCACAtom::pack(tagint *ids)
   double **node_charges = atom->node_charges;
   int **element_scale = atom->element_scale;
   double ****nodal_positions = atom->nodal_positions;
-  double ****nodal_velocities = atom->nodal_velocities;
-  double ****nodal_forces = atom->nodal_forces;
+  double ****nodal_fluxes = atom->nodal_fluxes;
   int *periodicity = domain->periodicity;
   bigint tag_map;
   double *prd = domain->prd;
+  double nktv2p = force->nktv2p;
   
   //int maptag=1;
   m = n = 0;
@@ -263,27 +255,24 @@ void DumpCACAtom::pack(tagint *ids)
       if(element_type[i]==0){
       buf[m++] = tag[i];
       buf[m++] = node_types[i][0];
-      if(charge_flag) buf[m++] = node_charges[i][0];
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
-      buf[m++] = v[i][0];
-      buf[m++] = v[i][1];
-      buf[m++] = v[i][2];
-      buf[m++] = nodal_forces[i][0][0][0];
-      buf[m++] = nodal_forces[i][0][0][1];
-      buf[m++] = nodal_forces[i][0][0][2];
+        for(int fill=0; fill<24; fill++) {
+          if(fill%4!=0)
+            buf[m++] = nktv2p*nodal_fluxes[i][0][0][fill];
+          else
+            buf[m++] = nodal_fluxes[i][0][0][fill];
+        }
       }
       else if(element_type[i]==1){
       unit_cell_mapped[0] = 2 / double(element_scale[i][0]);
       unit_cell_mapped[1] = 2 / double(element_scale[i][1]);
       unit_cell_mapped[2] = 2 / double(element_scale[i][2]);
       current_nodal_positions=nodal_positions[i];
-      current_nodal_velocities=nodal_velocities[i];
-      current_nodal_forces=nodal_forces[i];
+      current_nodal_fluxes=nodal_fluxes[i];
       nodes_per_element=8;
 
-      
         for (int e1 = 0; e1 < element_scale[i][0]; e1++) {
           for (int e2 = 0; e2 < element_scale[i][1]; e2++) {
             for (int e3 = 0; e3 < element_scale[i][2]; e3++) {
@@ -301,23 +290,13 @@ void DumpCACAtom::pack(tagint *ids)
                 xmap[0]=0;
                 xmap[1]=0;
                 xmap[2]=0;
-                vmap[0]=0;
-                vmap[1]=0;
-                vmap[2]=0;
-                fmap[0]=0;
-                fmap[1]=0;
-                fmap[2]=0;
+                for(int init=0; init<24; init++) fluxmap[init] = 0;
                 for (int kk = 0; kk < nodes_per_element; kk++) {
                   shape_func = shape_function(unit_cell[0], unit_cell[1], unit_cell[2], 2, kk + 1);
                   xmap[0] += current_nodal_positions[polyscan][kk][0] * shape_func;
                   xmap[1] += current_nodal_positions[polyscan][kk][1] * shape_func;
                   xmap[2] += current_nodal_positions[polyscan][kk][2] * shape_func;
-                  vmap[0] += current_nodal_velocities[polyscan][kk][0] * shape_func;
-                  vmap[1] += current_nodal_velocities[polyscan][kk][1] * shape_func;
-                  vmap[2] += current_nodal_velocities[polyscan][kk][2] * shape_func;
-                  fmap[0] += current_nodal_forces[polyscan][kk][0] * shape_func;
-                  fmap[1] += current_nodal_forces[polyscan][kk][1] * shape_func;
-                  fmap[2] += current_nodal_forces[polyscan][kk][2] * shape_func;
+                  for(int fill=0; fill<24; fill++) fluxmap[fill] += current_nodal_fluxes[polyscan][kk][fill]* shape_func;
                 }
               //test if mapped particle is in box and remap otherwise
               if(!domain->triclinic){
@@ -366,16 +345,15 @@ void DumpCACAtom::pack(tagint *ids)
               }   
               buf[m++] = tag_map;
               buf[m++] = node_types[i][polyscan];
-              if(charge_flag) buf[m++] = node_charges[i][0];
               buf[m++] = xmap[0];
               buf[m++] = xmap[1];
               buf[m++] = xmap[2];
-              buf[m++] = vmap[0];
-              buf[m++] = vmap[1];
-              buf[m++] = vmap[2];
-              buf[m++] = fmap[0];
-              buf[m++] = fmap[1];
-              buf[m++] = fmap[2];
+              for(int fill=0; fill<24; fill++){
+                if(fill%4!=0)
+                  buf[m++] = nktv2p*fluxmap[fill];
+                else
+                  buf[m++] = fluxmap[fill];
+              }
             }
           }
         }
@@ -392,7 +370,7 @@ void DumpCACAtom::pack(tagint *ids)
    return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
 ------------------------------------------------------------------------- */
 
-int DumpCACAtom::convert_string(int n, double *mybuf)
+int DumpCACAtomFlux::convert_string(int n, double *mybuf)
 {
   int offset = 0;
   int m = 0;
@@ -402,14 +380,12 @@ int DumpCACAtom::convert_string(int n, double *mybuf)
       maxsbuf += DELTA;
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
-    if (charge_flag)
     offset += sprintf(&sbuf[offset],format, static_cast<int> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
-            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10], mybuf[m+11]);
-    else
-    offset += sprintf(&sbuf[offset],format, static_cast<int> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
-            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10],mybuf[m+11],
+            mybuf[m+12],mybuf[m+13],mybuf[m+14],mybuf[m+15],mybuf[m+16],mybuf[m+17],mybuf[m+18],
+            mybuf[m+19],mybuf[m+20],mybuf[m+21],mybuf[m+22],mybuf[m+23],mybuf[m+24],mybuf[m+25],
+            mybuf[m+26],mybuf[m+27],mybuf[m+28]);
     m += size_one;
   }
 
@@ -418,32 +394,30 @@ int DumpCACAtom::convert_string(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::write_data(int n, double *mybuf)
+void DumpCACAtomFlux::write_data(int n, double *mybuf)
 {
   (this->*write_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::write_string(int n, double *mybuf)
+void DumpCACAtomFlux::write_string(int n, double *mybuf)
 {
   fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCACAtom::write_lines(int n, double *mybuf)
+void DumpCACAtomFlux::write_lines(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    if (charge_flag)
     fprintf(fp,format, static_cast<int> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
-            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10], mybuf[m+11]);
-    else
-    fprintf(fp,format, static_cast<int> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
-            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10],mybuf[m+11],
+            mybuf[m+12],mybuf[m+13],mybuf[m+14],mybuf[m+15],mybuf[m+16],mybuf[m+17],mybuf[m+18],
+            mybuf[m+19],mybuf[m+20],mybuf[m+21],mybuf[m+22],mybuf[m+23],mybuf[m+24],mybuf[m+25],
+            mybuf[m+26],mybuf[m+27],mybuf[m+28]);
     m += size_one;
   }
 }

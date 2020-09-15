@@ -120,10 +120,10 @@ class Atom : protected Pointers {
   int nodes_per_element, maxpoly, words_per_node; //maximum number of nodes and atoms per unit cell per element in model
 	// followed by number of words per node in a data file and the number of pure atoms in the CAC model
 
-  double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces,
+  double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces, ****nodal_fluxes,
 	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes,
     ****nodal_virial, ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, ***add_quad_lists_ucell, **quadrature_point_data,
-    **interior_scales, cut_add;
+    **interior_scales, cut_add, box_center[3], box_size[3];
 
   int *poly_count, **node_types,  *element_type, max_quad_per_element,
 	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
@@ -134,7 +134,7 @@ class Atom : protected Pointers {
     max_neigh_outer_init, max_neigh_inner_init, *inner_quad_neigh_maxes, *outer_quad_neigh_maxes, *add_quad_neigh_maxes, interface_quadrature;
 
   int one_layer_flag, weight_count,CAC_pair_flag, element_type_count,
-    outer_neigh_flag, ghost_quad_flag, sector_flag, full_quad_flag;
+    outer_neigh_flag, ghost_quad_flag, sector_flag, full_quad_flag, cac_flux_flag, flux_compute;
   double max_search_range;              //currently used by comm style to determine communication overlap range
   char **element_names;                 //stores names for element types
   double *min_x, *min_v, *min_f;        //used by CAC min styles
@@ -263,10 +263,9 @@ class Atom : protected Pointers {
 
   // callback ptrs for atom arrays managed by fix classes
 
-  int nextra_grow,nextra_restart,nextra_border;  // # of callbacks of each type
-  int *extra_grow,*extra_restart,*extra_border;  // index of fix to callback to
-  int nextra_grow_max,nextra_restart_max;        // size of callback lists
-  int nextra_border_max;
+  int nextra_grow, nextra_restart, nextra_border, nextra_clear;  // # of callbacks of each type
+  int *extra_grow, *extra_restart, *extra_border, *extra_clear;  // index of fix to callback to
+  int nextra_grow_max, nextra_restart_max, nextra_border_max, nextra_clear_max;  // size of callback lists
   int nextra_store;
 
   int map_style;                  // style of atom map: 0=none, 1=array, 2=hash

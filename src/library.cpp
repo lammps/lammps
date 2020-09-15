@@ -865,7 +865,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
 This table lists the supported names, their data types, length of the
 data area, and a short description.  The ``bigint`` type may be defined
 to be either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>`.
+:ref:`compile time <size>` and can be queried through calling
+:cpp:func:`lammps_extract_setting`.
 
 .. list-table::
    :header-rows: 1

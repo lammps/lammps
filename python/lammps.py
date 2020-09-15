@@ -1525,8 +1525,8 @@ class lammps(object):
   def available_styles(self, category):
     """Returns a list of styles available for a given category
 
-    This is a wrapper around the functions :cpp:func:`lammps_style_count`
-    and :cpp:func`lammps_style_name` of the library interface.
+    This is a wrapper around the functions :cpp:func:`lammps_style_count()`
+    and :cpp:func:`lammps_style_name()` of the library interface.
 
     :param category: name of category
     :type  category: string

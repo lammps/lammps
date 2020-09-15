@@ -2226,7 +2226,7 @@ class IPyLammps(PyLammps):
     super(IPyLammps, self).__init__(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
 
   def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
-            size=None, view=None, center=None, up=None, zoom=1.0):
+            size=None, view=None, center=None, up=None, zoom=1.0, background_color="white"):
     cmd_args = [group, "image", filename, color, diameter]
 
     if size:
@@ -2255,7 +2255,7 @@ class IPyLammps(PyLammps):
     if zoom:
       cmd_args += ["zoom", zoom]
 
-    cmd_args.append("modify backcolor white")
+    cmd_args.append("modify backcolor " + background_color)
 
     self.write_dump(*cmd_args)
     from IPython.core.display import Image

@@ -48,7 +48,12 @@ class PythonCapabilities(unittest.TestCase):
             self.assertIn(pkg, installed_packages)
 
     def test_has_style(self):
-        self.assertTrue(self.lmp.has_style('pair_style', 'lj/cut'))
+        self.assertTrue(self.lmp.has_style('pair', 'lj/cut'))
+        self.assertFalse(self.lmp.has_style('pair', 'lennard_jones'))
+
+    def test_available_styles(self):
+        pairs = self.lmp.available_styles('pair')
+        self.assertIn('lj/cut', pairs)
 
 if __name__ == "__main__":
     unittest.main()

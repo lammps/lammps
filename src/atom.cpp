@@ -2508,7 +2508,7 @@ length of the data area, and a short description.
                  Typically the name of the pointer variable returned
  * \return       pointer to the requested data cast to ``void *`` or NULL */
 
-void *Atom::extract(char *name)
+void *Atom::extract(const char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name

@@ -228,9 +228,9 @@ LAMMPS system size restrictions
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
      - :math:`2^{31}` steps (= :math:`2.147 \cdot 10^9`)
    * - Atom ID values
-     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
      - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
-     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
    * - Image flag values
      - :math:`-512 \le i \le 511`
      - :math:`- 1\,048\,576 \le i \le 1\,048\,575`

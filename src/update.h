@@ -37,6 +37,7 @@ class Update : protected Pointers {
   int setupflag;                  // set when setup() is computing forces
   int post_integrate;             // 1 if now at post_integrate() in timestep
   int multireplica;               // 1 if min across replicas, else 0
+  int dt_default;                 // 1 if dt is at default value, else 0
 
   bigint eflag_global,eflag_atom;  // timestep global/peratom eng is tallied on
   bigint vflag_global,vflag_atom;  // ditto for virial

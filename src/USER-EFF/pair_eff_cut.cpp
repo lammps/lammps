@@ -869,7 +869,7 @@ void PairEffCut::init_style()
   // make sure to use the appropriate timestep when using real units
 
   if (update->whichflag == 1) {
-    if (force->qqr2e == 332.06371 && update->dt == 1.0)
+    if (utils::strmatch(update->unit_style,"^real") && update->dt_default)
       error->all(FLERR,"Must lower the default real units timestep for pEFF ");
   }
 

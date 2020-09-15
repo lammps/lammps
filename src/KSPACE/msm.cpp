@@ -206,9 +206,9 @@ void MSM::init()
 
   if (me == 0) {
     std::string mesg = fmt::format("  3d grid size/proc = {}\n", ngrid_max);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8}\n",
                         estimated_error);
-    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+    mesg += fmt::format("  estimated relative force accuracy = {:.8}\n",
                         estimated_error/two_charge_force);
     mesg += fmt::format("  grid = {} {} {}\n",nx_msm[0],ny_msm[0],nz_msm[0]);
     mesg += fmt::format("  order = {}\n",order);
@@ -1028,6 +1028,7 @@ void MSM::set_grid_global()
 
   int flag = 0;
   int xlevels,ylevels,zlevels;
+  xlevels = ylevels = zlevels = 1;
 
   while (!factorable(nx_max,flag,xlevels)) {
     double k = log(nx_max)/log(2.0);
@@ -1077,7 +1078,7 @@ void MSM::set_grid_global()
 
     if (me == 0)
       error->warning(FLERR,fmt::format("Adjusting Coulombic cutoff for "
-                                       "MSM, new cutoff = {}", cutoff));
+                                       "MSM, new cutoff = {:.8}", cutoff));
   }
 
   if (triclinic == 0) {
@@ -1432,16 +1433,15 @@ void MSM::setup_grid()
    return 1 if yes, 0 if no
 ------------------------------------------------------------------------- */
 
-int MSM::factorable(int n, int &flag, int &levels)
+int MSM::factorable(int n, int &flag, int &nlevels)
 {
   int i;
-  levels = 1;
 
   while (n > 1) {
     for (i = 0; i < nfactors; i++) {
       if (n % factors[i] == 0) {
         n /= factors[i];
-        levels++;
+        nlevels++;
         break;
       }
     }

@@ -101,32 +101,32 @@ class Force : protected Pointers {
   void init();
   void setup();
 
-  void create_pair(const char *, int);
-  class Pair *new_pair(const char *, int, int &);
-  class Pair *pair_match(const char *, int, int nsub=0);
+  void create_pair(const std::string &, int);
+  class Pair *new_pair(const std::string &, int, int &);
+  class Pair *pair_match(const std::string &, int, int nsub=0);
   char *pair_match_ptr(Pair *);
 
-  void create_bond(const char *, int);
-  class Bond *new_bond(const char *, int, int &);
-  class Bond *bond_match(const char *);
+  void create_bond(const std::string &, int);
+  class Bond *new_bond(const std::string &, int, int &);
+  class Bond *bond_match(const std::string &);
 
-  void create_angle(const char *, int);
-  class Angle *new_angle(const char *, int, int &);
-  class Angle *angle_match(const char *);
+  void create_angle(const std::string &, int);
+  class Angle *new_angle(const std::string &, int, int &);
+  class Angle *angle_match(const std::string &);
 
-  void create_dihedral(const char *, int);
-  class Dihedral *new_dihedral(const char *, int, int &);
-  class Dihedral *dihedral_match(const char *);
+  void create_dihedral(const std::string &, int);
+  class Dihedral *new_dihedral(const std::string &, int, int &);
+  class Dihedral *dihedral_match(const std::string &);
 
-  void create_improper(const char *, int);
-  class Improper *new_improper(const char *, int, int &);
-  class Improper *improper_match(const char *);
+  void create_improper(const std::string &, int);
+  class Improper *new_improper(const std::string &, int, int &);
+  class Improper *improper_match(const std::string &);
 
-  void create_kspace(const char *, int);
-  class KSpace *new_kspace(const char *, int, int &);
-  class KSpace *kspace_match(const char *, int);
+  void create_kspace(const std::string &, int);
+  class KSpace *new_kspace(const std::string &, int, int &);
+  class KSpace *kspace_match(const std::string &, int);
 
-  void store_style(char *&, const char *, int);
+  void store_style(char *&, const std::string &, int);
   void set_special(int, char **);
   void bounds(const char *, int, char *, int, int &, int &, int nmin=1);
   void boundsbig(const char *, int, char *, bigint, bigint &, bigint &, bigint nmin=1);
@@ -135,9 +135,7 @@ class Force : protected Pointers {
   bigint bnumeric(const char *, int, char *);
   tagint tnumeric(const char *, int, char *);
 
-  FILE *open_potential(const char *);
-  const char *potential_name(const char *);
-  void potential_date(FILE *, const char *);
+  FILE *open_potential(const char *, int *auto_convert = nullptr);
 
   bigint memory_usage();
 
@@ -225,5 +223,49 @@ U: Numeric index is out of bounds
 A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the
 maximum allowed limit.
+
+W: Bonds are defined but no bond style is set
+
+The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command.
+
+W: Angles are defined but no angle style is set
+
+The topology contains angles, but there are no angle forces computed
+since there was no angle_style command.
+
+W: Dihedrals are defined but no dihedral style is set
+
+The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command.
+
+W: Impropers are defined but no improper style is set
+
+The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command.
+
+W: Likewise 1-2 special neighbor interactions != 1.0
+
+The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style.
+
+W: Likewise 1-3 special neighbor interactions != 1.0
+
+The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style.
+
+W: Likewise 1-4 special neighbor interactions != 1.0
+
+The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style.
 
 */

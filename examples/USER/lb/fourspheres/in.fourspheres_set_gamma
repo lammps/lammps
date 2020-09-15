@@ -1,5 +1,5 @@
 #===========================================================================#
-# Sytem of 2 pairs of rigid particles moving towards one another.           #
+# System of 2 pairs of rigid particles moving towards one another.          #
 # At each timestep, the hydrodynamic force acting on one of these four      #
 # rigid particles is printed to the screen.                                 #
 #                                                                           #

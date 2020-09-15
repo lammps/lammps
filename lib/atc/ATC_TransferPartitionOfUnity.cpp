@@ -54,7 +54,7 @@ namespace ATC {
 
   //-------------------------------------------------------------------
   void ATC_TransferPartitionOfUnity::compute_projection(
-    const DENS_MAT & atomData, DENS_MAT & nodeData)
+    const DENS_MAT & /* atomData */, DENS_MAT & /* nodeData */)
   {
     throw ATC_Error("unimplemented function");
   }

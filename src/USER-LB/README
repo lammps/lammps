@@ -39,15 +39,15 @@ cdennist@uwo.ca
 
 Fixes provided by this package:
 
-fix_lb_fluid.cpp:  fix used to create the lattice-Boltzmann fluid on a 
+fix_lb_fluid.cpp:  fix used to create the lattice-Boltzmann fluid on a
 		   grid covering the LAMMPS simulation domain.
 
-fix_momentum_lb.cpp:  fix used to subtract off the total (atom plus fluid) 
+fix_momentum_lb.cpp:  fix used to subtract off the total (atom plus fluid)
 		      linear momentum from the system.
 
 fix_pc.cpp:  integration algorithm for individual atoms.
 
-fix_rigid_pc_sphere.cpp:  integration algorithm for rigid spherical 
+fix_rigid_pc_sphere.cpp:  integration algorithm for rigid spherical
 			  collections of atoms.
 
 fix_viscous_lb.cpp:  fix to add the fluid force to the atoms when using a

@@ -148,7 +148,7 @@ namespace ATC {
     }
 
     if (!initialized_ || ATC::LammpsInterface::instance()->atoms_sorted() || resetKernelFunction_) {
-      // initialize kernel funciton matrix N_Ia
+      // initialize kernel function matrix N_Ia
       if (! kernelOnTheFly_) {
         try{
           if (!moleculeIds_.empty()) compute_kernel_matrix_molecule(); //KKM add
@@ -654,7 +654,7 @@ namespace ATC {
         <TT> fix_modify AtC gradients add temperature velocity stress </TT> \n
         <TT> fix_modify AtC gradients delete velocity </TT> \n
         \section description
-        Requests calculation and ouput of gradients of the fields from the 
+        Requests calculation and output of gradients of the fields from the
         transfer class. These gradients will be with regard to spatial or material
         coordinate for eulerian or lagrangian analysis, respectively, as specified by 
         atom_element_map (see \ref man_atom_element_map )
@@ -698,7 +698,7 @@ namespace ATC {
         <TT> fix_modify AtC rates add temperature velocity stress </TT> \n
         <TT> fix_modify AtC rates delete stress </TT> \n
         \section description
-        Requests calculation and ouput of rates (time derivatives) of the fields from the 
+        Requests calculation and output of rates (time derivatives) of the fields from the
         transfer class. For eulerian analysis (see \ref man_atom_element_map ), these rates
         are the partial time derivatives of the nodal fields, not the full (material) time
         derivatives. \n
@@ -865,7 +865,7 @@ namespace ATC {
   }
 
   //-------------------------------------------------------------------
-  // called at the begining of second half timestep
+  // called at the beginning of second half timestep
   // REFACTOR move this to post_neighbor
   void ATC_Transfer::pre_final_integrate()
   {
@@ -1658,7 +1658,7 @@ namespace ATC {
   }
   //--------------------------------------------------------------------
   void ATC_Transfer::compute_vacancy_concentration(DENS_MAT & Cv,
-    const DENS_MAT & H, const DENS_MAT & rhoN)
+                                                   const DENS_MAT & H, const DENS_MAT & /* rhoN */)
   {
     int * type = lammpsInterface_->atom_type();
     DENS_MAT new_rho(nNodes_,1);

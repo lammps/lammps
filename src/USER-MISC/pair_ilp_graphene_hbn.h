@@ -48,7 +48,7 @@ class PairILPGrapheneHBN : public Pair {
   MyPage<int> *ipage;              // neighbor list pages
   int *ILP_numneigh;                // # of pair neighbors for each atom
   int **ILP_firstneigh;             // ptr to 1st neighbor of each atom
-  int tap_flag;			   // flag to turn on/off taper function
+  int tap_flag;                    // flag to turn on/off taper function
 
   struct Param {
     double z0,alpha,epsilon,C,delta,d,sR,reff,C6,S;

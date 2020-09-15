@@ -1,8 +1,12 @@
 /old
 /html
+/html-offline
 /latex
+/mathjax
 /spelling
 /LAMMPS.epub
 /LAMMPS.mobi
 /Manual.pdf
 /Developer.pdf
+/doctrees
+/docenv

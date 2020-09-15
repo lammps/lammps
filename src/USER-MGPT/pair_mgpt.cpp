@@ -118,7 +118,7 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
 
   double t0,t1;
 
-  /* Check that alignment requirements for SIMD code are fullfilled */
+  /* Check that alignment requirements for SIMD code are fulfilled */
   assert( (((unsigned long long int) (bptr->H.m )) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hx.m)) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hy.m)) & 31) == 0 );

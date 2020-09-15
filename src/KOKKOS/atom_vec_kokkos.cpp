@@ -16,6 +16,7 @@
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "atom_masks.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -992,3 +993,49 @@ void AtomVecKokkos::unpack_reverse(int n, int *list, double *buf)
   if(n > 0)
     modified(Host,F_MASK);
 }
+
+/* ----------------------------------------------------------------------
+ *    unpack one line from Velocities section of data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::data_vel(int m, char **values)
+{
+  double **v = atom->v;
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+
+  modified(Host,V_MASK);
+}
+
+/* ----------------------------------------------------------------------
+ *    pack velocity info for data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::pack_vel(double **buf)
+{
+  double **v = atom->v;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  sync(Host,V_MASK|TAG_MASK);
+
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+ *    write velocity info to data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
+            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+}
+

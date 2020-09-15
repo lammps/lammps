@@ -34,6 +34,8 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,7 +69,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     error->all(FLERR,"Cannot displace_atoms after "
                "reading restart file with per-atom info");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Displacing atoms ...\n");
 
   // group and style
 
@@ -353,12 +355,10 @@ void DisplaceAtoms::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->warning(FLERR,str);
-  }
+  if (natoms != atom->natoms && comm->me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms via displace_atoms: "
+                                     "original {} current {}",
+                                     atom->natoms,natoms));
 }
 
 /* ----------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -34,6 +34,8 @@ colvarbias_abf::colvarbias_abf(char const *key)
 int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
+
+  colvarproxy *proxy = cvm::main()->proxy;
 
   enable(f_cvb_scalar_variables);
   enable(f_cvb_calc_pmf);
@@ -76,11 +78,13 @@ int colvarbias_abf::init(std::string const &conf)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
-    if (!cvm::replica_enabled() || cvm::replica_num() <= 1) {
-      cvm::error("Error: shared ABF requires more than one replica.");
-      return COLVARS_ERROR;
+    if ((proxy->replica_enabled() != COLVARS_OK) ||
+        (proxy->num_replicas() <= 1)) {
+      return cvm::error("Error: shared ABF requires more than one replica.",
+                        INPUT_ERROR);
     }
-    cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+    cvm::log("shared ABF will be applied among "+
+             cvm::to_str(proxy->num_replicas()) + " replicas.\n");
     if (cvm::proxy->smp_enabled() == COLVARS_OK) {
       cvm::error("Error: shared ABF is currently not available with SMP parallelism; "
                  "please set \"SMP off\" at the top of the Colvars configuration file.\n",
@@ -111,7 +115,7 @@ int colvarbias_abf::init(std::string const &conf)
     if (colvars[i]->value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: ABF bias can only use scalar-type variables.\n");
     }
-    colvars[i]->enable(f_cv_grid);
+    colvars[i]->enable(f_cv_grid); // Could be a child dependency of a f_cvb_use_grids feature
     if (hide_Jacobian) {
       colvars[i]->enable(f_cv_hide_Jacobian);
     }
@@ -483,13 +487,18 @@ int colvarbias_abf::update()
     eabf_UI.update(cvm::step_absolute(), x, y);
   }
 
+  /// Add the bias energy for 1D ABF
+  bias_energy = calc_energy(NULL);
+
   return COLVARS_OK;
 }
 
 
 int colvarbias_abf::replica_share() {
 
-  if ( !cvm::replica_enabled() ) {
+  colvarproxy *proxy = cvm::main()->proxy;
+
+  if (proxy->replica_enabled() != COLVARS_OK) {
     cvm::error("Error: shared ABF: No replicas.\n");
     return COLVARS_ERROR;
   }
@@ -508,12 +517,12 @@ int colvarbias_abf::replica_share() {
   size_t msg_total = data_n*sizeof(size_t) + samp_start;
   char* msg_data = new char[msg_total];
 
-  if (cvm::replica_index() == 0) {
+  if (proxy->replica_index() == 0) {
     int p;
     // Replica 0 collects the delta gradient and count from the others.
-    for (p = 1; p < cvm::replica_num(); p++) {
+    for (p = 1; p < proxy->num_replicas(); p++) {
       // Receive the deltas.
-      cvm::replica_comm_recv(msg_data, msg_total, p);
+      proxy->replica_comm_recv(msg_data, msg_total, p);
 
       // Map the deltas from the others into the grids.
       last_gradients->raw_data_in((cvm::real*)(&msg_data[0]));
@@ -528,8 +537,8 @@ int colvarbias_abf::replica_share() {
     // Now we must send the combined gradient to the other replicas.
     gradients->raw_data_out((cvm::real*)(&msg_data[0]));
     samples->raw_data_out((size_t*)(&msg_data[samp_start]));
-    for (p = 1; p < cvm::replica_num(); p++) {
-      cvm::replica_comm_send(msg_data, msg_total, p);
+    for (p = 1; p < proxy->num_replicas(); p++) {
+      proxy->replica_comm_send(msg_data, msg_total, p);
     }
 
   } else {
@@ -541,10 +550,10 @@ int colvarbias_abf::replica_share() {
     // Cast the raw char data to the gradient and samples.
     last_gradients->raw_data_out((cvm::real*)(&msg_data[0]));
     last_samples->raw_data_out((size_t*)(&msg_data[samp_start]));
-    cvm::replica_comm_send(msg_data, msg_total, 0);
+    proxy->replica_comm_send(msg_data, msg_total, 0);
 
     // We now receive the combined gradient from Replica 0.
-    cvm::replica_comm_recv(msg_data, msg_total, 0);
+    proxy->replica_comm_recv(msg_data, msg_total, 0);
     // We sync to the combined gradient computed by Replica 0.
     gradients->raw_data_in((cvm::real*)(&msg_data[0]));
     samples->raw_data_in((size_t*)(&msg_data[samp_start]));
@@ -552,7 +561,7 @@ int colvarbias_abf::replica_share() {
 
   // Without a barrier it's possible that one replica starts
   // share 2 when other replicas haven't finished share 1.
-  cvm::replica_comm_barrier();
+  proxy->replica_comm_barrier();
   // Done syncing the replicas.
   delete[] msg_data;
 
@@ -831,4 +840,51 @@ int colvarbias_abf::write_output_files()
 {
   write_gradients_samples(output_prefix);
   return COLVARS_OK;
+}
+
+int colvarbias_abf::calc_energy(std::vector<colvarvalue> const *values)
+{
+  if (values) {
+    return cvm::error("colvarbias_abf::calc_energy() with an argument "
+                      "is currently not implemented.\n",
+                      COLVARS_NOT_IMPLEMENTED);
+  }
+
+  if (num_variables() != 1) return 0.0;
+
+  // Get the home bin.
+  int home0 = gradients->current_bin_scalar(0);
+  if (home0 < 0) return 0.0;
+  int gradient_len = (int)(gradients->number_of_points(0));
+  int home = (home0 < gradient_len) ? home0 : (gradient_len-1);
+
+  // Integrate the gradient up to the home bin.
+  cvm::real sum = 0.0;
+  for (int i = 0; i < home; i++) {
+    std::vector<int> ix(1,i);
+
+    // Include the full_samples factor if necessary.
+    unsigned int count = samples->value(ix);
+    cvm::real fact = 1.0;
+    if ( count < full_samples ) {
+      fact = (count < min_samples) ? 0.0 :
+        (cvm::real(count - min_samples)) / (cvm::real(full_samples - min_samples));
+    }
+    if (count > 0) sum += fact*gradients->value(ix)/count*gradients->widths[0];
+  }
+
+  // Integrate the gradient up to the current position in the home interval, a fractional portion of a bin.
+  std::vector<int> ix(1,home);
+  cvm::real frac = gradients->current_bin_scalar_fraction(0);
+  unsigned int count = samples->value(ix);
+  cvm::real fact = 1.0;
+  if ( count < full_samples ) {
+    fact = (count < min_samples) ? 0.0 :
+      (cvm::real(count - min_samples)) / (cvm::real(full_samples - min_samples));
+  }
+  if (count > 0)
+    sum += fact*gradients->value(ix)/count*gradients->widths[0]*frac;
+
+  // The applied potential is the negative integral of force samples.
+  return -sum;
 }

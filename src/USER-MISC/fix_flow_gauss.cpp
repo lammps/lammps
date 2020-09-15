@@ -37,7 +37,7 @@ static const char cite_flow_gauss[] =
   "title = {The Dynamics of Water in Porous Two-Dimensional Crystals},\n"
   "volume = {121},\n"
   "number = {1},\n"
-  "url = {http://dx.doi.org/10.1021/acs.jpcb.6b09387},\n"
+  "url = {https://doi.org/10.1021/acs.jpcb.6b09387},\n"
   "doi = {10.1021/acs.jpcb.6b09387},\n"
   "urldate = {2016-12-07},\n"
   "journal = {J. Phys. Chem. B},\n"
@@ -188,7 +188,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
   for (ii=0; ii<3; ii++)
     a_app[ii] = -f_tot[ii] / mTot;
 
-  //apply added accelleration to each atom
+  //apply added acceleration to each atom
   double f_app[3];
   double peAdded=0.0;
   for( ii = 0; ii<nlocal; ii++)

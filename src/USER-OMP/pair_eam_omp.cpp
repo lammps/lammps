@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include <cstring>
 
@@ -51,13 +52,15 @@ void PairEAMOMP::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(rho);
     memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
     memory->create(rho,nthreads*nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -65,7 +68,7 @@ void PairEAMOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (force->newton_pair)
       thr->init_eam(nall, rho);
@@ -232,6 +235,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -243,6 +247,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
+        ++numforce[i];
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;

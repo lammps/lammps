@@ -28,6 +28,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -474,7 +475,7 @@ void PairTIP4PCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -501,13 +502,13 @@ void PairTIP4PCut::write_restart_settings(FILE *fp)
 void PairTIP4PCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&typeO,sizeof(int),1,fp);
-    fread(&typeH,sizeof(int),1,fp);
-    fread(&typeB,sizeof(int),1,fp);
-    fread(&typeA,sizeof(int),1,fp);
-    fread(&qdist,sizeof(double),1,fp);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
 
-    fread(&cut_coul,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);

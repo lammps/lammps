@@ -38,7 +38,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   full = 0;
   cac = 0;
 
-  // attribute flags, mutiple can be set to 1
+  // attribute flags, multiple can be set to 1
   // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
   // default is no neighbors of ghosts

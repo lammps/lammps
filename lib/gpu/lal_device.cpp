@@ -268,7 +268,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifndef USE_CUDPP
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif
@@ -341,7 +341,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifndef USE_CUDPP
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif
@@ -712,7 +712,7 @@ int DeviceT::compile_kernels() {
   gpu_lib_data.update_host(false);
 
   _ptx_arch=static_cast<double>(gpu_lib_data[0])/100.0;
-  #ifndef USE_OPENCL
+  #if !(defined(USE_OPENCL) || defined(USE_HIP))
   if (_ptx_arch>gpu->arch() || floor(_ptx_arch)<floor(gpu->arch()))
     return -4;
   #endif

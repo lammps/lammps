@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_lj_charmm_coul_charmm_implicit_omp.h"
 #include "atom.h"
@@ -43,7 +44,7 @@ void PairLJCharmmCoulCharmmImplicitOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -51,7 +52,7 @@ void PairLJCharmmCoulCharmmImplicitOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {
@@ -124,7 +125,6 @@ void PairLJCharmmCoulCharmmImplicitOMP::eval(int iifrom, int iito, ThrData * con
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
       if (rsq < cut_bothsq) {
         r2inv = 1.0/rsq;
@@ -136,7 +136,7 @@ void PairLJCharmmCoulCharmmImplicitOMP::eval(int iifrom, int iito, ThrData * con
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) * invdenom_coul;
             switch2 = 12.0*rsq * (cut_coulsq-rsq) *
               (rsq-cut_coul_innersq) * invdenom_coul;
-            forcecoul *= switch1 + switch2;
+            forcecoul *= switch1 + 0.5*switch2;
           }
           forcecoul *= factor_coul;
         } else forcecoul = 0.0;

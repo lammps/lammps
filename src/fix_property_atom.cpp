@@ -18,6 +18,8 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -190,7 +192,7 @@ int FixPropertyAtom::setmask()
 void FixPropertyAtom::init()
 {
   // error if atom style has changed since fix was defined
-  // don't allow this b/c user could change to style that defines molecule,q
+  // don't allow this because user could change to style that defines molecule,q
 
   if (strcmp(astyle,atom->atom_style) != 0)
     error->all(FLERR,"Atom style was redefined after using fix property/atom");
@@ -217,14 +219,11 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = atom->count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
-  if (nwords != nvalue+1) {
-    char str[128];
-    snprintf(str,128,"Incorrect %s format in data file",keyword);
-    error->all(FLERR,str);
-  }
+  if (nwords != nvalue+1)
+    error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
 
   char **values = new char*[nwords];
 
@@ -238,28 +237,21 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL) {
-      char str[128];
-      snprintf(str,128,"Too few lines in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
+    if (values[0] == NULL)
+      error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
+
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
       values[j] = strtok(NULL," \t\n\r\f");
       if (values[j] == NULL) format_ok = 0;
     }
-    if (!format_ok) {
-      char str[128];
-      snprintf(str,128,"Incorrect %s format in data file",keyword);
-      error->all(FLERR,str);
-    }
+    if (!format_ok)
+      error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
 
     itag = ATOTAGINT(values[0]) + id_offset;
-    if (itag <= 0 || itag > map_tag_max) {
-      char str[128];
-      snprintf(str,128,"Invalid atom ID in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
+    if (itag <= 0 || itag > map_tag_max)
+      error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
+                                   "data file",itag, keyword));
 
     // assign words in line to per-atom vectors
 
@@ -587,6 +579,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalue+1;
 
   int m = 1;
@@ -610,6 +603,7 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

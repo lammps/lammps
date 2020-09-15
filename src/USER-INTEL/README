@@ -36,7 +36,7 @@ be added or changed in the Makefile depending on the version:
 
 2017 update 2         - No changes needed
 2017 updates 3 or 4   - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
-2018 inital release   - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
+2018 initial release  - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
 2018u1 or newer       - Use -xHost or -xCORE-AVX512 and -qopt-zmm-usage=high
 
 -----------------------------------------------------------------------------

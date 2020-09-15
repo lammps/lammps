@@ -31,6 +31,7 @@
 #include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
+#include "utils.h"
 
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
@@ -123,7 +124,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     else {
       std::string errmsg = "Illegal command " + std::string(word)
                              + " expected \"sparse\" or \"dense\"\n";
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
 
     if (comm->me == 0 and Verbosity > 1){
@@ -133,7 +134,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       else
          msg += std::string("dense");
 
-      error->message(FLERR, msg.c_str());
+      error->message(FLERR, msg);
     }
   }
 
@@ -148,7 +149,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       odeIntegrationFlag = ODE_LAMMPS_RKF45;
     else {
       std::string errmsg = "Illegal ODE integration type: " + std::string(word);
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
   }
 
@@ -255,10 +256,6 @@ void FixRX::post_constructor()
   int nUniqueSpecies = 0;
   bool match;
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0)
-      error->all(FLERR,"fix rx cannot be combined with fix property/atom");
-
   char **tmpspecies = new char*[maxspecies];
   int tmpmaxstrlen = 0;
   for(int jj=0; jj < maxspecies; jj++)
@@ -300,7 +297,7 @@ void FixRX::post_constructor()
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line
@@ -888,7 +885,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     nreactions++;
@@ -942,7 +939,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line

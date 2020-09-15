@@ -48,7 +48,7 @@ class PairKolmogorovCrespiFull : public Pair {
   MyPage<int> *ipage;              // neighbor list pages
   int *KC_numneigh;                // # of pair neighbors for each atom
   int **KC_firstneigh;             // ptr to 1st neighbor of each atom
-  int tap_flag;			   // flag to turn on/off taper function
+  int tap_flag;                    // flag to turn on/off taper function
 
 
   struct Param {

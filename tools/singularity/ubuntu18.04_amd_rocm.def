@@ -1,0 +1,116 @@
+BootStrap: docker
+From: ubuntu:18.04
+
+%environment
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+
+    apt-get install -y --no-install-recommends curl libnuma-dev gnupg
+
+    curl -sL http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -
+    printf "deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main" > /etc/apt/sources.list.d/rocm.list
+
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        kmod \
+        file \
+        sudo \
+        libelf1 \
+        rocm-dev \
+        rocm-libs \
+        build-essential
+
+    apt-get install --no-install-recommends -y software-properties-common
+
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        kmod \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libvtk6-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        rsync \
+        ssh \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd \
+        valgrind \
+        gdb
+
+
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    git clone -b master-rocm-3.5 https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    mkdir hipCUB/build
+    cd hipCUB/build
+    CXX=hipcc cmake -D BUILD_TEST=off ..
+    make -j4
+    make package
+    make install
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
+
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu18/rocm:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
+
+%environment
+    LC_ALL=C
+    export LC_ALL
+    # tell OpenMPI to not try using Infiniband
+    OMPI_MCA_btl="^openib"
+    # do not warn about unused components as this messes up testing
+    OMPI_MCA_btl_base_warn_component_unused="0"
+    export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
+
+%labels
+    Author rbberger, akohlmey

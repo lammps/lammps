@@ -21,6 +21,8 @@
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
+#include <ctime>
+#include <string>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -33,6 +35,9 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -54,12 +59,14 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
+  unit_convert_flag = utils::NOCONVERT;
 
   nextra = 0;
   pvector = NULL;
@@ -71,6 +78,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
+  centroidstressflag = 4;
 
   // pair_modify settings
 
@@ -90,9 +98,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
-  maxeatom = maxvatom = 0;
+  maxeatom = maxvatom = maxcvatom = 0;
   eatom = NULL;
   vatom = NULL;
+  cvatom = NULL;
 
   num_tally_compute = 0;
   list_tally_compute = NULL;
@@ -121,6 +130,7 @@ Pair::~Pair()
 
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -778,9 +788,21 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   eflag_global = eflag % 2;
   eflag_atom = eflag / 2;
 
-  vflag_either = vflag;
   vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_atom = vflag & 4;
+  cvflag_atom = 0;
+
+  if (vflag & 8) {
+    if (centroidstressflag & 2) {
+      cvflag_atom = 1;
+    } else {
+      vflag_atom = 1;
+    }
+    // extra check, because both bits might be set
+    if (centroidstressflag & 1) vflag_atom = 1;
+  }
+
+  vflag_either = vflag_global || vflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -796,6 +818,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     if (alloc) {
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
+    }
+  }
+  if (cvflag_atom && atom->nmax > maxcvatom) {
+    maxcvatom = atom->nmax;
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,comm->nthreads*maxcvatom,9,"pair:cvatom");
     }
   }
 
@@ -822,6 +851,22 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][5] = 0.0;
     }
   }
+  if (cvflag_atom && alloc) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+      cvatom[i][9] = 0.0;
+    }
+  }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
@@ -830,7 +875,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
-    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
 
@@ -862,6 +907,7 @@ void Pair::ev_unset()
   vflag_either = 0;
   vflag_global = 0;
   vflag_atom = 0;
+  cvflag_atom = 0;
   vflag_fdotr = 0;
 }
 
@@ -1591,15 +1637,43 @@ void Pair::write_file(int narg, char **arg)
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
-  // open file in append mode
+  // open file in append mode if exists
+  // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  int me;
-  MPI_Comm_rank(world,&me);
-  FILE *fp;
-  if (me == 0) {
-    fp = fopen(arg[6],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open pair_write file");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    std::string table_file = arg[6];
+
+    // units sanity check:
+    // - if this is the first time we write to this potential file,
+    //   write out a line with "DATE:" and "UNITS:" tags
+    // - if the file already exists, print a message about appending
+    //   while printing the date and check that units are consistent.
+    if (utils::file_is_readable(table_file)) {
+      std::string units = utils::get_potential_units(table_file,"table");
+      if (!units.empty() && (units != update->unit_style)) {
+        error->one(FLERR,fmt::format("Trying to append to a table file "
+                                     "with UNITS: {} while units are {}",
+                                     units, update->unit_style));
+      }
+      std::string date = utils::get_potential_date(table_file,"table");
+      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
+                                     "DATE: {}\n", table_file, date));
+      fp = fopen(table_file.c_str(),"a");
+    } else {
+      char datebuf[16];
+      time_t tv = time(NULL);
+      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
+      utils::logmesg(lmp,fmt::format("Creating table file {} with "
+                                     "DATE: {}\n", table_file, datebuf));
+      fp = fopen(table_file.c_str(),"w");
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+                         datebuf, update->unit_style);
+    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
+                                   table_file, utils::getsyserror()));
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)
@@ -1624,6 +1698,8 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
+  if ((comm->me == 0) && (epair))
+    error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
 
@@ -1646,7 +1722,7 @@ void Pair::write_file(int narg, char **arg)
   if (style == BMP) {
     init_bitmap(inner,outer,n,masklo,maskhi,nmask,nshiftbits);
     int ntable = 1 << n;
-    if (me == 0)
+    if (comm->me == 0)
       fprintf(fp,"\n%s\nN %d BITMAP %.15g %.15g\n\n",arg[7],ntable,inner,outer);
     n = ntable;
   }
@@ -1676,7 +1752,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    if (comm->me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for
@@ -1685,7 +1761,7 @@ void Pair::write_file(int narg, char **arg)
   if (epair) epair->swap_eam(eamfp_hold,&tmp);
   if (atom->q) atom->q = q_hold;
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1743,10 +1819,23 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
 /* ---------------------------------------------------------------------- */
 
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
+/* ---------------------------------------------------------------------- */
+
 double Pair::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
 

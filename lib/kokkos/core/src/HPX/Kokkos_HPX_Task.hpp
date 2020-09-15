@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -49,10 +50,11 @@
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
 
+#include <HPX/Kokkos_HPX_ChunkedRoundRobinExecutor.hpp>
 #include <Kokkos_HPX.hpp>
 
 #include <hpx/apply.hpp>
-#include <hpx/lcos/local/counting_semaphore.hpp>
+#include <hpx/lcos/local/latch.hpp>
 
 #include <type_traits>
 
@@ -65,7 +67,7 @@ namespace Impl {
 template <class QueueType>
 class TaskQueueSpecialization<
     SimpleTaskScheduler<Kokkos::Experimental::HPX, QueueType>> {
-public:
+ public:
   using execution_space = Kokkos::Experimental::HPX;
   using scheduler_type =
       SimpleTaskScheduler<Kokkos::Experimental::HPX, QueueType>;
@@ -85,7 +87,7 @@ public:
   // Must provide task queue execution function
   void execute_task() const {
     using hpx::apply;
-    using hpx::lcos::local::counting_semaphore;
+    using hpx::lcos::local::latch;
     using task_base_type = typename scheduler_type::task_base_type;
 
     const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
@@ -95,25 +97,28 @@ public:
 
     auto &queue = scheduler->queue();
 
-    counting_semaphore sem(0);
+    latch num_tasks_remaining(num_worker_threads);
+    ChunkedRoundRobinExecutor exec(num_worker_threads);
 
     for (int thread = 0; thread < num_worker_threads; ++thread) {
-      apply([this, &sem, &queue, &buffer, num_worker_threads, thread]() {
+      apply(exec, [this, &num_tasks_remaining, &queue, &buffer,
+                   num_worker_threads]() {
         // NOTE: This implementation has been simplified based on the
         // assumption that team_size = 1. The HPX backend currently only
         // supports a team size of 1.
         std::size_t t = Kokkos::Experimental::HPX::impl_hardware_thread_id();
 
         buffer.get(Kokkos::Experimental::HPX::impl_hardware_thread_id());
-        HPXTeamMember member(TeamPolicyInternal<Kokkos::Experimental::HPX>(
-                                 Kokkos::Experimental::HPX(), num_worker_threads, 1),
-                             0, t, buffer.get(t), 512);
+        HPXTeamMember member(
+            TeamPolicyInternal<Kokkos::Experimental::HPX>(
+                Kokkos::Experimental::HPX(), num_worker_threads, 1),
+            0, t, buffer.get(t), 512);
 
         member_type single_exec(*scheduler, member);
         member_type &team_exec = single_exec;
 
         auto &team_scheduler = team_exec.scheduler();
-        auto current_task = OptionalRef<task_base_type>(nullptr);
+        auto current_task    = OptionalRef<task_base_type>(nullptr);
 
         while (!queue.is_done()) {
           current_task =
@@ -128,11 +133,11 @@ public:
           }
         }
 
-        sem.signal(1);
+        num_tasks_remaining.count_down(1);
       });
     }
 
-    sem.wait(num_worker_threads);
+    num_tasks_remaining.wait();
   }
 
   static uint32_t get_max_team_count(execution_space const &espace) {
@@ -142,11 +147,11 @@ public:
   template <typename TaskType>
   static void get_function_pointer(typename TaskType::function_type &ptr,
                                    typename TaskType::destroy_type &dtor) {
-    ptr = TaskType::apply;
+    ptr  = TaskType::apply;
     dtor = TaskType::destroy;
   }
 
-private:
+ private:
   const scheduler_type *scheduler;
 };
 
@@ -155,21 +160,21 @@ class TaskQueueSpecializationConstrained<
     Scheduler, typename std::enable_if<
                    std::is_same<typename Scheduler::execution_space,
                                 Kokkos::Experimental::HPX>::value>::type> {
-public:
+ public:
   using execution_space = Kokkos::Experimental::HPX;
-  using scheduler_type = Scheduler;
+  using scheduler_type  = Scheduler;
   using member_type =
       TaskTeamMemberAdapter<Kokkos::Impl::HPXTeamMember, scheduler_type>;
   using memory_space = Kokkos::HostSpace;
 
-  static void
-  iff_single_thread_recursive_execute(scheduler_type const &scheduler) {
+  static void iff_single_thread_recursive_execute(
+      scheduler_type const &scheduler) {
     using task_base_type = typename scheduler_type::task_base;
-    using queue_type = typename scheduler_type::queue_type;
+    using queue_type     = typename scheduler_type::queue_type;
 
     if (1 == Kokkos::Experimental::HPX::concurrency()) {
       task_base_type *const end = (task_base_type *)task_base_type::EndTag;
-      task_base_type *task = end;
+      task_base_type *task      = end;
 
       HPXTeamMember member(TeamPolicyInternal<Kokkos::Experimental::HPX>(
                                Kokkos::Experimental::HPX(), 1, 1),
@@ -187,8 +192,7 @@ public:
           }
         }
 
-        if (end == task)
-          break;
+        if (end == task) break;
 
         (*task->m_apply)(task, &single_exec);
 
@@ -210,11 +214,11 @@ public:
   // Must provide task queue execution function
   void execute_task() const {
     using hpx::apply;
-    using hpx::lcos::local::counting_semaphore;
+    using hpx::lcos::local::latch;
     using task_base_type = typename scheduler_type::task_base;
-    using queue_type = typename scheduler_type::queue_type;
+    using queue_type     = typename scheduler_type::queue_type;
 
-    const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
+    const int num_worker_threads     = Kokkos::Experimental::HPX::concurrency();
     static task_base_type *const end = (task_base_type *)task_base_type::EndTag;
     constexpr task_base_type *no_more_tasks_sentinel = nullptr;
 
@@ -224,10 +228,11 @@ public:
     auto &queue = scheduler->queue();
     queue.initialize_team_queues(num_worker_threads);
 
-    counting_semaphore sem(0);
+    latch num_tasks_remaining(num_worker_threads);
+    ChunkedRoundRobinExecutor exec(num_worker_threads);
 
     for (int thread = 0; thread < num_worker_threads; ++thread) {
-      apply([this, &sem, &buffer, num_worker_threads, thread]() {
+      apply(exec, [this, &num_tasks_remaining, &buffer, num_worker_threads]() {
         // NOTE: This implementation has been simplified based on the assumption
         // that team_size = 1. The HPX backend currently only supports a team
         // size of 1.
@@ -242,7 +247,7 @@ public:
         member_type single_exec(*scheduler, member);
         member_type &team_exec = single_exec;
 
-        auto &team_queue = team_exec.scheduler().queue();
+        auto &team_queue     = team_exec.scheduler().queue();
         task_base_type *task = no_more_tasks_sentinel;
 
         do {
@@ -266,21 +271,21 @@ public:
           }
         } while (task != no_more_tasks_sentinel);
 
-        sem.signal(1);
+        num_tasks_remaining.count_down(1);
       });
     }
 
-    sem.wait(num_worker_threads);
+    num_tasks_remaining.wait();
   }
 
   template <typename TaskType>
   static void get_function_pointer(typename TaskType::function_type &ptr,
                                    typename TaskType::destroy_type &dtor) {
-    ptr = TaskType::apply;
+    ptr  = TaskType::apply;
     dtor = TaskType::destroy;
   }
 
-private:
+ private:
   const scheduler_type *scheduler;
 };
 
@@ -288,8 +293,8 @@ extern template class TaskQueue<
     Kokkos::Experimental::HPX,
     typename Kokkos::Experimental::HPX::memory_space>;
 
-} // namespace Impl
-} // namespace Kokkos
+}  // namespace Impl
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

@@ -39,6 +39,7 @@ class ComputeChunkAtom : public Compute {
   void init();
   void setup();
   void compute_peratom();
+  double compute_scalar();
   void set_arrays(int);
   double memory_usage();
 

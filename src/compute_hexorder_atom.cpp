@@ -239,7 +239,7 @@ void ComputeHexOrderAtom::compute_peratom()
       }
       qn[0] = usum/nnn;
       qn[1] = vsum/nnn;
-    }
+    } else qn[0] = qn[1] = 0.0;
   }
 }
 

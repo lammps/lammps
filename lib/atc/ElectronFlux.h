@@ -19,7 +19,7 @@ namespace ATC {
       virtual ~ElectronFlux() {};
       /** computes flux */
       virtual void electron_flux(const FIELD_MATS &fields,
-                                 const GRAD_FIELD_MATS &gradFields,
+                                 const GRAD_FIELD_MATS & /* gradFields */,
                                        DENS_MAT_VEC &flux) 
       {
          
@@ -211,7 +211,7 @@ namespace ATC {
       ElectronFluxConvection(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronFluxConvection() {};
       virtual void electron_flux(const FIELD_MATS &fields,
-                                 const GRAD_FIELD_MATS &gradFields,
+                                 const GRAD_FIELD_MATS & /* gradFields */,
                                        DENS_MAT_VEC &flux)
       {
         // flux = n v

@@ -36,6 +36,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -63,6 +64,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 
   peratom_flag = 1;
+  scalar_flag = 1;
+  extscalar = 0;
   size_peratom_cols = 0;
   create_attribute = 1;
 
@@ -581,21 +584,13 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,id);
-    strcat(id_fix,"_COMPUTE_STORE");
+    std::string cmd = id + std::string("_COMPUTE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
 
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = group->names[igroup];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    cmd += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
@@ -644,6 +639,20 @@ void ComputeChunkAtom::compute_peratom()
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) chunk[i] = ichunk[i];
+}
+
+
+/* ----------------------------------------------------------------------
+   to return the number of chunks, we first need to make certain
+   that compute_peratom() has been called.
+------------------------------------------------------------------------- */
+double ComputeChunkAtom::compute_scalar()
+{
+  if (invoked_peratom != update->ntimestep)
+    compute_peratom();
+  invoked_scalar = update->ntimestep;
+
+  return (scalar = nchunk);
 }
 
 /* ----------------------------------------------------------------------

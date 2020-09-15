@@ -63,7 +63,7 @@ class xml_node(object):
    """
 
    def __init__(self, attribs=None, name="", fields=None):
-      """Initialises xml_node.
+      """Initializes xml_node.
 
       Args:
          attribs: An optional dictionary giving attribute data. Defaults to {}.
@@ -101,7 +101,7 @@ class xml_handler(ContentHandler):
    """
 
    def __init__(self):
-      """Initialises xml_handler."""
+      """Initializes xml_handler."""
 
       #root xml node with all the data
       self.root = xml_node(name="root", fields=[])
@@ -119,7 +119,7 @@ class xml_handler(ContentHandler):
 
       Adds the opening tag to the list of open tags, adds a new space in the
       buffer, reads the appropriate attributes and adds a new level to the 
-      heirarchy.
+      hierarchy.
 
       Args:
          name: The tag_name.
@@ -139,7 +139,7 @@ class xml_handler(ContentHandler):
    def characters(self, data):
       """Reads data.
 
-      Adds the data to the buffer of the current level of the heirarchy.
+      Adds the data to the buffer of the current level of the hierarchy.
       Data is read as a string, and needs to be converted to the required
       type later.
 

@@ -24,6 +24,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,6 +35,7 @@ PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   writedata = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,8 +189,8 @@ void PairLJClass2::compute_inner()
 
       if (rsq < cut_out_off_sq) {
         r2inv = 1.0/rsq;
-		rinv = sqrt(r2inv);
-		r3inv = r2inv*rinv;
+                rinv = sqrt(r2inv);
+                r3inv = r2inv*rinv;
         r6inv = r3inv*r3inv;
         jtype = type[j];
         forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
@@ -267,8 +269,8 @@ void PairLJClass2::compute_middle()
 
       if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
         r2inv = 1.0/rsq;
-		rinv = sqrt(r2inv);
-		r3inv = r2inv*rinv;
+                rinv = sqrt(r2inv);
+                r3inv = r2inv*rinv;
         r6inv = r3inv*r3inv;
         jtype = type[j];
         forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
@@ -351,8 +353,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         if (rsq > cut_in_off_sq) {
           r2inv = 1.0/rsq;
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           fpair = factor_lj*forcelj*r2inv;
@@ -373,8 +375,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
 
         if (eflag) {
           r2inv = 1.0/rsq;
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
             offset[itype][jtype];
@@ -384,8 +386,8 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq <= cut_in_off_sq) {
             r2inv = 1.0/rsq;
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
             r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
             fpair = factor_lj*forcelj*r2inv;
@@ -610,13 +612,13 @@ void PairLJClass2::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -645,10 +647,10 @@ void PairLJClass2::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

@@ -93,7 +93,7 @@ void PairCoulWolfCS::compute(int eflag, int vflag)
 
       if (rsq < cut_coulsq) {
         rsq += EPSILON;
-        // Add EPISLON for case: r = 0; Interaction must be removed
+        // Add EPSILON for case: r = 0; Interaction must be removed
         // by special bond
         r = sqrt(rsq);
         prefactor = qqrd2e*qtmp*q[j]/r;

@@ -1,8 +1,0 @@
-ifndef KOKKOS_PATH
-  MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-  KOKKOS_PATH = $(subst Makefile,,$(MAKEFILE_PATH))..
-endif
-
-include $(KOKKOS_PATH)/Makefile.kokkos
-include $(KOKKOS_PATH)/core/src/Makefile.generate_header_lists
-include $(KOKKOS_PATH)/core/src/Makefile.generate_build_files

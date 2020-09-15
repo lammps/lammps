@@ -126,9 +126,7 @@ void DumpCFG::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  char str[64];
-  sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-  fprintf(fp,str,n);
+  fprintf(fp,"Number of particles = " BIGINT_FORMAT "\n", n);
   fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
   fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
   fprintf(fp,"H0(1,2) = 0 A \n");

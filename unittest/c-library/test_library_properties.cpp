@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "lmptype.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -14,6 +15,7 @@
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
+using ::testing::StrEq;
 
 class LibraryProperties : public ::testing::Test {
 protected:
@@ -160,6 +162,7 @@ TEST_F(LibraryProperties, box)
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3390.3580784497199);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellgamma"), 89.61785205109274);
 };
+
 TEST_F(LibraryProperties, setting)
 {
 #if defined(LAMMPS_SMALLSMALL)
@@ -213,4 +216,28 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "triclinic"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 1);
     }
+};
+
+TEST_F(LibraryProperties, global)
+{
+    if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
+
+    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_file(lmp, input.c_str());
+    lammps_command(lmp, "run 2 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    LAMMPS_NS::bigint *b_ptr;
+    char *c_ptr;
+    double *d_ptr;
+    int *i_ptr;
+
+    EXPECT_EQ(lammps_extract_global(lmp, "UNKNOWN"), nullptr);
+    c_ptr = (char *)lammps_extract_global(lmp, "units");
+    EXPECT_THAT(c_ptr, StrEq("real"));
+    b_ptr = (LAMMPS_NS::bigint *)lammps_extract_global(lmp, "ntimestep");
+    EXPECT_EQ((*b_ptr), 2);
+    d_ptr = (double *)lammps_extract_global(lmp, "dt");
+    EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
 };

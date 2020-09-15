@@ -61,7 +61,7 @@ static int get_tid()
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   :  Fix(lmp, narg, arg),
-     thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
+     thr(nullptr), last_omp_style(nullptr), last_pair_hybrid(nullptr),
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true),
      _pair_compute_flag(false), _kspace_compute_flag(false)
 {
@@ -203,8 +203,8 @@ void FixOMP::init()
     thr[i]->_timer_active=-1;
   }
 
-  if ((strstr(update->integrate_style,"respa") != NULL)
-      && (strstr(update->integrate_style,"respa/omp") == NULL))
+  if ((strstr(update->integrate_style,"respa") != nullptr)
+      && (strstr(update->integrate_style,"respa/omp") == nullptr))
     error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
 
   if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
@@ -213,18 +213,18 @@ void FixOMP::init()
   else _kspace_compute_flag = false;
 
   int check_hybrid, kspace_split;
-  last_pair_hybrid = NULL;
-  last_omp_style = NULL;
-  const char *last_omp_name = NULL;
-  const char *last_hybrid_name = NULL;
-  const char *last_force_name = NULL;
+  last_pair_hybrid = nullptr;
+  last_omp_style = nullptr;
+  const char *last_omp_name = nullptr;
+  const char *last_hybrid_name = nullptr;
+  const char *last_force_name = nullptr;
 
   // support for verlet/split operation.
   // kspace_split == 0 : regular processing
   // kspace_split < 0  : master partition, does not do kspace
   // kspace_split > 0  : slave partition, only does kspace
 
-  if (strstr(update->integrate_style,"verlet/split") != NULL) {
+  if (strstr(update->integrate_style,"verlet/split") != nullptr) {
     if (universe->iworld == 0) kspace_split = -1;
     else kspace_split = 1;
   } else {

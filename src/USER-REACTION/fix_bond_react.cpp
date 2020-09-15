@@ -92,10 +92,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_react);
 
-  fix1 = NULL;
-  fix2 = NULL;
-  fix3 = NULL;
-  reset_mol_ids = NULL;
+  fix1 = nullptr;
+  fix2 = nullptr;
+  fix3 = nullptr;
+  reset_mol_ids = nullptr;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -116,12 +116,12 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   narrhenius = 0;
   status = PROCEED;
 
-  nxspecial = NULL;
-  onemol_nxspecial = NULL;
-  twomol_nxspecial = NULL;
-  xspecial = NULL;
-  onemol_xspecial = NULL;
-  twomol_xspecial = NULL;
+  nxspecial = nullptr;
+  onemol_nxspecial = nullptr;
+  twomol_nxspecial = nullptr;
+  xspecial = nullptr;
+  onemol_xspecial = nullptr;
+  twomol_xspecial = nullptr;
 
   // these group names are reserved for use exclusively by bond/react
   master_group = (char *) "bond_react_MASTER_group";
@@ -472,16 +472,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate arrays local to this fix
   nmax = 0;
-  partner = finalpartner = NULL;
-  distsq = NULL;
-  probability = NULL;
+  partner = finalpartner = nullptr;
+  distsq = nullptr;
+  probability = nullptr;
   maxcreate = 0;
-  created = NULL;
-  ncreate = NULL;
+  created = nullptr;
+  ncreate = nullptr;
   allncreate = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
-  restore =  NULL;
+  restore =  nullptr;
 
   // zero out stats
   global_megasize = 0;
@@ -489,17 +489,17 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   glove_counter = 0;
   guess_branch = new int[MAXGUESS]();
   pioneer_count = new int[max_natoms];
-  local_mega_glove = NULL;
-  ghostly_mega_glove = NULL;
-  global_mega_glove = NULL;
+  local_mega_glove = nullptr;
+  ghostly_mega_glove = nullptr;
+  global_mega_glove = nullptr;
 
   // these are merely loop indices that became important
   pion = neigh = trace = 0;
 
-  id_fix1 = NULL;
-  id_fix2 = NULL;
-  id_fix3 = NULL;
-  statted_id = NULL;
+  id_fix1 = nullptr;
+  id_fix2 = nullptr;
+  id_fix3 = nullptr;
+  statted_id = nullptr;
   custom_exclude_flag = 0;
 
   // used to store restart info
@@ -708,7 +708,7 @@ void FixBondReact::post_constructor()
       int unused;
       char * idprop;
       idprop = (char *) fix->extract("property",unused);
-      if (idprop == NULL)
+      if (idprop == nullptr)
         error->all(FLERR,"Exclude group must be a per-atom property group");
 
       len = strlen(idprop) + 1;
@@ -750,7 +750,7 @@ void FixBondReact::init()
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
-    if (force->pair == NULL || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
+    if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
       error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
   }
 
@@ -3132,7 +3132,7 @@ void FixBondReact::read(int myrxn)
 
   // skip 1st line of file
   eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Bond/react: Unexpected end of superimpose file");
+  if (eof == nullptr) error->one(FLERR,"Bond/react: Unexpected end of superimpose file");
 
   // read header lines
   // skip blank lines or lines that start with "#"
@@ -3403,7 +3403,7 @@ void FixBondReact::readID(char *strarg, int iconstr, int mode, int myID)
 void FixBondReact::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Bond/react: Cannot open map file %s",file);
     error->one(FLERR,str);
@@ -3414,7 +3414,7 @@ void FixBondReact::readline(char *line)
 {
   int n;
   if (me == 0) {
-    if (fgets(line,MAXLINE,fp) == NULL) n = 0;
+    if (fgets(line,MAXLINE,fp) == nullptr) n = 0;
     else n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -3431,11 +3431,11 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
 
     int eof = 0;
     if (me == 0) {
-      if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+      if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
-        if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+        if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       }
-      if (fgets(keyword,MAXLINE,fp) == NULL) eof = 1;
+      if (fgets(keyword,MAXLINE,fp) == nullptr) eof = 1;
     }
 
     // if eof, set keyword empty and return
@@ -3477,7 +3477,7 @@ int FixBondReact::parse(char *line, char **words, int max)
   int nwords = 0;
   words[nwords++] = strtok(line," \t\n\r\f");
 
-  while ((ptr = strtok(NULL," \t\n\r\f"))) {
+  while ((ptr = strtok(nullptr," \t\n\r\f"))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

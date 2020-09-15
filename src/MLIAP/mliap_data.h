@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPData : protected Pointers {
 
  public:
-  MLIAPData(class LAMMPS*, int, int*, class MLIAPModel*, class MLIAPDescriptor*, class PairMLIAP* = NULL);
+  MLIAPData(class LAMMPS*, int, int*, class MLIAPModel*, class MLIAPDescriptor*, class PairMLIAP* = nullptr);
   ~MLIAPData();
 
   void init();

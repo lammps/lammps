@@ -54,23 +54,23 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 
   // initialize element to parameter maps
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  cutILPsq = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  cutILPsq = nullptr;
+  map = nullptr;
 
   nmax = 0;
   maxlocal = 0;
-  ILP_numneigh = NULL;
-  ILP_firstneigh = NULL;
-  ipage = NULL;
+  ILP_numneigh = nullptr;
+  ILP_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  normal = NULL;
-  dnormal = NULL;
-  dnormdri = NULL;
+  normal = nullptr;
+  dnormal = nullptr;
+  dnormdri = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -167,7 +167,7 @@ void PairILPGrapheneHBN::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -176,7 +176,7 @@ void PairILPGrapheneHBN::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -249,7 +249,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
   int params_per_line = 13;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
@@ -257,7 +257,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open ILP potential file %s",filename);
       error->one(FLERR,str);
@@ -274,7 +274,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -296,7 +296,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -316,7 +316,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line
@@ -414,7 +414,7 @@ void PairILPGrapheneHBN::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 

@@ -28,7 +28,7 @@ enum{UNKNOWN,GLOBAL,PERATOM};
 /* ---------------------------------------------------------------------- */
 
 FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-vstore(NULL), astore(NULL), rbuf(NULL)
+vstore(nullptr), astore(nullptr), rbuf(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix store command");
 
@@ -69,8 +69,8 @@ vstore(NULL), astore(NULL), rbuf(NULL)
     if (nvalues == 1) vecflag = 1;
   }
 
-  vstore = NULL;
-  astore = NULL;
+  vstore = nullptr;
+  astore = nullptr;
 
   // allocate vector or array and restart buffer rbuf
   // for PERATOM, register with Atom class
@@ -84,7 +84,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
     grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
     if (restart_peratom) atom->add_callback(Atom::RESTART);
-    rbuf = NULL;
+    rbuf = nullptr;
   }
 
   // zero the storage
@@ -145,8 +145,8 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   memory->destroy(vstore);
   memory->destroy(astore);
   memory->destroy(rbuf);
-  vstore = NULL;
-  astore = NULL;
+  vstore = nullptr;
+  astore = nullptr;
 
   vecflag = 0;
   if (ncol_caller == 1) vecflag = 1;
@@ -199,8 +199,8 @@ void FixStore::restart(char *buf)
     memory->destroy(vstore);
     memory->destroy(astore);
     memory->destroy(rbuf);
-    vstore = NULL;
-    astore = NULL;
+    vstore = nullptr;
+    astore = nullptr;
 
     vecflag = 0;
     if (ncol_restart == 1) vecflag = 1;

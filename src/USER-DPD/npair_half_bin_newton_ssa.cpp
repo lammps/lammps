@@ -37,9 +37,9 @@ NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp)
   ssa_maxPhaseCt = 0;
   ssa_maxPhaseLen = 0;
   ssa_phaseCt = 0;
-  ssa_phaseLen = NULL;
-  ssa_itemLoc = NULL;
-  ssa_itemLen = NULL;
+  ssa_phaseLen = nullptr;
+  ssa_itemLoc = nullptr;
+  ssa_itemLen = nullptr;
   ssa_gphaseCt = 7;
   memory->create(ssa_gphaseLen,ssa_gphaseCt,"NPairHalfBinNewtonSSA:ssa_gphaseLen");
   memory->create(ssa_gitemLoc,ssa_gphaseCt,1,"NPairHalfBinNewtonSSA:ssa_gitemLoc");

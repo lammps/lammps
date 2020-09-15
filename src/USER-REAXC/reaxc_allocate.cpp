@@ -57,10 +57,10 @@ int PreAllocate_Space( reax_system *system, control_params * /*control*/,
   // Nullify some arrays only used in omp styles
   // Should be safe to do here since called in pair->setup();
 #ifdef LMP_USER_OMP
-  workspace->CdDeltaReduction = NULL;
-  workspace->forceReduction = NULL;
-  workspace->valence_angle_atom_myoffset = NULL;
-  workspace->my_ext_pressReduction = NULL;
+  workspace->CdDeltaReduction = nullptr;
+  workspace->forceReduction = nullptr;
+  workspace->valence_angle_atom_myoffset = nullptr;
+  workspace->my_ext_pressReduction = nullptr;
 #else
   LMP_UNUSED_PARAM(workspace);
 #endif

@@ -94,16 +94,16 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   maxexchange = 6*N_f+3;
 
   // allocate qtb
-  gfactor1 = NULL;
-  gfactor3 = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
-  id_temp = NULL;
-  temperature = NULL;
+  gfactor1 = nullptr;
+  gfactor3 = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
+  id_temp = nullptr;
+  temperature = nullptr;
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -158,7 +158,7 @@ void FixQTB::init()
 {
   // copy parameters from other classes
   double dtv = update->dt;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix msst without per-type mass defined");
 
   //initiate the counter \mu

@@ -48,10 +48,10 @@ enum{CONSTANT,EQUAL};    // same as FixGravity
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL),
-  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL),
-  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL),
-  displs(NULL), random(NULL), random2(NULL)
+  Fix(lmp, narg, arg), radius_poly(nullptr), frac_poly(nullptr),
+  idrigid(nullptr), idshake(nullptr), onemols(nullptr), molfrac(nullptr), coords(nullptr),
+  imageflags(nullptr), fixrigid(nullptr), fixshake(nullptr), recvcounts(nullptr),
+  displs(nullptr), random(nullptr), random2(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
@@ -344,7 +344,7 @@ void FixPour::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
@@ -359,7 +359,7 @@ void FixPour::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
@@ -456,7 +456,7 @@ void FixPour::pre_exchange()
 
   // perform allgatherv to acquire list of nearby particles on all procs
 
-  double *ptr = NULL;
+  double *ptr = nullptr;
   if (ncount) ptr = xmine[0];
   MPI_Allgatherv(ptr,4*ncount,MPI_DOUBLE,
                  xnear[0],recvcounts,displs,MPI_DOUBLE,world);
@@ -889,16 +889,16 @@ void FixPour::options(int narg, char **arg)
 
   iregion = -1;
   mode = ATOM;
-  molfrac = NULL;
+  molfrac = nullptr;
   rigidflag = 0;
-  idrigid = NULL;
+  idrigid = nullptr;
   shakeflag = 0;
-  idshake = NULL;
+  idshake = nullptr;
   idnext = 0;
   ignoreflag = ignoreline = ignoretri = 0;
   dstyle = ONE;
   radius_max = radius_one = 0.5;
-  radius_poly = frac_poly = NULL;
+  radius_poly = frac_poly = nullptr;
   density_lo = density_hi = 1.0;
   volfrac = 0.25;
   maxattempt = 50;
@@ -1091,5 +1091,5 @@ void *FixPour::extract(const char *str, int &itype)
     itype = 0;
     return &oneradius;
   }
-  return NULL;
+  return nullptr;
 }

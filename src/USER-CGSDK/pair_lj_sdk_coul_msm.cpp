@@ -37,7 +37,7 @@ PairLJSDKCoulMSM::PairLJSDKCoulMSM(LAMMPS *lmp) : PairLJSDKCoulLong(lmp)
   ewaldflag = pppmflag = 0;
   msmflag = 1;
   respa_enable = 0;
-  ftable = NULL;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -308,6 +308,6 @@ void *PairLJSDKCoulMSM::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"cut_msm") == 0) return (void *) &cut_coul;
-  return NULL;
+  return nullptr;
 }
 

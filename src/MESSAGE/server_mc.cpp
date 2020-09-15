@@ -77,7 +77,7 @@ void ServerMC::loop()
 
       cs->send(msgID,2);
       cs->pack_double(1,dval);
-      double *coords = NULL;
+      double *coords = nullptr;
       if (atom->nlocal) coords = &atom->x[0][0];
       cs->pack_parallel(2,4,atom->nlocal,atom->tag,3,coords);
 
@@ -143,5 +143,5 @@ void ServerMC::loop()
   // clean up
 
   delete cs;
-  lmp->cslib = NULL;
+  lmp->cslib = nullptr;
 }

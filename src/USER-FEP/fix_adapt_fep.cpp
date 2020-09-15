@@ -172,7 +172,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
-  id_fix_diam = id_fix_chg = NULL;
+  id_fix_diam = id_fix_chg = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,8 +220,8 @@ void FixAdaptFEP::post_constructor()
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
 
-  id_fix_diam = NULL;
-  id_fix_chg = NULL;
+  id_fix_diam = nullptr;
+  id_fix_chg = nullptr;
 
   char **newarg = new char*[6];
   newarg[1] = group->names[igroup];
@@ -307,7 +307,7 @@ void FixAdaptFEP::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
-      Pair *pair = NULL;
+      Pair *pair = nullptr;
 
       if (lmp->suffix_enable) {
         char psuffix[128];
@@ -316,11 +316,11 @@ void FixAdaptFEP::init()
         strcat(psuffix,lmp->suffix);
         pair = force->pair_match(psuffix,1);
       }
-      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
-      if (pair == NULL)
+      if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
+      if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
 
       ad->pdim = 2;
@@ -340,7 +340,7 @@ void FixAdaptFEP::init()
       }
 
     } else if (ad->which == KSPACE) {
-      if (force->kspace == NULL)
+      if (force->kspace == nullptr)
         error->all(FLERR,"Fix adapt/fep kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 

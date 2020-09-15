@@ -94,7 +94,7 @@ class manifold;
                          LAMMPS *lmp, int narg, char **arg )
   {
     if( strcmp( m_type::type(), name ) == 0 ){
-      if( *man_ptr == NULL ){
+      if( *man_ptr == nullptr ){
         *man_ptr = new m_type(lmp, narg, arg);
       }
     }

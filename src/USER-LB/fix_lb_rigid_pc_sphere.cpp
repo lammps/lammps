@@ -54,8 +54,8 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  body = NULL;
-  up = NULL;
+  body = nullptr;
+  up = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 

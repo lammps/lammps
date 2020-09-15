@@ -167,7 +167,7 @@ void TemperGrem::command(int narg, char **arg)
   // warm up Boltzmann RNG
 
   if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
-  else ranswap = NULL;
+  else ranswap = nullptr;
   ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 

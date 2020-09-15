@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 PairVashishtaTable::PairVashishtaTable(LAMMPS *lmp) : PairVashishta(lmp)
 {
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -252,8 +252,8 @@ void PairVashishtaTable::create_tables()
 {
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 
   tabinnersq = tabinner*tabinner;
 

@@ -53,8 +53,8 @@ enum{CONSTANT,EQUAL,ATOM};
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
-  flangevin(NULL), tforce(NULL), franprev(NULL), lv(NULL), id_temp(NULL), random(NULL)
+  gjfflag(0), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
+  flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -154,10 +154,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix langevin command");
   }
 
-  // set temperature = NULL, user can override via fix_modify if wants bias
+  // set temperature = nullptr, user can override via fix_modify if wants bias
 
-  id_temp = NULL;
-  temperature = NULL;
+  id_temp = nullptr;
+  temperature = nullptr;
 
   energy = 0.0;
 
@@ -165,11 +165,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // compute_scalar checks for this and returns 0.0
   // if flangevin_allocated is not set
 
-  flangevin = NULL;
+  flangevin = nullptr;
   flangevin_allocated = 0;
-  franprev = NULL;
-  lv = NULL;
-  tforce = NULL;
+  franprev = nullptr;
+  lv = nullptr;
+  tforce = nullptr;
   maxatom1 = maxatom2 = 0;
 
   // setup atom-based array for franprev
@@ -1104,7 +1104,7 @@ void *FixLangevin::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

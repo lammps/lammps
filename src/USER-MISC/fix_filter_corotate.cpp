@@ -149,22 +149,22 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   angle_distance = new double[atom->nangletypes+1];
 
   //grow_arrays
-  array_atom = NULL;
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
+  array_atom = nullptr;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
 
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);    //calls grow_arrays
 
-  x_store = NULL;
+  x_store = nullptr;
 
   //STUFF
-  g = NULL;
-  help2 = NULL;
+  g = nullptr;
+  help2 = nullptr;
 
-  dn1dx = dn2dx = dn3dx = NULL;
-  n1 = n2 = n3 = del1 = del2 = del3 = NULL;
+  dn1dx = dn2dx = dn3dx = nullptr;
+  n1 = n2 = n3 = del1 = del2 = del3 = nullptr;
 
   memory->grow(help2,15,15,"FilterCorotate:help2");
   memory->grow(n1,3,"FilterCorotate:n1");
@@ -188,11 +188,11 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   // initialize list of clusters to constrain
 
   maxlist = 0;
-  list = NULL;
-  clist_derv = NULL;
-  clist_q0 = NULL;    //list for derivative and ref. config
-  clist_nselect1 = clist_nselect2 = NULL;
-  clist_select1 = clist_select2 = NULL;
+  list = nullptr;
+  clist_derv = nullptr;
+  clist_q0 = nullptr;    //list for derivative and ref. config
+  clist_nselect1 = clist_nselect2 = nullptr;
+  clist_select1 = clist_select2 = nullptr;
 
 }
 
@@ -284,7 +284,7 @@ void FixFilterCorotate::init()
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for fix filter/corotate");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -1225,7 +1225,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,nullptr,(void *)this);
 
   memory->destroy(buf);
 

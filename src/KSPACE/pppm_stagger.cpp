@@ -50,7 +50,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 PPPMStagger::PPPMStagger(LAMMPS *lmp) :
   PPPM(lmp),
-  gf_b2(NULL)
+  gf_b2(nullptr)
 {
   stagger_flag = 1;
   group_group_enable = 0;

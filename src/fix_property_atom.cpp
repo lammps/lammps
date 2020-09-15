@@ -30,7 +30,7 @@ enum{MOLECULE,CHARGE,RMASS,INTEGER,DOUBLE};
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalue(0), style(NULL), index(NULL), astyle(NULL)
+  nvalue(0), style(nullptr), index(nullptr), astyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix property/atom command");
 
@@ -152,21 +152,21 @@ FixPropertyAtom::~FixPropertyAtom()
   if (border) atom->delete_callback(id,Atom::BORDER);
 
   // deallocate per-atom vectors in Atom class
-  // set ptrs to NULL, so they no longer exist for Atom class
+  // set ptrs to a null pointer, so they no longer exist for Atom class
 
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) {
       atom->molecule_flag = 0;
       memory->destroy(atom->molecule);
-      atom->molecule = NULL;
+      atom->molecule = nullptr;
     } else if (style[m] == CHARGE) {
       atom->q_flag = 0;
       memory->destroy(atom->q);
-      atom->q = NULL;
+      atom->q = nullptr;
     } else if (style[m] == RMASS) {
       atom->rmass_flag = 0;
       memory->destroy(atom->rmass);
-      atom->rmass = NULL;
+      atom->rmass = nullptr;
     } else if (style[m] == INTEGER) {
       atom->remove_custom(0,index[m]);
     } else if (style[m] == DOUBLE) {
@@ -237,13 +237,13 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL)
+    if (values[0] == nullptr)
       error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
 
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
-      values[j] = strtok(NULL," \t\n\r\f");
-      if (values[j] == NULL) format_ok = 0;
+      values[j] = strtok(nullptr," \t\n\r\f");
+      if (values[j] == nullptr) format_ok = 0;
     }
     if (!format_ok)
       error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpAtom(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
 
   compression_level = Z_BEST_COMPRESSION;
 
@@ -38,8 +38,8 @@ DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpAtomGZ::~DumpAtomGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -102,8 +102,8 @@ void DumpAtomGZ::openfile()
 
     gzFp = gzopen(filecurrent, mode.c_str());
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -155,7 +155,7 @@ void DumpAtomGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);

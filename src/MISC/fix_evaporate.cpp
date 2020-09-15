@@ -33,7 +33,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), list(NULL), mark(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), list(nullptr), mark(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix evaporate command");
 
@@ -84,8 +84,8 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   ndeleted = 0;
 
   nmax = 0;
-  list = NULL;
-  mark = NULL;
+  list = nullptr;
+  mark = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

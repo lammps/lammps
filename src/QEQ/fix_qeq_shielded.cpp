@@ -78,12 +78,12 @@ void FixQEqShielded::init()
 void FixQEqShielded::extract_reax()
 {
   Pair *pair = force->pair_match("^reax/c",0);
-  if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
+  if (pair == nullptr) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL)
+  if (chi == nullptr || eta == nullptr || gamma == nullptr)
     error->all(FLERR,
         "Fix qeq/slater could not extract params from pair reax/c");
 }

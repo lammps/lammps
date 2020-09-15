@@ -49,7 +49,7 @@ ComputeSMDTLSPHDefgrad::ComputeSMDTLSPHDefgrad(LAMMPS *lmp, int narg, char **arg
         size_peratom_cols = 10;
 
         nmax = 0;
-        defgradVector = NULL;
+        defgradVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

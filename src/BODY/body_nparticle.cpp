@@ -30,7 +30,7 @@ enum{SPHERE,LINE,TRI};           // also in DumpImage
 /* ---------------------------------------------------------------------- */
 
 BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
-  Body(lmp, narg, arg), imflag(NULL), imdata(NULL)
+  Body(lmp, narg, arg), imflag(nullptr), imdata(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
@@ -194,7 +194,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
 /* ----------------------------------------------------------------------
    pack data struct for one body into buf for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)

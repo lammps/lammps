@@ -41,7 +41,7 @@ using namespace FixConst;
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
+  step_respa(nullptr), prony_c(nullptr), prony_tau(nullptr), s_gld(nullptr), random(nullptr)
 {
   int narg_min = 8;
   // Check to make sure we have the minimal number of inputs
@@ -89,7 +89,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for Prony series timescale coefficients
   memory->create(prony_tau, prony_terms, "gld:prony_tau");
   // allocate memory for Prony series extended variables
-  s_gld = NULL;
+  s_gld = nullptr;
   grow_arrays(atom->nmax);
   // add callbacks to enable restarts
   atom->add_callback(Atom::GROW);

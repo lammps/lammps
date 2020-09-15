@@ -45,9 +45,9 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  force_old = NULL;
-  up = NULL;
-  up_old = NULL;
+  force_old = nullptr;
+  up = nullptr;
+  up_old = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 

@@ -47,7 +47,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMCG::PPPMCG(LAMMPS *lmp) : PPPM(lmp),
-  is_charged(NULL)
+  is_charged(nullptr)
 {
   num_charged = -1;
   group_group_enable = 1;

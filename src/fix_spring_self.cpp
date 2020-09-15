@@ -33,7 +33,7 @@ using namespace FixConst;
 
 FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xoriginal(NULL)
+  xoriginal(nullptr)
 {
   if ((narg < 4) || (narg > 5))
     error->all(FLERR,"Illegal fix spring/self command");
@@ -70,7 +70,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  xoriginal = NULL;
+  xoriginal = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);

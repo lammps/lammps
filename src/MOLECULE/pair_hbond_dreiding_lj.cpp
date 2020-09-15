@@ -50,7 +50,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   nparams = maxparam = 0;
-  params = NULL;
+  params = nullptr;
 
   nextra = 2;
   pvector = new double[2];

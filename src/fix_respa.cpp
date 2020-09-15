@@ -25,7 +25,7 @@ using namespace FixConst;
 
 FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  store_torque(0), f_level(NULL), t_level(NULL)
+  store_torque(0), f_level(nullptr), t_level(nullptr)
 {
   // nlevels = # of rRESPA levels
 
@@ -41,8 +41,8 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  f_level = NULL;
-  t_level = NULL;
+  f_level = nullptr;
+  t_level = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 }

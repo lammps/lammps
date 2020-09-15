@@ -153,21 +153,21 @@ void WriteData::write(const std::string &file)
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
   if (atom->molecular == Atom::MOLECULAR && (atom->nbonds || atom->nbondtypes)) {
-    nbonds_local = atom->avec->pack_bond(NULL);
+    nbonds_local = atom->avec->pack_bond(nullptr);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
   if (atom->molecular == Atom::MOLECULAR && (atom->nangles || atom->nangletypes)) {
-    nangles_local = atom->avec->pack_angle(NULL);
+    nangles_local = atom->avec->pack_angle(nullptr);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   if (atom->molecular == Atom::MOLECULAR && (atom->ndihedrals || atom->ndihedraltypes)) {
-    ndihedrals_local = atom->avec->pack_dihedral(NULL);
+    ndihedrals_local = atom->avec->pack_dihedral(nullptr);
     MPI_Allreduce(&ndihedrals_local,&ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
   if (atom->molecular == Atom::MOLECULAR && (atom->nimpropers || atom->nimpropertypes)) {
-    nimpropers_local = atom->avec->pack_improper(NULL);
+    nimpropers_local = atom->avec->pack_improper(nullptr);
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
@@ -175,7 +175,7 @@ void WriteData::write(const std::string &file)
 
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open data file {}: {}",
                                    file, utils::getsyserror()));
   }
@@ -665,7 +665,7 @@ void WriteData::bonus(int flag)
   // communication buffer for all my Bonus info
   // maxvalues = largest buffer needed by any proc
 
-  int nvalues = atom->avec->pack_data_bonus(NULL,flag);
+  int nvalues = atom->avec->pack_data_bonus(nullptr,flag);
   int maxvalues;
   MPI_Allreduce(&nvalues,&maxvalues,1,MPI_INT,MPI_MAX,world);
 

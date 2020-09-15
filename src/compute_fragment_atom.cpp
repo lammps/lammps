@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  fragmentID(NULL)
+  fragmentID(nullptr)
 {
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
@@ -61,9 +61,9 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  stack = NULL;
-  clist = NULL;
-  markflag = NULL;
+  stack = nullptr;
+  clist = nullptr;
+  markflag = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

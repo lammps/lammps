@@ -119,8 +119,8 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
-  int *ns = NULL;
-  tagint *s = NULL;
+  int *ns = nullptr;
+  tagint *s = nullptr;
   int tag_size = 0, special_size;
   if (buffers->need_tag()) tag_size = e_nall;
   if (molecular != Atom::ATOMIC) {

@@ -299,7 +299,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Delete_atoms requires a pair style be defined");
   if (cut > neighbor->cutneighmax)
     error->all(FLERR,"Delete_atoms cutoff > max neighbor cutoff");
@@ -476,7 +476,7 @@ void DeleteAtoms::delete_bond()
   for (int i = 0; i < nlocal; i++)
     if (dlist[i]) list[n++] = tag[i];
 
-  comm->ring(n,sizeof(tagint),list,1,bondring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,bondring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -514,7 +514,7 @@ void DeleteAtoms::delete_molecule()
   std::map<tagint,int>::iterator pos;
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,molring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);

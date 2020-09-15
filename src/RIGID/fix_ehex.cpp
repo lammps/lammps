@@ -45,8 +45,8 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  idregion(NULL), x(NULL), f(NULL), v(NULL),
-  mass(NULL), rmass(NULL), type(NULL), scalingmask(NULL)
+  idregion(nullptr), x(nullptr), f(nullptr), v(nullptr),
+  mass(nullptr), rmass(nullptr), type(nullptr), scalingmask(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -127,7 +127,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     error->all(FLERR, "You can only use the keyword 'com' together with the keyword 'constrain' ");
 
   scale = 1.0;
-  scalingmask    = NULL;
+  scalingmask    = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
@@ -177,7 +177,7 @@ void FixEHEX::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix ehex group has no atoms");
 
-  fshake = NULL;
+  fshake = nullptr;
   if (constraints) {
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
@@ -335,7 +335,7 @@ void FixEHEX::update_scalingmask() {
 
   // prematch region
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -354,7 +354,7 @@ void FixEHEX::update_scalingmask() {
       m    = fshake->list[i];
 
       // check if the centre of mass of the cluster is inside the region
-      // if region == NULL, just check the group information of all sites
+      // if region == nullptr, just check the group information of all sites
 
       if      (fshake->shake_flag[m] == 1)      nsites = 3;
       else if (fshake->shake_flag[m] == 2)      nsites = 2;

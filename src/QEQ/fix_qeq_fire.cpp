@@ -66,8 +66,8 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
 
-  comb = NULL;
-  comb3 = NULL;
+  comb = nullptr;
+  comb3 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

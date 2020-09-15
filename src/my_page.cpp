@@ -113,7 +113,7 @@ template <class T>
 T *MyPage<T>::get(int n) {
   if (n > maxchunk) {
     errorflag = 1;
-    return NULL;
+    return nullptr;
   }
   ndatum += n;
   nchunk++;
@@ -129,7 +129,7 @@ T *MyPage<T>::get(int n) {
   ipage++;
   if (ipage == npage) {
     allocate();
-    if (errorflag) return NULL;
+    if (errorflag) return nullptr;
   }
   page = pages[ipage];
   index = n;

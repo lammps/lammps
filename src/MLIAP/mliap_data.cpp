@@ -25,10 +25,10 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
                      class MLIAPModel* model_in,
                      class MLIAPDescriptor* descriptor_in,
                      class PairMLIAP* pairmliap_in) :
-  Pointers(lmp), gradforce(NULL), betas(NULL), descriptors(NULL), gamma(NULL),
-  gamma_row_index(NULL), gamma_col_index(NULL), egradient(NULL),
-  numneighs(NULL), iatoms(NULL), ielems(NULL), jatoms(NULL), jelems(NULL),
-  rij(NULL), graddesc(NULL), model(NULL), descriptor(NULL), list(NULL)
+  Pointers(lmp), gradforce(nullptr), betas(nullptr), descriptors(nullptr), gamma(nullptr),
+  gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
+  numneighs(nullptr), iatoms(nullptr), ielems(nullptr), jatoms(nullptr), jelems(nullptr),
+  rij(nullptr), graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;

@@ -49,7 +49,7 @@ ComputeSMD_Ulsph_Effm::ComputeSMD_Ulsph_Effm(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 0;
 
         nmax = 0;
-        dt_vector = NULL;
+        dt_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void ComputeSMD_Ulsph_Effm::compute_peratom() {
         int itmp = 0;
         double *particle_dt = (double *) force->pair->extract("smd/ulsph/effective_modulus_ptr",
                         itmp);
-        if (particle_dt == NULL) {
+        if (particle_dt == nullptr) {
                 error->all(FLERR,
                                 "compute smd/ulsph_effm failed to access particle_dt array");
         }

@@ -41,7 +41,7 @@ int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_
 
   out_control->buffer_len = (int)(req_space*REAX_SAFE_ZONE);
   out_control->buffer = (char*) malloc(out_control->buffer_len*sizeof(char));
-  if (out_control->buffer == NULL) {
+  if (out_control->buffer == nullptr) {
     char errmsg[256];
     snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*REAX_SAFE_ZONE));
     error_ptr->one(FLERR,errmsg);
@@ -341,7 +341,7 @@ int Init_Traj( reax_system *system, control_params *control,
   /* allocate line & buffer space */
   out_control->line = (char*) calloc( MAX_TRJ_LINE_LEN + 1, sizeof(char) );
   out_control->buffer_len = 0;
-  out_control->buffer = NULL;
+  out_control->buffer = nullptr;
 
   /* write trajectory header and atom info, if applicable */
   if (out_control->traj_method == REG_TRAJ) {

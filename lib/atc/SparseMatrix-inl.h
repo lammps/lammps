@@ -17,14 +17,14 @@ TRI_COORD<T>::TRI_COORD(INDEX row, INDEX col, T val, bool add_to)
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseMatrix<T>::SparseMatrix(INDEX rows, INDEX cols) 
- : _val(NULL), _ia(NULL), _ja(NULL), _size(0), _nRowsCRS(0), hasTemplate_(false),
+ : _val(nullptr), _ia(nullptr), _ja(nullptr), _size(0), _nRowsCRS(0), hasTemplate_(false),
    _nRows(rows),_nCols(cols) {}
 //-----------------------------------------------------------------------------
 // copy constructor
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& C)
- : Matrix<T>(), _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
+ : Matrix<T>(), _val(nullptr), _ia(nullptr), _ja(nullptr), hasTemplate_(false)
 {
   _copy(C); 
 }
@@ -33,7 +33,7 @@ SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& C)
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseMatrix<T>::SparseMatrix(const DenseMatrix<T>& C) 
-: Matrix<T>(), _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
+: Matrix<T>(), _val(nullptr), _ia(nullptr), _ja(nullptr), hasTemplate_(false)
 {
   reset(C); 
 }
@@ -67,9 +67,9 @@ void SparseMatrix<T>::_create(INDEX size, INDEX nrows)
   // assign memory to hold matrix
   try
   {
-    _val = (_size && nrows) ? new T     [_size]        : NULL;
-    _ia  = (_size && nrows) ? new INDEX [_nRowsCRS+1]  : NULL;
-    _ja  = (_size && nrows) ? new INDEX [_size]        : NULL;
+    _val = (_size && nrows) ? new T     [_size]        : nullptr;
+    _ia  = (_size && nrows) ? new INDEX [_nRowsCRS+1]  : nullptr;
+    _ja  = (_size && nrows) ? new INDEX [_size]        : nullptr;
   }
   catch (std::exception &e)
   {
@@ -94,8 +94,8 @@ void SparseMatrix<T>::_delete()
   if (_ia)  delete [] _ia;
   if (_ja)  delete [] _ja;
   _size = _nRowsCRS = 0;
-  _val = NULL;
-  _ia = _ja = NULL;
+  _val = nullptr;
+  _ia = _ja = nullptr;
 }
 //-----------------------------------------------------------------------------
 // full memory copy of C into this

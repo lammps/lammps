@@ -139,7 +139,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         Vector3d *smoothVelDifference = (Vector3d *) force->pair->extract("smd/tlsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
-                if (smoothVelDifference == NULL) {
+                if (smoothVelDifference == nullptr) {
                         error->one(FLERR,
                                         "fix smd/integrate_tlsph failed to access smoothVel array. Check if a pair style exist which calculates this quantity.");
                 }

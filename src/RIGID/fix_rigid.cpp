@@ -46,16 +46,16 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL),
-  inpfile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL),
-  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL),
-  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
-  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL),
-  tflag(NULL), langextra(NULL), sum(NULL), all(NULL),
-  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL),
-  dorient(NULL), id_dilate(NULL), id_gravity(NULL), random(NULL),
-  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL)
+  Fix(lmp, narg, arg), step_respa(nullptr),
+  inpfile(nullptr), nrigid(nullptr), mol2body(nullptr), body2mol(nullptr),
+  body(nullptr), displace(nullptr), masstotal(nullptr), xcm(nullptr),
+  vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr),
+  ey_space(nullptr), ez_space(nullptr), angmom(nullptr), omega(nullptr),
+  torque(nullptr), quat(nullptr), imagebody(nullptr), fflag(nullptr),
+  tflag(nullptr), langextra(nullptr), sum(nullptr), all(nullptr),
+  remapflag(nullptr), xcmimage(nullptr), eflags(nullptr), orient(nullptr),
+  dorient(nullptr), id_dilate(nullptr), id_gravity(nullptr), random(nullptr),
+  avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
 {
   int i,ibody;
 
@@ -76,12 +76,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   extended = orientflag = dorientflag = 0;
-  body = NULL;
-  xcmimage = NULL;
-  displace = NULL;
-  eflags = NULL;
-  orient = NULL;
-  dorient = NULL;
+  body = nullptr;
+  xcmimage = nullptr;
+  displace = nullptr;
+  eflags = nullptr;
+  orient = nullptr;
+  dorient = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
@@ -91,8 +91,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix rigid command");
   int iarg;
 
-  mol2body = NULL;
-  body2mol = NULL;
+  mol2body = nullptr;
+  body2mol = nullptr;
 
   // single rigid body
   // nbody = 1
@@ -322,9 +322,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   t_order = 3;
   p_chain = 10;
 
-  inpfile = NULL;
-  id_gravity = NULL;
-  id_dilate = NULL;
+  inpfile = nullptr;
+  id_gravity = nullptr;
+  id_dilate = nullptr;
 
   pcouple = NONE;
   pstyle = ANISO;
@@ -567,7 +567,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // initialize Marsaglia RNG with processor-unique seed
 
   if (langflag) random = new RanMars(lmp,seed + me);
-  else random = NULL;
+  else random = nullptr;
 
   // initialize vector output quantities in case accessed before run
 
@@ -1930,7 +1930,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (inpfile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
+  if (inpfile) readfile(1,nullptr,all,nullptr,nullptr,nullptr,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2281,12 +2281,12 @@ void FixRigid::readfile(int which, double *vec,
 
   if (me == 0) {
     fp = fopen(inpfile,"r");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open fix rigid file {}: {}",
                                    inpfile,utils::getsyserror()));
     while (1) {
       eof = fgets(line,MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
+      if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid file");
       start = &line[strspn(line," \t\n\v\f\r")];
       if (*start != '\0' && *start != '#') break;
     }
@@ -2327,7 +2327,7 @@ void FixRigid::readfile(int which, double *vec,
 
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok(nullptr," \t\n\r\f");
 
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {
@@ -2390,7 +2390,7 @@ void FixRigid::write_restart_file(const char *file)
 
   auto outfile = std::string(file) + ".rigid";
   FILE *fp = fopen(outfile.c_str(),"w");
-  if (fp == NULL)
+  if (fp == nullptr)
     error->one(FLERR,fmt::format("Cannot open fix rigid restart file {}: {}",
                                  outfile,utils::getsyserror()));
 
@@ -2711,7 +2711,7 @@ void *FixRigid::extract(const char *str, int &dim)
     return &t_target;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

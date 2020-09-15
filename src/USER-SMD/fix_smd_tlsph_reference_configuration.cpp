@@ -59,12 +59,12 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
                 error->all(FLERR, "Pair tlsph with partner list requires an atom map, see atom_modify");
 
         maxpartner = 1;
-        npartner = NULL;
-        partner = NULL;
-        wfd_list = NULL;
-        wf_list = NULL;
-        energy_per_bond = NULL;
-        degradation_ij = NULL;
+        npartner = nullptr;
+        partner = nullptr;
+        wfd_list = nullptr;
+        wf_list = nullptr;
+        energy_per_bond = nullptr;
+        degradation_ij = nullptr;
         grow_arrays(atom->nmax);
         atom->add_callback(Atom::GROW);
 
@@ -130,13 +130,13 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
         }
 
         int *updateFlag_ptr = (int *) force->pair->extract("smd/tlsph/updateFlag_ptr", itmp);
-        if (updateFlag_ptr == NULL) {
+        if (updateFlag_ptr == nullptr) {
                 error->one(FLERR,
                                 "fix FixSMD_TLSPH_ReferenceConfiguration failed to access updateFlag pointer. Check if a pair style exist which calculates this quantity.");
         }
 
         int *nn = (int *) force->pair->extract("smd/tlsph/numNeighsRefConfig_ptr", itmp);
-        if (nn == NULL) {
+        if (nn == nullptr) {
                 error->all(FLERR, "FixSMDIntegrateTlsph::updateReferenceConfiguration() failed to access numNeighsRefConfig_ptr array");
         }
 
@@ -468,7 +468,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::pack_restart(int i, double *buf) {
  ------------------------------------------------------------------------- */
 
 void FixSMD_TLSPH_ReferenceConfiguration::unpack_restart(int /*nlocal*/, int /*nth*/) {
-// ipage = NULL if being called from granular pair style init()
+// ipage = nullptr if being called from granular pair style init()
 
 // skip to Nth set of extra values
 // unpack the Nth first values this way because other fixes pack them

@@ -46,7 +46,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -484,7 +484,7 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus ellipsoid info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)

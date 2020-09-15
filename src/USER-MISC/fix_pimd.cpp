@@ -87,27 +87,27 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   /* Initiation */
 
   max_nsend = 0;
-  tag_send = NULL;
-  buf_send = NULL;
+  tag_send = nullptr;
+  buf_send = nullptr;
 
   max_nlocal = 0;
-  buf_recv = NULL;
-  buf_beads = NULL;
+  buf_recv = nullptr;
+  buf_beads = nullptr;
 
   size_plan = 0;
-  plan_send = plan_recv = NULL;
+  plan_send = plan_recv = nullptr;
 
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = NULL;
-  lam = NULL;
-  mode_index = NULL;
+  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
+  lam = nullptr;
+  mode_index = nullptr;
 
-  mass = NULL;
+  mass = nullptr;
 
-  array_atom = NULL;
-  nhc_eta = NULL;
-  nhc_eta_dot = NULL;
-  nhc_eta_dotdot = NULL;
-  nhc_eta_mass = NULL;
+  array_atom = nullptr;
+  nhc_eta = nullptr;
+  nhc_eta_dot = nullptr;
+  nhc_eta_dotdot = nullptr;
+  nhc_eta_mass = nullptr;
 
   size_peratom_cols = 12 * nhc_nchain + 3;
 
@@ -601,7 +601,7 @@ void FixPIMD::comm_init()
   }
 
   buf_beads = new double* [np];
-  for(int i=0; i<np; i++) buf_beads[i] = NULL;
+  for(int i=0; i<np; i++) buf_beads[i] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -45,8 +45,8 @@ enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   Fix (lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL),
-  count(NULL), values(NULL), corr(NULL), save_count(NULL), save_corr(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr), fp(nullptr),
+  count(nullptr), values(nullptr), corr(nullptr), save_count(nullptr), save_corr(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/correlate command");
 
@@ -112,11 +112,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   ave = ONE;
   startstep = 0;
   prefactor = 1.0;
-  fp = NULL;
+  fp = nullptr;
   overwrite = 0;
-  char *title1 = NULL;
-  char *title2 = NULL;
-  char *title3 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
+  char *title3 = nullptr;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
@@ -147,7 +147,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/correlate file {}:"" {}",
                                        arg[iarg+1], utils::getsyserror()));
       }

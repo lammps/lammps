@@ -50,7 +50,7 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   bond_per_atom = 0;
-  bond_negative = NULL;
+  bond_negative = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

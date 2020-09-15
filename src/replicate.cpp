@@ -154,7 +154,7 @@ void Replicate::command(int narg, char **arg)
   // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atomKK = NULL;
+  atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
 

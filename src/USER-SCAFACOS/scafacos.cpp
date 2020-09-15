@@ -42,10 +42,10 @@ Scafacos::Scafacos(LAMMPS *lmp) : KSpace(lmp)
   initialized = 0;
 
   maxatom = 0;
-  xpbc = NULL;
-  epot = NULL;
-  efield = NULL;
-  fcs = NULL;
+  xpbc = nullptr;
+  epot = nullptr;
+  efield = nullptr;
+  fcs = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

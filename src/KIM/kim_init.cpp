@@ -96,7 +96,7 @@ void KimInit::command(int narg, char **arg)
   } else unit_conversion_mode = false;
 
   char *model_units;
-  KIM_Model *pkim = NULL;
+  KIM_Model *pkim = nullptr;
 
   if (universe->me == 0)
     std::remove("kim.log");
@@ -366,8 +366,8 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
     if (numberOfParameters) {
       KIM_DataType kim_DataType;
       int extent;
-      char const *str_name = NULL;
-      char const *str_desc = NULL;
+      char const *str_name = nullptr;
+      char const *str_desc = nullptr;
 
       mesg += std::to_string(numberOfParameters) + " mutable parameters. \n";
 
@@ -486,7 +486,7 @@ void KimInit::write_log_cite(char *model_name)
     int availableAsString;
     char const * fileString;
     err = KIM_Collections_GetItemMetadataFile(
-        coll,i,&fileName,NULL,NULL,&availableAsString,&fileString);
+        coll,i,&fileName,nullptr,nullptr,&availableAsString,&fileString);
     if (err) continue;
 
     if (0 == strncmp("kimcite",fileName,7)) {

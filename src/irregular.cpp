@@ -52,15 +52,15 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // migrate work vectors
 
   maxlocal = 0;
-  mproclist = NULL;
-  msizes = NULL;
+  mproclist = nullptr;
+  msizes = nullptr;
 
   // send buffers
 
   maxdbuf = 0;
-  dbuf = NULL;
+  dbuf = nullptr;
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
   // universal work vectors
 
@@ -70,7 +70,7 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // initialize buffers for migrate atoms, not used for datum comm
   // these can persist for multiple irregular operations
 
-  buf_send = buf_recv = NULL;
+  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   bufextra = BUFEXTRA;
   grow_send(maxsend,2);

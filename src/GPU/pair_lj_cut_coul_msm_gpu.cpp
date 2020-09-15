@@ -143,7 +143,7 @@ void PairLJCutCoulMSMGPU::compute(int eflag, int vflag)
 
 void PairLJCutCoulMSMGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj/cut/coul/msm/gpu pair style");

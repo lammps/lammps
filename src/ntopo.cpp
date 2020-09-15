@@ -33,7 +33,7 @@ NTopo::NTopo(LAMMPS *lmp) : Pointers(lmp)
 
   nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
   maxbond = maxangle = maxdihedral = maximproper = 0;
-  bondlist = anglelist = dihedrallist = improperlist = NULL;
+  bondlist = anglelist = dihedrallist = improperlist = nullptr;
 
   cluster_check = neighbor->cluster_check;
 }

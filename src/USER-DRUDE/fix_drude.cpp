@@ -53,7 +53,7 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix drude command");
   }
 
-  drudeid = NULL;
+  drudeid = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
@@ -147,7 +147,7 @@ void FixDrude::build_drudeid(){
   // Loop on procs to fill my atoms' sets of bond partners
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             4, ring_build_partner, NULL, (void *)this, 1);
+             4, ring_build_partner, nullptr, (void *)this, 1);
 
   // Build the list of my Drudes' tags
   // The only bond partners of a Drude particle is its core,
@@ -163,7 +163,7 @@ void FixDrude::build_drudeid(){
   // so that each core finds its Drude.
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             3, ring_search_drudeid, NULL, (void *)this, 1);
+             3, ring_search_drudeid, nullptr, (void *)this, 1);
   delete [] partner_set;
 }
 
@@ -338,11 +338,11 @@ void FixDrude::rebuild_special(){
   // Remove Drude particles from the special lists of each proc
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             9, ring_remove_drude, NULL, (void *)this, 1);
+             9, ring_remove_drude, nullptr, (void *)this, 1);
   // Add back Drude particles in the lists just after their core
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             10, ring_add_drude, NULL, (void *)this, 1);
+             10, ring_add_drude, nullptr, (void *)this, 1);
 
   // Check size of special list
   nspecmax_loc = 0;
@@ -373,7 +373,7 @@ void FixDrude::rebuild_special(){
   // Copy core's list into their drude list
   comm->ring(core_special_vec.size(), sizeof(tagint),
              (char *) core_special_vec.data(),
-             11, ring_copy_drude, NULL, (void *)this, 1);
+             11, ring_copy_drude, nullptr, (void *)this, 1);
 }
 
 /* ----------------------------------------------------------------------

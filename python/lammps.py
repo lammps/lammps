@@ -1723,8 +1723,8 @@ class OutputCapture(object):
 # -------------------------------------------------------------------------
 
 class Variable(object):
-  def __init__(self, lammps_wrapper_instance, name, style, definition):
-    self.wrapper = lammps_wrapper_instance
+  def __init__(self, pylammps_instance, name, style, definition):
+    self._pylmp = pylammps_instance
     self.name = name
     self.style = style
     self.definition = definition.split()
@@ -1732,9 +1732,9 @@ class Variable(object):
   @property
   def value(self):
     if self.style == 'atom':
-      return list(self.wrapper.lmp.extract_variable(self.name, "all", 1))
+      return list(self._pylmp.lmp.extract_variable(self.name, "all", 1))
     else:
-      value = self.wrapper.lmp_print('"${%s}"' % self.name).strip()
+      value = self._pylmp.lmp_print('"${%s}"' % self.name).strip()
       try:
         return float(value)
       except ValueError:
@@ -1750,10 +1750,10 @@ class AtomList(object):
   :ivar natoms: total number of atoms
   :ivar dimensions: number of dimensions in system
   """
-  def __init__(self, lammps_wrapper_instance):
-    self._lmp = lammps_wrapper_instance
-    self.natoms = self.lmp.system.natoms
-    self.dimensions = self.lmp.system.dimensions
+  def __init__(self, pylammps_instance):
+    self._pylmp = pylammps_instance
+    self.natoms = self._lmp.system.natoms
+    self.dimensions = self._lmp.system.dimensions
     self._loaded = {}
 
   def __getitem__(self, index):
@@ -1766,9 +1766,9 @@ class AtomList(object):
     """
     if index not in self._loaded:
         if self.dimensions == 2:
-            atom = Atom2D(self.lmp, index + 1)
+            atom = Atom2D(self._pylmp, index + 1)
         else:
-            atom = Atom(self.lmp, index + 1)
+            atom = Atom(self._pylmp, index + 1)
         self._loaded[index] = atom
     return self._loaded[index]
 
@@ -1779,90 +1779,95 @@ class AtomList(object):
 # -------------------------------------------------------------------------
 
 class Atom(object):
-  def __init__(self, lammps_wrapper_instance, index):
-    self.lmp = lammps_wrapper_instance
+  """
+  A wrapper class then represents a single atom inside of LAMMPS
+
+  It provides access to properties of the atom and allows you to change some of them.
+  """
+  def __init__(self, pylammps_instance, index):
+    self._pylmp = pylammps_instance
     self.index = index
 
   @property
   def id(self):
-    return int(self.lmp.eval("id[%d]" % self.index))
+    return int(self._pylmp.eval("id[%d]" % self.index))
 
   @property
   def type(self):
-    return int(self.lmp.eval("type[%d]" % self.index))
+    return int(self._pylmp.eval("type[%d]" % self.index))
 
   @property
   def mol(self):
-    return self.lmp.eval("mol[%d]" % self.index)
+    return self._pylmp.eval("mol[%d]" % self.index)
 
   @property
   def mass(self):
-    return self.lmp.eval("mass[%d]" % self.index)
+    return self._pylmp.eval("mass[%d]" % self.index)
 
   @property
   def position(self):
-    return (self.lmp.eval("x[%d]" % self.index),
-            self.lmp.eval("y[%d]" % self.index),
-            self.lmp.eval("z[%d]" % self.index))
+    return (self._pylmp.eval("x[%d]" % self.index),
+            self._pylmp.eval("y[%d]" % self.index),
+            self._pylmp.eval("z[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self.lmp.set("atom", self.index, "x", value[0])
-     self.lmp.set("atom", self.index, "y", value[1])
-     self.lmp.set("atom", self.index, "z", value[2])
+     self._pylmp.set("atom", self.index, "x", value[0])
+     self._pylmp.set("atom", self.index, "y", value[1])
+     self._pylmp.set("atom", self.index, "z", value[2])
 
   @property
   def velocity(self):
-    return (self.lmp.eval("vx[%d]" % self.index),
-            self.lmp.eval("vy[%d]" % self.index),
-            self.lmp.eval("vz[%d]" % self.index))
+    return (self._pylmp.eval("vx[%d]" % self.index),
+            self._pylmp.eval("vy[%d]" % self.index),
+            self._pylmp.eval("vz[%d]" % self.index))
 
   @velocity.setter
   def velocity(self, value):
-     self.lmp.set("atom", self.index, "vx", value[0])
-     self.lmp.set("atom", self.index, "vy", value[1])
-     self.lmp.set("atom", self.index, "vz", value[2])
+     self._pylmp.set("atom", self.index, "vx", value[0])
+     self._pylmp.set("atom", self.index, "vy", value[1])
+     self._pylmp.set("atom", self.index, "vz", value[2])
 
   @property
   def force(self):
-    return (self.lmp.eval("fx[%d]" % self.index),
-            self.lmp.eval("fy[%d]" % self.index),
-            self.lmp.eval("fz[%d]" % self.index))
+    return (self._pylmp.eval("fx[%d]" % self.index),
+            self._pylmp.eval("fy[%d]" % self.index),
+            self._pylmp.eval("fz[%d]" % self.index))
 
   @property
   def charge(self):
-    return self.lmp.eval("q[%d]" % self.index)
+    return self._pylmp.eval("q[%d]" % self.index)
 
 # -------------------------------------------------------------------------
 
 class Atom2D(Atom):
-  def __init__(self, lammps_wrapper_instance, index):
-    super(Atom2D, self).__init__(lammps_wrapper_instance, index)
+  def __init__(self, pylammps_instance, index):
+    super(Atom2D, self).__init__(pylammps_instance, index)
 
   @property
   def position(self):
-    return (self.lmp.eval("x[%d]" % self.index),
-            self.lmp.eval("y[%d]" % self.index))
+    return (self._pylmp.eval("x[%d]" % self.index),
+            self._pylmp.eval("y[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self.lmp.set("atom", self.index, "x", value[0])
-     self.lmp.set("atom", self.index, "y", value[1])
+     self._pylmp.set("atom", self.index, "x", value[0])
+     self._pylmp.set("atom", self.index, "y", value[1])
 
   @property
   def velocity(self):
-    return (self.lmp.eval("vx[%d]" % self.index),
-            self.lmp.eval("vy[%d]" % self.index))
+    return (self._pylmp.eval("vx[%d]" % self.index),
+            self._pylmp.eval("vy[%d]" % self.index))
 
   @velocity.setter
   def velocity(self, value):
-     self.lmp.set("atom", self.index, "vx", value[0])
-     self.lmp.set("atom", self.index, "vy", value[1])
+     self._pylmp.set("atom", self.index, "vx", value[0])
+     self._pylmp.set("atom", self.index, "vy", value[1])
 
   @property
   def force(self):
-    return (self.lmp.eval("fx[%d]" % self.index),
-            self.lmp.eval("fy[%d]" % self.index))
+    return (self._pylmp.eval("fx[%d]" % self.index),
+            self._pylmp.eval("fy[%d]" % self.index))
 
 # -------------------------------------------------------------------------
 

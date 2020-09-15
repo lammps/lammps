@@ -186,6 +186,7 @@ void FixSMDTlsphDtReset::end_of_step() {
 
 
         update->dt = dt;
+        update->dt_default = 0;
         if (force->pair)
                 force->pair->reset_dt();
         for (int i = 0; i < modify->nfix; i++)

@@ -1,6 +1,6 @@
 ---
-lammps_version: 21 Aug 2020
-date_generated: Sun Aug 23 06:30:19 202
+lammps_version: 24 Aug 2020
+date_generated: Tue Sep 15 09:44:26 202
 epsilon: 5e-13
 prerequisites: ! |
   pair reax/c

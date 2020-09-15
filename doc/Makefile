@@ -41,7 +41,10 @@ HAS_PDFLATEX = YES
 endif
 
 
-SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
+#SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
+
+# temporarily disable caching so that the hack for the sphinx-tabs extensions to get proper non-html output works
+SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
 # grab list of sources from doxygen config file.
 # we only want to use explicitly listed files.

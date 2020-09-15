@@ -294,8 +294,11 @@ void ReadData::command(int narg, char **arg)
 
   // error checks
 
-  if (domain->dimension == 2 && domain->zperiodic == 0)
+  if ((domain->dimension == 2) && (domain->zperiodic == 0))
     error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
+  if ((domain->nonperiodic == 2) && utils::strmatch(force->kspace_style,"^msm"))
+    error->all(FLERR,"Reading a data file with shrinkwrap boundaries is "
+                    "not compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
     error->all(FLERR,"Cannot read_data without add keyword "
                "after simulation box is defined");

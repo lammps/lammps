@@ -532,6 +532,38 @@ int lammps_version(void *handle)
   return atoi(lmp->universe->num_ver);
 }
 
+/* ---------------------------------------------------------------------- */
+
+/** Get memory usage information
+ *
+\verbatim embed:rst
+
+This function will retrieve memory usage information for the current
+LAMMPS instance or process.  The *meminfo* buffer will be filled with
+3 different numbers (if supported by the operating system).  The first
+is the tally (in MBytes) of all large memory allocations made by LAMMPS.
+This is a lower boundary of how much memory is requested and does not
+account for memory allocated on the stack or allocations via ``new``.
+The second number is the current memory allocation of the process as
+returned by the memory allocator in the C-library.  The third number
+is the maximum amount of RAM (not swap) used by the process so far.
+If any of the two latter parameters is not supported by the operating
+system, the number value is 0.
+
+.. versionadded:: 15Sep2020
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  meminfo  buffer with space for at least 3 double to store
+ * data in. */
+
+void lammps_memory_usage(void *handle, double *meminfo)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Info info(lmp);
+  info.get_memory_info(meminfo);
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -129,7 +129,7 @@ public:
   
   message_logger(const string &descriptor_="", int out_level=vblALLBAD|vblMESS1, 
                  int stop_level=vblFATAL, int throw_exceptions=0, int use_globally=0)
-    :descriptor(descriptor_),prev(NULL),next(NULL){
+    :descriptor(descriptor_),prev(nullptr),next(nullptr){
     set_throw(throw_exceptions);
     set_levels(out_level,stop_level);
     extra_levels(0,0);
@@ -157,8 +157,8 @@ public:
         return -1; 
       glogp=prev;
       if(glogp)
-        glogp->next=NULL;
-      prev=NULL;
+        glogp->next=nullptr;
+      prev=nullptr;
     }
     return 1;
   }
@@ -244,7 +244,7 @@ public:
                   FILE *out=stdout, FILE *err=stderr, 
                   int out_level=vblALLBAD|vblMESS1,int stop_level=vblFATAL,
                   int use_globally=0)
-                  : message_logger(descriptor_,out_level,stop_level,throw_exceptions,use_globally),fout(NULL), ferr(NULL){
+                  : message_logger(descriptor_,out_level,stop_level,throw_exceptions,use_globally),fout(nullptr), ferr(nullptr){
     set_out(out);
     set_err(err);
   }

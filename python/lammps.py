@@ -2430,7 +2430,7 @@ class IPyLammps(PyLammps):
     """
     Load video from file
 
-    Can be used to visualize videos from :doc:`dump_movie`.
+    Can be used to visualize videos from :doc:`dump movie <dump_image>`.
 
     :param filename: Path to video file
     :type filename: string

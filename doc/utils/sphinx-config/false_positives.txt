@@ -1989,6 +1989,7 @@ Nakano
 nall
 namespace
 namespaces
+namedtuple
 nan
 NaN
 Nandor

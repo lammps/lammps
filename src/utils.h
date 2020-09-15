@@ -354,8 +354,8 @@ namespace LAMMPS_NS {
      * If the potential file has a ``UNITS`` tag in the first line, the
      * tag's value is compared to the current unit style setting.
      * The behavior of the function then depends on the value of the
-     * *auto_convert* parameter.  If it is ``nullptr``, then the unit values
-     * must match or else the open will fail with an error.  Otherwise
+     * *auto_convert* parameter.  If it is a null pointer, then the unit
+     * values must match or else the open will fail with an error.  Otherwise
      * the bitmask that *auto_convert* points to is used check for
      * compatibility with possible automatic conversions by the calling
      * function.  If compatible, the bitmask is set to the required
@@ -363,8 +363,8 @@ namespace LAMMPS_NS {
      *
      * \param name          file- or pathname of the potential file
      * \param lmp           pointer to top-level LAMMPS class instance
-     * \param auto_convert  pointer to unit conversion bitmask or nullptr
-     * \return              FILE pointer of the opened potential file or nullptr*/
+     * \param auto_convert  pointer to unit conversion bitmask or ``nullptr``
+     * \return              FILE pointer of the opened potential file or ``nullptr`` */
 
     FILE *open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert);
 

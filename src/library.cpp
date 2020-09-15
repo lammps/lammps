@@ -105,7 +105,7 @@ LAMMPS executable, and an MPI communicator for LAMMPS to run under.
 Since the list of arguments is **exactly** as when called from the
 command line, the first argument would be the name of the executable and
 thus is otherwise ignored.  However ``argc`` may be set to 0 and then
-``argv`` may be ``nullptr``.  If MPI is not yet initialized, ``MPI_Init()``
+``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
 will be called during creation of the LAMMPS class instance.
 
 If for some reason the creation or initialization of the LAMMPS instance
@@ -117,7 +117,7 @@ fails a null pointer is returned.
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``nullptr`` and is then ignored.
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
 
 .. note::
 
@@ -133,7 +133,7 @@ fails a null pointer is returned.
  * \param  argv  list of command line argument strings
  * \param  comm  MPI communicator for this LAMMPS instance
  * \param  ptr   pointer to a void pointer variable which serves
- *               as a handle; may be ``nullptr``
+ *               as a handle; may be ``NULL``
  * \return       pointer to new LAMMPS instance cast to ``void *`` */
 
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
@@ -183,14 +183,14 @@ fails a null pointer is returned.
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``nullptr`` and is then ignored.
+   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
 
 \endverbatim
  *
  * \param  argc  number of command line arguments
  * \param  argv  list of command line argument strings
  * \param  ptr   pointer to a void pointer variable
- *               which serves as a handle; may be ``nullptr``
+ *               which serves as a handle; may be ``NULL``
  * \return       pointer to new LAMMPS instance cast to ``void *`` */
 
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
@@ -375,14 +375,14 @@ string, however, will be treated as part of the command and will **not**
 start a second command.  The function :cpp:func:`lammps_commands_string`
 processes a string with multiple command lines.
 
-The function returns the name of the command on success or ``nullptr`` when
+The function returns the name of the command on success or ``NULL`` when
 passing a string without a command.
 
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  cmd     string with a single LAMMPS command
- * \return         string with parsed command name or ``nullptr`` */
+ * \return         string with parsed command name or ``NULL`` */
 
 char *lammps_command(void *handle, const char *cmd)
 {
@@ -671,7 +671,7 @@ double lammps_get_thermo(void *handle, const char *keyword)
 This function (re-)initializes the simulation box and boundary
 information and then assign the designated data to the locations in the
 pointers passed as arguments. Any argument (except the first) may be
-a nullptr pointer and then will not be assigned.
+a NULL pointer and then will not be assigned.
 
 \endverbatim
  *
@@ -1104,7 +1104,7 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  name     string with the name of the extracted property
  * \return          pointer (cast to ``void *``) to the location of the
-                    requested property. nullptr if name is not known. */
+                    requested property. NULL if name is not known. */
 
 void *lammps_extract_global(void *handle, const char *name)
 {
@@ -1196,7 +1196,7 @@ of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    string with the name of the extracted property
  * \return         pointer (cast to ``void *``) to the location of the
- *                 requested data or ``nullptr`` if not found. */
+ *                 requested data or ``NULL`` if not found. */
 
 void *lammps_extract_atom(void *handle, const char *name)
 {
@@ -1246,13 +1246,13 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  *
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  n        number of atoms, N, to be added to the system
- * \param  id       pointer to N atom IDs; ``nullptr`` will generate IDs
+ * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
  * \param  type     pointer to N atom types (required)
  * \param  x        pointer to 3N doubles with x-,y-,z- positions
                     of the new atoms (required)
  * \param  v        pointer to 3N doubles with x-,y-,z- velocities
-                    of the new atoms (set to 0.0 if ``nullptr``)
- * \param  image    pointer to N imageint sets of image flags, or ``nullptr``
+                    of the new atoms (set to 0.0 if ``NULL``)
+ * \param  image    pointer to N imageint sets of image flags, or ``NULL``
  * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
                     still be created and not dropped and the box extended
  * \return          number of atoms created on success;
@@ -1365,7 +1365,7 @@ dimensions of the respective data.  Since computes may provide multiple
 kinds of data, it is required to set style and type flags representing
 what specific data is desired.  This also determines to what kind of
 pointer the returned pointer needs to be cast to access the data
-correctly.  The function returns ``nullptr`` if the compute ID is not found
+correctly.  The function returns ``NULL`` if the compute ID is not found
 or the requested data is not available or current. The following table
 lists the available options.
 
@@ -1453,7 +1453,7 @@ be used after other LAMMPS commands have been issued.
  * \param  type    constant indicating type of data (scalar, vector,
                    or array) or size of rows or columns
  * \return         pointer (cast to ``void *``) to the location of the
- *                 requested data or ``nullptr`` if not found. */
+ *                 requested data or ``NULL`` if not found. */
 
 void *lammps_extract_compute(void *handle, char *id, int style, int type)
 {
@@ -1533,7 +1533,7 @@ Since individual fixes may provide multiple kinds of data, it is
 required to set style and type flags representing what specific data is
 desired.  This also determines to what kind of pointer the returned
 pointer needs to be cast to access the data correctly.  The function
-returns ``nullptr`` if the fix ID is not found or the requested data is not
+returns ``NULL`` if the fix ID is not found or the requested data is not
 available.
 
 .. note::
@@ -1637,7 +1637,7 @@ been issued.
  * \param  nrow    row index (only used for global vectors and arrays)
  * \param  ncol    column index (only used for global arrays)
  * \return         pointer (cast to ``void *``) to the location of the
- *                 requested data or ``nullptr`` if not found. */
+ *                 requested data or ``NULL`` if not found. */
 
 void *lammps_extract_fix(void *handle, char *id, int style, int type,
                          int nrow, int ncol)
@@ -1714,9 +1714,9 @@ identified by its name.  The variable must be either an *equal*\ -style
 compatible or an *atom*\ -style variable.  Variables of style *internal*
 are compatible with *equal*\ -style variables and so are *python*\
 -style variables, if they return a numeric value.  The function returns
-``nullptr`` when a variable of the provided *name* is not found or of an
+``NULL`` when a variable of the provided *name* is not found or of an
 incompatible style.  The *group* argument is only used for *atom*\
--style variables and ignored otherwise.  If set to ``nullptr`` when
+-style variables and ignored otherwise.  If set to ``NULL`` when
 extracting data from and *atom*\ -style variable, the group is assumed
 to be "all".
 
@@ -1730,7 +1730,7 @@ to be "all".
 
    .. code-block:: c
 
-      double *dptr = (double *) lammps_extract_variable(handle,name,nullptr);
+      double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
       double value = *dptr;
       lammps_free((void *)dptr);
 
@@ -1753,9 +1753,9 @@ values will not be updated, in case the variable is re-evaluated.
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    name of the variable
- * \param  group   group-ID for atom style variable or ``nullptr``
+ * \param  group   group-ID for atom style variable or ``NULL``
  * \return         pointer (cast to ``void *``) to the location of the
- *                 requested data or ``nullptr`` if not found. */
+ *                 requested data or ``NULL`` if not found. */
 
 void *lammps_extract_variable(void *handle, char *name, char *group)
 {
@@ -4142,7 +4142,7 @@ int lammps_neighlist_num_elements(void * handle, int idx) {
                           invalid idx or element value
  * \param[out] numneigh   number of neighbors of atom iatom or 0
  * \param[out] neighbors  pointer to array of neighbor atom local indices or
- *                        nullptr
+ *                        NULL
  */
 void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
   LAMMPS *  lmp = (LAMMPS *) handle;

@@ -1028,7 +1028,6 @@ void MSM::set_grid_global()
 
   int flag = 0;
   int xlevels,ylevels,zlevels;
-  xlevels = ylevels = zlevels = 1;
 
   while (!factorable(nx_max,flag,xlevels)) {
     double k = log(nx_max)/log(2.0);
@@ -1436,6 +1435,7 @@ void MSM::setup_grid()
 int MSM::factorable(int n, int &flag, int &nlevels)
 {
   int i;
+  nlevels = 1;
 
   while (n > 1) {
     for (i = 0; i < nfactors; i++) {

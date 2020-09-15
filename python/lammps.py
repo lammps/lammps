@@ -1992,6 +1992,10 @@ class PyLammps(object):
     self.lmp = None
 
   def close(self):
+    """Explicitly delete a LAMMPS instance
+
+    This is a wrapper around the :py:meth:`lammps.close` of the Python interface.
+    """
     if self.lmp: self.lmp.close()
     self.lmp = None
 
@@ -2091,32 +2095,68 @@ class PyLammps(object):
 
   @property
   def communication(self):
+    """
+    The communication state of this LAMMPS instance
+
+    :getter: Returns an object with properties storing the current communication state
+    :type: namedtuple
+    """
     output = self.info("communication")
     d = self._parse_info_communication(output)
     return namedtuple('Communication', d.keys())(*d.values())
 
   @property
   def computes(self):
+    """
+    The list of active computes of this LAMMPS instance
+
+    :getter: Returns a list of computes that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("computes")
     return self._parse_element_list(output)
 
   @property
   def dumps(self):
+    """
+    The list of active dumps of this LAMMPS instance
+
+    :getter: Returns a list of dumps that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("dumps")
     return self._parse_element_list(output)
 
   @property
   def fixes(self):
+    """
+    The list of active fixes of this LAMMPS instance
+
+    :getter: Returns a list of fixes that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("fixes")
     return self._parse_element_list(output)
 
   @property
   def groups(self):
+    """
+    The list of active atom groups of this LAMMPS instance
+
+    :getter: Returns a list of atom groups that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("groups")
     return self._parse_groups(output)
 
   @property
   def variables(self):
+    """
+    Returns a dictionary of all variables defined in the current LAMMPS instance
+
+    :getter: Returns a dictionary of all variables that are defined in this LAMMPS instance
+    :type: dict
+    """
     output = self.info("variables")
     vars = {}
     for v in self._parse_element_list(output):
@@ -2302,7 +2342,21 @@ class PyLammps(object):
 
 class IPyLammps(PyLammps):
   """
-  IPython wrapper for LAMMPS which adds embedded graphics capabilities
+  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammmps interface
+
+  It either creates its own instance of :py:class:`lammps` or can be
+  initialized with an existing instance. The arguments are the same of the
+  lower-level interface. The original interface can still be accessed via
+  :py:attr:`PyLammps.lmp`.
+
+  :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
+  :type  name: string
+  :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
+  :type  cmdargs: list
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.
+  :type  ptr: pointer
+  :param comm: MPI communicator (as provided by `mpi4py <mpi4py_docs_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
+  :type  comm: MPI_Comm
   """
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
@@ -2310,6 +2364,34 @@ class IPyLammps(PyLammps):
 
   def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
             size=None, view=None, center=None, up=None, zoom=1.0, background_color="white"):
+    """ Generate image using write_dump command and display it
+
+    See :doc:`dump image <dump_image>` for more information.
+
+    :param filename: Name of the image file that should be generated. The extension determines whether it is PNG or JPEG
+    :type filename: string
+    :param group: the group of atoms write_image should use
+    :type group: string
+    :param color: name of property used to determine color
+    :type color: string
+    :param diameter: name of property used to determine atom diameter
+    :type diameter: string
+    :param size: dimensions of image
+    :type size: tuple (width, height)
+    :param view: view parameters
+    :type view: tuple (theta, phi)
+    :param center: center parameters
+    :type center: tuple (flag, center_x, center_y, center_z)
+    :param up: vector pointing to up direction
+    :type up: tuple (up_x, up_y, up_z)
+    :param zoom: zoom factor
+    :type zoom: float
+    :param background_color: background color of scene
+    :type background_color: string
+    
+    :return: Image instance used to display image in notebook
+    :rtype: :py:class:`IPython.core.display.Image`
+    """
     cmd_args = [group, "image", filename, color, diameter]
 
     if size:
@@ -2345,5 +2427,15 @@ class IPyLammps(PyLammps):
     return Image(filename)
 
   def video(self, filename):
+    """
+    Load video from file
+
+    Can be used to visualize videos from :doc:`dump_movie`.
+
+    :param filename: Path to video file
+    :type filename: string
+    :return: HTML Video Tag used by notebook to embed a video
+    :rtype: :py:class:`IPython.display.HTML`
+    """
     from IPython.display import HTML
     return HTML("<video controls><source src=\"" + filename + "\"></video>")

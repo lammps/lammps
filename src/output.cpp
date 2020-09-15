@@ -21,6 +21,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
@@ -817,28 +818,19 @@ void Output::create_restart(int narg, char **arg)
 
 void Output::memory_usage()
 {
-  double bytes = 0;
-  bytes += atom->memory_usage();
-  bytes += neighbor->memory_usage();
-  bytes += comm->memory_usage();
-  bytes += update->memory_usage();
-  bytes += force->memory_usage();
-  bytes += modify->memory_usage();
-  for (int i = 0; i < ndump; i++) bytes += dump[i]->memory_usage();
+  double meminfo[3];
+  Info info(lmp);
 
-  double mbytes = bytes/1024.0/1024.0;
-  double mbavg,mbmin,mbmax;
+  info.get_memory_info(meminfo);
+  double mbytes = meminfo[0];
+  double mbmin,mbavg,mbmax;
   MPI_Reduce(&mbytes,&mbavg,1,MPI_DOUBLE,MPI_SUM,0,world);
   MPI_Reduce(&mbytes,&mbmin,1,MPI_DOUBLE,MPI_MIN,0,world);
   MPI_Reduce(&mbytes,&mbmax,1,MPI_DOUBLE,MPI_MAX,0,world);
+  mbavg /= comm->nprocs;
 
-  if (comm->me == 0) {
-    mbavg /= comm->nprocs;
-    if (screen)
-      fprintf(screen,"Per MPI rank memory allocation (min/avg/max) = "
-              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
-    if (logfile)
-      fprintf(logfile,"Per MPI rank memory allocation (min/avg/max) = "
-              "%.4g | %.4g | %.4g Mbytes\n",mbmin,mbavg,mbmax);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Per MPI rank memory allocation (min/avg/"
+                                   "max) = {:.4} | {:.4} | {:.4} Mbytes\n",
+                                   mbmin,mbavg,mbmax));
 }

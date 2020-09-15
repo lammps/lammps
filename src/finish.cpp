@@ -202,12 +202,12 @@ void Finish::end(int flag)
                           update->minimize->einitial,
                           update->minimize->eprevious,
                           update->minimize->efinal);
-      mesg += fmt::format("  Force two-norm initial, final = {} {}\n",
+      mesg += fmt::format("  Force two-norm initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorm2_init,update->minimize->fnorm2_final);
-      mesg += fmt::format("  Force max component initial, final = {} {}\n",
+      mesg += fmt::format("  Force max component initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorminf_init,
                           update->minimize->fnorminf_final);
-      mesg += fmt::format("  Final line search alpha, max atom move = {} {}\n",
+      mesg += fmt::format("  Final line search alpha, max atom move = {:.8} {:.8}\n",
                           update->minimize->alpha_final,
                           update->minimize->alpha_final*
                           update->minimize->fnorminf_final);

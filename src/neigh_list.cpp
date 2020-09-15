@@ -294,9 +294,9 @@ void NeighList::print_attributes()
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
-bigint NeighList::memory_usage()
+double NeighList::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += memory->usage(ilist,maxatom);
   bytes += memory->usage(numneigh,maxatom);
   bytes += maxatom * sizeof(int *);

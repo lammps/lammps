@@ -1172,9 +1172,9 @@ void Dump::pbc_allocate()
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Dump::memory_usage()
+double Dump::memory_usage()
 {
-  bigint bytes = memory->usage(buf,size_one*maxbuf);
+  double bytes = memory->usage(buf,size_one*maxbuf);
   bytes += memory->usage(sbuf,maxsbuf);
   if (sort_flag) {
     if (sortcol == 0) bytes += memory->usage(ids,maxids);

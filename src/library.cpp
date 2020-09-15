@@ -69,7 +69,7 @@ using namespace LAMMPS_NS;
 
 #ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
-  Error * error = lmp->error; \
+  Error *error = lmp->error; \
   try
 
 #define END_CAPTURE \
@@ -534,6 +534,72 @@ int lammps_version(void *handle)
 
 /* ---------------------------------------------------------------------- */
 
+/** Get memory usage information
+ *
+\verbatim embed:rst
+
+This function will retrieve memory usage information for the current
+LAMMPS instance or process.  The *meminfo* buffer will be filled with
+3 different numbers (if supported by the operating system).  The first
+is the tally (in MBytes) of all large memory allocations made by LAMMPS.
+This is a lower boundary of how much memory is requested and does not
+account for memory allocated on the stack or allocations via ``new``.
+The second number is the current memory allocation of the current process
+as returned by a memory allocation reporting in the system library.  The
+third number is the maximum amount of RAM (not swap) used by the process
+so far. If any of the two latter parameters is not supported by the operating
+system it will be set to zero.
+
+.. versionadded:: 15Sep2020
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  meminfo  buffer with space for at least 3 double to store
+ * data in. */
+
+void lammps_memory_usage(void *handle, double *meminfo)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Info info(lmp);
+  info.get_memory_info(meminfo);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Return current LAMMPS world communicator as integer
+ *
+\verbatim embed:rst
+
+This will take the LAMMPS "world" communicator and convert it to an
+integer using ``MPI_Comm_c2f()``, so it is equivalent to the
+corresponding MPI communicator in Fortran. This way it can be safely
+passed around between different programming languages.  To convert it
+to the C language representation use ``MPI_Comm_f2c()``.
+
+If LAMMPS was compiled with MPI_STUBS, this function returns -1.
+
+.. versionadded:: 15Sep2020
+
+\endverbatim
+ * \sa lammps_open_fortran
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \return         Fortran representation of the LAMMPS world communicator */
+
+int lammps_get_mpi_comm(void *handle)
+{
+#ifdef MPI_STUBS
+  return -1;
+#else
+  LAMMPS *lmp = (LAMMPS *) handle;
+  MPI_Fint f_comm = MPI_Comm_c2f(lmp->world);
+  return f_comm;
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
 /** Return the total number of atoms in the system.
  *
 \verbatim embed:rst
@@ -560,7 +626,7 @@ double lammps_get_natoms(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  double natoms = static_cast<double> (lmp->atom->natoms);
+  double natoms = static_cast<double>(lmp->atom->natoms);
   if (natoms > 9.0e15) return 0; // TODO:XXX why not -1?
   return natoms;
 }
@@ -582,7 +648,7 @@ a double, so it can also return information that is computed on-the-fly.
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the requested thermo property or 0.0 */
 
-double lammps_get_thermo(void *handle, char *keyword)
+double lammps_get_thermo(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   double dval = 0.0;
@@ -773,7 +839,7 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the queried setting or -1 if unknown */
 
-int lammps_extract_setting(void * handle, char *keyword)
+int lammps_extract_setting(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -831,7 +897,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
 This table lists the supported names, their data types, length of the
 data area, and a short description.  The ``bigint`` type may be defined
 to be either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>`.
+:ref:`compile time <size>` and can be queried through calling
+:cpp:func:`lammps_extract_setting`.
 
 .. list-table::
    :header-rows: 1
@@ -1039,7 +1106,7 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
  * \return          pointer (cast to ``void *``) to the location of the
                     requested property. NULL if name is not known. */
 
-void *lammps_extract_global(void *handle, char *name)
+void *lammps_extract_global(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1131,7 +1198,7 @@ of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_atom(void *handle, char *name)
+void *lammps_extract_atom(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
@@ -3690,7 +3757,7 @@ specific :doc:`LAMMPS package <Packages>` provided as argument.
  * \param name string with the name of the package
  * \return 1 if included, 0 if not.
  */
-int lammps_config_has_package(char * name) {
+int lammps_config_has_package(const char *name) {
   return Info::has_package(name) ? 1 : 0;
 }
 
@@ -3730,7 +3797,7 @@ the function returns 0 and *buffer* is set to an empty string, otherwise 1;
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_config_package_name(int idx, char * buffer, int buf_size) {
+int lammps_config_package_name(int idx, char *buffer, int buf_size) {
   int maxidx = lammps_config_package_count();
   if ((idx < 0) || (idx >= maxidx)) {
       buffer[0] = '\0';
@@ -3754,14 +3821,14 @@ Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param category category of the style
- * \param name     name of the style
- * \return 1 if included, 0 if not.
+ * \param  category  category of the style
+ * \param  name      name of the style
+ * \return           1 if included, 0 if not.
  */
-int lammps_has_style(void * handle, char * category, char * name) {
+int lammps_has_style(void *handle, const char *category, const char *name) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
-  return info.has_style(category, name) ? 0 : 1;
+  return info.has_style(category, name) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3779,7 +3846,7 @@ categories.
  * \param category category of styles
  * \return number of styles in category
  */
-int lammps_style_count(void * handle, char * category) {
+int lammps_style_count(void *handle, const char *category) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.get_available_styles(category).size();
@@ -3805,7 +3872,8 @@ Please see :cpp:func:`lammps_has_style` for a list of valid categories.
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_style_name(void* handle, char * category, int idx, char * buffer, int buf_size) {
+int lammps_style_name(void *handle, const char *category, int idx,
+                      char *buffer, int buf_size) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);
@@ -4231,10 +4299,10 @@ the failing MPI ranks to send messages.
  * \param buf_size size of the provided string buffer
  * \return 1 when all ranks had the error, 1 on a single rank error.
  */
-int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Error *error = lmp->error;
 
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();

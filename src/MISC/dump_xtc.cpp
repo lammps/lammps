@@ -310,9 +310,9 @@ int DumpXTC::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-bigint DumpXTC::memory_usage()
+double DumpXTC::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
   return bytes;
 }

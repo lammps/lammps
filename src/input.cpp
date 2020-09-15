@@ -1871,6 +1871,7 @@ void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
   update->dt = utils::numeric(FLERR,arg[0],false,lmp);
+  update->dt_default = 0;
 }
 
 /* ---------------------------------------------------------------------- */

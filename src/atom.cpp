@@ -2508,7 +2508,7 @@ length of the data area, and a short description.
                  Typically the name of the pointer variable returned
  * \return       pointer to the requested data cast to ``void *`` or NULL */
 
-void *Atom::extract(char *name)
+void *Atom::extract(const char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name
@@ -2586,9 +2586,9 @@ void *Atom::extract(char *name)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-bigint Atom::memory_usage()
+double Atom::memory_usage()
 {
-  bigint bytes = avec->memory_usage();
+  double bytes = avec->memory_usage();
 
   bytes += max_same*sizeof(int);
   if (map_style == MAP_ARRAY)

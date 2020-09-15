@@ -334,7 +334,7 @@ class Atom : protected Pointers {
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
-  void *extract(char *);
+  void *extract(const char *);
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
@@ -344,7 +344,7 @@ class Atom : protected Pointers {
   // NOTE: placeholder method until KOKKOS/AtomVec is refactored
   int memcheck(const char *) {return 1;}
 
-  bigint memory_usage();
+  double memory_usage();
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency

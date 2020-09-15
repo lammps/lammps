@@ -379,9 +379,9 @@ int AtomVecHybrid::unpack_restart_bonus(int ilocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-bigint AtomVecHybrid::memory_usage_bonus()
+double AtomVecHybrid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles_bonus; k++)
     bytes += styles_bonus[k]->memory_usage_bonus();
   return bytes;

@@ -1261,9 +1261,9 @@ void RCB::invert(int sortflag)
    memory use of Irregular
 ------------------------------------------------------------------------- */
 
-bigint RCB::memory_usage()
+double RCB::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (irregular) bytes += irregular->memory_usage();
   return bytes;
 }

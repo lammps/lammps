@@ -2306,12 +2306,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVec::memory_usage()
+double AtomVec::memory_usage()
 {
   int datatype,cols,maxcols;
   void *pdata;
 
-  bigint bytes = 0;
+  double bytes = 0;
 
   bytes += memory->usage(tag,nmax);
   bytes += memory->usage(type,nmax);

@@ -152,8 +152,8 @@ class AtomVec : protected Pointers {
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
-  virtual bigint memory_usage();
-  virtual bigint memory_usage_bonus() {return 0;}
+  virtual double memory_usage();
+  virtual double memory_usage_bonus() {return 0;}
 
   // old hybrid functions, needed by Kokkos package
 

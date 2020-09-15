@@ -153,9 +153,9 @@ int NBin::coord2bin(double *x)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBin::memory_usage()
+double NBin::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += maxbin*sizeof(int);
   bytes += 2*maxatom*sizeof(int);
   return bytes;

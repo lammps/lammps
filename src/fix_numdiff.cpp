@@ -338,7 +338,7 @@ void FixNumDiff::reallocate()
 
 double FixNumDiff::memory_usage()
 {
-  bigint bytes = 0.0;
+  double bytes = 0.0;
   bytes += 3 * maxatom*3 * sizeof(double);
   return bytes;
 }

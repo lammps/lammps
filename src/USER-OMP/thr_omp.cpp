@@ -485,7 +485,7 @@ void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
       }
     }
   }
-  if (pair->eflag_atom) {
+  if (pair->eflag_atom && thr->eatom_pair) {
     const double epairhalf = 0.5 * (evdwl + ecoul);
     if (newton_pair || i < nlocal) thr->eatom_pair[i] += epairhalf;
     if (newton_pair || j < nlocal) thr->eatom_pair[j] += epairhalf;

@@ -80,7 +80,7 @@ class UCL_Texture {
     #ifdef UCL_DEBUG
     assert(numel!=0 && numel<5);
     #endif
-    CU_SAFE_CALL(cuTexRefSetAddress(NULL, _tex, vec.cbegin(),
+    CU_SAFE_CALL(cuTexRefSetAddress(nullptr, _tex, vec.cbegin(),
                  vec.numel()*vec.element_size()));
     if (vec.element_size()==sizeof(float))
       CU_SAFE_CALL(cuTexRefSetFormat(_tex, CU_AD_FORMAT_FLOAT, numel));

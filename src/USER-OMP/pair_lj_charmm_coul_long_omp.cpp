@@ -32,7 +32,7 @@ PairLJCharmmCoulLongOMP::PairLJCharmmCoulLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ void PairLJCharmmCoulLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {

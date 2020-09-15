@@ -259,10 +259,10 @@ void Info::command(int narg, char **arg)
     }
   }
 
-  if (out == NULL) return;
+  if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   fmt::print(out,"Printed on {}\n",ctime(&now));
 
   if (flags & CONFIG) {
@@ -315,41 +315,23 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & MEMORY) {
+    double meminfo[3];
+
+    get_memory_info(meminfo);
 
     fputs("\nMemory allocation information (MPI rank 0):\n\n",out);
-
-    bigint bytes = 0;
-    bytes += atom->memory_usage();
-    bytes += neighbor->memory_usage();
-    bytes += comm->memory_usage();
-    bytes += update->memory_usage();
-    bytes += force->memory_usage();
-    bytes += modify->memory_usage();
-    for (int i = 0; i < output->ndump; i++)
-      bytes += output->dump[i]->memory_usage();
-    double mbytes = bytes/1024.0/1024.0;
-    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",mbytes);
+    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",
+               meminfo[0]);
 
 #if defined(_WIN32)
-    HANDLE phandle = GetCurrentProcess();
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",
-               (double)pmc.PrivateUsage/1048576.0);
-    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",
-               (double)pmc.PeakWorkingSetSize/1048576.0);
+    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",meminfo[1]);
+    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",meminfo[2]);
 #else
 #if defined(__linux__)
-    struct mallinfo mi;
-    mi = mallinfo();
     fmt::print(out,"Current reserved memory pool size: {:.4} Mbyte\n",
-               (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0);
+               meminfo[1]);
 #endif
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",
-                 (double)ru.ru_maxrss/1024.0);
-    }
+    fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",meminfo[2]);
 #endif
   }
 
@@ -792,7 +774,7 @@ void Info::command_styles(FILE *out)
 
 bool Info::is_active(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
   const char *style = "none";
 
   if (strcmp(category,"package") == 0) {
@@ -813,7 +795,7 @@ bool Info::is_active(const char *category, const char *name)
     else error->all(FLERR,"Unknown name for info newton category");
 
   } else if (strcmp(category,"pair") == 0) {
-    if (force->pair == NULL) return false;
+    if (force->pair == nullptr) return false;
     if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
     else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
@@ -867,7 +849,7 @@ bool Info::is_active(const char *category, const char *name)
 
 bool Info::is_available(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (has_style(category, name)) {
     return true;
@@ -897,7 +879,7 @@ bool Info::is_available(const char *category, const char *name)
 
 bool Info::is_defined(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (strcmp(category,"compute") == 0) {
     int ncompute = modify->ncompute;
@@ -1137,7 +1119,7 @@ bool Info::has_exceptions() {
 }
 
 bool Info::has_package(const char * package_name) {
-  for(int i = 0; LAMMPS::installed_packages[i] != NULL; ++i) {
+  for(int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
     if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
       return true;
     }
@@ -1295,6 +1277,41 @@ std::string Info::get_cxx_info()
   return "C++98";
 #else
   return "unknown";
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Info::get_memory_info(double *meminfo)
+{
+    double bytes = 0;
+    bytes += atom->memory_usage();
+    bytes += neighbor->memory_usage();
+    bytes += comm->memory_usage();
+    bytes += update->memory_usage();
+    bytes += force->memory_usage();
+    bytes += modify->memory_usage();
+    for (int i = 0; i < output->ndump; i++)
+      bytes += output->dump[i]->memory_usage();
+    meminfo[0] = bytes/1024.0/1024.0;
+    meminfo[1] = 0;
+    meminfo[2] = 0;
+
+#if defined(_WIN32)
+    HANDLE phandle = GetCurrentProcess();
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
+    meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
+    meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
+#else
+#if defined(__linux__)
+    struct mallinfo mi;
+    mi = mallinfo();
+    meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
+#endif
+    struct rusage ru;
+    if (getrusage(RUSAGE_SELF, &ru) == 0)
+      meminfo[2] = (double)ru.ru_maxrss/1024.0;
 #endif
 }
 

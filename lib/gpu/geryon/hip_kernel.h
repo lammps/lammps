@@ -30,7 +30,7 @@ class UCL_Program {
  public:
   inline UCL_Program(UCL_Device &device) { _device_ptr = &device; _cq=device.cq(); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) {
+                     const char *flags="", std::string *log=nullptr) {
     _device_ptr = &device; _cq=device.cq();
     init(device);
     load_string(program,flags,log);
@@ -46,7 +46,7 @@ class UCL_Program {
   inline void clear() { }
 
   /// Load a program from a file and compile with flags
-  inline int load(const char *filename, const char *flags="", std::string *log=NULL) {
+  inline int load(const char *filename, const char *flags="", std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -64,7 +64,7 @@ class UCL_Program {
   }
 
   /// Load a program from a string and compile with flags
-  inline int load_string(const void *program, const char *flags="", std::string *log=NULL) {
+  inline int load_string(const void *program, const char *flags="", std::string *log=nullptr) {
     return _device_ptr->load_module(program, _module, log);
   }
 
@@ -263,7 +263,7 @@ class UCL_Kernel {
     };
     const auto res = hipModuleLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
-                                _block_size[2],0,_cq, NULL, config);
+                                _block_size[2],0,_cq, nullptr, config);
     CU_SAFE_CALL(res);
 //#endif
   }

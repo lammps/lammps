@@ -51,7 +51,7 @@ ComputeSmdTlsphShape::ComputeSmdTlsphShape(LAMMPS *lmp, int narg, char **arg) :
         size_peratom_cols = 7;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,12 +89,12 @@ void ComputeSmdTlsphShape::compute_peratom() {
 
         int itmp = 0;
         Matrix3d *R = (Matrix3d *) force->pair->extract("smd/tlsph/rotation_ptr", itmp);
-        if (R == NULL) {
+        if (R == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_shape failed to access rotation array");
         }
 
         Matrix3d *F = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
-        if (F == NULL) {
+        if (F == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_shape failed to access deformation gradient array");
         }
 

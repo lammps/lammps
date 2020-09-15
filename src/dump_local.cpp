@@ -35,9 +35,9 @@ enum{INT,DOUBLE};
 
 DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
-  label(NULL), vtype(NULL), vformat(NULL), columns(NULL), field2index(NULL),
-  argindex(NULL), id_compute(NULL), compute(NULL), id_fix(NULL), fix(NULL),
-  pack_choice(NULL)
+  label(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), field2index(nullptr),
+  argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr), fix(nullptr),
+  pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");
 
@@ -73,12 +73,12 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   argindex = new int[nfield];
 
   ncompute = 0;
-  id_compute = NULL;
-  compute = NULL;
+  id_compute = nullptr;
+  compute = nullptr;
 
   nfix = 0;
-  id_fix = NULL;
-  fix = NULL;
+  id_fix = nullptr;
+  fix = nullptr;
 
   // process attributes
 
@@ -95,11 +95,11 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < size_one; i++) {
     if (vtype[i] == INT) strcat(format_default,"%d ");
     else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
-    vformat[i] = NULL;
+    vformat[i] = nullptr;
   }
 
   format_column_user = new char*[size_one];
-  for (int i = 0; i < size_one; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
@@ -180,8 +180,8 @@ void DumpLocal::init_style()
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
+    else ptr = strtok(nullptr," \0");
+    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
 
     if (format_column_user[i]) {

@@ -61,7 +61,7 @@ class PairEAMAlloyKokkos : public PairEAM, public KokkosBase {
   virtual ~PairEAMAlloyKokkos();
   void compute(int, int);
   void init_style();
-  void *extract(const char *, int &) { return NULL; }
+  void *extract(const char *, int &) { return nullptr; }
   void coeff(int, char **);
 
   KOKKOS_INLINE_FUNCTION

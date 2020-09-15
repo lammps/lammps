@@ -30,13 +30,13 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in WriteData
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
 {
   nstyles = 0;
-  styles = NULL;
-  keywords = NULL;
-  fieldstrings = NULL;
+  styles = nullptr;
+  keywords = nullptr;
+  fieldstrings = nullptr;
 
   bonus_flag = 0;
   nstyles_bonus = 0;
-  styles_bonus = NULL;
+  styles_bonus = nullptr;
 
   // these strings will be concatenated from sub-style strings
   // fields_data_atom & fields_data_vel start with fields common to all styles
@@ -187,7 +187,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // save concat_grow to check for duplicates of special-case fields
 
   char *concat_grow;;
-  char *null = NULL;
+  char *null = nullptr;
 
   fields_grow = merge_fields(0,fields_grow,1,concat_grow);
   fields_copy = merge_fields(1,fields_copy,0,null);
@@ -379,9 +379,9 @@ int AtomVecHybrid::unpack_restart_bonus(int ilocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-bigint AtomVecHybrid::memory_usage_bonus()
+double AtomVecHybrid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles_bonus; k++)
     bytes += styles_bonus[k]->memory_usage_bonus();
   return bytes;

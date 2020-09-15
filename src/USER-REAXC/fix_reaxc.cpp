@@ -41,8 +41,8 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
   // register with atom class
 
   oldnmax = 0;
-  num_bonds = NULL;
-  num_hbonds = NULL;
+  num_bonds = nullptr;
+  num_hbonds = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 

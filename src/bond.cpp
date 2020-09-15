@@ -44,9 +44,9 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  setflag = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -276,7 +276,7 @@ void Bond::write_file(int narg, char **arg)
       fp = fopen(table_file.c_str(),"a");
     } else {
       char datebuf[16];
-      time_t tv = time(NULL);
+      time_t tv = time(nullptr);
       strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
       utils::logmesg(lmp,fmt::format("Creating table file {} with "
                                      "DATE: {}\n", table_file, datebuf));
@@ -284,7 +284,7 @@ void Bond::write_file(int narg, char **arg)
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
                          datebuf, update->unit_style);
     }
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
                                    arg[4], utils::getsyserror()));
   }

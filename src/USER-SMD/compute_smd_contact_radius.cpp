@@ -46,7 +46,7 @@ ComputeSMDContactRadius::ComputeSMDContactRadius(LAMMPS *lmp, int narg, char **a
   size_peratom_cols = 0;
 
   nmax = 0;
-  contact_radius_vector = NULL;
+  contact_radius_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -41,17 +41,17 @@ using namespace LAMMPS_NS;
 
 CommBrick::CommBrick(LAMMPS *lmp) :
   Comm(lmp),
-  sendnum(NULL), recvnum(NULL), sendproc(NULL), recvproc(NULL),
-  size_forward_recv(NULL),
-  size_reverse_send(NULL), size_reverse_recv(NULL),
-  slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
-  cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
-  buf_send(NULL), buf_recv(NULL)
+  sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
+  size_forward_recv(nullptr),
+  size_reverse_send(nullptr), size_reverse_recv(nullptr),
+  slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
+  cutghostmulti(nullptr), pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr),
+  sendlist(nullptr),  localsendlist(nullptr), maxsendlist(nullptr),
+  buf_send(nullptr), buf_recv(nullptr)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
-  pbc_flag = NULL;
+  pbc_flag = nullptr;
   init_buffers();
 }
 
@@ -98,10 +98,10 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 
 void CommBrick::init_buffers()
 {
-  multilo = multihi = NULL;
-  cutghostmulti = NULL;
+  multilo = multihi = nullptr;
+  cutghostmulti = nullptr;
 
-  buf_send = buf_recv = NULL;
+  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
@@ -130,7 +130,7 @@ void CommBrick::init()
 
   // memory for multi-style communication
 
-  if (mode == Comm::MULTI && multilo == NULL) {
+  if (mode == Comm::MULTI && multilo == nullptr) {
     allocate_multi(maxswap);
     memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
   }
@@ -1463,7 +1463,7 @@ void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
-  multilo = multihi = NULL;
+  multilo = multihi = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1492,16 +1492,16 @@ void *CommBrick::extract(const char *str, int &dim)
     return (void *) localsendlist;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommBrick::memory_usage()
+double CommBrick::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);

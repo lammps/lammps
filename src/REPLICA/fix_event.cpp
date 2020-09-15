@@ -27,8 +27,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), xevent(NULL), xold(NULL), vold(NULL),
-  imageold(NULL), xorig(NULL), vorig(NULL), imageorig(NULL)
+  Fix(lmp, narg, arg), xevent(nullptr), xold(nullptr), vold(nullptr),
+  imageold(nullptr), xorig(nullptr), vorig(nullptr), imageorig(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix event command");
 

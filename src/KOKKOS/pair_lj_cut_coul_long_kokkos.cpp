@@ -53,8 +53,8 @@ PairLJCutCoulLongKokkos<DeviceType>::PairLJCutCoulLongKokkos(LAMMPS *lmp):PairLJ
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
-  cut_ljsq = NULL;
+  cutsq = nullptr;
+  cut_ljsq = nullptr;
   cut_coulsq = 0.0;
 
 }
@@ -66,8 +66,8 @@ PairLJCutCoulLongKokkos<DeviceType>::~PairLJCutCoulLongKokkos()
 {
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  eatom = NULL;
-  vatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
   if (allocated){
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
     memoryKK->destroy_kokkos(k_cut_ljsq, cut_ljsq);
@@ -80,11 +80,11 @@ template<class DeviceType>
 void PairLJCutCoulLongKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  cut_ljsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
+  cutsq = nullptr;
+  cut_ljsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

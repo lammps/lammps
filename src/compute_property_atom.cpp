@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  index(NULL), pack_choice(NULL)
+  index(nullptr), pack_choice(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/atom command");
 
@@ -441,7 +441,7 @@ void ComputePropertyAtom::compute_peratom()
     (this->*pack_choice[0])(0);
   } else {
     if (nmax) buf = &array_atom[0][0];
-    else buf = NULL;
+    else buf = nullptr;
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }

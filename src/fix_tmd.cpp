@@ -41,7 +41,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
+nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
@@ -74,7 +74,7 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
     if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
                                      arg[6], utils::getsyserror()));
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
@@ -396,7 +396,7 @@ void FixTMD::readfile(char *file)
 
   int firstline = 1;
   int ncount = 0;
-  char *eof = NULL;
+  char *eof = nullptr;
   xprd = yprd = zprd = -1.0;
 
   do {
@@ -404,7 +404,7 @@ void FixTMD::readfile(char *file)
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
         eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) break;
+        if (eof == nullptr) break;
         m += strlen(&buffer[m]);
       }
       if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
@@ -486,7 +486,7 @@ void FixTMD::readfile(char *file)
       }
       bufptr = next + 1;
     }
-  } while (eof != NULL);
+  } while (eof != nullptr);
 
   // clean up
 
@@ -540,7 +540,7 @@ void FixTMD::open(char *file)
 #endif
   }
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);

@@ -106,11 +106,11 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
-  sqrt_m=NULL;
+  sqrt_m=nullptr;
   memory->grow(sqrt_m, atom->ntypes+1,"ffl:sqrt_m");
 
   // allocates space for temporaries
-  ffl_tmp1=ffl_tmp2=NULL;
+  ffl_tmp1=ffl_tmp2=nullptr;
 
   grow_arrays(atom->nmax);
 
@@ -426,7 +426,7 @@ void *FixFFL::extract(const char *str, int &dim) {
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 

@@ -23,7 +23,7 @@
 using namespace std;
 
 
-TreeNode *GetTreeNode(int item,TreeNode *lptr = NULL,TreeNode *rptr =NULL);
+TreeNode *GetTreeNode(int item,TreeNode *lptr = nullptr,TreeNode *rptr =nullptr);
 
 void FreeTreeNode(TreeNode *p);
 
@@ -46,7 +46,7 @@ void PrintTree (TreeNode *t, int level);
 void Postorder (TreeNode *t, void visit(TreeNode* &t))
 {
         // the recursive scan terminates on a empty subtree
-        if (t != NULL)
+        if (t != nullptr)
         {
                 Postorder(t->Left(), visit);    // descend left
                 Postorder(t->Right(), visit);   // descend right
@@ -59,7 +59,7 @@ void Postorder (TreeNode *t, void visit(TreeNode* &t))
 void Preorder (TreeNode *t, void visit(TreeNode* &t))
 {
         // the recursive scan terminates on a empty subtree
-        if (t != NULL)
+        if (t != nullptr)
         {
                 visit(t);                               // visit the node
                 Preorder(t->Left(), visit);             // descend left
@@ -69,7 +69,7 @@ void Preorder (TreeNode *t, void visit(TreeNode* &t))
 
 
 //create TreeNode object with pointer fields lptr and rptr
-// The pointers have default value NULL
+// The pointers have default value nullptr
 TreeNode *GetTreeNode(int item,TreeNode *lptr,TreeNode *rptr)
 {
         TreeNode *p;
@@ -79,7 +79,7 @@ TreeNode *GetTreeNode(int item,TreeNode *lptr,TreeNode *rptr)
         p = new TreeNode(item, lptr, rptr);
 
         // if insufficient memory, terminatewith an error message
-        if (p == NULL)
+        if (p == nullptr)
         {
                 cerr << "Memory allocation failure!\n";
                 exit(1);
@@ -103,14 +103,14 @@ void FreeTreeNode(TreeNode *p)
 void CountLeaf (TreeNode *t, int& count)
 {
         //use postorder descent
-        if(t !=NULL)
+        if(t !=nullptr)
         {
                 CountLeaf(t->Left(), count); // descend left
                 CountLeaf(t->Right(), count); // descend right
 
                 // check if node t is a leaf node (no descendants)
                 // if so, increment the variable count
-                if (t->Left() == NULL && t->Right() == NULL)
+                if (t->Left() == nullptr && t->Right() == nullptr)
                         count++;
         }
 }
@@ -124,7 +124,7 @@ int Depth (TreeNode *t)
 {
         int depthLeft, depthRight, depthval;
 
-        if (t == NULL)
+        if (t == nullptr)
                 depthval = -1;
         else
         {
@@ -145,8 +145,8 @@ void IndentBlanks(int num)
 
 void PrintTree (TreeNode *t, int level)
 {
-        //print tree with root t, as long as t!=NULL
-        if (t != NULL)
+        //print tree with root t, as long as t!=nullptr
+        if (t != nullptr)
         {
                 int indentUnit = 5;
                 // print right branch of tree t

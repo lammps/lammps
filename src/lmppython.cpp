@@ -26,7 +26,7 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 {
   // implementation of Python interface is only loaded on demand
   // and only if PYTHON package has been installed and compiled into binary
-  impl = NULL;
+  impl = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

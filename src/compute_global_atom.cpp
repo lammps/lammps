@@ -39,8 +39,8 @@ enum{VECTOR,ARRAY};
 
 ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idref(NULL), which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
-  indices(NULL), varatom(NULL), vecglobal(NULL)
+  idref(nullptr), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr),
+  indices(nullptr), varatom(nullptr), vecglobal(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute global/atom command");
 
@@ -96,7 +96,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
     if (strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0 ||
         strncmp(arg[iarg],"v_",2) == 0) {
@@ -234,8 +234,8 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = nvalues;
 
   nmax = maxvector = 0;
-  vector_atom = NULL;
-  array_atom = NULL;
+  vector_atom = nullptr;
+  array_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -43,7 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_temp(NULL), random(NULL)
+  Fix(lmp, narg, arg), id_temp(nullptr), random(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
 

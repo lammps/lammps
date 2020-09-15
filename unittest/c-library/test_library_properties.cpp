@@ -56,6 +56,17 @@ TEST_F(LibraryProperties, version)
     EXPECT_GE(20200824, lammps_version(lmp));
 };
 
+TEST_F(LibraryProperties, memory_usage)
+{
+    double meminfo[3];
+    lammps_memory_usage(lmp,meminfo);
+    EXPECT_GT(meminfo[0], 0.0);
+#if defined(__linux__) || defined(_WIN32)
+    EXPECT_GT(meminfo[1], 0.0);
+#endif
+    EXPECT_GT(meminfo[2], 0.0);
+};
+
 TEST_F(LibraryProperties, get_mpi_comm)
 {
     int f_comm = lammps_get_mpi_comm(lmp);

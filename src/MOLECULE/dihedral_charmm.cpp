@@ -389,7 +389,7 @@ void DihedralCharmm::init_style()
                  " dihedral style charmm for use with CHARMM pair styles");
 
     int itmp;
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"Dihedral charmm is incompatible with Pair style");
     lj14_1 = (double **) force->pair->extract("lj14_1",itmp);
     lj14_2 = (double **) force->pair->extract("lj14_2",itmp);
@@ -424,11 +424,11 @@ void DihedralCharmm::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&shift[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&weight[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&weightflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&shift[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&weight[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&weightflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&multiplicity[1],atom->ndihedraltypes,MPI_INT,0,world);

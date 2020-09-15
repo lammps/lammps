@@ -154,7 +154,7 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
 
 void PairLJCharmmCoulLongGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/charmm/coul/long/gpu requires atom attribute q");
@@ -182,7 +182,7 @@ void PairLJCharmmCoulLongGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 

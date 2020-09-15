@@ -48,7 +48,7 @@ AtomVecAngleKokkos::AtomVecAngleKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;
-  buffer = NULL;
+  buffer = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1724,9 +1724,9 @@ int AtomVecAngleKokkos::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecAngleKokkos::memory_usage()
+double AtomVecAngleKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);

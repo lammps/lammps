@@ -32,9 +32,9 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snap(NULL),
-  snapall(NULL), snap_peratom(NULL), radelem(NULL), wjelem(NULL),
-  snaptr(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
+  snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
+  snaptr(nullptr)
 {
 
   array_flag = 1;
@@ -42,8 +42,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = NULL;
-  wjelem = NULL;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -180,7 +180,7 @@ ComputeSnap::~ComputeSnap()
 
 void ComputeSnap::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)

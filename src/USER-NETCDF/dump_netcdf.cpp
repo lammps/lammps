@@ -69,7 +69,7 @@ const int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
-#define NCERR(x) ncerr(x, NULL, __LINE__)
+#define NCERR(x) ncerr(x, nullptr, __LINE__)
 #define NCERRX(x, descr) ncerr(x, descr, __LINE__)
 #if !defined(NC_64BIT_DATA)
 #define NC_64BIT_DATA NC_64BIT_OFFSET
@@ -193,13 +193,13 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
   }
 
   n_buffer = 0;
-  int_buffer = NULL;
-  double_buffer = NULL;
+  int_buffer = nullptr;
+  double_buffer = nullptr;
 
   double_precision = false;
 
   thermo = false;
-  thermovar = NULL;
+  thermovar = nullptr;
 
   framei = 0;
 }

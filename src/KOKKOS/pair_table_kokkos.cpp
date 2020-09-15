@@ -462,7 +462,7 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -522,10 +522,10 @@ template<class DeviceType>
 void PairTableKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  h_table=NULL; d_table=NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

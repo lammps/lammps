@@ -91,21 +91,21 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
   // regular comm data struct
 
   for (int i = 0; i < nswap; i++) {
-    swap[i].packlist = NULL;
-    swap[i].unpacklist = NULL;
+    swap[i].packlist = nullptr;
+    swap[i].unpacklist = nullptr;
   }
 
   // tiled comm data structs
 
   for (int i = 0; i < nsend; i++)
-    send[i].packlist = NULL;
+    send[i].packlist = nullptr;
 
   for (int i = 0; i < nrecv; i++)
-    recv[i].unpacklist = NULL;
+    recv[i].unpacklist = nullptr;
 
   for (int i = 0; i < ncopy; i++) {
-    copy[i].packlist = NULL;
-    copy[i].unpacklist = NULL;
+    copy[i].packlist = nullptr;
+    copy[i].unpacklist = nullptr;
   }
 
 }
@@ -459,7 +459,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
   noverlap = maxoverlap = 0;
-  overlap = NULL;
+  overlap = nullptr;
 
   ghost_box_drop(ghostbox,pbc);
 

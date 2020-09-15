@@ -35,8 +35,8 @@ enum{X,V,F,COMPUTE,FIX,VARIABLE};
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  ids(NULL), array(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), array(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
@@ -64,7 +64,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nvalues];
 
   for (int i = 0; i < nvalues; i++) {
-    ids[i] = NULL;
+    ids[i] = nullptr;
 
     if (strcmp(arg[i],"x") == 0) {
       which[i] = X;
@@ -376,7 +376,7 @@ void FixAveAtom::end_of_step()
 
     } else if (which[m] == VARIABLE) {
       if (array) input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
-      else input->variable->compute_atom(n,igroup,NULL,nvalues,1);
+      else input->variable->compute_atom(n,igroup,nullptr,nvalues,1);
     }
   }
 
@@ -394,7 +394,7 @@ void FixAveAtom::end_of_step()
   nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
-  if (array == NULL) return;
+  if (array == nullptr) return;
 
   // average the final result for the Nfreq timestep
 
@@ -424,7 +424,7 @@ void FixAveAtom::grow_arrays(int nmax)
   memory->grow(array,nmax,nvalues,"fix_ave/atom:array");
   array_atom = array;
   if (array) vector_atom = array[0];
-  else vector_atom = NULL;
+  else vector_atom = nullptr;
 }
 
 /* ----------------------------------------------------------------------

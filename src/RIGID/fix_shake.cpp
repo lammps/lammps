@@ -47,16 +47,16 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(NULL), angle_flag(NULL),
-  type_flag(NULL), mass_list(NULL), bond_distance(NULL), angle_distance(NULL),
-  loop_respa(NULL), step_respa(NULL), x(NULL), v(NULL), f(NULL), ftmp(NULL),
-  vtmp(NULL), mass(NULL), rmass(NULL), type(NULL), shake_flag(NULL),
-  shake_atom(NULL), shake_type(NULL), xshake(NULL), nshake(NULL),
-  list(NULL), b_count(NULL), b_count_all(NULL), b_ave(NULL), b_max(NULL),
-  b_min(NULL), b_ave_all(NULL), b_max_all(NULL), b_min_all(NULL),
-  a_count(NULL), a_count_all(NULL), a_ave(NULL), a_max(NULL), a_min(NULL),
-  a_ave_all(NULL), a_max_all(NULL), a_min_all(NULL), atommols(NULL),
-  onemols(NULL)
+  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
+  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
+  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
+  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
+  onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -76,13 +76,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
-  xshake = NULL;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
+  xshake = nullptr;
 
-  ftmp = NULL;
-  vtmp = NULL;
+  ftmp = nullptr;
+  vtmp = nullptr;
 
   grow_arrays(atom->nmax);
   atom->add_callback(0);
@@ -161,7 +161,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  onemols = NULL;
+  onemols = nullptr;
 
   int iarg = next;
   while (iarg < narg) {
@@ -233,7 +233,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // initialize list of SHAKE clusters to constrain
 
   maxlist = 0;
-  list = NULL;
+  list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -367,7 +367,7 @@ void FixShake::init()
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -378,7 +378,7 @@ void FixShake::init()
 
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
-    if (force->angle == NULL)
+    if (force->angle == nullptr)
       error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
@@ -2976,7 +2976,7 @@ void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) return onemols;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -63,28 +63,28 @@ using namespace SMD_Math;
 PairTlsph::PairTlsph(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
 
-        failureModel = NULL;
-        strengthModel = eos = NULL;
+        failureModel = nullptr;
+        strengthModel = eos = nullptr;
 
         nmax = 0; // make sure no atom on this proc such that initial memory allocation is correct
-        Fdot = Fincr = K = PK1 = NULL;
-        R = FincrInv = W = D = NULL;
-        detF = NULL;
-        smoothVelDifference = NULL;
-        numNeighsRefConfig = NULL;
-        CauchyStress = NULL;
-        hourglass_error = NULL;
-        Lookup = NULL;
-        particle_dt = NULL;
+        Fdot = Fincr = K = PK1 = nullptr;
+        R = FincrInv = W = D = nullptr;
+        detF = nullptr;
+        smoothVelDifference = nullptr;
+        numNeighsRefConfig = nullptr;
+        CauchyStress = nullptr;
+        hourglass_error = nullptr;
+        Lookup = nullptr;
+        particle_dt = nullptr;
 
         updateFlag = 0;
         first = true;
         dtCFL = 0.0; // initialize dtCFL so it is set to safe value if extracted on zero-th timestep
 
         comm_forward = 22; // this pair style communicates 20 doubles to ghost atoms : PK1 tensor + F tensor + shepardWeight
-        fix_tlsph_reference_configuration = NULL;
+        fix_tlsph_reference_configuration = nullptr;
 
         cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.
 }
@@ -1748,7 +1748,7 @@ void PairTlsph::init_style() {
         if (igroup == -1)
                 error->all(FLERR, "Pair style tlsph requires its particles to be part of a group named tlsph. This group does not exist.");
 
-        if (fix_tlsph_reference_configuration == NULL) {
+        if (fix_tlsph_reference_configuration == nullptr) {
                 char **fixarg = new char*[3];
                 fixarg[0] = (char *) "SMD_TLSPH_NEIGHBORS";
                 fixarg[1] = (char *) "tlsph";
@@ -1824,7 +1824,7 @@ void *PairTlsph::extract(const char *str, int &/*i*/) {
                 return (void *) R;
         }
 
-        return NULL;
+        return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

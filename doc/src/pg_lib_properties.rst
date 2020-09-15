@@ -49,6 +49,11 @@ event as atoms are migrating between sub-domains.
 
 -----------------------
 
+.. doxygenfunction:: lammps_memory_usage
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_get_mpi_comm
    :project: progguide
 

@@ -62,7 +62,7 @@ class CreateAtoms : protected Pointers {
   void add_random();
   void add_lattice();
   void loop_lattice(int);
-  void add_molecule(double *, double * = NULL);
+  void add_molecule(double *, double * = nullptr);
   int vartest(double *);      // evaluate a variable with new atom position
 };
 

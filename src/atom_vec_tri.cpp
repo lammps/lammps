@@ -49,7 +49,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -601,9 +601,9 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecTri::memory_usage_bonus()
+double AtomVecTri::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   return bytes;
 }
@@ -688,7 +688,7 @@ void AtomVecTri::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus tri info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)

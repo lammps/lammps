@@ -479,7 +479,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -909,7 +909,7 @@ void PairPolymorphic::write_tables(int npts)
 {
   char tag[6] = "";
   if (comm->me != 0) sprintf(tag,"%d",comm->me);
-  FILE* fp =  NULL;
+  FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,pf,gf,ff,ufp,vfp,wfp,pfp,gfp,ffp;
   char line[MAXLINE];
   for (int i = 0; i < nelements; i++) {

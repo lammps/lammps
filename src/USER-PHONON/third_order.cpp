@@ -32,7 +32,7 @@ enum{REGULAR,BALLISTICO};
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(nullptr)
 {
   external_force_clear = 1;
 }
@@ -42,7 +42,7 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
 ThirdOrder::~ThirdOrder()
 {
   if (fp && me == 0) fclose(fp);
-  fp = NULL;
+  fp = nullptr;
   memory->destroy(groupmap);
 }
 
@@ -220,7 +220,7 @@ void ThirdOrder::openfile(const char* filename)
     fp = fopen(filename,"w");
   }
 
-  if (fp == NULL) error->one(FLERR,"Cannot open dump file");
+  if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
   file_opened = 1;
 }

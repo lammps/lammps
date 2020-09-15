@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  //ftable = NULL;
+  //ftable = nullptr;
   qdist = 0.0;
 }
 
@@ -250,13 +250,13 @@ void PairCoulSlaterLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == NULL)
+ if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  // if (ncoultablebits) init_tables(cut_coul,NULL);
+  // if (ncoultablebits) init_tables(cut_coul,nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -415,5 +415,5 @@ void *PairCoulSlaterLong::extract(const char *str, int &dim)
     dim = 2;
     return (void *) scale;
   }
-  return NULL;
+  return nullptr;
 }

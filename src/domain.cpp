@@ -89,7 +89,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxlo_lamda[0] = boxlo_lamda[1] = boxlo_lamda[2] = 0.0;
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
-  lattice = NULL;
+  lattice = nullptr;
   char **args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
@@ -97,7 +97,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   delete [] args;
 
   nregion = maxregion = 0;
-  regions = NULL;
+  regions = nullptr;
 
   copymode = 0;
 
@@ -1640,7 +1640,7 @@ void Domain::image_flip(int m, int n, int p)
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
    if image flag is passed, flag is updated via remap(x,image)
-   if image = NULL is passed, no update with remap(x)
+   if image = nullptr is passed, no update with remap(x)
    if shrinkexceed, atom can be outside shrinkwrap boundaries
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
@@ -1727,7 +1727,7 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
-  lattice = NULL;
+  lattice = nullptr;
   lattice = new Lattice(lmp,narg,arg);
 }
 

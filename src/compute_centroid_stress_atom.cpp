@@ -36,7 +36,7 @@ enum{NOBIAS,BIAS};
 
 ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_temp(NULL), stress(NULL)
+  id_temp(nullptr), stress(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute centroid/stress/atom command");
 
@@ -49,7 +49,7 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
   // store temperature ID used by stress computation
   // insure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
@@ -237,7 +237,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   }
 
   // add in per-atom contributions from relevant fixes
-  // skip if vatom = NULL
+  // skip if vatom = nullptr
   // possible during setup phase if fix has not initialized its vatom yet
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input

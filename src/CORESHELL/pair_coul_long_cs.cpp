@@ -42,7 +42,7 @@ PairCoulLongCS::PairCoulLongCS(LAMMPS *lmp) : PairCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
   single_enable = 0; // TODO: single function does not match compute
-  ftable = NULL;
+  ftable = nullptr;
   qdist = 0.0;
 }
 

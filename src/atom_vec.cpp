@@ -2060,7 +2060,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack bond info for data file into buf if non-NULL
+   pack bond info for data file into buf if non-nullptr
    return count of bonds from this proc
    do not count/pack bonds with bondtype = 0
    if bondtype is negative, flip back to positive
@@ -2118,7 +2118,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   pack angle info for data file into buf if non-NULL
+   pack angle info for data file into buf if non-nullptr
    return count of angles from this proc
    do not count/pack angles with angletype = 0
    if angletype is negative, flip back to positive
@@ -2306,12 +2306,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVec::memory_usage()
+double AtomVec::memory_usage()
 {
   int datatype,cols,maxcols;
   void *pdata;
 
-  bigint bytes = 0;
+  double bytes = 0;
 
   bytes += memory->usage(tag,nmax);
   bytes += memory->usage(type,nmax);

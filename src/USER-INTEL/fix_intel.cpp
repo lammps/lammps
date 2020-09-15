@@ -303,7 +303,7 @@ void FixIntel::init()
   #endif
 
   const int nstyles = _pair_intel_count;
-  if (force->pair_match("^hybrid", 0) != NULL) {
+  if (force->pair_match("^hybrid", 0) != nullptr) {
     _pair_hybrid_flag = 1;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
@@ -513,9 +513,9 @@ void FixIntel::bond_init_check()
       "USER-INTEL package requires same setting for newton bond and non-bond.");
 
   int intel_pair = 0;
-  if (force->pair_match("/intel$", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != nullptr)
     intel_pair = 1;
-  else if (force->pair_match("^hybrid", 0) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != nullptr) {
     _hybrid_nonpair = 1;
     if (pair_hybrid_check()) intel_pair = 1;
   }
@@ -530,9 +530,9 @@ void FixIntel::bond_init_check()
 void FixIntel::kspace_init_check()
 {
   int intel_pair = 0;
-  if (force->pair_match("/intel$", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != nullptr)
     intel_pair = 1;
-  else if (force->pair_match("^hybrid", 0) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != nullptr) {
     _hybrid_nonpair = 1;
     if (pair_hybrid_check()) intel_pair = 1;
   }
@@ -855,7 +855,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
     }
   }
 
-  if (ev_global != NULL) {
+  if (ev_global != nullptr) {
     force->pair->eng_vdwl += ev_global[0];
     force->pair->eng_coul += ev_global[1];
     force->pair->virial[0] += ev_global[2];
@@ -1168,7 +1168,7 @@ int FixIntel::set_host_affinity(const int nomp)
   sprintf(cmd, "lscpu -p | grep -v '#' |"
           "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
   p = popen(cmd, "r");
-  if (p == NULL) return -1;
+  if (p == nullptr) return -1;
   ncores = 0;
   while(fgets(readbuf, 512, p)) {
     proc_list[ncores] = atoi(readbuf);
@@ -1190,7 +1190,7 @@ int FixIntel::set_host_affinity(const int nomp)
   int nthreads = nomp;
   if (nthreads == 0) {
     estring = getenv("OMP_NUM_THREADS");
-    if (estring != NULL) {
+    if (estring != nullptr) {
       nthreads = atoi(estring);
       if (nthreads < 2) nthreads = 1;
     } else
@@ -1222,7 +1222,7 @@ int FixIntel::set_host_affinity(const int nomp)
   if (coi_cores) {
     sprintf(cmd, "ps -Lp %d -o lwp | awk ' (NR > 2) {print}'", pid);
     p = popen(cmd, "r");
-    if (p == NULL) return -1;
+    if (p == nullptr) return -1;
 
     while(fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
@@ -1258,7 +1258,7 @@ int FixIntel::set_host_affinity(const int nomp)
     free(buf1);
 
     p = popen(cmd, "r");
-    if (p == NULL) return -1;
+    if (p == nullptr) return -1;
 
     while(fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);

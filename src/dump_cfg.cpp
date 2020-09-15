@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), auxname(NULL)
+  DumpCustom(lmp, narg, arg), auxname(nullptr)
 {
   multifile_override = 0;
 
@@ -63,7 +63,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
   if (nfield > 5) auxname = new char*[nfield];
-  else auxname = NULL;
+  else auxname = nullptr;
 
   int i = 0;
   for (int iarg = 5; iarg < nfield; iarg++, i++) {

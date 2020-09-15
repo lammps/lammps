@@ -79,9 +79,9 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   memoryKK->destroy_kokkos(k_tmpid,tmpid);
-  tmpid = NULL;
+  tmpid = nullptr;
   memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
-  tmpbo = NULL;
+  tmpbo = nullptr;
 
   // deallocate views of views in serial to prevent race condition in profiling tools
 
@@ -137,7 +137,7 @@ void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
   if (fix_reax) modify->delete_fix(fix_id); // not needed in the Kokkos version
-  fix_reax = NULL;
+  fix_reax = nullptr;
 
   // irequest = neigh request made by parent class
 

@@ -44,7 +44,7 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  list(NULL), nearest(NULL), nnearest(NULL), pattern(NULL)
+  list(nullptr), nearest(nullptr), nnearest(nullptr), pattern(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 
@@ -71,7 +71,7 @@ ComputeCNAAtom::~ComputeCNAAtom()
 
 void ComputeCNAAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cna/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,"Compute cna/atom cutoff is longer than pairwise cutoff");

@@ -52,7 +52,7 @@ ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

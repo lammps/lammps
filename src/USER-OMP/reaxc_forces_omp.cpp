@@ -165,7 +165,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
     class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
     pair_reax_ptr->ev_setup_thr_proxy(0, 1, natoms, system->pair_ptr->eatom,
-                                      system->pair_ptr->vatom, NULL, thr);
+                                      system->pair_ptr->vatom, nullptr, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)

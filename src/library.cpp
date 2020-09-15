@@ -544,11 +544,11 @@ LAMMPS instance or process.  The *meminfo* buffer will be filled with
 is the tally (in MBytes) of all large memory allocations made by LAMMPS.
 This is a lower boundary of how much memory is requested and does not
 account for memory allocated on the stack or allocations via ``new``.
-The second number is the current memory allocation of the process as
-returned by the memory allocator in the C-library.  The third number
-is the maximum amount of RAM (not swap) used by the process so far.
-If any of the two latter parameters is not supported by the operating
-system, the number value is 0.
+The second number is the current memory allocation of the current process
+as returned by a memory allocation reporting in the system library.  The
+third number is the maximum amount of RAM (not swap) used by the process
+so far. If any of the two latter parameters is not supported by the operating
+system it will be set to zero.
 
 .. versionadded:: 15Sep2020
 

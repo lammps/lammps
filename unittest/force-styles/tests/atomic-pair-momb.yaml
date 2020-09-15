@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:23 202
-epsilon: 7.5e-13
+epsilon: 2.5e-12
 prerequisites: ! |
   pair momb
 pre_commands: ! ""

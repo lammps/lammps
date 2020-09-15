@@ -41,5 +41,13 @@ protected:
     }
 };
 
+TEST_F(LAMMPS_properties, get_mpi_comm) {
+    int f_comm = lammps_get_mpi_comm(lmp);
+    if (lammps_config_has_mpi_support())
+        EXPECT_GE(f_comm,0);
+    else
+        EXPECT_EQ(f_comm,-1);
+};
+
 TEST_F(LAMMPS_properties, box) {
 };

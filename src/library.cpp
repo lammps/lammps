@@ -532,6 +532,40 @@ int lammps_version(void *handle)
   return atoi(lmp->universe->num_ver);
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+/** Return current LAMMPS world communicator as integer
+ *
+\verbatim embed:rst
+
+This will take the LAMMPS "world" communicator and convert it to an
+integer using ``MPI_Comm_c2f()``, so it is equivalent to the
+corresponding MPI communicator in Fortran. This way it can be safely
+passed around between different programming languages.  To convert it
+to the C language representation use ``MPI_Comm_f2c()``.
+
+If LAMMPS was compiled with MPI_STUBS, this function returns -1.
+
+.. versionadded:: 15Sep2020
+
+\endverbatim
+ * \sa lammps_open_fortran
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \return         Fortran representation of the LAMMPS world communicator */
+
+int lammps_get_mpi_comm(void *handle)
+{
+#ifdef MPI_STUBS
+  return -1;
+#else
+  LAMMPS *lmp = (LAMMPS *) handle;
+  MPI_Fint f_comm = MPI_Comm_c2f(lmp->world);
+  return f_comm;
+#endif
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** Return the total number of atoms in the system.

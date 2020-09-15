@@ -14,3 +14,7 @@
     display: block;
     margin-bottom: 0.405em;
 }
+
+.versionmodified {
+    font-weight: bold;
+}

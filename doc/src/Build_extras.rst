@@ -373,8 +373,8 @@ More information on Kokkos can be found on the
 Available Architecture settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These are the possible choices for the Kokkos architecture ID as of
-version 3.2 of the Kokkos library. They must be specified in uppercase.
+These are the possible choices for the Kokkos architecture ID.
+They must be specified in uppercase.
 
 .. list-table::
    :header-rows: 0
@@ -485,6 +485,8 @@ version 3.2 of the Kokkos library. They must be specified in uppercase.
    *  - INTEL_GEN
       - GPU
       - Intel GPUs Gen9+
+
+This list was last updated for version 3.2 of the Kokkos library.
 
 .. tabs::
 

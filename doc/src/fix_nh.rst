@@ -51,7 +51,7 @@ Syntax
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
        *tchain* value = N
          N = length of thermostat chain (1 = single thermostat)
-       *pchain* values = N
+       *pchain* value = N
          N length of thermostat chain on barostat (0 = no thermostat)
        *mtk* value = *yes* or *no* = add in MTK adjustment term or not
        *tloop* value = M

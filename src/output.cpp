@@ -817,7 +817,7 @@ void Output::create_restart(int narg, char **arg)
 
 void Output::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += atom->memory_usage();
   bytes += neighbor->memory_usage();
   bytes += comm->memory_usage();

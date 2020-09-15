@@ -341,7 +341,7 @@ class Atom : protected Pointers {
   // NOTE: placeholder method until KOKKOS/AtomVec is refactored
   int memcheck(const char *) {return 1;}
 
-  bigint memory_usage();
+  double memory_usage();
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency

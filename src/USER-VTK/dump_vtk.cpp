@@ -2309,9 +2309,9 @@ int DumpVTK::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
-bigint DumpVTK::memory_usage()
+double DumpVTK::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
   bytes += memory->usage(dchoose,maxlocal);
   bytes += memory->usage(clist,maxlocal);

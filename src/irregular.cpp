@@ -1051,9 +1051,9 @@ void Irregular::grow_recv(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Irregular::memory_usage()
+double Irregular::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += maxsend*sizeof(double);   // buf_send
   bytes += maxrecv*sizeof(double);   // buf_recv
   bytes += maxdbuf*sizeof(double);   // dbuf

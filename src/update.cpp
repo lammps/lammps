@@ -522,9 +522,9 @@ void Update::update_time()
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-bigint Update::memory_usage()
+double Update::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (whichflag == 1) bytes += integrate->memory_usage();
   else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;

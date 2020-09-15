@@ -318,7 +318,7 @@ void Info::command(int narg, char **arg)
 
     fputs("\nMemory allocation information (MPI rank 0):\n\n",out);
 
-    bigint bytes = 0;
+    double bytes = 0;
     bytes += atom->memory_usage();
     bytes += neighbor->memory_usage();
     bytes += comm->memory_usage();

@@ -1198,9 +1198,9 @@ int AtomVecHybridKokkos::known_style(char *str)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecHybridKokkos::memory_usage()
+double AtomVecHybridKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

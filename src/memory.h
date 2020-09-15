@@ -617,40 +617,40 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  bigint usage(TYPE *array, int n)
+  double usage(TYPE *array, int n)
   {
     (void) array;
-    bigint bytes = ((bigint) sizeof(TYPE)) * n;
+    double bytes = ((double) sizeof(TYPE)) * n;
     return bytes;
   }
 
   template <typename TYPE>
-  bigint usage(TYPE **array, int n1, int n2)
+  double usage(TYPE **array, int n1, int n2)
   {
     (void) array;
-    bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2;
-    bytes += ((bigint) sizeof(TYPE *)) * n1;
+    double bytes = ((double) sizeof(TYPE)) * n1*n2;
+    bytes += ((double) sizeof(TYPE *)) * n1;
     return bytes;
   }
 
   template <typename TYPE>
-  bigint usage(TYPE ***array, int n1, int n2, int n3)
+  double usage(TYPE ***array, int n1, int n2, int n3)
   {
     (void) array;
-    bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2*n3;
-    bytes += ((bigint) sizeof(TYPE *)) * n1*n2;
-    bytes += ((bigint) sizeof(TYPE **)) * n1;
+    double bytes = ((double) sizeof(TYPE)) * n1*n2*n3;
+    bytes += ((double) sizeof(TYPE *)) * n1*n2;
+    bytes += ((double) sizeof(TYPE **)) * n1;
     return bytes;
   }
 
   template <typename TYPE>
-  bigint usage(TYPE ****array, int n1, int n2, int n3, int n4)
+  double usage(TYPE ****array, int n1, int n2, int n3, int n4)
   {
     (void) array;
-    bigint bytes = ((bigint) sizeof(TYPE)) * n1*n2*n3*n4;
-    bytes += ((bigint) sizeof(TYPE *)) * n1*n2*n3;
-    bytes += ((bigint) sizeof(TYPE **)) * n1*n2;
-    bytes += ((bigint) sizeof(TYPE ***)) * n1;
+    double bytes = ((double) sizeof(TYPE)) * n1*n2*n3*n4;
+    bytes += ((double) sizeof(TYPE *)) * n1*n2*n3;
+    bytes += ((double) sizeof(TYPE **)) * n1*n2;
+    bytes += ((double) sizeof(TYPE ***)) * n1;
     return bytes;
   }
 };

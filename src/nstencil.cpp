@@ -222,9 +222,9 @@ double NStencil::bin_distance(int i, int j, int k)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NStencil::memory_usage()
+double NStencil::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (neighstyle == Neighbor::BIN) {
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);

@@ -631,7 +631,7 @@ void WriteRestart::version_numeric()
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and an int into restart file
+   write a flag and an int into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int(int flag, int value)
@@ -641,7 +641,7 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a bigint into restart file
+   write a flag and a bigint into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_bigint(int flag, bigint value)
@@ -651,7 +651,7 @@ void WriteRestart::write_bigint(int flag, bigint value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a double into restart file
+   write a flag and a double into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double(int flag, double value)
@@ -661,7 +661,8 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char string (including nullptr) into restart file
+   write a flag and a C-style char string (including the terminating null
+   byte) into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_string(int flag, const char *value)
@@ -673,7 +674,7 @@ void WriteRestart::write_string(int flag, const char *value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N ints into restart file
+   write a flag and vector of N ints into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int_vec(int flag, int n, int *vec)
@@ -684,7 +685,7 @@ void WriteRestart::write_int_vec(int flag, int n, int *vec)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N doubles into restart file
+   write a flag and vector of N doubles into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double_vec(int flag, int n, double *vec)

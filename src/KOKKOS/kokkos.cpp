@@ -226,7 +226,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int len;
     char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
     MPI_Get_library_version(mpi_version, &len);
-    if (strstr(&mpi_version[0], "Spectrum") != NULL) {
+    if (strstr(&mpi_version[0], "Spectrum") != nullptr) {
       cuda_aware_flag = 0;
       char* str;
       if (str = getenv("OMPI_MCA_pml_pami_enable_cuda"))

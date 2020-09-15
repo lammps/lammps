@@ -259,10 +259,10 @@ void Info::command(int narg, char **arg)
     }
   }
 
-  if (out == NULL) return;
+  if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   fmt::print(out,"Printed on {}\n",ctime(&now));
 
   if (flags & CONFIG) {
@@ -774,7 +774,7 @@ void Info::command_styles(FILE *out)
 
 bool Info::is_active(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
   const char *style = "none";
 
   if (strcmp(category,"package") == 0) {
@@ -795,7 +795,7 @@ bool Info::is_active(const char *category, const char *name)
     else error->all(FLERR,"Unknown name for info newton category");
 
   } else if (strcmp(category,"pair") == 0) {
-    if (force->pair == NULL) return false;
+    if (force->pair == nullptr) return false;
     if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
     else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
@@ -849,7 +849,7 @@ bool Info::is_active(const char *category, const char *name)
 
 bool Info::is_available(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (has_style(category, name)) {
     return true;
@@ -879,7 +879,7 @@ bool Info::is_available(const char *category, const char *name)
 
 bool Info::is_defined(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (strcmp(category,"compute") == 0) {
     int ncompute = modify->ncompute;
@@ -1119,7 +1119,7 @@ bool Info::has_exceptions() {
 }
 
 bool Info::has_package(const char * package_name) {
-  for(int i = 0; LAMMPS::installed_packages[i] != NULL; ++i) {
+  for(int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
     if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
       return true;
     }

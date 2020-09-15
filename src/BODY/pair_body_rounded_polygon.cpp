@@ -53,16 +53,16 @@ enum {INVALID=0,NONE=1,VERTEXI=2,VERTEXJ=3,EDGE=4};
 PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
-  maxerad = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
+  maxerad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -458,7 +458,7 @@ void PairBodyRoundedPolygon::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
-  double *merad = NULL;
+  double *merad = nullptr;
   memory->create(merad,ntypes+1,"pair:merad");
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;

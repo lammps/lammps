@@ -41,10 +41,10 @@ using namespace voro;
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), con_mono(NULL), con_poly(NULL),
-  radstr(NULL), voro(NULL), edge(NULL), sendvector(NULL),
-  rfield(NULL), tags(NULL), occvec(NULL), sendocc(NULL),
-  lroot(NULL), lnext(NULL), faces(NULL)
+  Compute(lmp, narg, arg), con_mono(nullptr), con_poly(nullptr),
+  radstr(nullptr), voro(nullptr), edge(nullptr), sendvector(nullptr),
+  rfield(nullptr), tags(nullptr), occvec(nullptr), sendocc(nullptr),
+  lroot(nullptr), lnext(nullptr), faces(nullptr)
 {
   int sgroup;
 
@@ -56,16 +56,16 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   surface = VOROSURF_NONE;
   maxedge = 0;
   fthresh = ethresh = 0.0;
-  radstr = NULL;
+  radstr = nullptr;
   onlyGroup = false;
   occupation = false;
 
-  con_mono = NULL;
-  con_poly = NULL;
-  tags = NULL;
+  con_mono = nullptr;
+  con_poly = nullptr;
+  tags = nullptr;
   oldmaxtag = 0;
-  occvec = sendocc = lroot = lnext = NULL;
-  faces = NULL;
+  occvec = sendocc = lroot = lnext = nullptr;
+  faces = nullptr;
 
   int iarg = 3;
   while ( iarg<narg ) {
@@ -133,8 +133,8 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute voronoi/atom occupation requires an atom map, see atom_modify");
 
   nmax = rmax = 0;
-  edge = rfield = sendvector = NULL;
-  voro = NULL;
+  edge = rfield = sendvector = nullptr;
+  voro = nullptr;
 
   if ( maxedge > 0 ) {
     vector_flag = 1;
@@ -207,7 +207,7 @@ void ComputeVoronoi::compute_peratom()
   if (occupation) {
     // build cells only once
     int i, nall = atom->nlocal + atom->nghost;
-    if (con_mono==NULL && con_poly==NULL) {
+    if (con_mono==nullptr && con_poly==nullptr) {
       // generate the voronoi cell network for the initial structure
       buildCells();
 
@@ -218,7 +218,7 @@ void ComputeVoronoi::compute_peratom()
       // linked list structure for cell occupation count on the atoms
       oldnall= nall;
       memory->create(lroot,nall,"voronoi/atom:lroot"); // point to first atom index in cell (or -1 for empty cell)
-      lnext = NULL;
+      lnext = nullptr;
       lmax = 0;
 
       // build the occupation buffer.

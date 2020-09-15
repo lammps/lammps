@@ -51,7 +51,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = NULL;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {

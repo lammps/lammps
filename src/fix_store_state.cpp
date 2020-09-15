@@ -38,9 +38,9 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE,DNAME,INAME};
 
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  ids(NULL), values(NULL),
-  vbuf(NULL), pack_choice(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), values(nullptr),
+  vbuf(nullptr), pack_choice(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix store/state command");
 
@@ -64,7 +64,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     which[nvalues] = KEYWORD;
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[nvalues++] = &FixStoreState::pack_id;
@@ -348,7 +348,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  values = NULL;
+  values = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
@@ -479,7 +479,7 @@ void FixStoreState::end_of_step()
   // fill vector or array with per-atom values
 
   if (values) vbuf = &values[0][0];
-  else vbuf = NULL;
+  else vbuf = nullptr;
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == KEYWORD && kflag) (this->*pack_choice[m])(m);
@@ -572,7 +572,7 @@ void FixStoreState::grow_arrays(int nmax)
   memory->grow(values,nmax,nvalues,"store/state:values");
   if (nvalues == 1) {
     if (nmax) vector_atom = &values[0][0];
-    else vector_atom = NULL;
+    else vector_atom = nullptr;
   } else array_atom = values;
 }
 

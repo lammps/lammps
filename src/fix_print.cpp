@@ -29,7 +29,7 @@ using namespace FixConst;
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fp(NULL), string(NULL), copy(NULL), work(NULL), var_print(NULL)
+  fp(nullptr), string(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -54,9 +54,9 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  fp = NULL;
+  fp = nullptr;
   screenflag = 1;
-  char *title = NULL;
+  char *title = nullptr;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -65,7 +65,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
       if (me == 0) {
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix print file {}: {}",
                                        arg[iarg+1], utils::getsyserror()));
       }

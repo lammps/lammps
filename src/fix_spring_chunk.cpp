@@ -35,7 +35,7 @@ using namespace FixConst;
 
 FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idchunk(NULL), idcom(NULL), com0(NULL), fcom(NULL)
+  idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix spring/chunk command");
 
@@ -155,7 +155,7 @@ void FixSpringChunk::post_force(int /*vflag*/)
   // will be unlocked in destructor
   // necessary b/c this fix stores original COM
 
-  if (com0 == NULL) cchunk->lock(this,update->ntimestep,-1);
+  if (com0 == nullptr) cchunk->lock(this,update->ntimestep,-1);
 
   // calculate current centers of mass for each chunk
   // extract pointers from idchunk and idcom
@@ -170,7 +170,7 @@ void FixSpringChunk::post_force(int /*vflag*/)
   // check if first time cchunk was queried via ccom
   // if so, allocate com0,fcom and store initial COM
 
-  if (com0 == NULL) {
+  if (com0 == nullptr) {
     memory->create(com0,nchunk,3,"spring/chunk:com0");
     memory->create(fcom,nchunk,3,"spring/chunk:fcom");
 

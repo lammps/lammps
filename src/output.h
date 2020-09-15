@@ -29,7 +29,7 @@ class Output : protected Pointers {
   bigint next_thermo;          // next timestep for thermo output
   int thermo_every;            // output freq for thermo, 0 if first/last only
   bigint last_thermo;          // last timestep thermo was output
-  char *var_thermo;            // variable name for thermo freq, NULL if every
+  char *var_thermo;            // variable name for thermo freq, null pointer if every
   int ivar_thermo;             // variable index for thermo frequency
   class Thermo *thermo;        // Thermodynamic computations
 

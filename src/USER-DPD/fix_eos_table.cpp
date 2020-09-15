@@ -31,7 +31,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ntables(0), tables(NULL)
+  Fix(lmp, narg, arg), ntables(0), tables(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix eos/table command");
   nevery = 1;
@@ -43,7 +43,7 @@ FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
   if (tablength < 2) error->all(FLERR,"Illegal number of eos/table entries");
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
   int me;
   MPI_Comm_rank(world,&me);
   tables = (Table *)
@@ -167,10 +167,10 @@ void FixEOStable::end_of_step()
 
 void FixEOStable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = NULL;
-  tb->e2file = NULL;
-  tb->r = tb->e = tb->de = NULL;
-  tb->e2 = NULL;
+  tb->rfile = tb->efile = nullptr;
+  tb->e2file = nullptr;
+  tb->r = tb->e = tb->de = nullptr;
+  tb->e2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,7 +198,7 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   // open file
 
   FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
@@ -207,7 +207,7 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   // loop until section found with matching keyword
 
   while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
+    if (fgets(line,MAXLINE,fp) == nullptr)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
@@ -305,13 +305,13 @@ void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->ninput = atoi(word);
       tb2->ninput = atoi(word);
     } else {
       error->one(FLERR,"Invalid keyword in fix eos/table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok(nullptr," \t\n\r\f");
   }
 
   if (tb->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");

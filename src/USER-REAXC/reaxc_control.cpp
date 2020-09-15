@@ -41,7 +41,7 @@ char Read_Control_File( char *control_file, control_params* control,
   double  val;
 
   /* open control file */
-  if ( (fp = fopen( control_file, "r" ) ) == NULL ) {
+  if ( (fp = fopen( control_file, "r" ) ) == nullptr ) {
     control->error_ptr->all(FLERR, "The control file cannot be opened");
   }
 

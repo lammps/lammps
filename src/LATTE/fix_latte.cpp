@@ -74,10 +74,10 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
-  // NULL means LATTE will compute Coulombic potential
+  // null pointer means LATTE will compute Coulombic potential
 
   coulomb = 0;
-  id_pe = NULL;
+  id_pe = nullptr;
 
   if (strcmp(arg[3],"NULL") != 0) {
     coulomb = 1;
@@ -97,8 +97,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   nmax = 0;
-  qpotential = NULL;
-  flatte = NULL;
+  qpotential = nullptr;
+  flatte = nullptr;
 
   latte_energy = 0.0;
 }
@@ -136,7 +136,7 @@ void FixLatte::init()
     error->all(FLERR,"Fix latte requires 3d problem");
 
   if (coulomb) {
-    if (atom->q_flag == 0 || force->pair == NULL || force->kspace == NULL)
+    if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
 
     int ipe = modify->find_compute(id_pe);
@@ -154,7 +154,7 @@ void FixLatte::init()
   // create qpotential & flatte if needed
   // for now, assume nlocal will never change
 
-  if (coulomb && qpotential == NULL) {
+  if (coulomb && qpotential == nullptr) {
     memory->create(qpotential,atom->nlocal,"latte:qpotential");
     memory->create(flatte,atom->nlocal,3,"latte:flatte");
   }

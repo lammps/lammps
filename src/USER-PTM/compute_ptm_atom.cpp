@@ -61,7 +61,7 @@ static const char cite_user_ptm_package[] =
 /* ---------------------------------------------------------------------- */
 
 ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
-    : Compute(lmp, narg, arg), list(NULL), output(NULL) {
+    : Compute(lmp, narg, arg), list(nullptr), output(nullptr) {
   if (narg < 5 || narg > 6)
     error->all(FLERR, "Illegal compute ptm/atom command");
 
@@ -144,7 +144,7 @@ ComputePTMAtom::~ComputePTMAtom() { memory->destroy(output); }
 /* ---------------------------------------------------------------------- */
 
 void ComputePTMAtom::init() {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR, "Compute ptm/atom requires a pair style be defined");
 
   int count = 0;
@@ -201,7 +201,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
   double **x = data->x;
   double *pos = x[atom_index];
 
-  int *jlist = NULL;
+  int *jlist = nullptr;
   int jnum = 0;
   if (atom_index < data->nlocal) {
     jlist = data->firstneigh[atom_index];
@@ -307,7 +307,7 @@ void ComputePTMAtom::compute_peratom() {
     ptm_index(local_handle, i, get_neighbours, (void*)&nbrlist,
               input_flags, standard_orientations,
               &type, &alloy_type, &scale, &rmsd, q,
-              NULL, NULL, NULL, NULL, &interatomic_distance, NULL, NULL);
+              nullptr, nullptr, nullptr, nullptr, &interatomic_distance, nullptr, nullptr);
 
     if (rmsd > rmsd_threshold) {
       type = PTM_MATCH_NONE;

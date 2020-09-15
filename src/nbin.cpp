@@ -27,9 +27,9 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
   last_bin = -1;
   mbins = maxbin = maxatom = 0;
-  binhead = NULL;
-  bins = NULL;
-  atom2bin = NULL;
+  binhead = nullptr;
+  bins = nullptr;
+  atom2bin = nullptr;
 
   neighbor->last_setup_bins = -1;
 

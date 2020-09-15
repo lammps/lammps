@@ -323,18 +323,18 @@ int Atom::map_style_set()
 void Atom::map_delete()
 {
   memory->destroy(sametag);
-  sametag = NULL;
+  sametag = nullptr;
   max_same = 0;
 
   if (map_style == 1) {
     memory->destroy(map_array);
-    map_array = NULL;
+    map_array = nullptr;
   } else {
     if (map_nhash) {
       delete [] map_bucket;
       delete [] map_hash;
-      map_bucket = NULL;
-      map_hash = NULL;
+      map_bucket = nullptr;
+      map_hash = nullptr;
     }
     map_nhash = map_nbucket = 0;
   }

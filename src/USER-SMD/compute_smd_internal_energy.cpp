@@ -46,7 +46,7 @@ ComputeSMDInternalEnergy::ComputeSMDInternalEnergy(LAMMPS *lmp, int narg, char *
   size_peratom_cols = 0;
 
   nmax = 0;
-  internal_energy_vector = NULL;
+  internal_energy_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

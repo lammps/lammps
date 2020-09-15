@@ -167,7 +167,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 /* ---------------------------------------------------------------------- */
 
 FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), irregular(NULL)
+  Fix(lmp, narg, arg), irregular(nullptr)
 {
   /* format for fix:
    *  fix  num  group_id ipi host port [unix]

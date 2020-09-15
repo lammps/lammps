@@ -28,7 +28,7 @@ using namespace FixConst;
 
 FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  flist(NULL)
+  flist(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
 

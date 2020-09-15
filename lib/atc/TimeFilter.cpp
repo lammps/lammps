@@ -210,7 +210,7 @@ namespace ATC {
       }
       else if (filterType_ == STEP_FILTER) {
         newTimeFilter = new TimeFilterStep(*this); 
-      } else newTimeFilter = NULL;
+      } else newTimeFilter = nullptr;
     }
     else { // default to return base class
       newTimeFilter = new TimeFilter(*this); 

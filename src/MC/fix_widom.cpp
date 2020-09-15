@@ -58,9 +58,9 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0),
-  local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
-  random_equal(NULL)
+  idregion(nullptr), full_flag(0),
+  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+  random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
@@ -151,7 +151,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix widom molecule must have atom types");
     if (nwidom_type != 0)
       error->all(FLERR,"Atom type must be zero in fix widom mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == NULL)
+    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
       error->all(FLERR,"Fix widom molecule has charges, but atom style does not");
 
     if (atom->molecular == 2 && onemols != atom->avec->onemols)
@@ -160,8 +160,8 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     onemols[imol]->check_attributes(0);
   }
 
-  if (charge_flag && atom->q == NULL)
-    error->all(FLERR,"Fix widom atom has charge, but atom style does not");
+  if (charge_flag && atom->q == nullptr)
+    error->all(FLERR,"Fix Widom atom has charge, but atom style does not");
 
   // setup of array of coordinates for molecule insertion
 
@@ -177,7 +177,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
   widom_nmax = 0;
-  local_gas_list = NULL;
+  local_gas_list = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -283,7 +283,7 @@ void FixWidom::init()
   // decide whether to switch to the full_energy option
   if (!full_flag) {
     if ((force->kspace) ||
-        (force->pair == NULL) ||
+        (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||

@@ -75,10 +75,10 @@ class UCL_BaseMat {
     #ifdef _OCL_MAT
     cl_device_id device;
     CL_SAFE_CALL(clGetCommandQueueInfo(_cq,CL_QUEUE_DEVICE,
-                                       sizeof(cl_device_id),&device,NULL));
+                                       sizeof(cl_device_id),&device,nullptr));
     cl_device_type device_type;
     CL_SAFE_CALL(clGetDeviceInfo(device,CL_DEVICE_TYPE,
-                                 sizeof(device_type),&device_type,NULL));
+                                 sizeof(device_type),&device_type,nullptr));
     return _shared_mem_device(device_type);
     #else
     return false;

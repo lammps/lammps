@@ -37,10 +37,10 @@ int Compute::instance_total = 0;
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL),
-  vector(NULL), array(NULL), vector_atom(NULL),
-  array_atom(NULL), vector_local(NULL), array_local(NULL), extlist(NULL),
-  tlist(NULL), vbiasall(NULL)
+  id(nullptr), style(nullptr),
+  vector(nullptr), array(nullptr), vector_atom(nullptr),
+  array_atom(nullptr), vector_local(nullptr), array_local(nullptr), extlist(nullptr),
+  tlist(nullptr), vbiasall(nullptr)
 {
   instance_me = instance_total++;
 

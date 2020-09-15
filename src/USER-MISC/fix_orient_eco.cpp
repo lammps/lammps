@@ -61,7 +61,7 @@ struct FixOrientECO::Nbr {
 
 FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg),
-    dir_filename(NULL), order(NULL), nbr(NULL), list(NULL)
+    dir_filename(nullptr), order(nullptr), nbr(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_eco);
 
@@ -96,7 +96,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
-    if (infile == NULL)
+    if (infile == nullptr)
       error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
                                    dir_filename, utils::getsyserror()));
     for (int i = 0; i < 6; ++i) {

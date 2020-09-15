@@ -67,8 +67,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg)
-  : Fix(lmp, narg, arg), simulator_model(NULL), model_name(NULL),
-    model_units(NULL), user_units(NULL)
+  : Fix(lmp, narg, arg), simulator_model(nullptr), model_name(nullptr),
+    model_units(nullptr), user_units(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix STORE/KIM command");
 }
@@ -82,25 +82,25 @@ FixStoreKIM::~FixStoreKIM()
   if (simulator_model) {
     KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
     KIM_SimulatorModel_Destroy(&sm);
-    simulator_model = NULL;
+    simulator_model = nullptr;
   }
 
   if (model_name) {
     char *mn = (char *)model_name;
     delete[] mn;
-    model_name = NULL;
+    model_name = nullptr;
   }
 
   if (model_units) {
     char *mu = (char *)model_units;
     delete[] mu;
-    model_units = NULL;
+    model_units = nullptr;
   }
 
   if (user_units) {
     char *uu = (char *)user_units;
     delete[] uu;
-    user_units = NULL;
+    user_units = nullptr;
   }
 }
 
@@ -151,5 +151,5 @@ void *FixStoreKIM::getptr(const char *name)
   else if (strcmp(name,"model_name") == 0) return model_name;
   else if (strcmp(name,"model_units") == 0) return model_units;
   else if (strcmp(name,"user_units") == 0) return user_units;
-  else return NULL;
+  else return nullptr;
 }

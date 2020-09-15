@@ -65,10 +65,10 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 
   order = 7; //sets default stencil size to 7
 
-  perthread_density = NULL;
-  particle_ekx = particle_eky = particle_ekz = NULL;
+  perthread_density = nullptr;
+  particle_ekx = particle_eky = particle_ekz = nullptr;
 
-  rho_lookup = drho_lookup = NULL;
+  rho_lookup = drho_lookup = nullptr;
   rho_points = 0;
 
   _use_table = _use_lrt = 0;

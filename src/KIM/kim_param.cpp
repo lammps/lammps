@@ -185,7 +185,7 @@ void KimParam::command(int narg, char **arg)
   input->write_echo(fmt::format("#=== BEGIN kim-param {} ==================="
                                 "==================\n",kim_param_get_set));
 
-  KIM_Model *pkim = NULL;
+  KIM_Model *pkim = nullptr;
 
   std::string atom_type_list;
 
@@ -251,9 +251,9 @@ void KimParam::command(int narg, char **arg)
     // Get the parameters
     if (kim_param_get_set == "get") {
       // Parameter name
-      char *paramname = NULL;
+      char *paramname = nullptr;
       // Variable name
-      char *varname = NULL;
+      char *varname = nullptr;
 
       // Loop over all the arguments
       for (int i = 1; i < narg;) {
@@ -267,8 +267,8 @@ void KimParam::command(int narg, char **arg)
         int param_index;
         KIM_DataType kim_DataType;
         int extent;
-        char const *str_name = NULL;
-        char const *str_desc = NULL;
+        char const *str_name = nullptr;
+        char const *str_desc = nullptr;
 
         for (param_index = 0; param_index < numberOfParameters; ++param_index) {
           kim_error = KIM_Model_GetParameterMetadata(pkim, param_index,
@@ -344,7 +344,7 @@ void KimParam::command(int narg, char **arg)
         }
 
         int const nvars = nubound - nlbound + 1;
-        char **varsname = NULL;
+        char **varsname = nullptr;
 
         if (i < narg) {
           // Get the variable/variable_base name

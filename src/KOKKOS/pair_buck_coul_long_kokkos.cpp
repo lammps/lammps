@@ -55,8 +55,8 @@ PairBuckCoulLongKokkos<DeviceType>::PairBuckCoulLongKokkos(LAMMPS *lmp):PairBuck
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
-  cut_ljsq = NULL;
+  cutsq = nullptr;
+  cut_ljsq = nullptr;
   cut_coulsq = 0.0;
 
 }
@@ -75,11 +75,11 @@ PairBuckCoulLongKokkos<DeviceType>::~PairBuckCoulLongKokkos()
     memory->sfree(cutsq);
     memory->sfree(cut_ljsq);
     //memory->sfree(cut_coulsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
-    cut_ljsq = NULL;
-    //cut_coulsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
+    cut_ljsq = nullptr;
+    //cut_coulsq = nullptr;
   }
 }
 
@@ -88,11 +88,11 @@ PairBuckCoulLongKokkos<DeviceType>::~PairBuckCoulLongKokkos()
 template<class DeviceType>
 void PairBuckCoulLongKokkos<DeviceType>::cleanup_copy() {
   allocated = 0;
-  cutsq = NULL;
-  cut_ljsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
+  cutsq = nullptr;
+  cut_ljsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

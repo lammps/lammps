@@ -61,7 +61,7 @@ PairGWZBL::PairGWZBL(LAMMPS *lmp) : PairGW(lmp)
 void PairGWZBL::read_file(char *file)
 {
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0

@@ -43,7 +43,7 @@ enum{NONE,RLINEAR,RSQ,BMP};
 PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 {
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 }
 
@@ -246,7 +246,7 @@ void PairTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -821,15 +821,15 @@ void PairTable::compute_table(Table *tb)
 }
 
 /* ----------------------------------------------------------------------
-   set all ptrs in a table to NULL, so can be freed safely
+   set all ptrs in a table to a null pointer, so can be freed safely
 ------------------------------------------------------------------------- */
 
 void PairTable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->rsq = tb->drsq = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->rfile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->rsq = tb->drsq = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -951,13 +951,13 @@ void PairTable::write_restart_settings(FILE *fp)
 void PairTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ewaldflag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&pppmflag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&msmflag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tip4pflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewaldflag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&pppmflag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&msmflag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tip4pflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
@@ -1029,7 +1029,7 @@ double PairTable::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 
 void *PairTable::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") != 0) return NULL;
+  if (strcmp(str,"cut_coul") != 0) return nullptr;
   if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // only check for cutoff consistency if claiming to be KSpace compatible
@@ -1042,5 +1042,5 @@ void *PairTable::extract(const char *str, int &dim)
                    "Pair table cutoffs must all be equal to use with KSpace");
     dim = 0;
     return &tables[0].cut;
-  } else return NULL;
+  } else return nullptr;
 }

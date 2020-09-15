@@ -65,8 +65,8 @@ PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
-  random = NULL;
-  randomT = NULL;
+  random = nullptr;
+  randomT = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -453,24 +453,24 @@ void PairEDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,nullptr,error);
           if(power_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,nullptr,error);
 
           if(kappa_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
@@ -508,9 +508,9 @@ void PairEDPD::write_restart_settings(FILE *fp)
 void PairEDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);

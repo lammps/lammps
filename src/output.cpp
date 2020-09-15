@@ -57,23 +57,23 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   delete [] newarg;
 
   thermo_every = 0;
-  var_thermo = NULL;
+  var_thermo = nullptr;
 
   ndump = 0;
   max_dump = 0;
-  every_dump = NULL;
-  next_dump = NULL;
-  last_dump = NULL;
-  var_dump = NULL;
-  ivar_dump = NULL;
-  dump = NULL;
+  every_dump = nullptr;
+  next_dump = nullptr;
+  last_dump = nullptr;
+  var_dump = nullptr;
+  ivar_dump = nullptr;
+  dump = nullptr;
 
   restart_flag = restart_flag_single = restart_flag_double = 0;
   restart_every_single = restart_every_double = 0;
   last_restart = -1;
-  restart1 = restart2a = restart2b = NULL;
-  var_restart_single = var_restart_double = NULL;
-  restart = NULL;
+  restart1 = restart2a = restart2b = nullptr;
+  var_restart_single = var_restart_double = nullptr;
+  restart = nullptr;
 
   dump_map = new DumpCreatorMap();
 
@@ -561,7 +561,7 @@ void Output::add_dump(int narg, char **arg)
 
   every_dump[ndump] = 0;
   last_dump[ndump] = -1;
-  var_dump[ndump] = NULL;
+  var_dump[ndump] = nullptr;
   ivar_dump[ndump] = -1;
 
   // create the Dump
@@ -574,7 +574,7 @@ void Output::add_dump(int narg, char **arg)
   every_dump[ndump] = utils::inumeric(FLERR,arg[3],false,lmp);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
   last_dump[ndump] = -1;
-  var_dump[ndump] = NULL;
+  var_dump[ndump] = nullptr;
   ndump++;
 }
 
@@ -642,7 +642,7 @@ void Output::delete_dump(char *id)
 
 int Output::find_dump(const char *id)
 {
-  if (id == NULL) return -1;
+  if (id == nullptr) return -1;
   int idump;
   for (idump = 0; idump < ndump; idump++)
     if (strcmp(id,dump[idump]->id) == 0) break;
@@ -662,7 +662,7 @@ void Output::set_thermo(int narg, char **arg)
   // variable spaced thermo outputs to constant spaced ones.
 
   delete [] var_thermo;
-  var_thermo = NULL;
+  var_thermo = nullptr;
 
   if (strstr(arg[0],"v_") == arg[0]) {
     int n = strlen(&arg[0][2]) + 1;
@@ -693,10 +693,10 @@ void Output::create_thermo(int narg, char **arg)
     error->warning(FLERR,"New thermo_style command, "
                    "previous thermo_modify settings will be lost");
 
-  // set thermo = NULL in case new Thermo throws an error
+  // set thermo = nullptr in case new Thermo throws an error
 
   delete thermo;
-  thermo = NULL;
+  thermo = nullptr;
   thermo = new Thermo(lmp,narg,arg);
 }
 
@@ -722,14 +722,14 @@ void Output::create_restart(int narg, char **arg)
     last_restart = -1;
 
     delete restart;
-    restart = NULL;
+    restart = nullptr;
     delete [] restart1;
     delete [] restart2a;
     delete [] restart2b;
-    restart1 = restart2a = restart2b = NULL;
+    restart1 = restart2a = restart2b = nullptr;
     delete [] var_restart_single;
     delete [] var_restart_double;
-    var_restart_single = var_restart_double = NULL;
+    var_restart_single = var_restart_double = nullptr;
 
     return;
   }
@@ -755,7 +755,7 @@ void Output::create_restart(int narg, char **arg)
     delete [] restart1;
     restart1 = new char[n];
     strcpy(restart1,arg[1]);
-    if (strchr(restart1,'*') == NULL) strcat(restart1,".*");
+    if (strchr(restart1,'*') == nullptr) strcat(restart1,".*");
   }
 
   if (nfile == 2) {

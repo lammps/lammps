@@ -75,7 +75,7 @@ void DeleteBonds::command(int narg, char **arg)
   // use utils::bounds(FLERR,) to allow setting of range of types
   // range can be 0 to ntypes inclusive
 
-  int *tlist = NULL;
+  int *tlist = nullptr;
 
   int iarg = 2;
   if (style != MULTI && style != STATS) {

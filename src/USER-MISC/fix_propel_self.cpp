@@ -39,7 +39,7 @@ using namespace MathConst;
 
 FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   : Fix(lmp, narg, argv), magnitude(0.0),
-    mode(VELOCITY), n_types_filter(0), apply_to_type(NULL)
+    mode(VELOCITY), n_types_filter(0), apply_to_type(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix propel/self command");
 

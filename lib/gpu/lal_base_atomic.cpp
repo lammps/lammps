@@ -25,8 +25,8 @@ BaseAtomicT::BaseAtomic() : _compiled(false), _max_bytes(0)  {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
-  pair_program=NULL;
-  ucl_device=NULL;
+  pair_program=nullptr;
+  ucl_device=nullptr;
 }
 
 template <class numtyp, class acctyp>
@@ -135,7 +135,7 @@ int * BaseAtomicT::reset_nbors(const int nall, const int inum, int *ilist,
   resize_atom(inum,nall,success);
   resize_local(inum,mn,success);
   if (!success)
-    return NULL;
+    return nullptr;
 
   nbor->get_host(inum,ilist,numj,firstneigh,block_size());
 
@@ -231,7 +231,7 @@ int ** BaseAtomicT::compute(const int ago, const int inum_full,
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   hd_balancer.balance(cpu_time);
@@ -244,7 +244,7 @@ int ** BaseAtomicT::compute(const int ago, const int inum_full,
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);

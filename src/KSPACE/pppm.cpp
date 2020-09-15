@@ -63,16 +63,16 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
-  u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
-  v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
-  fkz(NULL), density_fft(NULL), work1(NULL), work2(NULL), gf_b(NULL), rho1d(NULL),
-  rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL),
-  sf_precoeff1(NULL), sf_precoeff2(NULL), sf_precoeff3(NULL),
-  sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
-  acons(NULL), fft1(NULL), fft2(NULL), remap(NULL), gc(NULL),
-  gc_buf1(NULL), gc_buf2(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
-  density_B_fft(NULL), part2grid(NULL), boxlo(NULL)
+  factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr), vdz_brick(nullptr),
+  u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr), v3_brick(nullptr),
+  v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), vg(nullptr), fkx(nullptr), fky(nullptr),
+  fkz(nullptr), density_fft(nullptr), work1(nullptr), work2(nullptr), gf_b(nullptr), rho1d(nullptr),
+  rho_coeff(nullptr), drho1d(nullptr), drho_coeff(nullptr),
+  sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
+  sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr),
+  acons(nullptr), fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr),
+  gc_buf1(nullptr), gc_buf2(nullptr), density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
+  density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
 {
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
@@ -95,31 +95,31 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
 
-  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
-  density_fft = NULL;
-  u_brick = NULL;
-  v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
-  greensfn = NULL;
-  work1 = work2 = NULL;
-  vg = NULL;
-  fkx = fky = fkz = NULL;
+  density_brick = vdx_brick = vdy_brick = vdz_brick = nullptr;
+  density_fft = nullptr;
+  u_brick = nullptr;
+  v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = nullptr;
+  greensfn = nullptr;
+  work1 = work2 = nullptr;
+  vg = nullptr;
+  fkx = fky = fkz = nullptr;
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
-    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
+    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = nullptr;
 
-  density_A_brick = density_B_brick = NULL;
-  density_A_fft = density_B_fft = NULL;
+  density_A_brick = density_B_brick = nullptr;
+  density_A_fft = density_B_fft = nullptr;
 
-  gf_b = NULL;
-  rho1d = rho_coeff = drho1d = drho_coeff = NULL;
+  gf_b = nullptr;
+  rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  gc = NULL;
-  gc_buf1 = gc_buf2 = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  gc = nullptr;
+  gc_buf1 = gc_buf2 = nullptr;
 
   nmax = 0;
-  part2grid = NULL;
+  part2grid = nullptr;
 
   // define acons coefficients for estimation of kspace errors
   // see JCP 109, pg 7698 for derivation of coefficients
@@ -229,7 +229,7 @@ void PPPM::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -254,8 +254,8 @@ void PPPM::init()
     int typeA = *p_typeA;
     int typeB = *p_typeB;
 
-    if (force->angle == NULL || force->bond == NULL ||
-        force->angle->setflag == NULL || force->bond->setflag == NULL)
+    if (force->angle == nullptr || force->bond == nullptr ||
+        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
       error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     if (typeA < 1 || typeA > atom->nangletypes ||
         force->angle->setflag[typeA] == 0)
@@ -292,7 +292,7 @@ void PPPM::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = NULL;
+  GridComm *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -867,7 +867,7 @@ void PPPM::deallocate()
   }
 
   memory->destroy(gf_b);
-  if (stagger_flag) gf_b = NULL;
+  if (stagger_flag) gf_b = nullptr;
   memory->destroy2d_offset(rho1d,-order_allocated/2);
   memory->destroy2d_offset(drho1d,-order_allocated/2);
   memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);

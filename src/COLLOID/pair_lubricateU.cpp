@@ -58,10 +58,10 @@ PairLubricateU::PairLubricateU(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
 
   nmax = 0;
-  fl = Tl = xl = NULL;
+  fl = Tl = xl = nullptr;
 
   cgmax = 0;
-  bcg = xcg = rcg = rcg1 = pcg = RU =  NULL;
+  bcg = xcg = rcg = rcg1 = pcg = RU =  nullptr;
 
   // set comm size needed by this Pair
 
@@ -1794,7 +1794,7 @@ void PairLubricateU::init_style()
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL) {
+    else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with "
@@ -1909,12 +1909,12 @@ void PairLubricateU::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -1946,14 +1946,14 @@ void PairLubricateU::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&mu,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&flaglog,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&flagHI,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&flagVF,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mu,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flaglog,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flagHI,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flagVF,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&mu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&flaglog,1,MPI_INT,0,world);

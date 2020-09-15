@@ -34,7 +34,7 @@ enum{NONE,CONSTANT,EQUAL};
 
 FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix aveforce command");
 
@@ -46,7 +46,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
 
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
@@ -82,7 +82,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -197,7 +197,7 @@ void FixAveForce::post_force(int /*vflag*/)
 {
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -265,7 +265,7 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
   if (ilevel == ilevel_respa) post_force(vflag);
   else {
-    Region *region = NULL;
+    Region *region = nullptr;
     if (iregion >= 0) {
       region = domain->regions[iregion];
       region->prematch();

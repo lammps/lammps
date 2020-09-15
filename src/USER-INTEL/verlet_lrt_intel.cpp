@@ -45,7 +45,7 @@ using namespace LAMMPS_NS;
 VerletLRTIntel::VerletLRTIntel(LAMMPS *lmp, int narg, char **arg) :
   Verlet(lmp, narg, arg) {
   #if defined(_LMP_INTEL_LRT_PTHREAD)
-  pthread_mutex_init(&_kmutex,NULL);
+  pthread_mutex_init(&_kmutex,nullptr);
   #endif
 }
 
@@ -119,7 +119,7 @@ void VerletLRTIntel::setup(int flag)
 
   _kspace_ready = 0;
   _kspace_done = 0;
-  pthread_cond_init(&_kcond, NULL);
+  pthread_cond_init(&_kcond, nullptr);
   pthread_attr_init(&_kspace_attr);
   pthread_attr_setdetachstate(&_kspace_attr, PTHREAD_CREATE_JOINABLE);
   #endif
@@ -377,7 +377,7 @@ void VerletLRTIntel::run(int n)
     _kspace_done = 0;
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
-    pthread_join(_kspace_thread, NULL);
+    pthread_join(_kspace_thread, nullptr);
     pthread_attr_destroy(&_kspace_attr);
   }
   #endif
@@ -428,8 +428,8 @@ void * VerletLRTIntel::k_launch_loop(void *context)
     pthread_mutex_unlock(&(c->_kmutex));
   }
 
-  pthread_exit(NULL);
-  return NULL;
+  pthread_exit(nullptr);
+  return nullptr;
 }
 
 #endif

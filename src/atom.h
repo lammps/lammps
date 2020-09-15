@@ -263,10 +263,9 @@ class Atom : protected Pointers {
 
   // callback ptrs for atom arrays managed by fix classes
 
-  int nextra_grow,nextra_restart,nextra_border;  // # of callbacks of each type
-  int *extra_grow,*extra_restart,*extra_border;  // index of fix to callback to
-  int nextra_grow_max,nextra_restart_max;        // size of callback lists
-  int nextra_border_max;
+  int nextra_grow, nextra_restart, nextra_border, nextra_clear;  // # of callbacks of each type
+  int *extra_grow, *extra_restart, *extra_border, *extra_clear;  // index of fix to callback to
+  int nextra_grow_max, nextra_restart_max, nextra_border_max, nextra_clear_max;  // size of callback lists
   int nextra_store;
 
   int map_style;                  // style of atom map: 0=none, 1=array, 2=hash

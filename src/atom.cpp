@@ -237,9 +237,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // callback lists & extra restart info
 
-  nextra_grow = nextra_restart = nextra_border = 0;
-  extra_grow = extra_restart = extra_border = NULL;
-  nextra_grow_max = nextra_restart_max = nextra_border_max = 0;
+  nextra_grow = nextra_restart = nextra_border = nextra_clear = 0;
+  extra_grow = extra_restart = extra_border = extra_clear = NULL;
+  nextra_grow_max = nextra_restart_max = nextra_border_max = nextra_clear_max = 0;
   nextra_store = 0;
   extra = NULL;
 
@@ -331,6 +331,7 @@ Atom::~Atom()
   memory->destroy(extra_grow);
   memory->destroy(extra_restart);
   memory->destroy(extra_border);
+  memory->destroy(extra_clear);
   memory->destroy(extra);
 
   //delete USER-CAC arrays
@@ -2486,6 +2487,14 @@ void Atom::add_callback(int flag)
     extra_border[nextra_border] = ifix;
     nextra_border++;
     std::sort(extra_border, extra_border + nextra_border);
+  } else if (flag == 3) {
+    if (nextra_clear == nextra_clear_max) {
+      nextra_clear_max += DELTA;
+      memory->grow(extra_clear,nextra_clear_max,"atom:extra_clear");
+    }
+    extra_clear[nextra_clear] = ifix;
+    nextra_clear++;
+    std::sort(extra_clear, extra_clear + nextra_clear);
   }
 }
 
@@ -2532,6 +2541,15 @@ void Atom::delete_callback(const char *id, int flag)
     for (int i = match; i < nextra_border-1; i++)
       extra_border[i] = extra_border[i+1];
     nextra_border--;
+  } else if (flag == 3) {
+    int match;
+    for (match = 0; match < nextra_clear; match++)
+      if (extra_clear[match] == ifix) break;
+    if ((nextra_clear == 0) || (match == nextra_clear))
+      error->all(FLERR,"Trying to delete non-existent Atom::clear() callback");
+    for (int i = match; i < nextra_clear-1; i++)
+      extra_clear[i] = extra_clear[i+1];
+    nextra_clear--;
   }
 }
 

@@ -1432,16 +1432,16 @@ void MSM::setup_grid()
    return 1 if yes, 0 if no
 ------------------------------------------------------------------------- */
 
-int MSM::factorable(int n, int &flag, int &levels)
+int MSM::factorable(int n, int &flag, int &nlevels)
 {
   int i;
-  levels = 1;
+  nlevels = 1;
 
   while (n > 1) {
     for (i = 0; i < nfactors; i++) {
       if (n % factors[i] == 0) {
         n /= factors[i];
-        levels++;
+        nlevels++;
         break;
       }
     }

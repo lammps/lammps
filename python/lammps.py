@@ -1752,8 +1752,8 @@ class AtomList(object):
   """
   def __init__(self, pylammps_instance):
     self._pylmp = pylammps_instance
-    self.natoms = self._lmp.system.natoms
-    self.dimensions = self._lmp.system.dimensions
+    self.natoms = self._pylmp.system.natoms
+    self.dimensions = self._pylmp.system.dimensions
     self._loaded = {}
 
   def __getitem__(self, index):
@@ -1762,7 +1762,7 @@ class AtomList(object):
 
     :param index: Local index of atom
     :type index: int
-    :rtype: Atom
+    :rtype: Atom or Atom2D
     """
     if index not in self._loaded:
         if self.dimensions == 2:
@@ -1947,11 +1947,33 @@ def get_thermo_data(output):
 
 class PyLammps(object):
   """
-  More Python-like wrapper for LAMMPS (e.g., for IPython)
-  See examples/ipython for usage
+  This is a Python wrapper class around the lower-level
+  :py:class:`lammps` class, exposing a more Python-like,
+  object-oriented interface for prototyping system inside of IPython and
+  Jupyter notebooks.
+
+  It either creates its own instance of :py:class:`lammps` or can be
+  initialized with an existing instance. The arguments are the same of the
+  lower-level interface. The original interface can still be accessed via
+  :py:attr:`PyLammps.lmp`.
+
+  :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
+  :type  name: string
+  :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
+  :type  cmdargs: list
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.
+  :type  ptr: pointer
+  :param comm: MPI communicator (as provided by `mpi4py <mpi4py_docs_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
+  :type  comm: MPI_Comm
+
+  :ivar lmp:  instance of original LAMMPS Python interface
+  :vartype lmp: :py:class:`lammps`
+
+  :ivar runs:  list of completed runs, each storing the thermo output
+  :vartype run: list
   """
 
-  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+  def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
     if ptr:
       if isinstance(ptr,PyLammps):
         self.lmp = ptr.lmp
@@ -1974,22 +1996,57 @@ class PyLammps(object):
     self.lmp = None
 
   def version(self):
+    """Return a numerical representation of the LAMMPS version in use.
+
+    This is a wrapper around the :py:meth:`lammps.version` function of the Python interface.
+
+    :return: version number
+    :rtype:  int
+    """
     return self.lmp.version()
 
-  def file(self,file):
+  def file(self, file):
+    """Read LAMMPS commands from a file.
+
+    This is a wrapper around the :py:meth:`lammps.file` function of the Python interface.
+
+    :param path: Name of the file/path with LAMMPS commands
+    :type path:  string
+    """
     self.lmp.file(file)
 
-  def write_script(self,filename):
-    """ Write LAMMPS script file containing all commands executed up until now """
-    with open(filename, "w") as f:
-      for cmd in self._cmd_history:
-        f.write("%s\n" % cmd)
+  def write_script(self, filepath):
+    """
+    Write LAMMPS script file containing all commands executed up until now
 
-  def command(self,cmd):
+    :param filepath: path to script file that should be written
+    :type filepath: string
+    """
+    with open(filepath, "w") as f:
+      for cmd in self._cmd_history:
+        print(cmd, file=f)
+
+  def command(self, cmd):
+    """
+    Execute LAMMPS command
+
+    All commands executed will be stored in a command history which can be
+    written to a file using :py:meth:`PyLammps.write_script()`
+
+    :param cmd: command string that should be executed
+    :type: cmd: string
+    """
     self.lmp.command(cmd)
     self._cmd_history.append(cmd)
 
   def run(self, *args, **kwargs):
+    """
+    Execute LAMMPS run command with given arguments
+
+    All thermo output during the run is captured and saved as new entry in
+    :py:attr:`PyLammps.runs`. The latest run can be retrieved by
+    :py:attr:`PyLammps.last_run`.
+    """
     output = self.__getattr__('run')(*args, **kwargs)
 
     if(self.has_mpi4py):
@@ -2000,6 +2057,12 @@ class PyLammps(object):
 
   @property
   def last_run(self):
+    """
+    Return data produced of last completed run command
+
+    :getter: Returns an object containing information about the last run command
+    :type: dict
+    """
     if len(self.runs) > 0:
         return self.runs[-1]
     return None
@@ -2061,6 +2124,15 @@ class PyLammps(object):
     return vars
 
   def eval(self, expr):
+    """
+    Evaluate expression
+
+    :param expr: the expression string that should be evaluated inside of LAMMPS
+    :type expr: string
+
+    :return: the value of the evaluated expression
+    :rtype: float if numeric, string otherwise
+    """
     value = self.lmp_print('"$(%s)"' % expr).strip()
     try:
       return float(value)
@@ -2196,6 +2268,17 @@ class PyLammps(object):
     'variable', 'velocity', 'write_restart']
 
   def __getattr__(self, name):
+    """
+    This method is where the Python 'magic' happens. If a method is not
+    defined by the class PyLammps, it assumes it is a LAMMPS command. It takes
+    all the arguments, concatinates them to a single string, and executes it using
+    :py:meth:`lammps.PyLammps.command()`.
+
+    :param verbose: Print output of command
+    :type verbose:  bool
+    :return: line or list of lines of output, None if no output
+    :rtype: list or string
+    """
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(x) for x in args]
 

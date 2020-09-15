@@ -2506,7 +2506,7 @@ length of the data area, and a short description.
  *
  * \param  name  string with the keyword of the desired property.
                  Typically the name of the pointer variable returned
- * \return       pointer to the requested data cast to ``void *`` or nullptr */
+ * \return       pointer to the requested data cast to ``void *`` or ``nullptr`` */
 
 void *Atom::extract(const char *name)
 {

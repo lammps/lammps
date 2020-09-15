@@ -140,8 +140,8 @@ TEST_F(LibraryProperties, box)
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellgamma"), 88.090847567003621);
 
     boxlo[0] = -6.1;
-    boxhi[1] =  7.3;
-    xy = 0.1;
+    boxhi[1] = 7.3;
+    xy       = 0.1;
     lammps_reset_box(lmp, boxlo, boxhi, xy, yz, xz);
     lammps_extract_box(lmp, boxlo, boxhi, &xy, &yz, &xz, pflags, &boxflag);
     EXPECT_DOUBLE_EQ(boxlo[0], -6.1);
@@ -159,4 +159,58 @@ TEST_F(LibraryProperties, box)
     EXPECT_EQ(boxflag, 1);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3390.3580784497199);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellgamma"), 89.61785205109274);
+};
+TEST_F(LibraryProperties, setting)
+{
+#if defined(LAMMPS_SMALLSMALL)
+    EXPECT_EQ(lammps_extract_setting(lmp, "bigint"), 4);
+#else
+    EXPECT_EQ(lammps_extract_setting(lmp, "bigint"), 8);
+#endif
+#if defined(LAMMPS_BIGBIG)
+    EXPECT_EQ(lammps_extract_setting(lmp, "tagint"), 8);
+    EXPECT_EQ(lammps_extract_setting(lmp, "imageint"), 8);
+#else
+    EXPECT_EQ(lammps_extract_setting(lmp, "tagint"), 4);
+    EXPECT_EQ(lammps_extract_setting(lmp, "imageint"), 4);
+#endif
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "box_exist"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "dimension"), 2);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "dimension 3");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "UNKNOWN"), -1);
+
+    if (lammps_has_style(lmp, "atom", "full")) {
+        std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_file(lmp, input.c_str());
+        lammps_command(lmp, "run 2 post no");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        EXPECT_EQ(lammps_extract_setting(lmp, "triclinic"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "box_exist"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "dimension"), 3);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nlocal"), 29);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nghost"), 518);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nall"), 547);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nmax"), 16384);
+        EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_command(lmp, "change_box all triclinic");
+        lammps_command(lmp, "fix rmass all property/atom rmass ghost yes");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        EXPECT_EQ(lammps_extract_setting(lmp, "triclinic"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 1);
+    }
 };

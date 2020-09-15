@@ -12,7 +12,7 @@ target_link_libraries(test_library_properties PRIVATE lammps GTest::GTest GTest:
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(LibraryProperties test_library_properties)
 
-set(TEST_CONFIG_DEFS -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
 set(PKG_COUNT 0)
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})

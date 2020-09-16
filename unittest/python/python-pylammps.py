@@ -44,6 +44,7 @@ class PythonPyLammps(unittest.TestCase):
         types = [1, 1]
 
         self.assertEqual(self.pylmp.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.pylmp.system.natoms, 2)
 
 if __name__ == "__main__":
     unittest.main()

@@ -860,12 +860,7 @@ void FixRigidSmall::apply_langevin_thermostat()
 
     // convert omega from space frame to body frame
 
-    wbody[0] = omega[0]*ex_space[0] + omega[1]*ex_space[1] +
-      omega[2]*ex_space[2];
-    wbody[1] = omega[0]*ey_space[0] + omega[1]*ey_space[1] +
-      omega[2]*ey_space[2];
-    wbody[2] = omega[0]*ez_space[0] + omega[1]*ez_space[1] +
-      omega[2]*ez_space[2];
+    MathExtra::transpose_matvec(ex_space,ey_space,ez_space,omega,wbody);
 
     // compute langevin torques in the body frame
 
@@ -878,12 +873,7 @@ void FixRigidSmall::apply_langevin_thermostat()
 
     // convert langevin torques from body frame back to space frame
 
-    langextra[ibody][3] = tbody[0]*ex_space[0] + tbody[1]*ey_space[0] +
-      tbody[2]*ez_space[0];
-    langextra[ibody][4] = tbody[0]*ex_space[1] + tbody[1]*ey_space[1] +
-      tbody[2]*ez_space[1];
-    langextra[ibody][5] = tbody[0]*ex_space[2] + tbody[1]*ey_space[2] +
-      tbody[2]*ez_space[2];
+    MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);    
   }
 }
 

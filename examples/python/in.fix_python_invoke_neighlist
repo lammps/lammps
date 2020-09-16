@@ -20,7 +20,7 @@ neigh_modify	every 20 delay 0 check no
 
 python         post_force_callback here """
 from __future__ import print_function
-from lammps import lammps
+from lammps import lammps, LAMMPS_INT
 
 def post_force_callback(lmp, v):
   try:
@@ -35,9 +35,9 @@ def post_force_callback(lmp, v):
     #mylist = L.get_neighlist(0)
     mylist = L.find_pair_neighlist("lj/cut", request=0)
     print(pid_prefix, mylist)
-    nlocal = L.extract_global("nlocal", 0)
-    nghost = L.extract_global("nghost", 0)
-    ntypes = L.extract_global("ntypes", 0)
+    nlocal = L.extract_global("nlocal", LAMMPS_INT)
+    nghost = L.extract_global("nghost", LAMMPS_INT)
+    ntypes = L.extract_global("ntypes", LAMMPS_INT)
     mass = L.numpy.extract_atom_darray("mass", ntypes+1)
     atype = L.numpy.extract_atom_iarray("type", nlocal+nghost)
     x = L.numpy.extract_atom_darray("x", nlocal+nghost, dim=3)

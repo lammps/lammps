@@ -428,11 +428,11 @@ Eigensolver functions
 
 The ``MathEigen`` sub-namespace of the ``LAMMPS_NS`` namespace contains
 functions and classes for eigensolvers. Currently only the
-:cpp:func:`jacobi3 function <MathEigen::jacobi3(double const *const *mat, double *eval, double **evec)>`
-is used in various places in LAMMPS.  That function is built on top
-of a group of more generic eigensolvers that are maintained in the
-``math_eigen_impl.h`` header file.  This header contains the implementation
-of three template classes:
+:cpp:func:`jacobi3 function <MathEigen::jacobi3>` is used in various
+places in LAMMPS.  That function is built on top of a group of more
+generic eigensolvers that are maintained in the ``math_eigen_impl.h``
+header file.  This header contains the implementation of three template
+classes:
 
 #. "Jacobi" calculates all of the eigenvalues and eigenvectors
    of a dense, symmetric, real matrix.

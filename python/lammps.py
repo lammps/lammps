@@ -2388,7 +2388,7 @@ class IPyLammps(PyLammps):
     :type zoom: float
     :param background_color: background color of scene
     :type background_color: string
-    
+
     :return: Image instance used to display image in notebook
     :rtype: :py:class:`IPython.core.display.Image`
     """

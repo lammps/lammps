@@ -28,6 +28,9 @@ class PythonCapabilities(unittest.TestCase):
     def tearDown(self):
         del self.lmp
 
+    def test_version(self):
+        self.assertGreaterEqual(self.lmp.version(), 20200824)
+
     def test_has_gzip_support(self):
         self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache['WITH_GZIP'])
 

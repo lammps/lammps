@@ -30,7 +30,7 @@ if (Python_EXECUTABLE)
   if(ENABLE_COVERAGE)
     find_program(COVERAGE_BINARY coverage)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
-    
+
     if(COVERAGE_FOUND)
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
     else()
@@ -59,6 +59,11 @@ if (Python_EXECUTABLE)
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-capabilities.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+  add_test(NAME PythonPyLammps
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")
 endif()

@@ -62,9 +62,11 @@ if (PKG_COMPRESS)
     set_tests_properties(DumpLocalGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
     set_tests_properties(DumpLocalGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
 
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(Zstd IMPORTED_TARGET libzstd>=1.4)
     find_program(ZSTD_BINARY NAMES zstd)
 
-    if (ZSTD_BINARY)
+    if(Zstd_FOUND AND ZSTD_BINARY)
         add_executable(test_dump_atom_zstd test_dump_atom_zstd.cpp)
         target_link_libraries(test_dump_atom_zstd PRIVATE lammps GTest::GMock GTest::GTest)
         add_test(NAME DumpAtomZstd COMMAND test_dump_atom_zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

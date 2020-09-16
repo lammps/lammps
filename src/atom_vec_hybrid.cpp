@@ -121,12 +121,12 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // check for both mass_type = 0 and 1, so can warn
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   maxexchange = 0;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,
                  "Cannot mix molecular and molecule template atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -140,7 +140,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
     maxexchange += styles[k]->maxexchange;
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
   }
 
   // issue a warning if both per-type mass and per-atom rmass are defined

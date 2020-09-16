@@ -129,7 +129,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   if (occupation && ( surface!=VOROSURF_NONE || maxedge>0 ) )
     error->all(FLERR,"Illegal compute voronoi/atom command (occupation and (surface or edges))");
 
-  if (occupation && (atom->map_style == 0))
+  if (occupation && (atom->map_style == Atom::MAP_NONE))
     error->all(FLERR,"Compute voronoi/atom occupation requires an atom map, see atom_modify");
 
   nmax = rmax = 0;

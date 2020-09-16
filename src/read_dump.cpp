@@ -597,7 +597,7 @@ void ReadDump::atoms()
   // if purgeflag set, delete all current atoms
 
   if (purgeflag) {
-    if (atom->map_style) atom->map_clear();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
     npurge = atom->nlocal;
     atom->nlocal = atom->nghost = 0;
     atom->natoms = 0;
@@ -622,7 +622,7 @@ void ReadDump::atoms()
   // this will be needed to match new atoms to old atoms
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -643,7 +643,7 @@ void ReadDump::atoms()
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   } else {
     atom->nghost = 0;
     atom->map_init();

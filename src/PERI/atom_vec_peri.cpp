@@ -43,7 +43,7 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_peri_package);
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
 
   atom->rmass_flag = 1;
   atom->peri_flag = 1;

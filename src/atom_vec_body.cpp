@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   // first 3 sizes do not include values from body itself

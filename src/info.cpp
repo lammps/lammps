@@ -375,7 +375,7 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular > 0) {
       const char *msg;
-      msg = (atom->molecular == 2) ? "template" : "standard";
+      msg = (atom->molecular == Atom::TEMPLATE) ? "template" : "standard";
       fmt::print(out,"Molecule type = {}\n",msg);
     }
     fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",

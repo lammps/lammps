@@ -143,7 +143,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) ni = num_improper[atom2];
+    if (molecular == Atom::MOLECULAR) ni = num_improper[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -152,7 +152,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
     }
 
     for (i = 0; i < ni; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != improper_atom2[atom2][i]) continue;
         atom1 = atom->map(improper_atom1[atom2][i]);
         atom3 = atom->map(improper_atom3[atom2][i]);

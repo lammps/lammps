@@ -502,7 +502,7 @@ void PairPeriEPS::init_style()
 
   if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice == nullptr)

@@ -474,7 +474,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     throw;
   }
 
-  lmp->atom->add_callback(0);
+  lmp->atom->add_callback(Atom::GROW);
 
   // we write our own restart file
   restart_global = 0;
@@ -507,7 +507,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 /*----------------------------------------------------------------------- */
 FixATC::~FixATC()
 {
-  if (lmp->atom) lmp->atom->delete_callback(id,0);
+  if (lmp->atom) lmp->atom->delete_callback(id,Atom::GROW);
   if (atc_) delete atc_;
 }
 

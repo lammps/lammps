@@ -115,8 +115,8 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   energy = 0.0;
 }
@@ -127,8 +127,8 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 FixFFL::~FixFFL() {
   delete random;
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);

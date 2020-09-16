@@ -221,7 +221,7 @@ void FixGPU::init()
 {
   // GPU package cannot be used with atom_style template
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
 

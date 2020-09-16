@@ -77,7 +77,7 @@ void TAD::command(int narg, char **arg)
     error->all(FLERR,"Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
     error->all(FLERR,"Cannot use TAD with atom_modify sort enabled for NEB");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use TAD unless atom map exists for NEB");
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");

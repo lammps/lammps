@@ -83,7 +83,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   orient = nullptr;
   dorient = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification
   // set nbody and body[i] for each atom
@@ -619,7 +619,7 @@ FixRigid::~FixRigid()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   delete random;
   delete [] inpfile;

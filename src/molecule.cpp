@@ -1655,7 +1655,7 @@ void Molecule::check_attributes(int flag)
     // for molecular atom styles, check bond_per_atom,etc + maxspecial
     // do not check for atom style template, since nothing stored per atom
 
-    if (atom->molecular == 1) {
+    if (atom->molecular == Atom::MOLECULAR) {
       if (atom->avec->bonds_allow &&
           atom->bond_per_atom < onemol->bond_per_atom) mismatch = 1;
       if (atom->avec->angles_allow &&

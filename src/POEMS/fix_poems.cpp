@@ -88,7 +88,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   atom2body = nullptr;
   displace = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // initialize each atom to belong to no rigid bodies
 
@@ -99,7 +99,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // readfile() and jointbuild() use global atom IDs
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -157,7 +157,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     if (narg != 4) error->all(FLERR,"Illegal fix poems command");
-    if (atom->molecular == 0)
+    if (atom->molecular == Atom::ATOMIC)
       error->all(FLERR,
                  "Must use a molecular atom style with fix poems molecule");
 
@@ -260,7 +260,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   // create POEMS instance
@@ -291,7 +291,7 @@ FixPOEMS::~FixPOEMS()
   // if atom class still exists:
   //   unregister this fix so atom class doesn't invoke it any more
 
-  if (atom) atom->delete_callback(id,0);
+  if (atom) atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

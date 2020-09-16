@@ -139,8 +139,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
     flangevin[i][2] = 0;
   }
 
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // set initial electron temperatures from user input file
 

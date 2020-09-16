@@ -515,7 +515,7 @@ void FixAppendAtoms::pre_exchange()
       if (atom->natoms < 0)
         error->all(FLERR,"Too many total atoms");
       if (atom->tag_enable) atom->tag_extend();
-      if (atom->map_style) {
+      if (atom->map_style != Atom::MAP_NONE) {
         atom->nghost = 0;
         atom->map_init();
         atom->map_set();

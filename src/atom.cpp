@@ -230,7 +230,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // default atom ID and mapping values
 
   tag_enable = 1;
-  map_style = map_user = 0;
+  map_style = map_user = MAP_NONE;
   map_tag_max = -1;
   map_maxarray = map_nhash = map_nbucket = -1;
 
@@ -666,7 +666,7 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
     error->all(FLERR,"Atom IDs must be used for molecular systems");
-  if (molecular) map_style = 3;
+  if (molecular != Atom::ATOMIC) map_style = MAP_YES;
 }
 
 /* ----------------------------------------------------------------------
@@ -1665,7 +1665,7 @@ void Atom::data_fix_compute_variable(int nprev, int nnew)
 
 void Atom::allocate_type_arrays()
 {
-  if (avec->mass_type) {
+  if (avec->mass_type == AtomVec::PER_TYPE) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
@@ -2214,7 +2214,7 @@ void Atom::add_callback(int flag)
   // sorting is required in cases where fixes were replaced as it ensures atom
   // data is read/written/transfered in the same order that fixes are called
 
-  if (flag == 0) {
+  if (flag == GROW) {
     if (nextra_grow == nextra_grow_max) {
       nextra_grow_max += DELTA;
       memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
@@ -2222,7 +2222,7 @@ void Atom::add_callback(int flag)
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
     std::sort(extra_grow, extra_grow + nextra_grow);
-  } else if (flag == 1) {
+  } else if (flag == RESTART) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
       memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
@@ -2230,7 +2230,7 @@ void Atom::add_callback(int flag)
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
     std::sort(extra_restart, extra_restart + nextra_restart);
-  } else if (flag == 2) {
+  } else if (flag == BORDER) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
       memory->grow(extra_border,nextra_border_max,"atom:extra_border");
@@ -2255,7 +2255,7 @@ void Atom::delete_callback(const char *id, int flag)
 
   // compact the list of callbacks
 
-  if (flag == 0) {
+  if (flag == GROW) {
     int match;
     for (match = 0; match < nextra_grow; match++)
       if (extra_grow[match] == ifix) break;
@@ -2265,7 +2265,7 @@ void Atom::delete_callback(const char *id, int flag)
       extra_grow[i] = extra_grow[i+1];
     nextra_grow--;
 
-  } else if (flag == 1) {
+  } else if (flag == RESTART) {
     int match;
     for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
@@ -2275,7 +2275,7 @@ void Atom::delete_callback(const char *id, int flag)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
 
-  } else if (flag == 2) {
+  } else if (flag == BORDER) {
     int match;
     for (match = 0; match < nextra_border; match++)
       if (extra_border[match] == ifix) break;
@@ -2506,7 +2506,7 @@ length of the data area, and a short description.
  *
  * \param  name  string with the keyword of the desired property.
                  Typically the name of the pointer variable returned
- * \return       pointer to the requested data cast to ``void *`` or nullptr */
+ * \return       pointer to the requested data cast to ``void *`` or ``nullptr`` */
 
 void *Atom::extract(const char *name)
 {
@@ -2591,9 +2591,9 @@ double Atom::memory_usage()
   double bytes = avec->memory_usage();
 
   bytes += max_same*sizeof(int);
-  if (map_style == 1)
+  if (map_style == MAP_ARRAY)
     bytes += memory->usage(map_array,map_maxarray);
-  else if (map_style == 2) {
+  else if (map_style == MAP_HASH) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);
   }

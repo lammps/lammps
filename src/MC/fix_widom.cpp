@@ -64,7 +64,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
@@ -154,7 +154,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     if (onemols[imol]->qflag == 1 && atom->q == nullptr)
       error->all(FLERR,"Fix widom molecule has charges, but atom style does not");
 
-    if (atom->molecular == 2 && onemols != atom->avec->onemols)
+    if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix widom molecule template ID must be same "
                  "as atom_style template ID");
     onemols[imol]->check_attributes(0);
@@ -318,7 +318,8 @@ void FixWidom::init()
   }
 
   if (exchmode == EXCHMOL)
-    if (atom->molecule_flag == 0 || !atom->tag_enable || !atom->map_style)
+    if (atom->molecule_flag == 0 || !atom->tag_enable
+        || (atom->map_style == Atom::MAP_NONE))
       error->all(FLERR,
        "Fix widom molecule command requires that "
        "atoms have molecule attributes");
@@ -764,7 +765,7 @@ void FixWidom::attempt_atomic_insertion_full()
     atom->natoms++;
     if (atom->tag_enable) {
       atom->tag_extend();
-      if (atom->map_style) atom->map_init();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -922,7 +923,7 @@ void FixWidom::attempt_molecule_insertion_full()
     atom->nangles += onemols[imol]->nangles;
     atom->ndihedrals += onemols[imol]->ndihedrals;
     atom->nimpropers += onemols[imol]->nimpropers;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();

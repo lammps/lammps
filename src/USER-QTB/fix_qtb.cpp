@@ -114,7 +114,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qtb:omega_H");
@@ -136,7 +136,7 @@ FixQTB::~FixQTB()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------

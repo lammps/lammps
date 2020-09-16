@@ -157,7 +157,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       klist = special[i];
       knum = nspecial[i][0];
     } else {
@@ -190,7 +190,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        if (molecular == 1) k = atom->map(klist[kk]);
+        if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
         else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];

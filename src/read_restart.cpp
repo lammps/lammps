@@ -431,7 +431,7 @@ void ReadRestart::command(int narg, char **arg)
     // in case read by different proc than wrote restart file
     // first do map_init() since irregular->migrate_atoms() will do map_clear()
 
-    if (atom->map_style) {
+    if (atom->map_style != Atom::MAP_NONE) {
       atom->map_init();
       atom->map_set();
     }
@@ -493,14 +493,14 @@ void ReadRestart::command(int narg, char **arg)
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }

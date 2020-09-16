@@ -234,7 +234,7 @@ void BondQuartic::init_style()
   if (force->angle || force->dihedral || force->improper)
     error->all(FLERR,
                "Bond style quartic cannot be used with 3,4-body interactions");
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,
                "Bond style quartic cannot be used with atom style template");
 

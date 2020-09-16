@@ -268,7 +268,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
 
-    if (molecular == 1) nb = num_bond[atom1];
+    if (molecular == Atom::MOLECULAR) nb = num_bond[atom1];
     else {
       if (molindex[atom1] < 0) continue;
       imol = molindex[atom1];
@@ -277,7 +277,7 @@ int ComputeBondLocal::compute_bonds(int flag)
     }
 
     for (i = 0; i < nb; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         btype = bond_type[atom1][i];
         atom2 = atom->map(bond_atom[atom1][i]);
       } else {

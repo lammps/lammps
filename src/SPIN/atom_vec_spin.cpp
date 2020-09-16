@@ -34,8 +34,8 @@ using namespace LAMMPS_NS;
 
 AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
   forceclearflag = 1;
 
   atom->sp_flag = 1;

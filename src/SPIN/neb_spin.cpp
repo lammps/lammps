@@ -123,7 +123,7 @@ void NEBSpin::command(int narg, char **arg)
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEBSpin with a single replica");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use NEBSpin unless atom map exists");
 
   // process file-style setting to setup initial configs for all replicas

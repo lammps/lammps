@@ -350,8 +350,8 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   values = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // zero the array since dump may access it on timestep 0
   // zero the array since a variable may access it before first run
@@ -375,8 +375,8 @@ FixStoreState::~FixStoreState()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   delete [] which;
   delete [] argindex;

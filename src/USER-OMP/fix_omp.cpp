@@ -170,7 +170,7 @@ int FixOMP::setmask()
 void FixOMP::init()
 {
   // USER-OMP package cannot be used with atom_style template
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"USER-OMP package does not (yet) work with "
                "atom_style template");
 

@@ -129,7 +129,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   scale = 1.0;
   scalingmask    = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
 }
 
@@ -145,7 +145,7 @@ void FixEHEX::grow_arrays(int nmax) {
 
 FixEHEX::~FixEHEX()
 {
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
   delete [] idregion;
   memory->destroy(scalingmask);
 

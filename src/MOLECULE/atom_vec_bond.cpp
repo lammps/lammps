@@ -20,9 +20,9 @@ using namespace LAMMPS_NS;
 
 AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 

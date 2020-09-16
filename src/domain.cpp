@@ -768,7 +768,7 @@ void Domain::image_check()
 
   int flag = 0;
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -777,7 +777,7 @@ void Domain::image_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {
@@ -867,7 +867,7 @@ void Domain::box_too_small_check()
   int nmissing = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -876,7 +876,7 @@ void Domain::box_too_small_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {

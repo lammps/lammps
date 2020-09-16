@@ -59,7 +59,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   user_energy = 0.0;
 
@@ -75,7 +75,7 @@ FixExternal::~FixExternal()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(fexternal);
   delete [] caller_vector;

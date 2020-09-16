@@ -194,7 +194,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // zero the array since dump may access it on timestep 0
   // zero the array since a variable may access it before first run
@@ -221,7 +221,7 @@ FixAveAtom::~FixAveAtom()
 {
   // unregister callback to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   delete [] which;
   delete [] argindex;

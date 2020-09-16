@@ -130,7 +130,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   reaxc = (PairReaxC *) force->pair_match("^reax/c",0);
 
   s_hist = t_hist = nullptr;
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,7 +143,7 @@ FixQEqReax::~FixQEqReax()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);

@@ -55,9 +55,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
   drudeid = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+  atom->add_callback(Atom::BORDER);
 
   // one-time assignment of Drude partners
 
@@ -72,9 +72,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
 FixDrude::~FixDrude()
 {
-  atom->delete_callback(id,2);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::BORDER);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::GROW);
   memory->destroy(drudetype);
   memory->destroy(drudeid);
 }
@@ -110,7 +110,7 @@ void FixDrude::build_drudeid(){
   std::vector<tagint> core_drude_vec;
   partner_set = new std::set<tagint>[nlocal]; // Temporary sets of bond partner tags
 
-  if (atom->molecular == 1)
+  if (atom->molecular == Atom::MOLECULAR)
   {
     // Build list of my atoms' bond partners
     for (int i=0; i<nlocal; i++){

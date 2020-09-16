@@ -129,7 +129,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   tagint *s = nullptr;
   int tag_size = 0, special_size;
   if (buffers->need_tag()) tag_size = e_nall;
-  if (molecular) {
+  if (molecular != Atom::ATOMIC) {
     s = atom->special[0];
     ns = atom->nspecial[0];
     special_size = aend;
@@ -526,7 +526,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
         } // for u
 
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           if (!THREE) neighptr2 = neighptr;
           int alln = n;
 

@@ -252,7 +252,7 @@ void Velocity::create(double t_desired, int seed)
     // create an atom map if one doesn't exist already
 
     int mapflag = 0;
-    if (atom->map_style == 0) {
+    if (atom->map_style == Atom::MAP_NONE) {
       mapflag = 1;
       atom->nghost = 0;
       atom->map_init();
@@ -304,7 +304,7 @@ void Velocity::create(double t_desired, int seed)
 
     if (mapflag) {
       atom->map_delete();
-      atom->map_style = 0;
+      atom->map_style = Atom::MAP_NONE;
     }
 
   } else if (loop_flag == LOCAL) {

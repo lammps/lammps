@@ -77,7 +77,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // checking if map array or hash is defined
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix NVE/spin requires an atom map, see atom_modify");
 
   // defining sector_flag

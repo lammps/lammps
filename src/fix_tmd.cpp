@@ -57,11 +57,11 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // make sure an atom map exists before reading in target coordinates
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use fix TMD unless atom map exists");
 
   // read from arg[4] and store coordinates of final target in xf
@@ -128,7 +128,7 @@ FixTMD::~FixTMD()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

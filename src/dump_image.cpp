@@ -952,7 +952,7 @@ void DumpImage::create_image()
 
     for (i = 0; i < nchoose; i++) {
       atom1 = clist[i];
-      if (molecular == 1) n = num_bond[atom1];
+      if (molecular == Atom::MOLECULAR) n = num_bond[atom1];
       else {
         if (molindex[atom1] < 0) continue;
         imol = molindex[atom1];
@@ -961,7 +961,7 @@ void DumpImage::create_image()
       }
 
       for (m = 0; m < n; m++) {
-        if (molecular == 1) {
+        if (molecular == Atom::MOLECULAR) {
           btype = bond_type[atom1][m];
           atom2 = atom->map(bond_atom[atom1][m]);
         } else {

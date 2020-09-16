@@ -777,7 +777,7 @@ void CommTiled::exchange()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -1152,6 +1152,14 @@ void CommTiled::borders()
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
   }
 
+  // For molecular systems we lose some bits for local atom indices due
+  // to encoding of special pairs in neighbor lists. Check for overflows.
+
+  if ((atom->molecular != Atom::ATOMIC)
+      && ((atom->nlocal + atom->nghost) > NEIGHMASK))
+    error->one(FLERR,"Per-processor number of atoms is too large for "
+               "molecular neighbor lists");
+
   // insure send/recv buffers are long enough for all forward & reverse comm
   // send buf is for one forward or reverse sends to one proc
   // recv buf is for all forward or reverse recvs in one swap
@@ -1163,7 +1171,7 @@ void CommTiled::borders()
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
+  if (map_style != Atom::MAP_NONE) atom->map_set();
 }
 
 /* ----------------------------------------------------------------------

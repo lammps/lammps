@@ -55,7 +55,7 @@ using namespace SMD_Math;
 FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS *lmp, int narg, char **arg) :
                 Fix(lmp, narg, arg) {
 
-        if (atom->map_style == 0)
+        if (atom->map_style == Atom::MAP_NONE)
                 error->all(FLERR, "Pair tlsph with partner list requires an atom map, see atom_modify");
 
         maxpartner = 1;
@@ -66,7 +66,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
         energy_per_bond = nullptr;
         degradation_ij = nullptr;
         grow_arrays(atom->nmax);
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
         // initialize npartner to 0 so neighbor list creation is OK the 1st time
         int nlocal = atom->nlocal;
@@ -83,7 +83,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
 FixSMD_TLSPH_ReferenceConfiguration::~FixSMD_TLSPH_ReferenceConfiguration() {
         // unregister this fix so atom class doesn't invoke it any more
 
-        atom->delete_callback(id, 0);
+        atom->delete_callback(id,Atom::GROW);
 // delete locally stored arrays
 
         memory->destroy(npartner);

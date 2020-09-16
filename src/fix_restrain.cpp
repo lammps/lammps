@@ -150,7 +150,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
 
   // require atom map to lookup atom IDs
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix restrain requires an atom map, see atom_modify");
 }
 

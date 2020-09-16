@@ -1,5 +1,5 @@
 import sys,os,unittest
-from lammps import lammps, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_SCALAR, LMP_TYPE_ARRAY
+from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_SCALAR, LMP_TYPE_ARRAY
 from ctypes import c_void_p
 
 class PythonNumpy(unittest.TestCase):
@@ -65,6 +65,35 @@ class PythonNumpy(unittest.TestCase):
     def testExtractComputeLocalArray(self):
         # TODO
         pass
+
+    def testExtractAtom(self):
+        self.lmp.command("units lj")
+        self.lmp.command("atom_style atomic")
+        self.lmp.command("atom_modify map array")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        x = [
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.5
+        ]
+
+        types = [1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
+        self.assertEqual(nlocal, 2)
+
+        ident = self.lmp.numpy.extract_atom_iarray("id", nlocal, dim=1)
+        self.assertEqual(len(ident), 2)
+
+        ntypes = self.lmp.extract_global("ntypes", LAMMPS_INT)
+        self.assertEqual(ntypes, 1)
+
+        x = self.lmp.numpy.extract_atom_darray("x", nlocal, dim=3)
+        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
+        self.assertEqual(len(x), 2)
+        self.assertEqual(len(v), 2)
 
 if __name__ == "__main__":
     unittest.main()

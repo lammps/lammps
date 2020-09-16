@@ -16,8 +16,8 @@
                          Andrew Jewett (Scripps Research, Jacobi algorithm)
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MATH_EIGEN_H
-#define LMP_MATH_EIGEN_H
+#ifndef LMP_MATH_EIGEN_IMPL_H
+#define LMP_MATH_EIGEN_IMPL_H
 
 //        This file contains a library of functions and classes which can
 //        efficiently perform eigendecomposition for an extremely broad
@@ -219,50 +219,6 @@ namespace MathEigen {
     Jacobi<Scalar, Vector, Matrix, ConstMatrix>& operator = (Jacobi<Scalar, Vector, Matrix, ConstMatrix> source);
 
   }; // class Jacobi
-
-
-  /// @brief
-  ///   A specialized function which finds the eigenvalues and eigenvectors
-  ///   of a 3x3 matrix (in double ** format).
-  /// @param  mat   the 3x3 matrix you wish to diagonalize
-  /// @param  eval  store the eigenvalues here
-  /// @param  evec  store the eigenvectors here...
-  /// @param  evec_as_columns  ...in the columns or in rows?
-  /// @param  sort_criteria   sort the resulting eigenvalues?
-  /// @note
-  ///   When invoked using default arguments, this function is a stand-in for
-  ///   the the version of "jacobi()" that was defined in "POEMS/fix_poems.cpp".
-  int jacobi3(double const* const* mat,
-              double *eval,
-              double **evec,
-              // optional arguments:
-              bool evec_as_columns = true,
-              Jacobi<double,double*,double**,double const*const*>::
-              SortCriteria sort_criteria =
-              Jacobi<double,double*,double**,double const*const*>::
-              SORT_DECREASING_EVALS
-              );
-
-
-  /// @brief
-  ///   This version of jacobi3() finds the eigenvalues and eigenvectors
-  ///   of a 3x3 matrix (which is in double (*)[3] format, instead of double **)
-  /// @note
-  ///   When invoked using default arguments, this function is a stand-in for
-  ///   the previous version of "jacobi()" that was declared in "math_extra.h".
-  int jacobi3(double const mat[3][3],
-              double *eval,
-              double evec[3][3],
-              // optional arguments:
-              bool evec_as_columns = true,
-              Jacobi<double,double*,double(*)[3],double const(*)[3]>::
-              SortCriteria sort_criteria =
-              Jacobi<double,double*,double(*)[3],double const(*)[3]>::
-              SORT_DECREASING_EVALS
-              );
-
-
-
 
   // ---- Eigendecomposition of large sparse (or dense) matrices ----
 
@@ -1413,4 +1369,4 @@ PrincipalEigen(ConstMatrix matrix,
 
 
 
-#endif //#ifndef LMP_MATH_EIGEN_H
+#endif //#ifndef LMP_MATH_EIGEN_IMPL_H

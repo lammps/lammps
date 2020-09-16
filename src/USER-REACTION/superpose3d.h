@@ -22,10 +22,10 @@
 /// @author   Andrew Jewett
 /// @license  MIT
 
-#ifndef _SUPERPOSE3D_H
-#define _SUPERPOSE3D_H
+#ifndef LMP_SUPERPOSE3D_H
+#define LMP_SUPERPOSE3D_H
 
-#include "math_eigen.h"   //functions to calculate eigenvalues and eigenvectors
+#include "math_eigen_impl.h"   //functions to calculate eigenvalues and eigenvectors
 
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
@@ -462,4 +462,4 @@ operator = (Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> source) {
 }
 
 
-#endif //#ifndef _SUPERPOSE3D_H
+#endif //#ifndef LMP_SUPERPOSE3D_H

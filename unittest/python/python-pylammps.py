@@ -35,7 +35,7 @@ class PythonPyLammps(unittest.TestCase):
     def test_version(self):
         self.assertGreaterEqual(self.pylmp.version(), 20200824)
 
-    def test_create_box(self):
+    def test_create_atoms(self):
         self.pylmp.region("box block", 0, 2, 0, 2, 0, 2)
         self.pylmp.create_box(1, "box")
 

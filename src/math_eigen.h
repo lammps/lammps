@@ -6,15 +6,11 @@
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
-   the GNU General Public License.  (Some of the code in this file is also
-   available using a more premissive license.  See below for details.)
+   the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
-   Contributing authors: Yuya Kurebayashi (Tohoku University, Lanczos algorithm)
-                         Andrew Jewett (Scripps Research, Jacobi algorithm)
-------------------------------------------------------------------------- */
+
 
 #ifndef LMP_MATH_EIGEN_H
 #define LMP_MATH_EIGEN_H

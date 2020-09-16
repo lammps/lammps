@@ -446,6 +446,12 @@ classes:
 #. The "LambdaLanczos" class is a generalization of "PEigenDense" which can be
    applied to arbitrary sparse matrices.
 
+The "math_eigen_impl.h" code is an amalgamation of `jacobi_pd
+<https://github.com/jewettaij/jacobi_pd>`_ by Andrew Jewett at Scripps
+Research (under CC0-1.0 license) and `Lambda Lanczos
+<https://github.com/mrcdr/lambda-lanczos>`_ by Yuya Kurebayashi at
+Tohoku University (under MIT license)
+
 ----------
 
 .. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec)

@@ -1300,6 +1300,7 @@ Imageint
 Imagemagick
 imd
 Impey
+impl
 impropers
 Impropers
 includelink
@@ -1547,6 +1548,7 @@ Kub
 Kubo
 Kumagai
 Kumar
+Kurebayashi
 Kuronen
 Kusters
 Kutta
@@ -2771,6 +2773,7 @@ Schuring
 Schwen
 screenshot
 screenshots
+Scripps
 Scripta
 sdk
 sdpd
@@ -3099,6 +3102,7 @@ Tmin
 tmp
 tN
 Tobias
+Tohoku
 tokenizer
 tokyo
 tol
@@ -3457,6 +3461,7 @@ Yuh
 yukawa
 Yukawa
 Yusof
+Yuya
 yx
 yy
 yz

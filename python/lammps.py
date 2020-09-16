@@ -1974,6 +1974,14 @@ class PyLammps(object):
   """
 
   def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
+    self.has_echo = False
+
+    if cmdargs:
+      if '-echo' in cmdargs:
+        idx = cmdargs.index('-echo')
+        # ensures that echo line is ignored during output capture
+        self.has_echo = idx+1 < len(cmdargs) and cmdargs[idx+1] in ('screen', 'both')
+
     if ptr:
       if isinstance(ptr,PyLammps):
         self.lmp = ptr.lmp
@@ -2323,13 +2331,17 @@ class PyLammps(object):
       cmd_args = [name] + [str(x) for x in args]
 
       with OutputCapture() as capture:
-        self.command(' '.join(cmd_args))
+        cmd = ' '.join(cmd_args)
+        self.command(cmd)
         output = capture.output
 
       if 'verbose' in kwargs and kwargs['verbose']:
         print(output)
 
       lines = output.splitlines()
+
+      if self.has_echo:
+        lines = lines[1:]
 
       if len(lines) > 1:
         return lines

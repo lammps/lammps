@@ -6,7 +6,10 @@ class PythonPyLammps(unittest.TestCase):
         machine = None
         if 'LAMMPS_MACHINE_NAME' in os.environ:
             machine=os.environ['LAMMPS_MACHINE_NAME']
-        self.pylmp = PyLammps(name=machine,  cmdargs=['-nocite', '-log','none', '-echo','screen'])
+        self.pylmp = PyLammps(name=machine,  cmdargs=['-nocite', '-log','none', '-echo', 'screen'])
+        self.pylmp.units("lj")
+        self.pylmp.atom_style("atomic")
+        self.pylmp.atom_modify("map array")
 
         if 'LAMMPS_CMAKE_CACHE' in os.environ:
             self.cmake_cache = {}
@@ -45,6 +48,9 @@ class PythonPyLammps(unittest.TestCase):
 
         self.assertEqual(self.pylmp.lmp.create_atoms(2, id=None, type=types, x=x), 2)
         self.assertEqual(self.pylmp.system.natoms, 2)
+        self.assertEqual(len(self.pylmp.atoms), 2)
+        self.assertEqual(self.pylmp.atoms[0].position, tuple(x[0:3]))
+        self.assertEqual(self.pylmp.atoms[1].position, tuple(x[3:6]))
 
 if __name__ == "__main__":
     unittest.main()

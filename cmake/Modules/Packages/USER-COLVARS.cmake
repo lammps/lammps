@@ -24,8 +24,8 @@ target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 target_link_libraries(lammps PRIVATE colvars)
 
 if(COLVARS_DEBUG)
-  target_compile_definitions(colvars PRIVATE -DCOLVARS_DEBUG)
-  target_compile_definitions(lammps PRIVATE -DCOLVARS_DEBUG) # For the proxy
+  # Need to export the macro publicly to also affect the proxy
+  target_compile_definitions(colvars PUBLIC -DCOLVARS_DEBUG)
 endif()
 
 if(COLVARS_LEPTON)

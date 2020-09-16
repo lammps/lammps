@@ -354,7 +354,7 @@ void TestJacobi(int n, //<! matrix size
   // eigenvalues and eigenvectors.
   // The way we do this depends on what version of the code we are using.
   // This is controlled by "#if defined" statements.
-  
+
   #if defined USE_VECTOR_OF_VECTORS
 
   Jacobi<Scalar,
@@ -408,7 +408,7 @@ void TestJacobi(int n, //<! matrix size
   Scalar test_evec[NF];
 
   #else
- 
+
   #define USE_C_POINTER_TO_POINTERS
 
   // Note: Normally, you would just use this to instantiate Jacobi:

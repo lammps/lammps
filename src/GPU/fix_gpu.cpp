@@ -118,7 +118,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int newtonflag = 0;
   int threads_per_atom = -1;
   double binsize = 0.0;
-  char *opencl_flags = NULL;
+  char *opencl_flags = nullptr;
   int block_pair = -1;
 
   int iarg = 4;
@@ -221,7 +221,7 @@ void FixGPU::init()
 {
   // GPU package cannot be used with atom_style template
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
 
@@ -232,7 +232,7 @@ void FixGPU::init()
 
   // make sure fdotr virial is not accumulated multiple times
 
-  if (force->pair_match("^hybrid",0) != NULL) {
+  if (force->pair_match("^hybrid",0) != nullptr) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))

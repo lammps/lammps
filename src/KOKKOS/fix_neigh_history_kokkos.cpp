@@ -35,9 +35,9 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(valuepartner);
-  npartner = NULL;
-  partner = NULL;
-  valuepartner = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  valuepartner = nullptr;
 
   maxpartner = 8;
   grow_arrays(atom->nmax);

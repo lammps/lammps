@@ -41,10 +41,10 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
   // register with atom class
 
   oldnmax = 0;
-  num_bonds = NULL;
-  num_hbonds = NULL;
+  num_bonds = nullptr;
+  num_hbonds = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // initialize arrays to MIN so atom migration is OK the 1st time
   // it is done in grow_arrays() now
@@ -60,7 +60,7 @@ FixReaxC::~FixReaxC()
 {
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

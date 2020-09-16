@@ -28,7 +28,7 @@ class Integrate : protected Pointers {
   virtual void run(int) = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
-  virtual bigint memory_usage() {return 0;}
+  virtual double memory_usage() {return 0;}
 
  protected:
   int eflag,vflag;                  // flags for energy/virial computation

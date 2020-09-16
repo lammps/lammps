@@ -138,7 +138,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum*n);
-        if (partner[i] == NULL || valuepartner[i] == NULL)
+        if (partner[i] == nullptr || valuepartner[i] == nullptr)
           error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
       }
     }
@@ -276,7 +276,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum*n);
-        if (partner[i] == NULL || valuepartner[i] == NULL)
+        if (partner[i] == nullptr || valuepartner[i] == nullptr)
           error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
       }
     }
@@ -289,7 +289,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum*n);
-        if (partner[i] == NULL || valuepartner[i] == NULL) {
+        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
           error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
         }
       }
@@ -444,7 +444,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum*n);
-        if (partner[i] == NULL || valuepartner[i] == NULL)
+        if (partner[i] == nullptr || valuepartner[i] == nullptr)
           error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
       }
     }

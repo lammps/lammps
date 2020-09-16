@@ -35,7 +35,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   direction = NONE;
   regionidx = 0;
-  regionstr = NULL;
+  regionstr = nullptr;
 
   if (narg < 6) error->all(FLERR,"Illegal fix oneway command");
 

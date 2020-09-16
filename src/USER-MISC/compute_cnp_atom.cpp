@@ -49,7 +49,7 @@ enum{NCOMMON};
 
 ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  list(NULL), nearest(NULL), nnearest(NULL), cnpv(NULL)
+  list(nullptr), nearest(nullptr), nnearest(nullptr), cnpv(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cnp/atom command");
 
@@ -92,7 +92,7 @@ ComputeCNPAtom::~ComputeCNPAtom()
 
 void ComputeCNPAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cnp/atom requires a pair style be defined");
 
   if (sqrt(cutsq) > force->pair->cutforce)

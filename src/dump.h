@@ -47,7 +47,7 @@ class Dump : protected Pointers {
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
-  virtual bigint memory_usage();
+  virtual double memory_usage();
 
  protected:
   int me,nprocs;             // proc info

@@ -63,7 +63,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 
   if(gjfflag){
     grow_arrays(atomKK->nmax);
-    atom->add_callback(0);
+    atom->add_callback(Atom::GROW);
     // initialize franprev to zero
     for (int i = 0; i < atomKK->nlocal; i++) {
       franprev[i][0] = 0.0;
@@ -735,7 +735,7 @@ void FixLangevinKokkos<DeviceType>::reset_dt()
 template<class DeviceType>
 double FixLangevinKokkos<DeviceType>::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL) return 0.0;
+  if (!tallyflag || flangevin == nullptr) return 0.0;
 
   v = atomKK->k_v.template view<DeviceType>();
   mask = atomKK->k_mask.template view<DeviceType>();
@@ -893,19 +893,19 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::cleanup_copy()
 {
-  random = NULL;
-  tstr = NULL;
-  gfactor1 = NULL;
-  gfactor2 = NULL;
-  ratio = NULL;
-  id_temp = NULL;
-  flangevin = NULL;
-  tforce = NULL;
+  random = nullptr;
+  tstr = nullptr;
+  gfactor1 = nullptr;
+  gfactor2 = nullptr;
+  ratio = nullptr;
+  id_temp = nullptr;
+  flangevin = nullptr;
+  tforce = nullptr;
   gjfflag = 0;
-  franprev = NULL;
-  lv = NULL;
-  id = style = NULL;
-  vatom = NULL;
+  franprev = nullptr;
+  lv = nullptr;
+  id = style = nullptr;
+  vatom = nullptr;
 }
 
 namespace LAMMPS_NS {

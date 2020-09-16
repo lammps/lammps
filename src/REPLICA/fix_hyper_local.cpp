@@ -47,14 +47,14 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(NULL), biascoeff(NULL), numbond(NULL),
-  maxhalf(NULL), eligible(NULL), maxhalfstrain(NULL), old2now(NULL),
-  tagold(NULL), xold(NULL), maxstrain(NULL), maxstrain_domain(NULL),
-  biasflag(NULL), bias(NULL), cpage(NULL), clist(NULL), numcoeff(NULL)
+  FixHyper(lmp, narg, arg), blist(nullptr), biascoeff(nullptr), numbond(nullptr),
+  maxhalf(nullptr), eligible(nullptr), maxhalfstrain(nullptr), old2now(nullptr),
+  tagold(nullptr), xold(nullptr), maxstrain(nullptr), maxstrain_domain(nullptr),
+  biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr), numcoeff(nullptr)
 {
   // error checks
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/local command requires atom map");
 
   // parse args
@@ -132,28 +132,28 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   // per-atom data structs
 
   maxbond = nblocal = 0;
-  blist = NULL;
-  biascoeff = NULL;
+  blist = nullptr;
+  biascoeff = nullptr;
   allbonds = 0;
 
   maxatom = 0;
-  maxstrain = NULL;
-  maxstrain_domain = NULL;
-  biasflag = NULL;
+  maxstrain = nullptr;
+  maxstrain_domain = nullptr;
+  biasflag = nullptr;
 
   maxlocal = nlocal_old = 0;
-  numbond = NULL;
-  maxhalf = NULL;
-  eligible = NULL;
-  maxhalfstrain = NULL;
+  numbond = nullptr;
+  maxhalf = nullptr;
+  eligible = nullptr;
+  maxhalfstrain = nullptr;
 
   maxall = nall_old = 0;
-  xold = NULL;
-  tagold = NULL;
-  old2now = NULL;
+  xold = nullptr;
+  tagold = nullptr;
+  old2now = nullptr;
 
   nbias = maxbias = 0;
-  bias = NULL;
+  bias = nullptr;
 
   // data structs for persisting bias coeffs when bond list is reformed
   // maxbondperatom = max # of bonds any atom is part of
@@ -162,8 +162,8 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   maxcoeff = 0;
   maxbondperatom = FCCBONDS;
-  numcoeff = NULL;
-  clist = NULL;
+  numcoeff = nullptr;
+  clist = nullptr;
   cpage = new MyPage<HyperOneCoeff>;
   cpage->init(maxbondperatom,1024*maxbondperatom,1);
 
@@ -983,7 +983,7 @@ void FixHyperLocal::build_bond_list(int natom)
   while (1) {
     if (firstflag) break;
     for (i = 0; i < nall; i++) numcoeff[i] = 0;
-    for (i = 0; i < nall; i++) clist[i] = NULL;
+    for (i = 0; i < nall; i++) clist[i] = nullptr;
     cpage->reset();
 
     for (m = 0; m < nblocal; m++) {

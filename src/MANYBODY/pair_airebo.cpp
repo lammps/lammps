@@ -61,13 +61,13 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   pvector = new double[nextra];
 
   maxlocal = 0;
-  REBO_numneigh = NULL;
-  REBO_firstneigh = NULL;
-  ipage = NULL;
+  REBO_numneigh = nullptr;
+  REBO_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  nC = nH = NULL;
-  map = NULL;
+  nC = nH = nullptr;
+  map = nullptr;
   manybody_flag = 1;
 
   sigwid = 0.84;
@@ -185,7 +185,7 @@ void PairAIREBO::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
-  // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
+  // map[i] = which element (0,1) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -245,7 +245,7 @@ void PairAIREBO::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 

@@ -16,8 +16,8 @@ variable  t_target        index 100.0
 atom_style       full
 atom_modify      map array
 neigh_modify     delay 2 every 2 check no
-timestep         0.1
 units            ${units}
+timestep         0.1
 newton           ${newton_pair} ${newton_bond}
 special_bonds    lj/coul ${bond_factor} ${angle_factor} ${dihedral_factor}
 

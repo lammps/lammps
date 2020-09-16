@@ -71,17 +71,17 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
 
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nextra_global = 0;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   external_force_clear = 0;
 
@@ -128,7 +128,7 @@ void Min::init()
 
   nextra_global = 0;
   delete [] fextra;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
   memory->sfree(xextra_atom);
@@ -137,10 +137,10 @@ void Min::init()
   memory->destroy(extra_nlen);
   memory->destroy(extra_max);
   memory->sfree(requestor);
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
@@ -760,8 +760,8 @@ void Min::ev_setup()
   delete [] vlist_global;
   delete [] vlist_atom;
   delete [] cvlist_atom;
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = ncvlist_atom = 0;

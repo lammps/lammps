@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_gyration_chunk(NULL), shape_parameters(NULL)
+  Compute(lmp, narg, arg), id_gyration_chunk(nullptr), shape_parameters(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute gyration/shape/chunk command");
 

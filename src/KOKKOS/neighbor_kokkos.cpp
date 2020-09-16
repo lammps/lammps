@@ -41,10 +41,10 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
   neighbond_host(lmp),neighbond_device(lmp)
 {
   device_flag = 0;
-  bondlist = NULL;
-  anglelist = NULL;
-  dihedrallist = NULL;
-  improperlist = NULL;
+  bondlist = nullptr;
+  anglelist = nullptr;
+  dihedrallist = nullptr;
+  improperlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,7 +53,7 @@ NeighborKokkos::~NeighborKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = NULL;
+    cutneighsq = nullptr;
 
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);

@@ -47,8 +47,8 @@ namespace ATC {
     nLocal_(0),
     useLocalizedLambda_(false),
     useLumpedLambda_(false),
-    timeFilter_(NULL),
-    regulatorMethod_(NULL),
+    timeFilter_(nullptr),
+    regulatorMethod_(nullptr),
     boundaryIntegrationType_(NO_QUADRATURE),
     regulatorPrefix_(regulatorPrefix)
   {
@@ -97,7 +97,7 @@ namespace ATC {
   //--------------------------------------------------------
   DENS_MAN * AtomicRegulator::regulator_data(const string tag, int nCols)
   {
-    DENS_MAN * data(NULL);
+    DENS_MAN * data(nullptr);
     map<string, pair<bool,DENS_MAN * > >::iterator it = regulatorData_.find(tag);
     if (it == regulatorData_.end()) {
       data = new DENS_MAN(nNodes_,nCols);
@@ -115,14 +115,14 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  get_regulator_data:
-  //    gets a pointer to the requested data, or NULL if
+  //    gets a pointer to the requested data, or nullptr if
   //    if doesn't exist
   //--------------------------------------------------------
   const DENS_MAN * AtomicRegulator::regulator_data(const string tag) const
   {
     map<string, pair<bool,DENS_MAN * > >::const_iterator it = regulatorData_.find(tag);
     if (it == regulatorData_.end()) {
-      return NULL;
+      return nullptr;
     }
     else {
       return const_cast<DENS_MAN * >((it->second).second);
@@ -521,7 +521,7 @@ namespace ATC {
     fieldMask_(NUM_FIELDS,NUM_FLUX),
     nNodes_(atomicRegulator_->num_nodes()),
     regulatorPrefix_(atomicRegulator->regulator_prefix()+regulatorPrefix),
-    shpFcnDerivs_(NULL)
+    shpFcnDerivs_(nullptr)
   {
     fieldMask_ = false;
   }
@@ -552,21 +552,21 @@ namespace ATC {
   RegulatorShapeFunction::RegulatorShapeFunction(AtomicRegulator * atomicRegulator,
                                                  const string & regulatorPrefix) :
     RegulatorMethod(atomicRegulator,regulatorPrefix),
-    lambda_(NULL),
-    atomLambdas_(NULL),
-    shapeFunctionMatrix_(NULL),
+    lambda_(nullptr),
+    atomLambdas_(nullptr),
+    shapeFunctionMatrix_(nullptr),
     linearSolverType_(AtomicRegulator::NO_SOLVE),
     maxIterations_(atomicRegulator->max_iterations()),
     tolerance_(atomicRegulator->tolerance()),
-    matrixSolver_(NULL),
-    regulatedNodes_(NULL),
-    applicationNodes_(NULL),
-    boundaryNodes_(NULL),
-    shpFcn_(NULL),
-    atomicWeights_(NULL),
-    elementMask_(NULL),
-    lambdaAtomMap_(NULL),
-    weights_(NULL),
+    matrixSolver_(nullptr),
+    regulatedNodes_(nullptr),
+    applicationNodes_(nullptr),
+    boundaryNodes_(nullptr),
+    shpFcn_(nullptr),
+    atomicWeights_(nullptr),
+    elementMask_(nullptr),
+    lambdaAtomMap_(nullptr),
+    weights_(nullptr),
     nsd_(atomicRegulator_->nsd()),
     nLocal_(atomicRegulator_->nlocal())
   {

@@ -92,7 +92,7 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
   system->pair_ptr = this;
   system->omp_active = 1;
 
-  num_nbrs_offset = NULL;
+  num_nbrs_offset = nullptr;
 
 #ifdef OMP_TIMING
   for (int i=0;i<LASTTIMINGINDEX;i++) {
@@ -368,7 +368,7 @@ void PairReaxCOMP::init_style( )
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
-  if (fix_reax == NULL) {
+  if (fix_reax == nullptr) {
     char **fixarg = new char*[3];
     fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";

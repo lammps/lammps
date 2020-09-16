@@ -131,11 +131,11 @@ namespace ATC {
 
     /** gets appropriate pointer for lammps data */
     virtual double * lammps_scalar() const
-      {return NULL;};
+      {return nullptr;};
 
     /** gets appropriate pointer for lammps data */
     virtual double ** lammps_vector() const
-      {return NULL;};
+      {return nullptr;};
 
   private:
 

@@ -40,12 +40,12 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 EwaldDipole::EwaldDipole(LAMMPS *lmp) : Ewald(lmp),
-  tk(NULL), vc(NULL)
+  tk(nullptr), vc(nullptr)
 {
   ewaldflag = dipoleflag = 1;
   group_group_enable = 0;
-  tk = NULL;
-  vc = NULL;
+  tk = nullptr;
+  vc = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -112,7 +112,7 @@ void EwaldDipole::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 

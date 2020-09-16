@@ -95,7 +95,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
 
         // set comm sizes needed by this fix
 
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
 }
 
@@ -139,7 +139,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         Vector3d *smoothVelDifference = (Vector3d *) force->pair->extract("smd/tlsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
-                if (smoothVelDifference == NULL) {
+                if (smoothVelDifference == nullptr) {
                         error->one(FLERR,
                                         "fix smd/integrate_tlsph failed to access smoothVel array. Check if a pair style exist which calculates this quantity.");
                 }

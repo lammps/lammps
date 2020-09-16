@@ -130,7 +130,7 @@ void CreateAtoms::command(int narg, char **arg)
   mode = ATOM;
   int molseed;
   varflag = 0;
-  vstr = xstr = ystr = zstr = NULL;
+  vstr = xstr = ystr = zstr = nullptr;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
   subsetflag = NONE;
   int subsetseed;
@@ -245,7 +245,7 @@ void CreateAtoms::command(int narg, char **arg)
 
   // error check and further setup for mode = MOLECULE
 
-  ranmol = NULL;
+  ranmol = nullptr;
   if (mode == MOLECULE) {
     if (onemol->xflag == 0)
       error->all(FLERR,"Create_atoms molecule must have coordinates");
@@ -267,7 +267,7 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp,molseed+me);
   }
 
-  ranlatt = NULL;
+  ranlatt = nullptr;
   if (subsetflag != NONE) ranlatt = new RanMars(lmp,subsetseed+me);
 
   // error check and further setup for variable test
@@ -425,7 +425,7 @@ void CreateAtoms::command(int narg, char **arg)
   // if global map exists, reset it
   // invoke map_init() b/c atom count has grown
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
@@ -511,10 +511,10 @@ void CreateAtoms::command(int narg, char **arg)
             molecule[ilocal] = moloffset + 1;
           }
         }
-        if (molecular == 2) {
+        if (molecular == Atom::TEMPLATE) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
-        } else if (molecular) {
+        } else if (molecular != Atom::ATOMIC) {
           if (onemol->bondflag)
             for (int j = 0; j < num_bond[ilocal]; j++)
               bond_atom[ilocal][j] += offset;
@@ -585,7 +585,7 @@ void CreateAtoms::command(int narg, char **arg)
   // only if onemol added bonds but not special info
 
   if (mode == MOLECULE) {
-    if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
+    if (atom->molecular == Atom::MOLECULAR && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
 

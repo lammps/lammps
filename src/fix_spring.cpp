@@ -37,7 +37,7 @@ enum{TETHER,COUPLE};
 
 FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  group2(NULL)
+  group2(nullptr)
 {
   if (narg < 9) error->all(FLERR,"Illegal fix spring command");
 

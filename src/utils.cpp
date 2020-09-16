@@ -152,7 +152,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
                    FILE *fp, const char *filename, Error *error)
 {
   char *rv = fgets(s,size,fp);
-  if (rv == NULL) { // something went wrong
+  if (rv == nullptr) { // something went wrong
     char buf[MAXPATHLENBUF];
     std::string errmsg;
 
@@ -171,7 +171,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += "'";
 
     if (error) error->one(srcname,srcline,errmsg);
-    if (s) *s = '\0'; // truncate string to empty in case error is NULL
+    if (s) *s = '\0'; // truncate string to empty in case error is null pointer
   }
   return;
 }
@@ -377,19 +377,19 @@ void utils::bounds(const char *file, int line, const std::string &str,
 
   nlo = nhi = -1;
   if (found == std::string::npos) {    // contains no '*'
-    nlo = nhi = strtol(str.c_str(),NULL,10);
+    nlo = nhi = strtol(str.c_str(),nullptr,10);
   } else if (str.size() == 1) {        // is only '*'
     nlo = nmin;
     nhi = nmax;
   } else if (found == 0) {             // is '*j'
     nlo = nmin;
-    nhi = strtol(str.substr(1).c_str(),NULL,10);
+    nhi = strtol(str.substr(1).c_str(),nullptr,10);
   } else if (str.size() == found+1) {  // is 'i*'
-    nlo = strtol(str.c_str(),NULL,10);
+    nlo = strtol(str.c_str(),nullptr,10);
     nhi = nmax;
   } else {                             // is 'i*j'
-    nlo = strtol(str.c_str(),NULL,10);
-    nhi = strtol(str.substr(found+1).c_str(),NULL,10);
+    nlo = strtol(str.c_str(),nullptr,10);
+    nhi = strtol(str.substr(found+1).c_str(),nullptr,10);
   }
 
   if (error) {
@@ -422,7 +422,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
   int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
   char *ptr1,*ptr2,*str;
 
-  ptr1 = NULL;
+  ptr1 = nullptr;
   for (iarg = 0; iarg < narg; iarg++) {
     ptr1 = strchr(arg[iarg],'*');
     if (ptr1) break;
@@ -1000,10 +1000,10 @@ double utils::timespec2seconds(const std::string &timespec)
 int utils::date2num(const std::string &date)
 {
   std::size_t found = date.find_first_not_of("0123456789 ");
-  int num = strtol(date.substr(0,found).c_str(),NULL,10);
+  int num = strtol(date.substr(0,found).c_str(),nullptr,10);
   auto month = date.substr(found);
   found = month.find_first_of("0123456789 ");
-  num += strtol(month.substr(found).c_str(),NULL,10)*10000;
+  num += strtol(month.substr(found).c_str(),nullptr,10)*10000;
   if (num < 1000000) num += 20000000;
 
   if (strmatch(month,"^Jan")) num += 100;

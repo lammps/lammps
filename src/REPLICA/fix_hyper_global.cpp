@@ -41,9 +41,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(NULL), xold(NULL), tagold(NULL)
+  FixHyper(lmp, narg, arg), blist(nullptr), xold(nullptr), tagold(nullptr)
 {
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/global command requires atom map");
 
   if (narg != 7) error->all(FLERR,"Illegal fix hyper/global command");
@@ -70,12 +70,12 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   maxbond = 0;
   nblocal = 0;
-  blist = NULL;
+  blist = nullptr;
 
   maxold = 0;
-  xold = NULL;
-  tagold = NULL;
-  old2now = NULL;
+  xold = nullptr;
+  tagold = nullptr;
+  old2now = nullptr;
 
   me = comm->me;
   firstflag = 1;

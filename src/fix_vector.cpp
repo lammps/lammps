@@ -38,7 +38,7 @@ enum{SCALAR,VECTOR};
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), vector(NULL), array(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr), vector(nullptr), array(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix vector command");
 
@@ -154,8 +154,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   // ncount = current size of vector or array
 
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
   ncount = ncountmax = 0;
   if (nvalues == 1) size_vector = 0;
   else size_array_rows = 0;

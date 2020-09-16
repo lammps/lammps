@@ -55,13 +55,13 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // initial allocation of atom-based array
   // register with Atom class
-  array = NULL;
+  array = nullptr;
   grow_arrays(atom->nmax);
 
   // extends pack_exchange()
-  atom->add_callback(0);
-  atom->add_callback(1); // restart
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART); // restart
+  atom->add_callback(Atom::BORDER);
 
   // initialize to illegal values so we capture
   btype = -1;
@@ -78,9 +78,9 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixSRP::~FixSRP()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,2);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::BORDER);
   memory->destroy(array);
 }
 
@@ -100,7 +100,7 @@ int FixSRP::setmask()
 
 void FixSRP::init()
 {
-  if (force->pair_match("hybrid",1) == NULL && force->pair_match("hybrid/overlay",1) == NULL)
+  if (force->pair_match("hybrid",1) == nullptr && force->pair_match("hybrid/overlay",1) == nullptr)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   int has_rigid = 0;
@@ -293,7 +293,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
 
   // assign tags for new atoms, update map
   atom->tag_extend();
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -514,7 +514,7 @@ void FixSRP::post_run()
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();

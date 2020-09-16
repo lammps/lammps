@@ -84,18 +84,18 @@ static const char cite_fix_shardlow[] =
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pairDPD(NULL), pairDPDE(NULL), v_t0(NULL)
-  ,rand_state(NULL)
+  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr)
+  ,rand_state(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 
   if (narg != 3) error->all(FLERR,"Illegal fix shardlow command");
 
-  pairDPD = NULL;
-  pairDPDE = NULL;
+  pairDPD = nullptr;
+  pairDPDE = nullptr;
   pairDPD = (PairDPDfdt *) force->pair_match("dpd/fdt",1);
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   maxRNG = 0;
@@ -107,7 +107,7 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
     comm_reverse = 3;
   }
 
-  if(pairDPD == NULL && pairDPDE == NULL)
+  if(pairDPD == nullptr && pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
 
 }
@@ -533,7 +533,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
   const int nlocal = atom->nlocal;
   const int nghost = atom->nghost;
 
-  const bool useDPDE = (pairDPDE != NULL);
+  const bool useDPDE = (pairDPDE != nullptr);
 
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
 
@@ -640,7 +640,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 #endif
 
   memory->sfree(v_t0);
-  v_t0 = NULL;
+  v_t0 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

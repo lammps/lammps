@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vint(NULL), id_fix(NULL), fix(NULL)
+  Compute(lmp, narg, arg), vint(nullptr), id_fix(nullptr), fix(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal compute temp/cs command");
 
@@ -94,7 +94,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[size_vector];
   maxatom = 0;
-  vint = NULL;
+  vint = nullptr;
 
   // set comm size needed by this Compute
 

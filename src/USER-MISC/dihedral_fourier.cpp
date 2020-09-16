@@ -365,7 +365,7 @@ void DihedralFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -380,9 +380,9 @@ void DihedralFourier::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 

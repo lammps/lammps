@@ -54,7 +54,7 @@ static double gettime(int x = 0) {
   if(1) {
     /*
       struct timeval tv;
-      gettimeofday(&tv,NULL);
+      gettimeofday(&tv,nullptr);
       return tv.tv_sec + 1e-6 * tv.tv_usec;
     */
     /*
@@ -1859,7 +1859,7 @@ void PairMGPT::coeff(int narg, char **arg)
 	if(strspn(arg[iarg+1],"1234") == strlen(arg[iarg+1])) {
 	  nbody_flag = 0;
 	  for(int i = 0; i<4; i++)
-	    if(strchr(arg[iarg+1],'1'+i) != NULL) {
+	    if(strchr(arg[iarg+1],'1'+i) != nullptr) {
 	      nbody_flag = nbody_flag + (1<<i);
 	      if(comm->me == 0) printf("Explicitly adding %d-tuple forces.\n",i+1);
 	    }
@@ -1906,7 +1906,7 @@ void PairMGPT::coeff(int narg, char **arg)
     if(comm->me == 0) {
       FILE *parmin_fp = utils::open_potential(arg[2],lmp,nullptr);
       FILE *potin_fp = utils::open_potential(arg[3],lmp,nullptr);
-      if (parmin_fp == NULL || potin_fp == NULL) {
+      if (parmin_fp == nullptr || potin_fp == nullptr) {
         char str[128];
         sprintf(str,"Cannot open MGPT potential files %s %s",arg[2],arg[3]);
         error->one(FLERR,str);

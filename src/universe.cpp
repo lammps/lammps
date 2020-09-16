@@ -40,12 +40,12 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
   MPI_Comm_size(uworld,&nprocs);
 
   uscreen = stdout;
-  ulogfile = NULL;
+  ulogfile = nullptr;
 
   existflag = 0;
   nworlds = 0;
-  procs_per_world = NULL;
-  root_proc = NULL;
+  procs_per_world = nullptr;
+  root_proc = nullptr;
 
   memory->create(uni2orig,nprocs,"universe:uni2orig");
   for (int i = 0; i < nprocs; i++) uni2orig[i] = i;
@@ -95,7 +95,7 @@ void Universe::reorder(char *style, char *arg)
 
     if (me == 0) {
       FILE *fp = fopen(arg,"r");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->universe_one(FLERR,fmt::format("Cannot open -reorder "
                                               "file {}: {}",arg,
                                               utils::getsyserror()));
@@ -156,7 +156,7 @@ void Universe::reorder(char *style, char *arg)
 
 /* ----------------------------------------------------------------------
    add 1 or more worlds to universe
-   str == NULL -> add 1 world with all procs in universe
+   str == nullptr -> add 1 world with all procs in universe
    str = NxM -> add N worlds, each with M procs
    str = P -> add 1 world with P procs
 ------------------------------------------------------------------------- */
@@ -169,7 +169,7 @@ void Universe::add_world(char *str)
   n = 1;
   nper = 0;
 
-  if (str != NULL) {
+  if (str != nullptr) {
 
     // check for valid partition argument
 
@@ -184,7 +184,7 @@ void Universe::add_world(char *str)
       else valid = false;
 
     if (valid) {
-      if ((ptr = strchr(str,'x')) != NULL) {
+      if ((ptr = strchr(str,'x')) != nullptr) {
 
         // 'x' may not be the first or last character
 

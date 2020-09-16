@@ -135,7 +135,7 @@ class Force : protected Pointers {
   void store_style(char *&, const std::string &, int);
   void set_special(int, char **);
 
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   void create_factories();

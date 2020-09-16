@@ -86,8 +86,8 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   splittol = 1.0e-6;
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -188,7 +188,7 @@ void KSpace::compute_dummy(int eflag, int vflag)
 
 void KSpace::pair_check()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"KSpace solver requires a pair style");
 
   if (ewaldflag && !force->pair->ewaldflag)
@@ -610,5 +610,5 @@ void KSpace::modify_params(int narg, char **arg)
 void *KSpace::extract(const char *str)
 {
   if (strcmp(str,"scale") == 0) return (void *) &scale;
-  return NULL;
+  return nullptr;
 }

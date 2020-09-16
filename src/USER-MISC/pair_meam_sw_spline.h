@@ -62,7 +62,7 @@ protected:
         public:
 
                 /// Default constructor.
-                SplineFunction() : X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL), N(0) {}
+                SplineFunction() : X(nullptr), Xs(nullptr), Y(nullptr), Y2(nullptr), Ydelta(nullptr), N(0) {}
 
                 /// Destructor.
                 ~SplineFunction() {
@@ -188,7 +188,7 @@ protected:
                 double cutoff() const { return X[N-1]; }
 
                 /// Writes a Gnuplot script that plots the spline function.
-                void writeGnuplot(const char* filename, const char* title = NULL) const;
+                void writeGnuplot(const char* filename, const char* title = nullptr) const;
 
                 /// Broadcasts the spline function parameters to all processors.
                 void communicate(MPI_Comm& world, int me);

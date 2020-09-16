@@ -116,6 +116,6 @@ void Message::quit()
   // clean-up
 
   delete cs;
-  lmp->cslib = NULL;
+  lmp->cslib = nullptr;
   lmp->clientserver = 0;
 }

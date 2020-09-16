@@ -307,7 +307,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 
 void PairSDPDTaitwaterIsothermal::init_style()
 {
-  if ((!atom->rho_flag) || (atom->drho == NULL))
+  if ((!atom->rho_flag) || (atom->drho == nullptr))
     error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom "
                "attributes rho and drho");
 

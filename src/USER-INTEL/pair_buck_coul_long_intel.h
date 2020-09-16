@@ -73,7 +73,7 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
     flt_t *etable, *detable, *ctable, *dctable;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() { set_ntypes(0,0,NULL,_cop); }
+    ~ForceConst() { set_ntypes(0,0,nullptr,_cop); }
 
     void set_ntypes(const int ntypes, const int ntable, Memory *memory,
                     const int cop);

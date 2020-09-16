@@ -125,7 +125,7 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate(int);
 
-  bigint memory_usage();
+  double memory_usage();
 
  protected:
 

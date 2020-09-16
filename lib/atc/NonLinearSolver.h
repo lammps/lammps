@@ -43,7 +43,7 @@ class NonLinearSolver {
   /** Constructor */
   NonLinearSolver( 
     TangentOperator * f, // provides f and f' at x, pointer for polymorphism
-    const BC_SET * bcs = NULL,
+    const BC_SET * bcs = nullptr,
     const int dof = 0,
     bool parallel = false
   );

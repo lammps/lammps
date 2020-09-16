@@ -60,7 +60,7 @@ static const char cite_minstyle_spin_lbfgs[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), rho(NULL), ds(NULL), dy(NULL), sp_copy(NULL)
+  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_lbfgs);
   nlocal_max = 0;

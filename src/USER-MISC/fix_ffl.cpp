@@ -106,17 +106,17 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
-  sqrt_m=NULL;
+  sqrt_m=nullptr;
   memory->grow(sqrt_m, atom->ntypes+1,"ffl:sqrt_m");
 
   // allocates space for temporaries
-  ffl_tmp1=ffl_tmp2=NULL;
+  ffl_tmp1=ffl_tmp2=nullptr;
 
   grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   energy = 0.0;
 }
@@ -127,8 +127,8 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 FixFFL::~FixFFL() {
   delete random;
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);
@@ -426,7 +426,7 @@ void *FixFFL::extract(const char *str, int &dim) {
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 

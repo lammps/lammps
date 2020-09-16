@@ -42,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(NULL)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;

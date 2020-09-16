@@ -45,10 +45,10 @@ enum{IGNORE,END,EXTRA};
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  ids(NULL), fp(NULL), stats_list(NULL),
-  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL),
-  coord(NULL), vector(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), fp(nullptr), stats_list(nullptr),
+  bin(nullptr), bin_total(nullptr), bin_all(nullptr), bin_list(nullptr),
+  coord(nullptr), vector(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
 
@@ -120,41 +120,41 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[i],"x") == 0) {
       which[i] = X;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"y") == 0) {
       which[i] = X;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"z") == 0) {
       which[i] = X;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"vx") == 0) {
       which[i] = V;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vy") == 0) {
       which[i] = V;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vz") == 0) {
       which[i] = V;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"fx") == 0) {
       which[i] = F;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fy") == 0) {
       which[i] = F;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fz") == 0) {
       which[i] = F;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if ((strncmp(arg[i],"c_",2) == 0) ||
         (strncmp(arg[i],"f_",2) == 0) ||
@@ -467,9 +467,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_all = new double[nbins];
   coord = new double[nbins];
 
-  stats_list = NULL;
-  bin_list = NULL;
-  vector = NULL;
+  stats_list = nullptr;
+  bin_list = nullptr;
+  vector = nullptr;
   maxatom = 0;
 
   if (ave == WINDOW) {
@@ -944,16 +944,16 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   kind = DEFAULT;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
   beyond = IGNORE;
   overwrite = 0;
-  title1 = NULL;
-  title2 = NULL;
-  title3 = NULL;
+  title1 = nullptr;
+  title2 = nullptr;
+  title3 = nullptr;
 
   // optional args
 
@@ -962,7 +962,7 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/histo file {}: {}",
                                        arg[iarg+1], utils::getsyserror()));
       }

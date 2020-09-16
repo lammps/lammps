@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShape::ComputeGyrationShape(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_gyration(NULL)
+  Compute(lmp, narg, arg), id_gyration(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute gyration/shape command");
 

@@ -25,8 +25,8 @@ using namespace LAMMPS_NS;
 
 Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char **/*arg*/) : Pointers(lmp)
 {
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
   external_force_clear = 0;
 }
 
@@ -74,8 +74,8 @@ void Integrate::ev_setup()
   delete [] vlist_global;
   delete [] vlist_atom;
   delete [] cvlist_atom;
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = ncvlist_atom = 0;

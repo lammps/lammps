@@ -36,8 +36,6 @@ FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
 {
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
-  //if (!atom->mass_type != 1)
-   // error->all(FLERR,"Fix nve/awpmd requires per type mass");
 
   time_integrate = 1;
 }

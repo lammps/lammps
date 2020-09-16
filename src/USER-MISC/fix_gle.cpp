@@ -218,11 +218,11 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // LOADING A matrix
-  FILE *fgle = NULL;
+  FILE *fgle = nullptr;
   char *fname = arg[7];
   if (comm->me == 0) {
     fgle = utils::open_potential(fname,lmp,nullptr);
-    if (fgle == NULL) {
+    if (fgle == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open A-matrix file %s",fname);
       error->one(FLERR,str);
@@ -238,7 +238,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fgle);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fgle);
       } else n = strlen(line) + 1;
@@ -258,9 +258,9 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     ptr = strtok(line," \t\n\r\f");
     do {
       A[ndone] = atof(ptr);
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       ndone++;
-    } while ((ptr != NULL) && (ndone < ns1sq));
+    } while ((ptr != nullptr) && (ndone < ns1sq));
   }
 
   fnoneq=0; gle_every=1; gle_step=0;
@@ -292,7 +292,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   } else {
     if (comm->me == 0) {
       fgle = utils::open_potential(fname,lmp,nullptr);
-      if (fgle == NULL) {
+      if (fgle == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open C-matrix file %s",fname);
         error->one(FLERR,str);
@@ -310,7 +310,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     while (1) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fgle);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fgle);
         } else n = strlen(line) + 1;
@@ -330,9 +330,9 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       ptr = strtok(line," \t\n\r\f");
       do {
         C[ndone] = cfac*atof(ptr);
-        ptr = strtok(NULL," \t\n\r\f");
+        ptr = strtok(nullptr," \t\n\r\f");
         ndone++;
-      } while ((ptr != NULL) && (ndone < ns1sq));
+      } while ((ptr != nullptr) && (ndone < ns1sq));
     }
   }
 
@@ -349,20 +349,20 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
-  sqrt_m=NULL;
+  sqrt_m=nullptr;
   memory->grow(sqrt_m, atom->ntypes+1,"gle:sqrt_m");
 
   // allocates space for additional degrees of freedom
-  gle_s=NULL;
+  gle_s=nullptr;
   // allocates space for temporaries
-  gle_tmp1=gle_tmp2=NULL;
+  gle_tmp1=gle_tmp2=nullptr;
 
   grow_arrays(atom->nmax);
   init_gles();
 
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   energy = 0.0;
 }
@@ -720,7 +720,7 @@ void *FixGLE::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 

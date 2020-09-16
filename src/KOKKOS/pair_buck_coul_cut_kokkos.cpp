@@ -48,9 +48,9 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
-  cut_ljsq = NULL;
-  cut_coulsq = NULL;
+  cutsq = nullptr;
+  cut_ljsq = nullptr;
+  cut_coulsq = nullptr;
 
 }
 
@@ -69,11 +69,11 @@ PairBuckCoulCutKokkos<DeviceType>::~PairBuckCoulCutKokkos()
     memory->sfree(cutsq);
     memory->sfree(cut_ljsq);
     memory->sfree(cut_coulsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
-    cut_ljsq = NULL;
-    cut_coulsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
+    cut_ljsq = nullptr;
+    cut_coulsq = nullptr;
   }
 
 }

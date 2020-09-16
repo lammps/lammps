@@ -166,7 +166,7 @@ void vector_union(std::vector<T>& v1, std::vector<T>& v2,
 }
 
 MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 */){
-  if (atom == NULL || nblist == NULL) return;
+  if (atom == nullptr || nblist == nullptr) return;
   //number of local atoms at the node
   int nlocal = atom->nlocal;
   //total number of atoms in the node and ghost shell
@@ -305,12 +305,12 @@ PairMESONTTPM::PairMESONTTPM(LAMMPS *lmp) : Pair(lmp) {
   writedata=1;
   BendingMode = 0;  // Harmonic bending model
   TPMType = 0;      // Inter-tube segment-segment interaction
-  tab_path = NULL;
+  tab_path = nullptr;
   tab_path_length = 0;
 
-  eatom_s = NULL;
-  eatom_b = NULL;
-  eatom_t = NULL;
+  eatom_s = nullptr;
+  eatom_b = nullptr;
+  eatom_t = nullptr;
   instance_count++;
   if(instance_count > 1) error->all(FLERR,
    "only a single instance of mesont/tpm pair style can be created");
@@ -330,7 +330,7 @@ PairMESONTTPM::~PairMESONTTPM()
     memory->destroy(eatom_t);
   }
   instance_count--;
-  if (tab_path != NULL) memory->destroy(tab_path);
+  if (tab_path != nullptr) memory->destroy(tab_path);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -597,7 +597,7 @@ void PairMESONTTPM::settings(int narg, char **arg){
   }
   std::string TPMAFile = (narg > 1) ? arg[1] : "MESONT-TABTP.xrs";
   tab_path_length = TPMAFile.length();
-  if (tab_path != NULL) memory->destroy(tab_path);
+  if (tab_path != nullptr) memory->destroy(tab_path);
   //c_str returns '\0' terminated string
   memory->create(tab_path,tab_path_length+1,"pair:path");
   std::memcpy(tab_path, TPMAFile.c_str(), tab_path_length+1);
@@ -738,7 +738,7 @@ void PairMESONTTPM::read_restart_settings(FILE *fp){
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&tab_path_length,1,MPI_INT,0,world);
 
-  if (tab_path != NULL) memory->destroy(tab_path);
+  if (tab_path != nullptr) memory->destroy(tab_path);
   memory->create(tab_path,tab_path_length+1,"pair:path");
   if (me == 0) fread(tab_path,tab_path_length+1,1,fp);
   MPI_Bcast(tab_path,tab_path_length+1,MPI_CHAR,0,world);
@@ -793,5 +793,5 @@ void* PairMESONTTPM::extract(const char *str, int &){
   else if (strcmp(str,"mesonttpm_Es") == 0) return eatom_s;
   else if (strcmp(str,"mesonttpm_Eb") == 0) return eatom_b;
   else if (strcmp(str,"mesonttpm_Et") == 0) return eatom_t;
-  else return NULL;
+  else return nullptr;
 };

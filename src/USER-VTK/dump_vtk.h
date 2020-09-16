@@ -77,7 +77,7 @@ class DumpVTK : public DumpCustom {
   int count();
   void pack(tagint *);
   virtual void write_data(int, double *);
-  bigint memory_usage();
+  double memory_usage();
 
   int parse_fields(int, char **);
   void identify_vectors();

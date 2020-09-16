@@ -129,7 +129,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       is_var[i] = 0;
     }
     tstrs[i] = new char[len];
-    if (tstrs[i] == NULL ) error->all(FLERR,"Error allocating space for args.");
+    if (tstrs[i] == nullptr ) error->all(FLERR,"Error allocating space for args.");
     strcpy( tstrs[i], arg[i+6] + offset );
   }
 

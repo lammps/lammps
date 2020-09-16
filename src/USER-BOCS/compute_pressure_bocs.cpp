@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 
 ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vptr(NULL), id_temp(NULL)
+  vptr(nullptr), id_temp(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure/bocs command");
   if (igroup) error->all(FLERR,"Compute pressure/bocs must use group all");
@@ -52,12 +52,12 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   p_match_flag = 0;
-  phi_coeff = NULL;
+  phi_coeff = nullptr;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
@@ -104,15 +104,15 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL)
+  if (keflag && id_temp == nullptr)
     error->all(FLERR,"Compute pressure/bocs requires temperature ID "
                "to include kinetic energy");
 
   vector = new double[size_vector];
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 
-  splines = NULL;
+  splines = nullptr;
   spline_length = 0;
 }
 
@@ -149,7 +149,7 @@ void ComputePressureBocs::init()
 
   delete [] vptr;
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 
   if (pairflag && force->pair) nvirial++;
   if (bondflag && atom->molecular && force->bond) nvirial++;
@@ -179,7 +179,7 @@ void ComputePressureBocs::init()
   // flag Kspace contribution separately, since not summed across procs
 
   if (kspaceflag && force->kspace) kspace_virial = force->kspace->virial;
-  else kspace_virial = NULL;
+  else kspace_virial = nullptr;
 }
 
 /* Extra functions added for BOCS */

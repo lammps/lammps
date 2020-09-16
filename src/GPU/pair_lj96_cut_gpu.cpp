@@ -135,7 +135,7 @@ void PairLJ96CutGPU::compute(int eflag, int vflag)
 
 void PairLJ96CutGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj96/cut/gpu pair style");

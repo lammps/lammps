@@ -42,7 +42,7 @@ class DumpDCD : public Dump {
   void pack(tagint *);
   void write_data(int, double *);
   int modify_param(int, char **);
-  bigint memory_usage();
+  double memory_usage();
 
   void write_frame();
   void write_dcd_header(const char *);

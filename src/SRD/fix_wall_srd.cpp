@@ -34,7 +34,7 @@ enum{NONE,EDGE,CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), fwall(NULL), fwall_all(NULL)
+  Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/srd command");
 

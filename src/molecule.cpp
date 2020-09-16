@@ -40,16 +40,16 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
-  Pointers(lmp), id(NULL), x(NULL), type(NULL), molecule(NULL), q(NULL), radius(NULL),
-  rmass(NULL), num_bond(NULL), bond_type(NULL), bond_atom(NULL),
-  num_angle(NULL), angle_type(NULL), angle_atom1(NULL), angle_atom2(NULL),
-  angle_atom3(NULL), num_dihedral(NULL), dihedral_type(NULL), dihedral_atom1(NULL),
-  dihedral_atom2(NULL), dihedral_atom3(NULL), dihedral_atom4(NULL), num_improper(NULL),
-  improper_type(NULL), improper_atom1(NULL), improper_atom2(NULL),
-  improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
-  shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
-  dbodyparams(NULL), fragmentmask(NULL),
-  dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL), fp(NULL), count(NULL)
+  Pointers(lmp), id(nullptr), x(nullptr), type(nullptr), molecule(nullptr), q(nullptr), radius(nullptr),
+  rmass(nullptr), num_bond(nullptr), bond_type(nullptr), bond_atom(nullptr),
+  num_angle(nullptr), angle_type(nullptr), angle_atom1(nullptr), angle_atom2(nullptr),
+  angle_atom3(nullptr), num_dihedral(nullptr), dihedral_type(nullptr), dihedral_atom1(nullptr),
+  dihedral_atom2(nullptr), dihedral_atom3(nullptr), dihedral_atom4(nullptr), num_improper(nullptr),
+  improper_type(nullptr), improper_atom1(nullptr), improper_atom2(nullptr),
+  improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr), special(nullptr),
+  shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr), avec_body(nullptr), ibodyparams(nullptr),
+  dbodyparams(nullptr), fragmentmask(nullptr),
+  dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), fp(nullptr), count(nullptr)
 {
   me = comm->me;
 
@@ -407,7 +407,7 @@ void Molecule::read(int flag)
 
   if (me == 0) {
     eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of molecule file");
+    if (eof == nullptr) error->one(FLERR,"Unexpected end of molecule file");
   }
 
   // read header lines
@@ -512,7 +512,7 @@ void Molecule::read(int flag)
   // count = vector for tallying bonds,angles,etc per atom
 
   if (flag == 0) memory->create(count,natoms,"molecule:count");
-  else count = NULL;
+  else count = nullptr;
 
   // grab keyword and skip next line
 
@@ -1656,7 +1656,7 @@ void Molecule::check_attributes(int flag)
     // for molecular atom styles, check bond_per_atom,etc + maxspecial
     // do not check for atom style template, since nothing stored per atom
 
-    if (atom->molecular == 1) {
+    if (atom->molecular == Atom::MOLECULAR) {
       if (atom->avec->bonds_allow &&
           atom->bond_per_atom < onemol->bond_per_atom) mismatch = 1;
       if (atom->avec->angles_allow &&
@@ -1704,41 +1704,41 @@ void Molecule::initialize()
   centerflag = massflag = comflag = inertiaflag = 0;
   tag_require = 0;
 
-  x = NULL;
-  type = NULL;
-  q = NULL;
-  radius = NULL;
-  rmass = NULL;
+  x = nullptr;
+  type = nullptr;
+  q = nullptr;
+  radius = nullptr;
+  rmass = nullptr;
 
-  num_bond = NULL;
-  bond_type = NULL;
-  bond_atom = NULL;
+  num_bond = nullptr;
+  bond_type = nullptr;
+  bond_atom = nullptr;
 
-  num_angle = NULL;
-  angle_type = NULL;
-  angle_atom1 = angle_atom2 = angle_atom3 = NULL;
+  num_angle = nullptr;
+  angle_type = nullptr;
+  angle_atom1 = angle_atom2 = angle_atom3 = nullptr;
 
-  num_dihedral = NULL;
-  dihedral_type = NULL;
-  dihedral_atom1 = dihedral_atom2 = dihedral_atom3 = dihedral_atom4 = NULL;
+  num_dihedral = nullptr;
+  dihedral_type = nullptr;
+  dihedral_atom1 = dihedral_atom2 = dihedral_atom3 = dihedral_atom4 = nullptr;
 
-  num_improper = NULL;
-  improper_type = NULL;
-  improper_atom1 = improper_atom2 = improper_atom3 = improper_atom4 = NULL;
+  num_improper = nullptr;
+  improper_type = nullptr;
+  improper_atom1 = improper_atom2 = improper_atom3 = improper_atom4 = nullptr;
 
-  nspecial = NULL;
-  special = NULL;
+  nspecial = nullptr;
+  special = nullptr;
 
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
 
-  ibodyparams = NULL;
-  dbodyparams = NULL;
+  ibodyparams = nullptr;
+  dbodyparams = nullptr;
 
-  dx = NULL;
-  dxcom = NULL;
-  dxbody = NULL;
+  dx = nullptr;
+  dxcom = nullptr;
+  dxbody = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1902,7 +1902,7 @@ void Molecule::deallocate()
 void Molecule::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == NULL)
+  if (fp == nullptr)
     error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
                                  file, utils::getsyserror()));
 }
@@ -1915,7 +1915,7 @@ void Molecule::readline(char *line)
 {
   int n;
   if (me == 0) {
-    if (fgets(line,MAXLINE,fp) == NULL) n = 0;
+    if (fgets(line,MAXLINE,fp) == nullptr) n = 0;
     else n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -1938,11 +1938,11 @@ void Molecule::parse_keyword(int flag, char *line, char *keyword)
 
     int eof = 0;
     if (me == 0) {
-      if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+      if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
-        if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+        if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       }
-      if (fgets(keyword,MAXLINE,fp) == NULL) eof = 1;
+      if (fgets(keyword,MAXLINE,fp) == nullptr) eof = 1;
     }
 
     // if eof, set keyword empty and return

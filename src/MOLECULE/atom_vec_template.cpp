@@ -23,8 +23,8 @@ using namespace LAMMPS_NS;
 
 AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 2;
-  mass_type = 1;
+  molecular = Atom::TEMPLATE;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 

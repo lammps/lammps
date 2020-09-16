@@ -52,17 +52,17 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_xsplit = user_ysplit = user_zsplit = NULL;
+  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = NULL;
+  proccost = allproccost = nullptr;
 
-  rcb = NULL;
+  rcb = nullptr;
 
   nimbalance = 0;
-  imbalances = NULL;
-  fixstore = NULL;
+  imbalances = nullptr;
+  fixstore = nullptr;
 
-  fp = NULL;
+  fp = nullptr;
   firststep = 1;
 }
 
@@ -97,7 +97,7 @@ Balance::~Balance()
   // check nfix in case all fixes have already been deleted
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = NULL;
+  fixstore = nullptr;
 
   if (fp) fclose(fp);
 }
@@ -246,7 +246,7 @@ void Balance::command(int narg, char **arg)
   // process remaining optional args
 
   options(iarg,narg,arg);
-  if (wtflag) weight_storage(NULL);
+  if (wtflag) weight_storage(nullptr);
 
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
@@ -263,7 +263,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (atom->map_style) atom->map_set();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -425,7 +425,7 @@ void Balance::options(int iarg, int narg, char **arg)
   oldrcb = 0;
   outflag = 0;
   int outarg = 0;
-  fp = NULL;
+  fp = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -473,7 +473,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
                                    arg[outarg], utils::getsyserror()));
   }
@@ -639,12 +639,12 @@ int *Balance::bisection(int sortflag)
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   } else {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   }
 
   if (triclinic) domain->lamda2x(nlocal);
@@ -1273,7 +1273,7 @@ void Balance::dumpout(bigint tstep)
 void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim = NULL;
+  const char *dim = nullptr;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;

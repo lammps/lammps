@@ -46,7 +46,7 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 MSMCGOMP::MSMCGOMP(LAMMPS *lmp) : MSMOMP(lmp),
-  is_charged(NULL)
+  is_charged(nullptr)
 {
   triclinic_support = 0;
 
@@ -137,7 +137,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(MSM::lmp,fmt::format("  MSM/cg optimization cutoff: {:.8g}\n"
+      utils::logmesg(MSM::lmp,fmt::format("  MSM/cg optimization cutoff: {:.8}\n"
                                           "  Total charged atoms: {:.1f}%\n"
                                           "  Min/max charged atoms/proc: {:.1f}%"
                                           " {:.1f}%\n",smallq,

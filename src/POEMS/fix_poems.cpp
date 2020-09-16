@@ -60,12 +60,12 @@ static const char cite_fix_poems[] =
 ------------------------------------------------------------------------- */
 
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL),
-  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL),
-  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
-  torque(NULL), sum(NULL), all(NULL), jointbody(NULL),
-  xjoint(NULL), freelist(NULL), poems(NULL)
+  Fix(lmp, narg, arg), step_respa(nullptr), natom2body(nullptr),
+  atom2body(nullptr), displace(nullptr), nrigid(nullptr), masstotal(nullptr),
+  xcm(nullptr), vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr),
+  ey_space(nullptr), ez_space(nullptr), angmom(nullptr), omega(nullptr),
+  torque(nullptr), sum(nullptr), all(nullptr), jointbody(nullptr),
+  xjoint(nullptr), freelist(nullptr), poems(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_poems);
 
@@ -82,11 +82,11 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  natom2body = NULL;
-  atom2body = NULL;
-  displace = NULL;
+  natom2body = nullptr;
+  atom2body = nullptr;
+  displace = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // initialize each atom to belong to no rigid bodies
 
@@ -97,7 +97,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // readfile() and jointbuild() use global atom IDs
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -155,7 +155,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     if (narg != 4) error->all(FLERR,"Illegal fix poems command");
-    if (atom->molecular == 0)
+    if (atom->molecular == Atom::ATOMIC)
       error->all(FLERR,
                  "Must use a molecular atom style with fix poems molecule");
 
@@ -258,7 +258,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   // create POEMS instance
@@ -289,7 +289,7 @@ FixPOEMS::~FixPOEMS()
   // if atom class still exists:
   //   unregister this fix so atom class doesn't invoke it any more
 
-  if (atom) atom->delete_callback(id,0);
+  if (atom) atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -942,7 +942,7 @@ void FixPOEMS::readfile(char *file)
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix poems file %s",file);
       error->one(FLERR,str);
@@ -950,7 +950,7 @@ void FixPOEMS::readfile(char *file)
   }
 
   nbody = 0;
-  char *line = NULL;
+  char *line = nullptr;
   int maxline = 0;
   char *ptr;
   int nlocal = atom->nlocal;
@@ -963,10 +963,10 @@ void FixPOEMS::readfile(char *file)
     MPI_Bcast(line,nlen,MPI_CHAR,0,world);
 
     ptr = strtok(line," ,\t\n\0");
-    if (ptr == NULL || ptr[0] == '#') continue;
-    ptr = strtok(NULL," ,\t\n\0");
+    if (ptr == nullptr || ptr[0] == '#') continue;
+    ptr = strtok(nullptr," ,\t\n\0");
 
-    while ((ptr = strtok(NULL," ,\t\n\0"))) {
+    while ((ptr = strtok(nullptr," ,\t\n\0"))) {
       id = atoi(ptr);
       i = atom->map(id);
       if (i < 0 || i >= nlocal) continue;
@@ -993,7 +993,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
       maxline += DELTA;
       memory->grow(line,maxline,"fix_poems:line");
     }
-    if (fgets(&line[n],maxline-n,fp) == NULL) {
+    if (fgets(&line[n],maxline-n,fp) == nullptr) {
       n = 0;
       break;
     }
@@ -1028,7 +1028,7 @@ void FixPOEMS::jointbuild()
     mjoint += natom2body[i]-1;
   }
 
-  tagint **mylist = NULL;
+  tagint **mylist = nullptr;
   if (mjoint) memory->create(mylist,mjoint,3,"poems:mylist");
 
   mjoint = 0;
@@ -1045,7 +1045,7 @@ void FixPOEMS::jointbuild()
   // jlist = mylist concatenated across all procs via MPI_Allgatherv
 
   MPI_Allreduce(&mjoint,&njoint,1,MPI_INT,MPI_SUM,world);
-  tagint **jlist = NULL;
+  tagint **jlist = nullptr;
   if (njoint) memory->create(jlist,njoint,3,"poems:jlist");
 
   int nprocs;
@@ -1067,7 +1067,7 @@ void FixPOEMS::jointbuild()
       MPI_Allgatherv(mylist[0],3*mjoint,MPI_LMP_TAGINT,jlist[0],
                      recvcounts,displs,MPI_LMP_TAGINT,world);
     else
-      MPI_Allgatherv(NULL,3*mjoint,MPI_LMP_TAGINT,jlist[0],
+      MPI_Allgatherv(nullptr,3*mjoint,MPI_LMP_TAGINT,jlist[0],
                      recvcounts,displs,MPI_LMP_TAGINT,world);
   }
 
@@ -1105,9 +1105,9 @@ void FixPOEMS::jointbuild()
   // each proc sets myjoint if it owns joint atom
   // MPI_Allreduce gives all procs the xjoint coords
 
-  jointbody = NULL;
-  xjoint = NULL;
-  double **myjoint = NULL;
+  jointbody = nullptr;
+  xjoint = nullptr;
+  double **myjoint = nullptr;
   if (njoint) {
     memory->create(jointbody,njoint,2,"poems:jointbody");
     memory->create(xjoint,njoint,3,"poems:xjoint");
@@ -1144,7 +1144,7 @@ void FixPOEMS::jointbuild()
   for (i = 0; i < nbody; i++)
     if (mark[i]) nfree++;
   if (nfree) freelist = new int[nfree];
-  else freelist = NULL;
+  else freelist = nullptr;
   nfree = 0;
   for (i = 0; i < nbody; i++)
     if (mark[i]) freelist[nfree++] = i + 1;

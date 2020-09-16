@@ -54,10 +54,10 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  body = NULL;
-  up = NULL;
+  body = nullptr;
+  up = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // by default assume all of the particles interact with the fluid.
   inner_nodes = 0;
@@ -93,7 +93,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     iarg = 4;
-    if (atom->molecular == 0)
+    if (atom->molecular == Atom::ATOMIC)
       error->all(FLERR,"Must use a molecular atom style with "
                  "fix lb/rigid/pc/sphere molecule");
 
@@ -400,7 +400,7 @@ FixLbRigidPCSphere::~FixLbRigidPCSphere()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   // first 3 sizes do not include values from body itself
@@ -49,9 +49,9 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   atom->radius_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
-  bptr = NULL;
+  bptr = nullptr;
 
   if (sizeof(double) == sizeof(int)) intdoubleratio = 1;
   else if (sizeof(double) == 2*sizeof(int)) intdoubleratio = 2;
@@ -104,7 +104,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
-  if (0) bptr = NULL;
+  if (0) bptr = nullptr;
 
 #define BODY_CLASS
 #define BodyStyle(key,Class) \
@@ -551,9 +551,9 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecBody::memory_usage_bonus()
+double AtomVecBody::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   bytes += icp->size() + dcp->size();
 
@@ -582,7 +582,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus body info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)

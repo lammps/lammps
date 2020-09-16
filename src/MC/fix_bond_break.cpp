@@ -33,8 +33,8 @@ using namespace FixConst;
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL),
-  broken(NULL), copy(NULL), random(NULL)
+  partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
+  broken(nullptr), copy(nullptr), random(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 

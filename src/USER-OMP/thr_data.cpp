@@ -82,33 +82,33 @@ void ThrData::init_force(int nall, double **f, double **torque,
   memset(virial_imprp,0,6*sizeof(double));
   memset(virial_kspce,0,6*sizeof(double));
 
-  eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
-  vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
+  eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=nullptr;
+  vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=nullptr;
 
   if (nall >= 0 && f) {
     _f = f + _tid*nall;
     memset(&(_f[0][0]),0,nall*3*sizeof(double));
-  } else _f = NULL;
+  } else _f = nullptr;
 
   if (nall >= 0 && torque) {
     _torque = torque + _tid*nall;
     memset(&(_torque[0][0]),0,nall*3*sizeof(double));
-  } else _torque = NULL;
+  } else _torque = nullptr;
 
   if (nall >= 0 && erforce) {
     _erforce = erforce + _tid*nall;
     memset(&(_erforce[0]),0,nall*sizeof(double));
-  } else _erforce = NULL;
+  } else _erforce = nullptr;
 
   if (nall >= 0 && de) {
     _de = de + _tid*nall;
     memset(&(_de[0]),0,nall*sizeof(double));
-  } else _de = NULL;
+  } else _de = nullptr;
 
   if (nall >= 0 && drho) {
     _drho = drho + _tid*nall;
     memset(&(_drho[0]),0,nall*sizeof(double));
-  } else _drho = NULL;
+  } else _drho = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -191,8 +191,8 @@ void ThrData::init_pppm(int order, Memory *memory)
     drho1d = static_cast<FFT_SCALAR **>(_drho1d);
     if (rho1d) memory->destroy2d_offset(rho1d,-order/2);
     if (drho1d) memory->destroy2d_offset(drho1d,-order/2);
-    _rho1d = NULL;
-    _drho1d = NULL;
+    _rho1d = nullptr;
+    _drho1d = nullptr;
   }
 }
 

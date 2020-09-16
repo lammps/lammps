@@ -202,12 +202,12 @@ void Finish::end(int flag)
                           update->minimize->einitial,
                           update->minimize->eprevious,
                           update->minimize->efinal);
-      mesg += fmt::format("  Force two-norm initial, final = {} {}\n",
+      mesg += fmt::format("  Force two-norm initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorm2_init,update->minimize->fnorm2_final);
-      mesg += fmt::format("  Force max component initial, final = {} {}\n",
+      mesg += fmt::format("  Force max component initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorminf_init,
                           update->minimize->fnorminf_final);
-      mesg += fmt::format("  Final line search alpha, max atom move = {} {}\n",
+      mesg += fmt::format("  Final line search alpha, max atom move = {:.8} {:.8}\n",
                           update->minimize->alpha_final,
                           update->minimize->alpha_final*
                           update->minimize->fnorminf_final);
@@ -555,14 +555,14 @@ void Finish::end(int flag)
 
     int nspec;
     double nspec_all = 0;
-    if (atom->molecular == 1) {
+    if (atom->molecular == Atom::MOLECULAR) {
       int **nspecial = atom->nspecial;
       int nlocal = atom->nlocal;
       nspec = 0;
       for (i = 0; i < nlocal; i++) nspec += nspecial[i][2];
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
-    } else if (atom->molecular == 2) {
+    } else if (atom->molecular == Atom::TEMPLATE) {
       Molecule **onemols = atom->avec->onemols;
       int *molindex = atom->molindex;
       int *molatom = atom->molatom;

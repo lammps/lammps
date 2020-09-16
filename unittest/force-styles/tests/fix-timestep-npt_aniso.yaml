@@ -1,6 +1,6 @@
 ---
-lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 07:12:15 202
+lammps_version: 24 Aug 2020
+date_generated: Tue Sep 15 09:44:40 202
 epsilon: 2e-12
 prerequisites: ! |
   atom full

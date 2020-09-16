@@ -51,6 +51,38 @@ class PythonPyLammps(unittest.TestCase):
         self.assertEqual(len(self.pylmp.atoms), 2)
         self.assertEqual(self.pylmp.atoms[0].position, tuple(x[0:3]))
         self.assertEqual(self.pylmp.atoms[1].position, tuple(x[3:6]))
+        self.assertEqual(self.pylmp.last_run, None)
+
+
+    def test_write_script(self):
+        outfile = 'in.test_write_script'
+        self.pylmp.write_script(outfile)
+        self.assertTrue(os.path.exists(outfile))
+        os.remove(outfile)
+
+    def test_runs(self):
+        self.pylmp.lattice("fcc", 0.8442),
+        self.pylmp.region("box block", 0, 4, 0, 4, 0, 4)
+        self.pylmp.create_box(1, "box")
+        self.pylmp.create_atoms(1, "box")
+        self.pylmp.mass(1, 1.0)
+        self.pylmp.velocity("all create", 1.44, 87287, "loop geom")
+        self.pylmp.pair_style("lj/cut", 2.5)
+        self.pylmp.pair_coeff(1, 1, 1.0, 1.0, 2.5)
+        self.pylmp.neighbor(0.3, "bin")
+        self.pylmp.neigh_modify("delay 0 every 20 check no")
+        self.pylmp.fix("1 all nve")
+        self.pylmp.variable("fx atom fx")
+        self.pylmp.run(10)
+
+        self.assertEqual(len(self.pylmp.runs), 1)
+        self.assertEqual(self.pylmp.last_run, self.pylmp.runs[0])
+        self.assertEqual(len(self.pylmp.last_run.thermo.Step), 2)
+        self.assertEqual(len(self.pylmp.last_run.thermo.Temp), 2)
+        self.assertEqual(len(self.pylmp.last_run.thermo.E_pair), 2)
+        self.assertEqual(len(self.pylmp.last_run.thermo.E_mol), 2)
+        self.assertEqual(len(self.pylmp.last_run.thermo.TotEng), 2)
+        self.assertEqual(len(self.pylmp.last_run.thermo.Press), 2)
 
 if __name__ == "__main__":
     unittest.main()

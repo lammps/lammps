@@ -46,6 +46,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
   vector_flag = 1;
+  // size_vector = 7;
   size_vector = 6;
   extvector = 0;
 
@@ -148,15 +149,19 @@ void ComputeSpin::compute_vector()
   int i;
   int countsp, countsptot;
   double mag[4], magtot[4];
+  double m2, m2tot;
+  double m4, m4tot;
   double magenergy, magenergytot;
   double tempnum, tempnumtot;
   double tempdenom, tempdenomtot;
-  double spintemperature;
+  double spintemperature,binder;
 
   invoked_vector = update->ntimestep;
 
   countsp = countsptot = 0.0;
   mag[0] = mag[1] = mag[2] = mag[3] = 0.0;
+  // m2 = m2tot = 0.0;
+  // m4 = m4tot = 0.0;
   magtot[0] = magtot[1] = magtot[2] = magtot[3] = 0.0;
   magenergy = magenergytot = 0.0;
   tempnum = tempnumtot = 0.0;
@@ -176,9 +181,24 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
+        
+        // compute first moment
+
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
+
+        // compute second moment
+        
+        // m2 += sp[i][0]*sp[i][0];
+        // m2 += sp[i][1]*sp[i][1];
+        // m2 += sp[i][2]*sp[i][2];
+
+        // compute fourth moment
+        
+        // m4 += sp[i][0]*sp[i][0]*sp[i][0]*sp[i][0];
+        // m4 += sp[i][1]*sp[i][1]*sp[i][1]*sp[i][1];
+        // m4 += sp[i][2]*sp[i][2]*sp[i][2]*sp[i][2];
 
         // update magnetic precession energies
 
@@ -206,18 +226,31 @@ void ComputeSpin::compute_vector()
   }
 
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);
+  // MPI_Allreduce(&m2,&m2tot,1,MPI_DOUBLE,MPI_SUM,world);
+  // MPI_Allreduce(&m4,&m4tot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&magenergy,&magenergytot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempnum,&tempnumtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&countsp,&countsptot,1,MPI_INT,MPI_SUM,world);
+
+  // compute average magnetization
 
   double scale = 1.0/countsptot;
   magtot[0] *= scale;
   magtot[1] *= scale;
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
+  
+  // compute spin temperature
+  
   spintemperature = hbar*tempnumtot;
   spintemperature /= (2.0*kb*tempdenomtot);
+
+  // compute Binder cumulant
+
+  // m2tot *= scale;
+  // m4tot *= scale;
+  // binder = 1.0 - m4tot/(3.0*m2tot*m2tot);
 
   vector[0] = magtot[0];
   vector[1] = magtot[1];
@@ -225,7 +258,7 @@ void ComputeSpin::compute_vector()
   vector[3] = magtot[3];
   vector[4] = magenergytot;
   vector[5] = spintemperature;
-
+  // vector[6] = binder;
 }
 
 /* ----------------------------------------------------------------------

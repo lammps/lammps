@@ -455,11 +455,11 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, double rsq
   // Kex_mech *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
   
   // sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
-  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2] - 1.0);
+  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[0];
-  fi[1] -= (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[1];
-  fi[2] -= (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[2];
+  fi[0] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
+  fi[1] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
+  fi[2] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
   // fi[0] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[0];
   // fi[1] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[1];
   // fi[2] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[2];
@@ -507,9 +507,9 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   // Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
 
   // sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
-  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2] - 1.0);  
+  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
 
-  energy = 0.5*(Jex*sdots + Kex*sdots*sdots);
+  energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
   return energy;
 }
 

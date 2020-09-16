@@ -201,7 +201,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
-  memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
+  memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -221,7 +221,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
-    update_edges_flag[i] = 0;
+    custom_charges_fragid[i] = -1;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -367,13 +367,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         limit_duration[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         stabilize_steps_flag[rxn] = 1;
         iarg += 2;
-      } else if (strcmp(arg[iarg],"update_edges") == 0) {
+      } else if (strcmp(arg[iarg],"custom_charges") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-                                      "'update_edges' has too few arguments");
-        if (strcmp(arg[iarg+1],"none") == 0) update_edges_flag[rxn] = 0;
-        else if (strcmp(arg[iarg+1],"charges") == 0) update_edges_flag[rxn] = 1;
-        else if (strcmp(arg[iarg+1],"custom") == 0) update_edges_flag[rxn] = 2;
-        else error->all(FLERR,"Illegal value for 'update_edges' keyword'");
+                                      "'custom_charges' has too few arguments");
+        if (strcmp(arg[iarg+1],"no") == 0) custom_charges_fragid[rxn] = -1; //default
+        else {
+          custom_charges_fragid[rxn] = atom->molecules[unreacted_mol[rxn]]->findfragment(arg[iarg+1]);
+          if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
+                                                         "'custom_charges' keyword does not exist");
+        }
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -389,15 +391,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(reverse_equiv,max_natoms,2,nreacts,"bond/react:reverse_equiv");
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
-  memory->create(custom_edges,max_natoms,nreacts,"bond/react:custom_edges");
+  memory->create(custom_charges,max_natoms,nreacts,"bond/react:custom_charges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
   for (int j = 0; j < nreacts; j++)
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
-      if (update_edges_flag[j] == 1) custom_edges[i][j] = 1;
-      else custom_edges[i][j] = 0;
+      custom_charges[i][j] = 1; // update all partial charges by default
       delete_atoms[i][j] = 0;
       for (int k = 0; k < 6; k++) {
         chiral_atoms[i][k][j] = 0;
@@ -419,6 +420,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iatomtype[i] = onemol->type[ibonding[i]-1];
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
+    if (custom_charges_fragid[i] >= 0) CustomCharges(custom_charges_fragid[i],i);
   }
 
   // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
@@ -528,7 +530,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
   memory->destroy(landlocked_atoms);
-  memory->destroy(custom_edges);
+  memory->destroy(custom_charges);
   memory->destroy(delete_atoms);
   memory->destroy(chiral_atoms);
 
@@ -545,7 +547,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(var_flag);
   memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
-  memory->destroy(update_edges_flag);
+  memory->destroy(custom_charges_fragid);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -2641,7 +2643,7 @@ void FixBondReact::update_everything()
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if ((landlocked_atoms[j][rxnID] == 1 || custom_edges[jj][rxnID] == 1) &&
+        if ((landlocked_atoms[j][rxnID] == 1 || custom_charges[jj][rxnID] == 1) &&
             atom->map(update_mega_glove[jj+1][i]) >= 0 &&
             atom->map(update_mega_glove[jj+1][i]) < nlocal) {
           type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
@@ -3155,7 +3157,6 @@ void FixBondReact::read(int myrxn)
         error->one(FLERR,"Bond/react: Number of equivalences in map file must "
                    "equal number of atoms in reaction templates");
     }
-    else if (strstr(line,"customIDs")) sscanf(line,"%d",&ncustom);
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
     else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
@@ -3171,7 +3172,7 @@ void FixBondReact::read(int myrxn)
 
   // loop over sections of superimpose file
 
-  int equivflag = 0, bondflag = 0, customedgesflag = 0;
+  int equivflag = 0, bondflag = 0;
   while (strlen(keyword)) {
     if (strcmp(keyword,"BondingIDs") == 0) {
       bondflag = 1;
@@ -3188,9 +3189,6 @@ void FixBondReact::read(int myrxn)
     } else if (strcmp(keyword,"Equivalences") == 0) {
       equivflag = 1;
       Equivalences(line, myrxn);
-    } else if (strcmp(keyword,"Custom Edges") == 0) {
-      customedgesflag = 1;
-      CustomEdges(line, myrxn);
     } else if (strcmp(keyword,"DeleteIDs") == 0) {
       DeleteAtoms(line, myrxn);
     } else if (strcmp(keyword,"ChiralIDs") == 0) {
@@ -3206,12 +3204,6 @@ void FixBondReact::read(int myrxn)
   // error check
   if (bondflag == 0 || equivflag == 0)
     error->all(FLERR,"Bond/react: Map file missing BondingIDs or Equivalences section\n");
-
-  if (update_edges_flag[myrxn] == 2 && customedgesflag == 0)
-    error->all(FLERR,"Bond/react: Map file must have a Custom Edges section when using 'update_edges custom'\n");
-
-  if (update_edges_flag[myrxn] != 2 && customedgesflag == 1)
-    error->all(FLERR,"Bond/react: Specify 'update_edges custom' to include Custom Edges section in map file\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)
@@ -3246,28 +3238,6 @@ void FixBondReact::Equivalences(char *line, int myrxn)
   }
 }
 
-void FixBondReact::CustomEdges(char *line, int myrxn)
-{
-  // 0 for 'none', 1 for 'charges'
-
-  int tmp;
-  int n = MAX(strlen("none"),strlen("charges")) + 1;
-  char *edgemode = new char[n];
-  for (int i = 0; i < ncustom; i++) {
-    readline(line);
-    sscanf(line,"%d %s",&tmp,edgemode);
-    if (tmp > onemol->natoms)
-      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-    if (strcmp(edgemode,"none") == 0)
-      custom_edges[tmp-1][myrxn] = 0;
-    else if (strcmp(edgemode,"charges") == 0)
-      custom_edges[tmp-1][myrxn] = 1;
-    else
-      error->one(FLERR,"Bond/react: Illegal value in 'Custom Edges' section of map file");
-  }
-  delete [] edgemode;
-}
-
 void FixBondReact::DeleteAtoms(char *line, int myrxn)
 {
   int tmp;
@@ -3278,6 +3248,15 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
       error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
   }
+}
+
+void FixBondReact::CustomCharges(int ifragment, int myrxn)
+{
+  for (int i = 0; i < onemol->natoms; i++)
+    if (onemol->fragmentmask[ifragment][i])
+      custom_charges[i][myrxn] = 1;
+    else
+      custom_charges[i][myrxn] = 0;
 }
 
 void FixBondReact::ChiralCenters(char *line, int myrxn)

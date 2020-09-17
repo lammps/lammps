@@ -25,9 +25,9 @@ lmp.file("in.demo")
 
 print("\nPython output:")
 
-natoms = lmp.extract_global("natoms", LAMMPS_INT)
-mass = lmp.extract_atom("mass", LAMMPS_DOUBLE)
-x = lmp.extract_atom("x", LAMMPS_DOUBLE2D)
+natoms = lmp.extract_global("natoms")
+mass = lmp.extract_atom("mass")
+x = lmp.extract_atom("x")
 print("Natoms, mass, x[0][0] coord =",natoms,mass[1],x[0][0])
 
 temp = lmp.extract_compute("thermo_temp", LMP_STYLE_GLOBAL, LAMMPS_INT)

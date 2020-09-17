@@ -42,14 +42,14 @@ lmp.command("variable e equal pe")
 
 lmp.command("run 0")
 
-natoms = lmp.extract_global("natoms",LAMMPS_INT)
+natoms = lmp.extract_global("natoms")
 emin = lmp.extract_compute("thermo_pe",LMP_STYLE_GLOBAL,LAMMPS_INT) / natoms
 lmp.command("variable emin equal $e")
 
 # disorder the system
 # estart = initial energy
 
-x = lmp.extract_atom("x", LAMMPS_DOUBLE2D)
+x = lmp.extract_atom("x")
 
 for i in range(natoms):
   x[i][0] += deltaperturb * (2*random.random()-1)
@@ -58,7 +58,7 @@ for i in range(natoms):
 lmp.command("variable elast equal $e")
 lmp.command("thermo_style custom step v_emin v_elast pe")
 lmp.command("run 0")
-x = lmp.extract_atom("x", LAMMPS_DOUBLE2D)
+x = lmp.extract_atom("x")
 lmp.command("variable elast equal $e")
   
 estart = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
@@ -78,7 +78,7 @@ for i in range(nloop):
   x[iatom][1] += deltamove * (2*random.random()-1)
 
   lmp.command("run 1 pre no post no")
-  x = lmp.extract_atom("x", LAMMPS_DOUBLE2D)
+  x = lmp.extract_atom("x")
   e = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
 
   if e <= elast:

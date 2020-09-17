@@ -112,7 +112,7 @@ void kimProperty::command(int narg, char **arg)
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // kim_property module
-  PyObject *kim_property = NULL;
+  PyObject *kim_property = nullptr;
 
   // import kim_property
   {
@@ -438,7 +438,7 @@ void kimProperty::command(int narg, char **arg)
                           "evaluation failed!");
       }
     } else
-      pValue = NULL;
+      pValue = nullptr;
 
     // Destroy the variable
     input->variable->set("kim_property_str delete");

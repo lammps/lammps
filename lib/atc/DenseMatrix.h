@@ -16,10 +16,10 @@ template <typename T>
 class DenseMatrix : public Matrix<T>
 {
 public:
-  DenseMatrix(INDEX rows=0, INDEX cols=0, bool z=1): _data(NULL){ _create(rows, cols, z); }
-  DenseMatrix(const DenseMatrix<T>& c) : Matrix<T>(), _data(NULL){ _copy(c); }
-  DenseMatrix(const SparseMatrix<T>& c): Matrix<T>(), _data(NULL){ c.dense_copy(*this);}
-  DenseMatrix(const Matrix<T>& c)      : Matrix<T>(), _data(NULL){ _copy(c); }
+  DenseMatrix(INDEX rows=0, INDEX cols=0, bool z=1): _data(nullptr){ _create(rows, cols, z); }
+  DenseMatrix(const DenseMatrix<T>& c) : Matrix<T>(), _data(nullptr){ _copy(c); }
+  DenseMatrix(const SparseMatrix<T>& c): Matrix<T>(), _data(nullptr){ c.dense_copy(*this);}
+  DenseMatrix(const Matrix<T>& c)      : Matrix<T>(), _data(nullptr){ _copy(c); }
 //  const SparseMatrix<T> * p = sparse_cast(&c);
 //  (p) ? p->dense_copy(*this) : _copy(c); }
   ~DenseMatrix()                                    { _delete();}
@@ -261,7 +261,7 @@ void DenseMatrix<T>::_delete()
   _nRows = _nCols = 0;
   if (_data){ 
     delete [] _data;
-    _data = NULL;
+    _data = nullptr;
   }
 }
 //----------------------------------------------------------------------------
@@ -273,7 +273,7 @@ void DenseMatrix<T>::_create(INDEX rows, INDEX cols, bool zero)
 
   _nRows=rows; 
   _nCols=cols;
-  _data = (this->size() ? new T [_nCols*_nRows] : NULL);
+  _data = (this->size() ? new T [_nCols*_nRows] : nullptr);
   if (zero) this->zero();
 }
 //----------------------------------------------------------------------------

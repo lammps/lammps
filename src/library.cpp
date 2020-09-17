@@ -69,7 +69,7 @@ using namespace LAMMPS_NS;
 
 #ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
-  Error * error = lmp->error; \
+  Error *error = lmp->error; \
   try
 
 #define END_CAPTURE \
@@ -138,7 +138,7 @@ fails a null pointer is returned.
 
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
-  LAMMPS *lmp = NULL;
+  LAMMPS *lmp = nullptr;
   lammps_mpi_init();
 
 #ifdef LAMMPS_EXCEPTIONS
@@ -149,7 +149,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   }
   catch(LAMMPSException & e) {
     fmt::print(stderr, "LAMMPS Exception: {}", e.message);
-    *ptr = (void *) NULL;
+    *ptr = nullptr;
   }
 #else
   lmp = new LAMMPS(argc, argv, comm);
@@ -275,7 +275,7 @@ void lammps_mpi_init()
   if (!flag) {
     // provide a dummy argc and argv for MPI_Init().
     int argc = 1;
-    char *args[] = { (char *)"liblammps" , NULL  };
+    char *args[] = { (char *)"liblammps" , nullptr  };
     char **argv = args;
     MPI_Init(&argc,&argv);
   }
@@ -387,7 +387,7 @@ passing a string without a command.
 char *lammps_command(void *handle, const char *cmd)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-  char *result = NULL;
+  char *result = nullptr;
 
   BEGIN_CAPTURE
   {
@@ -532,6 +532,38 @@ int lammps_version(void *handle)
   return atoi(lmp->universe->num_ver);
 }
 
+/* ---------------------------------------------------------------------- */
+
+/** Get memory usage information
+ *
+\verbatim embed:rst
+
+This function will retrieve memory usage information for the current
+LAMMPS instance or process.  The *meminfo* buffer will be filled with
+3 different numbers (if supported by the operating system).  The first
+is the tally (in MBytes) of all large memory allocations made by LAMMPS.
+This is a lower boundary of how much memory is requested and does not
+account for memory allocated on the stack or allocations via ``new``.
+The second number is the current memory allocation of the current process
+as returned by a memory allocation reporting in the system library.  The
+third number is the maximum amount of RAM (not swap) used by the process
+so far. If any of the two latter parameters is not supported by the operating
+system it will be set to zero.
+
+.. versionadded:: 15Sep2020
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  meminfo  buffer with space for at least 3 double to store
+ * data in. */
+
+void lammps_memory_usage(void *handle, double *meminfo)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Info info(lmp);
+  info.get_memory_info(meminfo);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -594,7 +626,7 @@ double lammps_get_natoms(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  double natoms = static_cast<double> (lmp->atom->natoms);
+  double natoms = static_cast<double>(lmp->atom->natoms);
   if (natoms > 9.0e15) return 0; // TODO:XXX why not -1?
   return natoms;
 }
@@ -616,7 +648,7 @@ a double, so it can also return information that is computed on-the-fly.
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the requested thermo property or 0.0 */
 
-double lammps_get_thermo(void *handle, char *keyword)
+double lammps_get_thermo(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   double dval = 0.0;
@@ -807,7 +839,7 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
  * \param  keyword  string with the name of the thermo keyword
  * \return          value of the queried setting or -1 if unknown */
 
-int lammps_extract_setting(void * handle, char *keyword)
+int lammps_extract_setting(void *handle, const char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -865,7 +897,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
 This table lists the supported names, their data types, length of the
 data area, and a short description.  The ``bigint`` type may be defined
 to be either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>`.
+:ref:`compile time <size>` and can be queried through calling
+:cpp:func:`lammps_extract_setting`.
 
 .. list-table::
    :header-rows: 1
@@ -1073,7 +1106,7 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
  * \return          pointer (cast to ``void *``) to the location of the
                     requested property. NULL if name is not known. */
 
-void *lammps_extract_global(void *handle, char *name)
+void *lammps_extract_global(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1134,7 +1167,7 @@ void *lammps_extract_global(void *handle, char *name)
   if (strcmp(name,"femtosecond") == 0) return (void *) &lmp->force->femtosecond;
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1165,7 +1198,7 @@ of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_atom(void *handle, char *name)
+void *lammps_extract_atom(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
@@ -1267,7 +1300,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      imageint * img = image ? image + i : NULL;
+      imageint * img = image ? image + i : nullptr;
       tagint     tag = id    ? id[i]     : 0;
 
       // create atom only on MPI rank that would own it
@@ -1288,7 +1321,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 
     // if no tags are given explicitly, create new and unique tags
 
-    if (id == NULL) atom->tag_extend();
+    if (id == nullptr) atom->tag_extend();
 
     // reset box info, if extended when adding atoms.
 
@@ -1307,7 +1340,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown
 
-    if (lmp->atom->map_style) {
+    if (lmp->atom->map_style != Atom::MAP_NONE) {
       lmp->atom->map_init();
       lmp->atom->map_set();
     }
@@ -1429,18 +1462,18 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
   BEGIN_CAPTURE
   {
     int icompute = lmp->modify->find_compute(id);
-    if (icompute < 0) return NULL;
+    if (icompute < 0) return nullptr;
     Compute *compute = lmp->modify->compute[icompute];
 
     if (style == LMP_STYLE_GLOBAL) {
       if (type == LMP_TYPE_SCALAR) {
-        if (!compute->scalar_flag) return NULL;
+        if (!compute->scalar_flag) return nullptr;
         if (compute->invoked_scalar != lmp->update->ntimestep)
           compute->compute_scalar();
         return (void *) &compute->scalar;
       }
       if ((type == LMP_TYPE_VECTOR) || (type == LMP_SIZE_VECTOR)) {
-        if (!compute->vector_flag) return NULL;
+        if (!compute->vector_flag) return nullptr;
         if (compute->invoked_vector != lmp->update->ntimestep)
           compute->compute_vector();
         if (type == LMP_TYPE_VECTOR)
@@ -1449,7 +1482,7 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
           return (void *) &compute->size_vector;
       }
       if ((type == LMP_TYPE_ARRAY) || (type == LMP_SIZE_ROWS) || (type == LMP_SIZE_COLS)) {
-        if (!compute->array_flag) return NULL;
+        if (!compute->array_flag) return nullptr;
         if (compute->invoked_array != lmp->update->ntimestep)
           compute->compute_array();
         if (type == LMP_TYPE_ARRAY)
@@ -1462,7 +1495,7 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
     }
 
     if (style == LMP_STYLE_ATOM) {
-      if (!compute->peratom_flag) return NULL;
+      if (!compute->peratom_flag) return nullptr;
       if (compute->invoked_peratom != lmp->update->ntimestep)
         compute->compute_peratom();
       if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_atom;
@@ -1471,7 +1504,7 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
     }
 
     if (style == LMP_STYLE_LOCAL) {
-      if (!compute->local_flag) return NULL;
+      if (!compute->local_flag) return nullptr;
       if (compute->invoked_local != lmp->update->ntimestep)
         compute->compute_local();
       if (type == LMP_TYPE_SCALAR) return (void *) &compute->size_local_rows;  /* for backward compatibility */
@@ -1483,7 +1516,7 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
   }
   END_CAPTURE
 
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1614,34 +1647,34 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) return NULL;
+    if (ifix < 0) return nullptr;
     Fix *fix = lmp->modify->fix[ifix];
 
     if (style == LMP_STYLE_GLOBAL) {
       if (type == LMP_TYPE_SCALAR) {
-        if (!fix->scalar_flag) return NULL;
+        if (!fix->scalar_flag) return nullptr;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_scalar();
         return (void *) dptr;
       }
       if (type == LMP_TYPE_VECTOR) {
-        if (!fix->vector_flag) return NULL;
+        if (!fix->vector_flag) return nullptr;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_vector(nrow);
         return (void *) dptr;
       }
       if (type == LMP_TYPE_ARRAY) {
-        if (!fix->array_flag) return NULL;
+        if (!fix->array_flag) return nullptr;
         double *dptr = (double *) malloc(sizeof(double));
         *dptr = fix->compute_array(nrow,ncol);
         return (void *) dptr;
       }
       if (type == LMP_SIZE_VECTOR) {
-        if (!fix->vector_flag) return NULL;
+        if (!fix->vector_flag) return nullptr;
         return (void *) &fix->size_vector;
       }
       if ((type == LMP_SIZE_ROWS) || (type == LMP_SIZE_COLS)) {
-        if (!fix->array_flag) return NULL;
+        if (!fix->array_flag) return nullptr;
         if (type == LMP_SIZE_ROWS)
           return (void *) &fix->size_array_rows;
         else
@@ -1650,14 +1683,14 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
     }
 
     if (style == LMP_STYLE_ATOM) {
-      if (!fix->peratom_flag) return NULL;
+      if (!fix->peratom_flag) return nullptr;
       if (type == LMP_TYPE_VECTOR) return (void *) fix->vector_atom;
       if (type == LMP_TYPE_ARRAY) return (void *) fix->array_atom;
       if (type == LMP_SIZE_COLS) return (void *) &fix->size_peratom_cols;
     }
 
     if (style == LMP_STYLE_LOCAL) {
-      if (!fix->local_flag) return NULL;
+      if (!fix->local_flag) return nullptr;
       if (type == LMP_TYPE_SCALAR) return (void *) &fix->size_local_rows;
       if (type == LMP_TYPE_VECTOR) return (void *) fix->vector_local;
       if (type == LMP_TYPE_ARRAY) return (void *) fix->array_local;
@@ -1667,7 +1700,7 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
   }
   END_CAPTURE
 
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1731,7 +1764,7 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
   BEGIN_CAPTURE
   {
     int ivar = lmp->input->variable->find(name);
-    if (ivar < 0) return NULL;
+    if (ivar < 0) return nullptr;
 
     if (lmp->input->variable->equalstyle(ivar)) {
       double *dptr = (double *) malloc(sizeof(double));
@@ -1740,9 +1773,9 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
     }
 
     if (lmp->input->variable->atomstyle(ivar)) {
-      if (group == NULL) group = (char *)"all";
+      if (group == nullptr) group = (char *)"all";
       int igroup = lmp->group->find(group);
-      if (igroup < 0) return NULL;
+      if (igroup < 0) return nullptr;
       int nlocal = lmp->atom->nlocal;
       double *vector = (double *) malloc(nlocal*sizeof(double));
       lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
@@ -1751,7 +1784,7 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
   }
   END_CAPTURE
 
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1845,7 +1878,7 @@ void lammps_gather_atoms(void *handle, char *name,
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
       return;
     }
@@ -1855,8 +1888,8 @@ void lammps_gather_atoms(void *handle, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -1894,8 +1927,8 @@ void lammps_gather_atoms(void *handle, char *name,
       lmp->memory->destroy(copy);
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -1985,7 +2018,7 @@ void lammps_gather_atoms_concat(void *handle, char *name,
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather_atoms: unknown property name");
       return;
     }
@@ -1999,8 +2032,8 @@ void lammps_gather_atoms_concat(void *handle, char *name,
     lmp->memory->create(displs,nprocs,"lib/gather:displs");
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -2050,8 +2083,8 @@ void lammps_gather_atoms_concat(void *handle, char *name,
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -2145,7 +2178,7 @@ void lammps_gather_atoms_subset(void *handle, char *name,
     }
 
     void *vptr = lmp->atom->extract(name);
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather_atoms_subset: "
                           "unknown property name");
       return;
@@ -2156,8 +2189,8 @@ void lammps_gather_atoms_subset(void *handle, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -2203,8 +2236,8 @@ void lammps_gather_atoms_subset(void *handle, char *name,
       lmp->memory->destroy(copy);
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -2286,7 +2319,7 @@ void lammps_scatter_atoms(void *handle, char *name,
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
@@ -2296,7 +2329,7 @@ void lammps_scatter_atoms(void *handle, char *name,
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
-    if(vptr == NULL) {
+    if(vptr == nullptr) {
         lmp->error->warning(FLERR,
                             "lammps_scatter_atoms: unknown property name");
         return;
@@ -2307,8 +2340,8 @@ void lammps_scatter_atoms(void *handle, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgpack) vector = (int *) vptr;
@@ -2340,8 +2373,8 @@ void lammps_scatter_atoms(void *handle, char *name,
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
       double *dptr = (double *) data;
@@ -2416,7 +2449,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");
@@ -2424,7 +2457,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
     }
 
     void *vptr = lmp->atom->extract(name);
-    if(vptr == NULL) {
+    if(vptr == nullptr) {
         lmp->error->warning(FLERR,
                             "lammps_scatter_atoms_subset: unknown property name");
         return;
@@ -2435,8 +2468,8 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgpack) vector = (int *) vptr;
@@ -2474,8 +2507,8 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
       double *dptr = (double *) data;
@@ -2565,7 +2598,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2596,7 +2629,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
 
     }
 
-    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2624,7 +2657,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
 
     }
 
-    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -2645,7 +2678,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
     }
 
 
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather: unknown property name");
       return;
     }
@@ -2654,8 +2687,8 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
     // use atom ID to insert each atom's values into copy
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
     if (type==0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
 
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
@@ -2695,8 +2728,8 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
 
     } else {
 
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -2786,7 +2819,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2818,7 +2851,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
     }
 
-    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2846,7 +2879,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
     }
 
-    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -2869,7 +2902,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
     }
 
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather_concat: unknown property name");
       return;
     }
@@ -2883,8 +2916,8 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
     lmp->memory->create(displs,nprocs,"lib/gather:displs");
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -2934,8 +2967,8 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -3031,7 +3064,7 @@ void lammps_gather_subset(void *ptr, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3063,7 +3096,7 @@ void lammps_gather_subset(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3091,7 +3124,7 @@ void lammps_gather_subset(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3114,7 +3147,7 @@ void lammps_gather_subset(void *ptr, char *name,
 
     }
 
-    if (vptr == NULL) {
+    if (vptr == nullptr) {
       lmp->error->warning(FLERR,"lammps_gather_subset: "
                                 "unknown property name");
       return;
@@ -3125,8 +3158,8 @@ void lammps_gather_subset(void *ptr, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -3172,8 +3205,8 @@ void lammps_gather_subset(void *ptr, char *name,
       lmp->memory->destroy(copy);
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -3262,7 +3295,7 @@ void lammps_scatter(void *ptr, char *name,
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter");
@@ -3273,7 +3306,7 @@ void lammps_scatter(void *ptr, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3298,7 +3331,7 @@ void lammps_scatter(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3326,7 +3359,7 @@ void lammps_scatter(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3346,7 +3379,7 @@ void lammps_scatter(void *ptr, char *name,
 
     }
 
-    if(vptr == NULL) {
+    if(vptr == nullptr) {
         lmp->error->warning(FLERR,"lammps_scatter: unknown property name");
         return;
     }
@@ -3356,8 +3389,8 @@ void lammps_scatter(void *ptr, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgpack) vector = (int *) vptr;
@@ -3389,8 +3422,8 @@ void lammps_scatter(void *ptr, char *name,
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
       double *dptr = (double *) data;
@@ -3466,7 +3499,7 @@ void lammps_scatter_subset(void *ptr, char *name,
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-    if (lmp->atom->map_style == 0) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");
@@ -3475,7 +3508,7 @@ void lammps_scatter_subset(void *ptr, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3500,7 +3533,7 @@ void lammps_scatter_subset(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3528,7 +3561,7 @@ void lammps_scatter_subset(void *ptr, char *name,
 
     }
 
-    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3551,7 +3584,7 @@ void lammps_scatter_subset(void *ptr, char *name,
 
     }
 
-    if(vptr == NULL) {
+    if(vptr == nullptr) {
         lmp->error->warning(FLERR,"lammps_scatter_atoms_subset: "
                                   "unknown property name");
         return;
@@ -3562,8 +3595,8 @@ void lammps_scatter_subset(void *ptr, char *name,
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
-      int *vector = NULL;
-      int **array = NULL;
+      int *vector = nullptr;
+      int **array = nullptr;
       const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgpack) vector = (int *) vptr;
@@ -3601,8 +3634,8 @@ void lammps_scatter_subset(void *ptr, char *name,
       }
 
     } else {
-      double *vector = NULL;
-      double **array = NULL;
+      double *vector = nullptr;
+      double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
       double *dptr = (double *) data;
@@ -3724,7 +3757,7 @@ specific :doc:`LAMMPS package <Packages>` provided as argument.
  * \param name string with the name of the package
  * \return 1 if included, 0 if not.
  */
-int lammps_config_has_package(char * name) {
+int lammps_config_has_package(const char *name) {
   return Info::has_package(name) ? 1 : 0;
 }
 
@@ -3741,7 +3774,7 @@ included in the LAMMPS library in use.
  */
 int lammps_config_package_count() {
   int i = 0;
-  while(LAMMPS::installed_packages[i] != NULL) {
+  while(LAMMPS::installed_packages[i] != nullptr) {
     ++i;
   }
   return i;
@@ -3764,7 +3797,7 @@ the function returns 0 and *buffer* is set to an empty string, otherwise 1;
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_config_package_name(int idx, char * buffer, int buf_size) {
+int lammps_config_package_name(int idx, char *buffer, int buf_size) {
   int maxidx = lammps_config_package_count();
   if ((idx < 0) || (idx >= maxidx)) {
       buffer[0] = '\0';
@@ -3792,7 +3825,7 @@ Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
  * \param  name      name of the style
  * \return           1 if included, 0 if not.
  */
-int lammps_has_style(void * handle, char * category, char * name) {
+int lammps_has_style(void *handle, const char *category, const char *name) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.has_style(category, name) ? 1 : 0;
@@ -3813,7 +3846,7 @@ categories.
  * \param category category of styles
  * \return number of styles in category
  */
-int lammps_style_count(void * handle, char * category) {
+int lammps_style_count(void *handle, const char *category) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.get_available_styles(category).size();
@@ -3839,7 +3872,8 @@ Please see :cpp:func:`lammps_has_style` for a list of valid categories.
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_style_name(void* handle, char * category, int idx, char * buffer, int buf_size) {
+int lammps_style_name(void *handle, const char *category, int idx,
+                      char *buffer, int buf_size) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);
@@ -3987,7 +4021,7 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
   LAMMPS *  lmp = (LAMMPS *) handle;
   Pair* pair = lmp->force->pair_match(style, exact, nsub);
 
-  if (pair != NULL) {
+  if (pair != nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList * list = lmp->neighbor->lists[i];
@@ -4013,7 +4047,7 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
  */
 int lammps_find_fix_neighlist(void* handle, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
-  Fix* fix = NULL;
+  Fix* fix = nullptr;
   const int nfix = lmp->modify->nfix;
 
   // find fix with name
@@ -4024,7 +4058,7 @@ int lammps_find_fix_neighlist(void* handle, char * id, int request) {
     }
   }
 
-  if (fix != NULL) {
+  if (fix != nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList * list = lmp->neighbor->lists[i];
@@ -4050,7 +4084,7 @@ int lammps_find_fix_neighlist(void* handle, char * id, int request) {
  */
 int lammps_find_compute_neighlist(void* handle, char * id, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
-  Compute* compute = NULL;
+  Compute* compute = nullptr;
   const int ncompute = lmp->modify->ncompute;
 
   // find compute with name
@@ -4061,7 +4095,7 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
     }
   }
 
-  if (compute == NULL) {
+  if (compute == nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList * list = lmp->neighbor->lists[i];
@@ -4115,7 +4149,7 @@ void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int
   Neighbor * neighbor = lmp->neighbor;
   *iatom = -1;
   *numneigh = 0;
-  *neighbors = NULL;
+  *neighbors = nullptr;
 
   if(idx < 0 || idx >= neighbor->nlist) {
     return;
@@ -4265,10 +4299,10 @@ the failing MPI ranks to send messages.
  * \param buf_size size of the provided string buffer
  * \return 1 when all ranks had the error, 1 on a single rank error.
  */
-int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Error *error = lmp->error;
 
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();

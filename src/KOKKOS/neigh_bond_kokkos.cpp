@@ -102,7 +102,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   }
 
   // set flags that determine which topology neighboring routines to use
-  // bonds,etc can only be broken for atom->molecular = 1, not 2
+  // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
@@ -117,7 +117,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
-  if (atom->avec->bonds_allow && atom->molecular == 1) {
+  if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (bond_off) break;
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -125,7 +125,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     }
   }
 
-  if (atom->avec->angles_allow && atom->molecular == 1) {
+  if (atom->avec->angles_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (angle_off) break;
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -134,7 +134,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   }
 
   int dihedral_off = 0;
-  if (atom->avec->dihedrals_allow && atom->molecular == 1) {
+  if (atom->avec->dihedrals_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -143,7 +143,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   }
 
   int improper_off = 0;
-  if (atom->avec->impropers_allow && atom->molecular == 1) {
+  if (atom->avec->impropers_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -168,19 +168,19 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
 
   // set ptrs to topology build functions
 
-  if (atom->molecular == 2) bond_build_kk = &NeighBondKokkos<DeviceType>::bond_template;
+  if (atom->molecular == Atom::TEMPLATE) bond_build_kk = &NeighBondKokkos<DeviceType>::bond_template;
   else if (bond_off) bond_build_kk = &NeighBondKokkos<DeviceType>::bond_partial;
   else bond_build_kk = &NeighBondKokkos<DeviceType>::bond_all;
 
-  if (atom->molecular == 2) angle_build_kk = &NeighBondKokkos<DeviceType>::angle_template;
+  if (atom->molecular == Atom::TEMPLATE) angle_build_kk = &NeighBondKokkos<DeviceType>::angle_template;
   else if (angle_off) angle_build_kk = &NeighBondKokkos<DeviceType>::angle_partial;
   else angle_build_kk = &NeighBondKokkos<DeviceType>::angle_all;
 
-  if (atom->molecular == 2) dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_template;
+  if (atom->molecular == Atom::TEMPLATE) dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_template;
   else if (dihedral_off) dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_partial;
   else dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_all;
 
-  if (atom->molecular == 2) improper_build_kk = &NeighBondKokkos<DeviceType>::improper_template;
+  if (atom->molecular == Atom::TEMPLATE) improper_build_kk = &NeighBondKokkos<DeviceType>::improper_template;
   else if (improper_off) improper_build_kk = &NeighBondKokkos<DeviceType>::improper_partial;
   else improper_build_kk = &NeighBondKokkos<DeviceType>::improper_all;
 
@@ -211,7 +211,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
 
   // don't yet have atom_map_kokkos routines, so move data from host to device
 
-  if (atom->map_style != 1)
+  if (atom->map_style != Atom::MAP_ARRAY)
     error->all(FLERR,"Must use atom map style array with Kokkos");
 
   int* map_array_host = atom->get_map_array();

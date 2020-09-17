@@ -44,7 +44,7 @@ BondSpecial::~BondSpecial()
 
 void BondSpecial::init_style()
 {
-  if (force->pair == NULL) error->all(FLERR,"No pair style defined");
+  if (force->pair == nullptr) error->all(FLERR,"No pair style defined");
   else if ((force->pair->single_enable == 0) || force->pair->manybody_flag)
     error->all(FLERR,"Pair style does not support bond style special");
 
@@ -59,7 +59,7 @@ void BondSpecial::init_style()
                                        force->special_coul[3] != 1.0))
     error->all(FLERR,"Invalid 1-4 setting for bond style special.");
 
-  if (force->kspace != NULL)
+  if (force->kspace != nullptr)
     error->all(FLERR,"Bond style special is not compatible with long range "
         "Coulombic interactions");
 }

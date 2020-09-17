@@ -59,7 +59,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   virtual ~PairEAMKokkos();
   void compute(int, int);
   void init_style();
-  void *extract(const char *, int &) { return NULL; }
+  void *extract(const char *, int &) { return nullptr; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;

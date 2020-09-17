@@ -56,7 +56,7 @@ void WriteCoeff::command(int narg, char **arg)
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
 
-    if (one == NULL)
+    if (one == nullptr)
       error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
                                    file, utils::getsyserror()));
 
@@ -90,7 +90,7 @@ void WriteCoeff::command(int narg, char **arg)
     rewind(one);
 
     FILE *two = fopen(file+4,"w");
-    if (two == NULL)
+    if (two == nullptr)
       error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
                                    file+4, utils::getsyserror()));
 
@@ -99,15 +99,15 @@ void WriteCoeff::command(int narg, char **arg)
 
     while(1) {
       int coeff_mode = REGULAR_MODE;
-      if (fgets(str,256,one) == NULL) break;
+      if (fgets(str,256,one) == nullptr) break;
 
       // some coeffs need special treatment
-      if (strstr(str,"class2") != NULL) {
-        if (strstr(str,"angle_style") != NULL)
+      if (strstr(str,"class2") != nullptr) {
+        if (strstr(str,"angle_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"dihedral_style") != NULL)
+        else if (strstr(str,"dihedral_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"improper_style") != NULL)
+        else if (strstr(str,"improper_style") != nullptr)
           coeff_mode = CLASS2_MODE;
       }
 

@@ -40,8 +40,8 @@ using namespace MathConst;
 
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  bondcount(NULL), partner(NULL), finalpartner(NULL), distsq(NULL),
-  probability(NULL), created(NULL), copy(NULL), random(NULL), list(NULL)
+  bondcount(nullptr), partner(nullptr), finalpartner(nullptr), distsq(nullptr),
+  probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
 
@@ -163,9 +163,9 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
   // bondcount values will be initialized in setup()
 
-  bondcount = NULL;
+  bondcount = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
   countflag = 0;
 
   // set comm sizes needed by this fix
@@ -177,11 +177,11 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = finalpartner = NULL;
-  distsq = NULL;
+  partner = finalpartner = nullptr;
+  distsq = nullptr;
 
   maxcreate = 0;
-  created = NULL;
+  created = nullptr;
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient
@@ -204,7 +204,7 @@ FixBondCreate::~FixBondCreate()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   delete random;
 
@@ -237,7 +237,7 @@ void FixBondCreate::init()
 
   // check cutoff for iatomtype,jatomtype
 
-  if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype])
+  if (force->pair == nullptr || cutsq > force->pair->cutsq[iatomtype][jatomtype])
     error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
 
   // warn if more than one fix bond/create or also a fix bond/break

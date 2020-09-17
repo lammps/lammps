@@ -34,7 +34,7 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
 FixMinimizeKokkos::~FixMinimizeKokkos()
 {
   memoryKK->destroy_kokkos(k_vectors,vectors);
-  vectors = NULL;
+  vectors = nullptr;
 }
 
 /* ----------------------------------------------------------------------

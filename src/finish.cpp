@@ -555,14 +555,14 @@ void Finish::end(int flag)
 
     int nspec;
     double nspec_all = 0;
-    if (atom->molecular == 1) {
+    if (atom->molecular == Atom::MOLECULAR) {
       int **nspecial = atom->nspecial;
       int nlocal = atom->nlocal;
       nspec = 0;
       for (i = 0; i < nlocal; i++) nspec += nspecial[i][2];
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
-    } else if (atom->molecular == 2) {
+    } else if (atom->molecular == Atom::TEMPLATE) {
       Molecule **onemols = atom->avec->onemols;
       int *molindex = atom->molindex;
       int *molatom = atom->molatom;

@@ -34,7 +34,7 @@ enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
-  fieldindex = NULL;
+  fieldindex = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ ReaderNative::~ReaderNative()
 int ReaderNative::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) return 1;
+  if (eof == nullptr) return 1;
 
   // skip over unit and time information, if present.
 
@@ -110,7 +110,7 @@ void ReaderNative::skip()
      match Nfield fields to per-atom column labels
      allocate and set fieldindex = which column each field maps to
      fieldtype = X,VX,IZ etc
-     fieldlabel = user-specified label or NULL if use fieldtype default
+     fieldlabel = user-specified label or nullptr if use fieldtype default
    xyz flags = scaleflag+wrapflag if has fieldlabel name,
      else set by x,xs,xu,xsu
    only called by proc 0
@@ -315,7 +315,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
   for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 
     // tokenize the line
     std::vector<std::string> words = Tokenizer(line).as_vector();
@@ -351,8 +351,8 @@ int ReaderNative::find_label(const std::string & label, const std::map<std::stri
 
 void ReaderNative::read_lines(int n)
 {
-  char *eof = NULL;
+  char *eof = nullptr;
   if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 }

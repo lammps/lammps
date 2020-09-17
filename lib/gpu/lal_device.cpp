@@ -72,7 +72,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   // "0:generic" will select platform 0 and tune for generic device
   // "1:fermi" will select platform 1 and tune for Nvidia Fermi gpu
   if (ocl_vendor) {
-    char *sep = NULL;
+    char *sep = nullptr;
     if ((sep = strstr(ocl_vendor,":"))) {
       *sep = '\0';
       _platform_id = atoi(ocl_vendor);
@@ -182,7 +182,7 @@ template <class numtyp, class acctyp>
 int DeviceT::set_ocl_params(char *ocl_vendor) {
   #ifdef USE_OPENCL
   std::string s_vendor=OCL_DEFAULT_VENDOR;
-  if (ocl_vendor!=NULL)
+  if (ocl_vendor!=nullptr)
     s_vendor=ocl_vendor;
   if (s_vendor=="none")
     s_vendor="generic";
@@ -215,14 +215,14 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
     int token_count=0;
     std::string params[13];
     char *pch = strtok(ocl_vendor,",");
-    pch = strtok(NULL,",");
-    if (pch == NULL) return -11;
-    while (pch != NULL) {
+    pch = strtok(nullptr,",");
+    if (pch == nullptr) return -11;
+    while (pch != nullptr) {
       if (token_count==13)
         return -11;
       params[token_count]=pch;
       token_count++;
-      pch = strtok(NULL,",");
+      pch = strtok(nullptr,",");
     }
     _ocl_vendor_string+=" -DMEM_THREADS="+params[0]+
                         " -DTHREADS_PER_ATOM="+params[1]+
@@ -430,9 +430,9 @@ template <class numtyp, class acctyp>
 void DeviceT::estimate_gpu_overhead(const int kernel_calls,
                                     double &gpu_overhead,
                                     double &gpu_driver_overhead) {
-  UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
-  UCL_D_Vec<int> *dev_data_in=NULL, *dev_data_out=NULL, *kernel_data=NULL;
-  UCL_Timer *timers_in=NULL, *timers_out=NULL, *timers_kernel=NULL;
+  UCL_H_Vec<int> *host_data_in=nullptr, *host_data_out=nullptr;
+  UCL_D_Vec<int> *dev_data_in=nullptr, *dev_data_out=nullptr, *kernel_data=nullptr;
+  UCL_Timer *timers_in=nullptr, *timers_out=nullptr, *timers_kernel=nullptr;
   UCL_Timer over_timer(*gpu);
 
   if (_data_in_estimate>0) {

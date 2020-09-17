@@ -52,6 +52,7 @@ class Info : protected Pointers {
   static std::string get_mpi_info(int &, int &);
   static std::string get_cxx_info();
 
+  void get_memory_info(double *);
   char **get_variable_names(int &num);
 
 private:

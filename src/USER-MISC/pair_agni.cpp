@@ -85,11 +85,11 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
 
   nelements = 0;
-  elements = NULL;
-  elem2param = NULL;
+  elements = nullptr;
+  elem2param = nullptr;
   nparams = 0;
-  params = NULL;
-  map = NULL;
+  params = nullptr;
+  map = nullptr;
   cutmax = 0.0;
 }
 
@@ -114,7 +114,7 @@ PairAGNI::~PairAGNI()
       delete [] params[i].yU;
     }
     memory->destroy(params);
-    params = NULL;
+    params = nullptr;
   }
 
   if (allocated) {
@@ -266,7 +266,7 @@ void PairAGNI::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -275,7 +275,7 @@ void PairAGNI::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -348,7 +348,7 @@ double PairAGNI::init_one(int i, int j)
 void PairAGNI::read_file(char *file)
 {
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
 
   // open file on proc 0 only
@@ -357,7 +357,7 @@ void PairAGNI::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open AGNI potential file %s",file);
       error->one(FLERR,str);
@@ -373,7 +373,7 @@ void PairAGNI::read_file(char *file)
     n = 0;
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -396,7 +396,7 @@ void PairAGNI::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
     --nwords;
 
     if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {

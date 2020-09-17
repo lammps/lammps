@@ -995,7 +995,7 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -1289,10 +1289,10 @@ template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  h_table=NULL; d_table=NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

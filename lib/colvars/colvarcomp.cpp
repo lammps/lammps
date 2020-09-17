@@ -169,7 +169,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     group->check_keywords(group_conf, group_key);
     if (cvm::get_error()) {
       cvm::error("Error parsing definition for atom group \""+
-                 std::string(group_key)+"\"\n.", INPUT_ERROR);
+                 std::string(group_key)+"\".", INPUT_ERROR);
     }
     cvm::decrease_depth();
 
@@ -200,40 +200,40 @@ int colvar::cvc::init_dependencies() {
 
     init_feature(f_cvc_periodic, "periodic", f_type_static);
 
-    init_feature(f_cvc_width, "defined width", f_type_static);
+    init_feature(f_cvc_width, "defined_width", f_type_static);
 
-    init_feature(f_cvc_lower_boundary, "defined lower boundary", f_type_static);
+    init_feature(f_cvc_lower_boundary, "defined_lower_boundary", f_type_static);
 
-    init_feature(f_cvc_upper_boundary, "defined upper boundary", f_type_static);
+    init_feature(f_cvc_upper_boundary, "defined_upper_boundary", f_type_static);
 
     init_feature(f_cvc_gradient, "gradient", f_type_dynamic);
 
-    init_feature(f_cvc_explicit_gradient, "explicit gradient", f_type_static);
+    init_feature(f_cvc_explicit_gradient, "explicit_gradient", f_type_static);
     require_feature_children(f_cvc_explicit_gradient, f_ag_explicit_gradient);
 
-    init_feature(f_cvc_inv_gradient, "inverse gradient", f_type_dynamic);
+    init_feature(f_cvc_inv_gradient, "inverse_gradient", f_type_dynamic);
     require_feature_self(f_cvc_inv_gradient, f_cvc_gradient);
 
-    init_feature(f_cvc_debug_gradient, "debug gradient", f_type_user);
+    init_feature(f_cvc_debug_gradient, "debug_gradient", f_type_user);
     require_feature_self(f_cvc_debug_gradient, f_cvc_gradient);
     require_feature_self(f_cvc_debug_gradient, f_cvc_explicit_gradient);
 
-    init_feature(f_cvc_Jacobian, "Jacobian derivative", f_type_dynamic);
+    init_feature(f_cvc_Jacobian, "Jacobian_derivative", f_type_dynamic);
     require_feature_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 
     // Compute total force on first site only to avoid unwanted
     // coupling to other colvars (see e.g. Ciccotti et al., 2005)
-    init_feature(f_cvc_one_site_total_force, "compute total force from one group", f_type_user);
+    init_feature(f_cvc_one_site_total_force, "total_force_from_one_group", f_type_user);
     require_feature_self(f_cvc_one_site_total_force, f_cvc_com_based);
 
-    init_feature(f_cvc_com_based, "depends on group centers of mass", f_type_static);
+    init_feature(f_cvc_com_based, "function_of_centers_of_mass", f_type_static);
 
-    init_feature(f_cvc_pbc_minimum_image, "use minimum-image distances with PBCs", f_type_user);
+    init_feature(f_cvc_pbc_minimum_image, "use_minimum-image_with_PBCs", f_type_user);
 
-    init_feature(f_cvc_scalable, "scalable calculation", f_type_static);
+    init_feature(f_cvc_scalable, "scalable_calculation", f_type_static);
     require_feature_self(f_cvc_scalable, f_cvc_scalable_com);
 
-    init_feature(f_cvc_scalable_com, "scalable calculation of centers of mass", f_type_static);
+    init_feature(f_cvc_scalable_com, "scalable_calculation_of_centers_of_mass", f_type_static);
     require_feature_self(f_cvc_scalable_com, f_cvc_com_based);
 
 
@@ -624,6 +624,7 @@ void colvar::cvc::wrap(colvarvalue & /* x_unwrapped */) const
 {
   return;
 }
+
 
 
 // Static members

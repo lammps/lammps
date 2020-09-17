@@ -68,7 +68,7 @@ class Update : protected Pointers {
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   void new_integrate(char *, int, char **, int, int &);

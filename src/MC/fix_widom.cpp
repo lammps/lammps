@@ -58,13 +58,13 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0),
-  local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
-  random_equal(NULL)
+  idregion(nullptr), full_flag(0),
+  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+  random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
@@ -151,17 +151,17 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix widom molecule must have atom types");
     if (nwidom_type != 0)
       error->all(FLERR,"Atom type must be zero in fix widom mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == NULL)
+    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
       error->all(FLERR,"Fix widom molecule has charges, but atom style does not");
 
-    if (atom->molecular == 2 && onemols != atom->avec->onemols)
+    if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix widom molecule template ID must be same "
                  "as atom_style template ID");
     onemols[imol]->check_attributes(0);
   }
 
-  if (charge_flag && atom->q == NULL)
-    error->all(FLERR,"Fix widom atom has charge, but atom style does not");
+  if (charge_flag && atom->q == nullptr)
+    error->all(FLERR,"Fix Widom atom has charge, but atom style does not");
 
   // setup of array of coordinates for molecule insertion
 
@@ -177,7 +177,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
   widom_nmax = 0;
-  local_gas_list = NULL;
+  local_gas_list = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -283,7 +283,7 @@ void FixWidom::init()
   // decide whether to switch to the full_energy option
   if (!full_flag) {
     if ((force->kspace) ||
-        (force->pair == NULL) ||
+        (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||
@@ -318,7 +318,8 @@ void FixWidom::init()
   }
 
   if (exchmode == EXCHMOL)
-    if (atom->molecule_flag == 0 || !atom->tag_enable || !atom->map_style)
+    if (atom->molecule_flag == 0 || !atom->tag_enable
+        || (atom->map_style == Atom::MAP_NONE))
       error->all(FLERR,
        "Fix widom molecule command requires that "
        "atoms have molecule attributes");
@@ -764,7 +765,7 @@ void FixWidom::attempt_atomic_insertion_full()
     atom->natoms++;
     if (atom->tag_enable) {
       atom->tag_extend();
-      if (atom->map_style) atom->map_init();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -922,7 +923,7 @@ void FixWidom::attempt_molecule_insertion_full()
     atom->nangles += onemols[imol]->nangles;
     atom->ndihedrals += onemols[imol]->ndihedrals;
     atom->nimpropers += onemols[imol]->nimpropers;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();

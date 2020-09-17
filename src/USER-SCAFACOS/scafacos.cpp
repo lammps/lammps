@@ -42,10 +42,10 @@ Scafacos::Scafacos(LAMMPS *lmp) : KSpace(lmp)
   initialized = 0;
 
   maxatom = 0;
-  xpbc = NULL;
-  epot = NULL;
-  efield = NULL;
-  fcs = NULL;
+  xpbc = nullptr;
+  epot = nullptr;
+  efield = nullptr;
+  fcs = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +118,7 @@ void Scafacos::init()
   if (atom->natoms > INT_MAX && sizeof(int) != 8)
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
-  if (atom->molecular > 0)
+  if (atom->molecular != Atom::ATOMIC)
     error->all(FLERR,
                "Cannot use Scafacos with molecular charged systems yet");
 

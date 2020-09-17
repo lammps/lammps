@@ -46,7 +46,7 @@ ComputeSMDDamage::ComputeSMDDamage(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  damage_vector = NULL;
+  damage_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

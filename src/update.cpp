@@ -53,13 +53,13 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   eflag_global = vflag_global = -1;
 
   dt_default = 1;
-  unit_style = NULL;
+  unit_style = nullptr;
   set_units("lj");
 
-  integrate_style = NULL;
-  integrate = NULL;
-  minimize_style = NULL;
-  minimize = NULL;
+  integrate_style = nullptr;
+  integrate = nullptr;
+  minimize_style = nullptr;
+  minimize = nullptr;
 
   integrate_map = new IntegrateCreatorMap();
 
@@ -537,9 +537,9 @@ void Update::update_time()
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-bigint Update::memory_usage()
+double Update::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (whichflag == 1) bytes += integrate->memory_usage();
   else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;

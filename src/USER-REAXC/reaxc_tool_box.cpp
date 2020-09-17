@@ -48,7 +48,7 @@ double Get_Time( )
   t /= 1000.0;
   return t;
 #else
-  gettimeofday(&tim, NULL );
+  gettimeofday(&tim, nullptr );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
 #endif
 }
@@ -62,7 +62,7 @@ int Tokenize( char* s, char*** tok )
 
   strncpy( test, s, MAX_LINE-1);
 
-  for( word = strtok(test, sep); word; word = strtok(NULL, sep) ) {
+  for( word = strtok(test, sep); word; word = strtok(nullptr, sep) ) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
   }
@@ -84,11 +84,11 @@ void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
     if (error_ptr) error_ptr->one(FLERR,errmsg);
     else fputs(errmsg,stderr);
 
-    return NULL;
+    return nullptr;
   }
 
   ptr = malloc( n );
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
     else fputs(errmsg,stderr);
@@ -109,7 +109,7 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
             "returning NULL.\n", n, name );
     if (error_ptr) error_ptr->one(FLERR,errmsg);
     else fputs(errmsg,stderr);
-    return NULL;
+    return nullptr;
   }
 
   if (size <= 0) {
@@ -117,11 +117,11 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
              "returning NULL", name, size );
     if (error_ptr) error_ptr->one(FLERR,errmsg);
     else fputs(errmsg,stderr);
-    return NULL;
+    return nullptr;
   }
 
   ptr = calloc( n, size );
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char errmsg[256];
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n*size, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
@@ -135,7 +135,7 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
 /* safe free */
 void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
 {
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char errmsg[256];
     snprintf(errmsg, 256, "Trying to free the already NULL pointer %s", name );
     if (error_ptr) error_ptr->one(FLERR,errmsg);
@@ -144,6 +144,6 @@ void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
   }
 
   free( ptr );
-  ptr = NULL;
+  ptr = nullptr;
 }
 

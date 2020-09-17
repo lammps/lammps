@@ -51,7 +51,7 @@ FixReaxCBondsKokkos::~FixReaxCBondsKokkos()
 void FixReaxCBondsKokkos::init()
 {
   Pair *pair_kk = force->pair_match("reax/c/kk",0);
-  if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
+  if (pair_kk == nullptr) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c/kk");
 
   FixReaxCBonds::init();

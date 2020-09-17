@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  distsq(NULL), nearest(NULL), centro(NULL)
+  distsq(nullptr), nearest(nullptr), centro(nullptr)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Illegal compute centro/atom command");
@@ -88,7 +88,7 @@ ComputeCentroAtom::~ComputeCentroAtom()
 
 void ComputeCentroAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;

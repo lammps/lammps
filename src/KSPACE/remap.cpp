@@ -252,7 +252,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   // allocate memory for plan data struct
 
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
-  if (plan == NULL) return NULL;
+  if (plan == nullptr) return nullptr;
   plan->usecollective = usecollective;
 
   // store parameters in local data structs
@@ -284,10 +284,10 @@ struct remap_plan_3d *remap_3d_create_plan(
   // combine output extents across all procs
 
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (inarray == NULL) return NULL;
+  if (inarray == nullptr) return nullptr;
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (outarray == NULL) return NULL;
+  if (outarray == nullptr) return nullptr;
 
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
                 outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
@@ -313,8 +313,8 @@ struct remap_plan_3d *remap_3d_create_plan(
     plan->packplan = (struct pack_plan_3d *)
       malloc(nsend*sizeof(struct pack_plan_3d));
 
-    if (plan->send_offset == NULL || plan->send_size == NULL ||
-        plan->send_proc == NULL || plan->packplan == NULL) return NULL;
+    if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+        plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
   }
 
   // store send info, with self as last entry
@@ -395,9 +395,9 @@ struct remap_plan_3d *remap_3d_create_plan(
     plan->unpackplan = (struct pack_plan_3d *)
       malloc(nrecv*sizeof(struct pack_plan_3d));
 
-    if (plan->recv_offset == NULL || plan->recv_size == NULL ||
-        plan->recv_proc == NULL || plan->recv_bufloc == NULL ||
-        plan->request == NULL || plan->unpackplan == NULL) return NULL;
+    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
   }
 
   // store recv info, with self as last entry
@@ -456,7 +456,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   // create sub-comm rank list
 
   if (plan->usecollective) {
-    plan->commringlist = NULL;
+    plan->commringlist = nullptr;
 
     // merge recv and send rank lists
     // ask Steve Plimpton about method to more accurately determine
@@ -578,7 +578,7 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // find biggest send message (not including self) and malloc space for it
 
-  plan->sendbuf = NULL;
+  plan->sendbuf = nullptr;
 
   size = 0;
   for (nsend = 0; nsend < plan->nsend; nsend++)
@@ -586,20 +586,20 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   if (size) {
     plan->sendbuf = (FFT_SCALAR *) malloc(size*sizeof(FFT_SCALAR));
-    if (plan->sendbuf == NULL) return NULL;
+    if (plan->sendbuf == nullptr) return nullptr;
   }
 
   // if requested, allocate internal scratch space for recvs,
   // only need it if I will receive any data (including self)
 
-  plan->scratch = NULL;
+  plan->scratch = nullptr;
 
   if (memory == 1) {
     if (nrecv > 0) {
       plan->scratch =
         (FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize *
                               sizeof(FFT_SCALAR));
-      if (plan->scratch == NULL) return NULL;
+      if (plan->scratch == nullptr) return nullptr;
     }
   }
 
@@ -643,7 +643,7 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
     MPI_Comm_free(&plan->comm);
 
   if (plan->usecollective) {
-    if (plan->commringlist != NULL)
+    if (plan->commringlist != nullptr)
       free(plan->commringlist);
   }
 

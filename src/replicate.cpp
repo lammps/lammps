@@ -154,7 +154,7 @@ void Replicate::command(int narg, char **arg)
   // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atomKK = NULL;
+  atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
 
@@ -591,7 +591,7 @@ void Replicate::command(int narg, char **arg)
                 if (atom->molecular) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -693,7 +693,7 @@ void Replicate::command(int narg, char **arg)
                 if (atom->molecular) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -766,14 +766,14 @@ void Replicate::command(int narg, char **arg)
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }

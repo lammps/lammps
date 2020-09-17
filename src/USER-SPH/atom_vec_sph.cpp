@@ -23,8 +23,8 @@ using namespace LAMMPS_NS;
 
 AtomVecSPH::AtomVecSPH(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
   forceclearflag = 1;
 
   atom->esph_flag = 1;

@@ -66,14 +66,14 @@ enum{MOVEATOM,MOVEMOL}; // movemode
 
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0), ngroups(0), groupstrings(NULL), ngrouptypes(0), grouptypestrings(NULL),
-  grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
-  random_equal(NULL), random_unequal(NULL),
-  fixrigid(NULL), fixshake(NULL), idrigid(NULL), idshake(NULL)
+  idregion(nullptr), full_flag(0), ngroups(0), groupstrings(nullptr), ngrouptypes(0), grouptypestrings(nullptr),
+  grouptypebits(nullptr), grouptypes(nullptr), local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+  random_equal(nullptr), random_unequal(nullptr),
+  fixrigid(nullptr), fixshake(nullptr), idrigid(nullptr), idshake(nullptr)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Fix gcmc does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
@@ -167,16 +167,16 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix gcmc molecule must have atom types");
     if (ngcmc_type != 0)
       error->all(FLERR,"Atom type must be zero in fix gcmc mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == NULL)
+    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
       error->all(FLERR,"Fix gcmc molecule has charges, but atom style does not");
 
-    if (atom->molecular == 2 && onemols != atom->avec->onemols)
+    if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix gcmc molecule template ID must be same "
                  "as atom_style template ID");
     onemols[imol]->check_attributes(0);
   }
 
-  if (charge_flag && atom->q == NULL)
+  if (charge_flag && atom->q == nullptr)
     error->all(FLERR,"Fix gcmc atom has charge, but atom style does not");
 
   if (rigidflag && exchmode == EXCHATOM)
@@ -219,7 +219,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   ninsertion_successes = 0.0;
 
   gcmc_nmax = 0;
-  local_gas_list = NULL;
+  local_gas_list = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -258,12 +258,12 @@ void FixGCMC::options(int narg, char **arg)
   full_flag = false;
   ngroups = 0;
   int ngroupsmax = 0;
-  groupstrings = NULL;
+  groupstrings = nullptr;
   ngrouptypes = 0;
   int ngrouptypesmax = 0;
-  grouptypestrings = NULL;
-  grouptypes = NULL;
-  grouptypebits = NULL;
+  grouptypestrings = nullptr;
+  grouptypes = nullptr;
+  grouptypebits = nullptr;
   energy_intra = 0.0;
   tfac_insert = 1.0;
   overlap_cutoffsq = 0.0;
@@ -481,7 +481,7 @@ void FixGCMC::init()
 
   if (!full_flag) {
     if ((force->kspace) ||
-        (force->pair == NULL) ||
+        (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("^hybrid",0)) ||
         (force->pair_match("^eam",0)) ||
@@ -534,7 +534,8 @@ void FixGCMC::init()
   }
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL)
-    if (atom->molecule_flag == 0 || !atom->tag_enable || !atom->map_style)
+    if (atom->molecule_flag == 0 || !atom->tag_enable
+        || (atom->map_style == Atom::MAP_NONE))
       error->all(FLERR,
        "Fix gcmc molecule command requires that "
        "atoms have molecule attributes");
@@ -542,7 +543,7 @@ void FixGCMC::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix gcmc rigid fix does not exist");
@@ -557,7 +558,7 @@ void FixGCMC::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix gcmc shake fix does not exist");
@@ -905,7 +906,7 @@ void FixGCMC::attempt_atomic_deletion()
   if (success_all) {
     atom->natoms--;
     if (atom->tag_enable) {
-      if (atom->map_style) atom->map_init();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -1018,7 +1019,7 @@ void FixGCMC::attempt_atomic_insertion()
     atom->natoms++;
     if (atom->tag_enable) {
       atom->tag_extend();
-      if (atom->map_style) atom->map_init();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -1262,7 +1263,7 @@ void FixGCMC::attempt_molecule_deletion()
       } else i++;
     }
     atom->natoms -= natoms_per_molecule;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
@@ -1456,7 +1457,7 @@ void FixGCMC::attempt_molecule_insertion()
     atom->nangles += onemols[imol]->nangles;
     atom->ndihedrals += onemols[imol]->ndihedrals;
     atom->nimpropers += onemols[imol]->nimpropers;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
@@ -1591,7 +1592,7 @@ void FixGCMC::attempt_atomic_deletion_full()
       atom->nlocal--;
     }
     atom->natoms--;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     ndeletion_successes += 1.0;
     energy_stored = energy_after;
   } else {
@@ -1689,7 +1690,7 @@ void FixGCMC::attempt_atomic_insertion_full()
   atom->natoms++;
   if (atom->tag_enable) {
     atom->tag_extend();
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
   }
   atom->nghost = 0;
   if (triclinic) domain->x2lamda(atom->nlocal);
@@ -1963,7 +1964,7 @@ void FixGCMC::attempt_molecule_deletion_full()
       } else i++;
     }
     atom->natoms -= natoms_per_molecule;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     ndeletion_successes += 1.0;
     energy_stored = energy_after;
   } else {
@@ -2147,7 +2148,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   atom->nangles += onemols[imol]->nangles;
   atom->ndihedrals += onemols[imol]->ndihedrals;
   atom->nimpropers += onemols[imol]->nimpropers;
-  if (atom->map_style) atom->map_init();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_init();
   atom->nghost = 0;
   if (triclinic) domain->x2lamda(atom->nlocal);
   comm->borders();

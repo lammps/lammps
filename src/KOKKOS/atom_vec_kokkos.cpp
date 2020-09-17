@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 {
   kokkosable = 1;
-  buffer = NULL;
+  buffer = nullptr;
   buffer_size = 0;
 
   no_comm_vel_flag = 0;

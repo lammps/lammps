@@ -46,7 +46,7 @@ PairLJGromacsCoulGromacsKokkos<DeviceType>::PairLJGromacsCoulGromacsKokkos(LAMMP
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
   cut_ljsq = 0.0;
   cut_coulsq = 0.0;
 
@@ -66,9 +66,9 @@ PairLJGromacsCoulGromacsKokkos<DeviceType>::~PairLJGromacsCoulGromacsKokkos()
     memory->sfree(cutsq);
     //memory->sfree(cut_ljsq);
     //memory->sfree(cut_coulsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
     cut_ljsq = 0.0;
     cut_coulsq = 0.0;
   }
@@ -80,11 +80,11 @@ template<class DeviceType>
 void PairLJGromacsCoulGromacsKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
+  cutsq = nullptr;
   cut_ljsq = 0.0;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

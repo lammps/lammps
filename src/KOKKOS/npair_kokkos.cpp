@@ -397,7 +397,7 @@ void NeighborKokkosExecute<DeviceType>::
   int n = 0;
   int which = 0;
   int moltemplate;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
   // get subview of neighbors of i
 
@@ -431,7 +431,7 @@ void NeighborKokkosExecute<DeviceType>::
     const X_FLOAT delz = ztmp - x(j, 2);
     const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
     if(rsq <= cutneighsq(itype,jtype)) {
-      if (molecular) {
+      if (molecular != Atom::ATOMIC) {
         if (!moltemplate)
           which = find_special(i,j);
             /* else if (imol >= 0) */
@@ -488,7 +488,7 @@ void NeighborKokkosExecute<DeviceType>::
         const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
             /* else if (imol >= 0) */
@@ -614,7 +614,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
       const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
       if(rsq <= cutneighsq(itype,jtype)) {
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           int which = 0;
           if (!moltemplate)
             which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
@@ -692,7 +692,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
         const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             int which = 0;
             if (!moltemplate)
               which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
@@ -748,7 +748,7 @@ void NeighborKokkosExecute<DeviceType>::
   int n = 0;
   int which = 0;
   int moltemplate;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
   // get subview of neighbors of i
 
@@ -787,7 +787,7 @@ void NeighborKokkosExecute<DeviceType>::
         const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(i,j);
             /* else if (imol >= 0) */

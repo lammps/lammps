@@ -49,11 +49,11 @@ PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
 
   // initialize element to parameter maps
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  map = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -228,7 +228,7 @@ void PairLebedevaZ::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -237,7 +237,7 @@ void PairLebedevaZ::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -304,7 +304,7 @@ void PairLebedevaZ::read_file(char *filename)
   int params_per_line = 12;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
@@ -312,7 +312,7 @@ void PairLebedevaZ::read_file(char *filename)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       sprintf(str,"Cannot open Lebedeva potential file %s",filename);
       error->one(FLERR,str);
@@ -329,7 +329,7 @@ void PairLebedevaZ::read_file(char *filename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -351,7 +351,7 @@ void PairLebedevaZ::read_file(char *filename)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -371,7 +371,7 @@ void PairLebedevaZ::read_file(char *filename)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line

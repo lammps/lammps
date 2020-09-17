@@ -135,9 +135,9 @@ namespace ATC_matrix {
     Avar.hasTemplate_ = Ap.hasTemplate_;
 
     // Avoid catastrophe
-    Ap._val = NULL;
-    Ap._ja  = NULL;
-    Ap._ia  = NULL;
+    Ap._val = nullptr;
+    Ap._ja  = nullptr;
+    Ap._ia  = nullptr;
   }
 
 

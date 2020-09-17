@@ -27,8 +27,8 @@ using namespace LAMMPS_NS;
 
 AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 {
-  mass_type = 1;
-  molecular = 0;
+  mass_type = PER_TYPE;
+  molecular = Atom::ATOMIC;
   forceclearflag = 1;
 
   atom->wavepacket_flag = 1;

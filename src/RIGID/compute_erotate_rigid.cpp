@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeERotateRigid::ComputeERotateRigid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), rfix(NULL)
+  Compute(lmp, narg, arg), rfix(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute erotate/rigid command");
 

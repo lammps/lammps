@@ -37,7 +37,7 @@ enum{NOMSG,YESMSG};
 /* ---------------------------------------------------------------------- */
 
 FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idvar(NULL), dlimit_path(NULL)
+  Fix(lmp, narg, arg), idvar(nullptr), dlimit_path(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix halt command");
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -45,7 +45,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 
   // comparison args
 
-  idvar = NULL;
+  idvar = nullptr;
   int iarg = 4;
 
   if (strcmp(arg[iarg],"tlimit") == 0) {

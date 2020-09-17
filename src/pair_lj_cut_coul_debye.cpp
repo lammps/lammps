@@ -171,11 +171,11 @@ void PairLJCutCoulDebye::write_restart_settings(FILE *fp)
 void PairLJCutCoulDebye::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&kappa,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&kappa,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul_global,1,MPI_DOUBLE,0,world);

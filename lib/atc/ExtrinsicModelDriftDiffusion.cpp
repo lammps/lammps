@@ -38,17 +38,17 @@ namespace ATC {
                                  ExtrinsicModelType modelType,
                                  string matFileName) :
     ExtrinsicModelTwoTemperature(modelManager,modelType,matFileName),
-    continuityIntegrator_(NULL),
+    continuityIntegrator_(nullptr),
     
     poissonSolverType_(DIRECT), // ITERATIVE | DIRECT
-    poissonSolver_(NULL),
+    poissonSolver_(nullptr),
     baseSize_(0),
     electronDensityEqn_(ELECTRON_CONTINUITY),
     fluxUpdateFreq_(1),
     schrodingerSolverType_(DIRECT), // ITERATIVE | DIRECT
-    schrodingerSolver_(NULL),
+    schrodingerSolver_(nullptr),
     schrodingerPoissonMgr_(),
-    schrodingerPoissonSolver_(NULL),
+    schrodingerPoissonSolver_(nullptr),
     maxConsistencyIter_(0), maxConstraintIter_(1), 
     safe_dEf_(0.1), Ef_shift_(0.0),
     oneD_(false), oneDcoor_(0), oneDconserve_(0)
@@ -351,7 +351,7 @@ namespace ATC {
                                  ExtrinsicModelType modelType,
                                  string matFileName) :
     ExtrinsicModelDriftDiffusion(modelManager,modelType,matFileName),
-    cddmPoissonSolver_(NULL),
+    cddmPoissonSolver_(nullptr),
     baseSize_(0)
   {
      // delete base class's version of the physics model

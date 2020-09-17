@@ -134,16 +134,16 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
 
   compute_ncoeff();
 
-  rij = NULL;
-  inside = NULL;
-  wj = NULL;
-  rcutij = NULL;
-  element = NULL;
+  rij = nullptr;
+  inside = nullptr;
+  wj = nullptr;
+  rcutij = nullptr;
+  element = nullptr;
   nmax = 0;
-  idxz = NULL;
-  idxb = NULL;
-  ulist_r_ij = NULL;
-  ulist_i_ij = NULL;
+  idxz = nullptr;
+  idxb = nullptr;
+  ulist_r_ij = nullptr;
+  ulist_i_ij = nullptr;
 
   build_indexlist();
   create_twojmax_arrays();
@@ -1332,7 +1332,7 @@ void SNA::create_twojmax_arrays()
   if (bzero_flag)
     memory->create(bzero, twojmax+1,"sna:bzero");
   else
-    bzero = NULL;
+    bzero = nullptr;
 
 }
 

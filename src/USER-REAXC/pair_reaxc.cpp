@@ -117,16 +117,16 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_hbond = 0;
   system->bndry_cuts.ghost_bond = 0;
   system->bndry_cuts.ghost_cutoff = 0;
-  system->my_atoms = NULL;
+  system->my_atoms = nullptr;
   system->pair_ptr = this;
   system->error_ptr = error;
   control->error_ptr = error;
 
   system->omp_active = 0;
 
-  fix_reax = NULL;
-  tmpid = NULL;
-  tmpbo = NULL;
+  fix_reax = nullptr;
+  tmpid = nullptr;
+  tmpbo = nullptr;
 
   nextra = 14;
   pvector = new double[nextra];
@@ -318,7 +318,7 @@ void PairReaxC::coeff( int nargs, char **args )
   char *file = args[2];
   FILE *fp;
   fp = utils::open_potential(file,lmp,nullptr);
-  if (fp != NULL)
+  if (fp != nullptr)
     Read_Force_Field(fp, &(system->reax_param), control);
   else {
       char str[128];
@@ -327,7 +327,7 @@ void PairReaxC::coeff( int nargs, char **args )
   }
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   int itmp = 0;
   int nreax_types = system->reax_param.num_atom_types;
@@ -424,7 +424,7 @@ void PairReaxC::init_style( )
     if (lists[i].allocated != 1)
       lists[i].allocated = 0;
 
-  if (fix_reax == NULL) {
+  if (fix_reax == nullptr) {
     char **fixarg = new char*[3];
     fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
@@ -819,7 +819,7 @@ void *PairReaxC::extract(const char *str, int &dim)
       else gamma[i] = 0.0;
     return (void *) gamma;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

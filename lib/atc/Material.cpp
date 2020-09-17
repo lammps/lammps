@@ -28,21 +28,21 @@ namespace ATC {
   Material::Material()
     : rhoCp_(0),
       heatCapacity_(0),
-      electronHeatCapacity_(NULL),
+      electronHeatCapacity_(nullptr),
       massDensity_(0),
       heatConductivity_(0),
-      electronHeatFlux_(NULL),
-      stress_(NULL),
-      viscousStress_(NULL),
-      bodyForce_(NULL),
-      electronPhononExchange_(NULL),
-      electronDragPower_(NULL),
-      electronFlux_(NULL),
+      electronHeatFlux_(nullptr),
+      stress_(nullptr),
+      viscousStress_(nullptr),
+      bodyForce_(nullptr),
+      electronPhononExchange_(nullptr),
+      electronDragPower_(nullptr),
+      electronFlux_(nullptr),
       permittivity_(1.),
       invEffectiveMass_(1.),
       electronEquilibriumDensity_(0),
       electronRecombinationInvTau_(0),
-      electronChargeDensity_(NULL)
+      electronChargeDensity_(nullptr)
   {
   }
   //--------------------------------------------------------------
@@ -70,21 +70,21 @@ namespace ATC {
     : tag_(tag),
       rhoCp_(0),
       heatCapacity_(0),
-      electronHeatCapacity_(NULL),
+      electronHeatCapacity_(nullptr),
       massDensity_(0),
       heatConductivity_(0),
-      electronHeatFlux_(NULL),
-      stress_(NULL),
-      viscousStress_(NULL),
-      bodyForce_(NULL),
-      electronPhononExchange_(NULL),
-      electronDragPower_(NULL),
-      electronFlux_(NULL),
+      electronHeatFlux_(nullptr),
+      stress_(nullptr),
+      viscousStress_(nullptr),
+      bodyForce_(nullptr),
+      electronPhononExchange_(nullptr),
+      electronDragPower_(nullptr),
+      electronFlux_(nullptr),
       permittivity_(1.),
       invEffectiveMass_(1.),
       electronEquilibriumDensity_(0),
       electronRecombinationInvTau_(0),
-      electronChargeDensity_(NULL)
+      electronChargeDensity_(nullptr)
   {
     /*! \page man_material material
       \section syntax

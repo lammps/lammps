@@ -60,7 +60,7 @@ static const char cite_minstyle_spin_cg[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinCG::MinSpinCG(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), sp_copy(NULL)
+  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_cg);
   nlocal_max = 0;

@@ -33,7 +33,7 @@ NTopo::NTopo(LAMMPS *lmp) : Pointers(lmp)
 
   nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
   maxbond = maxangle = maxdihedral = maximproper = 0;
-  bondlist = anglelist = dihedrallist = improperlist = NULL;
+  bondlist = anglelist = dihedrallist = improperlist = nullptr;
 
   cluster_check = neighbor->cluster_check;
 }
@@ -206,9 +206,9 @@ void NTopo::dihedral_check(int nlist, int **list)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NTopo::memory_usage()
+double NTopo::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += 3*maxbond * sizeof(int);
   bytes += 4*maxangle * sizeof(int);
   bytes += 5*maxdihedral * sizeof(int);

@@ -29,7 +29,7 @@
 using namespace LAMMPS_NS;
 
 static const char * const stylename[] = {
-  "none", "harmonic", "morse", "lj126", NULL
+  "none", "harmonic", "morse", "lj126", nullptr
 };
 
 // fast power function for integer exponent > 0
@@ -54,8 +54,8 @@ PairList::PairList(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   respa_enable = 0;
   cut_global = 0.0;
-  style = NULL;
-  params = NULL;
+  style = nullptr;
+  params = nullptr;
   check_flag = 1;
 }
 
@@ -211,7 +211,7 @@ void PairList::settings(int narg, char **arg)
 
   FILE *fp = utils::open_potential(arg[0],lmp,nullptr);
   char line[1024];
-  if (fp == NULL)
+  if (fp == nullptr)
     error->all(FLERR,"Cannot open pair list file");
 
   // count lines in file for upper limit of storage needed
@@ -238,13 +238,13 @@ void PairList::settings(int narg, char **arg)
 
     // get atom ids of pair
     id1 = ATOTAGINT(ptr);
-    ptr = strtok(NULL," \t\n\r\f");
+    ptr = strtok(nullptr," \t\n\r\f");
     if (!ptr)
       error->all(FLERR,"Incorrectly formatted pair list file");
     id2 = ATOTAGINT(ptr);
 
     // get potential type
-    ptr = strtok(NULL," \t\n\r\f");
+    ptr = strtok(nullptr," \t\n\r\f");
     if (!ptr)
       error->all(FLERR,"Incorrectly formatted pair list file");
 
@@ -257,13 +257,13 @@ void PairList::settings(int narg, char **arg)
     if (strcmp(ptr,stylename[HARM]) == 0) {
       style[npairs] = HARM;
 
-      ptr = strtok(NULL," \t\n\r\f");
-      if ((ptr == NULL) || (*ptr == '#'))
+      ptr = strtok(nullptr," \t\n\r\f");
+      if ((ptr == nullptr) || (*ptr == '#'))
         error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
       par.parm.harm.k = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
-      if ((ptr == NULL) || (*ptr == '#'))
+      ptr = strtok(nullptr," \t\n\r\f");
+      if ((ptr == nullptr) || (*ptr == '#'))
         error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
       par.parm.harm.r0 = utils::numeric(FLERR,ptr,false,lmp);
 
@@ -273,17 +273,17 @@ void PairList::settings(int narg, char **arg)
     } else if (strcmp(ptr,stylename[MORSE]) == 0) {
       style[npairs] = MORSE;
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
       par.parm.morse.d0 = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
       par.parm.morse.alpha = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
       par.parm.morse.r0 = utils::numeric(FLERR,ptr,false,lmp);
@@ -294,12 +294,12 @@ void PairList::settings(int narg, char **arg)
       // 12-6 lj potential
       style[npairs] = LJ126;
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
       par.parm.lj126.epsilon = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
       par.parm.lj126.sigma = utils::numeric(FLERR,ptr,false,lmp);
@@ -311,8 +311,8 @@ void PairList::settings(int narg, char **arg)
     }
 
     // optional cutoff parameter. if not specified use global value
-    ptr = strtok(NULL," \t\n\r\f");
-    if ((ptr != NULL) && (*ptr != '#')) {
+    ptr = strtok(nullptr," \t\n\r\f");
+    if ((ptr != nullptr) && (*ptr != '#')) {
       double cut = utils::numeric(FLERR,ptr,false,lmp);
       par.cutsq = cut*cut;
     } else {
@@ -368,7 +368,7 @@ void PairList::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style list requires atom IDs");
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style list requires an atom map");
 
   if (offset_flag) {

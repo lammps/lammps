@@ -325,6 +325,7 @@ Buyl
 Bybee
 bz
 cadetblue
+calc
 calibre
 caltech
 Caltech
@@ -397,6 +398,7 @@ ChiralIDs
 chiralIDs
 chirality
 Cho
+ChooseOffset
 chris
 Christoph
 Chu
@@ -469,6 +471,7 @@ config
 configfile
 configurational
 conformational
+ConstMatrix
 Contrib
 cooperativity
 coord
@@ -639,7 +642,10 @@ dhex
 dia
 diag
 diagonalization
+diagonalize
 diagonalized
+diagonalizers
+diagonalizing
 Diallo
 diel
 differentiable
@@ -778,8 +784,15 @@ Eggebrecht
 ehex
 eHEX
 Ei
-Eigen
-Eigensolve
+eigen
+eigensolve
+eigensolver
+eigensolvers
+eigendecomposition
+eigenvalue
+eigenvalues
+eigenvector
+eigenvectors
 eij
 Eij
 Eijnden
@@ -893,6 +906,11 @@ eV
 evalue
 Evanseck
 evdwl
+evector
+evec
+evecs
+eval
+evals
 Everaers
 Evgeny
 evirials
@@ -1069,6 +1087,7 @@ Germann
 Germano
 gerolf
 Gerolf
+Gershgorin
 gettimeofday
 gewald
 Gezelter
@@ -1184,6 +1203,7 @@ Henkelman
 Henkes
 henrich
 Henrich
+Hermitian
 Herrmann
 Hertizian
 hertzian
@@ -1257,6 +1277,7 @@ icosahedral
 idealgas
 IDR
 idx
+ie
 ielement
 ieni
 ifdefs
@@ -1279,6 +1300,7 @@ Imageint
 Imagemagick
 imd
 Impey
+impl
 impropers
 Impropers
 includelink
@@ -1348,6 +1370,8 @@ isothermal
 isotropically
 isovolume
 Isralewitz
+iter
+iters
 iteratively
 Ith
 Itsets
@@ -1524,6 +1548,7 @@ Kub
 Kubo
 Kumagai
 Kumar
+Kurebayashi
 Kuronen
 Kusters
 Kutta
@@ -1534,12 +1559,14 @@ Ladd
 lagrangian
 lambdai
 lamda
+LambdaLanczos
 lammps
 Lammps
 LAMMPS
 lammpsplot
 Lampis
 Lamoureux
+Lanczos
 Lande
 Landron
 langevin
@@ -1847,6 +1874,7 @@ Microscale
 midnightblue
 mie
 Mie
+Mij
 Mikami
 Militzer
 Minary
@@ -1945,6 +1973,7 @@ Muccioli
 mui
 Mukherjee
 Mulders
+mult
 multi
 multibody
 Multibody
@@ -2332,6 +2361,7 @@ peachpuff
 Pearlman
 Pedersen
 peID
+PEigenDense
 Peng
 peptide
 peratom
@@ -2560,6 +2590,8 @@ rdf
 RDideal
 rdx
 reacter
+realTypeMap
+real_t
 README
 realtime
 reamin
@@ -2742,6 +2774,7 @@ Schuring
 Schwen
 screenshot
 screenshots
+Scripps
 Scripta
 sdk
 sdpd
@@ -3070,6 +3103,7 @@ Tmin
 tmp
 tN
 Tobias
+Tohoku
 tokenizer
 tokyo
 tol
@@ -3133,6 +3167,8 @@ tu
 Tuckerman
 tue
 tunable
+tuple
+tuples
 Turkand
 Tutein
 tweakable
@@ -3426,6 +3462,7 @@ Yuh
 yukawa
 Yukawa
 Yusof
+Yuya
 yx
 yy
 yz

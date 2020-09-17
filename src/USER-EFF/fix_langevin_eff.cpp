@@ -45,7 +45,7 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevinEff::FixLangevinEff(LAMMPS *lmp, int narg, char **arg) :
   FixLangevin(lmp, narg, arg)
 {
-  erforcelangevin = NULL;
+  erforcelangevin = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -399,7 +399,7 @@ void FixLangevinEff::end_of_step()
 
 double FixLangevinEff::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL || erforcelangevin == NULL) return 0.0;
+  if (!tallyflag || flangevin == nullptr || erforcelangevin == nullptr) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 

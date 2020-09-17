@@ -246,19 +246,19 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
 
   // allocate qbmsst
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
-  old_velocity = NULL;
-  rfix = NULL;
-  gfactor = NULL;
-  random = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
+  old_velocity = nullptr;
+  rfix = nullptr;
+  gfactor = nullptr;
+  random = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
 
   // initialize Marsagxlia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -268,7 +268,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qbmsst:omega_H");
@@ -303,7 +303,7 @@ FixQBMSST::~FixQBMSST()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
@@ -331,7 +331,7 @@ void FixQBMSST::init()
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix qbmsst without per-type mass defined");
 
   // set compute ptrs

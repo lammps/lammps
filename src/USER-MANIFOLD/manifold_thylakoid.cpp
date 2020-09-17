@@ -123,14 +123,14 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
   for( std::size_t i = 0; i < parts.size(); ++i ){
     thyla_part *p = parts[i];
     if (is_in_domain(p,x)) {
-      if (idx != NULL) *idx = i;
+      if (idx != nullptr) *idx = i;
       return p;
     }
   }
   char msg[2048];
   sprintf(msg,"Could not find thyla_part for x = (%f,%f,%f)", x[0],x[1],x[2]);
   error->one(FLERR,msg);
-  return NULL;
+  return nullptr;
 }
 
 

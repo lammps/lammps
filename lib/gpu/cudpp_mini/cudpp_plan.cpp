@@ -18,7 +18,7 @@
 
 #include <cassert>
 
-CUDPPPlanManager* CUDPPPlanManager::m_instance = NULL;
+CUDPPPlanManager* CUDPPPlanManager::m_instance = nullptr;
 
 CUDPPResult validateOptions(CUDPPConfiguration config, size_t /*numElements*/, size_t numRows, size_t /*rowPitch*/)
 {

@@ -38,7 +38,7 @@ ComputeTDPDCCAtom::ComputeTDPDCCAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  cc_vector = NULL;
+  cc_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

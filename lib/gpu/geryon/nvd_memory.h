@@ -55,7 +55,7 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
     err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
   else
     err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
+  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==nullptr)
     return UCL_MEMORY_ERROR;
   mat.cq()=cm.cq();
   return UCL_SUCCESS;
@@ -71,7 +71,7 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
     err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
   else
     err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
+  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==nullptr)
     return UCL_MEMORY_ERROR;
   mat.cq()=dev.cq();
   return UCL_SUCCESS;
@@ -97,7 +97,7 @@ inline int _host_resize(mat_type &mat, const size_t n) {
     err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
   else
     err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
+  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==nullptr)
     return UCL_MEMORY_ERROR;
   return UCL_SUCCESS;
 }

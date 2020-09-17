@@ -40,7 +40,7 @@ using namespace MathConst;
 ComputeEntropyAtom::
 ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pair_entropy(NULL), pair_entropy_avg(NULL)
+  pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute entropy/atom command; wrong number"
@@ -118,7 +118,7 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 
 void ComputeEntropyAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute entropy/atom requires a pair style be"
                " defined");
 

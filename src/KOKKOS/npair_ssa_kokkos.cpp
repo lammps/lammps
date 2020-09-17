@@ -580,7 +580,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
             const X_FLOAT delz = ztmp - x(j, 2);
             const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
             if(rsq <= cutneighsq(itype,jtype)) {
-              if (molecular) {
+              if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(i,j);
                     /* else if (imol >= 0) */
@@ -708,7 +708,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
             const X_FLOAT delz = ztmp - x(j, 2);
             const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
             if(rsq <= cutneighsq(itype,jtype)) {
-              if (molecular) {
+              if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(j,i);
                     /* else if (jmol >= 0) */

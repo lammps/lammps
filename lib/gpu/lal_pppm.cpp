@@ -35,7 +35,7 @@ PPPMT::PPPM() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
-  pppm_program=NULL;
+  pppm_program=nullptr;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>

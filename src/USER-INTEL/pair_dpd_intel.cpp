@@ -37,7 +37,7 @@ PairDPDIntel::PairDPDIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  random_thread = NULL;
+  random_thread = nullptr;
   _nrandom_thread = 0;
 }
 

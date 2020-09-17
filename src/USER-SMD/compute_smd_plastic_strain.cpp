@@ -46,7 +46,7 @@ ComputeSMDPlasticStrain::ComputeSMDPlasticStrain(LAMMPS *lmp, int narg, char **a
   size_peratom_cols = 0;
 
   nmax = 0;
-  plastic_strain_vector = NULL;
+  plastic_strain_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -147,9 +147,9 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // ptrs, flags, IDs for compute objects thermo may use or create
 
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -179,10 +179,10 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
   sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
 
-  format_line_user = NULL;
-  format_float_user = NULL;
-  format_int_user = NULL;
-  format_bigint_user = NULL;
+  format_line_user = nullptr;
+  format_float_user = nullptr;
+  format_int_user = nullptr;
+  format_bigint_user = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -563,13 +563,13 @@ void Thermo::modify_params(int narg, char **arg)
         delete [] format_int_user;
         delete [] format_bigint_user;
         delete [] format_float_user;
-        format_line_user = NULL;
-        format_int_user = NULL;
-        format_bigint_user = NULL;
-        format_float_user = NULL;
+        format_line_user = nullptr;
+        format_int_user = nullptr;
+        format_bigint_user = nullptr;
+        format_float_user = nullptr;
         for (int i = 0; i < nfield_initial+1; i++) {
           delete [] format_column_user[i];
-          format_column_user[i] = NULL;
+          format_column_user[i] = nullptr;
         }
         iarg += 2;
         continue;
@@ -593,7 +593,7 @@ void Thermo::modify_params(int narg, char **arg)
         // replace "d" in format_int_user with bigint format specifier
         // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
-        if (ptr == NULL)
+        if (ptr == nullptr)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
         char str[8];
@@ -632,14 +632,14 @@ void Thermo::allocate()
   int n = nfield_initial + 1;
 
   keyword = new char*[n];
-  for (int i = 0; i < n; i++) keyword[i] = NULL;
+  for (int i = 0; i < n; i++) keyword[i] = nullptr;
   vfunc = new FnPtr[n];
   vtype = new int[n];
 
   format = new char*[n];
   for (int i = 0; i < n; i++) format[i] = new char[32];
   format_column_user = new char*[n];
-  for (int i = 0; i < n; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < n; i++) format_column_user[i] = nullptr;
 
   field2index = new int[n];
   argindex1 = new int[n];
@@ -893,7 +893,7 @@ void Thermo::parse_fields(char *str)
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
       char *ptr = strchr(id,'[');
-      if (ptr == NULL) argindex1[nfield] = argindex2[nfield] = 0;
+      if (ptr == nullptr) argindex1[nfield] = argindex2[nfield] = 0;
       else {
         *ptr = '\0';
         argindex1[nfield] =

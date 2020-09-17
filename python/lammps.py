@@ -1012,7 +1012,7 @@ class lammps(object):
     :rtype: pointer to integer or double or None
     """
     if dtype == LAMMPS_AUTODETECT:
-      dtype = self.lib.lammps_extract_atom_datatype(self.lmp, name)
+      dtype = self.extract_atom_datatype(name)
 
     if name: name = name.encode()
     else: return None

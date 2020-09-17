@@ -320,7 +320,7 @@ TEST_F(AtomProperties, id)
 TEST_F(AtomProperties, type)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "type"), LAMMPS_INT);
-    int * type = (LAMMPS_NS::tagint *)lammps_extract_atom(lmp, "type");
+    int * type = (int *)lammps_extract_atom(lmp, "type");
     ASSERT_NE(type, nullptr);
     ASSERT_EQ(type[0], 1);
     ASSERT_EQ(type[1], 1);

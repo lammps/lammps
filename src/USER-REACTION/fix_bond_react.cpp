@@ -438,7 +438,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   }
   delete [] files;
 
-  if (atom->molecular != Atom::ATOMIC)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Bond/react: Cannot use fix bond/react with non-molecular systems");
 
   // check if bonding atoms are 1-2, 1-3, or 1-4 bonded neighbors

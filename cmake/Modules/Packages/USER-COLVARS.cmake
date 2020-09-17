@@ -16,7 +16,7 @@ if(COLVARS_LEPTON)
 endif()
 
 add_library(colvars STATIC ${COLVARS_SOURCES})
-target_compile_definitions(colvars PRIVATE -DLAMMPS_${LAMMPS_SIZES})
+target_compile_definitions(colvars PRIVATE -DCOLVARS_LAMMPS)
 set_target_properties(colvars PROPERTIES OUTPUT_NAME lammps_colvars${LAMMPS_MACHINE})
 target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 target_link_libraries(lammps PRIVATE colvars)

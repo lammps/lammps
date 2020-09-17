@@ -21,6 +21,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "tokenizer.h"
 
@@ -349,7 +350,7 @@ void Molecule::compute_inertia()
   tensor[0][2] = tensor[2][0] = itensor[4];
   tensor[0][1] = tensor[1][0] = itensor[5];
 
-  if (MathExtra::jacobi(tensor,inertia,evectors))
+  if (MathEigen::jacobi3(tensor,inertia,evectors))
     error->all(FLERR,"Insufficient Jacobi rotations for rigid molecule");
 
   ex[0] = evectors[0][0];

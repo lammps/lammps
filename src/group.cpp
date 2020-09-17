@@ -23,6 +23,7 @@
 #include "force.h"
 #include "input.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
@@ -1727,11 +1728,11 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // handle (nearly) singular I matrix
   // typically due to 2-atom group or linear molecule
-  // use jacobi() and angmom_to_omega() to calculate valid omega
+  // use jacobi3() and angmom_to_omega() to calculate valid omega
   // less exact answer than matrix inversion, due to iterative Jacobi method
 
   } else {
-    int ierror = MathExtra::jacobi(inertia,idiag,evectors);
+    int ierror = MathEigen::jacobi3(inertia, idiag, evectors);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for group::omega");
 

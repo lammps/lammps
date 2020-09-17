@@ -21,6 +21,7 @@
 #include <cstring>
 #include "error.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "math_special.h"
 #include "modify.h"
 #include "memory.h"
@@ -125,7 +126,7 @@ void ComputeGyrationShapeChunk::compute_array()
     ione[0][2] = ione[2][0] = gyration_tensor[ichunk][4];
     ione[1][2] = ione[2][1] = gyration_tensor[ichunk][5];
 
-    int ierror = MathExtra::jacobi(ione,evalues,evectors);
+    int ierror = MathEigen::jacobi3(ione,evalues,evectors);
     if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "
                          "for gyration/shape");
 

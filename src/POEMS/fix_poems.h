@@ -106,8 +106,6 @@ class FixPOEMS : public Fix  {
   void jointbuild();
   void sortlist(int, tagint **);
   int loopcheck(int, int, tagint **);
-  int jacobi(double **, double *, double **);
-  void rotate(double **, int, int, int, int, double, double);
   void omega_from_mq(double *, double *, double *, double *,
                      double *, double *);
   void set_v();

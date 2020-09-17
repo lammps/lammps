@@ -10,7 +10,7 @@ strings into specific types of numbers with checking for validity.  This
 reduces redundant implementations and encourages consistent behavior.
 
 I/O with status check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 
 These are wrappers around the corresponding C library calls like
 ``fgets()`` or ``fread()``.  They will check if there were errors
@@ -25,6 +25,8 @@ indicating the name of the problematic file, if possible.
 
 .. doxygenfunction:: sfread
    :project: progguide
+
+----------
 
 String to number conversions with validity check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -281,6 +283,8 @@ This code example should produce the following output:
    :project: progguide
    :members: what
 
+----------
+
 File reader classes
 ====================
 
@@ -333,6 +337,8 @@ convert numbers, so that LAMMPS will be aborted.
 
 A file that would be parsed by the reader code fragment looks like this:
 
+.. parsed-literal::
+
    # DATE: 2015-02-19 UNITS: metal CONTRIBUTOR: Ray Shan CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
    #
    # X (eV)                J (eV)          gamma (1/\AA)   zeta (1/\AA)    Z (e)
@@ -350,7 +356,6 @@ A file that would be parsed by the reader code fragment looks like this:
 .. doxygenclass:: LAMMPS_NS::PotentialFileReader
    :project: progguide
    :members:
-
 
 ----------
 
@@ -415,3 +420,43 @@ its size is registered later with :cpp:func:`vgot()
 .. doxygenclass:: LAMMPS_NS::MyPoolChunk
    :project: progguide
    :members:
+
+----------
+
+Eigensolver functions
+=====================
+
+The ``MathEigen`` sub-namespace of the ``LAMMPS_NS`` namespace contains
+functions and classes for eigensolvers. Currently only the
+:cpp:func:`jacobi3 function <MathEigen::jacobi3>` is used in various
+places in LAMMPS.  That function is built on top of a group of more
+generic eigensolvers that are maintained in the ``math_eigen_impl.h``
+header file.  This header contains the implementation of three template
+classes:
+
+#. "Jacobi" calculates all of the eigenvalues and eigenvectors
+   of a dense, symmetric, real matrix.
+
+#. The "PEigenDense" class only calculates the principal eigenvalue
+   (ie. the largest or smallest eigenvalue), and its corresponding
+   eigenvector.  However it is much more efficient than "Jacobi" when
+   applied to large matrices (larger than 13x13).  PEigenDense also can
+   understand complex-valued Hermitian matrices.
+
+#. The "LambdaLanczos" class is a generalization of "PEigenDense" which can be
+   applied to arbitrary sparse matrices.
+
+The "math_eigen_impl.h" code is an amalgamation of `jacobi_pd
+<https://github.com/jewettaij/jacobi_pd>`_ by Andrew Jewett at Scripps
+Research (under CC0-1.0 license) and `Lambda Lanczos
+<https://github.com/mrcdr/lambda-lanczos>`_ by Yuya Kurebayashi at
+Tohoku University (under MIT license)
+
+----------
+
+.. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec)
+   :project: progguide
+
+.. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+   :project: progguide
+

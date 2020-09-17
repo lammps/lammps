@@ -40,6 +40,7 @@ LAMMPS_DOUBLE2D = 3
 LAMMPS_BIGINT = 4
 LAMMPS_TAGINT = 5
 LAMMPS_STRING = 6
+LAMMPS_TAGINT2D = 7
 
 # these must be kept in sync with the enums in library.h
 LMP_STYLE_GLOBAL = 0

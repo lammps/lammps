@@ -251,4 +251,90 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ((*b_ptr), 2);
     d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
+    int dtype = lammps_extract_global_datatype(lmp, "dt");
+    EXPECT_EQ(dtype, LAMMPS_DOUBLE);
 };
+
+class AtomProperties : public ::testing::Test {
+protected:
+    void *lmp;
+
+    AtomProperties(){};
+    ~AtomProperties() override{};
+
+    void SetUp() override
+    {
+        const char *args[] = {"LAMMPS_test", "-log",      "none",
+                              "-echo",       "screen",    "-nocite"};
+
+        char **argv = (char **)args;
+        int argc    = sizeof(args) / sizeof(char *);
+
+        ::testing::internal::CaptureStdout();
+        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        EXPECT_THAT(output, StartsWith("LAMMPS ("));
+        ::testing::internal::CaptureStdout();
+        lammps_command(lmp, "region box block 0 2 0 2 0 2");
+        lammps_command(lmp, "create_box 1 box");
+        lammps_command(lmp, "mass 1 3.0");
+        lammps_command(lmp, "create_atoms 1 single 1.0 1.0 1.5");
+        lammps_command(lmp, "create_atoms 1 single 0.2 0.1 0.1");
+        output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+    }
+    void TearDown() override
+    {
+        ::testing::internal::CaptureStdout();
+        lammps_close(lmp);
+        std::string output = ::testing::internal::GetCapturedStdout();
+        EXPECT_THAT(output, HasSubstr("Total wall time:"));
+        if (verbose) std::cout << output;
+        lmp = nullptr;
+    }
+};
+
+TEST_F(AtomProperties, invalid)
+{
+    ASSERT_EQ(lammps_extract_atom(lmp, "UNKNOWN"), nullptr);
+}
+
+TEST_F(AtomProperties, mass)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
+    double * mass = (double *)lammps_extract_atom(lmp, "mass");
+    ASSERT_NE(mass, nullptr);
+    ASSERT_DOUBLE_EQ(mass[1], 3.0);
+}
+
+TEST_F(AtomProperties, id)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
+    LAMMPS_NS::tagint * id = (LAMMPS_NS::tagint *)lammps_extract_atom(lmp, "id");
+    ASSERT_NE(id, nullptr);
+    ASSERT_EQ(id[0], 1);
+    ASSERT_EQ(id[1], 2);
+}
+
+TEST_F(AtomProperties, type)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "type"), LAMMPS_INT);
+    int * type = (LAMMPS_NS::tagint *)lammps_extract_atom(lmp, "type");
+    ASSERT_NE(type, nullptr);
+    ASSERT_EQ(type[0], 1);
+    ASSERT_EQ(type[1], 1);
+}
+
+TEST_F(AtomProperties, position)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE2D);
+    double ** x = (double **)lammps_extract_atom(lmp, "x");
+    ASSERT_NE(x, nullptr);
+    EXPECT_DOUBLE_EQ(x[0][0], 1.0);
+    EXPECT_DOUBLE_EQ(x[0][1], 1.0);
+    EXPECT_DOUBLE_EQ(x[0][2], 1.5);
+    EXPECT_DOUBLE_EQ(x[1][0], 0.2);
+    EXPECT_DOUBLE_EQ(x[1][1], 0.1);
+    EXPECT_DOUBLE_EQ(x[1][2], 0.1);
+}

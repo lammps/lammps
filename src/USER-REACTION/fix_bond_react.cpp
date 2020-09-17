@@ -2643,11 +2643,11 @@ void FixBondReact::update_everything()
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if ((landlocked_atoms[j][rxnID] == 1 || custom_charges[jj][rxnID] == 1) &&
-            atom->map(update_mega_glove[jj+1][i]) >= 0 &&
+        if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
             atom->map(update_mega_glove[jj+1][i]) < nlocal) {
-          type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
-          if (twomol->qflag && atom->q_flag) {
+          if (landlocked_atoms[j][rxnID] == 1)
+            type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
+          if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
             double *q = atom->q;
             q[atom->map(update_mega_glove[jj+1][i])] = twomol->q[j];
           }

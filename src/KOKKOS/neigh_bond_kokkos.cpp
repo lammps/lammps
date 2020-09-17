@@ -75,30 +75,27 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
 
   // 1st time allocation of topology lists
 
-  if (atom->molecular && atom->nbonds && maxbond == 0) {
-    if (nprocs == 1) maxbond = atom->nbonds;
-    else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
-    memoryKK->create_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neigh:neighbor->bondlist");
-  }
-
-  if (atom->molecular && atom->nangles && maxangle == 0) {
-    if (nprocs == 1) maxangle = atom->nangles;
-    else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
-    memoryKK->create_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neigh:neighbor->anglelist");
-  }
-
-  if (atom->molecular && atom->ndihedrals && maxdihedral == 0) {
-    if (nprocs == 1) maxdihedral = atom->ndihedrals;
-    else maxdihedral = static_cast<int>
-           (LB_FACTOR * atom->ndihedrals / nprocs);
-    memoryKK->create_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neigh:neighbor->dihedrallist");
-  }
-
-  if (atom->molecular && atom->nimpropers && maximproper == 0) {
-    if (nprocs == 1) maximproper = atom->nimpropers;
-    else maximproper = static_cast<int>
-           (LB_FACTOR * atom->nimpropers / nprocs);
-    memoryKK->create_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neigh:neighbor->improperlist");
+  if (atom->molecular != Atom::ATOMIC) {
+    if (atom->nbonds && maxbond == 0) {
+      if (nprocs == 1) maxbond = atom->nbonds;
+      else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
+      memoryKK->create_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neigh:neighbor->bondlist");
+    }
+    if (atom->nangles && maxangle == 0) {
+      if (nprocs == 1) maxangle = atom->nangles;
+      else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
+      memoryKK->create_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neigh:neighbor->anglelist");
+    }
+    if (atom->ndihedrals && maxdihedral == 0) {
+      if (nprocs == 1) maxdihedral = atom->ndihedrals;
+      else maxdihedral = static_cast<int> (LB_FACTOR * atom->ndihedrals / nprocs);
+      memoryKK->create_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neigh:neighbor->dihedrallist");
+    }
+    if (atom->nimpropers && maximproper == 0) {
+      if (nprocs == 1) maximproper = atom->nimpropers;
+      else maximproper = static_cast<int> (LB_FACTOR * atom->nimpropers / nprocs);
+      memoryKK->create_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neigh:neighbor->improperlist");
+    }
   }
 
   // set flags that determine which topology neighboring routines to use

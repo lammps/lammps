@@ -316,7 +316,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
-  if (atom->molecular && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
 }
 
 template<class DeviceType>

@@ -602,6 +602,9 @@ public:
   class cartesian;
   class orientation;
 
+  // components that do not handle any atoms directly
+  class map_total;
+
 protected:
 
   /// \brief Array of \link colvar::cvc \endlink objects

@@ -802,7 +802,7 @@ void Molecule::charges(char *line)
       readline(line);
 
       ValueTokenizer values(line);
-      if (values.count() != 2) error->one(FLERR,"Invalid Charges section in molecule file");
+      if ((int)values.count() != 2) error->one(FLERR,"Invalid Charges section in molecule file");
 
       values.next_int();
       q[i] = values.next_double();

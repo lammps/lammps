@@ -39,19 +39,18 @@ class NVE(LAMMPSFixMove):
         assert(self.group_name == "all")
 
     def init(self):
-        dt = self.lmp.extract_global("dt", LAMMPS_DOUBLE)
-        ftm2v = self.lmp.extract_global("ftm2v", LAMMPS_DOUBLE)
-        self.ntypes = self.lmp.extract_global("ntypes", LAMMPS_INT)
+        dt = self.lmp.extract_global("dt")
+        ftm2v = self.lmp.extract_global("ftm2v")
+        self.ntypes = self.lmp.extract_global("ntypes")
         self.dtv = dt
         self.dtf = 0.5 * dt * ftm2v
 
     def initial_integrate(self, vflag):
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
-        mass = self.lmp.numpy.extract_atom_darray("mass", self.ntypes+1)
-        atype = self.lmp.numpy.extract_atom_iarray("type", nlocal)
-        x = self.lmp.numpy.extract_atom_darray("x", nlocal, dim=3)
-        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
-        f = self.lmp.numpy.extract_atom_darray("f", nlocal, dim=3)
+        mass = self.lmp.numpy.extract_atom("mass")
+        atype = self.lmp.numpy.extract_atom("type")
+        x = self.lmp.numpy.extract_atom("x")
+        v = self.lmp.numpy.extract_atom("v")
+        f = self.lmp.numpy.extract_atom("f")
 
         for i in range(x.shape[0]):
             dtfm = self.dtf / mass[int(atype[i])]
@@ -59,11 +58,10 @@ class NVE(LAMMPSFixMove):
             x[i,:] += self.dtv * v[i,:]
 
     def final_integrate(self):
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
-        mass = self.lmp.numpy.extract_atom_darray("mass", self.ntypes+1)
-        atype = self.lmp.numpy.extract_atom_iarray("type", nlocal)
-        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
-        f = self.lmp.numpy.extract_atom_darray("f", nlocal, dim=3)
+        mass = self.lmp.numpy.extract_atom("mass")
+        atype = self.lmp.numpy.extract_atom("type")
+        v = self.lmp.numpy.extract_atom("v")
+        f = self.lmp.numpy.extract_atom("f")
 
         for i in range(v.shape[0]):
             dtfm = self.dtf / mass[int(atype[i])]
@@ -77,19 +75,19 @@ class NVE_Opt(LAMMPSFixMove):
         assert(self.group_name == "all")
 
     def init(self):
-        dt = self.lmp.extract_global("dt", LAMMPS_DOUBLE)
-        ftm2v = self.lmp.extract_global("ftm2v", LAMMPS_DOUBLE)
-        self.ntypes = self.lmp.extract_global("ntypes", LAMMPS_INT)
+        dt = self.lmp.extract_global("dt")
+        ftm2v = self.lmp.extract_global("ftm2v")
+        self.ntypes = self.lmp.extract_global("ntypes")
         self.dtv = dt
         self.dtf = 0.5 * dt * ftm2v
-        self.mass = self.lmp.numpy.extract_atom_darray("mass", self.ntypes+1)
+        self.mass = self.lmp.numpy.extract_atom("mass")
 
     def initial_integrate(self, vflag):        
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
-        atype = self.lmp.numpy.extract_atom_iarray("type", nlocal)
-        x = self.lmp.numpy.extract_atom_darray("x", nlocal, dim=3)
-        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
-        f = self.lmp.numpy.extract_atom_darray("f", nlocal, dim=3)
+        nlocal = self.lmp.extract_global("nlocal")
+        atype = self.lmp.numpy.extract_atom("type")
+        x = self.lmp.numpy.extract_atom("x")
+        v = self.lmp.numpy.extract_atom("v")
+        f = self.lmp.numpy.extract_atom("f")
         dtf = self.dtf
         dtv = self.dtv
         mass = self.mass
@@ -102,11 +100,11 @@ class NVE_Opt(LAMMPSFixMove):
             x[:,d] += dtv * v[:,d]
 
     def final_integrate(self):
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
-        mass = self.lmp.numpy.extract_atom_darray("mass", self.ntypes+1)
-        atype = self.lmp.numpy.extract_atom_iarray("type", nlocal)
-        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
-        f = self.lmp.numpy.extract_atom_darray("f", nlocal, dim=3)
+        nlocal = self.lmp.extract_global("nlocal")
+        mass = self.lmp.numpy.extract_atom("mass")
+        atype = self.lmp.numpy.extract_atom("type")
+        v = self.lmp.numpy.extract_atom("v")
+        f = self.lmp.numpy.extract_atom("f")
         dtf = self.dtf
         mass = self.mass
 

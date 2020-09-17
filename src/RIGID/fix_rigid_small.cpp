@@ -873,7 +873,7 @@ void FixRigidSmall::apply_langevin_thermostat()
 
     // convert langevin torques from body frame back to space frame
 
-    MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);    
+    MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);
   }
 }
 

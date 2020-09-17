@@ -19,6 +19,7 @@
 #include "fix.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "modify.h"
 
@@ -555,7 +556,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   tensor[0][2] = tensor[2][0] = inertia[4];
   tensor[0][1] = tensor[1][0] = inertia[5];
 
-  int ierror = MathExtra::jacobi(tensor,bonus[nlocal_bonus].inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,bonus[nlocal_bonus].inertia,evectors);
   if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for triangle");
 
   double ex_space[3],ey_space[3],ez_space[3];

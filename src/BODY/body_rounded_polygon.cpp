@@ -22,6 +22,7 @@
 #include "domain.h"
 #include "error.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "my_pool_chunk.h"
 
@@ -198,7 +199,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 

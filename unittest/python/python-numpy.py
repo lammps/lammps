@@ -2,6 +2,13 @@ import sys,os,unittest
 from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_SCALAR, LMP_TYPE_ARRAY
 from ctypes import c_void_p
 
+try:
+    import numpy
+    NUMPY_INSTALLED = True
+except ImportError:
+    NUMPY_INSTALLED = False
+
+@unittest.skipIf(not NUMPY_INSTALLED, "numpy is not available")
 class PythonNumpy(unittest.TestCase):
     def setUp(self):
         machine = None

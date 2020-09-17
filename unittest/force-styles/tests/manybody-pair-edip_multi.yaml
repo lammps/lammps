@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:29 202
-epsilon: 1e-14
+epsilon: 5e-14
 prerequisites: ! |
   pair edip/multi
 pre_commands: ! |

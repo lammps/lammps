@@ -128,8 +128,8 @@ class PythonNumpy(unittest.TestCase):
         ntypes = self.lmp.extract_global("ntypes")
         self.assertEqual(ntypes, 1)
 
-        x = self.lmp.numpy.extract_atom("x", dim=3)
-        v = self.lmp.numpy.extract_atom("v", dim=3)
+        x = self.lmp.numpy.extract_atom("x")
+        v = self.lmp.numpy.extract_atom("v")
         self.assertEqual(len(x), 2)
         self.assertTrue((x[0] == (1.0, 1.0, 1.0)).all())
         self.assertTrue((x[1] == (1.0, 1.0, 1.5)).all())

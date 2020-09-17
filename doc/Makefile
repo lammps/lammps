@@ -174,7 +174,7 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		mv tmp.tex LAMMPS.tex && \
 		$(MAKE) $(MFLAGS) && \
 		$(MAKE) $(MFLAGS) && \
-		$(make) $(MFLAGS) && \
+		$(MAKE) $(MFLAGS) && \
 		mv LAMMPS.pdf ../Manual.pdf && \
 		cd ../;
 	@rm -rf latex/_sources

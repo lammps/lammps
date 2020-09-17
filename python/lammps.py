@@ -705,9 +705,9 @@ class lammps(object):
     underlying :cpp:func:`lammps_get_natoms` function returning a double.
 
     :return: number of atoms
-    :rtype: float
+    :rtype: int
     """
-    return self.lib.lammps_get_natoms(self.lmp)
+    return int(self.lib.lammps_get_natoms(self.lmp))
 
   # -------------------------------------------------------------------------
 
@@ -1140,7 +1140,7 @@ class lammps(object):
 
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
@@ -1154,7 +1154,7 @@ class lammps(object):
 
   def gather_atoms_concat(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
@@ -1206,7 +1206,7 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather(self.lmp,name,type,count,data)
@@ -1218,7 +1218,7 @@ class lammps(object):
 
   def gather_concat(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_concat(self.lmp,name,type,count,data)

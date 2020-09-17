@@ -888,8 +888,8 @@ class lammps(object):
     list of the supported keywords.
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
-    corresponds to one of the contants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,``LAMMPS_DOUBLE2D``,
+    corresponds to one of the constants define in the :py:mod:`lammps` module:
+    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE2D``,
     ``LAMMPS_BIGINT``, ``LAMMPS_TAGINT``, ``LAMMPS_TAGINT2D``, and ``LAMMPS_STRING``.
 
     :param name: name of the property
@@ -964,8 +964,8 @@ class lammps(object):
     list of the supported keywords.
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
-    corresponds to one of the contants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,``LAMMPS_DOUBLE2D``,
+    corresponds to one of the constants define in the :py:mod:`lammps` module:
+    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE2D``,
     ``LAMMPS_BIGINT``, ``LAMMPS_TAGINT``, ``LAMMPS_TAGINT2D``, and ``LAMMPS_STRING``.
 
     :param name: name of the property

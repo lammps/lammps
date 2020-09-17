@@ -137,17 +137,11 @@ Here are simple examples using all three Python interfaces:
       .. code-block:: Python
 
          from lammps import lammps, PyLammps
-
-         # NOTE: argv[0] is set by the lammps class constructor
-         args = ["-log", "none"]
+         ...
          # create LAMMPS instance
          lmp = lammps(cmdargs=args)
          # create PyLammps instance using previously created LAMMPS instance
          L = PyLammps(ptr=lmp)
-         # get and print numerical version code
-         print("LAMMPS Version: ", L.version())
-         # explicitly close and delete LAMMPS instance (optional)
-         L.close()
 
       This is useful if you have to create the :py:class:`lammps <lammps.lammps>`
       instance is a specific way, but want to take advantage of the
@@ -178,17 +172,11 @@ Here are simple examples using all three Python interfaces:
       .. code-block:: Python
 
          from lammps import lammps, IPyLammps
-
-         # NOTE: argv[0] is set by the lammps class constructor
-         args = ["-log", "none"]
+         ...
          # create LAMMPS instance
          lmp = lammps(cmdargs=args)
-         # create IPyLammps instance using previously created LAMMPS instance
-         L = IPyLammps(ptr=lmp)
-         # get and print numerical version code
-         print("LAMMPS Version: ", L.version())
-         # explicitly close and delete LAMMPS instance (optional)
-         L.close()
+         # create PyLammps instance using previously created LAMMPS instance
+         L = PyLammps(ptr=lmp)
 
       This is useful if you have to create the :py:class:`lammps <lammps.lammps>`
       instance is a specific way, but want to take advantage of the
@@ -216,7 +204,7 @@ to "compute" what the next LAMMPS command should be.
    .. tab:: lammps API
 
       Same as in the equivalent
-      `C library functions <pg_lib_execute>`, commands can be read from a file, a
+      :doc:`C library functions <pg_lib_execute>`, commands can be read from a file, a
       single string, a list of strings and a block of commands in a single
       multi-line string. They are processed under the same boundary conditions
       as the C library counterparts.  The example below demonstrates the use
@@ -248,32 +236,34 @@ to "compute" what the next LAMMPS command should be.
       Unlike the lammps API, the PyLammps/IPyLammps APIs allow running LAMMPS
       commands by calling equivalent member functions.
 
-      For instance, the following LAMMPS command:
+      For instance, the following LAMMPS command
 
       .. code-block:: LAMMPS
 
          region box block 0 10 0 5 -0.5 0.5
 
-      In the original interface this command can be executed with the following
-      Python code if *L* was a lammps instance:
+      can be executed using the following Python code if *L* is a :py:class:`lammps` instance:
 
       .. code-block:: Python
 
          L.command("region box block 0 10 0 5 -0.5 0.5")
 
-      With the PyLammps interface, any command can be split up into arbitrary parts
-      separated by white-space, passed as individual arguments to a :code:`region` method.
+      With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts. 
+      These parts are then passed to a member function with the name of the command.
+      For the ``region`` command that means the :code:`region` method can be called.
+      The arguments of the command can be passed as one string, or
+      individually.
 
       .. code-block:: Python
 
          L.region("box block", 0, 10, 0, 5, -0.5, 0.5)
 
-      Note that each parameter is set as Python literal floating-point number. In the
-      PyLammps interface, each command takes an arbitrary parameter list and transparently
-      merges it to a single command string, separating individual parameters by white-space.
+      In this example all parameters except the first are Python floating-point literals. The
+      PyLammps interface takes the entire parameter list and transparently
+      merges it to a single command string.
 
       The benefit of this approach is avoiding redundant command calls and easier
-      parameterization. In the original interface parameterization needed to be done
+      parameterization. In the original interface parameterization this needed to be done
       manually by creating formatted strings.
 
       .. code-block:: Python

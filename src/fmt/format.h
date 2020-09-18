@@ -69,6 +69,12 @@
 #  define FMT_NOINLINE
 #endif
 
+// LAMMPS customizations:
+// 1) Intel compilers on MacOS have __clang__ defined
+//    but fail to recognize [[clang::fallthrough]]
+// 2) Intel compilers on Linux identify as GCC compatible
+//    but fail to recognize [[gnu::fallthrough]]
+
 #if __cplusplus == 201103L || __cplusplus == 201402L
 #  if defined(__clang__) && !defined(__INTEL_COMPILER)
 #    define FMT_FALLTHROUGH [[clang::fallthrough]]

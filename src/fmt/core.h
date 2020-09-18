@@ -177,6 +177,12 @@
 #  endif
 #endif
 
+// LAMMPS customization
+// use 'v7_lmp' namespace instead of 'v7' so that our
+// bundled copy does not collide with linking other code
+// using system wide installations which may be using
+// a different version.
+
 #ifndef FMT_BEGIN_NAMESPACE
 #  if FMT_HAS_FEATURE(cxx_inline_namespaces) || FMT_GCC_VERSION >= 404 || \
       FMT_MSC_VER >= 1900
@@ -488,6 +494,8 @@ template <typename S, FMT_ENABLE_IF(is_compile_string<S>::value)>
 constexpr basic_string_view<typename S::char_type> to_string_view(const S& s) {
   return s;
 }
+
+// LAMMPS customization using 'v7_lmp' instead of 'v7'
 
 namespace detail {
 void to_string_view(...);

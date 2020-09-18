@@ -1,13 +1,8 @@
-LAMMPS Documentation
-####################
+LAMMPS version |version| Documentation
+######################################
 
-|version| version
-*****************
-
-:doc:`What is a LAMMPS version? <Manual_version>`
-
-LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
-Simulator.
+LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
+**M**\ assively **P**\ arallel **S**\ imulator.
 
 LAMMPS is a classical molecular dynamics simulation code with a focus
 on materials modeling.  It was designed to run efficiently on parallel
@@ -39,11 +34,14 @@ every LAMMPS command.
 
 .. _lws: https://lammps.sandia.gov
 
+User Documentation
+******************
+
+..   :caption: User Documentation
 .. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: User Documentation
    :name: userdoc
    :includehidden:
 
@@ -61,11 +59,13 @@ every LAMMPS command.
    Errors
    Manual_build
 
+Programmer Documentation
+************************
+..   :caption: Programmer Documentation
 .. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: Programmer Documentation
    :name: progdoc
    :includehidden:
 

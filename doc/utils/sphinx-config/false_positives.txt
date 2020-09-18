@@ -110,7 +110,9 @@ api
 Apoorva
 Appl
 Apu
+arallel
 arccos
+arge
 Archlinux
 arcsin
 arg
@@ -128,6 +130,7 @@ aspherical
 asphericity
 Asq
 assignee
+assively
 Asta
 Astart
 Astop
@@ -1303,6 +1306,7 @@ Impey
 impl
 impropers
 Impropers
+imulator
 includelink
 incompressible
 incrementing
@@ -2255,6 +2259,7 @@ Okamoto
 O'Keefe
 OKeefe
 oldlace
+olecular
 Oleinik
 Olfason
 olivedrab
@@ -3107,6 +3112,7 @@ Tohoku
 tokenizer
 tokyo
 tol
+tomic
 toolchain
 topologies
 Toporov

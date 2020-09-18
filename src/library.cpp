@@ -1209,6 +1209,11 @@ void *lammps_extract_atom(void *handle, const char *name)
 /** Get data type of internal global LAMMPS variables or arrays.
  *
  * TODO
+\verbatim embed:rst
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  name     string with the name of the extracted property
@@ -1284,6 +1289,11 @@ int lammps_extract_global_datatype(void *handle, const char *name)
 /** Get data type of a LAMMPS per-atom property
  *
  * TODO
+\verbatim embed:rst
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    string with the name of the extracted property

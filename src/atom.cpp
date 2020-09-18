@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "update.h"
 #include "variable.h"
+
 #include "library.h"
 
 #include <algorithm>
@@ -2505,6 +2506,8 @@ length of the data area, and a short description.
 
 \endverbatim
  *
+ * \sa extract_datatype
+ *
  * \param  name  string with the keyword of the desired property.
                  Typically the name of the pointer variable returned
  * \return       pointer to the requested data cast to ``void *`` or ``nullptr`` */
@@ -2513,6 +2516,8 @@ void *Atom::extract(const char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name
+  // please see the following function to set the type of the data
+  // so that programs can detect it dynamically at run time.
 
   /* NOTE: this array is only of length ntypes+1 */
   if (strcmp(name,"mass") == 0) return (void *) mass;
@@ -2582,10 +2587,19 @@ void *Atom::extract(const char *name)
 }
 
 
-/** Provide data type about internal data of the Atom class
+/** Provide data type info about internal data of the Atom class
+ *
+\verbatim embed:rst
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \sa extract
  *
  * \param  name  string with the keyword of the desired property.
  * \return       data type constant for desired property or -1 */
+
 int Atom::extract_datatype(const char *name)
 {
   // --------------------------------------------------------------------

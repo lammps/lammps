@@ -142,6 +142,9 @@ fails a null pointer is returned.
    ``#include "library.h"``.  In that case, you must use the
    :cpp:func:`lammps_open_no_mpi` function.
 
+*See also*
+   :cpp:func:`lammps_open_no_mpi`, :cpp:func:`lammps_open_fortran`
+
 \endverbatim
  *
  * \param  argc  number of command line arguments
@@ -206,6 +209,9 @@ fails a null pointer is returned.
    It should be set to ``NULL`` instead.
 
 
+*See also*
+   :cpp:func:`lammps_open`, :cpp:func:`lammps_open_fortran`
+
 \endverbatim
  *
  * \param  argc  number of command line arguments
@@ -236,6 +242,9 @@ If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
 .. versionadded:: 18Sep2020
+
+*See also*
+   :cpp:func:`lammps_open_fortran`, :cpp:func:`lammps_open_no_mpi`
 
 \endverbatim
  *
@@ -602,8 +611,10 @@ If LAMMPS was compiled with MPI_STUBS, this function returns -1.
 
 .. versionadded:: 18Sep2020
 
+*See also*
+   :cpp:func:`lammps_open_fortran`
+
 \endverbatim
- * \sa lammps_open_fortran
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \return         Fortran representation of the LAMMPS world communicator */
@@ -638,6 +649,13 @@ size and dereference it.  The size of that integer (in bytes) can be
 queried by calling :cpp:func:`lammps_extract_setting` to return
 the size of a ``bigint`` integer.
 
+.. versionchanged:: 18Sep2020
+
+   The type of the return value was changed from ``int`` to ``double``
+   to accommodate reporting atom counts for larger systems that would
+   overflow a 32-bit int without having to depend on a 64-bit bit
+   integer type definition.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -661,7 +679,7 @@ double lammps_get_natoms(void *handle)
 This function returns the current value of a :doc:`thermo keyword
 <thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
 give access to the storage of the desired data but returns its value as
-a double, so it can also return information that is computed on-the-fly.
+a ``double``, so it can also return information that is computed on-the-fly.
 
 \endverbatim
  *
@@ -810,7 +828,7 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 This function will retrieve or compute global properties. In contrast to
 :cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
 following keywords are currently supported.  If a keyword is not
-recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_global`.
+recognized, the function returns -1.
 
 .. list-table::
    :header-rows: 1
@@ -853,6 +871,9 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
      - 1 if the atom style includes point dipoles. See :doc:`atom_style`.
    * - rmass_flag
      - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
+
+*See also*
+   :cpp:func:`lammps_extract_global`
 
 \endverbatim
  *

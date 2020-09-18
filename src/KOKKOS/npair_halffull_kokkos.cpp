@@ -73,8 +73,6 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
   list->gnum = k_list_full->gnum;
 
   k_list->k_ilist.template modify<DeviceType>();
-  k_list->k_numneigh.template modify<DeviceType>();
-  k_list->k_neighbors.template modify<DeviceType>();
 }
 
 template<class DeviceType, int NEWTON>

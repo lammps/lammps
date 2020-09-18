@@ -42,6 +42,10 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
+namespace Kokkos {
+  using NoInit = ViewAllocateWithoutInitializing;
+}
+
   struct lmp_float3 {
     float x,y,z;
     KOKKOS_INLINE_FUNCTION

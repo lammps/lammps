@@ -265,47 +265,47 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   natom = newnatom;
   nmax = newnmax;
 
-  inside = t_sna_2i(Kokkos::ViewAllocateWithoutInitializing("sna:inside"),natom,nmax);
-  element = t_sna_2i(Kokkos::ViewAllocateWithoutInitializing("sna:rcutij"),natom,nmax);
-  dedr = t_sna_3d(Kokkos::ViewAllocateWithoutInitializing("sna:dedr"),natom,nmax,3);
+  inside = t_sna_2i(Kokkos::NoInit("sna:inside"),natom,nmax);
+  element = t_sna_2i(Kokkos::NoInit("sna:rcutij"),natom,nmax);
+  dedr = t_sna_3d(Kokkos::NoInit("sna:dedr"),natom,nmax,3);
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
 
-    cayleyklein = t_sna_2ckp(Kokkos::ViewAllocateWithoutInitializing("sna:cayleyklein"), natom, nmax);
-    ulisttot = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot"),1,1,1); // dummy allocation
-    ulisttot_full = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot"),1,1,1);
-    ulisttot_re = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_re"),idxu_half_max,nelements,natom);
-    ulisttot_im = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_im"),idxu_half_max,nelements,natom);
-    ulisttot_pack = t_sna_4c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_pack"),32,idxu_max,nelements,(natom+32-1)/32);
-    ulist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulist"),1,1,1);
-    zlist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:zlist"),1,1,1);
-    zlist_pack = t_sna_4c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:zlist_pack"),32,idxz_max,ndoubles,(natom+32-1)/32);
-    blist = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:blist"),idxb_max,ntriples,natom);
-    blist_pack = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:blist_pack"),32,idxb_max,ntriples,(natom+32-1)/32);
-    ylist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist"),idxu_half_max,nelements,natom);
-    ylist_pack_re = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist_pack_re"),32,idxu_half_max,nelements,(natom+32-1)/32);
-    ylist_pack_im = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist_pack_im"),32,idxu_half_max,nelements,(natom+32-1)/32);
-    dulist = t_sna_4c3_ll(Kokkos::ViewAllocateWithoutInitializing("sna:dulist"),1,1,1);
+    cayleyklein = t_sna_2ckp(Kokkos::NoInit("sna:cayleyklein"), natom, nmax);
+    ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1); // dummy allocation
+    ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1);
+    ulisttot_re = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_re"),idxu_half_max,nelements,natom);
+    ulisttot_im = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_im"),idxu_half_max,nelements,natom);
+    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),32,idxu_max,nelements,(natom+32-1)/32);
+    ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),1,1,1);
+    zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),1,1,1);
+    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),32,idxz_max,ndoubles,(natom+32-1)/32);
+    blist = t_sna_3d_ll(Kokkos::NoInit("sna:blist"),idxb_max,ntriples,natom);
+    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),32,idxb_max,ntriples,(natom+32-1)/32);
+    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),idxu_half_max,nelements,natom);
+    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),32,idxu_half_max,nelements,(natom+32-1)/32);
+    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),32,idxu_half_max,nelements,(natom+32-1)/32);
+    dulist = t_sna_4c3_ll(Kokkos::NoInit("sna:dulist"),1,1,1);
   } else {
 #endif
-    rij = t_sna_3d(Kokkos::ViewAllocateWithoutInitializing("sna:rij"),natom,nmax,3);
-    wj = t_sna_2d(Kokkos::ViewAllocateWithoutInitializing("sna:wj"),natom,nmax);
-    rcutij = t_sna_2d(Kokkos::ViewAllocateWithoutInitializing("sna:rcutij"),natom,nmax);
-    ulisttot = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot"),idxu_half_max,nelements,natom);
-    ulisttot_full = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_full"),idxu_max,nelements,natom);
-    ulisttot_re = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_re"),1,1,1);
-    ulisttot_im = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_im"),1,1,1);
-    ulisttot_pack = t_sna_4c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot_pack"),1,1,1,1);
-    ulist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulist"),idxu_cache_max,natom,nmax);
-    zlist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:zlist"),idxz_max,ndoubles,natom);
-    zlist_pack = t_sna_4c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:zlist_pack"),1,1,1,1);
-    blist = t_sna_3d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:blist"),idxb_max,ntriples,natom);
-    blist_pack = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:blist_pack"),1,1,1,1);
-    ylist = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist"),idxu_half_max,nelements,natom);
-    ylist_pack_re = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist_pack_re"),1,1,1,1);
-    ylist_pack_im = t_sna_4d_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ylist_pack_im"),1,1,1,1);
-    dulist = t_sna_4c3_ll(Kokkos::ViewAllocateWithoutInitializing("sna:dulist"),idxu_cache_max,natom,nmax);
+    rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
+    wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
+    rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
+    ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),idxu_half_max,nelements,natom);
+    ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot_full"),idxu_max,nelements,natom);
+    ulisttot_re = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_re"),1,1,1);
+    ulisttot_im = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_im"),1,1,1);
+    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),1,1,1,1);
+    ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),idxu_cache_max,natom,nmax);
+    zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),idxz_max,ndoubles,natom);
+    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),1,1,1,1);
+    blist = t_sna_3d_ll(Kokkos::NoInit("sna:blist"),idxb_max,ntriples,natom);
+    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),1,1,1,1);
+    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),idxu_half_max,nelements,natom);
+    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),1,1,1,1);
+    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),1,1,1,1);
+    dulist = t_sna_4c3_ll(Kokkos::NoInit("sna:dulist"),idxu_cache_max,natom,nmax);
 
 #ifdef LMP_KOKKOS_GPU
   }

@@ -73,16 +73,14 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
   listcopy_kk->k_ilist.template sync<LMPHostType>();
-  listcopy_kk->k_numneigh.template sync<LMPHostType>();
-  listcopy_kk->k_neighbors.template sync<LMPHostType>();
 
   int inum = listcopy->inum;
   int gnum = listcopy->gnum;
   int inum_all = inum;
   if (list->ghost) inum_all += gnum;
   auto h_ilist = listcopy_kk->k_ilist.h_view;
-  auto h_numneigh = listcopy_kk->k_numneigh.h_view;
-  auto h_neighbors = listcopy_kk->k_neighbors.h_view;
+  auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
+  auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
 
   list->inum = inum;
   list->gnum = gnum;

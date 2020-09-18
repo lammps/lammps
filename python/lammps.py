@@ -486,11 +486,12 @@ class lammps(object):
           function of the C-library interface. Its documentation includes a
           list of the supported keywords and their data types.
           Since Python needs to know the data type to be able to interpret
-          the result, by default, this function will try to auto-detect the datatype
-          by asking the library. You can also force a specific datatype.  For
-          that purpose the :py:mod:`lammps` module contains the constants
-          ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
-          ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
+          the result, by default, this function will try to auto-detect the data 
+          type by asking the library. You can also force a specific data type.
+          For that purpose the :py:mod:`lammps` module contains the constants
+          ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``,
+          ``LAMMPS_DOUBLE_2D``, ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and
+          ``LAMMPS_STRING``.
           This function returns ``None`` if either the keyword is not
           recognized, or an invalid data type constant is used.
 
@@ -505,7 +506,7 @@ class lammps(object):
 
           :param name: name of the property
           :type name:  string
-          :param dtype: type of the returned data
+          :param dtype: type of the returned data (see :ref:`py_data_constants`)
           :type dtype:  int, optional
           :param nelem: number of elements in array
           :type nelem:  int, optional
@@ -887,7 +888,8 @@ class lammps(object):
     recognized. Otherwise it will return a positive integer value that
     corresponds to one of the constants define in the :py:mod:`lammps` module:
     ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_BIGINT``, ``LAMMPS_TAGINT``, ``LAMMPS_TAGINT2D``, and ``LAMMPS_STRING``.
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
 
     :param name: name of the property
     :type name:  string
@@ -911,19 +913,20 @@ class lammps(object):
     of values.  The :cpp:func:`lammps_extract_global` documentation
     includes a list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the datatype
+    the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that
     purpose the :py:mod:`lammps` module contains the constants ``LAMMPS_INT``,
-    ``LAMMPS_DOUBLE``, ``LAMMPS_INT64``, and ``LAMMPS_STRING``.
+    ``LAMMPS_DOUBLE``, ``LAMMPS_INT64``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
     This function returns ``None`` if either the keyword is not recognized,
     or an invalid data type constant is used.
 
     :param name: name of the property
     :type name:  string
-    :param dtype: type of the returned data
+    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
     :type dtype:  int, optional
-    :return: value of the property
-    :rtype: integer or double or string or None
+    :return: value of the property or None
+    :rtype: int, float, or NoneType
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_global_datatype(name)
@@ -933,19 +936,22 @@ class lammps(object):
 
     if dtype == LAMMPS_INT:
       self.lib.lammps_extract_global.restype = POINTER(c_int32)
-    elif dtype == LAMMPS_DOUBLE:
-      self.lib.lammps_extract_global.restype = POINTER(c_double)
+      target_type = int
     elif dtype == LAMMPS_INT64:
       self.lib.lammps_extract_global.restype = POINTER(c_int64)
+      target_type = int
+    elif dtype == LAMMPS_DOUBLE:
+      self.lib.lammps_extract_global.restype = POINTER(c_double)
+      target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
-      ptr = self.lib.lammps_extract_global(self.lmp, name)
-      return str(ptr,'ascii')
-    else: return None
+      target_type = lambda x: str(x, 'ascii')
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
-    if ptr: return ptr[0]
-    else: return None
+    if ptr:
+      return target_type(ptr[0])
+    return None
+
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype
@@ -957,14 +963,15 @@ class lammps(object):
     function of the C-library interface. Its documentation includes a
     list of the supported keywords.
     This function returns ``None`` if the keyword is not
-    recognized. Otherwise it will return a positive integer value that
+    recognized. Otherwise it will return an integer value that
     corresponds to one of the constants define in the :py:mod:`lammps` module:
     ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``.
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
 
     :param name: name of the property
     :type name:  string
-    :return: datatype of per-atom property
+    :return: data type of per-atom property (see :ref:`py_data_constants`)
     :rtype: int
     """
     if name: name = name.encode()
@@ -985,7 +992,8 @@ class lammps(object):
     by asking the library. You can also force a specific data type.  For
     that purpose the :py:mod:`lammps` module contains the constants
     ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``.
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
     This function returns ``None`` if either the keyword is not
     recognized, or an invalid data type constant is used.
 
@@ -1000,10 +1008,13 @@ class lammps(object):
 
     :param name: name of the property
     :type name:  string
-    :param dtype: type of the returned data
+    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
     :type dtype:  int, optional
-    :return: requested data
-    :rtype: pointer to integer or double or None
+    :return: requested data or ``None``
+    :rtype: ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.POINTER(ctypes.c_int32)),
+            ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
+            ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+            or NoneType
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_atom_datatype(name)
@@ -1970,6 +1981,11 @@ class Atom(object):
 # -------------------------------------------------------------------------
 
 class Atom2D(Atom):
+  """
+  A wrapper class then represents a single 2D atom inside of LAMMPS
+
+  It provides access to properties of the atom and allows you to change some of them.
+  """
   def __init__(self, pylammps_instance, index):
     super(Atom2D, self).__init__(pylammps_instance, index)
 

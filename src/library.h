@@ -45,13 +45,13 @@
  * Must be kept in sync with the equivalent constants in lammps.py */
 
 enum _LMP_DATATYPE_CONST {
-  LAMMPS_INT    = 0,
-  LAMMPS_INT_2D  = 1,
-  LAMMPS_DOUBLE = 2,
-  LAMMPS_DOUBLE_2D = 3,
-  LAMMPS_INT64 = 4,
-  LAMMPS_INT64_2D = 5,
-  LAMMPS_STRING = 6
+  LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
+  LAMMPS_INT_2D  = 1,      /*!< two-dimensional 32-bit integer array */
+  LAMMPS_DOUBLE = 2,       /*!< 64-bit double (array) */
+  LAMMPS_DOUBLE_2D = 3,    /*!< two-dimensional 64-bit double array */
+  LAMMPS_INT64 = 4,        /*!< 64-bit integer (array) */
+  LAMMPS_INT64_2D = 5,     /*!< two-dimensional 64-bit integer array */
+  LAMMPS_STRING = 6        /*!< C-String */
 };
 
 /** Style constants for extracting data from computes and fixes.

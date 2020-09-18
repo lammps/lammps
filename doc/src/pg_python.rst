@@ -359,6 +359,10 @@ The :py:mod:`lammps` module additionally contains several constants
 and the :py:class:`NeighList <lammps.NeighList>` class:
 
 .. _py_data_constants:
+
+Data Types
+----------
+
 .. py:data:: LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, LAMMPS_STRING
    :type: int
 
@@ -369,6 +373,10 @@ and the :py:class:`NeighList <lammps.NeighList>` class:
    C library interface.
 
 .. _py_style_constants:
+
+Style Constants
+---------------
+
 .. py:data:: LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL
    :type: int
 
@@ -378,6 +386,10 @@ and the :py:class:`NeighList <lammps.NeighList>` class:
    :py:func:`lammps.extract_compute` and :py:func:`lammps.extract_fix`.
 
 .. _py_type_constants:
+
+Type Constants
+--------------
+
 .. py:data:: LMP_TYPE_SCALAR, LMP_TYLE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
    :type: int
 
@@ -387,11 +399,18 @@ and the :py:class:`NeighList <lammps.NeighList>` class:
    :py:func:`lammps.extract_compute` and :py:func:`lammps.extract_fix`.
 
 .. _py_var_constants:
+
+Variable Style Constants
+------------------------
+
 .. py:data:: LMP_VAR_EQUAL, LMP_VAR_ATOM
    :type: int
 
    Constants in the :py:mod:`lammps` module to select what style of
    variable to query when calling :py:func:`lammps.extract_variable`.
+
+Classes representing internal objects
+-------------------------------------
 
 .. autoclass:: lammps.NeighList
    :members:

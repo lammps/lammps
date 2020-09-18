@@ -1208,8 +1208,12 @@ void *lammps_extract_atom(void *handle, const char *name)
 
 /** Get data type of internal global LAMMPS variables or arrays.
  *
- * TODO
 \verbatim embed:rst
+
+This function returns an integer that encodes the data type of the global
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_global` can use this information
+to then decide how to cast the (void*) pointer and access the data.
 
 .. versionadded:: 18Sep2020
 
@@ -1218,7 +1222,7 @@ void *lammps_extract_atom(void *handle, const char *name)
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  name     string with the name of the extracted property
  * \return          integer constant encoding the data type of the property
-                    or -1 if not found. */
+ *                  or -1 if not found. */
 
 int lammps_extract_global_datatype(void *handle, const char *name)
 {
@@ -1288,8 +1292,12 @@ int lammps_extract_global_datatype(void *handle, const char *name)
 
 /** Get data type of a LAMMPS per-atom property
  *
- * TODO
 \verbatim embed:rst
+
+This function returns an integer that encodes the data type of the per-atom
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_atom` can use this information
+to then decide how to cast the (void*) pointer and access the data.
 
 .. versionadded:: 18Sep2020
 
@@ -1298,7 +1306,8 @@ int lammps_extract_global_datatype(void *handle, const char *name)
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    string with the name of the extracted property
  * \return         integer constant encoding the data type of the property
- *                 or -1 if not found. */
+ *                 or -1 if not found.
+ * */
 
 int lammps_extract_atom_datatype(void *handle, const char *name)
 {

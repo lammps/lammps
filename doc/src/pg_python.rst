@@ -248,7 +248,7 @@ to "compute" what the next LAMMPS command should be.
 
          L.command("region box block 0 10 0 5 -0.5 0.5")
 
-      With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts. 
+      With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts.
       These parts are then passed to a member function with the name of the command.
       For the ``region`` command that means the :code:`region` method can be called.
       The arguments of the command can be passed as one string, or

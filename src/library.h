@@ -40,6 +40,20 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
+/** Data type constants for extracting data from atoms, computes and fixes
+ *
+ * Must be kept in sync with the equivalent constants in lammps.py */
+
+enum _LMP_DATATYPE_CONST {
+  LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
+  LAMMPS_INT_2D  = 1,      /*!< two-dimensional 32-bit integer array */
+  LAMMPS_DOUBLE = 2,       /*!< 64-bit double (array) */
+  LAMMPS_DOUBLE_2D = 3,    /*!< two-dimensional 64-bit double array */
+  LAMMPS_INT64 = 4,        /*!< 64-bit integer (array) */
+  LAMMPS_INT64_2D = 5,     /*!< two-dimensional 64-bit integer array */
+  LAMMPS_STRING = 6        /*!< C-String */
+};
+
 /** Style constants for extracting data from computes and fixes.
  *
  * Must be kept in sync with the equivalent constants in lammps.py */
@@ -112,6 +126,9 @@ void   lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 int    lammps_extract_setting(void *handle, const char *keyword);
 void  *lammps_extract_global(void *handle, const char *name);
 void  *lammps_extract_atom(void *handle, const char *name);
+
+int lammps_extract_global_datatype(void *handle, const char *name);
+int lammps_extract_atom_datatype(void *handle, const char *name);
 
 #if !defined(LAMMPS_BIGBIG)
 int    lammps_create_atoms(void *handle, int n, int *id, int *type,

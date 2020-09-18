@@ -26,6 +26,8 @@ computes, fixes, or variables in LAMMPS.
 
 -----------------------
 
+.. doxygenenum:: _LMP_DATATYPE_CONST
+
 .. doxygenenum:: _LMP_STYLE_CONST
 
 .. doxygenenum:: _LMP_TYPE_CONST

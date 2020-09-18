@@ -917,7 +917,7 @@ int lammps_extract_setting(void *handle, const char *keyword)
 This function returns a pointer to the location of some global property
 stored in one of the constituent classes of a LAMMPS instance.  The
 returned pointer is cast to ``void *`` and needs to be cast to a pointer
-of the type that the entity represents.  The pointers returned by this
+of the type that the entity represents. The pointers returned by this
 function are generally persistent; therefore it is not necessary to call
 the function again, unless a :doc:`clear` command is issued which wipes
 out and recreates the contents of the :cpp:class:`LAMMPS
@@ -1227,7 +1227,7 @@ of data type that the entity represents.
 A table with supported keywords is included in the documentation
 of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
-.. note::
+.. warning::
 
    The pointers returned by this function are generally not persistent
    since per-atom data may be re-distributed, re-allocated, and
@@ -1244,6 +1244,117 @@ void *lammps_extract_atom(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data type of internal global LAMMPS variables or arrays.
+ *
+\verbatim embed:rst
+
+This function returns an integer that encodes the data type of the global
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_global` can use this information
+to then decide how to cast the (void*) pointer and access the data.
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          integer constant encoding the data type of the property
+ *                  or -1 if not found. */
+
+int lammps_extract_global_datatype(void *handle, const char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(name,"units") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxxlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxxhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxylo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxyhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxzlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxzhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"periodicity") == 0) return LAMMPS_INT;
+  if (strcmp(name,"triclinic") == 0) return LAMMPS_INT;
+  if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nangles") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"ndihedrals") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nimpropers") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nlocal") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nghost") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nmax") == 0) return LAMMPS_INT;
+  if (strcmp(name,"ntypes") == 0) return LAMMPS_INT;
+
+  if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
+
+  // update->atime can be referenced as a pointer
+  // thermo "timer" data cannot be, since it is computed on request
+  // lammps_get_thermo() can access all thermo keywords by value
+
+  if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
+
+  // global constants defined by units
+
+  if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ftm2v") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mv2d") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"nktv2p") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qqr2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qe2f") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"vxmu2f") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xxt2kmu") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"dielectric") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qqrd2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"e_mass") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"hhmrr2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mvh2r") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"angstrom") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"femtosecond") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qelectron") == 0) return LAMMPS_DOUBLE;
+
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data type of a LAMMPS per-atom property
+ *
+\verbatim embed:rst
+
+This function returns an integer that encodes the data type of the per-atom
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_atom` can use this information
+to then decide how to cast the (void*) pointer and access the data.
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    string with the name of the extracted property
+ * \return         integer constant encoding the data type of the property
+ *                 or -1 if not found.
+ * */
+
+int lammps_extract_atom_datatype(void *handle, const char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  return lmp->atom->extract_datatype(name);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1472,11 +1583,13 @@ lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function are generally not persistent
-since the computed data may be re-distributed, re-allocated, and
-re-ordered at every invocation. It is advisable to re-invoke this
-function before the data is accessed, or make a copy if the data shall
-be used after other LAMMPS commands have been issued.
+.. warning::
+
+   The pointers returned by this function are generally not persistent
+   since the computed data may be re-distributed, re-allocated, and
+   re-ordered at every invocation. It is advisable to re-invoke this
+   function before the data is accessed, or make a copy if the data shall
+   be used after other LAMMPS commands have been issued.
 
 .. note::
 
@@ -1656,12 +1769,14 @@ The following table lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function for per-atom or local data are
-generally not persistent, since the computed data may be re-distributed,
-re-allocated, and re-ordered at every invocation of the fix.  It is thus
-advisable to re-invoke this function before the data is accessed, or
-make a copy, if the data shall be used after other LAMMPS commands have
-been issued.
+.. warning::
+
+   The pointers returned by this function for per-atom or local data are
+   generally not persistent, since the computed data may be re-distributed,
+   re-allocated, and re-ordered at every invocation of the fix.  It is thus
+   advisable to re-invoke this function before the data is accessed, or
+   make a copy, if the data shall be used after other LAMMPS commands have
+   been issued.
 
 .. note::
 

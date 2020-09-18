@@ -27,7 +27,7 @@ if len(argv) != 2:
 
 infile = sys.argv[1]
 
-from lammps import lammps, LAMMPS_INT, LAMMPS_DOUBLE2D, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL
+from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL
 lmp = lammps()
 
 # run infile one line at a time

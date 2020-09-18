@@ -16,7 +16,7 @@ if len(argv) != 1:
   print("Syntax: demo.py")
   sys.exit()
 
-from lammps import lammps, LAMMPS_INT, LAMMPS_DOUBLE, LAMMPS_DOUBLE2D, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL, LMP_VAR_ATOM
+from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL, LMP_VAR_ATOM
 lmp = lammps()
 
 # test out various library functions after running in.demo

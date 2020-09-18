@@ -46,13 +46,12 @@
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT    = 0,
-  LAMMPS_INT2D  = 1,
+  LAMMPS_INT_2D  = 1,
   LAMMPS_DOUBLE = 2,
-  LAMMPS_DOUBLE2D = 3,
-  LAMMPS_BIGINT = 4,
-  LAMMPS_TAGINT = 5,
-  LAMMPS_STRING = 6,
-  LAMMPS_TAGINT2D = 7
+  LAMMPS_DOUBLE_2D = 3,
+  LAMMPS_INT64 = 4,
+  LAMMPS_INT64_2D = 5,
+  LAMMPS_STRING = 6
 };
 
 /** Style constants for extracting data from computes and fixes.

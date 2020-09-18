@@ -328,7 +328,7 @@ TEST_F(AtomProperties, type)
 
 TEST_F(AtomProperties, position)
 {
-    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE2D);
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
     double ** x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);

@@ -36,13 +36,12 @@ import sys
 # in certain calls to select data formats
 LAMMPS_AUTODETECT = None
 LAMMPS_INT    = 0
-LAMMPS_INT2D  = 1
+LAMMPS_INT_2D  = 1
 LAMMPS_DOUBLE = 2
-LAMMPS_DOUBLE2D = 3
-LAMMPS_BIGINT = 4
-LAMMPS_TAGINT = 5
+LAMMPS_DOUBLE_2D = 3
+LAMMPS_INT64 = 4
+LAMMPS_INT64_2D = 5
 LAMMPS_STRING = 6
-LAMMPS_TAGINT2D = 7
 
 # these must be kept in sync with the enums in library.h
 LMP_STYLE_GLOBAL = 0
@@ -524,7 +523,7 @@ class lammps(object):
             else:
               nelem = self.lmp.extract_global("nlocal")
           if dim == LAMMPS_AUTODETECT:
-            if dtype in (LAMMPS_INT2D, LAMMPS_DOUBLE2D, LAMMPS_TAGINT2D):
+            if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
               # TODO add other fields
               if name in ("x", "v", "f", "angmom", "torque", "csforce", "vforce"):
                 dim = 3
@@ -535,14 +534,12 @@ class lammps(object):
 
           raw_ptr = self.lmp.extract_atom(name, dtype)
 
-          if dtype in (LAMMPS_DOUBLE, LAMMPS_DOUBLE2D):
+          if dtype in (LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D):
             return self.darray(raw_ptr, nelem, dim)
-          elif dtype in (LAMMPS_INT, LAMMPS_INT2D):
-            return self.iarray(c_int, raw_ptr, nelem, dim)
-          elif dtype in (LAMMPS_TAGINT, LAMMPS_TAGINT2D):
-            return self.iarray(self.lmp.c_tagint, raw_ptr, nelem, dim)
-          elif dtype == LAMMPS_BIGINT:
-            return self.iarray(self.lmp.c_bigint, raw_ptr, nelem, dim)
+          elif dtype in (LAMMPS_INT, LAMMPS_INT_2D):
+            return self.iarray(c_int32, raw_ptr, nelem, dim)
+          elif dtype in (LAMMPS_INT64, LAMMPS_INT64_2D):
+            return self.iarray(c_int64, raw_ptr, nelem, dim)
           return raw_ptr
 
         def extract_atom_iarray(self, name, nelem, dim=1):
@@ -558,7 +555,7 @@ class lammps(object):
           if dim == 1:
             raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT)
           else:
-            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT2D)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT_2D)
 
           return self.iarray(c_int_type, raw_ptr, nelem, dim)
 
@@ -568,7 +565,7 @@ class lammps(object):
           if dim == 1:
             raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE)
           else:
-            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE2D)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE_2D)
 
           return self.darray(raw_ptr, nelem, dim)
 
@@ -889,7 +886,7 @@ class lammps(object):
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
     corresponds to one of the constants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE2D``,
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
     ``LAMMPS_BIGINT``, ``LAMMPS_TAGINT``, ``LAMMPS_TAGINT2D``, and ``LAMMPS_STRING``.
 
     :param name: name of the property
@@ -915,12 +912,11 @@ class lammps(object):
     includes a list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the datatype
-    by asking the library. You can also force a specific data type.  For
-    that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
-    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    by asking the library. You can also force a specific data type.  For that
+    purpose the :py:mod:`lammps` module contains the constants ``LAMMPS_INT``,
+    ``LAMMPS_DOUBLE``, ``LAMMPS_INT64``, and ``LAMMPS_STRING``.
+    This function returns ``None`` if either the keyword is not recognized,
+    or an invalid data type constant is used.
 
     :param name: name of the property
     :type name:  string
@@ -936,13 +932,11 @@ class lammps(object):
     else: return None
 
     if dtype == LAMMPS_INT:
-      self.lib.lammps_extract_global.restype = POINTER(c_int)
+      self.lib.lammps_extract_global.restype = POINTER(c_int32)
     elif dtype == LAMMPS_DOUBLE:
       self.lib.lammps_extract_global.restype = POINTER(c_double)
-    elif dtype == LAMMPS_BIGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
-    elif dtype == LAMMPS_TAGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
+    elif dtype == LAMMPS_INT64:
+      self.lib.lammps_extract_global.restype = POINTER(c_int64)
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
       ptr = self.lib.lammps_extract_global(self.lmp, name)
@@ -965,8 +959,8 @@ class lammps(object):
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
     corresponds to one of the constants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE2D``,
-    ``LAMMPS_BIGINT``, ``LAMMPS_TAGINT``, ``LAMMPS_TAGINT2D``, and ``LAMMPS_STRING``.
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``.
 
     :param name: name of the property
     :type name:  string
@@ -987,11 +981,11 @@ class lammps(object):
     function of the C-library interface. Its documentation includes a
     list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the datatype
+    the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For
     that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
-    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``.
     This function returns ``None`` if either the keyword is not
     recognized, or an invalid data type constant is used.
 
@@ -1018,19 +1012,17 @@ class lammps(object):
     else: return None
 
     if dtype == LAMMPS_INT:
-      self.lib.lammps_extract_atom.restype = POINTER(c_int)
-    elif dtype == LAMMPS_INT2D:
-      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
+      self.lib.lammps_extract_atom.restype = POINTER(c_int32)
+    elif dtype == LAMMPS_INT_2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int32))
     elif dtype == LAMMPS_DOUBLE:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)
-    elif dtype == LAMMPS_DOUBLE2D:
+    elif dtype == LAMMPS_DOUBLE_2D:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
-    elif dtype == LAMMPS_TAGINT:
-      self.lib.lammps_extract_atom.restype = POINTER(self.c_tagint)
-    elif dtype == LAMMPS_TAGINT2D:
-      self.lib.lammps_extract_atom.restype = POINTER(POINTER(self.c_tagint))
-    elif dtype == LAMMPS_BIGINT:
-      self.lib.lammps_extract_atom.restype = POINTER(self.c_bigint)
+    elif dtype == LAMMPS_INT64:
+      self.lib.lammps_extract_atom.restype = POINTER(c_int64)
+    elif dtype == LAMMPS_INT64_2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int64))
     else: return None
     ptr = self.lib.lammps_extract_atom(self.lmp, name)
     if ptr: return ptr

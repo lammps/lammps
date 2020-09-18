@@ -2611,15 +2611,15 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"type") == 0) return LAMMPS_INT;
   if (strcmp(name,"mask") == 0) return LAMMPS_INT;
   if (strcmp(name,"image") == 0) return LAMMPS_TAGINT;
-  if (strcmp(name,"x") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"v") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"f") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name,"x") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"v") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"f") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"molecule") == 0) return LAMMPS_TAGINT;
   if (strcmp(name,"q") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"mu") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"omega") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"angmom") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"torque") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name,"mu") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"omega") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"angmom") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"torque") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"radius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"rmass") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ellipsoid") == 0) return LAMMPS_INT;
@@ -2629,16 +2629,16 @@ int Atom::extract_datatype(const char *name)
 
   if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
 
   if (strcmp(name,"spin") == 0) return LAMMPS_INT;
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervelforce") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"cs") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name,"cs") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"etag") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"rho") == 0) return LAMMPS_DOUBLE;
@@ -2646,16 +2646,16 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"esph") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"desph") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
 
   // USER-MESONT package
   if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
-  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT2D;
+  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
 
   if (strcmp(name, "contact_radius") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE2D;
-  if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE2D;
+  if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name, "eff_plastic_strain") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "eff_plastic_strain_rate") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "damage") == 0) return LAMMPS_DOUBLE;

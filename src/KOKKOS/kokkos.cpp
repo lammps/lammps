@@ -24,15 +24,20 @@
 #include <csignal>
 #include <unistd.h>
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 
-// for detecting CUDA-aware MPI support:
-// the variable int have_cuda_aware
-// - is  1 if CUDA-aware MPI support is available
-// - is  0 if CUDA-aware MPI support is unavailable
-// - is -1 if CUDA-aware MPI support is unknown
+// for detecting GPU-aware MPI support:
+// the variable int have_gpu_aware
+// - is  1 if GPU-aware MPI support is available
+// - is  0 if GPU-aware MPI support is unavailable
+// - is -1 if GPU-aware MPI support is unknown
 
-#define CUDA_AWARE_UNKNOWN static int have_cuda_aware = -1;
+#define GPU_AWARE_UNKNOWN static int have_gpu_aware = -1;
+
+// TODO HIP: implement HIP-aware MPI support (UCX) detection
+#if defined(KOKKOS_ENABLE_HIP)
+GPU_AWARE_UNKNOWN
+#elif defined(KOKKOS_ENABLE_CUDA)
 
 // OpenMPI supports detecting CUDA-aware MPI as of version 2.0.0
 
@@ -42,22 +47,24 @@
 #include <mpi-ext.h>
 
 #if defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
-static int have_cuda_aware = 1;
+static int have_gpu_aware = 1;
 #elif defined(MPIX_CUDA_AWARE_SUPPORT) && !MPIX_CUDA_AWARE_SUPPORT
-static int have_cuda_aware = 0;
+static int have_gpu_aware = 0;
 #else
-CUDA_AWARE_UNKNOWN
+GPU_AWARE_UNKNOWN
 #endif // defined(MPIX_CUDA_AWARE_SUPPORT)
 
 #else // old OpenMPI
-CUDA_AWARE_UNKNOWN
+GPU_AWARE_UNKNOWN
 #endif // (OMPI_MAJOR_VERSION >=2)
 
 #else // unknown MPI library
-CUDA_AWARE_UNKNOWN
+GPU_AWARE_UNKNOWN
 #endif // OPEN_MPI
 
 #endif // KOKKOS_ENABLE_CUDA
+
+#endif // LMP_ENABLE_DEVICE
 
 using namespace LAMMPS_NS;
 
@@ -185,9 +192,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   binsize = 0.0;
 #ifdef KOKKOS_ENABLE_CUDA
-  cuda_aware_flag = 1;
+  // TODO HIP: implement HIP-aware MPI testing
+  gpu_aware_flag = 1;
 #else
-  cuda_aware_flag = 0;
+  gpu_aware_flag = 0;
 #endif
   neigh_thread = 0;
   neigh_thread_set = 0;
@@ -211,7 +219,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 
   // check and warn about CUDA-aware MPI availability when using multiple MPI tasks
   // change default only if we can safely detect that CUDA-aware MPI is not available
@@ -227,42 +235,42 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
     MPI_Get_library_version(mpi_version, &len);
     if (strstr(&mpi_version[0], "Spectrum") != nullptr) {
-      cuda_aware_flag = 0;
+      gpu_aware_flag = 0;
       char* str;
-      if (str = getenv("OMPI_MCA_pml_pami_enable_cuda"))
+      if ((str = getenv("OMPI_MCA_pml_pami_enable_cuda")))
         if((strcmp(str,"1") == 0)) {
-          have_cuda_aware = 1;
-          cuda_aware_flag = 1;
+          have_gpu_aware = 1;
+          gpu_aware_flag = 1;
         }
 
-      if (!cuda_aware_flag)
+      if (!gpu_aware_flag)
         if (me == 0)
           error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling CUDA-aware MPI");
     }
 #endif
 
-    if (cuda_aware_flag == 1 && have_cuda_aware == 0) {
+    if (gpu_aware_flag == 1 && have_gpu_aware == 0) {
       if (me == 0)
         error->warning(FLERR,"Turning off CUDA-aware MPI since it is not detected, "
                        "use '-pk kokkos cuda/aware on' to override");
-      cuda_aware_flag = 0;
-    } else if (have_cuda_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
+      gpu_aware_flag = 0;
+    } else if (have_gpu_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
     // MVAPICH2
 #if defined(MPICH) && defined(MVAPICH2_VERSION)
       char* str;
-      cuda_aware_flag = 0;
-      if ((str = getenv("MV2_USE_CUDA")))
+      gpu_aware_flag = 0;
+      if ((str = getenv("MV2_ENABLE_CUDA")))
         if ((strcmp(str,"1") == 0))
-          cuda_aware_flag = 1;
+          gpu_aware_flag = 1;
 
-      if (!cuda_aware_flag)
+      if (!gpu_aware_flag)
         if (me == 0)
           error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
       if (me == 0)
         error->warning(FLERR,"Detected MPICH. Disabling CUDA-aware MPI");
-      cuda_aware_flag = 0;
+      gpu_aware_flag = 0;
 #else
   if (me == 0)
     error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"
@@ -270,9 +278,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                    " '-pk kokkos cuda/aware off' if getting segmentation faults");
 
 #endif
-    } // if (-1 == have_cuda_aware)
+    } // if (-1 == have_gpu_aware)
   } // nmpi > 0
-#endif // KOKKOS_ENABLE_CUDA
+#endif // LMP_ENABLE_DEVICE
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -381,8 +389,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cuda/aware") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) cuda_aware_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) cuda_aware_flag = 1;
+      if (strcmp(arg[iarg+1],"off") == 0) gpu_aware_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
@@ -395,14 +403,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
   // if "cuda/aware off" and "comm device", change to "comm host"
 
-  if (!cuda_aware_flag && nmpi > 1) {
+  if (!gpu_aware_flag && nmpi > 1) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_on_host = 1;
       exchange_comm_changed = 1;
@@ -419,7 +427,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   // if "cuda/aware on" and comm flags were changed previously, change them back
 
-  if (cuda_aware_flag) {
+  if (gpu_aware_flag) {
     if (exchange_comm_changed) {
       exchange_comm_on_host = 0;
       exchange_comm_changed = 0;

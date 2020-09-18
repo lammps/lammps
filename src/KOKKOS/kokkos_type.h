@@ -42,6 +42,10 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
+namespace Kokkos {
+  using NoInit = ViewAllocateWithoutInitializing;
+}
+
   struct lmp_float3 {
     float x,y,z;
     KOKKOS_INLINE_FUNCTION
@@ -211,6 +215,21 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
 };
 #endif
 
+// set host pinned space
+#if defined(KOKKOS_ENABLE_CUDA)
+typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
+#elif defined(KOKKOS_ENABLE_HIP)
+typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
+#endif
+
+// create simple LMPDeviceSpace typedef for non HIP or CUDA specific
+// behaviour
+#if defined(KOKKOS_ENABLE_CUDA)
+typedef Kokkos::Cuda LMPDeviceSpace;
+#elif defined(KOKKOS_ENABLE_HIP)
+typedef Kokkos::Experimental::HIP LMPDeviceSpace;
+#endif
+
 
 // Determine memory traits for force array
 // Do atomic trait when running HALFTHREAD neighbor list style
@@ -239,7 +258,7 @@ struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
 };
 #endif
 
-#if defined(KOKKOS_ENABLE_HIP)
+#ifdef KOKKOS_ENABLE_HIP
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
   using value = Kokkos::Experimental::ScatterAtomic;

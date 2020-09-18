@@ -122,14 +122,14 @@ will be called during creation of the LAMMPS class instance.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 15Sep2020
+.. deprecated:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -193,14 +193,14 @@ be compatible with that of the calling code.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 15Sep2020
+.. deprecated:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -235,7 +235,7 @@ communicator with ``MPI_Comm_f2c()`` and then calls
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -284,7 +284,7 @@ The MPI standard requires that any MPI application must call
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -316,7 +316,7 @@ before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After this function no
 more MPI calls may be made.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -571,7 +571,7 @@ third number is the maximum amount of RAM (not swap) used by the process
 so far. If any of the two latter parameters is not supported by the operating
 system it will be set to zero.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -600,7 +600,7 @@ to the C language representation use ``MPI_Comm_f2c()``.
 
 If LAMMPS was compiled with MPI_STUBS, this function returns -1.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim
  * \sa lammps_open_fortran

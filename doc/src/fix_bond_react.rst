@@ -270,14 +270,14 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and five optional keywords. The
+contains one mandatory keyword and four optional keywords. The
 mandatory keyword is 'equivalences':
 
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+The optional keywords are 'edgeIDs', 'deleteIDs', 'chiralIDs' and
 'constraints':
 
 .. parsed-literal::
@@ -285,7 +285,6 @@ The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
    N *deleteIDs* = # of atoms N that are specified for deletion
    N *chiralIDs* = # of specified chiral centers N
-   N *customIDs* = # of atoms N that are specified for a custom update
    N *constraints* = # of specified reaction constraints N
 
 The body of the map file contains two mandatory sections and four

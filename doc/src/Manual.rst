@@ -89,7 +89,9 @@ Programmer Documentation
    fix_modify_atc_commands
 
 Indices and tables
-==================
+******************
 
-* :ref:`genindex`
-* :ref:`search`
+.. only:: html
+
+   * :ref:`genindex`
+   * :ref:`search`

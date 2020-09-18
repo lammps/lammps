@@ -320,9 +320,10 @@ The ``PyLammps`` class API
 **************************
 
 The :py:class:`PyLammps <lammps.PyLammps>` class is a wrapper that creates a
-simpler, more "Pythonic" interface to common LAMMPS functionality. LAMMPS data
-structures are exposed through objects and properties. This makes Python scripts
-shorter and more concise.
+simpler, more "Pythonic" interface to common LAMMPS functionality. LAMMPS
+data structures are exposed through objects and properties. This makes Python
+scripts shorter and more concise. See the :doc:`PyLammps Tutorial
+<Howto_pylammps>` for an introduction on how to use this interface.
 
 .. autoclass:: lammps.PyLammps
    :members:
@@ -341,6 +342,11 @@ shorter and more concise.
 The ``IPyLammps`` class API
 ***************************
 
+The :py:class:`IPyLammps <lammps.PyLammps>` class is an extension of
+:py:class:`PyLammps <lammps.PyLammps>`, adding additional functions to
+quickly display visualizations such as images and videos inside of IPython.
+See the :doc:`PyLammps Tutorial <Howto_pylammps>` for examples.
+
 .. autoclass:: lammps.IPyLammps
    :members:
 
@@ -353,12 +359,14 @@ The :py:mod:`lammps` module additionally contains several constants
 and the :py:class:`NeighList <lammps.NeighList>` class:
 
 .. _py_data_constants:
-.. py:data:: LAMMPS_INT, LAMMPS_DOUBLE, LAMMPS_BIGINT, LAMMPS_TAGINT, LAMMPS_STRING
+.. py:data:: LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, LAMMPS_STRING
    :type: int
 
    Constants in the :py:mod:`lammps` module to indicate how to
    cast data when the C library function returns a void pointer.
-   Used in :py:func:`lammps.extract_global`.
+   Used in :py:func:`lammps.extract_global` and :py:func:`lammps.extract_atom`.
+   See :cpp:enum:`_LMP_DATATYPE_CONST` for the equivalent constants in the
+   C library interface.
 
 .. _py_style_constants:
 .. py:data:: LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL
@@ -393,7 +401,7 @@ and the :py:class:`NeighList <lammps.NeighList>` class:
 LAMMPS error handling in Python
 *******************************
 
-Compiling the shared library with C++ exception support provides a better error
+Compiling the shared library with :ref:`C++ exception support <exceptions>` provides a better error
 handling experience. Without exceptions the LAMMPS code will terminate the
 current Python process with an error message.  C++ exceptions allow capturing
 them on the C++ side and rethrowing them on the Python side. This way

@@ -875,7 +875,7 @@ int lammps_extract_setting(void *handle, const char *keyword)
 This function returns a pointer to the location of some global property
 stored in one of the constituent classes of a LAMMPS instance.  The
 returned pointer is cast to ``void *`` and needs to be cast to a pointer
-of the type that the entity represents.  The pointers returned by this
+of the type that the entity represents. The pointers returned by this
 function are generally persistent; therefore it is not necessary to call
 the function again, unless a :doc:`clear` command is issued which wipes
 out and recreates the contents of the :cpp:class:`LAMMPS
@@ -1185,7 +1185,7 @@ of data type that the entity represents.
 A table with supported keywords is included in the documentation
 of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
-.. note::
+.. warning::
 
    The pointers returned by this function are generally not persistent
    since per-atom data may be re-distributed, re-allocated, and
@@ -1532,11 +1532,13 @@ lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function are generally not persistent
-since the computed data may be re-distributed, re-allocated, and
-re-ordered at every invocation. It is advisable to re-invoke this
-function before the data is accessed, or make a copy if the data shall
-be used after other LAMMPS commands have been issued.
+.. warning::
+
+   The pointers returned by this function are generally not persistent
+   since the computed data may be re-distributed, re-allocated, and
+   re-ordered at every invocation. It is advisable to re-invoke this
+   function before the data is accessed, or make a copy if the data shall
+   be used after other LAMMPS commands have been issued.
 
 .. note::
 
@@ -1716,12 +1718,14 @@ The following table lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function for per-atom or local data are
-generally not persistent, since the computed data may be re-distributed,
-re-allocated, and re-ordered at every invocation of the fix.  It is thus
-advisable to re-invoke this function before the data is accessed, or
-make a copy, if the data shall be used after other LAMMPS commands have
-been issued.
+.. warning::
+
+   The pointers returned by this function for per-atom or local data are
+   generally not persistent, since the computed data may be re-distributed,
+   re-allocated, and re-ordered at every invocation of the fix.  It is thus
+   advisable to re-invoke this function before the data is accessed, or
+   make a copy, if the data shall be used after other LAMMPS commands have
+   been issued.
 
 .. note::
 

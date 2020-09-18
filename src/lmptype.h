@@ -200,7 +200,7 @@ typedef int bigint;
    foo = (int)    ubuf(buf[1]).i;
    bar = (tagint) ubuf(buf[2]).i;
 
-The typecasts prevent compiler warnings about possible truncations.
+The typecasts prevent compiler warnings about possible truncation issues.
 \endverbatim
   */
   union ubuf {

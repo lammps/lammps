@@ -335,6 +335,7 @@ class Atom : protected Pointers {
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(const char *);
+  int extract_datatype(const char *);
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};

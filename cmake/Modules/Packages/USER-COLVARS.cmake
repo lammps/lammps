@@ -22,7 +22,7 @@ target_compile_definitions(colvars PRIVATE -DCOLVARS_LAMMPS)
 set_target_properties(colvars PROPERTIES OUTPUT_NAME lammps_colvars${LAMMPS_MACHINE})
 target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 # The line below is needed to locate math_eigen_impl.h
-target_include_directories(colvars PUBLIC ${LAMMPS_SOURCE_DIR})
+target_include_directories(colvars PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(lammps PRIVATE colvars)
 
 if(COLVARS_DEBUG)

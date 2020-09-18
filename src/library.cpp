@@ -48,6 +48,17 @@
 
 using namespace LAMMPS_NS;
 
+// for printing the non-null pointer argument warning only once
+
+static int ptr_argument_flag = 1;
+static void ptr_argument_warning()
+{
+  if (!ptr_argument_flag) return;
+  fprintf(stderr,"Using a 'void **' argument to return the LAMMPS handle "
+          "is deprecated.  Please use the return value instead.\n");
+  ptr_argument_flag = 0;
+}
+
 // ----------------------------------------------------------------------
 // utility macros
 // ----------------------------------------------------------------------
@@ -116,8 +127,12 @@ fails a null pointer is returned.
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 15Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
 
 .. note::
 
@@ -140,6 +155,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
   LAMMPS *lmp = nullptr;
   lammps_mpi_init();
+  if (ptr) ptr_argument_warning();
 
 #ifdef LAMMPS_EXCEPTIONS
   try
@@ -182,8 +198,13 @@ fails a null pointer is returned.
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 15Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
+
 
 \endverbatim
  *

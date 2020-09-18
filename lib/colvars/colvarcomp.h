@@ -1493,8 +1493,6 @@ class colvar::linearCombination
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// If all sub-cvs use explicit gradients then we also use it
@@ -1514,8 +1512,6 @@ class colvar::CVBasedPath
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// Reference colvar values from path

@@ -166,10 +166,14 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		deactivate ;\
 	)
 	@cd latex && \
+		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
+		mv temp Makefile && \
 		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
 		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
+		$(MAKE) $(MFLAGS) && \
+		$(MAKE) $(MFLAGS) && \
 		$(MAKE) $(MFLAGS) && \
 		mv LAMMPS.pdf ../Manual.pdf && \
 		cd ../;

@@ -2504,6 +2504,9 @@ length of the data area, and a short description.
      - 1
      - 1 if the particle is a body particle, 0 if not
 
+*See also*
+   :cpp:func:`lammps_extract_atom`
+
 \endverbatim
  *
  * \sa extract_datatype

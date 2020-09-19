@@ -1353,7 +1353,7 @@ PrincipalEigen(ConstMatrix matrix,
   Scalar eval;
 
   // This line does all of the hard work:
-  size_t itern = ll_engine.run(eval, evec);
+  ll_engine.run(eval, evec);
 
   for (int i = 0; i < n; i++)
     eigenvector[i] = evec[i];

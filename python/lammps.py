@@ -486,7 +486,7 @@ class lammps(object):
           function of the C-library interface. Its documentation includes a
           list of the supported keywords and their data types.
           Since Python needs to know the data type to be able to interpret
-          the result, by default, this function will try to auto-detect the data 
+          the result, by default, this function will try to auto-detect the data
           type by asking the library. You can also force a specific data type.
           For that purpose the :py:mod:`lammps` module contains the constants
           ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``,

@@ -48,6 +48,17 @@
 
 using namespace LAMMPS_NS;
 
+// for printing the non-null pointer argument warning only once
+
+static int ptr_argument_flag = 1;
+static void ptr_argument_warning()
+{
+  if (!ptr_argument_flag) return;
+  fprintf(stderr,"Using a 'void **' argument to return the LAMMPS handle "
+          "is deprecated.  Please use the return value instead.\n");
+  ptr_argument_flag = 0;
+}
+
 // ----------------------------------------------------------------------
 // utility macros
 // ----------------------------------------------------------------------
@@ -111,13 +122,17 @@ will be called during creation of the LAMMPS class instance.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 18Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
 
 .. note::
 
@@ -126,6 +141,9 @@ fails a null pointer is returned.
    contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
    ``#include "library.h"``.  In that case, you must use the
    :cpp:func:`lammps_open_no_mpi` function.
+
+*See also*
+   :cpp:func:`lammps_open_no_mpi`, :cpp:func:`lammps_open_fortran`
 
 \endverbatim
  *
@@ -140,6 +158,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
   LAMMPS *lmp = nullptr;
   lammps_mpi_init();
+  if (ptr) ptr_argument_warning();
 
 #ifdef LAMMPS_EXCEPTIONS
   try
@@ -177,13 +196,21 @@ be compatible with that of the calling code.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 18Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
+
+
+*See also*
+   :cpp:func:`lammps_open`, :cpp:func:`lammps_open_fortran`
 
 \endverbatim
  *
@@ -214,7 +241,10 @@ communicator with ``MPI_Comm_f2c()`` and then calls
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
+
+*See also*
+   :cpp:func:`lammps_open_fortran`, :cpp:func:`lammps_open_no_mpi`
 
 \endverbatim
  *
@@ -263,7 +293,7 @@ The MPI standard requires that any MPI application must call
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -295,7 +325,7 @@ before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After this function no
 more MPI calls may be made.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -550,7 +580,7 @@ third number is the maximum amount of RAM (not swap) used by the process
 so far. If any of the two latter parameters is not supported by the operating
 system it will be set to zero.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -579,10 +609,12 @@ to the C language representation use ``MPI_Comm_f2c()``.
 
 If LAMMPS was compiled with MPI_STUBS, this function returns -1.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
+
+*See also*
+   :cpp:func:`lammps_open_fortran`
 
 \endverbatim
- * \sa lammps_open_fortran
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \return         Fortran representation of the LAMMPS world communicator */
@@ -617,6 +649,13 @@ size and dereference it.  The size of that integer (in bytes) can be
 queried by calling :cpp:func:`lammps_extract_setting` to return
 the size of a ``bigint`` integer.
 
+.. versionchanged:: 18Sep2020
+
+   The type of the return value was changed from ``int`` to ``double``
+   to accommodate reporting atom counts for larger systems that would
+   overflow a 32-bit int without having to depend on a 64-bit bit
+   integer type definition.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -640,7 +679,7 @@ double lammps_get_natoms(void *handle)
 This function returns the current value of a :doc:`thermo keyword
 <thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
 give access to the storage of the desired data but returns its value as
-a double, so it can also return information that is computed on-the-fly.
+a ``double``, so it can also return information that is computed on-the-fly.
 
 \endverbatim
  *
@@ -789,7 +828,7 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 This function will retrieve or compute global properties. In contrast to
 :cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
 following keywords are currently supported.  If a keyword is not
-recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_global`.
+recognized, the function returns -1.
 
 .. list-table::
    :header-rows: 1
@@ -832,6 +871,9 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
      - 1 if the atom style includes point dipoles. See :doc:`atom_style`.
    * - rmass_flag
      - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
+
+*See also*
+   :cpp:func:`lammps_extract_global`
 
 \endverbatim
  *

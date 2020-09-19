@@ -152,10 +152,12 @@ void ComputePressureBocs::init()
   vptr = nullptr;
 
   if (pairflag && force->pair) nvirial++;
-  if (bondflag && atom->molecular && force->bond) nvirial++;
-  if (angleflag && atom->molecular && force->angle) nvirial++;
-  if (dihedralflag && atom->molecular && force->dihedral) nvirial++;
-  if (improperflag && atom->molecular && force->improper) nvirial++;
+  if (atom->molecular != Atom::ATOMIC) {
+    if (bondflag && force->bond) nvirial++;
+    if (angleflag && force->angle) nvirial++;
+    if (dihedralflag && force->dihedral) nvirial++;
+    if (improperflag && force->improper) nvirial++;
+  }
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->virial_flag) nvirial++;

@@ -171,6 +171,27 @@ Customized standard functions
 
 ---------------------------
 
+Communication buffer coding with *ubuf*
+=========================================
+
+LAMMPS uses communication buffers where it collects data from various
+class instances and then exchanges the data with neighboring sub-domains.
+For simplicity those buffers are defined as ``double`` buffers and
+used for doubles and integer numbers. This presents a unique problem
+when 64-bit integers are used.  While the storage needed for a ``double``
+is also 64-bit, it cannot be used by a simple assignment.  To get around
+that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
+union.  It is used in the various "pack" and "unpack" functions in the
+LAMMPS classes to store and retrieve integers that may be 64-bit from
+the communication buffers.
+
+---------------------------
+
+.. doxygenunion:: LAMMPS_NS::ubuf
+   :project: progguide
+
+---------------------------
+
 Tokenizer classes
 =================
 

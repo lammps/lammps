@@ -53,7 +53,7 @@ protected:
 
 TEST_F(LibraryProperties, version)
 {
-    EXPECT_GE(20200824, lammps_version(lmp));
+    EXPECT_LT(20200917, lammps_version(lmp));
 };
 
 TEST_F(LibraryProperties, memory_usage)

@@ -14,9 +14,20 @@ C-library interface, or the :py:class:`lammps.lammps` class constructor
 of the Python module, or the :f:func:`lammps` constructor of the Fortran
 module.
 
+In order to avoid clashes of function names, all of the core code in
+LAMMPS is placed into the ``LAMMPS_NS`` namespace.  Functions or variables
+outside of that namespace must be "static", i.e.  visible only to the
+scope of the file/object they are defined in.  Code in packages or the
+libraries in the ``lib`` folder may not adhere to this as some of them
+are adapted from legacy code or consist of external libraries with their
+own requirements and policies.
+
 --------------------
 
 .. doxygenclass:: LAMMPS_NS::LAMMPS
    :project: progguide
    :members:
+
+.. doxygenclass:: LAMMPS_NS::Pointers
+   :project: progguide
 

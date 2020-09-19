@@ -26,7 +26,6 @@ the ``delete`` operator.  Here is a simple example:
 .. code-block:: c++
 
    #include "lammps.h"
-   #include "universe.h"
 
    #include <mpi.h>
    #include <iostream>
@@ -44,7 +43,7 @@ the ``delete`` operator.  Here is a simple example:
        // create LAMMPS instance
        lmp = new LAMMPS_NS::LAMMPS(lmpargc, (char **)lmpargv, MPI_COMM_WORLD);
        // output numerical version string
-       std::cout << "LAMMPS version: " << lmp->universe->num_ver << std::endl;
+       std::cout << "LAMMPS version ID: " << lmp->num_ver << std::endl;
        // delete LAMMPS instance
        delete lmp;
 
@@ -53,8 +52,8 @@ the ``delete`` operator.  Here is a simple example:
        return 0;
    }
 
-Please note that this requires to include the ``lammps.h`` header for accessing
-the members of the LAMMPS class and then the ``universe.h`` header for accessing the ``num_ver`` member of the :cpp:class:`Universe` class.
+This minimal example only requires to include the ``lammps.h`` header
+file since it only accesses a non-pointer member of the LAMMPS class.
 
 
 Executing LAMMPS commands

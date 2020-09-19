@@ -4713,7 +4713,7 @@ int Variable::is_constant(char *word)
 double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
-  if (strcmp(word,"version") == 0) return atof(universe->num_ver);
+  if (strcmp(word,"version") == 0) return lmp->num_ver;
   if (strcmp(word,"yes") == 0) return 1.0;
   if (strcmp(word,"no") == 0) return 0.0;
   if (strcmp(word,"on") == 0) return 1.0;

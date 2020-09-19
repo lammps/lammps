@@ -27,6 +27,10 @@ hr {
      margin-bottom: 12px !important;
 }
 
+.section h2 {
+     display: none;
+}
+
 .ui.tabular.menu .item {
     padding-right: 1em;
     padding-left: 1em;

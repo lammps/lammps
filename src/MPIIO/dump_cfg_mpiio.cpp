@@ -17,14 +17,15 @@
 
 #include "omp_compat.h"
 #include "dump_cfg_mpiio.h"
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 #ifdef LMP_USER_IO_TIMER
 #include <sys/times.h>
@@ -206,7 +207,7 @@ void DumpCFGMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing

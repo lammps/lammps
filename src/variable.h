@@ -15,7 +15,6 @@
 #define LMP_VARIABLE_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -94,9 +93,9 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
+      array(nullptr), iarray(nullptr), barray(nullptr),
       selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL) {}
+      first(nullptr), second(nullptr), extra(nullptr) {}
   };
 
   int compute_python(int);

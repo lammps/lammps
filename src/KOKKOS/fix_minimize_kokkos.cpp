@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_minimize_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
 #include "memory_kokkos.h"
-#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +34,7 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
 FixMinimizeKokkos::~FixMinimizeKokkos()
 {
   memoryKK->destroy_kokkos(k_vectors,vectors);
-  vectors = NULL;
+  vectors = nullptr;
 }
 
 /* ----------------------------------------------------------------------

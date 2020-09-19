@@ -18,21 +18,19 @@
 ------------------------------------------------------------------------- */
 
 #include "create_bonds.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "comm.h"
-#include "group.h"
-#include "special.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "group.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -199,14 +197,14 @@ void CreateBonds::many()
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Create_bonds requires a pair style be defined");
   if (rmax > neighbor->cutneighmax)
     error->all(FLERR,"Create_bonds max distance > neighbor cutoff");
   if (rmax > neighbor->cutneighmin && comm->me == 0)
     error->warning(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
 
-  // require special_bonds 1-2 weights = 0.0 and KSpace = NULL
+  // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
   // otherwise with newton_bond = 1,
   //   would be hard to check if I-J bond already existed

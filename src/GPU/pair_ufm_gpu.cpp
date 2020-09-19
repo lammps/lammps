@@ -20,7 +20,7 @@
 #include "pair_ufm_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -141,7 +141,7 @@ void PairUFMGPU::compute(int eflag, int vflag)
 
 void PairUFMGPU::init_style()
 {
-//  cut_respa = NULL;
+//  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with ufm/gpu pair style");

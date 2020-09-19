@@ -15,10 +15,10 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+
 #include "fix_nh_eff.h"
+
 #include "atom.h"
-#include "atom_vec.h"
 #include "error.h"
 #include "domain.h"
 

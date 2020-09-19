@@ -1,10 +1,10 @@
 .. index:: fix nvt/asphere
+.. index:: fix nvt/asphere/omp
 
 fix nvt/asphere command
 =======================
 
-fix nvt/asphere/omp command
-===========================
+Accelerator Variants: *nvt/asphere/omp*
 
 Syntax
 """"""

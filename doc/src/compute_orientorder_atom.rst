@@ -1,10 +1,10 @@
 .. index:: compute orientorder/atom
+.. index:: compute orientorder/atom/kk
 
 compute orientorder/atom command
 ================================
 
-compute orientorder/atom/kk command
-===================================
+Accelerator Variants: *orientorder/atom/kk*
 
 Syntax
 """"""

@@ -23,7 +23,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -34,8 +34,8 @@ using namespace LAMMPS_NS;
 PairBodyNparticle::PairBodyNparticle(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   single_enable = 0;
   restartinfo = 0;

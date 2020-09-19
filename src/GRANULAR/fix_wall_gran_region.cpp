@@ -39,9 +39,9 @@ enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL),
-  ncontact(NULL),
-  walls(NULL), history_many(NULL), c2r(NULL)
+  FixWallGran(lmp, narg, arg), region(nullptr), region_style(nullptr),
+  ncontact(nullptr),
+  walls(nullptr), history_many(nullptr), c2r(nullptr)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -61,11 +61,11 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   // do not register with Atom class, since parent class did that
 
   memory->destroy(history_one);
-  history_one = NULL;
+  history_one = nullptr;
 
-  ncontact = NULL;
-  walls = NULL;
-  history_many = NULL;
+  ncontact = nullptr;
+  walls = nullptr;
+  history_many = nullptr;
   grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
@@ -262,7 +262,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         if (peratom_flag)
           contact = array_atom[i];
         else
-          contact = NULL;
+          contact = nullptr;
 
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],

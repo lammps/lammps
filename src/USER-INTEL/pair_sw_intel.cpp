@@ -17,6 +17,19 @@
 
 #include "pair_sw_intel.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cstring>
+
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
@@ -25,21 +38,6 @@
 #pragma offload_attribute(pop)
 #endif
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "modify.h"
-#include "suffix.h"
 
 #ifdef LMP_USE_AVXCD
 #include "intel_simd.h"
@@ -1279,8 +1277,8 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
 
       #ifdef _LMP_INTEL_OFFLOAD
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
-          op3 != NULL && _cop >= 0) {
+      if (op2 != nullptr && op2f != nullptr && op2f2 != nullptr && op2e != nullptr &&
+          op3 != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(op2, op2f, op2f2, op2e, op3: alloc_if(0) free_if(1))
       }
@@ -1308,8 +1306,8 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
       int tp1sq = ntypes * ntypes;
       int tp1cu = tp1sq * ntypes;
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
-          op3 != NULL && cop >= 0) {
+      if (op2 != nullptr && op2f != nullptr && op2f2 != nullptr && op2e != nullptr &&
+          op3 != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(op2,op2f,op2f2,op2e: length(tp1sq) alloc_if(1) free_if(0)) \
           nocopy(op3: length(tp1cu) alloc_if(1) free_if(0))

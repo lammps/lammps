@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_deprecated.h"
-#include <string>
-#include "dihedral_hybrid.h"
+
 #include "comm.h"
-#include "force.h"
+#include "dihedral_hybrid.h"
 #include "error.h"
-#include "utils.h"
+#include "force.h"
+
 
 using namespace LAMMPS_NS;
 

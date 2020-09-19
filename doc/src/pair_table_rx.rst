@@ -1,10 +1,10 @@
 .. index:: pair_style table/rx
+.. index:: pair_style table/rx/kk
 
 pair_style table/rx command
 ===========================
 
-pair_style table/rx/kk command
-==============================
+Accelerator Variants: *table/rx/kk*
 
 Syntax
 """"""

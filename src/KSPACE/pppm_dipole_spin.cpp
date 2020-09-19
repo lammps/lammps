@@ -16,22 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_dipole_spin.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
-
+#include "force.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -78,10 +75,10 @@ PPPMDipoleSpin::~PPPMDipoleSpin()
 
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
-  fft1 = NULL;
-  fft2 = NULL;
-  remap = NULL;
-  gc_dipole = NULL;
+  fft1 = nullptr;
+  fft2 = nullptr;
+  remap = nullptr;
+  gc_dipole = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -142,7 +139,7 @@ void PPPMDipoleSpin::init()
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   // check the correct extract here
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -175,7 +172,7 @@ void PPPMDipoleSpin::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = NULL;
+  GridComm *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {

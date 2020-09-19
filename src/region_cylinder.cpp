@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "region_cylinder.h"
+
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "domain.h"
-#include "input.h"
-#include "variable.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,7 +30,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), c1str(NULL), c2str(NULL), rstr(NULL)
+  Region(lmp, narg, arg), c1str(nullptr), c2str(nullptr), rstr(nullptr)
 {
   options(narg-8,&arg[8]);
 

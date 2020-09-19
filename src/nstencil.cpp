@@ -59,11 +59,11 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
 
   xyzflag = 0;
   maxstencil = maxstencil_multi = 0;
-  stencil = NULL;
-  stencilxyz = NULL;
-  nstencil_multi = NULL;
-  stencil_multi = NULL;
-  distsq_multi = NULL;
+  stencil = nullptr;
+  stencilxyz = nullptr;
+  nstencil_multi = nullptr;
+  stencil_multi = nullptr;
+  distsq_multi = nullptr;
 
   dimension = domain->dimension;
 }
@@ -179,8 +179,8 @@ void NStencil::create_setup()
       distsq_multi = new double*[n+1];
       for (i = 1; i <= n; i++) {
         nstencil_multi[i] = 0;
-        stencil_multi[i] = NULL;
-        distsq_multi[i] = NULL;
+        stencil_multi[i] = nullptr;
+        distsq_multi[i] = nullptr;
       }
     }
     if (smax > maxstencil_multi) {
@@ -222,9 +222,9 @@ double NStencil::bin_distance(int i, int j, int k)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NStencil::memory_usage()
+double NStencil::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (neighstyle == Neighbor::BIN) {
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);

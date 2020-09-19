@@ -36,7 +36,7 @@ ComputeSPHEAtom::ComputeSPHEAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  evector = NULL;
+  evector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

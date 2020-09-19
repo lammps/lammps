@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_event_hyper.h"
+
 #include "comm.h"
 #include "error.h"
 #include "update.h"

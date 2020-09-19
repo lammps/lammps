@@ -22,20 +22,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_correlate_long.h"
-#include <mpi.h>
+
+#include "citeme.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -119,13 +118,13 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   type = AUTO;
   startstep = 0;
-  fp = NULL;
+  fp = nullptr;
   overwrite = 0;
   numcorrelators=20;
   p = 16;
   m = 2;
-  char *title1 = NULL;
-  char *title2 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"type") == 0) {
@@ -164,7 +163,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
+        if (fp == nullptr) {
           char str[128];
           snprintf(str,128,"Cannot open fix ave/correlate/long file %s",arg[iarg+1]);
           error->one(FLERR,str);

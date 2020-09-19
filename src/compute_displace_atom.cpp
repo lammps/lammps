@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_displace_atom.h"
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix_store.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  displace(NULL), id_fix(NULL)
+  displace(nullptr), id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute displace/atom command");
 
@@ -43,7 +44,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   refreshflag = 0;
-  rvar = NULL;
+  rvar = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -101,7 +102,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom displacement array
 
   nmax = nvmax = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

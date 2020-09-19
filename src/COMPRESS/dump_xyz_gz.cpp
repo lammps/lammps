@@ -14,17 +14,17 @@
 #include "dump_xyz_gz.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 
 #include <cstring>
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
 DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpXYZ(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
 
   compression_level = Z_BEST_COMPRESSION;
 
@@ -38,8 +38,8 @@ DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpXYZGZ::~DumpXYZGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -103,8 +103,8 @@ void DumpXYZGZ::openfile()
 
     gzFp = gzopen(filecurrent, mode.c_str());
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -134,7 +134,7 @@ void DumpXYZGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);

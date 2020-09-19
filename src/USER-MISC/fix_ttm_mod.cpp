@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ttm_mod.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "error.h"
 #include "citeme.h"
 #include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;
@@ -67,11 +67,11 @@ static const char cite_fix_ttm_mod[] =
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(NULL), fp(NULL), nsum(NULL), nsum_all(NULL),
-  gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
-  T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
-  sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
-  net_energy_transfer_all(NULL)
+  random(nullptr), fp(nullptr), nsum(nullptr), nsum_all(nullptr),
+  gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
+  T_electron(nullptr), T_electron_old(nullptr), sum_vsq(nullptr), sum_mass_vsq(nullptr),
+  sum_vsq_all(nullptr), sum_mass_vsq_all(nullptr), net_energy_transfer(nullptr),
+  net_energy_transfer_all(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
 
@@ -103,7 +103,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
     if (comm->me == 0) {
       fp = fopen(arg[10],"w");
-      if (fp == NULL) {
+      if (fp == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open fix ttm/mod file %s",arg[10]);
         error->one(FLERR,str);
@@ -151,7 +151,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
                  "ttm/mod:net_energy_transfer");
   memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
                  "ttm/mod:net_energy_transfer_all");
-  flangevin = NULL;
+  flangevin = nullptr;
   grow_arrays(atom->nmax);
 
   // zero out the flangevin array
@@ -162,8 +162,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     flangevin[i][2] = 0;
   }
 
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // set initial electron temperatures from user input file
 
@@ -560,7 +560,7 @@ void FixTTMMod::read_initial_electron_temperatures(const char *filename)
   int ixnode,iynode,iznode;
   double T_tmp;
   while (1) {
-    if (fgets(line,MAXLINE,fpr) == NULL) break;
+    if (fgets(line,MAXLINE,fpr) == nullptr) break;
     ValueTokenizer values(line);
     if (values.has_next()) ixnode = values.next_int();
     if (values.has_next()) iynode = values.next_int();

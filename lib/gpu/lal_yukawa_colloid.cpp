@@ -213,7 +213,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   // load balance, returning the atom count on the device (inum)
@@ -227,7 +227,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                           sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     this->cast_rad_data(rad);
     this->hd_balancer.start_timer();
   } else {

@@ -27,7 +27,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "kokkos.h"
-#include "utils.h"
+
 
 #include <cfloat> // DBL_EPSILON
 
@@ -62,7 +62,7 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 template <typename DeviceType>
 FixRxKokkos<DeviceType>::FixRxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRX(lmp, narg, arg),
-  pairDPDEKK(NULL),
+  pairDPDEKK(nullptr),
   update_kinetics_data(true)
 {
   kokkosable = 1;
@@ -117,14 +117,14 @@ void FixRxKokkos<DeviceType>::init()
   //FixRX::init();
 
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
 
   pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
-  if (pairDPDEKK == NULL)
+  if (pairDPDEKK == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy/kk with fix rx/kk");
 
   bool eos_flag = false;
@@ -964,7 +964,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
    //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 
    #define kFor         (userData->kFor)
-   #define kRev         (NULL)
+   #define kRev         (nullptr)
    #define rxnRateLaw   (userData->rxnRateLaw)
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)
@@ -1111,7 +1111,7 @@ KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
    #define kFor         (userData.kFor)
-   #define kRev         (NULL)
+   #define kRev         (nullptr)
    #define rxnRateLaw   (userData.rxnRateLaw)
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)

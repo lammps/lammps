@@ -340,7 +340,7 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   this->hd_balancer.balance(cpu_time);
@@ -353,7 +353,7 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     this->atom->cast_q_data(host_q);
     this->hd_balancer.start_timer();
   } else {

@@ -17,19 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "comm_tiled.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "fix.h"
 #include "compute.h"
+#include "domain.h"
 #include "dump.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -46,12 +47,12 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
   style = 1;
   layout = Comm::LAYOUT_UNIFORM;
-  pbc_flag = NULL;
-  buf_send = NULL;
-  buf_recv = NULL;
-  overlap = NULL;
-  rcbinfo = NULL;
-  cutghostmulti = NULL;
+  pbc_flag = nullptr;
+  buf_send = nullptr;
+  buf_recv = nullptr;
+  overlap = nullptr;
+  rcbinfo = nullptr;
+  cutghostmulti = nullptr;
   init_buffers();
 }
 
@@ -88,16 +89,16 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
-  buf_send = buf_recv = NULL;
+  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   maxoverlap = 0;
-  overlap = NULL;
-  rcbinfo = NULL;
-  cutghostmulti = NULL;
-  sendbox_multi = NULL;
+  overlap = nullptr;
+  rcbinfo = nullptr;
+  cutghostmulti = nullptr;
+  sendbox_multi = nullptr;
 
   maxswap = 6;
   allocate_swap(maxswap);
@@ -776,7 +777,7 @@ void CommTiled::exchange()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -1151,6 +1152,14 @@ void CommTiled::borders()
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
   }
 
+  // For molecular systems we lose some bits for local atom indices due
+  // to encoding of special pairs in neighbor lists. Check for overflows.
+
+  if ((atom->molecular != Atom::ATOMIC)
+      && ((atom->nlocal + atom->nghost) > NEIGHMASK))
+    error->one(FLERR,"Per-processor number of atoms is too large for "
+               "molecular neighbor lists");
+
   // insure send/recv buffers are long enough for all forward & reverse comm
   // send buf is for one forward or reverse sends to one proc
   // recv buf is for all forward or reverse recvs in one swap
@@ -1162,7 +1171,7 @@ void CommTiled::borders()
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
+  if (map_style != Atom::MAP_NONE) atom->map_set();
 }
 
 /* ----------------------------------------------------------------------
@@ -2084,22 +2093,22 @@ void CommTiled::allocate_swap(int n)
   sendlist = new int**[n];
 
   for (int i = 0; i < n; i++) {
-    sendproc[i] = recvproc[i] = NULL;
-    sendnum[i] = recvnum[i] = NULL;
-    size_forward_recv[i] = firstrecv[i] = NULL;
-    size_reverse_send[i] = size_reverse_recv[i] = NULL;
-    forward_recv_offset[i] = reverse_recv_offset[i] = NULL;
+    sendproc[i] = recvproc[i] = nullptr;
+    sendnum[i] = recvnum[i] = nullptr;
+    size_forward_recv[i] = firstrecv[i] = nullptr;
+    size_reverse_send[i] = size_reverse_recv[i] = nullptr;
+    forward_recv_offset[i] = reverse_recv_offset[i] = nullptr;
 
-    pbc_flag[i] = NULL;
-    pbc[i] = NULL;
-    sendbox[i] = NULL;
-    sendbox_multi[i] = NULL;
-    maxsendlist[i] = NULL;
-    sendlist[i] = NULL;
+    pbc_flag[i] = nullptr;
+    pbc[i] = nullptr;
+    sendbox[i] = nullptr;
+    sendbox_multi[i] = nullptr;
+    maxsendlist[i] = nullptr;
+    sendlist[i] = nullptr;
   }
 
   maxrequest = 0;
-  requests = NULL;
+  requests = nullptr;
 
   for (int i = 0; i < n; i++) {
     nprocmax[i] = DELTA_PROCS;
@@ -2248,8 +2257,8 @@ void CommTiled::deallocate_swap(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommTiled::memory_usage()
+double CommTiled::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   return bytes;
 }

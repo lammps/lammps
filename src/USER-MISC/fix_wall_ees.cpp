@@ -16,12 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_ees.h"
-#include <cmath>
+
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -17,8 +17,10 @@
 
 #include "tokenizer.h"
 #include "utils.h"
-#include <algorithm>
 #include "fmt/format.h"
+
+#include <exception>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -35,10 +37,15 @@ TokenizerException::TokenizerException(const std::string & msg, const std::strin
  * This tokenizer will break down a string into sub-strings (i.e words)
  * separated by the given separator characters.
  *
- * \param str         string to be processed
- * \param separators  string with separator characters (default: " \t\r\n\f")
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+
+\endverbatim
  *
- * \sa ValueTokenizer TokenizerException */
+ * \param str         string to be processed
+ * \param separators  string with separator characters (default: " \t\r\n\f") */
 
 Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
@@ -150,10 +157,17 @@ std::vector<std::string> Tokenizer::as_vector() {
 
 /*! Class for reading text with numbers
  *
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`Tokenizer`
+
+\endverbatim
+ *
  * \param str         String to be processed
  * \param separators  String with separator characters (default: " \t\r\n\f")
  *
- * \sa Tokenizer InvalidIntegerException InvalidFloatException */
+ * \see Tokenizer InvalidIntegerException InvalidFloatException */
 
 ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
 }

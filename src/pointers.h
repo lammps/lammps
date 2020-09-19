@@ -21,13 +21,14 @@
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H
 
-#include "lmptype.h"   // IWYU pragma: export
-#include <mpi.h>       // IWYU pragma: export
-#include <cstddef>     // IWYU pragme: export
-#include <cstdio>      // IWYU pragma: export
-#include <string>      // IWYU pragma: export
-#include "lammps.h"    // IWYU pragma: export
-#include "utils.h"     // IWYU pragma: export
+#include "lmptype.h"    // IWYU pragma: export
+#include <mpi.h>        // IWYU pragma: export
+#include <cstddef>      // IWYU pragme: export
+#include <cstdio>       // IWYU pragma: export
+#include <string>       // IWYU pragma: export
+#include "lammps.h"     // IWYU pragma: export
+#include "utils.h"      // IWYU pragma: export
+#include "fmt/format.h" // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

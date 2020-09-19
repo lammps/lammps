@@ -1,13 +1,11 @@
 .. index:: pair_style beck
+.. index:: pair_style beck/gpu
+.. index:: pair_style beck/omp
 
 pair_style beck command
 =======================
 
-pair_style beck/gpu command
-===========================
-
-pair_style beck/omp command
-===========================
+Accelerator Variants: *beck/gpu*, *beck/omp*
 
 Syntax
 """"""

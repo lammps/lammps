@@ -16,11 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "deprecated.h"
-#include <string>
+
 #include "comm.h"
 #include "error.h"
 #include "input.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 

@@ -20,7 +20,7 @@ work required by the LAMMPS developers. Consequently, creating a pull
 request will increase your chances to have your contribution included
 and will reduce the time until the integration is complete. For more
 information on the requirements to have your code included into LAMMPS
-please see the :doc:`Modify contribute <Modify_contribute>` doc page.
+please see :doc:`this page <Modify_contribute>`.
 
 ----------
 

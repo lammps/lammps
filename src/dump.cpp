@@ -12,28 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "dump.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "irregular.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
 #include "output.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #if defined(LMP_QSORT)
 // allocate space for static class variable
 Dump *Dump::dumpptr;
-#else
-#include "mergesort.h"
 #endif
 
 #define BIG 1.0e20
@@ -68,17 +66,17 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   first_flag = 0;
   flush_flag = 1;
 
-  format = NULL;
-  format_default = NULL;
+  format = nullptr;
+  format_default = nullptr;
 
-  format_line_user = NULL;
-  format_float_user = NULL;
-  format_int_user = NULL;
-  format_bigint_user = NULL;
-  format_column_user = NULL;
+  format_line_user = nullptr;
+  format_float_user = nullptr;
+  format_int_user = nullptr;
+  format_bigint_user = nullptr;
+  format_column_user = nullptr;
 
   refreshflag = 0;
-  refresh = NULL;
+  refresh = nullptr;
 
   clearstep = 0;
   sort_flag = 0;
@@ -95,20 +93,20 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   maxfiles = -1;
   numfiles = 0;
   fileidx = 0;
-  nameslist = NULL;
+  nameslist = nullptr;
 
   maxbuf = maxids = maxsort = maxproc = 0;
-  buf = bufsort = NULL;
-  ids = idsort = NULL;
-  index = proclist = NULL;
-  irregular = NULL;
+  buf = bufsort = nullptr;
+  ids = idsort = nullptr;
+  index = proclist = nullptr;
+  irregular = nullptr;
 
   maxsbuf = 0;
-  sbuf = NULL;
+  sbuf = nullptr;
 
   maxpbc = 0;
-  xpbc = vpbc = NULL;
-  imagepbc = NULL;
+  xpbc = vpbc = nullptr;
+  imagepbc = nullptr;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -119,7 +117,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   //   else if ends in .zst = Zstd compressed text file
   //   else ASCII text file
 
-  fp = NULL;
+  fp = nullptr;
   singlefile_opened = 0;
   compressed = 0;
   binary = 0;
@@ -130,7 +128,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   filewriter = 0;
   if (me == 0) filewriter = 1;
   fileproc = 0;
-  multiname = NULL;
+  multiname = nullptr;
 
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
@@ -204,15 +202,15 @@ Dump::~Dump()
     delete[] nameslist;
   }
 
-  // XTC style sets fp to NULL since it closes file in its destructor
+  // XTC style sets fp to a null pointer since it closes file in its destructor
 
-  if (multifile == 0 && fp != NULL) {
+  if (multifile == 0 && fp != nullptr) {
     if (compressed) {
       if (filewriter) pclose(fp);
     } else {
       if (filewriter) fclose(fp);
     }
-    fp = NULL;
+    fp = nullptr;
   }
 }
 
@@ -231,10 +229,10 @@ void Dump::init()
     delete irregular;
 
     maxids = maxsort = maxproc = 0;
-    bufsort = NULL;
-    ids = idsort = NULL;
-    index = proclist = NULL;
-    irregular = NULL;
+    bufsort = nullptr;
+    ids = idsort = nullptr;
+    index = proclist = nullptr;
+    irregular = nullptr;
   }
 
   if (sort_flag) {
@@ -245,7 +243,7 @@ void Dump::init()
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
       error->all(FLERR,"Dump sort column is invalid");
-    if (nprocs > 1 && irregular == NULL)
+    if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
@@ -440,7 +438,7 @@ void Dump::write()
   // sort buf as needed
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // if buffering, convert doubles into strings
@@ -530,11 +528,11 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter && fp != NULL) pclose(fp);
+      if (filewriter && fp != nullptr) pclose(fp);
     } else {
-      if (filewriter && fp != NULL) fclose(fp);
+      if (filewriter && fp != nullptr) fclose(fp);
     }
-    fp = NULL;
+    fp = nullptr;
   }
 }
 
@@ -611,8 +609,8 @@ void Dump::openfile()
       fp = fopen(filecurrent,"w");
     }
 
-    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else fp = NULL;
+    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else fp = nullptr;
 
   // delete string with timestep replaced
 
@@ -766,9 +764,9 @@ void Dump::sort()
 #else
   if (!reorderflag) {
     for (i = 0; i < nme; i++) index[i] = i;
-    if (sortcol == 0) merge_sort(index,nme,(void *)this,idcompare);
-    else if (sortorder == ASCEND) merge_sort(index,nme,(void *)this,bufcompare);
-    else merge_sort(index,nme,(void *)this,bufcompare_reverse);
+    if (sortcol == 0) utils::merge_sort(index,nme,(void *)this,idcompare);
+    else if (sortorder == ASCEND) utils::merge_sort(index,nme,(void *)this,bufcompare);
+    else utils::merge_sort(index,nme,(void *)this,bufcompare_reverse);
   }
 #endif
 
@@ -1015,10 +1013,10 @@ void Dump::modify_params(int narg, char **arg)
         delete [] format_int_user;
         delete [] format_bigint_user;
         delete [] format_float_user;
-        format_line_user = NULL;
-        format_int_user = NULL;
-        format_bigint_user = NULL;
-        format_float_user = NULL;
+        format_line_user = nullptr;
+        format_int_user = nullptr;
+        format_bigint_user = nullptr;
+        format_float_user = nullptr;
         // pass format none to child classes which may use it
         // not an error if they don't
         modify_param(narg-iarg,&arg[iarg]);
@@ -1057,7 +1055,7 @@ void Dump::modify_params(int narg, char **arg)
         nameslist = new char*[maxfiles];
         numfiles = 0;
         for (int idx=0; idx < maxfiles; ++idx)
-          nameslist[idx] = NULL;
+          nameslist[idx] = nullptr;
         fileidx = 0;
       }
       iarg += 2;
@@ -1174,9 +1172,9 @@ void Dump::pbc_allocate()
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Dump::memory_usage()
+double Dump::memory_usage()
 {
-  bigint bytes = memory->usage(buf,size_one*maxbuf);
+  double bytes = memory->usage(buf,size_one*maxbuf);
   bytes += memory->usage(sbuf,maxsbuf);
   if (sort_flag) {
     if (sortcol == 0) bytes += memory->usage(ids,maxids);

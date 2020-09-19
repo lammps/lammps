@@ -12,26 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deposit.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "domain.h"
-#include "lattice.h"
-#include "region.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,9 +44,9 @@ enum{DIST_UNIFORM,DIST_GAUSSIAN};
 /* ---------------------------------------------------------------------- */
 
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), idrigid(NULL),
-  idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), imageflags(NULL),
-  fixrigid(NULL), fixshake(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), idrigid(nullptr),
+  idshake(nullptr), onemols(nullptr), molfrac(nullptr), coords(nullptr), imageflags(nullptr),
+  fixrigid(nullptr), fixshake(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
@@ -114,7 +113,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix deposit mol command");
 
-      if (atom->molecular == 2 && onemols != atom->avec->onemols)
+      if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix deposit molecule template ID must be same "
                    "as atom_style template ID");
       onemols[i]->check_attributes(0);
@@ -234,7 +233,7 @@ void FixDeposit::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix deposit rigid fix does not exist");
@@ -249,7 +248,7 @@ void FixDeposit::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
@@ -544,7 +543,7 @@ void FixDeposit::pre_exchange()
               atom->molecule[n] = maxmol_all+1;
             }
           }
-          if (atom->molecular == 2) {
+          if (atom->molecular == Atom::TEMPLATE) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
           }
@@ -614,7 +613,7 @@ void FixDeposit::pre_exchange()
         maxmol_all++;
       }
     }
-    if (atom->map_style) {
+    if (atom->map_style != Atom::MAP_NONE) {
       atom->map_init();
       atom->map_set();
     }
@@ -659,13 +658,13 @@ void FixDeposit::options(int narg, char **arg)
   // defaults
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
   mode = ATOM;
-  molfrac = NULL;
+  molfrac = nullptr;
   rigidflag = 0;
-  idrigid = NULL;
+  idrigid = nullptr;
   shakeflag = 0;
-  idshake = NULL;
+  idshake = nullptr;
   idnext = 0;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
@@ -905,5 +904,5 @@ void *FixDeposit::extract(const char *str, int &itype)
     return &oneradius;
   }
 
-  return NULL;
+  return nullptr;
 }

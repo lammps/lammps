@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -41,7 +41,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pair(NULL), spin_pairs(NULL)
+  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 

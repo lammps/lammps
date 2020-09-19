@@ -18,7 +18,7 @@
 #include "pair_lj_cut_dipole_long_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -185,13 +185,13 @@ void PairLJCutDipoleLongGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,NULL);
+  if (ncoultablebits) init_tables(cut_coul,nullptr);
 
   int maxspecial=0;
   if (atom->molecular)

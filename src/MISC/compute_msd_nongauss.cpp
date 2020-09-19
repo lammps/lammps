@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd_nongauss.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "group.h"

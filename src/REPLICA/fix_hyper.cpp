@@ -35,6 +35,6 @@ void *FixHyper::extract(const char *str, int &dim)
   if (strcmp(str,"hyperflag") == 0) {
     return &hyperflag;
   }
-  return NULL;
+  return nullptr;
 }
 

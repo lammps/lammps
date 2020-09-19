@@ -30,7 +30,7 @@ Accelerator Variants: *lj/cut/coul/cut/gpu*, *lj/cut/coul/cut/kk*, *lj/cut/coul/
 pair_style lj/cut/coul/debye command
 ====================================
 
-Accelerator Variants: *lj/cut/coul/debye/gpu*, lj/cut/coul/debye/kk, *lj/cut/coul/debye/omp*
+Accelerator Variants: *lj/cut/coul/debye/gpu*, *lj/cut/coul/debye/kk*, *lj/cut/coul/debye/omp*
 
 pair_style lj/cut/coul/dsf command
 ==================================

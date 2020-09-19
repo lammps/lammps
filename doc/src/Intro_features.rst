@@ -181,7 +181,7 @@ Pre- and post-processing
 
 * A handful of pre- and post-processing tools are packaged with LAMMPS,
   some of which can convert input and output files to/from formats used
-  by other codes; see the :doc:`Toos <Tools>` doc page.
+  by other codes; see the :doc:`Tools <Tools>` doc page.
 * Our group has also written and released a separate toolkit called
   `Pizza.py <pizza_>`_ which provides tools for doing setup, analysis,
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
@@ -197,7 +197,7 @@ Specialized features
 ----------------------------------
 
 LAMMPS can be built with optional packages which implement a variety
-of additional capabilities.  See the :doc:`Packages <Packages>` doc
+of additional capabilities.  See the :doc:`Optional Packages <Packages>`
 page for details.
 
 These are LAMMPS capabilities which you may not think of as typical
@@ -214,7 +214,7 @@ classical MD options:
 * Monte Carlo via :doc:`GCMC <fix_gcmc>` and :doc:`tfMC <fix_tfmc>` and :doc:`atom swapping <fix_atom_swap>`
 * :doc:`path-integral molecular dynamics (PIMD) <fix_ipi>` and :doc:`this as well <fix_pimd>`
 * :doc:`Direct Simulation Monte Carlo <pair_dsmc>` for low-density fluids
-* :doc:`Peridynamics mesoscale modeling <pair_peri>`
+* :doc:`Peridynamics modeling <pair_peri>`
 * :doc:`Lattice Boltzmann fluid <fix_lb_fluid>`
 * :doc:`targeted <fix_tmd>` and :doc:`steered <fix_smd>` molecular dynamics
 * :doc:`two-temperature electron model <fix_ttm>`

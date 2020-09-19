@@ -57,23 +57,18 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_interactions.h"
-#include <cstring>
-#include <cstdio>
-#include <string>
-#include <sstream>
-#include <vector>
-#include "error.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_store_kim.h"
+#include "input.h"
 #include "modify.h"
 #include "update.h"
-#include "universe.h"
-#include "input.h"
-#include "variable.h"
-#include "utils.h"
-#include "fix_store_kim.h"
-#include "fmt/format.h"
+
+#include <cstring>
+#include <vector>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -108,12 +103,12 @@ void KimInteractions::do_setup(int narg, char **arg)
     fixed_types = false;
   }
 
-  char *model_name = NULL;
-  KIM_SimulatorModel *simulatorModel(NULL);
+  char *model_name = nullptr;
+  KIM_SimulatorModel *simulatorModel(nullptr);
 
   // check if we had a kim_init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
-  // validate model name if not given as NULL.
+  // validate model name if not given as null pointer.
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
@@ -261,7 +256,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
 
   FILE *fp;
   fp = fopen(filename.c_str(),"r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     error->one(FLERR,"Parameter file not found");
   }
 
@@ -271,7 +266,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;

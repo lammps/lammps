@@ -21,7 +21,6 @@ CommandStyle(write_data,WriteData)
 #define LMP_WRITE_DATA_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

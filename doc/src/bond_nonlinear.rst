@@ -1,10 +1,10 @@
 .. index:: bond_style nonlinear
+.. index:: bond_style nonlinear/omp
 
 bond_style nonlinear command
 ============================
 
-bond_style nonlinear/omp command
-================================
+Accelerator Variants: *nonlinear/omp*
 
 Syntax
 """"""

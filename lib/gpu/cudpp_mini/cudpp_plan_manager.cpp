@@ -26,17 +26,17 @@ extern "C" void compNumCTAs(KernelPointer kernel, size_t bytesDynamicSharedMem, 
 //! @internal Instantiate the plan manager singleton object
 void CUDPPPlanManager::Instantiate() 
 { 
-    if (NULL == m_instance) 
+    if (nullptr == m_instance) 
         m_instance = new CUDPPPlanManager; 
 }
 
 //! @internal Destroy the plan manager singleton object
 void CUDPPPlanManager::Destroy()     
 { 
-    if (NULL != m_instance) 
+    if (nullptr != m_instance) 
     { 
         delete m_instance; 
-        m_instance = NULL; 
+        m_instance = nullptr; 
     } 
 }
 
@@ -51,7 +51,7 @@ CUDPPPlanManager::~CUDPPPlanManager()
     {
         CUDPPPlan* plan = it->second;
         delete plan;
-        plan = NULL;
+        plan = nullptr;
     }
     m_instance->plans.clear();
 
@@ -85,7 +85,7 @@ CUDPPHandle CUDPPPlanManager::AddPlan(CUDPPPlan* plan)
 */
 bool CUDPPPlanManager::RemovePlan(CUDPPHandle handle)
 {
-    if (m_instance == NULL)
+    if (m_instance == nullptr)
     {
         return false;
     }
@@ -97,7 +97,7 @@ bool CUDPPPlanManager::RemovePlan(CUDPPHandle handle)
     {
         CUDPPPlan* plan = it->second;
         delete plan;
-        plan = NULL;
+        plan = nullptr;
         m_instance->plans.erase(it);
 
         if (0 == m_instance->plans.size())
@@ -115,14 +115,14 @@ bool CUDPPPlanManager::RemovePlan(CUDPPHandle handle)
 
 /** @brief Get a plan from the plan manager by handle
 * 
-* @returns A pointer to the plan if found, or NULL otherwise
+* @returns A pointer to the plan if found, or nullptr otherwise
 * @param handle The handle to the requested plan
 */
 CUDPPPlan* CUDPPPlanManager::GetPlan(CUDPPHandle handle)
 {
-    if (m_instance == NULL)
+    if (m_instance == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     std::map<CUDPPHandle, CUDPPPlan*>::iterator it;
@@ -133,13 +133,13 @@ CUDPPPlan* CUDPPPlanManager::GetPlan(CUDPPHandle handle)
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 
 size_t CUDPPPlanManager::numCTAs(KernelPointer kernel)
 {
-    if (m_instance == NULL)
+    if (m_instance == nullptr)
     {
         return 0;
     }

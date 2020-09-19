@@ -18,22 +18,23 @@
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
-#include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
 #include "suffix.h"
+
+#include <cstdlib>
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -64,10 +65,10 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 
   order = 7; //sets default stencil size to 7
 
-  perthread_density = NULL;
-  particle_ekx = particle_eky = particle_ekz = NULL;
+  perthread_density = nullptr;
+  particle_ekx = particle_eky = particle_ekz = nullptr;
 
-  rho_lookup = drho_lookup = NULL;
+  rho_lookup = drho_lookup = nullptr;
   rho_points = 0;
 
   _use_table = _use_lrt = 0;

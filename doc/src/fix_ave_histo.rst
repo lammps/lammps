@@ -1,4 +1,5 @@
 .. index:: fix ave/histo
+.. index:: fix ave/histo/weight
 
 fix ave/histo command
 =====================

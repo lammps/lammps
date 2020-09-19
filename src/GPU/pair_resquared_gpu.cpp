@@ -18,7 +18,7 @@
 #include "pair_resquared_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"
@@ -76,7 +76,7 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp),
   if (!avec)
     error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
   quat_nmax = 0;
-  quat = NULL;
+  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gravity.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "math_const.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,8 +37,8 @@ enum{CONSTANT,EQUAL};          // same as FixPour
 
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL),
-  xstr(NULL), ystr(NULL), zstr(NULL)
+  mstr(nullptr), vstr(nullptr), pstr(nullptr), tstr(nullptr),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
@@ -49,7 +49,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  mstr = vstr = pstr = tstr = xstr = ystr = zstr = NULL;
+  mstr = vstr = pstr = tstr = xstr = ystr = zstr = nullptr;
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -394,5 +394,5 @@ void *FixGravity::extract(const char *name, int &dim)
     dim = 1;
     return (void *) gvec;
   }
-  return NULL;
+  return nullptr;
 }

@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lubricate_poly.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -468,7 +468,7 @@ void PairLubricatePoly::init_style()
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
-    if (strstr(modify->fix[i]->style,"wall") != NULL) {
+    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with "
@@ -478,7 +478,7 @@ void PairLubricatePoly::init_style()
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
 
-    if (strstr(modify->fix[i]->style,"wall") != NULL){
+    if (strstr(modify->fix[i]->style,"wall") != nullptr){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->xflag ) {
         flagwall = 2; // Moving walls exist

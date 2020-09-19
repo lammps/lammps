@@ -12,15 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_template.h"
+
 #include "atom.h"
-#include "molecule.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "molecule.h"
 
 using namespace LAMMPS_NS;
 
@@ -28,8 +23,8 @@ using namespace LAMMPS_NS;
 
 AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 2;
-  mass_type = 1;
+  molecular = Atom::TEMPLATE;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 

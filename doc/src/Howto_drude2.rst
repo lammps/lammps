@@ -377,7 +377,7 @@ For our phenol example, the groups would be defined as
 Note that with the fixes *drude/transform*\ , it is not required to
 specify *comm_modify vel yes* because the fixes do it anyway (several
 times and for the forces also).  To avoid the flying ice cube artifact
-:ref:`(Lamoureux) <Lamoureux2>`, where the atoms progressively freeze and the
+:ref:`(Lamoureux and Roux) <Lamoureux2>`, where the atoms progressively freeze and the
 center of mass of the whole system drifts faster and faster, the *fix
 momentum* can be used. For instance:
 
@@ -456,7 +456,7 @@ NPT ensemble using Nose-Hoover thermostat:
 
 .. _Lamoureux2:
 
-**(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
+**(Lamoureux and Roux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 .. _Schroeder:
 

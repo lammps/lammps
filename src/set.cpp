@@ -12,32 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "set.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <climits>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "domain.h"
-#include "region.h"
-#include "group.h"
 #include "comm.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
 #include "modify.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -76,7 +74,7 @@ void Set::command(int narg, char **arg)
   int n = strlen(arg[1]) + 1;
   id = new char[n];
   strcpy(id,arg[1]);
-  select = NULL;
+  select = nullptr;
   selection(atom->nlocal);
 
   // loop over keyword/value pairs
@@ -691,7 +689,7 @@ void Set::set(int keyword)
 {
   // evaluate atom-style variable(s) if necessary
 
-  vec1 = vec2 = vec3 = vec4 = NULL;
+  vec1 = vec2 = vec3 = vec4 = nullptr;
 
   if (varflag) {
     int nlocal = atom->nlocal;
@@ -909,7 +907,7 @@ void Set::set(int keyword)
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
-      double *quat = NULL;
+      double *quat = nullptr;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)
@@ -1256,7 +1254,7 @@ void Set::topology(int keyword)
 
   // error check
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Cannot set bond topology types for atom style template");
 
   // border swap to acquire ghost atom info

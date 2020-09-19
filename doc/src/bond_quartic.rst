@@ -1,10 +1,10 @@
 .. index:: bond_style quartic
+.. index:: bond_style quartic/omp
 
 bond_style quartic command
 ==========================
 
-bond_style quartic/omp command
-==============================
+Accelerator Variants: *quartic/omp*
 
 Syntax
 """"""

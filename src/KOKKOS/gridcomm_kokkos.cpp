@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "gridcomm_kokkos.h"
-#include <mpi.h>
+
 #include "comm.h"
-#include "kspace.h"
 #include "irregular.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "kokkos_base_fft.h"
 #include "kokkos.h"
+#include "kokkos_base_fft.h"
+#include "kspace.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -92,21 +91,21 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
   // regular comm data struct
 
   for (int i = 0; i < nswap; i++) {
-    swap[i].packlist = NULL;
-    swap[i].unpacklist = NULL;
+    swap[i].packlist = nullptr;
+    swap[i].unpacklist = nullptr;
   }
 
   // tiled comm data structs
 
   for (int i = 0; i < nsend; i++)
-    send[i].packlist = NULL;
+    send[i].packlist = nullptr;
 
   for (int i = 0; i < nrecv; i++)
-    recv[i].unpacklist = NULL;
+    recv[i].unpacklist = nullptr;
 
   for (int i = 0; i < ncopy; i++) {
-    copy[i].packlist = NULL;
-    copy[i].unpacklist = NULL;
+    copy[i].packlist = nullptr;
+    copy[i].unpacklist = nullptr;
   }
 
 }
@@ -460,7 +459,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
   noverlap = maxoverlap = 0;
-  overlap = NULL;
+  overlap = nullptr;
 
   ghost_box_drop(ghostbox,pbc);
 
@@ -679,7 +678,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
   FFT_SCALAR* buf1;
   FFT_SCALAR* buf2;
-  if (lmp->kokkos->cuda_aware_flag) {
+  if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
@@ -696,7 +695,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
 
     if (swap[m].sendproc != me) {
 
-      if (!lmp->kokkos->cuda_aware_flag) {
+      if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
         k_buf1.sync<LMPHostType>();
       }
@@ -707,7 +706,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
                                   swap[m].sendproc,0,gridcomm);
       if (swap[m].nunpack) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-      if (!lmp->kokkos->cuda_aware_flag) {
+      if (!lmp->kokkos->gpu_aware_flag) {
         k_buf2.modify<LMPHostType>();
         k_buf2.sync<DeviceType>();
       }
@@ -732,7 +731,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
   FFT_SCALAR* buf1;
   FFT_SCALAR* buf2;
-  if (lmp->kokkos->cuda_aware_flag) {
+  if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
@@ -754,7 +753,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
     kspaceKKBase->pack_forward_grid_kokkos(which,k_buf1,send[m].npack,k_send_packlist,m);
     DeviceType().fence();
 
-    if (!lmp->kokkos->cuda_aware_flag) {
+    if (!lmp->kokkos->gpu_aware_flag) {
       k_buf1.modify<DeviceType>();
       k_buf1.sync<LMPHostType>();
     }
@@ -774,7 +773,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   for (i = 0; i < nrecv; i++) {
     MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
 
-    if (!lmp->kokkos->cuda_aware_flag) {
+    if (!lmp->kokkos->gpu_aware_flag) {
       k_buf2.modify<LMPHostType>();
       k_buf2.sync<DeviceType>();
     }
@@ -815,7 +814,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
   FFT_SCALAR* buf1;
   FFT_SCALAR* buf2;
-  if (lmp->kokkos->cuda_aware_flag) {
+  if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
@@ -832,7 +831,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
 
     if (swap[m].recvproc != me) {
 
-      if (!lmp->kokkos->cuda_aware_flag) {
+      if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
         k_buf1.sync<LMPHostType>();
       }
@@ -844,7 +843,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
       if (swap[m].npack) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
 
-      if (!lmp->kokkos->cuda_aware_flag) {
+      if (!lmp->kokkos->gpu_aware_flag) {
         k_buf2.modify<LMPHostType>();
         k_buf2.sync<DeviceType>();
       }
@@ -870,7 +869,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 
   FFT_SCALAR* buf1;
   FFT_SCALAR* buf2;
-  if (lmp->kokkos->cuda_aware_flag) {
+  if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
@@ -892,7 +891,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
     kspaceKKBase->pack_reverse_grid_kokkos(which,k_buf1,recv[m].nunpack,k_recv_unpacklist,m);
     DeviceType().fence();
 
-    if (!lmp->kokkos->cuda_aware_flag) {
+    if (!lmp->kokkos->gpu_aware_flag) {
       k_buf1.modify<DeviceType>();
       k_buf1.sync<LMPHostType>();
     }
@@ -912,7 +911,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   for (i = 0; i < nsend; i++) {
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
 
-    if (!lmp->kokkos->cuda_aware_flag) {
+    if (!lmp->kokkos->gpu_aware_flag) {
       k_buf2.modify<LMPHostType>();
       k_buf2.sync<DeviceType>();
     }

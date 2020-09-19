@@ -22,12 +22,13 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 #include "smd_material_models.h"
+
+#include "math_special.h"
+
 #include <cmath>
 #include <cstdlib>
-#include <utility>
 #include <iostream>
 #include <cstdio>
-#include "math_special.h"
 
 #include <Eigen/Eigen>
 

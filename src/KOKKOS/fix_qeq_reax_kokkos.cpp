@@ -17,21 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reax_kokkos.h"
-#include <cmath>
-#include "kokkos.h"
+
 #include "atom.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "integrate.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "pair_reaxc_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -112,7 +112,7 @@ void FixQEqReaxKokkos<DeviceType>::init()
     ("FixQEqReax::params",ntypes+1);
   params = k_params.template view<DeviceType>();
 
-  for (n = 1; n <= ntypes; n++) {
+  for (int n = 1; n <= ntypes; n++) {
     k_params.h_view(n).chi = chi[n];
     k_params.h_view(n).eta = eta[n];
     k_params.h_view(n).gamma = gamma[n];
@@ -351,34 +351,35 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
 
-    k_o = DAT::tdual_ffloat_1d("qeq/kk:h_o",nmax);
+    k_o = DAT::tdual_ffloat_1d("qeq/kk:o",nmax);
     d_o = k_o.template view<DeviceType>();
     h_o = k_o.h_view;
 
-    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:h_Hdia_inv",nmax);
+    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:Hdia_inv",nmax);
 
-    d_b_s = typename AT::t_ffloat_1d("qeq/kk:h_b_s",nmax);
+    d_b_s = typename AT::t_ffloat_1d("qeq/kk:b_s",nmax);
 
-    d_b_t = typename AT::t_ffloat_1d("qeq/kk:h_b_t",nmax);
+    d_b_t = typename AT::t_ffloat_1d("qeq/kk:b_t",nmax);
 
-    k_s = DAT::tdual_ffloat_1d("qeq/kk:h_s",nmax);
+    k_s = DAT::tdual_ffloat_1d("qeq/kk:s",nmax);
     d_s = k_s.template view<DeviceType>();
     h_s = k_s.h_view;
 
-    k_t = DAT::tdual_ffloat_1d("qeq/kk:h_t",nmax);
+    k_t = DAT::tdual_ffloat_1d("qeq/kk:t",nmax);
     d_t = k_t.template view<DeviceType>();
     h_t = k_t.h_view;
 
-    d_p = typename AT::t_ffloat_1d("qeq/kk:h_p",nmax);
+    d_p = typename AT::t_ffloat_1d("qeq/kk:p",nmax);
 
-    d_r = typename AT::t_ffloat_1d("qeq/kk:h_r",nmax);
+    d_r = typename AT::t_ffloat_1d("qeq/kk:r",nmax);
 
-    k_d = DAT::tdual_ffloat_1d("qeq/kk:h_d",nmax);
+    k_d = DAT::tdual_ffloat_1d("qeq/kk:d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
   }
 
   // init_storage
+
   FixQEqReaxKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
 
@@ -779,8 +780,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   F_FLOAT sig_new = dot_sqr;
 
   int loop;
-  const int loopmax = 200;
-  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
+  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
@@ -848,7 +848,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= loopmax && comm->me == 0) {
+  if (loop >= imax && comm->me == 0) {
     char str[128];
     sprintf(str,"Fix qeq/reax cg_solve1 convergence failed after %d iterations "
             "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
@@ -918,8 +918,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   F_FLOAT sig_new = dot_sqr;
 
   int loop;
-  const int loopmax = 200;
-  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
+  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
@@ -987,7 +986,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= loopmax && comm->me == 0) {
+  if (loop >= imax && comm->me == 0) {
     char str[128];
     sprintf(str,"Fix qeq/reax cg_solve2 convergence failed after %d iterations "
             "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
@@ -1424,7 +1423,7 @@ void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double 
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
+  id = style = nullptr;
 }
 
 /* ----------------------------------------------------------------------

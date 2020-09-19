@@ -17,7 +17,7 @@
 
 #include "omp_compat.h"
 #include "fix_rigid_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"

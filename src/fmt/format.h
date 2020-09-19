@@ -69,6 +69,12 @@
 #  define FMT_NOINLINE
 #endif
 
+// LAMMPS customizations:
+// 1) Intel compilers on MacOS have __clang__ defined
+//    but fail to recognize [[clang::fallthrough]]
+// 2) Intel compilers on Linux identify as GCC compatible
+//    but fail to recognize [[gnu::fallthrough]]
+
 #if __cplusplus == 201103L || __cplusplus == 201402L
 #  if defined(__clang__) && !defined(__INTEL_COMPILER)
 #    define FMT_FALLTHROUGH [[clang::fallthrough]]
@@ -724,13 +730,18 @@ class FMT_API format_error : public std::runtime_error {
 
 namespace detail {
 
+template <typename T>
+using is_signed =
+    std::integral_constant<bool, std::numeric_limits<T>::is_signed ||
+                                     std::is_same<T, int128_t>::value>;
+
 // Returns true if value is negative, false otherwise.
 // Same as `value < 0` but doesn't produce warnings if T is an unsigned type.
-template <typename T, FMT_ENABLE_IF(std::numeric_limits<T>::is_signed)>
+template <typename T, FMT_ENABLE_IF(is_signed<T>::value)>
 FMT_CONSTEXPR bool is_negative(T value) {
   return value < 0;
 }
-template <typename T, FMT_ENABLE_IF(!std::numeric_limits<T>::is_signed)>
+template <typename T, FMT_ENABLE_IF(!is_signed<T>::value)>
 FMT_CONSTEXPR bool is_negative(T) {
   return false;
 }
@@ -745,9 +756,9 @@ FMT_CONSTEXPR bool is_supported_floating_point(T) {
 // Smallest of uint32_t, uint64_t, uint128_t that is large enough to
 // represent all values of T.
 template <typename T>
-using uint32_or_64_or_128_t = conditional_t<
-    num_bits<T>() <= 32, uint32_t,
-    conditional_t<num_bits<T>() <= 64, uint64_t, uint128_t>>;
+using uint32_or_64_or_128_t =
+    conditional_t<num_bits<T>() <= 32, uint32_t,
+                  conditional_t<num_bits<T>() <= 64, uint64_t, uint128_t>>;
 
 // Static data is placed in this class template for the header-only config.
 template <typename T = void> struct FMT_EXTERN_TEMPLATE_API basic_data {
@@ -1593,7 +1604,11 @@ template <typename OutputIt, typename Char, typename UInt> struct int_writer {
                               make_checked(p, s.size()));
     }
     if (prefix_size != 0) p[-1] = static_cast<Char>('-');
-    write(out, basic_string_view<Char>(buffer.data(), buffer.size()), specs);
+    using iterator = remove_reference_t<decltype(reserve(out, 0))>;
+    auto data = buffer.data();
+    out = write_padded<align::right>(out, specs, size, size, [=](iterator it) {
+      return copy_str<Char>(data, data + size, it);
+    });
   }
 
   void on_chr() { *out++ = static_cast<Char>(abs_value); }

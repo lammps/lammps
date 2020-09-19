@@ -1,13 +1,11 @@
 .. index:: pair_style yukawa/colloid
+.. index:: pair_style yukawa/colloid/gpu
+.. index:: pair_style yukawa/colloid/omp
 
 pair_style yukawa/colloid command
 =================================
 
-pair_style yukawa/colloid/gpu command
-=====================================
-
-pair_style yukawa/colloid/omp command
-=====================================
+Accelerator Variants: *yukawa/colloid/gpu*, *yukawa/colloid/omp*
 
 Syntax
 """"""

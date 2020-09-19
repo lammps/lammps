@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hyper_local.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -30,7 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,14 +47,14 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(NULL), biascoeff(NULL), numbond(NULL),
-  maxhalf(NULL), eligible(NULL), maxhalfstrain(NULL), old2now(NULL),
-  tagold(NULL), xold(NULL), maxstrain(NULL), maxstrain_domain(NULL),
-  biasflag(NULL), bias(NULL), cpage(NULL), clist(NULL), numcoeff(NULL)
+  FixHyper(lmp, narg, arg), blist(nullptr), biascoeff(nullptr), numbond(nullptr),
+  maxhalf(nullptr), eligible(nullptr), maxhalfstrain(nullptr), old2now(nullptr),
+  tagold(nullptr), xold(nullptr), maxstrain(nullptr), maxstrain_domain(nullptr),
+  biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr), numcoeff(nullptr)
 {
   // error checks
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/local command requires atom map");
 
   // parse args
@@ -132,28 +132,28 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   // per-atom data structs
 
   maxbond = nblocal = 0;
-  blist = NULL;
-  biascoeff = NULL;
+  blist = nullptr;
+  biascoeff = nullptr;
   allbonds = 0;
 
   maxatom = 0;
-  maxstrain = NULL;
-  maxstrain_domain = NULL;
-  biasflag = NULL;
+  maxstrain = nullptr;
+  maxstrain_domain = nullptr;
+  biasflag = nullptr;
 
   maxlocal = nlocal_old = 0;
-  numbond = NULL;
-  maxhalf = NULL;
-  eligible = NULL;
-  maxhalfstrain = NULL;
+  numbond = nullptr;
+  maxhalf = nullptr;
+  eligible = nullptr;
+  maxhalfstrain = nullptr;
 
   maxall = nall_old = 0;
-  xold = NULL;
-  tagold = NULL;
-  old2now = NULL;
+  xold = nullptr;
+  tagold = nullptr;
+  old2now = nullptr;
 
   nbias = maxbias = 0;
-  bias = NULL;
+  bias = nullptr;
 
   // data structs for persisting bias coeffs when bond list is reformed
   // maxbondperatom = max # of bonds any atom is part of
@@ -162,9 +162,9 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   maxcoeff = 0;
   maxbondperatom = FCCBONDS;
-  numcoeff = NULL;
-  clist = NULL;
-  cpage = new MyPage<OneCoeff>;
+  numcoeff = nullptr;
+  clist = nullptr;
+  cpage = new MyPage<HyperOneCoeff>;
   cpage->init(maxbondperatom,1024*maxbondperatom,1);
 
   // set comm sizes needed by this fix
@@ -274,7 +274,7 @@ void FixHyperLocal::init()
   if (force->newton_pair == 0)
     error->all(FLERR,"Hyper local requires newton pair on");
 
-  if (atom->molecular && me == 0)
+  if ((atom->molecular != Atom::ATOMIC) && (me == 0))
     error->warning(FLERR,"Hyper local for molecular systems "
                    "requires care in defining hyperdynamic bonds");
 
@@ -976,14 +976,14 @@ void FixHyperLocal::build_bond_list(int natom)
     memory->sfree(clist);
     maxcoeff = atom->nmax;
     memory->create(numcoeff,maxcoeff,"hyper/local:numcoeff");
-    clist = (OneCoeff **) memory->smalloc(maxcoeff*sizeof(OneCoeff *),
+    clist = (HyperOneCoeff **) memory->smalloc(maxcoeff*sizeof(HyperOneCoeff *),
                                          "hyper/local:clist");
   }
 
   while (1) {
     if (firstflag) break;
     for (i = 0; i < nall; i++) numcoeff[i] = 0;
-    for (i = 0; i < nall; i++) clist[i] = NULL;
+    for (i = 0; i < nall; i++) clist[i] = nullptr;
     cpage->reset();
 
     for (m = 0; m < nblocal; m++) {
@@ -1741,7 +1741,7 @@ double FixHyperLocal::memory_usage()
   bytes += 2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
   if (checkbias) bytes += maxall * sizeof(tagint);  // biasflag
   bytes += maxcoeff * sizeof(int);                // numcoeff
-  bytes += maxcoeff * sizeof(OneCoeff *);         // clist
-  bytes += maxlocal*maxbondperatom * sizeof(OneCoeff);  // cpage estimate
+  bytes += maxcoeff * sizeof(HyperOneCoeff *);         // clist
+  bytes += maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
   return bytes;
 }

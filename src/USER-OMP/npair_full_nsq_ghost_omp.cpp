@@ -39,7 +39,7 @@ void NPairFullNsqGhostOmp::build(NeighList *list)
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
   const int molecular = atom->molecular;
-  const int moltemplate = (molecular == 2) ? 1 : 0;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -104,7 +104,7 @@ void NPairFullNsqGhostOmp::build(NeighList *list)
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
             else if (imol >=0)

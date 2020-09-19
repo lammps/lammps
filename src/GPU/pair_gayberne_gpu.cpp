@@ -18,7 +18,7 @@
 #include "pair_gayberne_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"
@@ -74,7 +74,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
 {
   quat_nmax = 0;
   reinitflag = 0;
-  quat = NULL;
+  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

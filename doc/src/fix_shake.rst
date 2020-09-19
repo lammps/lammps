@@ -1,4 +1,5 @@
 .. index:: fix shake
+.. index:: fix rattle
 
 fix shake command
 =================

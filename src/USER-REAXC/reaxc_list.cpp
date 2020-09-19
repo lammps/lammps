@@ -106,37 +106,37 @@ void Delete_List( reax_list *l )
 
   sfree(l->error_ptr,  l->index, "list:index" );
   sfree(l->error_ptr,  l->end_index, "list:end_index" );
-  l->index = NULL;
-  l->end_index = NULL;
+  l->index = nullptr;
+  l->end_index = nullptr;
 
   switch(l->type) {
   case TYP_VOID:
     sfree(l->error_ptr,  l->select.v, "list:v" );
-    l->select.v = NULL;
+    l->select.v = nullptr;
     break;
   case TYP_HBOND:
     sfree(l->error_ptr,  l->select.hbond_list, "list:hbonds" );
-    l->select.hbond_list = NULL;
+    l->select.hbond_list = nullptr;
     break;
   case TYP_FAR_NEIGHBOR:
     sfree(l->error_ptr,  l->select.far_nbr_list, "list:far_nbrs" );
-    l->select.far_nbr_list = NULL;
+    l->select.far_nbr_list = nullptr;
     break;
   case TYP_BOND:
     sfree(l->error_ptr,  l->select.bond_list, "list:bonds" );
-    l->select.bond_list = NULL;
+    l->select.bond_list = nullptr;
     break;
   case TYP_DBO:
     sfree(l->error_ptr,  l->select.dbo_list, "list:dbos" );
-    l->select.dbo_list = NULL;
+    l->select.dbo_list = nullptr;
     break;
   case TYP_DDELTA:
     sfree(l->error_ptr,  l->select.dDelta_list, "list:dDeltas" );
-    l->select.dDelta_list = NULL;
+    l->select.dDelta_list = nullptr;
     break;
   case TYP_THREE_BODY:
     sfree(l->error_ptr,  l->select.three_body_list, "list:three_bodies" );
-    l->select.three_body_list = NULL;
+    l->select.three_body_list = nullptr;
     break;
 
   default:

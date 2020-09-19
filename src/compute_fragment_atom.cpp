@@ -16,17 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fragment_atom.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "group.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  fragmentID(NULL)
+  fragmentID(nullptr)
 {
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
@@ -61,9 +61,9 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  stack = NULL;
-  clist = NULL;
-  markflag = NULL;
+  stack = nullptr;
+  clist = nullptr;
+  markflag = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

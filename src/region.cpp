@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "region.h"
+
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "lattice.h"
+#include "math_extra.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "math_extra.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,8 +30,8 @@ using namespace LAMMPS_NS;
 
 Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL),
-  xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
+  id(nullptr), style(nullptr), contact(nullptr), list(nullptr),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), tstr(nullptr)
 {
   int n = strlen(arg[0]) + 1;
   id = new char[n];
@@ -41,13 +42,13 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   strcpy(style,arg[1]);
 
   varshape = 0;
-  xstr = ystr = zstr = tstr = NULL;
+  xstr = ystr = zstr = tstr = nullptr;
   dx = dy = dz = 0.0;
 
   size_restart = 5;
   reset_vel();
   copymode = 0;
-  list = NULL;
+  list = nullptr;
   nregion = 1;
 }
 

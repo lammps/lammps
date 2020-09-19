@@ -17,14 +17,14 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "dump_atom_zstd.h"
 #include "domain.h"
+#include "dump_atom_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cstring>
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

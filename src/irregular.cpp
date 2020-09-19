@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "irregular.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
-#include "modify.h"
+#include "domain.h"
 #include "fix.h"
 #include "memory.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -30,7 +31,6 @@ using namespace LAMMPS_NS;
 int *Irregular::proc_recv_copy;
 static int compare_standalone(const void *, const void *);
 #else
-#include "mergesort.h"
 // prototype for non-class function
 static int compare_standalone(const int, const int, void *);
 #endif
@@ -52,15 +52,15 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // migrate work vectors
 
   maxlocal = 0;
-  mproclist = NULL;
-  msizes = NULL;
+  mproclist = nullptr;
+  msizes = nullptr;
 
   // send buffers
 
   maxdbuf = 0;
-  dbuf = NULL;
+  dbuf = nullptr;
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
   // universal work vectors
 
@@ -70,7 +70,7 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // initialize buffers for migrate atoms, not used for datum comm
   // these can persist for multiple irregular operations
 
-  buf_send = buf_recv = NULL;
+  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   bufextra = BUFEXTRA;
   grow_send(maxsend,2);
@@ -440,7 +440,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
-    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
     int j;
@@ -714,7 +714,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
-    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
     int j;
@@ -888,7 +888,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
-    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
     int j;
@@ -1051,9 +1051,9 @@ void Irregular::grow_recv(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Irregular::memory_usage()
+double Irregular::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += maxsend*sizeof(double);   // buf_send
   bytes += maxrecv*sizeof(double);   // buf_recv
   bytes += maxdbuf*sizeof(double);   // dbuf

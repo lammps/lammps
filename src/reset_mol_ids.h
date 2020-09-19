@@ -21,7 +21,6 @@ CommandStyle(reset_mol_ids,ResetMolIDs)
 #define LMP_RESET_MOL_IDS_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

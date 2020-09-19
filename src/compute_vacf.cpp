@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_vacf.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "update.h"
 #include "group.h"
 #include "modify.h"
 #include "fix_store.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_fix(NULL)
+  id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute vacf command");
 

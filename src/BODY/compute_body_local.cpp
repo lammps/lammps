@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_body_local.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -31,7 +31,7 @@ enum{ID,TYPE,INDEX};
 /* ---------------------------------------------------------------------- */
 
 ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), which(NULL), index(NULL), avec(NULL), bptr(NULL)
+  Compute(lmp, narg, arg), which(nullptr), index(nullptr), avec(nullptr), bptr(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute body/local command");
 
@@ -66,8 +66,8 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

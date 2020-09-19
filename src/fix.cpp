@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix.h"
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "error.h"
+#include "group.h"
+#include "memory.h"
+
 #include <cstring>
 #include <cctype>
-#include "atom.h"
-#include "group.h"
-#include "force.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -32,8 +33,8 @@ int Fix::instance_total = 0;
 
 Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
-  vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
+  id(nullptr), style(nullptr), extlist(nullptr), vector_atom(nullptr), array_atom(nullptr),
+  vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr)
 {
   instance_me = instance_total++;
 

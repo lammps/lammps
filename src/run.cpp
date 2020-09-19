@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "run.h"
-#include <cstring>
+
 #include "domain.h"
-#include "update.h"
-#include "force.h"
+#include "error.h"
+#include "finish.h"
+#include "input.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
-#include "finish.h"
-#include "input.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -90,7 +91,7 @@ void Run::command(int narg, char **arg)
 
       // all remaining args are commands
       // first,last = arg index of first/last commands
-      // set ncommands = 0 if single command and it is NULL
+      // set ncommands = 0 if single command and it is "NULL"
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal run command");
@@ -139,7 +140,7 @@ void Run::command(int narg, char **arg)
   // if nevery, make copies of arg strings that are commands
   // required because re-parsing commands via input->one() will wipe out args
 
-  char **commands = NULL;
+  char **commands = nullptr;
   if (nevery && ncommands > 0) {
     commands = new char*[ncommands];
     ncommands = 0;

@@ -1,10 +1,10 @@
 .. index:: bond_style harmonic/shift/cut
+.. index:: bond_style harmonic/shift/cut/omp
 
 bond_style harmonic/shift/cut command
 =====================================
 
-bond_style harmonic/shift/cut/omp command
-=========================================
+Accelerator Variants: *harmonic/shift/cut/omp*
 
 Syntax
 """"""

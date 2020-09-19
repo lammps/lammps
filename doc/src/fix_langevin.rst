@@ -1,10 +1,10 @@
 .. index:: fix langevin
+.. index:: fix langevin/kk
 
 fix langevin command
 ====================
 
-fix langevin/kk command
-=======================
+Accelerator Variants: *langevin/kk*
 
 Syntax
 """"""

@@ -12,16 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_momentum_kokkos.h"
-#include <cstdlib>
-#include <cstring>
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "domain.h"
 #include "domain_kokkos.h"
 #include "group.h"
 #include "error.h"
-#include "force.h"
 #include "kokkos_few.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

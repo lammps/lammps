@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_sphere.h"
-#include <cstring>
+
 #include "atom.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
 #include "math_const.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -28,8 +29,8 @@ using namespace MathConst;
 
 AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
-  mass_type = 0;
-  molecular = 0;
+  mass_type = PER_ATOM;
+  molecular = Atom::ATOMIC;
 
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag =

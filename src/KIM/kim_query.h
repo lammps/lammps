@@ -64,7 +64,6 @@ CommandStyle(kim_query,KimQuery)
 #define LMP_KIM_QUERY_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

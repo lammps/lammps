@@ -65,7 +65,6 @@ CommandStyle(kim_param, KimParam)
 #define LMP_KIM_PARAM_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS
 {

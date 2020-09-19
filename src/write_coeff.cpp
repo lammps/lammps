@@ -95,7 +95,7 @@ void WriteCoeff::command(int narg, char **arg)
                                    file+4, utils::getsyserror()));
 
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
-            universe->version);
+            lmp->version);
 
     while(1) {
       int coeff_mode = REGULAR_MODE;

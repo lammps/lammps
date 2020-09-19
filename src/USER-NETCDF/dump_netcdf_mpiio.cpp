@@ -497,7 +497,7 @@ void DumpNetCDFMPIIO::openfile()
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "program",
                               6, "LAMMPS") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "programVersion",
-                              strlen(universe->version), universe->version) );
+                              strlen(lmp->version), lmp->version) );
 
     // units
     if (!strcmp(update->unit_style, "lj")) {

@@ -38,6 +38,12 @@ class LAMMPS {
   class Output *output;          // thermo/dump/restart
   class Timer *timer;            // CPU timing info
 
+  const char *version;           // LAMMPS version string = date
+  int num_ver;                   // numeric version id derived from *version*
+                                 // that is constructed so that will be greater
+                                 // for newer versions in numeric or string
+                                 // value comparisons
+
   MPI_Comm world;                // MPI communicator
   FILE *infile;                  // infile
   FILE *screen;                  // screen output

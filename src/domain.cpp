@@ -727,7 +727,7 @@ void Domain::image_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
@@ -837,7 +837,7 @@ void Domain::box_too_small_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;

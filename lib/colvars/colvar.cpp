@@ -18,7 +18,9 @@
 #include "colvarcomp.h"
 #include "colvarscript.h"
 
-
+#if (__cplusplus >= 201103L)
+std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> colvar::global_cvc_map = std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>();
+#endif
 
 colvar::colvar()
 {
@@ -724,15 +726,15 @@ int colvar::init_output_flags(std::string const &conf)
   return COLVARS_OK;
 }
 
-
-
-
 // read the configuration and set up corresponding instances, for
 // each type of component implemented
 template<typename def_class_name> int colvar::init_components_type(std::string const &conf,
                                                                    char const * /* def_desc */,
                                                                    char const *def_config_key)
 {
+#if (__cplusplus >= 201103L)
+  global_cvc_map[def_config_key] = [](const std::string& cvc_conf){return new def_class_name(cvc_conf);};
+#endif
   size_t def_count = 0;
   std::string def_conf = "";
   size_t pos = 0;

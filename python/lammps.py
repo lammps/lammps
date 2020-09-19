@@ -19,6 +19,7 @@ from __future__ import print_function
 # imports for simple LAMMPS python wrapper module "lammps"
 
 import sys,traceback,types
+import warnings
 from ctypes import *
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
@@ -33,12 +34,13 @@ import sys
 
 # various symbolic constants to be used
 # in certain calls to select data formats
+LAMMPS_AUTODETECT = None
 LAMMPS_INT    = 0
-LAMMPS_INT2D  = 1
+LAMMPS_INT_2D  = 1
 LAMMPS_DOUBLE = 2
-LAMMPS_DOUBLE2D = 3
-LAMMPS_BIGINT = 4
-LAMMPS_TAGINT = 5
+LAMMPS_DOUBLE_2D = 3
+LAMMPS_INT64 = 4
+LAMMPS_INT64_2D = 5
 LAMMPS_STRING = 6
 
 # these must be kept in sync with the enums in library.h
@@ -313,6 +315,8 @@ class lammps(object):
     self.lib.lammps_get_last_error_message.restype = c_int
 
     self.lib.lammps_extract_global.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_global_datatype.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_global_datatype.restype = c_int
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
@@ -337,6 +341,8 @@ class lammps(object):
     self.lib.lammps_decode_image_flags.argtypes = [self.c_imageint, POINTER(c_int*3)]
 
     self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_atom_datatype.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_atom_datatype.restype = c_int
 
     self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
 
@@ -473,7 +479,73 @@ class lammps(object):
             return np.int64
           return np.intc
 
+        def extract_atom(self, name, dtype=LAMMPS_AUTODETECT, nelem=LAMMPS_AUTODETECT, dim=LAMMPS_AUTODETECT):
+          """Retrieve per-atom properties from LAMMPS as NumPy arrays
+
+          This is a wrapper around the :cpp:func:`lammps_extract_atom`
+          function of the C-library interface. Its documentation includes a
+          list of the supported keywords and their data types.
+          Since Python needs to know the data type to be able to interpret
+          the result, by default, this function will try to auto-detect the data
+          type by asking the library. You can also force a specific data type.
+          For that purpose the :py:mod:`lammps` module contains the constants
+          ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``,
+          ``LAMMPS_DOUBLE_2D``, ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and
+          ``LAMMPS_STRING``.
+          This function returns ``None`` if either the keyword is not
+          recognized, or an invalid data type constant is used.
+
+          .. note::
+
+             While the returned arrays of per-atom data are dimensioned
+             for the range [0:nmax] - as is the underlying storage -
+             the data is usually only valid for the range of [0:nlocal],
+             unless the property of interest is also updated for ghost
+             atoms.  In some cases, this depends on a LAMMPS setting, see
+             for example :doc:`comm_modify vel yes <comm_modify>`.
+
+          :param name: name of the property
+          :type name:  string
+          :param dtype: type of the returned data (see :ref:`py_data_constants`)
+          :type dtype:  int, optional
+          :param nelem: number of elements in array
+          :type nelem:  int, optional
+          :param dim: dimension of each element
+          :type dim:  int, optional
+          :return: requested data as NumPy array with direct access to C data
+          :rtype: numpy.array
+          """
+          if dtype == LAMMPS_AUTODETECT:
+            dtype = self.lmp.extract_atom_datatype(name)
+
+          if nelem == LAMMPS_AUTODETECT:
+            if name == "mass":
+              nelem = self.lmp.extract_global("ntypes") + 1
+            else:
+              nelem = self.lmp.extract_global("nlocal")
+          if dim == LAMMPS_AUTODETECT:
+            if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
+              # TODO add other fields
+              if name in ("x", "v", "f", "angmom", "torque", "csforce", "vforce"):
+                dim = 3
+              else:
+                dim = 2
+            else:
+              dim = 1
+
+          raw_ptr = self.lmp.extract_atom(name, dtype)
+
+          if dtype in (LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D):
+            return self.darray(raw_ptr, nelem, dim)
+          elif dtype in (LAMMPS_INT, LAMMPS_INT_2D):
+            return self.iarray(c_int32, raw_ptr, nelem, dim)
+          elif dtype in (LAMMPS_INT64, LAMMPS_INT64_2D):
+            return self.iarray(c_int64, raw_ptr, nelem, dim)
+          return raw_ptr
+
         def extract_atom_iarray(self, name, nelem, dim=1):
+          warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
+
           if name in ['id', 'molecule']:
             c_int_type = self.lmp.c_tagint
           elif name in ['image']:
@@ -484,15 +556,17 @@ class lammps(object):
           if dim == 1:
             raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT)
           else:
-            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT2D)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT_2D)
 
           return self.iarray(c_int_type, raw_ptr, nelem, dim)
 
         def extract_atom_darray(self, name, nelem, dim=1):
+          warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
+
           if dim == 1:
             raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE)
           else:
-            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE2D)
+            raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE_2D)
 
           return self.darray(raw_ptr, nelem, dim)
 
@@ -705,9 +779,9 @@ class lammps(object):
     underlying :cpp:func:`lammps_get_natoms` function returning a double.
 
     :return: number of atoms
-    :rtype: float
+    :rtype: int
     """
-    return self.lib.lammps_get_natoms(self.lmp)
+    return int(self.lib.lammps_get_natoms(self.lmp))
 
   # -------------------------------------------------------------------------
 
@@ -802,9 +876,34 @@ class lammps(object):
     return int(self.lib.lammps_extract_setting(self.lmp,name))
 
   # -------------------------------------------------------------------------
+  # extract global info datatype
+
+  def extract_global_datatype(self, name):
+    """Retrieve global property datatype from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_global_datatype`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords.
+    This function returns ``None`` if the keyword is not
+    recognized. Otherwise it will return a positive integer value that
+    corresponds to one of the constants define in the :py:mod:`lammps` module:
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+
+    :param name: name of the property
+    :type name:  string
+    :return: datatype of global property
+    :rtype: int
+    """
+    if name: name = name.encode()
+    else: return None
+    return self.lib.lammps_extract_global_datatype(self.lmp, name)
+
+  # -------------------------------------------------------------------------
   # extract global info
 
-  def extract_global(self, name, type):
+  def extract_global(self, name, dtype=LAMMPS_AUTODETECT):
     """Query LAMMPS about global settings of different types.
 
     This is a wrapper around the :cpp:func:`lammps_extract_global`
@@ -814,55 +913,87 @@ class lammps(object):
     of values.  The :cpp:func:`lammps_extract_global` documentation
     includes a list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
-    the result, the type has to be provided as an argument.  For
-    that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_DOUBLE``, ``LAMMPS_BIGINT``,
-    ``LAMMPS_TAGINT``, and ``LAMMPS_STRING``.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    the result, by default, this function will try to auto-detect the data type
+    by asking the library. You can also force a specific data type.  For that
+    purpose the :py:mod:`lammps` module contains the constants ``LAMMPS_INT``,
+    ``LAMMPS_DOUBLE``, ``LAMMPS_INT64``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+    This function returns ``None`` if either the keyword is not recognized,
+    or an invalid data type constant is used.
 
-    :param name: name of the setting
+    :param name: name of the property
     :type name:  string
-    :param type: type of the returned data
-    :type type:  int
-    :return: value of the setting
-    :rtype: integer or double or string or None
+    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
+    :type dtype:  int, optional
+    :return: value of the property or None
+    :rtype: int, float, or NoneType
+    """
+    if dtype == LAMMPS_AUTODETECT:
+      dtype = self.extract_global_datatype(name)
+
+    if name: name = name.encode()
+    else: return None
+
+    if dtype == LAMMPS_INT:
+      self.lib.lammps_extract_global.restype = POINTER(c_int32)
+      target_type = int
+    elif dtype == LAMMPS_INT64:
+      self.lib.lammps_extract_global.restype = POINTER(c_int64)
+      target_type = int
+    elif dtype == LAMMPS_DOUBLE:
+      self.lib.lammps_extract_global.restype = POINTER(c_double)
+      target_type = float
+    elif dtype == LAMMPS_STRING:
+      self.lib.lammps_extract_global.restype = c_char_p
+      target_type = lambda x: str(x, 'ascii')
+
+    ptr = self.lib.lammps_extract_global(self.lmp, name)
+    if ptr:
+      return target_type(ptr[0])
+    return None
+
+
+  # -------------------------------------------------------------------------
+  # extract per-atom info datatype
+
+  def extract_atom_datatype(self, name):
+    """Retrieve per-atom property datatype from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom_datatype`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords.
+    This function returns ``None`` if the keyword is not
+    recognized. Otherwise it will return an integer value that
+    corresponds to one of the constants define in the :py:mod:`lammps` module:
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+
+    :param name: name of the property
+    :type name:  string
+    :return: data type of per-atom property (see :ref:`py_data_constants`)
+    :rtype: int
     """
     if name: name = name.encode()
     else: return None
-    if type == LAMMPS_INT:
-      self.lib.lammps_extract_global.restype = POINTER(c_int)
-    elif type == LAMMPS_DOUBLE:
-      self.lib.lammps_extract_global.restype = POINTER(c_double)
-    elif type == LAMMPS_BIGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_bigint)
-    elif type == LAMMPS_TAGINT:
-      self.lib.lammps_extract_global.restype = POINTER(self.c_tagint)
-    elif type == LAMMPS_STRING:
-      self.lib.lammps_extract_global.restype = c_char_p
-      ptr = self.lib.lammps_extract_global(self.lmp,name)
-      return str(ptr,'ascii')
-    else: return None
-    ptr = self.lib.lammps_extract_global(self.lmp,name)
-    if ptr: return ptr[0]
-    else: return None
+    return self.lib.lammps_extract_atom_datatype(self.lmp, name)
 
   # -------------------------------------------------------------------------
   # extract per-atom info
-  # NOTE: need to insure are converting to/from correct Python type
-  #   e.g. for Python list or NumPy or ctypes
 
-  def extract_atom(self,name,type):
+  def extract_atom(self, name, dtype=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS
 
     This is a wrapper around the :cpp:func:`lammps_extract_atom`
     function of the C-library interface. Its documentation includes a
     list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
-    the result, the type has to be provided as an argument.  For
+    the result, by default, this function will try to auto-detect the data type
+    by asking the library. You can also force a specific data type.  For
     that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_INT2D``, ``LAMMPS_DOUBLE``,
-    and ``LAMMPS_DOUBLE2D``.
+    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
+    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
+    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
     This function returns ``None`` if either the keyword is not
     recognized, or an invalid data type constant is used.
 
@@ -875,27 +1006,36 @@ class lammps(object):
        atoms.  In some cases, this depends on a LAMMPS setting, see
        for example :doc:`comm_modify vel yes <comm_modify>`.
 
-    :param name: name of the setting
+    :param name: name of the property
     :type name:  string
-    :param type: type of the returned data
-    :type type:  int
-    :return: requested data
-    :rtype: pointer to integer or double or None
+    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
+    :type dtype:  int, optional
+    :return: requested data or ``None``
+    :rtype: ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.POINTER(ctypes.c_int32)),
+            ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
+            ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+            or NoneType
     """
-    ntypes = int(self.extract_setting('ntypes'))
-    nmax   = int(self.extract_setting('nmax'))
+    if dtype == LAMMPS_AUTODETECT:
+      dtype = self.extract_atom_datatype(name)
+
     if name: name = name.encode()
     else: return None
-    if type == LAMMPS_INT:
-      self.lib.lammps_extract_atom.restype = POINTER(c_int)
-    elif type == LAMMPS_INT2D:
-      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
-    elif type == LAMMPS_DOUBLE:
+
+    if dtype == LAMMPS_INT:
+      self.lib.lammps_extract_atom.restype = POINTER(c_int32)
+    elif dtype == LAMMPS_INT_2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int32))
+    elif dtype == LAMMPS_DOUBLE:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)
-    elif type == LAMMPS_DOUBLE2D:
+    elif dtype == LAMMPS_DOUBLE_2D:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
+    elif dtype == LAMMPS_INT64:
+      self.lib.lammps_extract_atom.restype = POINTER(c_int64)
+    elif dtype == LAMMPS_INT64_2D:
+      self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int64))
     else: return None
-    ptr = self.lib.lammps_extract_atom(self.lmp,name)
+    ptr = self.lib.lammps_extract_atom(self.lmp, name)
     if ptr: return ptr
     else:   return None
 
@@ -1140,7 +1280,7 @@ class lammps(object):
 
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
@@ -1154,7 +1294,7 @@ class lammps(object):
 
   def gather_atoms_concat(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
@@ -1206,7 +1346,7 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather(self.lmp,name,type,count,data)
@@ -1218,7 +1358,7 @@ class lammps(object):
 
   def gather_concat(self,name,type,count):
     if name: name = name.encode()
-    natoms = self.lib.lammps_get_natoms(self.lmp)
+    natoms = self.get_natoms()
     if type == 0:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
@@ -1525,8 +1665,8 @@ class lammps(object):
   def available_styles(self, category):
     """Returns a list of styles available for a given category
 
-    This is a wrapper around the functions :cpp:func:`lammps_style_count`
-    and :cpp:func`lammps_style_name` of the library interface.
+    This is a wrapper around the functions :cpp:func:`lammps_style_count()`
+    and :cpp:func:`lammps_style_name()` of the library interface.
 
     :param category: name of category
     :type  category: string
@@ -1723,8 +1863,8 @@ class OutputCapture(object):
 # -------------------------------------------------------------------------
 
 class Variable(object):
-  def __init__(self, lammps_wrapper_instance, name, style, definition):
-    self.wrapper = lammps_wrapper_instance
+  def __init__(self, pylammps_instance, name, style, definition):
+    self._pylmp = pylammps_instance
     self.name = name
     self.style = style
     self.definition = definition.split()
@@ -1732,9 +1872,9 @@ class Variable(object):
   @property
   def value(self):
     if self.style == 'atom':
-      return list(self.wrapper.lmp.extract_variable(self.name, "all", 1))
+      return list(self._pylmp.lmp.extract_variable(self.name, "all", 1))
     else:
-      value = self.wrapper.lmp_print('"${%s}"' % self.name).strip()
+      value = self._pylmp.lmp_print('"${%s}"' % self.name).strip()
       try:
         return float(value)
       except ValueError:
@@ -1743,103 +1883,136 @@ class Variable(object):
 # -------------------------------------------------------------------------
 
 class AtomList(object):
-  def __init__(self, lammps_wrapper_instance):
-    self.lmp = lammps_wrapper_instance
-    self.natoms = self.lmp.system.natoms
-    self.dimensions = self.lmp.system.dimensions
+  """
+  A dynamic list of atoms that returns either an Atom or Atom2D instance for
+  each atom. Instances are only allocated when accessed.
+
+  :ivar natoms: total number of atoms
+  :ivar dimensions: number of dimensions in system
+  """
+  def __init__(self, pylammps_instance):
+    self._pylmp = pylammps_instance
+    self.natoms = self._pylmp.system.natoms
+    self.dimensions = self._pylmp.system.dimensions
+    self._loaded = {}
 
   def __getitem__(self, index):
-    if self.dimensions == 2:
-        return Atom2D(self.lmp, index + 1)
-    return Atom(self.lmp, index + 1)
+    """
+    Return Atom with given local index
+
+    :param index: Local index of atom
+    :type index: int
+    :rtype: Atom or Atom2D
+    """
+    if index not in self._loaded:
+        if self.dimensions == 2:
+            atom = Atom2D(self._pylmp, index + 1)
+        else:
+            atom = Atom(self._pylmp, index + 1)
+        self._loaded[index] = atom
+    return self._loaded[index]
+
+  def __len__(self):
+    return self.natoms
+
 
 # -------------------------------------------------------------------------
 
 class Atom(object):
-  def __init__(self, lammps_wrapper_instance, index):
-    self.lmp = lammps_wrapper_instance
+  """
+  A wrapper class then represents a single atom inside of LAMMPS
+
+  It provides access to properties of the atom and allows you to change some of them.
+  """
+  def __init__(self, pylammps_instance, index):
+    self._pylmp = pylammps_instance
     self.index = index
 
   @property
   def id(self):
-    return int(self.lmp.eval("id[%d]" % self.index))
+    return int(self._pylmp.eval("id[%d]" % self.index))
 
   @property
   def type(self):
-    return int(self.lmp.eval("type[%d]" % self.index))
+    return int(self._pylmp.eval("type[%d]" % self.index))
 
   @property
   def mol(self):
-    return self.lmp.eval("mol[%d]" % self.index)
+    return self._pylmp.eval("mol[%d]" % self.index)
 
   @property
   def mass(self):
-    return self.lmp.eval("mass[%d]" % self.index)
+    return self._pylmp.eval("mass[%d]" % self.index)
 
   @property
   def position(self):
-    return (self.lmp.eval("x[%d]" % self.index),
-            self.lmp.eval("y[%d]" % self.index),
-            self.lmp.eval("z[%d]" % self.index))
+    return (self._pylmp.eval("x[%d]" % self.index),
+            self._pylmp.eval("y[%d]" % self.index),
+            self._pylmp.eval("z[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self.lmp.set("atom", self.index, "x", value[0])
-     self.lmp.set("atom", self.index, "y", value[1])
-     self.lmp.set("atom", self.index, "z", value[2])
+     self._pylmp.set("atom", self.index, "x", value[0])
+     self._pylmp.set("atom", self.index, "y", value[1])
+     self._pylmp.set("atom", self.index, "z", value[2])
 
   @property
   def velocity(self):
-    return (self.lmp.eval("vx[%d]" % self.index),
-            self.lmp.eval("vy[%d]" % self.index),
-            self.lmp.eval("vz[%d]" % self.index))
+    return (self._pylmp.eval("vx[%d]" % self.index),
+            self._pylmp.eval("vy[%d]" % self.index),
+            self._pylmp.eval("vz[%d]" % self.index))
 
   @velocity.setter
   def velocity(self, value):
-     self.lmp.set("atom", self.index, "vx", value[0])
-     self.lmp.set("atom", self.index, "vy", value[1])
-     self.lmp.set("atom", self.index, "vz", value[2])
+     self._pylmp.set("atom", self.index, "vx", value[0])
+     self._pylmp.set("atom", self.index, "vy", value[1])
+     self._pylmp.set("atom", self.index, "vz", value[2])
 
   @property
   def force(self):
-    return (self.lmp.eval("fx[%d]" % self.index),
-            self.lmp.eval("fy[%d]" % self.index),
-            self.lmp.eval("fz[%d]" % self.index))
+    return (self._pylmp.eval("fx[%d]" % self.index),
+            self._pylmp.eval("fy[%d]" % self.index),
+            self._pylmp.eval("fz[%d]" % self.index))
 
   @property
   def charge(self):
-    return self.lmp.eval("q[%d]" % self.index)
+    return self._pylmp.eval("q[%d]" % self.index)
 
 # -------------------------------------------------------------------------
 
 class Atom2D(Atom):
-  def __init__(self, lammps_wrapper_instance, index):
-    super(Atom2D, self).__init__(lammps_wrapper_instance, index)
+  """
+  A wrapper class then represents a single 2D atom inside of LAMMPS
+
+  It provides access to properties of the atom and allows you to change some of them.
+  """
+  def __init__(self, pylammps_instance, index):
+    super(Atom2D, self).__init__(pylammps_instance, index)
 
   @property
   def position(self):
-    return (self.lmp.eval("x[%d]" % self.index),
-            self.lmp.eval("y[%d]" % self.index))
+    return (self._pylmp.eval("x[%d]" % self.index),
+            self._pylmp.eval("y[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self.lmp.set("atom", self.index, "x", value[0])
-     self.lmp.set("atom", self.index, "y", value[1])
+     self._pylmp.set("atom", self.index, "x", value[0])
+     self._pylmp.set("atom", self.index, "y", value[1])
 
   @property
   def velocity(self):
-    return (self.lmp.eval("vx[%d]" % self.index),
-            self.lmp.eval("vy[%d]" % self.index))
+    return (self._pylmp.eval("vx[%d]" % self.index),
+            self._pylmp.eval("vy[%d]" % self.index))
 
   @velocity.setter
   def velocity(self, value):
-     self.lmp.set("atom", self.index, "vx", value[0])
-     self.lmp.set("atom", self.index, "vy", value[1])
+     self._pylmp.set("atom", self.index, "vx", value[0])
+     self._pylmp.set("atom", self.index, "vy", value[1])
 
   @property
   def force(self):
-    return (self.lmp.eval("fx[%d]" % self.index),
-            self.lmp.eval("fy[%d]" % self.index))
+    return (self._pylmp.eval("fx[%d]" % self.index),
+            self._pylmp.eval("fy[%d]" % self.index))
 
 # -------------------------------------------------------------------------
 
@@ -1919,11 +2092,41 @@ def get_thermo_data(output):
 
 class PyLammps(object):
   """
-  More Python-like wrapper for LAMMPS (e.g., for IPython)
-  See examples/ipython for usage
+  This is a Python wrapper class around the lower-level
+  :py:class:`lammps` class, exposing a more Python-like,
+  object-oriented interface for prototyping system inside of IPython and
+  Jupyter notebooks.
+
+  It either creates its own instance of :py:class:`lammps` or can be
+  initialized with an existing instance. The arguments are the same of the
+  lower-level interface. The original interface can still be accessed via
+  :py:attr:`PyLammps.lmp`.
+
+  :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
+  :type  name: string
+  :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
+  :type  cmdargs: list
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.
+  :type  ptr: pointer
+  :param comm: MPI communicator (as provided by `mpi4py <mpi4py_docs_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
+  :type  comm: MPI_Comm
+
+  :ivar lmp:  instance of original LAMMPS Python interface
+  :vartype lmp: :py:class:`lammps`
+
+  :ivar runs:  list of completed runs, each storing the thermo output
+  :vartype run: list
   """
 
-  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+  def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
+    self.has_echo = False
+
+    if cmdargs:
+      if '-echo' in cmdargs:
+        idx = cmdargs.index('-echo')
+        # ensures that echo line is ignored during output capture
+        self.has_echo = idx+1 < len(cmdargs) and cmdargs[idx+1] in ('screen', 'both')
+
     if ptr:
       if isinstance(ptr,PyLammps):
         self.lmp = ptr.lmp
@@ -1942,26 +2145,65 @@ class PyLammps(object):
     self.lmp = None
 
   def close(self):
+    """Explicitly delete a LAMMPS instance
+
+    This is a wrapper around the :py:meth:`lammps.close` of the Python interface.
+    """
     if self.lmp: self.lmp.close()
     self.lmp = None
 
   def version(self):
+    """Return a numerical representation of the LAMMPS version in use.
+
+    This is a wrapper around the :py:meth:`lammps.version` function of the Python interface.
+
+    :return: version number
+    :rtype:  int
+    """
     return self.lmp.version()
 
-  def file(self,file):
+  def file(self, file):
+    """Read LAMMPS commands from a file.
+
+    This is a wrapper around the :py:meth:`lammps.file` function of the Python interface.
+
+    :param path: Name of the file/path with LAMMPS commands
+    :type path:  string
+    """
     self.lmp.file(file)
 
-  def write_script(self,filename):
-    """ Write LAMMPS script file containing all commands executed up until now """
-    with open(filename, "w") as f:
-      for cmd in self._cmd_history:
-        f.write("%s\n" % cmd)
+  def write_script(self, filepath):
+    """
+    Write LAMMPS script file containing all commands executed up until now
 
-  def command(self,cmd):
+    :param filepath: path to script file that should be written
+    :type filepath: string
+    """
+    with open(filepath, "w") as f:
+      for cmd in self._cmd_history:
+        print(cmd, file=f)
+
+  def command(self, cmd):
+    """
+    Execute LAMMPS command
+
+    All commands executed will be stored in a command history which can be
+    written to a file using :py:meth:`PyLammps.write_script()`
+
+    :param cmd: command string that should be executed
+    :type: cmd: string
+    """
     self.lmp.command(cmd)
     self._cmd_history.append(cmd)
 
   def run(self, *args, **kwargs):
+    """
+    Execute LAMMPS run command with given arguments
+
+    All thermo output during the run is captured and saved as new entry in
+    :py:attr:`PyLammps.runs`. The latest run can be retrieved by
+    :py:attr:`PyLammps.last_run`.
+    """
     output = self.__getattr__('run')(*args, **kwargs)
 
     if(self.has_mpi4py):
@@ -1972,48 +2214,102 @@ class PyLammps(object):
 
   @property
   def last_run(self):
+    """
+    Return data produced of last completed run command
+
+    :getter: Returns an object containing information about the last run command
+    :type: dict
+    """
     if len(self.runs) > 0:
         return self.runs[-1]
     return None
 
   @property
   def atoms(self):
+    """
+    All atoms of this LAMMPS instance
+
+    :getter: Returns a list of atoms currently in the system
+    :type: AtomList
+    """
     return AtomList(self)
 
   @property
   def system(self):
+    """
+    The system state of this LAMMPS instance
+
+    :getter: Returns an object with properties storing the current system state
+    :type: namedtuple
+    """
     output = self.info("system")
     d = self._parse_info_system(output)
     return namedtuple('System', d.keys())(*d.values())
 
   @property
   def communication(self):
+    """
+    The communication state of this LAMMPS instance
+
+    :getter: Returns an object with properties storing the current communication state
+    :type: namedtuple
+    """
     output = self.info("communication")
     d = self._parse_info_communication(output)
     return namedtuple('Communication', d.keys())(*d.values())
 
   @property
   def computes(self):
+    """
+    The list of active computes of this LAMMPS instance
+
+    :getter: Returns a list of computes that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("computes")
     return self._parse_element_list(output)
 
   @property
   def dumps(self):
+    """
+    The list of active dumps of this LAMMPS instance
+
+    :getter: Returns a list of dumps that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("dumps")
     return self._parse_element_list(output)
 
   @property
   def fixes(self):
+    """
+    The list of active fixes of this LAMMPS instance
+
+    :getter: Returns a list of fixes that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("fixes")
     return self._parse_element_list(output)
 
   @property
   def groups(self):
+    """
+    The list of active atom groups of this LAMMPS instance
+
+    :getter: Returns a list of atom groups that are currently active in this LAMMPS instance
+    :type: list
+    """
     output = self.info("groups")
     return self._parse_groups(output)
 
   @property
   def variables(self):
+    """
+    Returns a dictionary of all variables defined in the current LAMMPS instance
+
+    :getter: Returns a dictionary of all variables that are defined in this LAMMPS instance
+    :type: dict
+    """
     output = self.info("variables")
     vars = {}
     for v in self._parse_element_list(output):
@@ -2021,6 +2317,15 @@ class PyLammps(object):
     return vars
 
   def eval(self, expr):
+    """
+    Evaluate expression
+
+    :param expr: the expression string that should be evaluated inside of LAMMPS
+    :type expr: string
+
+    :return: the value of the evaluated expression
+    :rtype: float if numeric, string otherwise
+    """
     value = self.lmp_print('"$(%s)"' % expr).strip()
     try:
       return float(value)
@@ -2156,17 +2461,32 @@ class PyLammps(object):
     'variable', 'velocity', 'write_restart']
 
   def __getattr__(self, name):
+    """
+    This method is where the Python 'magic' happens. If a method is not
+    defined by the class PyLammps, it assumes it is a LAMMPS command. It takes
+    all the arguments, concatinates them to a single string, and executes it using
+    :py:meth:`lammps.PyLammps.command()`.
+
+    :param verbose: Print output of command
+    :type verbose:  bool
+    :return: line or list of lines of output, None if no output
+    :rtype: list or string
+    """
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(x) for x in args]
 
       with OutputCapture() as capture:
-        self.command(' '.join(cmd_args))
+        cmd = ' '.join(cmd_args)
+        self.command(cmd)
         output = capture.output
 
       if 'verbose' in kwargs and kwargs['verbose']:
         print(output)
 
       lines = output.splitlines()
+
+      if self.has_echo:
+        lines = lines[1:]
 
       if len(lines) > 1:
         return lines
@@ -2179,14 +2499,56 @@ class PyLammps(object):
 
 class IPyLammps(PyLammps):
   """
-  IPython wrapper for LAMMPS which adds embedded graphics capabilities
+  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammmps interface
+
+  It either creates its own instance of :py:class:`lammps` or can be
+  initialized with an existing instance. The arguments are the same of the
+  lower-level interface. The original interface can still be accessed via
+  :py:attr:`PyLammps.lmp`.
+
+  :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
+  :type  name: string
+  :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
+  :type  cmdargs: list
+  :param ptr: pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.
+  :type  ptr: pointer
+  :param comm: MPI communicator (as provided by `mpi4py <mpi4py_docs_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
+  :type  comm: MPI_Comm
   """
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
     super(IPyLammps, self).__init__(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
 
   def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
-            size=None, view=None, center=None, up=None, zoom=1.0):
+            size=None, view=None, center=None, up=None, zoom=1.0, background_color="white"):
+    """ Generate image using write_dump command and display it
+
+    See :doc:`dump image <dump_image>` for more information.
+
+    :param filename: Name of the image file that should be generated. The extension determines whether it is PNG or JPEG
+    :type filename: string
+    :param group: the group of atoms write_image should use
+    :type group: string
+    :param color: name of property used to determine color
+    :type color: string
+    :param diameter: name of property used to determine atom diameter
+    :type diameter: string
+    :param size: dimensions of image
+    :type size: tuple (width, height)
+    :param view: view parameters
+    :type view: tuple (theta, phi)
+    :param center: center parameters
+    :type center: tuple (flag, center_x, center_y, center_z)
+    :param up: vector pointing to up direction
+    :type up: tuple (up_x, up_y, up_z)
+    :param zoom: zoom factor
+    :type zoom: float
+    :param background_color: background color of scene
+    :type background_color: string
+
+    :return: Image instance used to display image in notebook
+    :rtype: :py:class:`IPython.core.display.Image`
+    """
     cmd_args = [group, "image", filename, color, diameter]
 
     if size:
@@ -2215,12 +2577,22 @@ class IPyLammps(PyLammps):
     if zoom:
       cmd_args += ["zoom", zoom]
 
-    cmd_args.append("modify backcolor white")
+    cmd_args.append("modify backcolor " + background_color)
 
     self.write_dump(*cmd_args)
     from IPython.core.display import Image
-    return Image('snapshot.png')
+    return Image(filename)
 
   def video(self, filename):
+    """
+    Load video from file
+
+    Can be used to visualize videos from :doc:`dump movie <dump_image>`.
+
+    :param filename: Path to video file
+    :type filename: string
+    :return: HTML Video Tag used by notebook to embed a video
+    :rtype: :py:class:`IPython.display.HTML`
+    """
     from IPython.display import HTML
     return HTML("<video controls><source src=\"" + filename + "\"></video>")

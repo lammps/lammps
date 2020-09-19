@@ -133,7 +133,8 @@ Installing prerequisites for PDF build
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
-of LaTeX styles/packages are required.
+of LaTeX styles/packages are required.  To run the PDFLaTeX translation
+the tools ``latexmk`` and ``xindy`` need to be installed as well.
 
 Installing prerequisites for e-book reader builds
 =================================================

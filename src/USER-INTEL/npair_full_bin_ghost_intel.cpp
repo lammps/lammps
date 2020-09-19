@@ -88,7 +88,7 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
                      _fix->nbor_pack_width());
 
   int need_ic = 0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
                          neighbor->cutneighmax);
 
@@ -420,7 +420,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           }
         } // for u
 
-        if (molecular && i < nlocal) {
+        if ((molecular != Atom::ATOMIC) && (i < nlocal)) {
           int alln = n;
           n = 0;
           #if defined(LMP_SIMD_COMPILER)

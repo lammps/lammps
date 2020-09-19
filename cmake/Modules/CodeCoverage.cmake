@@ -3,10 +3,15 @@
 #
 # Requires latest gcovr (for GCC 8.1 support):#
 # pip install git+https://github.com/gcovr/gcovr.git
+#
+# For Python coverage the coverage package needs to be installed
 ###############################################################################
 if(ENABLE_COVERAGE)
     find_program(GCOVR_BINARY gcovr)
     find_package_handle_standard_args(GCOVR DEFAULT_MSG GCOVR_BINARY)
+
+    find_program(COVERAGE_BINARY coverage)
+    find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
 
     if(GCOVR_FOUND)
         get_filename_component(ABSOLUTE_LAMMPS_SOURCE_DIR ${LAMMPS_SOURCE_DIR} ABSOLUTE)
@@ -45,5 +50,31 @@ if(ENABLE_COVERAGE)
             COMMENT "Deleting coverage data files..."
         )
         add_dependencies(reset_coverage clean_coverage_html)
+    endif()
+
+    if(COVERAGE_FOUND)
+        set(PYTHON_COVERAGE_HTML_DIR ${CMAKE_BINARY_DIR}/python_coverage_html)
+        add_custom_command(
+            OUTPUT ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            COMMAND ${COVERAGE_BINARY} combine
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
+            COMMENT "Combine Python coverage files..."
+        )
+
+        add_custom_target(
+            gen_python_coverage_html
+            COMMAND ${COVERAGE_BINARY} html -d ${PYTHON_COVERAGE_HTML_DIR}
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
+            COMMENT "Generating HTML Python coverage report..."
+        )
+
+        add_custom_target(
+            gen_python_coverage_xml
+            COMMAND ${COVERAGE_BINARY} xml -o ${CMAKE_BINARY_DIR}/python_coverage.xml
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
+            COMMENT "Generating XML Python coverage report..."
+        )
     endif()
 endif()

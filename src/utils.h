@@ -247,6 +247,13 @@ namespace LAMMPS_NS {
      * command lines and similar text and not for time critical processing.
      * Use a tokenizer class for that.
      *
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`Tokenizer`, :cpp:class:`ValueTokenizer`
+
+\endverbatim
+     *
      * \param text string that should be split
      * \return STL vector with the words */
 

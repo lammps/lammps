@@ -2,7 +2,7 @@
 
 <!--Briefly describe the new feature(s), enhancement(s), or bugfix(es) included in this pull request.-->
 
-**Related Issues**
+**Related Issue(s)**
 
 <!--If this addresses an open GitHub issue for this project, please mention the issue number here, and describe the relation. Use the phrases `fixes #221` or `closes #135`, when you want an issue to be automatically closed when the pull request is merged-->
 

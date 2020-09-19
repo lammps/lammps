@@ -41,7 +41,7 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *update_edges*
+* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges*
 
   .. parsed-literal::
 
@@ -52,10 +52,9 @@ Syntax
            N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
            timesteps = number of timesteps to apply the internally-created :doc:`nve/limit <fix_nve_limit>` fix to reacting atoms
-         *update_edges* value = *none* or *charges* or *custom*
-           *none* = do not update topology near the edges of reaction templates
-           *charges* = update atomic charges of all atoms in reaction templates
-           *custom* = force the update of user-specified atomic charges
+         *custom_charges* value = *no* or *fragmentID*
+           no = update all atomic charges (default)
+           fragmentID = ID of molecule fragment whose charges are updated
 
 Examples
 """"""""
@@ -271,14 +270,14 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and five optional keywords. The
+contains one mandatory keyword and four optional keywords. The
 mandatory keyword is 'equivalences':
 
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+The optional keywords are 'edgeIDs', 'deleteIDs', 'chiralIDs' and
 'constraints':
 
 .. parsed-literal::
@@ -286,10 +285,9 @@ The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
    N *deleteIDs* = # of atoms N that are specified for deletion
    N *chiralIDs* = # of specified chiral centers N
-   N *customIDs* = # of atoms N that are specified for a custom update
    N *constraints* = # of specified reaction constraints N
 
-The body of the map file contains two mandatory sections and five
+The body of the map file contains two mandatory sections and four
 optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
@@ -303,16 +301,11 @@ molecule template. The second optional section begins with the keyword
 'DeleteIDs' and lists the atom IDs of pre-reaction template atoms to
 delete. The third optional section begins with the keyword 'ChiralIDs'
 lists the atom IDs of chiral atoms whose handedness should be
-enforced. The fourth optional section begins with the keyword 'Custom
-Edges' and allows for forcing the update of a specific atom's atomic
-charge. The first column is the ID of an atom near the edge of the
-pre-reacted molecule template, and the value of the second column is
-either 'none' or 'charges.' Further details are provided in the
-discussion of the 'update_edges' keyword. The fifth optional section
-begins with the keyword 'Constraints' and lists additional criteria
-that must be satisfied in order for the reaction to occur. Currently,
-there are five types of constraints available, as discussed below:
-'distance', 'angle', 'dihedral', 'arrhenius', and 'rmsd'.
+enforced. The fourth optional section begins with the keyword
+'Constraints' and lists additional criteria that must be satisfied in
+order for the reaction to occur. Currently, there are five types of
+constraints available, as discussed below: 'distance', 'angle',
+'dihedral', 'arrhenius', and 'rmsd'.
 
 A sample map file is given below:
 
@@ -488,17 +481,12 @@ individually tuned for each fix reaction step. Note that in some
 situations, decreasing rather than increasing this parameter will
 result in an increase in stability.
 
-The *update_edges* keyword can increase the number of atoms whose
-atomic charges are updated, when the pre-reaction template contains
-edge atoms. When the value is set to 'charges,' all atoms' atomic
-charges are updated to those specified by the post-reaction template,
-including atoms near the edge of reaction templates. When the value is
-set to 'custom,' an additional section must be included in the map
-file that specifies whether or not to update charges, on a per-atom
-basis. The format of this section is detailed above. Listing a
-pre-reaction atom ID with a value of 'charges' will force the update
-of the atom's charge, even if it is near a template edge. Atoms not
-near a template edge are unaffected by this setting.
+The *custom_charges* keyword can be used to specify which atoms'
+atomic charges are updated. When the value is set to 'no,' all atomic
+charges are updated to those specified by the post-reaction template
+(default). Otherwise, the value should be the name of a molecule
+fragment defined in the pre-reaction molecule template. In this case,
+only the atomic charges of atoms in the molecule fragment are updated.
 
 A few other considerations:
 
@@ -584,7 +572,7 @@ Default
 """""""
 
 The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
-reset_mol_ids = yes, update_edges = none
+reset_mol_ids = yes, custom_charges = no
 
 ----------
 

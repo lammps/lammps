@@ -79,7 +79,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(POLYFILL) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
 	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
@@ -235,8 +235,12 @@ $(VENV):
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
 
+# fall back to using wget and/or unencrypted download, if curl fails
 $(POLYFILL): $(MATHJAX)
-	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6"
+	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		curl -s -o $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		wget -O $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		wget -O $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

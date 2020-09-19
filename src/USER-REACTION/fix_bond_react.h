@@ -80,10 +80,10 @@ class FixBondReact : public Fix {
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
   double **distsq,*probability;
-  int *ncreate;
-  int maxcreate;
-  int allncreate;
-  tagint ***created;
+  int *nattempt;
+  int maxattempt;
+  int allnattempt;
+  tagint ***attempt;
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
@@ -113,7 +113,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ndelete,ncreate,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ndelete,ncreate,nchiral,nconstr; // # edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;

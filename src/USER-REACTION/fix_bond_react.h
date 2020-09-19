@@ -64,7 +64,7 @@ class FixBondReact : public Fix {
   int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
-  int *update_edges_flag;
+  int *custom_charges_fragid;
   int nconstraints;
   int narrhenius;
   double **constraints;
@@ -80,10 +80,10 @@ class FixBondReact : public Fix {
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
   double **distsq,*probability;
-  int *nattempt;
-  int maxattempt;
-  int allnattempt;
-  tagint ***attempt;
+  int *ncreate;
+  int maxcreate;
+  int allncreate;
+  tagint ***created;
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
@@ -113,7 +113,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete,ncreate,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ndelete,ncreate,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -127,7 +127,7 @@ class FixBondReact : public Fix {
   int ***equivalences; // relation between pre- and post-reacted templates
   int ***reverse_equiv; // re-ordered equivalences
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
-  int **custom_edges; // atoms in molecule templates with incorrect valences
+  int **custom_charges; // atoms whose charge should be updated
   int **delete_atoms; // atoms in pre-reacted templates to delete
   int **create_atoms; // atoms in post-reacted templates to create
   int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
@@ -152,9 +152,9 @@ class FixBondReact : public Fix {
   void read(int);
   void EdgeIDs(char *, int);
   void Equivalences(char *, int);
-  void CustomEdges(char *, int);
   void DeleteAtoms(char *, int);
   void CreateAtoms(char *,int);
+  void CustomCharges(int, int);
   void ChiralCenters(char *, int);
   void Constraints(char *, int);
   void readID(char *, int, int, int);
@@ -183,6 +183,7 @@ class FixBondReact : public Fix {
   void glove_ghostcheck();
   void ghost_glovecast();
   void update_everything();
+  void insert_atoms(int, tagint **, int);
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove

@@ -25,8 +25,8 @@ using namespace LAMMPS_NS;
 
 AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   atom->rho_flag = 1;
   atom->dpd_flag = 1;

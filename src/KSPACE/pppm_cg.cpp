@@ -16,20 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "gridcomm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "neighbor.h"
-#include "memory.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
 #include "remap.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,7 +47,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMCG::PPPMCG(LAMMPS *lmp) : PPPM(lmp),
-  is_charged(NULL)
+  is_charged(nullptr)
 {
   num_charged = -1;
   group_group_enable = 1;

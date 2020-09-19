@@ -15,17 +15,15 @@
 #include "force.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdio>
+#include <cmath>
 #include <cstring>
-#include <mpi.h>
+#include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;

@@ -1,10 +1,10 @@
 .. index:: fix dpd/energy
+.. index:: fix dpd/energy/kk
 
 fix dpd/energy command
 ======================
 
-fix dpd/energy/kk command
-=========================
+Accelerator Variants: *dpd/energy/kk*
 
 Syntax
 """"""

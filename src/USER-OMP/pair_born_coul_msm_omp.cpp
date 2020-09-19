@@ -12,17 +12,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_born_coul_msm_omp.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +59,7 @@ void PairBornCoulMSMOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {

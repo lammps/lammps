@@ -12,25 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor_kokkos.h"
-#include "atom_kokkos.h"
-#include "pair.h"
-#include "fix.h"
-#include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "update.h"
-#include "atom_masks.h"
-#include "error.h"
-#include "kokkos.h"
-#include "force.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "style_nbin.h"
-#include "style_nstencil.h"
-#include "style_npair.h"
-#include "style_ntopo.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "bond.h"
 #include "comm.h"
+#include "dihedral.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "improper.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neigh_request.h"
+#include "pair.h"
+#include "style_nbin.h"
+#include "style_npair.h"
+#include "style_nstencil.h"
+#include "style_ntopo.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -40,10 +41,10 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
   neighbond_host(lmp),neighbond_device(lmp)
 {
   device_flag = 0;
-  bondlist = NULL;
-  anglelist = NULL;
-  dihedrallist = NULL;
-  improperlist = NULL;
+  bondlist = nullptr;
+  anglelist = nullptr;
+  dihedrallist = nullptr;
+  improperlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -52,7 +53,7 @@ NeighborKokkos::~NeighborKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = NULL;
+    cutneighsq = nullptr;
 
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
@@ -315,7 +316,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
-  if (atom->molecular && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
 }
 
 template<class DeviceType>

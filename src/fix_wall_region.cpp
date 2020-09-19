@@ -12,17 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "math_const.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/region command");
 

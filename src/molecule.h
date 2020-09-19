@@ -15,7 +15,7 @@
 #define LMP_ONE_MOLECULE_H
 
 #include "pointers.h"
-#include <string>
+
 #include <vector>
 
 namespace LAMMPS_NS {

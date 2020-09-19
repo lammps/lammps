@@ -27,9 +27,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_smd_triangulated_surface.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <Eigen/Eigen>
 #include "atom.h"
@@ -41,7 +41,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -54,9 +54,9 @@ using namespace Eigen;
 PairTriSurf::PairTriSurf(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
-        bulkmodulus = NULL;
-        kn = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
+        bulkmodulus = nullptr;
+        kn = nullptr;
         scale = 1.0;
 }
 
@@ -833,6 +833,6 @@ void *PairTriSurf::extract(const char *str, int &/*i*/) {
                 return (void *) &stable_time_increment;
         }
 
-        return NULL;
+        return nullptr;
 
 }

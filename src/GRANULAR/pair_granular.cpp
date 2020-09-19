@@ -18,10 +18,10 @@
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -37,7 +37,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -73,14 +73,14 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   neighprev = 0;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
-  onerad_dynamic = NULL;
-  onerad_frozen = NULL;
-  maxrad_dynamic = NULL;
-  maxrad_frozen = NULL;
+  onerad_dynamic = nullptr;
+  onerad_frozen = nullptr;
+  maxrad_dynamic = nullptr;
+  maxrad_frozen = nullptr;
 
-  history_transfer_factors = NULL;
+  history_transfer_factors = nullptr;
 
   dt = update->dt;
 
@@ -97,7 +97,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
-  fix_history = NULL;
+  fix_history = nullptr;
   modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
@@ -1101,7 +1101,7 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (use_history && fix_history == NULL) {
+  if (use_history && fix_history == nullptr) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
@@ -1125,7 +1125,7 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -1330,20 +1330,20 @@ void PairGranular::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,NULL,error);
-          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,nullptr,error);
+          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);

@@ -24,7 +24,7 @@ DihedralStyle(table,DihedralTable)
 #ifndef LMP_DIHEDRAL_TABLE_H
 #define LMP_DIHEDRAL_TABLE_H
 #include "dihedral.h"
-#include <string>
+
 
 namespace LAMMPS_NS {
 

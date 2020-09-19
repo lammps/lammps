@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_heat_flux_tally.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -48,8 +48,8 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
   did_setup = 0;
   invoked_peratom = invoked_scalar = -1;
   nmax = -1;
-  stress = NULL;
-  eatom = NULL;
+  stress = nullptr;
+  eatom = nullptr;
   vector = new double[size_vector];
   heatj = new double[size_vector];
 }
@@ -69,7 +69,7 @@ ComputeHeatFluxTally::~ComputeHeatFluxTally()
 
 void ComputeHeatFluxTally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute heat/flux/tally without pair style");
   else
     force->pair->add_tally_callback(this);

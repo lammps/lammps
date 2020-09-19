@@ -28,7 +28,7 @@ static const char cite_nagline[] = "\nPlease see the log.cite file "
 
 CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = NULL;
+  fp = nullptr;
   cs = new citeset();
 }
 

@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_e3b.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <algorithm>
@@ -50,12 +50,12 @@ PairE3B::PairE3B(LAMMPS *lmp) : Pair(lmp),pairPerAtom(10)
   pvector = new double[nextra];
 
   allocatedE3B = false;
-  pairO  = NULL;
-  pairH  = NULL;
-  exps   = NULL;
-  del3   = NULL;
-  fpair3 = NULL;
-  sumExp = NULL;
+  pairO  = nullptr;
+  pairH  = nullptr;
+  exps   = nullptr;
+  del3   = nullptr;
+  fpair3 = nullptr;
+  sumExp = nullptr;
 }
 
 /* ----------------------------------------------------------------------

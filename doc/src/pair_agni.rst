@@ -1,10 +1,10 @@
 .. index:: pair_style agni
+.. index:: pair_style agni/omp
 
 pair_style agni command
-========================
+=======================
 
-pair_style agni/omp command
-============================
+Accelerator Variants: *agni/omp*
 
 Syntax
 """"""

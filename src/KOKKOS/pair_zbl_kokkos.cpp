@@ -60,9 +60,9 @@ PairZBLKokkos<DeviceType>::~PairZBLKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memory->sfree(cutsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
   }
 }
 
@@ -416,9 +416,9 @@ template<class DeviceType>
 void PairZBLKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 namespace LAMMPS_NS {

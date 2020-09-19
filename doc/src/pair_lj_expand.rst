@@ -1,22 +1,19 @@
 .. index:: pair_style lj/expand
+.. index:: pair_style lj/expand/gpu
+.. index:: pair_style lj/expand/kk
+.. index:: pair_style lj/expand/omp
+.. index:: pair_style lj/expand/coul/long
+.. index:: pair_style lj/expand/coul/long/gpu
 
 pair_style lj/expand command
 ============================
 
-pair_style lj/expand/gpu command
-================================
-
-pair_style lj/expand/kk command
-===============================
-
-pair_style lj/expand/omp command
-================================
+Accelerator Variants: *lj/expand/gpu*, *lj/expand/kk*, *lj/expand/omp*
 
 pair_style lj/expand/coul/long command
 ======================================
 
-pair_style lj/expand/coul/long/gpu command
-==========================================
+Accelerator Variants: *lj/expand/coul/long/gpu*
 
 Syntax
 """"""

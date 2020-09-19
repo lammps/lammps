@@ -1,4 +1,30 @@
-.. index:: kspace_style
+.. index:: kspace_style ewald
+.. index:: kspace_style ewald/dipole
+.. index:: kspace_style ewald/dipole/spin
+.. index:: kspace_style ewald/disp
+.. index:: kspace_style ewald/omp
+.. index:: kspace_style pppm
+.. index:: kspace_style pppm/kk
+.. index:: kspace_style pppm/omp
+.. index:: kspace_style pppm/gpu
+.. index:: kspace_style pppm/intel
+.. index:: kspace_style pppm/cg
+.. index:: kspace_style pppm/dipole
+.. index:: kspace_style pppm/dipole/spin
+.. index:: kspace_style pppm/disp
+.. index:: kspace_style pppm/disp/omp
+.. index:: kspace_style pppm/disp/tip4p
+.. index:: kspace_style pppm/disp/tip4p/omp
+.. index:: kspace_style pppm/disp/intel
+.. index:: kspace_style pppm/cg/omp
+.. index:: kspace_style pppm/stagger
+.. index:: kspace_style pppm/tip4p
+.. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style msm
+.. index:: kspace_style msm/omp
+.. index:: kspace_style msm/cg
+.. index:: kspace_style msm/cg/omp
+.. index:: kspace_style scafacos
 
 kspace_style command
 ====================

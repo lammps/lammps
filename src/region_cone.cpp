@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "region_cone.h"
-#include <cmath>
-#include <cstring>
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

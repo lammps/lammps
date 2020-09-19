@@ -23,9 +23,8 @@ ReaderStyle(native,ReaderNative)
 #define LMP_READER_NATIVE_H
 
 #include "reader.h"
-#include <string>
+
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 

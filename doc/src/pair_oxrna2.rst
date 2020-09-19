@@ -1,4 +1,9 @@
 .. index:: pair_style oxrna2/excv
+.. index:: pair_style oxrna2/stk
+.. index:: pair_style oxrna2/hbond
+.. index:: pair_style oxrna2/xstk
+.. index:: pair_style oxrna2/coaxstk
+.. index:: pair_style oxrna2/dh
 
 pair_style oxrna2/excv command
 ==============================

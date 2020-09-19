@@ -16,26 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_dipole.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
-#include "remap_wrap.h"
-#include "memory.h"
 #include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
-
+#include "fft3d_wrap.h"
+#include "force.h"
+#include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "pair.h"
+#include "remap_wrap.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,25 +58,25 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
-  densityx_brick_dipole(NULL), densityy_brick_dipole(NULL),
-  densityz_brick_dipole(NULL),
-  vdxx_brick_dipole(NULL), vdyy_brick_dipole(NULL), vdzz_brick_dipole(NULL),
-  vdxy_brick_dipole(NULL), vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL),
-  ux_brick_dipole(NULL), uy_brick_dipole(NULL), uz_brick_dipole(NULL),
-  v0x_brick_dipole(NULL), v1x_brick_dipole(NULL),
-  v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL),
-  v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL),
-  v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL),
-  v5y_brick_dipole(NULL), v0z_brick_dipole(NULL), v1z_brick_dipole(NULL),
-  v2z_brick_dipole(NULL), v3z_brick_dipole(NULL), v4z_brick_dipole(NULL),
-  v5z_brick_dipole(NULL), work3(NULL), work4(NULL),
-  densityx_fft_dipole(NULL), densityy_fft_dipole(NULL),
-  densityz_fft_dipole(NULL)
+  densityx_brick_dipole(nullptr), densityy_brick_dipole(nullptr),
+  densityz_brick_dipole(nullptr),
+  vdxx_brick_dipole(nullptr), vdyy_brick_dipole(nullptr), vdzz_brick_dipole(nullptr),
+  vdxy_brick_dipole(nullptr), vdxz_brick_dipole(nullptr), vdyz_brick_dipole(nullptr),
+  ux_brick_dipole(nullptr), uy_brick_dipole(nullptr), uz_brick_dipole(nullptr),
+  v0x_brick_dipole(nullptr), v1x_brick_dipole(nullptr),
+  v2x_brick_dipole(nullptr), v3x_brick_dipole(nullptr), v4x_brick_dipole(nullptr),
+  v5x_brick_dipole(nullptr), v0y_brick_dipole(nullptr), v1y_brick_dipole(nullptr),
+  v2y_brick_dipole(nullptr), v3y_brick_dipole(nullptr), v4y_brick_dipole(nullptr),
+  v5y_brick_dipole(nullptr), v0z_brick_dipole(nullptr), v1z_brick_dipole(nullptr),
+  v2z_brick_dipole(nullptr), v3z_brick_dipole(nullptr), v4z_brick_dipole(nullptr),
+  v5z_brick_dipole(nullptr), work3(nullptr), work4(nullptr),
+  densityx_fft_dipole(nullptr), densityy_fft_dipole(nullptr),
+  densityz_fft_dipole(nullptr)
 {
   dipoleflag = 1;
   group_group_enable = 0;
 
-  gc_dipole = NULL;
+  gc_dipole = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -156,7 +153,7 @@ void PPPMDipole::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -190,7 +187,7 @@ void PPPMDipole::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = NULL;
+  GridComm *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {

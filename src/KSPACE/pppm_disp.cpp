@@ -17,26 +17,24 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_disp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include <string>
-#include "math_const.h"
-#include "atom.h"
-#include "comm.h"
-#include "gridcomm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
-#include "remap_wrap.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fft3d_wrap.h"
+#include "force.h"
+#include "gridcomm.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "remap_wrap.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -65,47 +63,47 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
 /* ---------------------------------------------------------------------- */
 
 PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), csumi(NULL), cii(NULL), B(NULL), density_brick(NULL), vdx_brick(NULL),
-  vdy_brick(NULL), vdz_brick(NULL), density_fft(NULL), u_brick(NULL), v0_brick(NULL),
-  v1_brick(NULL), v2_brick(NULL), v3_brick(NULL), v4_brick(NULL), v5_brick(NULL),
-  density_brick_g(NULL), vdx_brick_g(NULL), vdy_brick_g(NULL), vdz_brick_g(NULL),
-  density_fft_g(NULL), u_brick_g(NULL), v0_brick_g(NULL), v1_brick_g(NULL), v2_brick_g(NULL),
-  v3_brick_g(NULL), v4_brick_g(NULL), v5_brick_g(NULL), density_brick_a0(NULL),
-  vdx_brick_a0(NULL), vdy_brick_a0(NULL), vdz_brick_a0(NULL), density_fft_a0(NULL),
-  u_brick_a0(NULL), v0_brick_a0(NULL), v1_brick_a0(NULL), v2_brick_a0(NULL),
-  v3_brick_a0(NULL), v4_brick_a0(NULL), v5_brick_a0(NULL), density_brick_a1(NULL),
-  vdx_brick_a1(NULL), vdy_brick_a1(NULL), vdz_brick_a1(NULL), density_fft_a1(NULL),
-  u_brick_a1(NULL), v0_brick_a1(NULL), v1_brick_a1(NULL), v2_brick_a1(NULL),
-  v3_brick_a1(NULL), v4_brick_a1(NULL), v5_brick_a1(NULL), density_brick_a2(NULL),
-  vdx_brick_a2(NULL), vdy_brick_a2(NULL), vdz_brick_a2(NULL), density_fft_a2(NULL),
-  u_brick_a2(NULL), v0_brick_a2(NULL), v1_brick_a2(NULL), v2_brick_a2(NULL),
-  v3_brick_a2(NULL), v4_brick_a2(NULL), v5_brick_a2(NULL), density_brick_a3(NULL),
-  vdx_brick_a3(NULL), vdy_brick_a3(NULL), vdz_brick_a3(NULL), density_fft_a3(NULL),
-  u_brick_a3(NULL), v0_brick_a3(NULL), v1_brick_a3(NULL), v2_brick_a3(NULL),
-  v3_brick_a3(NULL), v4_brick_a3(NULL), v5_brick_a3(NULL), density_brick_a4(NULL),
-  vdx_brick_a4(NULL), vdy_brick_a4(NULL), vdz_brick_a4(NULL), density_fft_a4(NULL),
-  u_brick_a4(NULL), v0_brick_a4(NULL), v1_brick_a4(NULL), v2_brick_a4(NULL),
-  v3_brick_a4(NULL), v4_brick_a4(NULL), v5_brick_a4(NULL), density_brick_a5(NULL),
-  vdx_brick_a5(NULL), vdy_brick_a5(NULL), vdz_brick_a5(NULL), density_fft_a5(NULL),
-  u_brick_a5(NULL), v0_brick_a5(NULL), v1_brick_a5(NULL), v2_brick_a5(NULL),
-  v3_brick_a5(NULL), v4_brick_a5(NULL), v5_brick_a5(NULL), density_brick_a6(NULL),
-  vdx_brick_a6(NULL), vdy_brick_a6(NULL), vdz_brick_a6(NULL), density_fft_a6(NULL),
-  u_brick_a6(NULL), v0_brick_a6(NULL), v1_brick_a6(NULL), v2_brick_a6(NULL),
-  v3_brick_a6(NULL), v4_brick_a6(NULL), v5_brick_a6(NULL), density_brick_none(NULL),
-  vdx_brick_none(NULL), vdy_brick_none(NULL), vdz_brick_none(NULL),
-  density_fft_none(NULL), u_brick_none(NULL), v0_brick_none(NULL), v1_brick_none(NULL),
-  v2_brick_none(NULL), v3_brick_none(NULL), v4_brick_none(NULL), v5_brick_none(NULL),
-  greensfn(NULL), vg(NULL), vg2(NULL), greensfn_6(NULL), vg_6(NULL), vg2_6(NULL),
-  fkx(NULL), fky(NULL), fkz(NULL), fkx2(NULL), fky2(NULL), fkz2(NULL), fkx_6(NULL),
-  fky_6(NULL), fkz_6(NULL), fkx2_6(NULL), fky2_6(NULL), fkz2_6(NULL), gf_b(NULL),
-  gf_b_6(NULL), sf_precoeff1(NULL), sf_precoeff2(NULL), sf_precoeff3(NULL),
-  sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL), sf_precoeff1_6(NULL),
-  sf_precoeff2_6(NULL), sf_precoeff3_6(NULL), sf_precoeff4_6(NULL), sf_precoeff5_6(NULL),
-  sf_precoeff6_6(NULL), rho1d(NULL), rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL),
-  rho1d_6(NULL), rho_coeff_6(NULL), drho1d_6(NULL), drho_coeff_6(NULL), work1(NULL),
-   work2(NULL), work1_6(NULL), work2_6(NULL), fft1(NULL), fft2(NULL), fft1_6(NULL),
-   fft2_6(NULL), remap(NULL), remap_6(NULL), gc(NULL), gc6(NULL),
-   part2grid(NULL), part2grid_6(NULL), boxlo(NULL)
+  factors(nullptr), csumi(nullptr), cii(nullptr), B(nullptr), density_brick(nullptr), vdx_brick(nullptr),
+  vdy_brick(nullptr), vdz_brick(nullptr), density_fft(nullptr), u_brick(nullptr), v0_brick(nullptr),
+  v1_brick(nullptr), v2_brick(nullptr), v3_brick(nullptr), v4_brick(nullptr), v5_brick(nullptr),
+  density_brick_g(nullptr), vdx_brick_g(nullptr), vdy_brick_g(nullptr), vdz_brick_g(nullptr),
+  density_fft_g(nullptr), u_brick_g(nullptr), v0_brick_g(nullptr), v1_brick_g(nullptr), v2_brick_g(nullptr),
+  v3_brick_g(nullptr), v4_brick_g(nullptr), v5_brick_g(nullptr), density_brick_a0(nullptr),
+  vdx_brick_a0(nullptr), vdy_brick_a0(nullptr), vdz_brick_a0(nullptr), density_fft_a0(nullptr),
+  u_brick_a0(nullptr), v0_brick_a0(nullptr), v1_brick_a0(nullptr), v2_brick_a0(nullptr),
+  v3_brick_a0(nullptr), v4_brick_a0(nullptr), v5_brick_a0(nullptr), density_brick_a1(nullptr),
+  vdx_brick_a1(nullptr), vdy_brick_a1(nullptr), vdz_brick_a1(nullptr), density_fft_a1(nullptr),
+  u_brick_a1(nullptr), v0_brick_a1(nullptr), v1_brick_a1(nullptr), v2_brick_a1(nullptr),
+  v3_brick_a1(nullptr), v4_brick_a1(nullptr), v5_brick_a1(nullptr), density_brick_a2(nullptr),
+  vdx_brick_a2(nullptr), vdy_brick_a2(nullptr), vdz_brick_a2(nullptr), density_fft_a2(nullptr),
+  u_brick_a2(nullptr), v0_brick_a2(nullptr), v1_brick_a2(nullptr), v2_brick_a2(nullptr),
+  v3_brick_a2(nullptr), v4_brick_a2(nullptr), v5_brick_a2(nullptr), density_brick_a3(nullptr),
+  vdx_brick_a3(nullptr), vdy_brick_a3(nullptr), vdz_brick_a3(nullptr), density_fft_a3(nullptr),
+  u_brick_a3(nullptr), v0_brick_a3(nullptr), v1_brick_a3(nullptr), v2_brick_a3(nullptr),
+  v3_brick_a3(nullptr), v4_brick_a3(nullptr), v5_brick_a3(nullptr), density_brick_a4(nullptr),
+  vdx_brick_a4(nullptr), vdy_brick_a4(nullptr), vdz_brick_a4(nullptr), density_fft_a4(nullptr),
+  u_brick_a4(nullptr), v0_brick_a4(nullptr), v1_brick_a4(nullptr), v2_brick_a4(nullptr),
+  v3_brick_a4(nullptr), v4_brick_a4(nullptr), v5_brick_a4(nullptr), density_brick_a5(nullptr),
+  vdx_brick_a5(nullptr), vdy_brick_a5(nullptr), vdz_brick_a5(nullptr), density_fft_a5(nullptr),
+  u_brick_a5(nullptr), v0_brick_a5(nullptr), v1_brick_a5(nullptr), v2_brick_a5(nullptr),
+  v3_brick_a5(nullptr), v4_brick_a5(nullptr), v5_brick_a5(nullptr), density_brick_a6(nullptr),
+  vdx_brick_a6(nullptr), vdy_brick_a6(nullptr), vdz_brick_a6(nullptr), density_fft_a6(nullptr),
+  u_brick_a6(nullptr), v0_brick_a6(nullptr), v1_brick_a6(nullptr), v2_brick_a6(nullptr),
+  v3_brick_a6(nullptr), v4_brick_a6(nullptr), v5_brick_a6(nullptr), density_brick_none(nullptr),
+  vdx_brick_none(nullptr), vdy_brick_none(nullptr), vdz_brick_none(nullptr),
+  density_fft_none(nullptr), u_brick_none(nullptr), v0_brick_none(nullptr), v1_brick_none(nullptr),
+  v2_brick_none(nullptr), v3_brick_none(nullptr), v4_brick_none(nullptr), v5_brick_none(nullptr),
+  greensfn(nullptr), vg(nullptr), vg2(nullptr), greensfn_6(nullptr), vg_6(nullptr), vg2_6(nullptr),
+  fkx(nullptr), fky(nullptr), fkz(nullptr), fkx2(nullptr), fky2(nullptr), fkz2(nullptr), fkx_6(nullptr),
+  fky_6(nullptr), fkz_6(nullptr), fkx2_6(nullptr), fky2_6(nullptr), fkz2_6(nullptr), gf_b(nullptr),
+  gf_b_6(nullptr), sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
+  sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr), sf_precoeff1_6(nullptr),
+  sf_precoeff2_6(nullptr), sf_precoeff3_6(nullptr), sf_precoeff4_6(nullptr), sf_precoeff5_6(nullptr),
+  sf_precoeff6_6(nullptr), rho1d(nullptr), rho_coeff(nullptr), drho1d(nullptr), drho_coeff(nullptr),
+  rho1d_6(nullptr), rho_coeff_6(nullptr), drho1d_6(nullptr), drho_coeff_6(nullptr), work1(nullptr),
+   work2(nullptr), work1_6(nullptr), work2_6(nullptr), fft1(nullptr), fft2(nullptr), fft1_6(nullptr),
+   fft2_6(nullptr), remap(nullptr), remap_6(nullptr), gc(nullptr), gc6(nullptr),
+   part2grid(nullptr), part2grid_6(nullptr), boxlo(nullptr)
 {
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
@@ -127,98 +125,98 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   nzhi_in_6 = nzlo_in_6 = nzhi_out_6 = nzlo_out_6 = 0;
 
   csumflag = 0;
-  B = NULL;
-  cii = NULL;
-  csumi = NULL;
+  B = nullptr;
+  cii = nullptr;
+  csumi = nullptr;
   peratom_allocate_flag = 0;
 
-  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
-  density_fft = NULL;
+  density_brick = vdx_brick = vdy_brick = vdz_brick = nullptr;
+  density_fft = nullptr;
   u_brick = v0_brick = v1_brick = v2_brick = v3_brick =
-    v4_brick = v5_brick = NULL;
+    v4_brick = v5_brick = nullptr;
 
-  density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = NULL;
-  density_fft_g = NULL;
+  density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = nullptr;
+  density_fft_g = nullptr;
   u_brick_g = v0_brick_g = v1_brick_g = v2_brick_g = v3_brick_g =
-    v4_brick_g = v5_brick_g = NULL;
+    v4_brick_g = v5_brick_g = nullptr;
 
-  density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = NULL;
-  density_fft_a0 = NULL;
+  density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = nullptr;
+  density_fft_a0 = nullptr;
   u_brick_a0 = v0_brick_a0 = v1_brick_a0 = v2_brick_a0 = v3_brick_a0 =
-    v4_brick_a0 = v5_brick_a0 = NULL;
+    v4_brick_a0 = v5_brick_a0 = nullptr;
 
-  density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = NULL;
-  density_fft_a1 = NULL;
+  density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = nullptr;
+  density_fft_a1 = nullptr;
   u_brick_a1 = v0_brick_a1 = v1_brick_a1 = v2_brick_a1 = v3_brick_a1 =
-    v4_brick_a1 = v5_brick_a1 = NULL;
+    v4_brick_a1 = v5_brick_a1 = nullptr;
 
-  density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = NULL;
-  density_fft_a2 = NULL;
+  density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = nullptr;
+  density_fft_a2 = nullptr;
   u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 =
-    v4_brick_a2 = v5_brick_a2 = NULL;
+    v4_brick_a2 = v5_brick_a2 = nullptr;
 
-  density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = NULL;
-  density_fft_a3 = NULL;
+  density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = nullptr;
+  density_fft_a3 = nullptr;
   u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 =
-    v4_brick_a3 = v5_brick_a3 = NULL;
+    v4_brick_a3 = v5_brick_a3 = nullptr;
 
-  density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = NULL;
-  density_fft_a4 = NULL;
+  density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = nullptr;
+  density_fft_a4 = nullptr;
   u_brick_a4 = v0_brick_a4 = v1_brick_a4 = v2_brick_a4 = v3_brick_a4 =
-    v4_brick_a4 = v5_brick_a4 = NULL;
+    v4_brick_a4 = v5_brick_a4 = nullptr;
 
-  density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = NULL;
-  density_fft_a5 = NULL;
+  density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = nullptr;
+  density_fft_a5 = nullptr;
   u_brick_a5 = v0_brick_a5 = v1_brick_a5 = v2_brick_a5 = v3_brick_a5 =
-    v4_brick_a5 = v5_brick_a5 = NULL;
+    v4_brick_a5 = v5_brick_a5 = nullptr;
 
-  density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = NULL;
-  density_fft_a6 = NULL;
+  density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = nullptr;
+  density_fft_a6 = nullptr;
   u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 =
-    v4_brick_a6 = v5_brick_a6 = NULL;
+    v4_brick_a6 = v5_brick_a6 = nullptr;
 
-  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = NULL;
-  density_fft_none = NULL;
+  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = nullptr;
+  density_fft_none = nullptr;
   u_brick_none = v0_brick_none = v1_brick_none = v2_brick_none = v3_brick_none =
-    v4_brick_none = v5_brick_none = NULL;
+    v4_brick_none = v5_brick_none = nullptr;
 
-  greensfn = NULL;
-  greensfn_6 = NULL;
-  work1 = work2 = NULL;
-  work1_6 = work2_6 = NULL;
-  vg = NULL;
-  vg2 = NULL;
-  vg_6 = NULL;
-  vg2_6 = NULL;
-  fkx = fky = fkz = NULL;
-  fkx2 = fky2 = fkz2 = NULL;
-  fkx_6 = fky_6 = fkz_6 = NULL;
-  fkx2_6 = fky2_6 = fkz2_6 = NULL;
+  greensfn = nullptr;
+  greensfn_6 = nullptr;
+  work1 = work2 = nullptr;
+  work1_6 = work2_6 = nullptr;
+  vg = nullptr;
+  vg2 = nullptr;
+  vg_6 = nullptr;
+  vg2_6 = nullptr;
+  fkx = fky = fkz = nullptr;
+  fkx2 = fky2 = fkz2 = nullptr;
+  fkx_6 = fky_6 = fkz_6 = nullptr;
+  fkx2_6 = fky2_6 = fkz2_6 = nullptr;
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 =
-    sf_precoeff5 = sf_precoeff6 = NULL;
+    sf_precoeff5 = sf_precoeff6 = nullptr;
   sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 = sf_precoeff4_6 =
-    sf_precoeff5_6 = sf_precoeff6_6 = NULL;
+    sf_precoeff5_6 = sf_precoeff6_6 = nullptr;
 
-  gf_b = NULL;
-  gf_b_6 = NULL;
-  rho1d = rho_coeff = NULL;
-  drho1d = drho_coeff = NULL;
-  rho1d_6 = rho_coeff_6 = NULL;
-  drho1d_6 = drho_coeff_6 = NULL;
-  fft1 = fft2 = NULL;
-  fft1_6 = fft2_6 = NULL;
-  remap = NULL;
-  remap_6 = NULL;
-  gc = gc6 = NULL;
-  gc_buf1 = gc_buf2 = NULL;
-  gc6_buf1 = gc6_buf2 = NULL;
+  gf_b = nullptr;
+  gf_b_6 = nullptr;
+  rho1d = rho_coeff = nullptr;
+  drho1d = drho_coeff = nullptr;
+  rho1d_6 = rho_coeff_6 = nullptr;
+  drho1d_6 = drho_coeff_6 = nullptr;
+  fft1 = fft2 = nullptr;
+  fft1_6 = fft2_6 = nullptr;
+  remap = nullptr;
+  remap_6 = nullptr;
+  gc = gc6 = nullptr;
+  gc_buf1 = gc_buf2 = nullptr;
+  gc6_buf1 = gc6_buf2 = nullptr;
   ngc_buf1 = ngc_buf2 = ngc6_buf1 = ngc6_buf2 = 0;
   ngrid = ngrid_6 = npergrid = npergrid6 = 0;
 
   nmax = 0;
-  part2grid = NULL;
-  part2grid_6 = NULL;
+  part2grid = nullptr;
+  part2grid_6 = nullptr;
 
   memset(function,0,EWALD_FUNCS*sizeof(int));
 }
@@ -239,16 +237,16 @@ PPPMDisp::~PPPMDisp()
 {
   delete [] factors;
   delete [] B;
-  B = NULL;
+  B = nullptr;
   delete [] cii;
-  cii = NULL;
+  cii = nullptr;
   delete [] csumi;
-  csumi = NULL;
+  csumi = nullptr;
   deallocate();
   deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
-  part2grid = part2grid_6 = NULL;
+  part2grid = part2grid_6 = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -297,9 +295,9 @@ void PPPMDisp::init()
 
   int tmp;
   Pair *pair = force->pair;
-  int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
-  double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
-  double *p_cutoff_lj = pair ? (double *) pair->extract("cut_LJ",tmp) : NULL;
+  int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : nullptr;
+  double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : nullptr;
+  double *p_cutoff_lj = pair ? (double *) pair->extract("cut_LJ",tmp) : nullptr;
   if (!(ptr||p_cutoff||p_cutoff_lj))
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -379,7 +377,7 @@ void PPPMDisp::init()
     int typeA = *p_typeA;
     int typeB = *p_typeB;
 
-    if (force->angle == NULL || force->bond == NULL)
+    if (force->angle == nullptr || force->bond == nullptr)
       error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     if (typeA < 1 || typeA > atom->nangletypes ||
         force->angle->setflag[typeA] == 0)
@@ -413,7 +411,7 @@ void PPPMDisp::init()
   int iteration = 0;
   if (function[0]) {
 
-    GridComm *gctmp = NULL;
+    GridComm *gctmp = nullptr;
     while (order >= minorder) {
 
       if (iteration && me == 0)
@@ -494,7 +492,7 @@ void PPPMDisp::init()
   iteration = 0;
   if (function[1] + function[2] + function[3]) {
 
-    GridComm *gctmp = NULL;
+    GridComm *gctmp = nullptr;
     while (order_6 >= minorder) {
 
       if (iteration && me == 0)
@@ -1283,14 +1281,14 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
   int n = atom->ntypes;
   int converged;
   delete [] B;
-  B = NULL;
+  B = nullptr;
   if (function[3] + function[2]) {                     // no mixing rule or arithmetic
     if (function[2] && me == 0)
       utils::logmesg(lmp,"  Optimizing splitting of Dispersion coefficients\n");
 
     // allocate data for eigenvalue decomposition
-    double **A=NULL;
-    double **Q=NULL;
+    double **A=nullptr;
+    double **Q=nullptr;
     if ( n > 1 ) {
       // get dispersion coefficients
       double **b = (double **) force->pair->extract("B",tmp);
@@ -2301,80 +2299,80 @@ void PPPMDisp::deallocate()
   memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft);
-  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
-  density_fft = NULL;
+  density_brick = vdx_brick = vdy_brick = vdz_brick = nullptr;
+  density_fft = nullptr;
 
   memory->destroy3d_offset(density_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_g);
-  density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = NULL;
-  density_fft_g = NULL;
+  density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = nullptr;
+  density_fft_g = nullptr;
 
   memory->destroy3d_offset(density_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a0);
-  density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = NULL;
-  density_fft_a0 = NULL;
+  density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = nullptr;
+  density_fft_a0 = nullptr;
 
   memory->destroy3d_offset(density_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a1);
-  density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = NULL;
-  density_fft_a1 = NULL;
+  density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = nullptr;
+  density_fft_a1 = nullptr;
 
   memory->destroy3d_offset(density_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a2);
-  density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = NULL;
-  density_fft_a2 = NULL;
+  density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = nullptr;
+  density_fft_a2 = nullptr;
 
   memory->destroy3d_offset(density_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a3);
-  density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = NULL;
-  density_fft_a3 = NULL;
+  density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = nullptr;
+  density_fft_a3 = nullptr;
 
   memory->destroy3d_offset(density_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a4);
-  density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = NULL;
-  density_fft_a4 = NULL;
+  density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = nullptr;
+  density_fft_a4 = nullptr;
 
   memory->destroy3d_offset(density_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a5);
-  density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = NULL;
-  density_fft_a5 = NULL;
+  density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = nullptr;
+  density_fft_a5 = nullptr;
 
   memory->destroy3d_offset(density_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a6);
-  density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = NULL;
-  density_fft_a6 = NULL;
+  density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = nullptr;
+  density_fft_a6 = nullptr;
 
   memory->destroy4d_offset(density_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy4d_offset(vdx_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy4d_offset(vdy_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy4d_offset(vdz_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_none);
-  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = NULL;
-  density_fft_none = NULL;
+  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = nullptr;
+  density_fft_none = nullptr;
 
   memory->destroy(sf_precoeff1);
   memory->destroy(sf_precoeff2);
@@ -2383,7 +2381,7 @@ void PPPMDisp::deallocate()
   memory->destroy(sf_precoeff5);
   memory->destroy(sf_precoeff6);
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
-    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
+    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = nullptr;
 
   memory->destroy(sf_precoeff1_6);
   memory->destroy(sf_precoeff2_6);
@@ -2392,7 +2390,7 @@ void PPPMDisp::deallocate()
   memory->destroy(sf_precoeff5_6);
   memory->destroy(sf_precoeff6_6);
   sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 =
-    sf_precoeff4_6 = sf_precoeff5_6 = sf_precoeff6_6 = NULL;
+    sf_precoeff4_6 = sf_precoeff5_6 = sf_precoeff6_6 = nullptr;
 
   memory->destroy(greensfn);
   memory->destroy(greensfn_6);
@@ -2404,45 +2402,45 @@ void PPPMDisp::deallocate()
   memory->destroy(vg2);
   memory->destroy(vg_6);
   memory->destroy(vg2_6);
-  greensfn = greensfn_6 = NULL;
-  work1 = work2 = work1_6 = work2_6 = NULL;
-  vg = vg2 = vg_6 = vg2_6 = NULL;
+  greensfn = greensfn_6 = nullptr;
+  work1 = work2 = work1_6 = work2_6 = nullptr;
+  vg = vg2 = vg_6 = vg2_6 = nullptr;
 
   memory->destroy1d_offset(fkx,nxlo_fft);
   memory->destroy1d_offset(fky,nylo_fft);
   memory->destroy1d_offset(fkz,nzlo_fft);
-  fkx = fky = fkz = NULL;
+  fkx = fky = fkz = nullptr;
 
   memory->destroy1d_offset(fkx2,nxlo_fft);
   memory->destroy1d_offset(fky2,nylo_fft);
   memory->destroy1d_offset(fkz2,nzlo_fft);
-  fkx2 = fky2 = fkz2 = NULL;
+  fkx2 = fky2 = fkz2 = nullptr;
 
   memory->destroy1d_offset(fkx_6,nxlo_fft_6);
   memory->destroy1d_offset(fky_6,nylo_fft_6);
   memory->destroy1d_offset(fkz_6,nzlo_fft_6);
-  fkx_6 = fky_6 = fkz_6 = NULL;
+  fkx_6 = fky_6 = fkz_6 = nullptr;
 
   memory->destroy1d_offset(fkx2_6,nxlo_fft_6);
   memory->destroy1d_offset(fky2_6,nylo_fft_6);
   memory->destroy1d_offset(fkz2_6,nzlo_fft_6);
-  fkx2_6 = fky2_6 = fkz2_6 = NULL;
+  fkx2_6 = fky2_6 = fkz2_6 = nullptr;
 
   memory->destroy(gf_b);
   memory->destroy2d_offset(rho1d,-order/2);
   memory->destroy2d_offset(rho_coeff,(1-order)/2);
   memory->destroy2d_offset(drho1d,-order/2);
   memory->destroy2d_offset(drho_coeff, (1-order)/2);
-  gf_b = NULL;
-  rho1d = rho_coeff = drho1d = drho_coeff = NULL;
+  gf_b = nullptr;
+  rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
   memory->destroy(gf_b_6);
   memory->destroy2d_offset(rho1d_6,-order_6/2);
   memory->destroy2d_offset(rho_coeff_6,(1-order_6)/2);
   memory->destroy2d_offset(drho1d_6,-order_6/2);
   memory->destroy2d_offset(drho_coeff_6,(1-order_6)/2);
-  gf_b_6 = NULL;
-  rho1d_6 = rho_coeff_6 = drho1d_6 = drho_coeff_6 = NULL;
+  gf_b_6 = nullptr;
+  rho1d_6 = rho_coeff_6 = drho1d_6 = drho_coeff_6 = nullptr;
 
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
@@ -2476,7 +2474,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(v5_brick, nzlo_out, nylo_out, nxlo_out);
   u_brick = v0_brick = v1_brick = v2_brick =
-    v3_brick = v4_brick = v5_brick = NULL;
+    v3_brick = v4_brick = v5_brick = nullptr;
 
   memory->destroy3d_offset(u_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2486,7 +2484,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_g = v0_brick_g = v1_brick_g = v2_brick_g =
-    v3_brick_g = v4_brick_g = v5_brick_g = NULL;
+    v3_brick_g = v4_brick_g = v5_brick_g = nullptr;
 
   memory->destroy3d_offset(u_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2496,7 +2494,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a0 = v0_brick_a0 = v1_brick_a0 = v2_brick_a0 =
-    v3_brick_a0 = v4_brick_a0 = v5_brick_a0 = NULL;
+    v3_brick_a0 = v4_brick_a0 = v5_brick_a0 = nullptr;
 
   memory->destroy3d_offset(u_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2506,7 +2504,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a1 = v0_brick_a1 = v1_brick_a1 = v2_brick_a1 =
-    v3_brick_a1 = v4_brick_a1 = v5_brick_a1 = NULL;
+    v3_brick_a1 = v4_brick_a1 = v5_brick_a1 = nullptr;
 
   memory->destroy3d_offset(u_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2515,7 +2513,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
-  u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 = v4_brick_a2 = v5_brick_a2 = NULL;
+  u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 = v4_brick_a2 = v5_brick_a2 = nullptr;
 
   memory->destroy3d_offset(u_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2524,7 +2522,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
-  u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 = v4_brick_a3 = v5_brick_a3 = NULL;
+  u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 = v4_brick_a3 = v5_brick_a3 = nullptr;
 
   memory->destroy3d_offset(u_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2534,7 +2532,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a4 = v0_brick_a4 = v1_brick_a4 = v2_brick_a4 =
-    v3_brick_a4 = v4_brick_a4 = v5_brick_a4 = NULL;
+    v3_brick_a4 = v4_brick_a4 = v5_brick_a4 = nullptr;
 
   memory->destroy3d_offset(u_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2544,7 +2542,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a5 = v0_brick_a5 = v1_brick_a5 = v2_brick_a5 =
-    v3_brick_a5 = v4_brick_a5 = v5_brick_a5 = NULL;
+    v3_brick_a5 = v4_brick_a5 = v5_brick_a5 = nullptr;
 
   memory->destroy3d_offset(u_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2554,7 +2552,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 =
-    v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = NULL;
+    v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = nullptr;
 
   memory->destroy4d_offset(u_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy4d_offset(v0_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -2564,7 +2562,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy4d_offset(v4_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy4d_offset(v5_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_none = v0_brick_none = v1_brick_none = v2_brick_none =
-    v3_brick_none = v4_brick_none = v5_brick_none = NULL;
+    v3_brick_none = v4_brick_none = v5_brick_none = nullptr;
 }
 
 /* ----------------------------------------------------------------------

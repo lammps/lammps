@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_opt.h"
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"

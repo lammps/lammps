@@ -48,7 +48,7 @@ class AtomVecHybrid : public AtomVec {
   int size_restart_bonus();
   int pack_restart_bonus(int, double *);
   int unpack_restart_bonus(int, double *);
-  bigint memory_usage_bonus();
+  double memory_usage_bonus();
 
   void pack_restart_pre(int);
   void pack_restart_post(int);

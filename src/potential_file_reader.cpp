@@ -15,17 +15,13 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lammps.h"
-#include "force.h"
-#include "error.h"
-#include "comm.h"
 #include "potential_file_reader.h"
-#include "update.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "fmt/format.h"
 
-#include <cstring>
+#include "comm.h"
+#include "error.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -34,13 +30,17 @@ using namespace LAMMPS_NS;
  * The value of the class member variable *ignore_comments* controls
  * whether any text following the pound sign (#) should be ignored (true)
  * or not (false). Default: true, i.e. ignore.
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`TextFileReader`
+
+\endverbatim
  *
  * \param  lmp             Pointer to LAMMPS instance
  * \param  filename        Name of file to be read
  * \param  potential_name  Name of potential style for error messages
- * \param  auto_convert    Bitmask of supported unit conversions
- *
- * \sa TextFileReader */
+ * \param  auto_convert    Bitmask of supported unit conversions */
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
@@ -217,9 +217,15 @@ std::string PotentialFileReader::next_string() {
 
 /** Look up and open the potential file
  *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::open_potential`,
+   :cpp:class:`TextFileReader`
+
+\endverbatim
  * \param   path  Path of the potential file to open
- * \return        Pointer to TextFileReader object created
- * \sa TextFileReader */
+ * \return        Pointer to TextFileReader object created */
 
 TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
   std::string filepath = utils::get_potential_file_path(path);

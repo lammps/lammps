@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "update.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -24,8 +24,8 @@ using namespace LAMMPS_NS;
 
 AtomVecTDPD::AtomVecTDPD(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
   forceclearflag = 1;
 
   atom->tdpd_flag = 1;

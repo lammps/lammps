@@ -12,20 +12,21 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_coul_long_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define C_FORCE_T typename ForceConst<flt_t>::c_force_t
@@ -39,7 +40,7 @@ PairLJCutCoulLongIntel::PairLJCutCoulLongIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -610,10 +611,10 @@ void PairLJCutCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * odetable = detable;
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL && otable != NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && _cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr && otable != nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
           nocopy(oc_force, oc_energy: alloc_if(0) free_if(1)) \
@@ -651,10 +652,10 @@ void PairLJCutCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL && otable !=NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr && otable !=nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \

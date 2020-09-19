@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_langevin_drude.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "fix_drude.h"
@@ -48,7 +48,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   comm_reverse = 3;
 
   // core temperature
-  tstr_core = NULL;
+  tstr_core = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr_core = new char[n];
@@ -63,7 +63,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   int seed_core = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // drude temperature
-  tstr_drude = NULL;
+  tstr_drude = nullptr;
   if (strstr(arg[7],"v_") == arg[6]) {
     int n = strlen(&arg[6][2]) + 1;
     tstr_drude = new char[n];
@@ -102,9 +102,9 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 
   tflag = 0; // no external compute/temp is specified yet (for bias)
   energy = 0.;
-  fix_drude = NULL;
-  temperature = NULL;
-  id_temp = NULL;
+  fix_drude = nullptr;
+  temperature = nullptr;
+  id_temp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -379,7 +379,7 @@ void *FixLangevinDrude::extract(const char *str, int &dim)
   } else if (strcmp(str,"t_target_drude") == 0) {
     return &t_target_drude;
   } else error->all(FLERR, "Illegal extract string in fix langevin/drude");
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

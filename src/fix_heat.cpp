@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_heat.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -39,7 +39,7 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
+idregion(nullptr), hstr(nullptr), vheat(nullptr), vscale(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix heat command");
 
@@ -50,7 +50,7 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
-  hstr = NULL;
+  hstr = nullptr;
 
   if (strstr(arg[4],"v_") == arg[4]) {
     int n = strlen(&arg[4][2]) + 1;
@@ -192,7 +192,7 @@ void FixHeat::end_of_step()
   // vsub = velocity subtracted from each atom to preserve momentum
   // overall KE cannot go negative
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();

@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_bonds_kokkos.h"
+
 #include "atom.h"
-#include "pair_reaxc_kokkos.h"
-#include "force.h"
-#include "compute.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "reaxc_defs.h"
 #include "atom_masks.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "pair_reaxc_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -52,7 +51,7 @@ FixReaxCBondsKokkos::~FixReaxCBondsKokkos()
 void FixReaxCBondsKokkos::init()
 {
   Pair *pair_kk = force->pair_match("reax/c/kk",0);
-  if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
+  if (pair_kk == nullptr) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c/kk");
 
   FixReaxCBonds::init();

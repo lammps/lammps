@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  energy(NULL)
+  energy(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute pe/atom command");
 

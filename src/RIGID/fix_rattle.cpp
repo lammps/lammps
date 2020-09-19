@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rattle.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -59,7 +59,7 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for unconstrained velocity update
 
-  vp = NULL;
+  vp = nullptr;
   grow_arrays(atom->nmax);
 
   // default communication mode

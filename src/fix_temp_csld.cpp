@@ -17,7 +17,7 @@
 
 #include "fix_temp_csld.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -31,7 +31,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,7 +43,7 @@ enum{CONSTANT,EQUAL};
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  vhold(NULL), tstr(NULL), id_temp(NULL), random(NULL)
+  vhold(nullptr), tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
@@ -56,7 +56,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
   extscalar = 1;
 
-  tstr = NULL;
+  tstr = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
@@ -90,7 +90,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(cmd);
   tflag = 1;
 
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
   energy = 0.0;
 }
@@ -108,7 +108,7 @@ FixTempCSLD::~FixTempCSLD()
 
   delete random;
   memory->destroy(vhold);
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
 }
 
@@ -350,5 +350,5 @@ void *FixTempCSLD::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

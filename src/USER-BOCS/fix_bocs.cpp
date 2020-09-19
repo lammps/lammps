@@ -17,7 +17,7 @@
 #include "fix_bocs.h"
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include <vector>
 
@@ -29,7 +29,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_deform.h"
-#include "fmt/format.h"
+
 #include "force.h"
 #include "group.h"
 #include "irregular.h"
@@ -64,21 +64,16 @@ enum{ISO,ANISO,TRICLINIC};
 
 const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
 
-// NB:
-// - Keep error and warning messages less than 255 chars long.
-// - Allocate your char buffer to be 1 char longer than this
-const int MAX_MESSAGE_LENGTH = 255;
-
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL)
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
+  etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -98,7 +93,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
-  id_dilate = NULL;
+  id_dilate = nullptr;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -113,12 +108,12 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 
-  p_match_coeffs = NULL;
+  p_match_coeffs = nullptr;
 
-  splines = NULL;
+  splines = nullptr;
   spline_length = 0;
 
   // turn on tilt factor scaling, whenever applicable
@@ -385,10 +380,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -481,7 +476,7 @@ FixBocs::~FixBocs()
   if (p_match_coeffs) free(p_match_coeffs);
 
     // Free splines memory structure
-    if (splines != NULL) {
+    if (splines != nullptr) {
         memory->destroy(splines);
         spline_length = 0;
     }
@@ -629,7 +624,7 @@ void FixBocs::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -918,7 +913,7 @@ void FixBocs::setup(int /*vflag*/)
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strstr(style,"nphug") == NULL) {
+  if (tstat_flag && strstr(style,"nphug") == nullptr) {
     compute_temp_target();
   } else if (pstat_flag) {
 
@@ -1924,7 +1919,7 @@ void *FixBocs::extract(const char *str, int &dim)
   } else if (pstat_flag && strcmp(str,"p_target") == 0) {
     return &p_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

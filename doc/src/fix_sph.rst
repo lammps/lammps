@@ -1,7 +1,7 @@
 .. index:: fix sph
 
 fix sph command
-================
+===============
 
 Syntax
 """"""

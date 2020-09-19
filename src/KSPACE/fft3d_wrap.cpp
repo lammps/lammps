@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fft3d_wrap.h"
-#include <mpi.h>
+
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -30,7 +30,7 @@ FFT3d::FFT3d(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
                             scaled,permute,nbuf,usecollective);
-  if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
+  if (plan == nullptr) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
 /* ---------------------------------------------------------------------- */

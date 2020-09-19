@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_quadratic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -27,7 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -326,8 +326,8 @@ void DihedralQuadratic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&phi0[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi0[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi0[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

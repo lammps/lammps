@@ -1,10 +1,11 @@
 .. index:: pair_style comb
+.. index:: pair_style comb/omp
+.. index:: pair_style comb3
 
 pair_style comb command
 =======================
 
-pair_style comb/omp command
-===========================
+Accelerator Variants: *comb/omp*
 
 pair_style comb3 command
 ========================

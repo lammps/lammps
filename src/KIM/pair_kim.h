@@ -65,7 +65,6 @@ PairStyle(kim,PairKIM)
 // includes from KIM & LAMMPS
 class KIM_API_model;
 #include "pair.h"
-#include <string>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"

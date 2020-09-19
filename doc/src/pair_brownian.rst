@@ -1,16 +1,17 @@
 .. index:: pair_style brownian
+.. index:: pair_style brownian/omp
+.. index:: pair_style brownian/poly
+.. index:: pair_style brownian/poly/omp
 
 pair_style brownian command
 ===========================
 
-pair_style brownian/omp command
-================================
+Accelerator Variants: *brownian/omp*
 
 pair_style brownian/poly command
 ================================
 
-pair_style brownian/poly/omp command
-====================================
+Accelerator Variants: *brownian/poly/omp*
 
 Syntax
 """"""

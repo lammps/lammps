@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "region_plane.h"
-#include <cmath>
+
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

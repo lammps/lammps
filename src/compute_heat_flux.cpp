@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_heat_flux.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_ke(NULL), id_pe(NULL), id_stress(NULL)
+  id_ke(nullptr), id_pe(nullptr), id_stress(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 

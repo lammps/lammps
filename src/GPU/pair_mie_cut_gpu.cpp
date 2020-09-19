@@ -18,7 +18,7 @@
 #include "pair_mie_cut_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -136,7 +136,7 @@ void PairMIECutGPU::compute(int eflag, int vflag)
 
 void PairMIECutGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with mie/cut/gpu pair style");

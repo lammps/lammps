@@ -1,13 +1,11 @@
 .. index:: fix nve/sphere
+.. index:: fix nve/sphere/omp
+.. index:: fix nve/sphere/kk
 
 fix nve/sphere command
 ======================
 
-fix nve/sphere/omp command
-==========================
-
-fix nve/sphere/kk command
-=========================
+Accelerator Variants: *nve/sphere/omp*, *nve/sphere/kk*
 
 Syntax
 """"""

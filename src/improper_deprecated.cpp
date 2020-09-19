@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_deprecated.h"
-#include <string>
+
 #include "improper_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

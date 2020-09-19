@@ -274,7 +274,7 @@ void DumpCustomADIOS::write()
     if (sort_flag && sortcol == 0)
         pack(ids);
     else
-        pack(NULL);
+        pack(nullptr);
     if (sort_flag)
         sort();
 

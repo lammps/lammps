@@ -16,26 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include "atom_kokkos.h"
-#include "comm.h"
-#include "gridcomm_kokkos.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "domain.h"
-#include "fft3d_kokkos.h"
-#include "remap_kokkos.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "kokkos.h"
-#include "utils.h"
-#include "fmt/format.h"
 
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_kokkos.h"
+#include "force.h"
+#include "gridcomm_kokkos.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
+#include "memory_kokkos.h"
+#include "pair.h"
+#include "remap_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -81,25 +77,25 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  //density_brick = d_vdx_brick = d_vdy_brick = d_vdz_brick = NULL;
-  //d_density_fft = NULL;
-  //d_u_brick = NULL;
-  //d_v0_brick = d_v1_brick = d_v2_brick = d_v3_brick = d_v4_brick = d_v5_brick = NULL;
-  //greensfn = NULL;
-  //d_work1 = d_work2 = NULL;
-  //vg = NULL;
-  //d_fkx = d_fky = d_fkz = NULL;
+  //density_brick = d_vdx_brick = d_vdy_brick = d_vdz_brick = nullptr;
+  //d_density_fft = nullptr;
+  //d_u_brick = nullptr;
+  //d_v0_brick = d_v1_brick = d_v2_brick = d_v3_brick = d_v4_brick = d_v5_brick = nullptr;
+  //greensfn = nullptr;
+  //d_work1 = d_work2 = nullptr;
+  //vg = nullptr;
+  //d_fkx = d_fky = d_fkz = nullptr;
 
 
-  //gf_b = NULL;
-  //rho1d = rho_coeff = drho1d = drho_coeff = NULL;
+  //gf_b = nullptr;
+  //rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  gc = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  gc = nullptr;
 
   nmax = 0;
-  //part2grid = NULL;
+  //part2grid = nullptr;
 
   peratom_allocate_flag = 0;
 
@@ -164,8 +160,8 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  eatom = NULL;
-  vatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -216,7 +212,7 @@ void PPPMKokkos<DeviceType>::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -251,7 +247,7 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridCommKokkos<DeviceType> *gctmp = NULL;
+  GridCommKokkos<DeviceType> *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -815,22 +811,22 @@ void PPPMKokkos<DeviceType>::allocate()
   // remap takes data from 3d brick to FFT decomposition
 
   int collective_flag = 0; // not yet supported in Kokkos version
-  int cuda_aware_flag = lmp->kokkos->cuda_aware_flag;
+  int gpu_aware_flag = lmp->kokkos->gpu_aware_flag;
   int tmp;
 
   fft1 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                         0,0,&tmp,collective_flag,cuda_aware_flag);
+                         0,0,&tmp,collective_flag,gpu_aware_flag);
 
   fft2 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         0,0,&tmp,collective_flag,cuda_aware_flag);
+                         0,0,&tmp,collective_flag,gpu_aware_flag);
   remap = new RemapKokkos<DeviceType>(lmp,world,
                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                          1,0,0,FFT_PRECISION,collective_flag,cuda_aware_flag);
+                          1,0,0,FFT_PRECISION,collective_flag,gpu_aware_flag);
 
   // create ghost grid object for rho and electric field communication
   // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
@@ -855,22 +851,22 @@ template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
   memoryKK->destroy_kokkos(d_density_fft,density_fft);
-  density_fft = NULL;
+  density_fft = nullptr;
   memoryKK->destroy_kokkos(d_greensfn,greensfn);
-  greensfn = NULL;
+  greensfn = nullptr;
   memoryKK->destroy_kokkos(d_work1,work1);
-  work1 = NULL;
+  work1 = nullptr;
   memoryKK->destroy_kokkos(d_work2,work2);
-  work2 = NULL;
+  work2 = nullptr;
 
   delete fft1;
-  fft1 = NULL;
+  fft1 = nullptr;
   delete fft2;
-  fft2 = NULL;
+  fft2 = nullptr;
   delete remap;
-  remap = NULL;
+  remap = nullptr;
   delete gc;
-  gc = NULL;
+  gc = nullptr;
 }
 
 /* ----------------------------------------------------------------------

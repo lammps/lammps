@@ -1,6 +1,5 @@
 # Makefile for generating images with graphviz
 #
-SHELL      = /bin/bash
 BUILDDIR   = ${CURDIR}/..
 IMGDIR     = $(BUILDDIR)/src/JPG
 IMGSRC     = $(wildcard *.dot)

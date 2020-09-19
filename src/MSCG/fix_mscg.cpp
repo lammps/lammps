@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mscg.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "mscg.h"
 #include "atom.h"
 #include "comm.h"
@@ -65,7 +65,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   nframes = n_frames = block_size = 0;
   range_flag = 0;
   name_flag = 0;
-  f = NULL;
+  f = nullptr;
 
   type_names = new char*[natoms];
   for (int i = 0; i < natoms; i++) type_names[i] = new char[24];

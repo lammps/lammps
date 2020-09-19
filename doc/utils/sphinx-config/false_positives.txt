@@ -110,7 +110,9 @@ api
 Apoorva
 Appl
 Apu
+arallel
 arccos
+arge
 Archlinux
 arcsin
 arg
@@ -128,6 +130,7 @@ aspherical
 asphericity
 Asq
 assignee
+assively
 Asta
 Astart
 Astop
@@ -325,6 +328,7 @@ Buyl
 Bybee
 bz
 cadetblue
+calc
 calibre
 caltech
 Caltech
@@ -397,6 +401,7 @@ ChiralIDs
 chiralIDs
 chirality
 Cho
+ChooseOffset
 chris
 Christoph
 Chu
@@ -469,6 +474,7 @@ config
 configfile
 configurational
 conformational
+ConstMatrix
 Contrib
 cooperativity
 coord
@@ -639,7 +645,10 @@ dhex
 dia
 diag
 diagonalization
+diagonalize
 diagonalized
+diagonalizers
+diagonalizing
 Diallo
 diel
 differentiable
@@ -778,8 +787,15 @@ Eggebrecht
 ehex
 eHEX
 Ei
-Eigen
-Eigensolve
+eigen
+eigensolve
+eigensolver
+eigensolvers
+eigendecomposition
+eigenvalue
+eigenvalues
+eigenvector
+eigenvectors
 eij
 Eij
 Eijnden
@@ -893,6 +909,11 @@ eV
 evalue
 Evanseck
 evdwl
+evector
+evec
+evecs
+eval
+evals
 Everaers
 Evgeny
 evirials
@@ -1003,6 +1024,7 @@ formatarg
 formulae
 Forschungszentrum
 Fortran
+fortran
 Fosado
 fourier
 fp
@@ -1068,6 +1090,7 @@ Germann
 Germano
 gerolf
 Gerolf
+Gershgorin
 gettimeofday
 gewald
 Gezelter
@@ -1183,6 +1206,7 @@ Henkelman
 Henkes
 henrich
 Henrich
+Hermitian
 Herrmann
 Hertizian
 hertzian
@@ -1256,6 +1280,7 @@ icosahedral
 idealgas
 IDR
 idx
+ie
 ielement
 ieni
 ifdefs
@@ -1278,8 +1303,10 @@ Imageint
 Imagemagick
 imd
 Impey
+impl
 impropers
 Impropers
+imulator
 includelink
 incompressible
 incrementing
@@ -1300,6 +1327,7 @@ initializations
 initio
 InP
 inregion
+instantiation
 Institut
 integrators
 Integrators
@@ -1346,6 +1374,8 @@ isothermal
 isotropically
 isovolume
 Isralewitz
+iter
+iters
 iteratively
 Ith
 Itsets
@@ -1355,6 +1385,7 @@ iva
 Ivanov
 Ivector
 Iw
+iwyu
 ixcm
 ixx
 Ixx
@@ -1521,6 +1552,7 @@ Kub
 Kubo
 Kumagai
 Kumar
+Kurebayashi
 Kuronen
 Kusters
 Kutta
@@ -1531,12 +1563,14 @@ Ladd
 lagrangian
 lambdai
 lamda
+LambdaLanczos
 lammps
 Lammps
 LAMMPS
 lammpsplot
 Lampis
 Lamoureux
+Lanczos
 Lande
 Landron
 langevin
@@ -1751,6 +1785,7 @@ Mattox
 Mattson
 maxangle
 maxbond
+maxchunk
 maxelt
 maxeval
 maxfiles
@@ -1843,6 +1878,7 @@ Microscale
 midnightblue
 mie
 Mie
+Mij
 Mikami
 Militzer
 Minary
@@ -1941,6 +1977,7 @@ Muccioli
 mui
 Mukherjee
 Mulders
+mult
 multi
 multibody
 Multibody
@@ -1974,6 +2011,7 @@ MxN
 myCompute
 myIndex
 mylammps
+MyPool
 mysocket
 myTemp
 myVec
@@ -1984,6 +2022,7 @@ Nakano
 nall
 namespace
 namespaces
+namedtuple
 nan
 NaN
 Nandor
@@ -2220,6 +2259,7 @@ Okamoto
 O'Keefe
 OKeefe
 oldlace
+olecular
 Oleinik
 Olfason
 olivedrab
@@ -2326,6 +2366,7 @@ peachpuff
 Pearlman
 Pedersen
 peID
+PEigenDense
 Peng
 peptide
 peratom
@@ -2554,6 +2595,8 @@ rdf
 RDideal
 rdx
 reacter
+realTypeMap
+real_t
 README
 realtime
 reamin
@@ -2736,6 +2779,7 @@ Schuring
 Schwen
 screenshot
 screenshots
+Scripps
 Scripta
 sdk
 sdpd
@@ -3064,9 +3108,11 @@ Tmin
 tmp
 tN
 Tobias
+Tohoku
 tokenizer
 tokyo
 tol
+tomic
 toolchain
 topologies
 Toporov
@@ -3127,6 +3173,8 @@ tu
 Tuckerman
 tue
 tunable
+tuple
+tuples
 Turkand
 Tutein
 tweakable
@@ -3420,6 +3468,7 @@ Yuh
 yukawa
 Yukawa
 Yusof
+Yuya
 yx
 yy
 yz
@@ -3450,6 +3499,7 @@ zmin
 zmq
 zN
 zs
+zst
 zsu
 zu
 zx
@@ -3459,6 +3509,7 @@ zz
 Zm
 PowerShell
 filesystems
+Zstandard
 Zstd
 zstd
 checksum

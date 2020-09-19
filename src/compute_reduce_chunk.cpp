@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reduce_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,7 +25,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -40,8 +40,8 @@ enum{UNKNOWN=-1,COMPUTE,FIX,VARIABLE};
 
 ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), argindex(NULL), value2index(NULL), idchunk(NULL), ids(NULL),
-  vlocal(NULL), vglobal(NULL), alocal(NULL), aglobal(NULL), varatom(NULL)
+  which(nullptr), argindex(nullptr), value2index(nullptr), idchunk(nullptr), ids(nullptr),
+  vlocal(nullptr), vglobal(nullptr), alocal(nullptr), aglobal(nullptr), varatom(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute reduce/chunk command");
 
@@ -78,13 +78,13 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nargnew];
   for (int i=0; i < nargnew; ++i) {
     which[i] = argindex[i] = value2index[i] = UNKNOWN;
-    ids[i] = NULL;
+    ids[i] = nullptr;
   }
   nvalues = 0;
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strncmp(arg[iarg],"c_",2) == 0 ||
                strncmp(arg[iarg],"f_",2) == 0 ||
@@ -193,11 +193,11 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   else if (mode == MAXX) initvalue = -BIG;
 
   maxchunk = 0;
-  vlocal = vglobal = NULL;
-  alocal = aglobal = NULL;
+  vlocal = vglobal = nullptr;
+  alocal = aglobal = nullptr;
 
   maxatom = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -36,8 +36,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/mpiio* or *cfg* or *cfg/gz* or
-  *cfg/mpiio* or *custom* or *custom/gz* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/mpiio*
+* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -138,7 +137,7 @@ Examples
    dump 2 subgroup atom 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
-   dump 4b flow custom 100 dump.%.myforce id type c_myF[\*] v_ke
+   dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
    dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
    dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
    dump 1 all xtc 1000 file.xtc
@@ -204,8 +203,9 @@ of the required filename suffix.
 
 Similarly, the *atom/zstd*\ , *cfg/zstd*\ , *custom/zstd*\ , *local/zstd*,
 and *xyz/zstd* styles are identical to the gz styles, but use the Zstd
-compression library instead. See the :doc:`dump_modify <dump_modify>` doc
-page for details on how to control the compression level in both variants.
+compression library instead and require the ".zst" suffix. See the
+:doc:`dump_modify <dump_modify>` doc page for details on how to control
+the compression level in both variants.
 
 As explained below, the *atom/mpiio*\ , *cfg/mpiio*\ , *custom/mpiio*\ , and
 *xyz/mpiio* styles are identical in command syntax and in the format

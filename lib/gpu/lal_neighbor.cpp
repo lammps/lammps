@@ -158,7 +158,7 @@ void Neighbor::alloc(bool &success) {
     }
     _c_bytes+=nbor_host.device.row_bytes()+dev_numj_host.row_bytes();
   } else {
-    // Some OpenCL implementations return errors for NULL pointers as args
+    // Some OpenCL implementations return errors for nullptr pointers as args
     nbor_host.device.view(dev_nbor);
     dev_numj_host.view(dev_nbor);
   }

@@ -16,21 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_fdt_energy.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "error.h"
-#include "utils.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -40,9 +39,9 @@ using namespace LAMMPS_NS;
 
 PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
 {
-  random = NULL;
-  duCond = NULL;
-  duMech = NULL;
+  random = nullptr;
+  duCond = nullptr;
+  duMech = nullptr;
   splitFDT_flag = false;
   a0_is_zero = false;
 
@@ -477,14 +476,14 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -514,9 +513,9 @@ void PairDPDfdtEnergy::write_restart_settings(FILE *fp)
 void PairDPDfdtEnergy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);

@@ -95,11 +95,11 @@ static void output_data(ptm::result_t *res, double (*points)[3],
                         double *P, double *p_interatomic_distance,
                         double *p_lattice_constant, size_t *output_indices) {
         const ptm::refdata_t *ref = res->ref_struct;
-        if (ref == NULL)
+        if (ref == nullptr)
                 return;
 
         *p_type = ref->type;
-        if (p_alloy_type != NULL)
+        if (p_alloy_type != nullptr)
                 *p_alloy_type = ptm::find_alloy_type(ref, res->mapping, numbers);
 
         int8_t temp[PTM_MAX_POINTS];
@@ -123,7 +123,7 @@ static void output_data(ptm::result_t *res, double (*points)[3],
 
         memcpy(res->mapping, temp, (ref->num_nbrs + 1) * sizeof(int8_t));
 
-        if (F != NULL && F_res != NULL) {
+        if (F != nullptr && F_res != nullptr) {
                 double scaled_points[PTM_MAX_INPUT_POINTS][3];
 
                 ptm::subtract_barycentre(ref->num_nbrs + 1, points, scaled_points);
@@ -160,11 +160,11 @@ static void output_data(ptm::result_t *res, double (*points)[3],
                 if (ref->type == PTM_MATCH_GRAPHENE) // hack for pseudo-2d structures
                         F[8] = 1;
 
-                if (P != NULL && U != NULL)
+                if (P != nullptr && U != nullptr)
                         ptm::polar_decomposition_3x3(F, false, U, P);
         }
 
-        if (output_indices != NULL)
+        if (output_indices != nullptr)
                 for (int i = 0; i < ref->num_nbrs + 1; i++)
                         output_indices[i] = ordering[res->mapping[i]];
 
@@ -173,10 +173,10 @@ static void output_data(ptm::result_t *res, double (*points)[3],
         double lattice_constant =
             calculate_lattice_constant(ref->type, interatomic_distance);
 
-        if (p_interatomic_distance != NULL)
+        if (p_interatomic_distance != nullptr)
                 *p_interatomic_distance = interatomic_distance;
 
-        if (p_lattice_constant != NULL)
+        if (p_lattice_constant != nullptr)
                 *p_lattice_constant = lattice_constant;
 
         *p_rmsd = res->rmsd;
@@ -200,7 +200,7 @@ int ptm_index(ptm_local_handle_t local_handle, size_t atom_index,
 
         int ret = 0;
         ptm::result_t res;
-        res.ref_struct = NULL;
+        res.ref_struct = nullptr;
         res.rmsd = INFINITY;
 
         size_t ordering[PTM_MAX_INPUT_POINTS];
@@ -269,13 +269,13 @@ int ptm_index(ptm_local_handle_t local_handle, size_t atom_index,
         }
 
         *p_type = PTM_MATCH_NONE;
-        if (p_alloy_type != NULL)
+        if (p_alloy_type != nullptr)
                 *p_alloy_type = PTM_ALLOY_NONE;
 
-        if (output_indices != NULL)
+        if (output_indices != nullptr)
                 memset(output_indices, -1, PTM_MAX_INPUT_POINTS * sizeof(size_t));
 
-        if (res.ref_struct == NULL)
+        if (res.ref_struct == nullptr)
                 return PTM_NO_ERROR;
 
         if (res.ref_struct->type == PTM_MATCH_DCUB ||

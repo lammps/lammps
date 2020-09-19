@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_store.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -27,7 +28,7 @@ enum{UNKNOWN,GLOBAL,PERATOM};
 /* ---------------------------------------------------------------------- */
 
 FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-vstore(NULL), astore(NULL), rbuf(NULL)
+vstore(nullptr), astore(nullptr), rbuf(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix store command");
 
@@ -68,8 +69,8 @@ vstore(NULL), astore(NULL), rbuf(NULL)
     if (nvalues == 1) vecflag = 1;
   }
 
-  vstore = NULL;
-  astore = NULL;
+  vstore = nullptr;
+  astore = nullptr;
 
   // allocate vector or array and restart buffer rbuf
   // for PERATOM, register with Atom class
@@ -81,9 +82,9 @@ vstore(NULL), astore(NULL), rbuf(NULL)
   }
   if (flavor == PERATOM) {
     grow_arrays(atom->nmax);
-    atom->add_callback(0);
-    if (restart_peratom) atom->add_callback(1);
-    rbuf = NULL;
+    atom->add_callback(Atom::GROW);
+    if (restart_peratom) atom->add_callback(Atom::RESTART);
+    rbuf = nullptr;
   }
 
   // zero the storage
@@ -116,8 +117,8 @@ FixStore::~FixStore()
   // unregister callbacks to this fix from Atom class
 
   if (flavor == PERATOM) {
-    atom->delete_callback(id,0);
-    if (restart_peratom) atom->delete_callback(id,1);
+    atom->delete_callback(id,Atom::GROW);
+    if (restart_peratom) atom->delete_callback(id,Atom::RESTART);
   }
 
   memory->destroy(vstore);
@@ -144,8 +145,8 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   memory->destroy(vstore);
   memory->destroy(astore);
   memory->destroy(rbuf);
-  vstore = NULL;
-  astore = NULL;
+  vstore = nullptr;
+  astore = nullptr;
 
   vecflag = 0;
   if (ncol_caller == 1) vecflag = 1;
@@ -198,8 +199,8 @@ void FixStore::restart(char *buf)
     memory->destroy(vstore);
     memory->destroy(astore);
     memory->destroy(rbuf);
-    vstore = NULL;
-    astore = NULL;
+    vstore = nullptr;
+    astore = nullptr;
 
     vecflag = 0;
     if (ncol_restart == 1) vecflag = 1;

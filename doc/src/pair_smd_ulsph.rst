@@ -1,7 +1,7 @@
 .. index:: pair_style smd/ulsph
 
 pair_style smd/ulsph command
-=============================
+============================
 
 Syntax
 """"""

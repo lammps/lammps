@@ -15,17 +15,17 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 
 #include <cstring>
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
 DumpCustomGZ::DumpCustomGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
 
   compression_level = Z_BEST_COMPRESSION;
 
@@ -39,8 +39,8 @@ DumpCustomGZ::DumpCustomGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpCustomGZ::~DumpCustomGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -104,8 +104,8 @@ void DumpCustomGZ::openfile()
 
     gzFp = gzopen(filecurrent, mode.c_str());
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -155,7 +155,7 @@ void DumpCustomGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);

@@ -22,8 +22,8 @@ using namespace LAMMPS_NS;
 
 AtomVecMesoNT::AtomVecMesoNT(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   atom->mesont_flag = 1;
 

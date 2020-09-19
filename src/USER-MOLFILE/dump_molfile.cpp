@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_molfile.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "domain.h"
@@ -72,10 +72,10 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   ntotal = 0;
   me = comm->me;
 
-  coords = vels = masses = charges = radiuses = NULL;
-  types = molids = NULL;
+  coords = vels = masses = charges = radiuses = nullptr;
+  types = molids = nullptr;
   ntypes = atom->ntypes;
-  typenames = NULL;
+  typenames = nullptr;
 
   // allocate global array for atom coords
 
@@ -132,7 +132,7 @@ DumpMolfile::~DumpMolfile()
       delete [] typenames[i];
 
     delete [] typenames;
-    typenames = NULL;
+    typenames = nullptr;
   }
 }
 
@@ -146,7 +146,7 @@ void DumpMolfile::init_style()
   if (me == 0) {
 
     /* initialize typenames array to numeric types by default */
-    if (typenames == NULL) {
+    if (typenames == nullptr) {
       typenames = new char*[ntypes+1];
       for (int itype = 1; itype <= ntypes; itype++) {
         /* a 32-bit int can be maximally 10 digits plus sign */
@@ -408,7 +408,7 @@ void DumpMolfile::write_data(int n, double *mybuf)
         need_structure = 0;
       }
       double simtime = update->ntimestep * update->dt;
-      mf->timestep(coords,NULL,cell,&simtime);
+      mf->timestep(coords,nullptr,cell,&simtime);
     }
   }
 }
@@ -433,7 +433,7 @@ int DumpMolfile::modify_param(int narg, char **arg)
         delete [] typenames[i];
 
       delete [] typenames;
-      typenames = NULL;
+      typenames = nullptr;
     }
 
     typenames = new char*[ntypes+1];
@@ -452,9 +452,9 @@ int DumpMolfile::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-bigint DumpMolfile::memory_usage()
+double DumpMolfile::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
   bytes += sizeof(MFI);
   return bytes;

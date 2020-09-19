@@ -1,7 +1,7 @@
 .. index:: fix numdiff
 
 fix numdiff command
-====================
+===================
 
 Syntax
 """"""

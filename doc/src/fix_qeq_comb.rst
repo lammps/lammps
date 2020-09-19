@@ -1,10 +1,10 @@
 .. index:: fix qeq/comb
+.. index:: fix qeq/comb/omp
 
 fix qeq/comb command
 ====================
 
-fix qeq/comb/omp command
-========================
+Accelerator Variants: *qeq/comb/omp*
 
 Syntax
 """"""

@@ -10,8 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_DEFORMATION_GRADIENT_H
 #define PTM_DEFORMATION_GRADIENT_H
 
-#include <stdint.h>
 #include "ptm_constants.h"
+
+#include <cstdint>
+#include <cmath>
 
 namespace ptm {
 

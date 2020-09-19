@@ -19,25 +19,15 @@
 
 #include "fix_propel_self.h"
 
-#include <cstdio>
-#include <cstring>
-#include <string>
-
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "citeme.h"
-#include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "group.h"
-#include "math.h"
 #include "math_const.h"
 #include "math_extra.h"
-#include "math_vector.h"
-#include "modify.h"
-#include "random_mars.h"
-#include "respa.h"
-#include "update.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,7 +39,7 @@ using namespace MathConst;
 
 FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   : Fix(lmp, narg, argv), magnitude(0.0),
-    mode(VELOCITY), n_types_filter(0), apply_to_type(NULL)
+    mode(VELOCITY), n_types_filter(0), apply_to_type(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix propel/self command");
 

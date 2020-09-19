@@ -27,9 +27,9 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
   last_bin = -1;
   mbins = maxbin = maxatom = 0;
-  binhead = NULL;
-  bins = NULL;
-  atom2bin = NULL;
+  binhead = nullptr;
+  bins = nullptr;
+  atom2bin = nullptr;
 
   neighbor->last_setup_bins = -1;
 
@@ -153,9 +153,9 @@ int NBin::coord2bin(double *x)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBin::memory_usage()
+double NBin::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += maxbin*sizeof(int);
   bytes += 2*maxatom*sizeof(int);
   return bytes;

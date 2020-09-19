@@ -16,13 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_intel.h"
+
 #include "atom.h"
-#include "group.h"
 #include "comm.h"
-#include "domain.h"
+#include "error.h"
+#include "group.h"
 #include "modify.h"
 #include "update.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,8 +35,8 @@ NBinIntel::NBinIntel(LAMMPS *lmp) : NBinStandard(lmp) {
                "The 'package intel' command is required for /intel styles");
   _fix = static_cast<FixIntel *>(modify->fix[ifix]);
   _precision_mode = _fix->precision();
-  _atombin = NULL;
-  _binpacked = NULL;
+  _atombin = nullptr;
+  _binpacked = nullptr;
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = _fix->coprocessor_number();
   _offload_alloc = 0;
@@ -241,7 +241,7 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBinIntel::memory_usage()
+double NBinIntel::memory_usage()
 {
   return NBinStandard::memory_usage() + maxatom*2*sizeof(int);
 }

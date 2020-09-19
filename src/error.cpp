@@ -12,16 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "error.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include "universe.h"
-#include "output.h"
-#include "input.h"
+
 #include "accelerator_kokkos.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "input.h"
+#include "output.h"
+#include "universe.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "update.h"
@@ -74,7 +69,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be NULL when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -100,7 +95,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be NULL when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -148,7 +143,7 @@ void Error::all(const std::string &file, int line, const std::string &str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be NULL when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -174,7 +169,7 @@ void Error::all(const std::string &file, int line, const std::string &str)
 
 /* ----------------------------------------------------------------------
    called by one proc in world
-   write to world screen only if non-NULL on this proc
+   write to world screen only if non-nullptr on this proc
    always write to universe screen
    forces abort of entire world (and universe) if any proc in world calls
 ------------------------------------------------------------------------- */
@@ -197,7 +192,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 #ifdef LAMMPS_EXCEPTIONS
 
   // allow commands if an exception was caught in a run
-  // update may be NULL when catching command line errors
+  // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
@@ -212,7 +207,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 
 /* ----------------------------------------------------------------------
    called by one proc in world
-   only write to screen if non-NULL on this proc since could be file
+   only write to screen if non-nullptr on this proc since could be file
 ------------------------------------------------------------------------- */
 
 void Error::warning(const std::string &file, int line, const std::string &str, int logflag)

@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_msst.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,9 +41,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL),
-  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL),
-  pressure(NULL), pe(NULL)
+  Fix(lmp, narg, arg), old_velocity(nullptr), rfix(nullptr),
+  id_temp(nullptr), id_press(nullptr), id_pe(nullptr), temperature(nullptr),
+  pressure(nullptr), pe(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 
@@ -206,10 +206,10 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   omega[0] = omega[1] = omega[2] = 0.0;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   maxold = -1;
-  old_velocity = NULL;
+  old_velocity = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +246,7 @@ int FixMSST::setmask()
 
 void FixMSST::init()
 {
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix msst without per-type mass defined");
 
   // set compute ptrs
@@ -287,7 +287,7 @@ void FixMSST::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^rigid")  ||
@@ -306,7 +306,7 @@ void FixMSST::init()
     for (int i = 0; i < modify->nfix; i++)
       if (utils::strmatch(modify->fix[i]->style,"^external$"))
         fix_external = (FixExternal *) modify->fix[i];
-    if (fix_external == NULL)
+    if (fix_external == nullptr)
       error->all(FLERR,"Fix msst dftb cannot be used w/out fix external");
   }
 }

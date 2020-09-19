@@ -12,31 +12,29 @@
 ------------------------------------------------------------------------- */
 
 #include "comm.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "universe.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "fix.h"
-#include "compute.h"
-#include "domain.h"
-#include "output.h"
-#include "dump.h"
-#include "group.h"
-#include "procmap.h"
-#include "irregular.h"
+
 #include "accelerator_kokkos.h"
-#include "memory.h"
+#include "atom.h"               // IWYU pragma: keep
+#include "atom_vec.h"
+#include "bond.h"
+#include "compute.h"
+#include "domain.h"             // IWYU pragma: keep
+#include "dump.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"             // IWYU pragma: keep
+#include "modify.h"
+#include "neighbor.h"           // IWYU pragma: keep
+#include "output.h"
+#include "pair.h"
+#include "procmap.h"
+#include "universe.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -59,15 +57,15 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   mode = 0;
   bordergroup = 0;
   cutghostuser = 0.0;
-  cutusermulti = NULL;
+  cutusermulti = nullptr;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   coregrid[0] = coregrid[1] = coregrid[2] = 1;
   gridflag = ONELEVEL;
   mapflag = CART;
-  customfile = NULL;
-  outfile = NULL;
+  customfile = nullptr;
+  outfile = nullptr;
   recv_from_partition = send_to_partition = -1;
   otherflag = 0;
 
@@ -75,8 +73,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   maxexchange_fix_dynamic = 0;
   bufextra = BUFEXTRA;
 
-  grid2proc = NULL;
-  xsplit = ysplit = zsplit = NULL;
+  grid2proc = nullptr;
+  xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
 
   // use of OpenMP threads
@@ -90,7 +88,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 #ifdef _OPENMP
   if (lmp->kokkos) {
     nthreads = lmp->kokkos->nthreads * lmp->kokkos->numa;
-  } else if (getenv("OMP_NUM_THREADS") == NULL) {
+  } else if (getenv("OMP_NUM_THREADS") == nullptr) {
     nthreads = 1;
     if (me == 0)
       error->message(FLERR,"OMP_NUM_THREADS environment is not set. "
@@ -278,7 +276,7 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
-        cutusermulti = NULL;
+        cutusermulti = nullptr;
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
         // need to reset cutghostuser when switching comm mode
@@ -291,7 +289,7 @@ void Comm::modify_params(int narg, char **arg)
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
         error->all(FLERR,"Invalid group in comm_modify command");
-      if (bordergroup && (atom->firstgroupname == NULL ||
+      if (bordergroup && (atom->firstgroupname == nullptr ||
                           strcmp(arg[iarg+1],atom->firstgroupname) != 0))
         error->all(FLERR,"Comm_modify group != atom_modify first group");
       iarg += 2;
@@ -315,7 +313,7 @@ void Comm::modify_params(int narg, char **arg)
       const int ntypes = atom->ntypes;
       if (iarg+3 > narg)
         error->all(FLERR,"Illegal comm_modify command");
-      if (cutusermulti == NULL) {
+      if (cutusermulti == nullptr) {
         memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
         for (i=0; i < ntypes+1; ++i)
           cutusermulti[i] = -1.0;
@@ -772,7 +770,7 @@ int Comm::binary(double value, int n, double *vec)
    callback() is invoked to allow caller to process/update each proc's inbuf
    if self=1 (default), then callback() is invoked on final iteration
      using original inbuf, which may have been updated
-   for non-NULL outbuf, final updated inbuf is copied to it
+   for non-nullptr outbuf, final updated inbuf is copied to it
      ok to specify outbuf = inbuf
    the ptr argument is a pointer to the instance of calling class
 ------------------------------------------------------------------------- */
@@ -794,7 +792,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
   // sanity check
 
-  if ((nbytes > 0) && inbuf == NULL)
+  if ((nbytes > 0) && inbuf == nullptr)
     error->one(FLERR,"Cannot put data on ring from NULL pointer");
 
   char *buf,*bufcopy;
@@ -890,7 +888,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
   else nrvous = irregular->create_data(n,procs);
 
-  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
@@ -927,7 +925,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
     nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
 
-  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
   outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,
                                     "rendezvous:outbuf");
@@ -969,7 +967,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
 
-    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+    // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize+1,
                                          "rendezvous:inbuf");
@@ -1034,7 +1032,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   }
 
   // all2all comm of inbuf from caller decomp to rendezvous decomp
-  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
@@ -1076,7 +1074,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
 
-    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+    // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
     outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1,
                                           "rendezvous:outbuf");
@@ -1137,7 +1135,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // all2all comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
-  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
   outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,"rendezvous:outbuf");
 

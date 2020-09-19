@@ -1,7 +1,7 @@
 .. index:: pair_style smd/tri_surface
 
 pair_style smd/tri_surface command
-===================================
+==================================
 
 Syntax
 """"""

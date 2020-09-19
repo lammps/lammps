@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_profile.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -30,7 +30,7 @@ enum{TENSOR,BIN};
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
+  bin(nullptr), vbin(nullptr), binave(nullptr), tbin(nullptr), tbinall(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 

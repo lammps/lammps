@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_region.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
 
@@ -48,7 +48,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

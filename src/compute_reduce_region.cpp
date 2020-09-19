@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reduce_region.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "modify.h"

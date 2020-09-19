@@ -12,14 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor.h"
-#include "atom.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-#define MAXWORD 3
 
 /* ---------------------------------------------------------------------- */
 

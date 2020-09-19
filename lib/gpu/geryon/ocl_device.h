@@ -360,7 +360,7 @@ int UCL_Device::set_platform(int pid) {
 
   // --- Get Number of Devices
   cl_uint n;
-  errorv=clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,0,NULL,&n);
+  errorv=clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,0,nullptr,&n);
   _num_devices=n;
   if (errorv!=CL_SUCCESS || _num_devices==0) {
     _num_devices=0;
@@ -385,7 +385,7 @@ int UCL_Device::create_context() {
   props[0]=CL_CONTEXT_PLATFORM;
   props[1]=_platform;
   props[2]=0;
-  _context=clCreateContext(0,1,&_cl_device,NULL,NULL,&errorv);
+  _context=clCreateContext(0,1,&_cl_device,nullptr,nullptr,&errorv);
   if (errorv!=CL_SUCCESS) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << _device
@@ -404,36 +404,36 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   char buffer[1024];
   cl_bool ans_bool;
 
-  CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_NAME,1024,buffer,NULL));
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_NAME,1024,buffer,nullptr));
   op.name=buffer;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_GLOBAL_MEM_SIZE,
-                               sizeof(op.global_mem),&op.global_mem,NULL));
+                               sizeof(op.global_mem),&op.global_mem,nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_LOCAL_MEM_SIZE,
-                               sizeof(op.shared_mem),&op.shared_mem,NULL));
+                               sizeof(op.shared_mem),&op.shared_mem,nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE,
-                               sizeof(op.const_mem),&op.const_mem,NULL));
+                               sizeof(op.const_mem),&op.const_mem,nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_TYPE,
-                               sizeof(op.device_type),&op.device_type,NULL));
+                               sizeof(op.device_type),&op.device_type,nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MAX_COMPUTE_UNITS,
                                sizeof(op.compute_units),&op.compute_units,
-                               NULL));
+                               nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MAX_CLOCK_FREQUENCY,
-                               sizeof(op.clock),&op.clock,NULL));
+                               sizeof(op.clock),&op.clock,nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MAX_WORK_GROUP_SIZE,
                                sizeof(op.work_group_size),&op.work_group_size,
-                               NULL));
+                               nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MAX_WORK_ITEM_SIZES,
                                3*sizeof(op.work_item_size[0]),op.work_item_size,
-                               NULL));
+                               nullptr));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MEM_BASE_ADDR_ALIGN,
-                               sizeof(cl_uint),&op.alignment,NULL));
+                               sizeof(cl_uint),&op.alignment,nullptr));
   op.alignment/=8;
 
   // Determine if double precision is supported
   cl_uint double_width;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE,
-                               sizeof(double_width),&double_width,NULL));
+                               sizeof(double_width),&double_width,nullptr));
   if (double_width==0)
     op.double_precision=false;
   else
@@ -441,13 +441,13 @@ void UCL_Device::add_properties(cl_device_id device_list) {
 
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,
-                               sizeof(size_t),&op.timer_resolution,NULL));
+                               sizeof(size_t),&op.timer_resolution,nullptr));
 
 
   op.ecc_support=false;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_ERROR_CORRECTION_SUPPORT,
-                               sizeof(ans_bool),&ans_bool,NULL));
+                               sizeof(ans_bool),&ans_bool,nullptr));
   if (ans_bool==CL_TRUE)
     op.ecc_support=true;
 
@@ -459,7 +459,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   #ifdef CL_VERSION_1_2
   size_t return_bytes;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_OPENCL_C_VERSION,1024,
-                               buffer,NULL));
+                               buffer,nullptr));
   op.c_version=buffer;
 
   cl_device_partition_property pinfo[4];
@@ -479,7 +479,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
 
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PARTITION_MAX_SUB_DEVICES,
-                               sizeof(cl_uint),&op.max_sub_devices,NULL));
+                               sizeof(cl_uint),&op.max_sub_devices,nullptr));
   #endif
 
   _properties.push_back(op);
@@ -489,15 +489,15 @@ std::string UCL_Device::platform_name() {
   char info[1024];
 
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_VENDOR,1024,info,
-                                 NULL));
+                                 nullptr));
   std::string ans=std::string(info)+' ';
 
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_NAME,1024,info,
-                                 NULL));
+                                 nullptr));
   ans+=std::string(info)+' ';
 
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_VERSION,1024,info,
-               NULL));
+               nullptr));
   ans+=std::string(info);
 
   return ans;

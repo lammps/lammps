@@ -115,7 +115,7 @@ namespace ATC {
     
     // constructor
     NodalAtomVolumeElement(ATC_Method * atc, SPAR_MAN * shapeFunction,
-                           PerAtomQuantity<int> * atomElement=NULL);
+                           PerAtomQuantity<int> * atomElement=nullptr);
     
     // destructor
     virtual ~NodalAtomVolumeElement() {
@@ -173,7 +173,7 @@ namespace ATC {
     
     // constructor
     AtomTypeElement(ATC_Coupling * atc,
-                    PerAtomQuantity<int> * atomElement = NULL);
+                    PerAtomQuantity<int> * atomElement = nullptr);
     
     // destructor
     virtual ~AtomTypeElement() {
@@ -211,8 +211,8 @@ namespace ATC {
     
     // constructor
     ElementMask(ATC_Coupling * atc,
-                MatrixDependencyManager<DenseMatrix, int> * hasInternal = NULL,
-                MatrixDependencyManager<DenseMatrix, int> * hasGhost = NULL);
+                MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr,
+                MatrixDependencyManager<DenseMatrix, int> * hasGhost = nullptr);
     
     // destructor
     virtual ~ElementMask() {
@@ -251,7 +251,7 @@ namespace ATC {
     
     // constructor
     AtomElementMask(ATC_Coupling * atc,
-                    MatrixDependencyManager<DenseMatrix, int> * hasAtoms = NULL);
+                    MatrixDependencyManager<DenseMatrix, int> * hasAtoms = nullptr);
     
     // destructor
     virtual ~AtomElementMask() {
@@ -287,8 +287,8 @@ namespace ATC {
     
     // constructor
     NodalGeometryType(ATC_Coupling * atc,
-                      MatrixDependencyManager<DenseMatrix, int> * hasInternal = NULL,
-                      MatrixDependencyManager<DenseMatrix, int> * hasGhost = NULL);
+                      MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr,
+                      MatrixDependencyManager<DenseMatrix, int> * hasGhost = nullptr);
     
     // destructor
     virtual ~NodalGeometryType() {
@@ -338,7 +338,7 @@ namespace ATC {
     
     // constructor
     NodalGeometryTypeElementSet(ATC_Coupling * atc,
-                                MatrixDependencyManager<DenseMatrix, int> * hasInternal = NULL);
+                                MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr);
     
     // destructor
     virtual ~NodalGeometryTypeElementSet() {
@@ -659,7 +659,7 @@ namespace ATC {
     // constructor
     RegulatedNodes(ATC_Coupling * atc,
                    FieldName fieldName = NUM_TOTAL_FIELDS,
-                   MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL);
+                   MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr);
     
     // destructor
     virtual ~RegulatedNodes() {
@@ -721,7 +721,7 @@ namespace ATC {
     // constructor
     FluxNodes(ATC_Coupling * atc,
               FieldName fieldName = NUM_TOTAL_FIELDS,
-              MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+              MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                 RegulatedNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -751,7 +751,7 @@ namespace ATC {
     // constructor
     BoundaryNodes(ATC_Coupling * atc,
                   FieldName fieldName = NUM_TOTAL_FIELDS,
-                  MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+                  MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                     RegulatedNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -781,7 +781,7 @@ namespace ATC {
     // constructor
     FluxBoundaryNodes(ATC_Coupling * atc,
                       FieldName fieldName = NUM_TOTAL_FIELDS,
-                      MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+                      MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                        FluxNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -811,7 +811,7 @@ namespace ATC {
     // constructor
     AllRegulatedNodes(ATC_Coupling * atc,
                       FieldName fieldName = NUM_TOTAL_FIELDS,
-                      MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+                      MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                         FluxBoundaryNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -841,7 +841,7 @@ namespace ATC {
     // constructor
     FixedNodes(ATC_Coupling * atc,
                FieldName fieldName = NUM_TOTAL_FIELDS,
-               MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+               MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                  RegulatedNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -871,7 +871,7 @@ namespace ATC {
     // constructor
     FixedBoundaryNodes(ATC_Coupling * atc,
                        FieldName fieldName = NUM_TOTAL_FIELDS,
-                       MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = NULL) :
+                       MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                          FixedNodes(atc,fieldName,nodalGeometryType) {};
     
     // destructor
@@ -1052,8 +1052,8 @@ namespace ATC {
 
     // constructor
     PerAtomShapeFunctionGradient(ATC_Method * atc,
-                                 MatrixDependencyManager<DenseMatrix, int>* atomToElementMap = NULL,
-                                 DENS_MAN* atomPositions = NULL,
+                                 MatrixDependencyManager<DenseMatrix, int>* atomToElementMap = nullptr,
+                                 DENS_MAN* atomPositions = nullptr,
                                  const std::string & tag = "AtomicShapeFunctionGradient",
                                  AtomType atomType = INTERNAL); 
     

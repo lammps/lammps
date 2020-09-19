@@ -96,7 +96,7 @@ class ComputeChunkAtom : public Compute {
   class FixStore *fixstore;
 
   class Fix *lockfix;         // ptr to FixAveChunk that is locking out setups
-                              // NULL if no lock currently in place
+                              // null pointer if no lock currently in place
   bigint lockstart,lockstop;  // timesteps for start and stop of locking
 
   bigint invoked_setup;    // last timestep setup_chunks and nchunk calculated

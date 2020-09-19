@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "force.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "input.h"
+#include "lattice.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

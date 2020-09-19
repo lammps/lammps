@@ -15,10 +15,13 @@
 #define LMP_MODIFY_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+
+  class Compute;
+  class Fix;
 
 class Modify : protected Pointers {
   friend class Info;
@@ -27,7 +30,6 @@ class Modify : protected Pointers {
   friend class RespaOMP;
 
  public:
-  int nfix,maxfix;
   int n_initial_integrate,n_post_integrate,n_pre_exchange;
   int n_pre_neighbor,n_post_neighbor;
   int n_pre_force,n_pre_reverse,n_post_force;
@@ -41,11 +43,12 @@ class Modify : protected Pointers {
   int nfix_restart_global;   // stored fix global info from restart file
   int nfix_restart_peratom;  // stored fix peratom info from restart file
 
-  class Fix **fix;           // list of fixes
+  int nfix,maxfix;
+  Fix **fix;                 // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 
-  int ncompute,maxcompute;   // list of computes
-  class Compute **compute;
+  int ncompute,maxcompute;
+  Compute **compute;         // list of computes
 
   Modify(class LAMMPS *);
   virtual ~Modify();
@@ -122,7 +125,7 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate(int);
 
-  bigint memory_usage();
+  double memory_usage();
 
  protected:
 

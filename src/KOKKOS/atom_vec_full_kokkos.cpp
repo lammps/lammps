@@ -20,7 +20,7 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -30,9 +30,9 @@ using namespace LAMMPS_NS;
 
 AtomVecFullKokkos::AtomVecFullKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
@@ -1588,9 +1588,9 @@ int AtomVecFullKokkos::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecFullKokkos::memory_usage()
+double AtomVecFullKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);

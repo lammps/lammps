@@ -20,7 +20,7 @@ ComputeStyle(reduce,ComputeReduce)
 #ifndef LMP_COMPUTE_REDUCE_H
 #define LMP_COMPUTE_REDUCE_H
 
-#include "compute.h"
+#include "compute.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

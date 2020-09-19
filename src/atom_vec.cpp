@@ -12,20 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec.h"
-#include <cstdio>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
 #include "tokenizer.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -40,9 +39,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   nmax = 0;
   ngrow = 0;
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
-  mass_type = dipole_type = 0;
+  mass_type = dipole_type = PER_ATOM;
   forceclearflag = 0;
   maxexchange = 0;
   bonus_flag = 0;
@@ -2061,7 +2060,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack bond info for data file into buf if non-NULL
+   pack bond info for data file into buf if non-nullptr
    return count of bonds from this proc
    do not count/pack bonds with bondtype = 0
    if bondtype is negative, flip back to positive
@@ -2119,7 +2118,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   pack angle info for data file into buf if non-NULL
+   pack angle info for data file into buf if non-nullptr
    return count of angles from this proc
    do not count/pack angles with angletype = 0
    if angletype is negative, flip back to positive
@@ -2307,12 +2306,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVec::memory_usage()
+double AtomVec::memory_usage()
 {
   int datatype,cols,maxcols;
   void *pdata;
 
-  bigint bytes = 0;
+  double bytes = 0;
 
   bytes += memory->usage(tag,nmax);
   bytes += memory->usage(type,nmax);

@@ -16,17 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_harmonic_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

@@ -2206,7 +2206,8 @@ class PyLammps(object):
     """
     output = self.__getattr__('run')(*args, **kwargs)
 
-    if(self.has_mpi4py):
+    comm = self.lmp.get_mpi_comm()
+    if comm:
       output = self.lmp.comm.bcast(output, root=0)
 
     self.runs += get_thermo_data(output)

@@ -71,19 +71,15 @@ macro(pkg_depends PKG1 PKG2)
 endmacro()
 
 # CMake-only replacement for bin2c and xxd
-function(GenerateBinaryHeader varname outfile files)
+function(GenerateBinaryHeader varname outfile infile)
     message("Creating ${outfile}...")
     file(WRITE ${outfile} "// CMake generated file\n")
-    math(EXPR ARG_END   "${ARGC}-1")
 
-    foreach(IDX RANGE 2 ${ARG_END})
-        list(GET ARGV ${IDX} filename)
-        file(READ ${filename} content HEX)
-        string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," content "${content}")
-        string(REGEX REPLACE ",$" "" content "${content}")
-        file(APPEND ${outfile} "const unsigned char ${varname}[] = { ${content} };\n")
-        file(APPEND ${outfile} "const unsigned int ${varname}_size = sizeof(${varname});\n")
-    endforeach()
+    file(READ ${infile} content HEX)
+    string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," content "${content}")
+    string(REGEX REPLACE ",$" "" content "${content}")
+    file(APPEND ${outfile} "const unsigned char ${varname}[] = { ${content} };\n")
+    file(APPEND ${outfile} "const unsigned int ${varname}_size = sizeof(${varname});\n")
 endfunction(GenerateBinaryHeader)
 
 # fetch missing potential files

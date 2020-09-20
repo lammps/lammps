@@ -19,10 +19,10 @@
            in.lammps = LAMMPS input script
    See README for compilation instructions */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
 #include "lammps/library.h"        /* this is a LAMMPS include file */
 
 int main(int narg, char **arg)
@@ -72,7 +72,7 @@ int main(int narg, char **arg)
      all LAMMPS procs call lammps_command() on the line */
 
   void *lmp = NULL;
-  if (lammps == 1) lammps_open(0,NULL,comm_lammps,&lmp);
+  if (lammps == 1) lmp = lammps_open(0,NULL,comm_lammps,NULL);
 
   int n;
   char line[1024];

@@ -1610,6 +1610,7 @@ void Molecule::body(int flag, int pflag, char *line)
 
 int Molecule::findfragment(const char *name)
 {
+  if (!fragmentflag) return -1;
   for (int i = 0; i < nfragments; i++)
     if (fragmentnames[i] == name) return i;
   return -1;

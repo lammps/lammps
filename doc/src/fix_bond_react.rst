@@ -55,6 +55,9 @@ Syntax
          *custom_charges* value = *no* or *fragmentID*
            no = update all atomic charges (default)
            fragmentID = ID of molecule fragment whose charges are updated
+         *modify_create* value = *no* or *fragmentID*
+           no = use all eligible atoms for create-atoms fit (default)
+           fragmentID = ID of molecule fragment used for create-atoms fit
 
 Examples
 """"""""
@@ -85,7 +88,9 @@ documentation. Topology changes are defined in pre- and post-reaction
 molecule templates and can include creation and deletion of bonds,
 angles, dihedrals, impropers, bond types, angle types, dihedral types,
 atom types, or atomic charges. In addition, reaction by-products or
-other molecules can be identified and deleted.
+other molecules can be identified and deleted. Finally, atoms can be
+created and inserted at specific positions relative to the reaction
+site.
 
 Fix bond/react does not use quantum mechanical (eg. fix qmmm) or
 pairwise bond-order potential (eg. Tersoff or AIREBO) methods to
@@ -249,14 +254,14 @@ command page.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
-must contain the same number of atoms as the pre-reacted template. A
-one-to-one correspondence between the atom IDs in the pre- and
-post-reacted templates is specified in the map file as described
-below. Note that during a reaction, an atom, bond, etc. type may
-change to one that was previously not present in the simulation. These
-new types must also be defined during the setup of a given simulation.
-A discussion of correctly handling this is also provided on the
-:doc:`molecule <molecule>` command page.
+must contain the same number of atoms as the pre-reacted template
+(unless there are created atoms). A one-to-one correspondence between
+the atom IDs in the pre- and post-reacted templates is specified in
+the map file as described below. Note that during a reaction, an atom,
+bond, etc. type may change to one that was previously not present in
+the simulation. These new types must also be defined during the setup
+of a given simulation. A discussion of correctly handling this is also
+provided on the :doc:`molecule <molecule>` command page.
 
 .. note::
 
@@ -270,7 +275,7 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and four optional keywords. The
+contains one mandatory keyword and five optional keywords. The
 mandatory keyword is 'equivalences':
 
 .. parsed-literal::
@@ -283,11 +288,12 @@ The optional keywords are 'edgeIDs', 'deleteIDs', 'chiralIDs' and
 .. parsed-literal::
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
-   N *deleteIDs* = # of atoms N that are specified for deletion
-   N *chiralIDs* = # of specified chiral centers N
-   N *constraints* = # of specified reaction constraints N
+   N *deleteIDs* = # of atoms N that are deleted
+   N *createIDs* = # of atoms N that are created
+   N *chiralIDs* = # of chiral centers N
+   N *constraints* = # of reaction constraints N
 
-The body of the map file contains two mandatory sections and four
+The body of the map file contains two mandatory sections and five
 optional sections. The first mandatory section begins with the keyword
 'BondingIDs' and lists the atom IDs of the bonding atom pair in the
 pre-reacted molecule template. The second mandatory section begins
@@ -299,13 +305,15 @@ molecule template. The first optional section begins with the keyword
 'EdgeIDs' and lists the atom IDs of edge atoms in the pre-reacted
 molecule template. The second optional section begins with the keyword
 'DeleteIDs' and lists the atom IDs of pre-reaction template atoms to
-delete. The third optional section begins with the keyword 'ChiralIDs'
-lists the atom IDs of chiral atoms whose handedness should be
-enforced. The fourth optional section begins with the keyword
-'Constraints' and lists additional criteria that must be satisfied in
-order for the reaction to occur. Currently, there are five types of
-constraints available, as discussed below: 'distance', 'angle',
-'dihedral', 'arrhenius', and 'rmsd'.
+delete. The third optional section begins with the keyword 'CreateIDs'
+and lists the atom IDs of the post-reaction template atoms to create.
+The fourth optional section begins with the keyword 'ChiralIDs' lists
+the atom IDs of chiral atoms whose handedness should be enforced. The
+fifth optional section begins with the keyword 'Constraints' and lists
+additional criteria that must be satisfied in order for the reaction
+to occur. Currently, there are five types of constraints available, as
+discussed below: 'distance', 'angle', 'dihedral', 'arrhenius', and
+'rmsd'.
 
 A sample map file is given below:
 
@@ -339,6 +347,26 @@ A sample map file is given below:
    7   7
 
 ----------
+
+A user-specified set of atoms can be deleted by listing their
+pre-reaction template IDs in the DeleteIDs section. A deleted atom
+must still be included in the post-reaction molecule template, in
+which it cannot be bonded to an atom that is not deleted. In addition
+to deleting unwanted reaction by-products, this feature can be used to
+remove specific topologies, such as small rings, that may be otherwise
+indistinguishable.
+
+Atoms can be created by listing their post-reaction template IDs in
+the CreateIDs section. A created atom should not be included in the
+pre-reaction template. The inserted positions of created atoms are
+determined by the coordinates of the post-reaction template, after
+optimal translation and rotation of the post-reaction template to the
+reaction site (using a fit with atoms that are neither created nor
+deleted). Or, the *modify_create* keyword can be used to specify which
+post-reaction atoms are used for this fit. The *fragmentID* value must
+be the name of a molecule fragment defined in the post-reaction
+:doc:`molecule <molecule>` template, and only atoms in this fragment
+are used for the fit.
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
@@ -490,15 +518,6 @@ only the atomic charges of atoms in the molecule fragment are updated.
 
 A few other considerations:
 
-Many reactions result in one or more atoms that are considered
-unwanted by-products. Therefore, bond/react provides the option to
-delete a user-specified set of atoms. These pre-reaction atoms are
-identified in the map file. A deleted atom must still be included in
-the post-reaction molecule template, in which it cannot be bonded to
-an atom that is not deleted. In addition to deleting unwanted reaction
-by-products, this feature can be used to remove specific topologies,
-such as small rings, that may be otherwise indistinguishable.
-
 Optionally, you can enforce additional behaviors on reacting atoms.
 For example, it may be beneficial to force reacting atoms to remain at
 a certain temperature. For this, you can use the internally-created
@@ -572,7 +591,7 @@ Default
 """""""
 
 The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
-reset_mol_ids = yes, custom_charges = no
+reset_mol_ids = yes, custom_charges = no, modify_create = no
 
 ----------
 

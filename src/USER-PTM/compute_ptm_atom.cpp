@@ -285,7 +285,7 @@ void ComputePTMAtom::compute_peratom() {
 
   // zero output
 
-  memset(output,0,nmax*NUM_COLUMNS*sizeof(double));
+  memset(&output[0][0],0,nmax*NUM_COLUMNS*sizeof(double));
 
   for (int ii = 0; ii < inum; ii++) {
 

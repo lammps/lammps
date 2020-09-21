@@ -7,7 +7,7 @@ features:
 using Langevin or Nosé-Hoover thermostats
 * computation of the atom and dipole temperatures
 * damping induced dipole interactions using Thole's function
-* charge-dipole damping using Tang-Toennies damping function
+* charge-dipole damping using Tang-Toennies function
 
 See the file doc/drude_tutorial.html for getting started.
 

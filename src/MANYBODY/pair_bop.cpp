@@ -5223,9 +5223,9 @@ void _noopt PairBOP::read_table(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
     }
   }

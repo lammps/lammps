@@ -114,7 +114,7 @@ void PairTersoffMODC::read_file(char *file)
           params[nparams].bigb *= conversion_factor;
           params[nparams].c0   *= conversion_factor;
         }
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

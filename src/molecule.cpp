@@ -492,7 +492,7 @@ void Molecule::read(int flag)
 
       if (nmatch != nwant)
         error->one(FLERR,"Invalid header in molecule file");
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid header in molecule file\n"
                                     "{}", e.what()));
     }
@@ -688,7 +688,7 @@ void Molecule::coords(char *line)
       x[i][1] *= sizescale;
       x[i][2] *= sizescale;
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Coords section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -718,7 +718,7 @@ void Molecule::types(char *line)
       type[i] = values.next_int();
       type[i] += toffset;
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Types section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -748,7 +748,7 @@ void Molecule::molecules(char *line)
       molecule[i] = values.next_int();
       // molecule[i] += moffset; // placeholder for possible molecule offset
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Molecules section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -785,7 +785,7 @@ void Molecule::fragments(char *line)
         fragmentmask[i][atomID-1] = 1;
       }
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid atom ID in Fragments section of molecule file\n"
                                   "{}", e.what()));
   }
@@ -807,7 +807,7 @@ void Molecule::charges(char *line)
       values.next_int();
       q[i] = values.next_double();
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Charges section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -833,7 +833,7 @@ void Molecule::diameters(char *line)
       radius[i] *= 0.5;
       maxradius = MAX(maxradius,radius[i]);
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Diameters section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -860,7 +860,7 @@ void Molecule::masses(char *line)
       rmass[i] = values.next_double();
       rmass[i] *= sizescale*sizescale*sizescale;
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Masses section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -898,7 +898,7 @@ void Molecule::bonds(int flag, char *line)
       itype = values.next_int();
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid Bonds section in molecule file\n"
                                     "{}", e.what()));
     }
@@ -967,7 +967,7 @@ void Molecule::angles(int flag, char *line)
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid Angles section in molecule file\n"
                                     "{}", e.what()));
     }
@@ -1052,7 +1052,7 @@ void Molecule::dihedrals(int flag, char *line)
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
       atom4 = values.next_tagint();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid Dihedrals section in molecule file\n"
                                     "{}", e.what()));
     }
@@ -1152,7 +1152,7 @@ void Molecule::impropers(int flag, char *line)
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
       atom4 = values.next_tagint();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid Impropers section in molecule file\n"
                                     "{}", e.what()));
     }
@@ -1244,7 +1244,7 @@ void Molecule::nspecial_read(int flag, char *line)
       c1 = values.next_tagint();
       c2 = values.next_tagint();
       c3 = values.next_tagint();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid Special Bond Counts section in molecule file\n"
                                     "{}", e.what()));
     }
@@ -1283,7 +1283,7 @@ void Molecule::special_read(char *line)
           error->one(FLERR,"Invalid special atom index in molecule file");
       }
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Molecule file special list\n"
                                   "{}", e.what()));
   }
@@ -1415,7 +1415,7 @@ void Molecule::shakeflag_read(char *line)
       values.next_int();
       shake_flag[i] = values.next_int();
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Shake Flags section in molecule file\n"
                                   "{}", e.what()));
   }
@@ -1480,7 +1480,7 @@ void Molecule::shakeatom_read(char *line)
         error->one(FLERR,"Invalid shake atom in molecule file");
     }
 
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR,fmt::format("Invalid shake atom in molecule file\n"
                                  "{}", e.what()));
   }
@@ -1545,7 +1545,7 @@ void Molecule::shaketype_read(char *line)
       if (nmatch != nwant)
         error->one(FLERR,"Invalid shake type data in molecule file");
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid shake type data in molecule file\n",
                                   "{}", e.what()));
   }
@@ -1598,7 +1598,7 @@ void Molecule::body(int flag, int pflag, char *line)
         }
       } else nword += ncount;
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid body params in molecule file\n",
                                   "{}", e.what()));
   }

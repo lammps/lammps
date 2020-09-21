@@ -338,8 +338,8 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
 /* ---------------------------------------------------------------------- */
 
-void KimQuery::echo_var_assign(const std::string & name,
-                               const std::string & value) const
+void KimQuery::echo_var_assign(const std::string &name,
+                               const std::string &value) const
 {
   input->write_echo(fmt::format("variable {} string {}\n",name,value));
 }

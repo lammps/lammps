@@ -205,6 +205,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -225,6 +226,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    modify_create_fragid[i] = -1;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -378,6 +380,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           custom_charges_fragid[rxn] = atom->molecules[unreacted_mol[rxn]]->findfragment(arg[iarg+1]);
           if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
                                                          "'custom_charges' keyword does not exist");
+        }
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"modify_create") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'modify_create' has too few arguments");
+        if (strcmp(arg[iarg+1],"no") == 0) modify_create_fragid[rxn] = -1; //default
+        else {
+          modify_create_fragid[rxn] = atom->molecules[unreacted_mol[rxn]]->findfragment(arg[iarg+1]);
+          if (modify_create_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
+                                                         "'modify_create' keyword does not exist");
         }
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
@@ -561,6 +573,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(modify_create_fragid);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -2605,8 +2618,7 @@ void FixBondReact::update_everything()
 
   // used when deleting atoms
   int ndel,ndelone;
-  int *mark = new int[nlocal];
-  for (int i = 0; i < nlocal; i++) mark[i] = 0;
+  int *mark;
   tagint *tag = atom->tag;
   AtomVec *avec = atom->avec;
 
@@ -2653,6 +2665,8 @@ void FixBondReact::update_everything()
     delete [] iskip;
 
     // mark to-delete atoms
+    mark = new int[nlocal];
+    for (int i = 0; i < nlocal; i++) mark[i] = 0;
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       onemol = atom->molecules[unreacted_mol[rxnID]];
@@ -3150,6 +3164,8 @@ void FixBondReact::update_everything()
   atom->nimpropers += Tdelta_imprp;
 }
 
+
+
 /* ----------------------------------------------------------------------
 read superimpose file
 ------------------------------------------------------------------------- */
@@ -3258,7 +3274,7 @@ void FixBondReact::Equivalences(char *line, int myrxn)
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
     sscanf(line,"%d %d",&tmp1,&tmp2);
-    if (tmp1 > onemol->natoms || tmp2 > onemol->natoms)
+    if (tmp1 > onemol->natoms || tmp2 > twomol->natoms)
       error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     equivalences[tmp2-1][0][myrxn] = tmp2;

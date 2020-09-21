@@ -387,7 +387,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'modify_create' has too few arguments");
         if (strcmp(arg[iarg+1],"no") == 0) modify_create_fragid[rxn] = -1; //default
         else {
-          modify_create_fragid[rxn] = atom->molecules[unreacted_mol[rxn]]->findfragment(arg[iarg+1]);
+          modify_create_fragid[rxn] = atom->molecules[reacted_mol[rxn]]->findfragment(arg[iarg+1]);
           if (modify_create_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
                                                          "'modify_create' keyword does not exist");
         }

@@ -1099,6 +1099,7 @@ Gmask
 gneb
 GNEB
 Goldfarb
+Gomes
 Gonzalez-Melchor
 googlemail
 Gordan
@@ -1382,6 +1383,7 @@ Izz
 Jacobsen
 Jadhav
 jagreat
+Jahn
 Jalalvand
 james
 Janssen
@@ -2677,6 +2679,7 @@ Rosenberger
 Rossky
 rosybrown
 rotationally
+Rotenberg
 Rovigatti
 royalblue
 rozero
@@ -2711,6 +2714,7 @@ safezone
 Safran
 Sagui
 Saidi
+Salanne
 Salles
 sandia
 Sandia
@@ -3072,6 +3076,7 @@ Tobias
 tokenizer
 tokyo
 tol
+Toennies
 toolchain
 topologies
 Toporov
@@ -3296,6 +3301,7 @@ vtp
 vtr
 vtu
 Vu
+Vuilleumier
 vv
 vx
 Vx

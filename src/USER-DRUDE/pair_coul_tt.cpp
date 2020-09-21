@@ -240,7 +240,7 @@ void PairCoulTT::settings(int narg, char **arg)
 
 void PairCoulTT::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 5)
+  if (narg < 3 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

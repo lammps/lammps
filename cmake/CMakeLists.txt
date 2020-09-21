@@ -574,7 +574,7 @@ if (${_index} GREATER -1)
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
   input.h info.h kspace.h lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h
-  pair.h pointers.h region.h timer.h universe.h update.h variable.h)
+  pair.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
 if(LAMMPS_EXCEPTIONS)
   list(APPEND LAMMPS_CXX_HEADERS exceptions.h)
 endif()

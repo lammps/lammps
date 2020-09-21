@@ -621,7 +621,7 @@ void ReadRestart::header()
       char *version = read_string();
       if (me == 0)
         utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
-                                       version,universe->version));
+                                       version,lmp->version));
       delete [] version;
 
       // we have no forward compatibility, thus exit with error

@@ -267,7 +267,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & CONFIG) {
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
-               universe->version, universe->num_ver);
+               lmp->version, lmp->num_ver);
 
     if (lmp->has_git_info)
       fmt::print(out,"Git info: {} / {} / {}\n",

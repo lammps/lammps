@@ -559,7 +559,7 @@ growing with every new LAMMPS release.
 int lammps_version(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-  return atoi(lmp->universe->num_ver);
+  return lmp->num_ver;
 }
 
 /* ---------------------------------------------------------------------- */

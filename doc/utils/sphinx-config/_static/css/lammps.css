@@ -27,7 +27,11 @@ hr {
      margin-bottom: 12px !important;
 }
 
-.section h2 {
+#user-documentation.section h2 {
+     display: none;
+}
+
+#programmer-documentation.section h2 {
      display: none;
 }
 

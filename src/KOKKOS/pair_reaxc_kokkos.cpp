@@ -753,14 +753,14 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else {
     if (neighflag == HALF) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -799,12 +799,12 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_resize_hb.sync<DeviceType>();
 
     // zero
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero, Kokkos::LaunchBounds<256, 1>>(0,nmax),*this);
 
     if (neighflag == HALF)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF>, Kokkos::LaunchBounds<256, 1> >(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD>, Kokkos::LaunchBounds<256, 1> >(0,ignum),*this);
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -892,15 +892,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Angular
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALF,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeAngular<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     ev_all += ev;
   }
   pvector[4] = ev.ereax[3];
@@ -911,15 +911,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Torsion
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
     ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
@@ -1611,7 +1611,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   const int itype = type(i);
   const int jnum = d_numneigh[i];
 
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
+  const int three = 3;
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[three], dBOp_i[three], dln_BOp_pi_i[three], dln_BOp_pi2_i[three];
   F_FLOAT total_bo = 0.0;
 
   int j_index,i_index;

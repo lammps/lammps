@@ -18,7 +18,7 @@
 #include "pair_tersoff_zbl_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -81,7 +81,7 @@ PairTersoffZBLGPU::PairTersoffZBLGPU(LAMMPS *lmp) : PairTersoffZBL(lmp),
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -169,11 +169,11 @@ void PairTersoffZBLGPU::init_style()
   double *c1, *c2, *c3, *c4;
   double *c, *d, *h, *gamma;
   double *beta, *powern, *Z_i, *Z_j, *ZBLcut, *ZBLexpscale, *_cutsq;
-  lam1 = lam2 = lam3 = powermint = NULL;
-  biga = bigb = bigr = bigd = NULL;
-  c1 = c2 = c3 = c4 = NULL;
-  c = d = h = gamma = NULL;
-  beta = powern = Z_i = Z_j = ZBLcut = ZBLexpscale = _cutsq = NULL;
+  lam1 = lam2 = lam3 = powermint = nullptr;
+  biga = bigb = bigr = bigd = nullptr;
+  c1 = c2 = c3 = c4 = nullptr;
+  c = d = h = gamma = nullptr;
+  beta = powern = Z_i = Z_j = ZBLcut = ZBLexpscale = _cutsq = nullptr;
 
   memory->create(lam1,nparams,"pair:lam1");
   memory->create(lam2,nparams,"pair:lam2");

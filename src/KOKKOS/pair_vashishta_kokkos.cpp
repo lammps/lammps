@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "math_const.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -60,8 +61,8 @@ PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 

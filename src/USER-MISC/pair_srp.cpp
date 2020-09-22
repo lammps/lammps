@@ -26,9 +26,9 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
 #include "pair_srp.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -44,7 +44,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "thermo.h"
 #include "output.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +76,7 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_srp);
 
   nextra = 1;
-  segment = NULL;
+  segment = nullptr;
 
   // generate unique fix-id for this pair style instance
 
@@ -704,12 +704,12 @@ void PairSRP::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -737,12 +737,12 @@ void PairSRP::write_restart_settings(FILE *fp)
 void PairSRP::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&bptype,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&btype,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&min,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&midpoint,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&exclude,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&bptype,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&btype,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&min,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&midpoint,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&exclude,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }

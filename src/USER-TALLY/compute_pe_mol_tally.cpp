@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pe_mol_tally.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -59,7 +59,7 @@ ComputePEMolTally::~ComputePEMolTally()
 
 void ComputePEMolTally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute pe/mol/tally without pair style");
   else
     force->pair->add_tally_callback(this);

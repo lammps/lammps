@@ -12,23 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "comm_kokkos.h"
-#include "kokkos.h"
+
 #include "atom.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "domain.h"
-#include "atom_masks.h"
-#include "error.h"
-#include "memory_kokkos.h"
-#include "force.h"
-#include "pair.h"
-#include "fix.h"
 #include "compute.h"
+#include "domain.h"
 #include "dump.h"
-#include "output.h"
-#include "modify.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "kokkos.h"
 #include "kokkos_base.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "output.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,7 +45,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 {
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
-  sendlist = NULL;
+  sendlist = nullptr;
   k_sendlist = DAT::tdual_int_2d();
   k_total_send = DAT::tdual_int_scalar("comm::k_total_send");
 
@@ -53,9 +54,9 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // initialize comm buffers & exchange memory
 
   memory->destroy(buf_send);
-  buf_send = NULL;
+  buf_send = nullptr;
   memory->destroy(buf_recv);
-  buf_recv = NULL;
+  buf_recv = nullptr;
 
   k_exchange_lists = DAT::tdual_int_2d("comm:k_exchange_lists",2,100);
   k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
@@ -64,7 +65,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
 
   memory->destroy(maxsendlist);
-  maxsendlist = NULL;
+  maxsendlist = nullptr;
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
@@ -81,11 +82,11 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 CommKokkos::~CommKokkos()
 {
   memoryKK->destroy_kokkos(k_sendlist,sendlist);
-  sendlist = NULL;
+  sendlist = nullptr;
   memoryKK->destroy_kokkos(k_buf_send,buf_send);
-  buf_send = NULL;
+  buf_send = nullptr;
   memoryKK->destroy_kokkos(k_buf_recv,buf_recv);
-  buf_recv = NULL;
+  buf_recv = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,7 +419,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     if (sendproc[iswap] != me) {
       double* buf_send_pair;
       double* buf_recv_pair;
-      if (lmp->kokkos->cuda_aware_flag) {
+      if (lmp->kokkos->gpu_aware_flag) {
         buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
         buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
       } else {
@@ -436,7 +437,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
         MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-      if (!lmp->kokkos->cuda_aware_flag) {
+      if (!lmp->kokkos->gpu_aware_flag) {
         k_buf_recv_pair.modify<LMPHostType>();
         k_buf_recv_pair.sync<DeviceType>();
       }
@@ -567,7 +568,7 @@ void CommKokkos::exchange_device()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -1042,7 +1043,7 @@ void CommKokkos::borders_device() {
   // reset global->local map
 
   atomKK->modified(exec_space,ALL_MASK);
-  if (map_style) {
+  if (map_style != Atom::MAP_NONE) {
     atomKK->sync(Host,TAG_MASK);
     atom->map_set();
   }

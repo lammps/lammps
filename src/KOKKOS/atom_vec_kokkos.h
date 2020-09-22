@@ -14,7 +14,8 @@
 #ifndef LMP_ATOM_VEC_KOKKOS_H
 #define LMP_ATOM_VEC_KOKKOS_H
 
-#include "atom_vec.h"
+#include "atom_vec.h"           //  IWYU pragma: export
+
 #include "kokkos_type.h"
 #include <type_traits>
 
@@ -136,24 +137,24 @@ class AtomVecKokkos : public AtomVec {
   size_t buffer_size;
   void* buffer;
 
-  #ifdef KOKKOS_ENABLE_CUDA
+  #ifdef LMP_KOKKOS_GPU
   template<class ViewType>
   Kokkos::View<typename ViewType::data_type,
                typename ViewType::array_layout,
-               Kokkos::CudaHostPinnedSpace,
+               LMPPinnedHostType,
                Kokkos::MemoryTraits<Kokkos::Unmanaged> >
   create_async_copy(const ViewType& src) {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
                  typename std::conditional<
                    std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
-                   Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
+                   LMPPinnedHostType,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span());
+       buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(src.span());
        buffer_size = src.span();
     } else if (buffer_size < src.span()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span());
+       buffer = Kokkos::kokkos_realloc<LMPPinnedHostType>(buffer,src.span());
        buffer_size = src.span();
     }
     return mirror_type(buffer, src.d_view.layout());
@@ -165,13 +166,13 @@ class AtomVecKokkos : public AtomVec {
                  typename ViewType::array_layout,
                  typename std::conditional<
                    std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
-                   Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
+                   LMPPinnedHostType,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span()*sizeof(typename ViewType::value_type));
+       buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(src.span()*sizeof(typename ViewType::value_type));
        buffer_size = src.span();
     } else if (buffer_size < src.span()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span()*sizeof(typename ViewType::value_type));
+       buffer = Kokkos::kokkos_realloc<LMPPinnedHostType>(buffer,src.span()*sizeof(typename ViewType::value_type));
        buffer_size = src.span();
     }
     mirror_type tmp_view((typename ViewType::value_type*)buffer, src.d_view.layout());

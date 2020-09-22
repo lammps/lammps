@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_buck_long_coul_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_vector.h"
@@ -31,7 +31,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -50,9 +50,9 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;
-  ftable = NULL;
-  fdisptable = NULL;
-  cut_respa = NULL;
+  ftable = nullptr;
+  fdisptable = nullptr;
+  cut_respa = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -61,7 +61,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 void PairBuckLongCoulLong::options(char **arg, int order)
 {
-  const char *option[] = {"long", "cut", "off", NULL};
+  const char *option[] = {"long", "cut", "off", nullptr};
   int i;
 
   if (!*arg) error->all(FLERR,"Illegal pair_style buck/long/coul/long command");
@@ -177,10 +177,10 @@ void PairBuckLongCoulLong::allocate()
 void *PairBuckLongCoulLong::extract(const char *id, int &dim)
 {
   const char *ids[] = {
-    "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", "cut_LJ", NULL};
+    "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", "cut_LJ", nullptr};
   void *ptrs[] = {
     buck_c, &ewald_order, &cut_coul, &mix_flag, &cut_coul, &cut_buck_global,
-    NULL};
+    nullptr};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
@@ -240,7 +240,7 @@ void PairBuckLongCoulLong::init_style()
 
   // ensure use of KSpace long-range solver, set two g_ewalds
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
   if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
@@ -250,7 +250,7 @@ void PairBuckLongCoulLong::init_style()
   if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
+  else cut_respa = nullptr;
 
   // setup force tables
 
@@ -359,14 +359,14 @@ void PairBuckLongCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&buck_a_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck_rho_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck_c_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_buck_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck_a_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck_rho_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck_c_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_buck_read[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&buck_a_read[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&buck_rho_read[i][j],1,MPI_DOUBLE,0,world);
@@ -399,14 +399,14 @@ void PairBuckLongCoulLong::write_restart_settings(FILE *fp)
 void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_buck_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_buck_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_buck_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);

@@ -15,22 +15,22 @@
    Contributing authors: William McDoniel (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_disp_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
-#include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -68,18 +68,18 @@ PPPMDispIntel::PPPMDispIntel(LAMMPS *lmp) : PPPMDisp(lmp)
   order = 7;
   order_6 = 7; //sets default stencil sizes to 7
 
-  perthread_density = NULL;
-  particle_ekx = particle_eky = particle_ekz = NULL;
-  particle_ekx0 = particle_eky0 = particle_ekz0 = NULL;
-  particle_ekx1 = particle_eky1 = particle_ekz1 = NULL;
-  particle_ekx2 = particle_eky2 = particle_ekz2 = NULL;
-  particle_ekx3 = particle_eky3 = particle_ekz3 = NULL;
-  particle_ekx4 = particle_eky4 = particle_ekz4 = NULL;
-  particle_ekx5 = particle_eky5 = particle_ekz5 = NULL;
-  particle_ekx6 = particle_eky6 = particle_ekz6 = NULL;
+  perthread_density = nullptr;
+  particle_ekx = particle_eky = particle_ekz = nullptr;
+  particle_ekx0 = particle_eky0 = particle_ekz0 = nullptr;
+  particle_ekx1 = particle_eky1 = particle_ekz1 = nullptr;
+  particle_ekx2 = particle_eky2 = particle_ekz2 = nullptr;
+  particle_ekx3 = particle_eky3 = particle_ekz3 = nullptr;
+  particle_ekx4 = particle_eky4 = particle_ekz4 = nullptr;
+  particle_ekx5 = particle_eky5 = particle_ekz5 = nullptr;
+  particle_ekx6 = particle_eky6 = particle_ekz6 = nullptr;
 
-  rho_lookup = drho_lookup = NULL;
-  rho6_lookup = drho6_lookup = NULL;
+  rho_lookup = drho_lookup = nullptr;
+  rho6_lookup = drho6_lookup = nullptr;
   rho_points = 0;
 
   _use_table = _use_packing = _use_lrt = 0;

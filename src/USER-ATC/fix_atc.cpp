@@ -12,23 +12,15 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_atc.h"
-#include <cstdio>
-#include <cstring>
-#include <sstream>
-#include "fix_nve.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "pointers.h"
 #include "comm.h"
+#include "error.h"
 #include "group.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 
 #include "ATC_Method.h"
-#include "ATC_Transfer.h"
 #include "ATC_TransferKernel.h"
 #include "ATC_TransferPartitionOfUnity.h"
 #include "ATC_CouplingEnergy.h"
@@ -36,6 +28,8 @@
 #include "ATC_CouplingMass.h"
 #include "ATC_CouplingMomentumEnergy.h"
 #include "LammpsInterface.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -54,7 +48,7 @@ using std::string;
 /* ------------------------------------------------------------------------- */
 
 FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  lammps_(lmp), atc_(NULL)
+  lammps_(lmp), atc_(nullptr)
 {
   // ID GROUP atc PHYSICSTYPE [PARAMETERFILE]
   if (narg < 4 || narg > 5) lmp->error->all(FLERR,"Illegal fix atc command");
@@ -480,7 +474,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     throw;
   }
 
-  lmp->atom->add_callback(0);
+  lmp->atom->add_callback(Atom::GROW);
 
   // we write our own restart file
   restart_global = 0;
@@ -513,7 +507,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 /*----------------------------------------------------------------------- */
 FixATC::~FixATC()
 {
-  if (lmp->atom) lmp->atom->delete_callback(id,0);
+  if (lmp->atom) lmp->atom->delete_callback(id,Atom::GROW);
   if (atc_) delete atc_;
 }
 

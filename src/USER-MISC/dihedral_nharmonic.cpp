@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_nharmonic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -320,7 +320,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -330,7 +330,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for(int i = 1; i <= atom->ndihedraltypes; i++)
-      utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 
   for (int i = 1; i <= atom->ndihedraltypes; i++ )

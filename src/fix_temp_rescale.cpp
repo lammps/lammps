@@ -13,7 +13,7 @@
 
 #include "fix_temp_rescale.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,7 +37,7 @@ enum{CONSTANT,EQUAL};
 
 FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), tflag(0)
+  tstr(nullptr), id_temp(nullptr), tflag(0)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
 
@@ -50,7 +50,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   dynamic_group_allow = 1;
 
-  tstr = NULL;
+  tstr = nullptr;
   if (strstr(arg[4],"v_") == arg[4]) {
     int n = strlen(&arg[4][2]) + 1;
     tstr = new char[n];
@@ -278,5 +278,5 @@ void *FixTempRescale::extract(const char *str, int &dim)
     dim = 0;
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

@@ -1,7 +1,7 @@
 .. index:: pair_style spin/magelec
 
 pair_style spin/magelec command
-================================
+===============================
 
 Syntax
 """"""

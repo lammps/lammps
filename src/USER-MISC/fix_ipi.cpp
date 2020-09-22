@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ipi.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -45,7 +45,7 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-#include <cstdlib>
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -167,7 +167,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 /* ---------------------------------------------------------------------- */
 
 FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), irregular(NULL)
+  Fix(lmp, narg, arg), irregular(nullptr)
 {
   /* format for fix:
    *  fix  num  group_id ipi host port [unix]

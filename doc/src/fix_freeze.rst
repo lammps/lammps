@@ -1,10 +1,10 @@
 .. index:: fix freeze
+.. index:: fix freeze/kk
 
 fix freeze command
 ==================
 
-fix freeze/kk command
-=====================
+Accelerator Variants: *freeze/kk*
 
 Syntax
 """"""

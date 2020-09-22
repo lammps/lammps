@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_controller.h"
-#include <cstdlib>
-#include <cstring>
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{COMPUTE,FIX,VARIABLE};
 
 FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pvID(NULL), cvID(NULL)
+  pvID(nullptr), cvID(nullptr)
 {
   if (narg != 11) error->all(FLERR,"Illegal fix controller command");
 

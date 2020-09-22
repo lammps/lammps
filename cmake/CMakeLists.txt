@@ -218,10 +218,9 @@ if(BUILD_OMP)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
 
-  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.99.9)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 18.99.9))
-      )
+  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
     # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=4)
@@ -246,6 +245,26 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
       target_compile_options(lammps PUBLIC --coverage)
       target_link_options(lammps PUBLIC --coverage)
     endif()
+  endif()
+endif()
+
+#######################################
+# add custom target for IWYU analysis
+#######################################
+set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
+mark_as_advanced(ENABLE_IWYU)
+if(ENABLE_IWYU)
+  find_program(IWYU_EXE NAMES include-what-you-use iwyu)
+  find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
+  if (IWYU_EXE AND IWYU_TOOL)
+    add_custom_target(
+      iwyu
+      ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -Xiwyu --mapping_file=${CMAKE_CURRENT_SOURCE_DIR}/iwyu/iwyu-extra-map.imp
+      COMMENT "Running IWYU")
+    add_dependencies(iwyu lammps)
+  else()
+    message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
+      "and the iwyu-tool/iwyu_tool script installed in your PATH")
   endif()
 endif()
 
@@ -293,14 +312,13 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   endif()
 endif()
 
-
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)
   find_package(JPEG REQUIRED)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_JPEG)
   if(CMAKE_VERSION VERSION_LESS 3.12)
-    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIR})
+    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIRS})
     target_link_libraries(lammps PRIVATE ${JPEG_LIBRARIES})
   else()
     target_link_libraries(lammps PRIVATE JPEG::JPEG)
@@ -556,7 +574,7 @@ if (${_index} GREATER -1)
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
   input.h info.h kspace.h lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h
-  pair.h pointers.h region.h timer.h universe.h update.h variable.h)
+  pair.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
 if(LAMMPS_EXCEPTIONS)
   list(APPEND LAMMPS_CXX_HEADERS exceptions.h)
 endif()

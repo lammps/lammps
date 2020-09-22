@@ -197,7 +197,7 @@ protected:
       a.pos.Y = atom->x[i][1];
       a.pos.Z = atom->x[i][2];
       a.flags = 0;
-      a.cluster = NULL;
+      a.cluster = nullptr;
       a.numNeighbors = 0;
       a.setFlag(ATOM_IS_LOCAL_ATOM);
     }
@@ -290,7 +290,7 @@ protected:
         currentAtom->pos.Y = atom->x[i][1];
         currentAtom->pos.Z = atom->x[i][2];
         currentAtom->flags = 0;
-        currentAtom->cluster = NULL;
+        currentAtom->cluster = nullptr;
         currentAtom->numNeighbors = 0;
         currentAtom->setFlag(ATOM_IS_LOCAL_ATOM);
       }
@@ -302,7 +302,7 @@ protected:
         // Receive atoms from other processors.
         for(int iproc = 1; iproc < comm->nprocs; iproc++) {
           MPI_Status status;
-          MPI_Recv(buffer.empty() ? NULL : &buffer.front(), nlocalatoms_max * 3, MPI_DOUBLE, iproc, 0, world, &status);
+          MPI_Recv(buffer.empty() ? nullptr : &buffer.front(), nlocalatoms_max * 3, MPI_DOUBLE, iproc, 0, world, &status);
           int ndoubles;
           MPI_Get_count(&status, MPI_DOUBLE, &ndoubles);
           int nReceived = ndoubles / 3;
@@ -314,7 +314,7 @@ protected:
             currentAtom->pos.Y = *data++;
             currentAtom->pos.Z = *data++;
             currentAtom->flags = 0;
-            currentAtom->cluster = NULL;
+            currentAtom->cluster = nullptr;
             currentAtom->numNeighbors = 0;
             currentAtom->setFlag(ATOM_IS_LOCAL_ATOM);
           }
@@ -332,11 +332,11 @@ protected:
         *data++ = atom->x[i][2];
       }
       // Send local atom coordinates to master proc.
-      MPI_Send(buffer.empty() ? NULL : &buffer.front(), buffer.size(), MPI_DOUBLE, 0, 0, world);
+      MPI_Send(buffer.empty() ? nullptr : &buffer.front(), buffer.size(), MPI_DOUBLE, 0, 0, world);
     }
 
       // Make sure all input atoms are wrapped at periodic boundary conditions.
-      wrapInputAtoms(NULL_VECTOR);
+      wrapInputAtoms(nullptr_VECTOR);
 
       // Build nearest neighbor lists.
       buildNearestNeighborLists();
@@ -376,7 +376,7 @@ protected:
       }
     }
     // Broadcast segments.
-    MPI_Bcast(segmentBuffer.empty() ? NULL : &segmentBuffer.front(), segmentBuffer.size() * sizeof(segmentBuffer[0]), MPI_CHAR, 0, world);
+    MPI_Bcast(segmentBuffer.empty() ? nullptr : &segmentBuffer.front(), segmentBuffer.size() * sizeof(segmentBuffer[0]), MPI_CHAR, 0, world);
 
     if(processor != 0) {
       // Extract segments from receive buffer.
@@ -402,7 +402,7 @@ protected:
       DISLOCATIONS_ASSERT(sendItem == pointBuffer.end());
     }
     // Broadcast segments.
-    MPI_Bcast(pointBuffer.empty() ? NULL : &pointBuffer.front(), pointBuffer.size() * sizeof(pointBuffer[0]), MPI_CHAR, 0, world);
+    MPI_Bcast(pointBuffer.empty() ? nullptr : &pointBuffer.front(), pointBuffer.size() * sizeof(pointBuffer[0]), MPI_CHAR, 0, world);
 
     if(processor != 0) {
       // Extract points from receive buffer.

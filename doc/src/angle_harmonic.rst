@@ -1,16 +1,12 @@
 .. index:: angle_style harmonic
+.. index:: angle_style harmonic/intel
+.. index:: angle_style harmonic/kk
+.. index:: angle_style harmonic/omp
 
 angle_style harmonic command
 ============================
 
-angle_style harmonic/intel command
-==================================
-
-angle_style harmonic/kk command
-===============================
-
-angle_style harmonic/omp command
-================================
+Accelerator Variants: *harmonic/intel*, *harmonic/kk*, *harmonic/omp*
 
 Syntax
 """"""

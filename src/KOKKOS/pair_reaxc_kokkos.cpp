@@ -16,24 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_kokkos.h"
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list_kokkos.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
+
+#include <cmath>
 
 
 #define TEAMSIZE 128
@@ -81,9 +79,9 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   memoryKK->destroy_kokkos(k_tmpid,tmpid);
-  tmpid = NULL;
+  tmpid = nullptr;
   memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
-  tmpbo = NULL;
+  tmpbo = nullptr;
 
   // deallocate views of views in serial to prevent race condition in profiling tools
 
@@ -139,7 +137,7 @@ void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
   if (fix_reax) modify->delete_fix(fix_id); // not needed in the Kokkos version
-  fix_reax = NULL;
+  fix_reax = nullptr;
 
   // irequest = neigh request made by parent class
 

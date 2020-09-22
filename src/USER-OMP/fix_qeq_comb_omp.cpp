@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_comb_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "pair_comb.h"
@@ -48,13 +48,13 @@ void FixQEQCombOMP::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb/omp requires atom attribute q");
 
-  if (NULL != force->pair_match("comb3",0))
+  if (nullptr != force->pair_match("comb3",0))
     error->all(FLERR,"No support for comb3 currently available in USER-OMP");
 
   comb = (PairComb *) force->pair_match("comb/omp",1);
-  if (comb == NULL)
+  if (comb == nullptr)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL)
+  if (comb == nullptr)
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 

@@ -23,7 +23,7 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "force.h"
-#include "timer.h"
+
 #include "math_const.h"
 #include "math_extra.h"
 

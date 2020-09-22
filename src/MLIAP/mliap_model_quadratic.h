@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class MLIAPModelQuadratic : public MLIAPModel {
 public:
-  MLIAPModelQuadratic(LAMMPS*, char* = NULL);
+  MLIAPModelQuadratic(LAMMPS*, char* = nullptr);
   ~MLIAPModelQuadratic();
   virtual int get_nparams();
   virtual int get_gamma_nnz(class MLIAPData*);

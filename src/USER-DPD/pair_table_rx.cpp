@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_table_rx.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -46,8 +46,8 @@ enum{NONE,RLINEAR,RSQ,BMP};
 PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 {
   fractionalWeighting = true;
-  site1 = NULL;
-  site2 = NULL;
+  site1 = nullptr;
+  site2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,10 +93,10 @@ void PairTableRX::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  double *mixWtSite1old = NULL;
-  double *mixWtSite2old = NULL;
-  double *mixWtSite1 = NULL;
-  double *mixWtSite2 = NULL;
+  double *mixWtSite1old = nullptr;
+  double *mixWtSite2old = nullptr;
+  double *mixWtSite1 = nullptr;
+  double *mixWtSite2 = nullptr;
 
   {
     const int ntotal = atom->nlocal + atom->nghost;
@@ -290,7 +290,7 @@ void PairTableRX::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------

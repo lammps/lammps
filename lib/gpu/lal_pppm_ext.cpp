@@ -56,7 +56,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
   }
 
   success=0;
-  grdtyp * host_brick=NULL;
+  grdtyp * host_brick=nullptr;
   if (world_me==0)
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
                          nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
@@ -129,7 +129,7 @@ double pppm_gpu_bytes_f() {
 void pppm_gpu_forces_f(double **f) {
   double etmp;
   PPPMF.atom->data_unavail();
-  PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
+  PPPMF.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp);
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
@@ -173,6 +173,6 @@ double pppm_gpu_bytes_d() {
 void pppm_gpu_forces_d(double **f) {
   double etmp;
   PPPMD.atom->data_unavail();
-  PPPMD.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
+  PPPMD.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp);
 }
 

@@ -19,7 +19,7 @@
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 

@@ -13,14 +13,16 @@
 
 #include "atom_vec_atomic.h"
 
+#include "atom.h"
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 AtomVecAtomic::AtomVecAtomic(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings

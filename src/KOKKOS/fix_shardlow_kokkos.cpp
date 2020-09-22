@@ -35,7 +35,7 @@
 
 #include "fix_shardlow_kokkos.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
@@ -63,7 +63,7 @@ using namespace random_external_state;
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(nullptr), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -74,8 +74,8 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 
   if (narg != 3) error->all(FLERR,"Illegal fix shardlow command");
 
-//  k_pairDPD = NULL;
-  k_pairDPDE = NULL;
+//  k_pairDPD = nullptr;
+  k_pairDPDE = nullptr;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
   k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
 
@@ -88,7 +88,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   }
 
 
-  if(/* k_pairDPD == NULL &&*/ k_pairDPDE == NULL)
+  if(/* k_pairDPD == nullptr &&*/ k_pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style "/*"dpd/fdt/kk or "*/"dpd/fdt/energy/kk with fix shardlow/kk");
 
 #ifdef DEBUG_SSA_PAIR_CT

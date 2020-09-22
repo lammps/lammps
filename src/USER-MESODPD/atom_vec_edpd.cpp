@@ -12,16 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_edpd.h"
-#include <cstring>
+
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -29,8 +26,8 @@ using namespace LAMMPS_NS;
 
 AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
   forceclearflag = 1;
 
   atom->edpd_flag = 1;

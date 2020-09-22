@@ -15,7 +15,8 @@
 #define LMP_NEIGH_LIST_KOKKOS_H
 
 #include "pointers.h"
-#include "neigh_list.h"
+
+#include "neigh_list.h"         // IWYU pragma: export
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -67,11 +68,9 @@ public:
   int maxneighs;
 
   void grow(int nmax);
-  DAT::tdual_neighbors_2d k_neighbors;
   typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
   DAT::tdual_int_1d k_ilist;   // local indices of I atoms
   typename ArrayTypes<DeviceType>::t_int_1d d_ilist;
-  DAT::tdual_int_1d k_numneigh; // # of J neighs for each I
   typename ArrayTypes<DeviceType>::t_int_1d d_numneigh;
 
   NeighListKokkos(class LAMMPS *lmp);

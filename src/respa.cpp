@@ -16,30 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "respa.h"
-#include <cstring>
-#include <string>
-#include "neighbor.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "fix.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "fix_respa.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
-#include "fix_respa.h"
-#include "timer.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
 #include "pair_hybrid.h"
-#include "fmt/format.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,8 +46,8 @@ using namespace LAMMPS_NS;
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   Integrate(lmp, narg, arg),
-  step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL),
-  newton(NULL), fix_respa(NULL)
+  step(nullptr), loop(nullptr), hybrid_level(nullptr), hybrid_compute(nullptr),
+  newton(nullptr), fix_respa(nullptr)
 {
   nhybrid_styles = 0;
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");

@@ -20,13 +20,13 @@ namespace ATC {
   //========================================================================
   //  KernelFunctionMgr
   //========================================================================
-  KernelFunctionMgr * KernelFunctionMgr::myInstance_ = NULL;
+  KernelFunctionMgr * KernelFunctionMgr::myInstance_ = nullptr;
   //------------------------------------------------------------------------
   //  instance
   //------------------------------------------------------------------------
   KernelFunctionMgr * KernelFunctionMgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new KernelFunctionMgr();
     }
     return myInstance_;
@@ -65,7 +65,7 @@ namespace ATC {
       No default
     */
     int argIdx = 0;
-    KernelFunction * ptr = NULL;
+    KernelFunction * ptr = nullptr;
     char* type = arg[argIdx++];
     if (strcmp(type,"step")==0) {
       double parameters[1] = {atof(arg[argIdx])}; // cutoff radius

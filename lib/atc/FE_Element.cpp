@@ -36,7 +36,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       tolerance_(localCoordinatesTolerance),
       projectionGuess_(COORDINATE_ALIGNED)
   {
-    feInterpolate_ = NULL;
+    feInterpolate_ = nullptr;
   }
 
   FE_Element::~FE_Element()

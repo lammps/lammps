@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_partial.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -47,7 +47,7 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

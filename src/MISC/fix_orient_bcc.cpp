@@ -19,25 +19,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_bcc.h"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <mpi.h>
-#include <string>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "force.h"
-#include "math_const.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +56,7 @@ static const char cite_fix_orient_bcc[] =
 
 FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), sort(NULL), list(NULL)
+  xifilename(nullptr), chifilename(nullptr), order(nullptr), nbr(nullptr), sort(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_bcc);
 
@@ -118,7 +114,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *inpfile = fopen(xifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
@@ -128,7 +124,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
     fclose(inpfile);
 
     inpfile = fopen(chifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");

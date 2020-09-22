@@ -18,7 +18,7 @@
 #include "fix_box_relax.h"
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "compute.h"
 #include "error.h"
 #include "math_extra.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,7 +43,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_temp(NULL), id_press(NULL), tflag(0), pflag(0)
+  id_temp(nullptr), id_press(nullptr), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix box/relax command");
 
@@ -395,7 +395,7 @@ void FixBoxRelax::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;

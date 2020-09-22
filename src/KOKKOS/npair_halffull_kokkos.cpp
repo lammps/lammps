@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_halffull_kokkos.h"
-#include "neighbor.h"
-#include "neigh_list_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "my_page.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "domain.h"
+#include "neigh_list_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -74,8 +73,6 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
   list->gnum = k_list_full->gnum;
 
   k_list->k_ilist.template modify<DeviceType>();
-  k_list->k_numneigh.template modify<DeviceType>();
-  k_list->k_neighbors.template modify<DeviceType>();
 }
 
 template<class DeviceType, int NEWTON>

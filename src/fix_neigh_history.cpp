@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "my_page.h"
 #include "atom.h"
@@ -34,8 +34,8 @@ enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(NULL), npartner(NULL), partner(NULL), valuepartner(NULL),
-  ipage_atom(NULL), dpage_atom(NULL), ipage_neigh(NULL), dpage_neigh(NULL)
+  pair(nullptr), npartner(nullptr), partner(nullptr), valuepartner(nullptr),
+  ipage_atom(nullptr), dpage_atom(nullptr), ipage_neigh(nullptr), dpage_neigh(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
 
@@ -63,23 +63,23 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   // register with atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   pgsize = oneatom = 0;
 
   // other per-atom vectors
 
-  firstflag = NULL;
-  firstvalue = NULL;
+  firstflag = nullptr;
+  firstvalue = nullptr;
   maxatom = 0;
 
   // per-atom and per-neighbor data structs
 
-  ipage_atom = NULL;
-  dpage_atom = NULL;
-  ipage_neigh = NULL;
-  dpage_neigh = NULL;
+  ipage_atom = nullptr;
+  dpage_atom = nullptr;
+  ipage_neigh = nullptr;
+  dpage_neigh = nullptr;
 
   // initialize npartner to 0 so neighbor list creation is OK the 1st time
 
@@ -99,8 +99,8 @@ FixNeighHistory::~FixNeighHistory()
 
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -120,13 +120,13 @@ FixNeighHistory::~FixNeighHistory()
 
   // to better detect use-after-delete errors
 
-  firstflag = NULL;
-  firstvalue = NULL;
+  firstflag = nullptr;
+  firstvalue = nullptr;
 
-  pair = NULL;
-  npartner = NULL;
-  partner = NULL;
-  valuepartner = NULL;
+  pair = nullptr;
+  npartner = nullptr;
+  partner = nullptr;
+  valuepartner = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,7 +172,7 @@ void FixNeighHistory::init()
 void FixNeighHistory::allocate_pages()
 {
   int create = 0;
-  if (ipage_atom == NULL) create = 1;
+  if (ipage_atom == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -279,7 +279,7 @@ void FixNeighHistory::pre_exchange_onesided()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL)
+    if (partner[i] == nullptr || valuepartner[i] == nullptr)
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
   }
 
@@ -383,7 +383,7 @@ void FixNeighHistory::pre_exchange_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL) {
+    if (partner[i] == nullptr || valuepartner[i] == nullptr) {
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
     }
   }
@@ -392,7 +392,7 @@ void FixNeighHistory::pre_exchange_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL) {
+    if (partner[i] == nullptr || valuepartner[i] == nullptr) {
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
     }
   }
@@ -506,7 +506,7 @@ void FixNeighHistory::pre_exchange_no_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL)
+    if (partner[i] == nullptr || valuepartner[i] == nullptr)
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
   }
 
@@ -864,9 +864,9 @@ int FixNeighHistory::pack_restart(int i, double *buf)
 
 void FixNeighHistory::unpack_restart(int nlocal, int nth)
 {
-  // ipage_atom = NULL if being called from granular pair style init()
+  // ipage_atom = nullptr if being called from granular pair style init()
 
-  if (ipage_atom == NULL) allocate_pages();
+  if (ipage_atom == nullptr) allocate_pages();
 
   // skip to Nth set of extra values
   // unpack the Nth first values this way because other fixes pack them

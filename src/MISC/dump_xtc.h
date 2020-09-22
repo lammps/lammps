@@ -45,7 +45,7 @@ class DumpXTC : public Dump {
   void write_header(bigint);
   void pack(tagint *);
   void write_data(int, double *);
-  bigint memory_usage();
+  double memory_usage();
 
   void write_frame();
 };

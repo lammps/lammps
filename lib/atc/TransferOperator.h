@@ -542,7 +542,7 @@ namespace ATC {
     AtfProjection(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjection();
@@ -587,7 +587,7 @@ namespace ATC {
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   const double scale,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjectionScaled();
@@ -620,7 +620,7 @@ namespace ATC {
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   DENS_MAN * reference,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjectionReferenced();

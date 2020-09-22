@@ -12,22 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_coord_atom.h"
-#include <cmath>
-#include <cstring>
-#include "compute_orientorder_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "compute_orientorder_atom.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -37,8 +38,8 @@ using namespace LAMMPS_NS;
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
-  group2(NULL), id_orientorder(NULL), normv(NULL)
+  typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
+  group2(nullptr), id_orientorder(nullptr), normv(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
@@ -146,7 +147,7 @@ void ComputeCoordAtom::init()
                  "option in compute orientorder/atom");
   }
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,

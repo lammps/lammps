@@ -1,13 +1,11 @@
 .. index:: dihedral_style fourier
+.. index:: dihedral_style fourier/intel
+.. index:: dihedral_style fourier/omp
 
 dihedral_style fourier command
 ==============================
 
-dihedral_style fourier/intel command
-====================================
-
-dihedral_style fourier/omp command
-==================================
+Accelerator Variants: *fourier/intel*, *fourier/omp*
 
 Syntax
 """"""

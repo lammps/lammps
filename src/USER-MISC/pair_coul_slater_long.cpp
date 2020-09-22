@@ -15,23 +15,19 @@
  *     Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_slater_long.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -48,7 +44,7 @@ using namespace LAMMPS_NS;
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  //ftable = NULL;
+  //ftable = nullptr;
   qdist = 0.0;
 }
 
@@ -254,13 +250,13 @@ void PairCoulSlaterLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == NULL)
+ if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  // if (ncoultablebits) init_tables(cut_coul,NULL);
+  // if (ncoultablebits) init_tables(cut_coul,nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -419,5 +415,5 @@ void *PairCoulSlaterLong::extract(const char *str, int &dim)
     dim = 2;
     return (void *) scale;
   }
-  return NULL;
+  return nullptr;
 }

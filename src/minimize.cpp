@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "minimize.h"
+
 #include "domain.h"
-#include "update.h"
-#include "min.h"
-#include "finish.h"
-#include "timer.h"
 #include "error.h"
-#include "force.h"
+#include "finish.h"
+#include "min.h"
+#include "timer.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

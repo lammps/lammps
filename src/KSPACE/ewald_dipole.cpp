@@ -16,22 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_dipole.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "pair.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -42,12 +40,12 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 EwaldDipole::EwaldDipole(LAMMPS *lmp) : Ewald(lmp),
-  tk(NULL), vc(NULL)
+  tk(nullptr), vc(nullptr)
 {
   ewaldflag = dipoleflag = 1;
   group_group_enable = 0;
-  tk = NULL;
-  vc = NULL;
+  tk = nullptr;
+  vc = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -114,7 +112,7 @@ void EwaldDipole::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 

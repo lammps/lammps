@@ -12,11 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "min_sd.h"
-#include <cmath>
+
 #include "error.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

@@ -16,30 +16,28 @@
 ------------------------------------------------------------------------- */
 
 #include "domain.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include <string>
-#include "style_region.h"
+#include "style_region.h"   // IWYU pragma: keep
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "region.h"
+#include "force.h"
+#include "kspace.h"
 #include "lattice.h"
-#include "comm.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
 #include "output.h"
+#include "region.h"
 #include "thermo.h"
 #include "universe.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -91,7 +89,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxlo_lamda[0] = boxlo_lamda[1] = boxlo_lamda[2] = 0.0;
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
-  lattice = NULL;
+  lattice = nullptr;
   char **args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
@@ -99,7 +97,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   delete [] args;
 
   nregion = maxregion = 0;
-  regions = NULL;
+  regions = nullptr;
 
   copymode = 0;
 
@@ -108,7 +106,8 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
   (*region_map)[#key] = &region_creator<Class>;
-#include "style_region.h"
+#include "style_region.h"   // IWYU pragma: keep
+
 #undef RegionStyle
 #undef REGION_CLASS
 }
@@ -728,7 +727,7 @@ void Domain::image_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
@@ -769,7 +768,7 @@ void Domain::image_check()
 
   int flag = 0;
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -778,7 +777,7 @@ void Domain::image_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {
@@ -838,7 +837,7 @@ void Domain::box_too_small_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
@@ -868,7 +867,7 @@ void Domain::box_too_small_check()
   int nmissing = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -877,7 +876,7 @@ void Domain::box_too_small_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {
@@ -1641,7 +1640,7 @@ void Domain::image_flip(int m, int n, int p)
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
    if image flag is passed, flag is updated via remap(x,image)
-   if image = NULL is passed, no update with remap(x)
+   if image = nullptr is passed, no update with remap(x)
    if shrinkexceed, atom can be outside shrinkwrap boundaries
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
@@ -1728,7 +1727,7 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
-  lattice = NULL;
+  lattice = nullptr;
   lattice = new Lattice(lmp,narg,arg);
 }
 

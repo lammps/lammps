@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
@@ -22,7 +22,6 @@
 #include "update.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
@@ -35,8 +34,8 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), mliaparray(NULL),
-  mliaparrayall(NULL), map(NULL)
+  Compute(lmp, narg, arg), mliaparray(nullptr),
+  mliaparrayall(nullptr), map(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -128,7 +127,7 @@ ComputeMLIAP::~ComputeMLIAP()
 
 void ComputeMLIAP::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute mliap requires a pair style be defined");
 
   if (descriptor->cutmax > force->pair->cutforce)

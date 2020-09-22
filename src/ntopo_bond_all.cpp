@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo_bond_all.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -21,7 +21,7 @@
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 

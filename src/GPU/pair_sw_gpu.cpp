@@ -18,7 +18,7 @@
 #include "pair_sw_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -76,7 +76,7 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -162,9 +162,9 @@ void PairSWGPU::init_style()
   double *epsilon, *sigma, *lambda, *gamma;
   double *biga, *bigb, *powerp, *powerq;
   double *_cut, *_cutsq, *costheta;
-  epsilon = sigma = lambda = gamma = NULL;
-  biga = bigb = powerp = powerq = NULL;
-  _cut = _cutsq = costheta = NULL;
+  epsilon = sigma = lambda = gamma = nullptr;
+  biga = bigb = powerp = powerq = nullptr;
+  _cut = _cutsq = costheta = nullptr;
 
   memory->create(epsilon,nparams,"pair:epsilon");
   memory->create(sigma,nparams,"pair:sigma");

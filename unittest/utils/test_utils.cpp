@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <cerrno>
 #include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -610,4 +610,21 @@ TEST(Utils, timespec2seconds_mmss)
 TEST(Utils, timespec2seconds_hhmmss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
+}
+
+
+TEST(Utils, date2num)
+{
+    ASSERT_EQ(utils::date2num("1Jan05"),20050101);
+    ASSERT_EQ(utils::date2num("10Feb2005"),20050210);
+    ASSERT_EQ(utils::date2num("02Mar10"),20100302);
+    ASSERT_EQ(utils::date2num(" 5Apr1900"),19000405);
+    ASSERT_EQ(utils::date2num("10May22 "),20220510);
+    ASSERT_EQ(utils::date2num("1 Jun 05"),20050601);
+    ASSERT_EQ(utils::date2num("10 Jul 2005"),20050710);
+    ASSERT_EQ(utils::date2num("02 Aug 10"),20100802);
+    ASSERT_EQ(utils::date2num("  5  September  99"),20990905);
+    ASSERT_EQ(utils::date2num("10October22 "),20221010);
+    ASSERT_EQ(utils::date2num("30November 02"),20021130);
+    ASSERT_EQ(utils::date2num("31December100"),1001231);
 }

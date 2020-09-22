@@ -33,7 +33,7 @@ enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
 
 ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  rstyle(NULL), idrigid(NULL), fixrigid(NULL), vlocal(NULL), alocal(NULL)
+  rstyle(nullptr), idrigid(nullptr), fixrigid(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute rigid/local command");
 
@@ -89,8 +89,8 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
 ncount = nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,8 +115,8 @@ void ComputeRigidLocal::init()
   fixrigid = (FixRigidSmall *) modify->fix[ifix];
 
   int flag = 0;
-  if (strstr(fixrigid->style,"rigid/") == NULL) flag = 1;
-  if (strstr(fixrigid->style,"/small") == NULL) flag = 1;
+  if (strstr(fixrigid->style,"rigid/") == nullptr) flag = 1;
+  if (strstr(fixrigid->style,"/small") == nullptr) flag = 1;
   if (flag)
     error->all(FLERR,"Compute rigid/local does not use fix rigid/small fix");
 

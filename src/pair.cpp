@@ -16,28 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <string>
-#include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "compute.h"
-#include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -69,12 +67,12 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   unit_convert_flag = utils::NOCONVERT;
 
   nextra = 0;
-  pvector = NULL;
+  pvector = nullptr;
   single_extra = 0;
-  svector = NULL;
+  svector = nullptr;
 
-  setflag = NULL;
-  cutsq = NULL;
+  setflag = nullptr;
+  cutsq = nullptr;
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
@@ -93,19 +91,19 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ndisptablebits = 12;
   tabinner = sqrt(2.0);
   tabinner_disp = sqrt(2.0);
-  ftable = NULL;
-  fdisptable = NULL;
+  ftable = nullptr;
+  fdisptable = nullptr;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  cvatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
 
   num_tally_compute = 0;
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
 
   nondefault_history_transfer = 0;
   beyond_contact = 0;
@@ -125,7 +123,7 @@ Pair::~Pair()
 {
   num_tally_compute = 0;
   memory->sfree((void *) list_tally_compute);
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
 
   if (copymode) return;
 
@@ -333,7 +331,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   double r,grij,expm2,derfc,egamma,fgamma,rsw;
   double qqrd2e = force->qqrd2e;
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   double g_ewald = force->kspace->g_ewald;
 
@@ -361,8 +359,8 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   memory->create(dctable,ntable,"pair:dctable");
   memory->create(detable,ntable,"pair:detable");
 
-  if (cut_respa == NULL) {
-    vtable = ptable = dvtable = dptable = NULL;
+  if (cut_respa == nullptr) {
+    vtable = ptable = dvtable = dptable = nullptr;
   } else {
     memory->create(vtable,ntable,"pair:vtable");
     memory->create(ptable,ntable,"pair:ptable");
@@ -393,7 +391,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       rtable[i] = rsq_lookup.f;
       ctable[i] = qqrd2e/r;
       if (msmflag) {
@@ -490,7 +488,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       c_tmp = qqrd2e/r;
       if (msmflag) {
         f_tmp = qqrd2e/r * fgamma;
@@ -1666,7 +1664,7 @@ void Pair::write_file(int narg, char **arg)
       fp = fopen(table_file.c_str(),"a");
     } else {
       char datebuf[16];
-      time_t tv = time(NULL);
+      time_t tv = time(nullptr);
       strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
       utils::logmesg(lmp,fmt::format("Creating table file {} with "
                                      "DATE: {}\n", table_file, datebuf));
@@ -1674,7 +1672,7 @@ void Pair::write_file(int narg, char **arg)
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
                          datebuf, update->unit_style);
     }
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
                                    table_file, utils::getsyserror()));
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",

@@ -16,19 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_indent.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "input.h"
-#include "variable.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
 #include "lattice.h"
-#include "update.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-#include "force.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +40,7 @@ enum{INSIDE,OUTSIDE};
 
 FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL), pstr(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix indent command");
 
@@ -407,7 +407,7 @@ void FixIndent::options(int narg, char **arg)
   if (narg < 0) error->all(FLERR,"Illegal fix indent command");
 
   istyle = NONE;
-  xstr = ystr = zstr = rstr = pstr = NULL;
+  xstr = ystr = zstr = rstr = pstr = nullptr;
   xvalue = yvalue = zvalue = rvalue = pvalue = 0.0;
   scaleflag = 1;
   side = OUTSIDE;

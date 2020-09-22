@@ -12,29 +12,27 @@
 ------------------------------------------------------------------------- */
 
 #include "write_data.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "domain.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "force.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -154,22 +152,22 @@ void WriteData::write(const std::string &file)
   // sum up bond,angle,dihedral,improper counts
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
-  if (atom->molecular == 1 && (atom->nbonds || atom->nbondtypes)) {
-    nbonds_local = atom->avec->pack_bond(NULL);
+  if (atom->molecular == Atom::MOLECULAR && (atom->nbonds || atom->nbondtypes)) {
+    nbonds_local = atom->avec->pack_bond(nullptr);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
-  if (atom->molecular == 1 && (atom->nangles || atom->nangletypes)) {
-    nangles_local = atom->avec->pack_angle(NULL);
+  if (atom->molecular == Atom::MOLECULAR && (atom->nangles || atom->nangletypes)) {
+    nangles_local = atom->avec->pack_angle(nullptr);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
-  if (atom->molecular == 1 && (atom->ndihedrals || atom->ndihedraltypes)) {
-    ndihedrals_local = atom->avec->pack_dihedral(NULL);
+  if (atom->molecular == Atom::MOLECULAR && (atom->ndihedrals || atom->ndihedraltypes)) {
+    ndihedrals_local = atom->avec->pack_dihedral(nullptr);
     MPI_Allreduce(&ndihedrals_local,&ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
-  if (atom->molecular == 1 && (atom->nimpropers || atom->nimpropertypes)) {
-    nimpropers_local = atom->avec->pack_improper(NULL);
+  if (atom->molecular == Atom::MOLECULAR && (atom->nimpropers || atom->nimpropertypes)) {
+    nimpropers_local = atom->avec->pack_improper(nullptr);
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
@@ -177,7 +175,7 @@ void WriteData::write(const std::string &file)
 
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open data file {}: {}",
                                    file, utils::getsyserror()));
   }
@@ -198,7 +196,7 @@ void WriteData::write(const std::string &file)
   // molecular topology info if defined
   // do not write molecular topology for atom_style template
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds && nbonds) bonds();
     if (atom->nangles && nangles) angles();
     if (atom->ndihedrals) dihedrals();
@@ -231,13 +229,13 @@ void WriteData::write(const std::string &file)
 void WriteData::header()
 {
   fmt::print(fp,"LAMMPS data file via write_data, version {}, "
-             "timestep = {}\n\n",universe->version,update->ntimestep);
+             "timestep = {}\n\n",lmp->version,update->ntimestep);
 
   fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 
   // do not write molecular topology info for atom_style template
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds || atom->nbondtypes)
       fmt::print(fp,"{} bonds\n{} bond types\n",
                  nbonds,atom->nbondtypes);
@@ -667,7 +665,7 @@ void WriteData::bonus(int flag)
   // communication buffer for all my Bonus info
   // maxvalues = largest buffer needed by any proc
 
-  int nvalues = atom->avec->pack_data_bonus(NULL,flag);
+  int nvalues = atom->avec->pack_data_bonus(nullptr,flag);
   int maxvalues;
   MPI_Allreduce(&nvalues,&maxvalues,1,MPI_INT,MPI_MAX,world);
 

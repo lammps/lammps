@@ -18,7 +18,7 @@
 #include "pair_colloid_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -158,7 +158,7 @@ void PairColloidGPU::init_style()
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
-  int **_form = NULL;
+  int **_form = nullptr;
   int n=atom->ntypes;
   memory->create(_form,n+1,n+1,"colloid/gpu:_form");
   for (int i = 1; i <= n; i++) {

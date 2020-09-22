@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_sphere.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -32,7 +32,7 @@ enum{ROTATE,ALL};
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_bias(NULL)
+  id_bias(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
 

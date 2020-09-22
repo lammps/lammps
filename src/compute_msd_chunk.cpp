@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -24,7 +24,7 @@
 #include "fix_store.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), id_fix(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), msd(NULL)
+  idchunk(nullptr), id_fix(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr), msd(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute msd/chunk command");
 

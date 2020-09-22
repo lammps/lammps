@@ -87,7 +87,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_duChem,duChem);
 
   memoryKK->destroy_kokkos(k_dvector,dvector);
-  dvector = NULL;
+  dvector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +118,7 @@ void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned in
 
 void AtomKokkos::allocate_type_arrays()
 {
-  if (avec->mass_type) {
+  if (avec->mass_type == AtomVec::PER_TYPE) {
     k_mass = DAT::tdual_float_1d("Mass",ntypes+1);
     mass = k_mass.h_view.data();
     mass_setflag = new int[ntypes+1];
@@ -282,7 +282,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
 
 /* ----------------------------------------------------------------------
    remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
+   free memory for vector and name and set ptrs to a null pointer
    ivector/dvector and iname/dname lists never shrink
 ------------------------------------------------------------------------- */
 
@@ -290,14 +290,14 @@ void AtomKokkos::remove_custom(int flag, int index)
 {
   if (flag == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete [] iname[index];
-    iname[index] = NULL;
+    iname[index] = nullptr;
   } else {
     //memoryKK->destroy_kokkos(dvector);
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete [] dname[index];
-    dname[index] = NULL;
+    dname[index] = nullptr;
   }
 }
 

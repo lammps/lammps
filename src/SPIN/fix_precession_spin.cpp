@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_precession_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -44,7 +44,7 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(NULL)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -59,7 +59,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  magstr = NULL;
+  magstr = nullptr;
   magfieldstyle = CONSTANT;
 
   H_field = 0.0;

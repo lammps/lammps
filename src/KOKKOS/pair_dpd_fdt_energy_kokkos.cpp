@@ -112,10 +112,10 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #endif
 }
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP)
 // CUDA specialization of init_style to properly call rand_pool.init()
 template<>
-void PairDPDfdtEnergyKokkos<Kokkos::Cuda>::init_style()
+void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()
 {
   PairDPDfdtEnergy::init_style();
 
@@ -125,10 +125,10 @@ void PairDPDfdtEnergyKokkos<Kokkos::Cuda>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<Kokkos::Cuda,LMPHostType>::value &&
-    !std::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+    kokkos_host = std::is_same<LMPDeviceSpace,LMPHostType>::value &&
+    !std::is_same<LMPDeviceSpace,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+    kokkos_device = std::is_same<LMPDeviceSpace,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;

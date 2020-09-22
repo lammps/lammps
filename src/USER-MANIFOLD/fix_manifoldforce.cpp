@@ -12,17 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_manifoldforce.h"  // For stuff
-#include <mpi.h>
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
-#include "force.h"
 
 #include "manifold.h"
 #include "manifold_factory.h"   // For constructing manifold
 
+#include "atom.h"
+#include "error.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -77,7 +76,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   ptr_m->params = new double[nvars];
-  if (ptr_m->params == NULL) {
+  if (ptr_m->params == nullptr) {
     error->all(FLERR,"Parameter pointer was NULL!");
   }
 

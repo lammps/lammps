@@ -47,7 +47,7 @@ ComputeSMDULSPHNumNeighs::ComputeSMDULSPHNumNeighs(LAMMPS *lmp, int narg, char *
     size_peratom_cols = 0;
 
     nmax = 0;
-    numNeighsOutput = NULL;
+    numNeighsOutput = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,7 +84,7 @@ void ComputeSMDULSPHNumNeighs::compute_peratom() {
 
     int itmp = 0;
     int *numNeighs = (int *) force->pair->extract("smd/ulsph/numNeighs_ptr", itmp);
-    if (numNeighs == NULL) {
+    if (numNeighs == nullptr) {
         error->all(FLERR, "compute smd/ulsph_num_neighs failed to access numNeighs array");
     }
 

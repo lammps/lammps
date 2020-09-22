@@ -15,7 +15,7 @@
 #define LMP_BODY_H
 
 #include "pointers.h"
-#include "atom_vec_body.h"
+#include "atom_vec_body.h"   // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 

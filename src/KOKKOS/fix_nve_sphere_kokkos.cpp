@@ -39,8 +39,8 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
 template<class DeviceType>
 void FixNVESphereKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
-  vatom = NULL;
+  id = style = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

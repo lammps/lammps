@@ -17,39 +17,37 @@
 ------------------------------------------------------------------------- */
 
 #include "info.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cctype>
-#include <ctime>
-#include <map>
-#include <string>
+
 #include "accelerator_kokkos.h"
+#include "angle.h"
 #include "atom.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "dump.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
 #include "group.h"
+#include "improper.h"
 #include "input.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
+#include "pair_hybrid.h"
 #include "region.h"
 #include "universe.h"
-#include "variable.h"
 #include "update.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "variable.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
+#include <ctime>
+#include <map>
 
 #ifdef _WIN32
 #define PSAPI_VERSION 1
@@ -105,6 +103,8 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
                         | DUMP_STYLES | COMMAND_STYLES;
 }
 
+using namespace LAMMPS_NS;
+
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
@@ -116,17 +116,15 @@ static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
 
 static const char bstyles[] = "pfsm";
 
-using namespace LAMMPS_NS;
-using namespace std;
+template<typename ValueType>
+static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles);
 
 template<typename ValueType>
-static void print_columns(FILE* fp, map<string, ValueType> * styles);
+static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+                       const std::string &name, bool suffix_check);
 
 template<typename ValueType>
-static bool find_style(const LAMMPS * lmp, map<string, ValueType> * styles, const string & name, bool suffix_check);
-
-template<typename ValueType>
-static vector<string> get_style_names(map<string, ValueType> * styles);
+static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
 
 /* ---------------------------------------------------------------------- */
 
@@ -261,15 +259,15 @@ void Info::command(int narg, char **arg)
     }
   }
 
-  if (out == NULL) return;
+  if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   fmt::print(out,"Printed on {}\n",ctime(&now));
 
   if (flags & CONFIG) {
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
-               universe->version, universe->num_ver);
+               lmp->version, lmp->num_ver);
 
     if (lmp->has_git_info)
       fmt::print(out,"Git info: {} / {} / {}\n",
@@ -317,47 +315,29 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & MEMORY) {
+    double meminfo[3];
+
+    get_memory_info(meminfo);
 
     fputs("\nMemory allocation information (MPI rank 0):\n\n",out);
-
-    bigint bytes = 0;
-    bytes += atom->memory_usage();
-    bytes += neighbor->memory_usage();
-    bytes += comm->memory_usage();
-    bytes += update->memory_usage();
-    bytes += force->memory_usage();
-    bytes += modify->memory_usage();
-    for (int i = 0; i < output->ndump; i++)
-      bytes += output->dump[i]->memory_usage();
-    double mbytes = bytes/1024.0/1024.0;
-    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",mbytes);
+    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",
+               meminfo[0]);
 
 #if defined(_WIN32)
-    HANDLE phandle = GetCurrentProcess();
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",
-               (double)pmc.PrivateUsage/1048576.0);
-    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",
-               (double)pmc.PeakWorkingSetSize/1048576.0);
+    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",meminfo[1]);
+    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",meminfo[2]);
 #else
 #if defined(__linux__)
-    struct mallinfo mi;
-    mi = mallinfo();
     fmt::print(out,"Current reserved memory pool size: {:.4} Mbyte\n",
-               (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0);
+               meminfo[1]);
 #endif
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",
-                 (double)ru.ru_maxrss/1024.0);
-    }
+    fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",meminfo[2]);
 #endif
   }
 
   if (flags & COMM) {
     int major,minor;
-    string version = get_mpi_info(major,minor);
+    std::string version = get_mpi_info(major,minor);
 
     fmt::print(out,"\nCommunication information:\n"
                "MPI library level: MPI v{}.{}\n"
@@ -395,7 +375,7 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular > 0) {
       const char *msg;
-      msg = (atom->molecular == 2) ? "template" : "standard";
+      msg = (atom->molecular == Atom::TEMPLATE) ? "template" : "standard";
       fmt::print(out,"Molecule type = {}\n",msg);
     }
     fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
@@ -794,7 +774,7 @@ void Info::command_styles(FILE *out)
 
 bool Info::is_active(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
   const char *style = "none";
 
   if (strcmp(category,"package") == 0) {
@@ -815,7 +795,7 @@ bool Info::is_active(const char *category, const char *name)
     else error->all(FLERR,"Unknown name for info newton category");
 
   } else if (strcmp(category,"pair") == 0) {
-    if (force->pair == NULL) return false;
+    if (force->pair == nullptr) return false;
     if (strcmp(name,"single") == 0) return (force->pair->single_enable != 0);
     else if (strcmp(name,"respa") == 0) return (force->pair->respa_enable != 0);
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
@@ -869,7 +849,7 @@ bool Info::is_active(const char *category, const char *name)
 
 bool Info::is_available(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (has_style(category, name)) {
     return true;
@@ -899,7 +879,7 @@ bool Info::is_available(const char *category, const char *name)
 
 bool Info::is_defined(const char *category, const char *name)
 {
-  if ((category == NULL) || (name == NULL)) return false;
+  if ((category == nullptr) || (name == nullptr)) return false;
 
   if (strcmp(category,"compute") == 0) {
     int ncompute = modify->ncompute;
@@ -949,7 +929,7 @@ bool Info::is_defined(const char *category, const char *name)
   return false;
 }
 
-bool Info::has_style(const string & category, const string & name)
+bool Info::has_style(const std::string &category, const std::string &name)
 {
   if ( category == "atom" ) {
     return find_style(lmp, atom->avec_map, name, false);
@@ -983,7 +963,7 @@ bool Info::has_style(const string & category, const string & name)
   return false;
 }
 
-vector<string> Info::get_available_styles(const string & category)
+std::vector<std::string> Info::get_available_styles(const std::string &category)
 {
   if ( category == "atom" ) {
     return get_style_names(atom->avec_map);
@@ -1014,13 +994,13 @@ vector<string> Info::get_available_styles(const string & category)
   } else if( category == "command" ) {
     return get_style_names(input->command_map);
   }
-  return vector<string>();
+  return std::vector<std::string>();
 }
 
 template<typename ValueType>
-static vector<string> get_style_names(map<string, ValueType> * styles)
+static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles)
 {
-  vector<string> names;
+  std::vector<std::string> names;
 
   names.reserve(styles->size());
   for(auto const& kv : *styles) {
@@ -1033,7 +1013,8 @@ static vector<string> get_style_names(map<string, ValueType> * styles)
 }
 
 template<typename ValueType>
-static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const string & name, bool suffix_check)
+static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+                       const std::string &name, bool suffix_check)
 {
   if (styles->find(name) != styles->end()) {
     return true;
@@ -1041,13 +1022,13 @@ static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const
 
   if (suffix_check && lmp->suffix_enable) {
     if (lmp->suffix) {
-      string name_w_suffix = name + "/" + lmp->suffix;
+      std::string name_w_suffix = name + "/" + lmp->suffix;
       if (find_style(lmp, styles, name_w_suffix, false)) {
         return true;
       }
     }
     if (lmp->suffix2) {
-      string name_w_suffix = name + "/" + lmp->suffix2;
+      std::string name_w_suffix = name + "/" + lmp->suffix2;
       if (find_style(lmp, styles, name_w_suffix, false)) {
         return true;
       }
@@ -1057,7 +1038,7 @@ static bool find_style(const LAMMPS* lmp, map<string, ValueType> * styles, const
 }
 
 template<typename ValueType>
-static void print_columns(FILE* fp, map<string, ValueType> * styles)
+static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 {
   if (styles->empty()) {
     fprintf(fp, "\nNone");
@@ -1066,8 +1047,8 @@ static void print_columns(FILE* fp, map<string, ValueType> * styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for(typename map<string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
-    const string & style_name = it->first;
+  for(typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+    const std::string &style_name = it->first;
 
     // skip "secret" styles
     if (isupper(style_name[0])) continue;
@@ -1138,7 +1119,7 @@ bool Info::has_exceptions() {
 }
 
 bool Info::has_package(const char * package_name) {
-  for(int i = 0; LAMMPS::installed_packages[i] != NULL; ++i) {
+  for(int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
     if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
       return true;
     }
@@ -1149,9 +1130,9 @@ bool Info::has_package(const char * package_name) {
 /* ---------------------------------------------------------------------- */
 #define _INFOBUF_SIZE 256
 
-string Info::get_os_info()
+std::string Info::get_os_info()
 {
-  string buf;
+  std::string buf;
 
 #if defined(_WIN32)
   DWORD fullversion,majorv,minorv,buildv=0;
@@ -1191,9 +1172,9 @@ string Info::get_os_info()
   return buf;
 }
 
-string Info::get_compiler_info()
+std::string Info::get_compiler_info()
 {
-  string buf;
+  std::string buf;
 #if __clang__
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif __INTEL_COMPILER
@@ -1208,7 +1189,7 @@ string Info::get_compiler_info()
   return buf;
 }
 
-string Info::get_openmp_info()
+std::string Info::get_openmp_info()
 {
 
 #if !defined(_OPENMP)
@@ -1243,7 +1224,7 @@ string Info::get_openmp_info()
 #endif
 }
 
-string Info::get_mpi_vendor() {
+std::string Info::get_mpi_vendor() {
   #if defined(MPI_STUBS)
   return "MPI STUBS";
   #elif defined(OPEN_MPI)
@@ -1263,7 +1244,7 @@ string Info::get_mpi_vendor() {
   #endif
 }
 
-string Info::get_mpi_info(int &major, int &minor)
+std::string Info::get_mpi_info(int &major, int &minor)
 {
   int len;
 #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
@@ -1279,10 +1260,10 @@ string Info::get_mpi_info(int &major, int &minor)
     char *ptr = strchr(version+80,'\n');
     if (ptr) *ptr = '\0';
   }
-  return string(version);
+  return std::string(version);
 }
 
-string Info::get_cxx_info()
+std::string Info::get_cxx_info()
 {
 #if __cplusplus > 201703L
   return "newer than C++17";
@@ -1296,6 +1277,41 @@ string Info::get_cxx_info()
   return "C++98";
 #else
   return "unknown";
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Info::get_memory_info(double *meminfo)
+{
+    double bytes = 0;
+    bytes += atom->memory_usage();
+    bytes += neighbor->memory_usage();
+    bytes += comm->memory_usage();
+    bytes += update->memory_usage();
+    bytes += force->memory_usage();
+    bytes += modify->memory_usage();
+    for (int i = 0; i < output->ndump; i++)
+      bytes += output->dump[i]->memory_usage();
+    meminfo[0] = bytes/1024.0/1024.0;
+    meminfo[1] = 0;
+    meminfo[2] = 0;
+
+#if defined(_WIN32)
+    HANDLE phandle = GetCurrentProcess();
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
+    meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
+    meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
+#else
+#if defined(__linux__)
+    struct mallinfo mi;
+    mi = mallinfo();
+    meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
+#endif
+    struct rusage ru;
+    if (getrusage(RUSAGE_SELF, &ru) == 0)
+      meminfo[2] = (double)ru.ru_maxrss/1024.0;
 #endif
 }
 

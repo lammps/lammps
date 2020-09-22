@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_movie.h"
-#include <cstring>
+
 #include "comm.h"
-#include "force.h"
 #include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +35,7 @@ DumpMovie::DumpMovie(LAMMPS *lmp, int narg, char **arg) :
   filetype = PPM;
   bitrate = 2000;
   framerate = 24;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -44,7 +44,7 @@ void DumpMovie::openfile()
 {
   char moviecmd[1024];
 
-  if ((comm->me == 0) && (fp == NULL)) {
+  if ((comm->me == 0) && (fp == nullptr)) {
 
 #ifdef LAMMPS_FFMPEG
     sprintf(moviecmd,"ffmpeg -v error -y -r %.2f -f image2pipe -c:v ppm -i - "
@@ -59,7 +59,7 @@ void DumpMovie::openfile()
     fp = popen(moviecmd,"w");
 #endif
 
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Failed to open FFmpeg pipeline to "
                                    "file {}",filename));
   }

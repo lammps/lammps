@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_viscous.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "force.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -26,7 +27,7 @@ using namespace FixConst;
 
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  gamma(NULL)
+  gamma(nullptr)
 {
   dynamic_group_allow = 1;
 

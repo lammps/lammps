@@ -22,10 +22,10 @@
 /// @author   Andrew Jewett
 /// @license  MIT
 
-#ifndef _SUPERPOSE3D_H
-#define _SUPERPOSE3D_H
+#ifndef LMP_SUPERPOSE3D_H
+#define LMP_SUPERPOSE3D_H
 
-#include "math_eigen.h"   //functions to calculate eigenvalues and eigenvectors
+#include "math_eigen_impl.h"   //functions to calculate eigenvalues and eigenvectors
 
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
@@ -144,11 +144,6 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
           ConstArrayOfCoords aaXm, // coords for the "mobile" object
           bool allow_rescale)      // rescale mobile object? (c!=1?)
 {
-  assert(aaXf && aaXm);
-  assert(aaXf_shifted && aaXm_shifted);
-  assert(aWeights);
-  assert(R && T);
-
   // Find the center of mass of each object:
   Scalar aCenter_f[3] = {0.0, 0.0, 0.0};
   Scalar aCenter_m[3] = {0.0, 0.0, 0.0};
@@ -161,7 +156,9 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
     }
     sum_weights += weight;
   }
-  assert(sum_weights != 0.0);
+
+  //assert(sum_weights != 0.0);
+
   for (int d=0; d < 3; d++) {
     aCenter_f[d] /= sum_weights;
     aCenter_m[d] /= sum_weights;
@@ -425,7 +422,9 @@ Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>& source)
 {
   Init();
   Alloc(source.N);
-  assert(N == source.N);
+
+  //assert(N == source.N);
+
   for (int i = 0; i < N; i++) {
     std::copy(source.aaXf_shifted[i],
               source.aaXf_shifted[i] + 3,
@@ -463,4 +462,4 @@ operator = (Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> source) {
 }
 
 
-#endif //#ifndef _SUPERPOSE3D_H
+#endif //#ifndef LMP_SUPERPOSE3D_H

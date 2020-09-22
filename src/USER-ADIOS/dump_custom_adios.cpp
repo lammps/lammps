@@ -274,7 +274,7 @@ void DumpCustomADIOS::write()
     if (sort_flag && sortcol == 0)
         pack(ids);
     else
-        pack(NULL);
+        pack(nullptr);
     if (sort_flag)
         sort();
 
@@ -424,9 +424,9 @@ void DumpCustomADIOS::init_style()
     internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
     internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "custom");
     internal->io.DefineAttribute<std::string>("LAMMPS/version",
-                                              universe->version);
+                                              lmp->version);
     internal->io.DefineAttribute<std::string>("LAMMPS/num_ver",
-                                              universe->num_ver);
+                                              std::to_string(lmp->num_ver));
 
     internal->io.DefineVariable<uint64_t>(
         "nme", {adios2::LocalValueDim}); // local dimension variable

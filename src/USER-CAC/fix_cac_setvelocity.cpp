@@ -41,6 +41,7 @@ FixCAC_Set_Velocity::FixCAC_Set_Velocity(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 6) error->all(FLERR,"Illegal fix cac/setvelocity command");
 
   dynamic_group_allow = 1;
+  time_integrate = 1;
   vector_flag = 1;
   size_vector = 3;
   global_freq = 1;

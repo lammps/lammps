@@ -59,8 +59,8 @@ template <class T> class MyPage;
  * This kind of construct is needed, since the LAMMPS constructor
  * should only be run once per LAMMPS instance and thus classes
  * cannot be derived from LAMMPS itself. The Pointers class
- * constructor instead only initializes the references to the
- * LAMMPS class members it provides access to. */
+ * constructor instead only initializes C++ references to component
+ * pointer in the LAMMPS class. */
 
 class Pointers {
  public:

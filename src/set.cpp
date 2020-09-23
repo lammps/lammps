@@ -49,8 +49,8 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,CAC_CHARGE,CAC_TYPE,
+     SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,CAC_CHARGE, CAC_TYPE,
      CAC_TYPE_FRACTION};
 
 #define BIG INT_MAX
@@ -1146,8 +1146,8 @@ void Set::setrandom(int keyword)
     int *poly_count = atom->poly_count;
     for (i = 0; i < nlocal; i++)
       if (select[i]) {
-        random->reset(seed,x[i]);
-        if (random->uniform() > fraction) continue;
+        ranpark->reset(seed,x[i]);
+        if (ranpark->uniform() > fraction) continue;
         atom->type[i] = newtype;
         // sets an entire element to same type
         for(int ipoly=0; ipoly < poly_count[i]; ipoly++)

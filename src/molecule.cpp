@@ -535,6 +535,8 @@ void Molecule::read(int flag)
       if (flag) molecules(line);
       else skip_lines(natoms,line);
     } else if (strcmp(keyword,"Fragments") == 0) {
+      if (nfragments == 0)
+        error->all(FLERR,"Molecule file has fragments but no nfragments setting");
       fragmentflag = 1;
       if (flag) fragments(line);
       else skip_lines(nfragments,line);

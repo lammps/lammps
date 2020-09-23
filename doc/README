@@ -66,7 +66,7 @@ installed.  This includes:
 - tabulary
 - upquote
 - wrapfig
-Also the script tools latexmk and xindy are required to run PDFLaTeX
+Also the latexmk script is required to run PDFLaTeX and related tools.
 the required number of times to have self-consistent output and include
 updated bibliography and indices.
 

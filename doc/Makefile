@@ -44,9 +44,7 @@ endif
 
 ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
 ifeq ($(shell which latexmk >/dev/null 2>&1; echo $$?), 0)
-ifeq ($(shell which xindy >/dev/null 2>&1; echo $$?), 0)
 HAS_PDFLATEX = YES
-endif
 endif
 endif
 
@@ -156,7 +154,7 @@ mobi: epub
 pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
-	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX, latexmk, or xindy were not found! Please check README for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\

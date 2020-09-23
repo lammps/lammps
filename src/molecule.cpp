@@ -636,8 +636,6 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file has no Body Integers section");
     if (bodyflag && ndbody && dbodyflag == 0)
       error->all(FLERR,"Molecule file has no Body Doubles section");
-    if (nmolecules > 0 && !moleculeflag)
-      error->all(FLERR,"Molecule file has no Molecules section");
     if (nfragments > 0 && !fragmentflag)
       error->all(FLERR,"Molecule file has no Fragments section");
   }

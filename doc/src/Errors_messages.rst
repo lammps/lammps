@@ -5723,9 +5723,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule file has no Fragments section*
    Self-explanatory.
 
-*Molecule file has no Molecules section*
-   Self-explanatory.
-
 *Molecule file has special flags but no bonds*
    Self-explanatory.
 

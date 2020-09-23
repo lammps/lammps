@@ -281,10 +281,6 @@ E: Molecule file has no Body Doubles section
 
 Self-explanatory.
 
-E: Molecule file has no Molecules section
-
-Self-explanatory.
-
 E: Molecule file has no Fragments section
 
 Self-explanatory.

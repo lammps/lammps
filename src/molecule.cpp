@@ -535,6 +535,8 @@ void Molecule::read(int flag)
       if (flag) molecules(line);
       else skip_lines(natoms,line);
     } else if (strcmp(keyword,"Fragments") == 0) {
+      if (nfragments == 0)
+        error->all(FLERR,"Molecule file has fragments but no nfragments setting");
       fragmentflag = 1;
       if (flag) fragments(line);
       else skip_lines(nfragments,line);
@@ -634,6 +636,8 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file has no Body Integers section");
     if (bodyflag && ndbody && dbodyflag == 0)
       error->all(FLERR,"Molecule file has no Body Doubles section");
+    if (nfragments > 0 && !fragmentflag)
+      error->all(FLERR,"Molecule file has no Fragments section");
   }
 
   // auto-generate special bonds if needed and not in file
@@ -1691,6 +1695,7 @@ void Molecule::initialize()
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nibody = ndbody = 0;
+  nfragments = 0;
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;

@@ -1610,7 +1610,6 @@ void Molecule::body(int flag, int pflag, char *line)
 
 int Molecule::findfragment(const char *name)
 {
-  if (!fragmentflag) return -1;
   for (int i = 0; i < nfragments; i++)
     if (fragmentnames[i] == name) return i;
   return -1;
@@ -1692,6 +1691,7 @@ void Molecule::initialize()
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nibody = ndbody = 0;
+  nfragments = 0;
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;

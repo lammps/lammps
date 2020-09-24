@@ -63,143 +63,145 @@ static const char cite_fix_electron_stopping_fit_c[] =
 // ---------------------------------------------------------------------
 
 FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg) :
- Fix(lmp,narg,arg)
+  Fix(lmp,narg,arg), energy_coh_in(nullptr), drag_fac_in_1(nullptr), 
+  drag_fac_in_2(nullptr), drag_fac_1(nullptr), drag_fac_2(nullptr), 
+  v_min_sq(nullptr), v_max_sq(nullptr)
 {
-   if (narg < 3 + 3*atom->ntypes) {
-      error->all(FLERR,"Incorrect number of fix electron/stopping/fit arguments");
-   }
-   
-   scalar_flag = 1;
-   global_freq = 1;
-   
-   energy_coh_in = new double[atom->ntypes+1];
-   
-   drag_fac_in_1 = new double[atom->ntypes+1];
-   drag_fac_in_2 = new double[atom->ntypes+1];
-   
-   for (int i = 1; i <= atom->ntypes; i++) {
-      energy_coh_in[i] = utils::numeric(FLERR,arg[3*i],false,lmp);
-      drag_fac_in_1[i] = utils::numeric(FLERR,arg[3*i+1],false,lmp);
-      drag_fac_in_2[i] = utils::numeric(FLERR,arg[3*i+2],false,lmp);
-   };
-   
-   v_min_sq = new double[atom->ntypes+1];
-   v_max_sq = new double[atom->ntypes+1];
-   
-   drag_fac_1 = new double[atom->ntypes+1];
-   drag_fac_2 = new double[atom->ntypes+1];
-   
-   for (int i = 1; i <= atom->ntypes; i++) {
-      double mvv;
-      mvv = 2.0*energy_coh_in[i]/force->mvv2e;
-      
-      v_min_sq[i] = 1.0*mvv/atom->mass[i];
-      v_max_sq[i] = 2.0*mvv/atom->mass[i];
-      
-      drag_fac_1[i] = drag_fac_in_1[i];
-      drag_fac_2[i] = drag_fac_in_2[i];
-   };
+  if (narg < 3 + 3*atom->ntypes) {
+     error->all(FLERR,"Incorrect number of fix electron/stopping/fit arguments");
+  }
+  
+  scalar_flag = 1;
+  global_freq = 1;
+  
+  energy_coh_in = new double[atom->ntypes+1];
+  
+  drag_fac_in_1 = new double[atom->ntypes+1];
+  drag_fac_in_2 = new double[atom->ntypes+1];
+  
+  for (int i = 1; i <= atom->ntypes; i++) {
+     energy_coh_in[i] = utils::numeric(FLERR,arg[3*i],false,lmp);
+     drag_fac_in_1[i] = utils::numeric(FLERR,arg[3*i+1],false,lmp);
+     drag_fac_in_2[i] = utils::numeric(FLERR,arg[3*i+2],false,lmp);
+  };
+  
+  v_min_sq = new double[atom->ntypes+1];
+  v_max_sq = new double[atom->ntypes+1];
+  
+  drag_fac_1 = new double[atom->ntypes+1];
+  drag_fac_2 = new double[atom->ntypes+1];
+  
+  for (int i = 1; i <= atom->ntypes; i++) {
+     double mvv;
+     mvv = 2.0*energy_coh_in[i]/force->mvv2e;
+     
+     v_min_sq[i] = 1.0*mvv/atom->mass[i];
+     v_max_sq[i] = 2.0*mvv/atom->mass[i];
+     
+     drag_fac_1[i] = drag_fac_in_1[i];
+     drag_fac_2[i] = drag_fac_in_2[i];
+  };
 };
 
 // ---------------------------------------------------------------------
 
 FixElectronStoppingFit::~FixElectronStoppingFit()
 {
-   delete [] energy_coh_in;
-   delete [] drag_fac_in_1;
-   delete [] drag_fac_in_2;
-   delete [] drag_fac_1;
-   delete [] drag_fac_2;
-   delete [] v_min_sq;
-   delete [] v_max_sq;
+  delete [] energy_coh_in;
+  delete [] drag_fac_in_1;
+  delete [] drag_fac_in_2;
+  delete [] drag_fac_1;
+  delete [] drag_fac_2;
+  delete [] v_min_sq;
+  delete [] v_max_sq;
 };
 
 // ---------------------------------------------------------------------
 
 int FixElectronStoppingFit::setmask()
 {
-   int mask = 0;
-   mask |= POST_FORCE;
-   mask |= POST_FORCE_RESPA;
-   return mask;
+  int mask = 0;
+  mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
+  return mask;
 };
 
 // ---------------------------------------------------------------------
 
 void FixElectronStoppingFit::init()
 {
-   electronic_loss_this_node = 0.;
-   electronic_loss = 0.;
-   f_dot_v_prior = 0.;
-   f_dot_v_current = 0.;
-   last_step = update->ntimestep;
+  electronic_loss_this_node = 0.;
+  electronic_loss = 0.;
+  f_dot_v_prior = 0.;
+  f_dot_v_current = 0.;
+  last_step = update->ntimestep;
 };
 
 // ---------------------------------------------------------------------
 
 void FixElectronStoppingFit::setup(int vflag)
 {
-   if (strcmp(update->integrate_style,"verlet") == 0)
-      post_force(vflag);
-   else {
-      ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-      post_force_respa(vflag,nlevels_respa-1,0);
-      ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
-   };
+  if (strcmp(update->integrate_style,"verlet") == 0)
+     post_force(vflag);
+  else {
+     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+     post_force_respa(vflag,nlevels_respa-1,0);
+     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  };
 };
 
 // ---------------------------------------------------------------------
 
 void FixElectronStoppingFit::post_force(int vflag)
 {
-   double **v = atom->v;
-   double **f = atom->f;
-   int *type  = atom->type;
-   int nlocal = atom->nlocal;
-   
-   f_dot_v_current = 0.0;
-   for (int i = 0; i < nlocal; i++) {
-      double vv = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-      if (vv > v_min_sq[type[i]]) {
-         double gamma_x;
-         double gamma_y;
-         double gamma_z;
-         double v_mag = sqrt(vv);
-         if (vv < v_max_sq[type[i]]) {
-            double frac = (vv - v_min_sq[type[i]])/(v_max_sq[type[i]] - v_min_sq[type[i]]);
-            gamma_x = frac*(drag_fac_2[type[i]]*v[i][0] + drag_fac_1[type[i]]);
-       	    gamma_y = frac*(drag_fac_2[type[i]]*v[i][1] + drag_fac_1[type[i]]);
-       	    gamma_z = frac*(drag_fac_2[type[i]]*v[i][2] + drag_fac_1[type[i]]);
-         } else {
-            gamma_x = drag_fac_2[type[i]]*v[i][0] + drag_fac_1[type[i]];
-            gamma_y = drag_fac_2[type[i]]*v[i][1] + drag_fac_1[type[i]];
-            gamma_z = drag_fac_2[type[i]]*v[i][2] + drag_fac_1[type[i]];
-         };
-         f[i][0] -= gamma_x*v[i][0];
-         f[i][1] -= gamma_y*v[i][1];
-         f[i][2] -= gamma_z*v[i][2];
-         f_dot_v_current += sqrt(pow(gamma_x*v[i][0], 2.0) + pow(gamma_y*v[i][1], 2.0) + pow(gamma_z*v[i][2], 2.0))*v_mag;
-      };
-   };
-   this_step = update->ntimestep;
-   electronic_loss_this_node += (this_step - last_step)*update->dt*0.5*(f_dot_v_prior + f_dot_v_current);
-   last_step = this_step;
-   f_dot_v_prior = f_dot_v_current;
+  double **v = atom->v;
+  double **f = atom->f;
+  int *type  = atom->type;
+  int nlocal = atom->nlocal;
+  
+  f_dot_v_current = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+     double vv = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+     if (vv > v_min_sq[type[i]]) {
+        double gamma_x;
+        double gamma_y;
+        double gamma_z;
+        double v_mag = sqrt(vv);
+        if (vv < v_max_sq[type[i]]) {
+           double frac = (vv - v_min_sq[type[i]])/(v_max_sq[type[i]] - v_min_sq[type[i]]);
+           gamma_x = frac*(drag_fac_2[type[i]]*v[i][0] + drag_fac_1[type[i]]);
+           gamma_y = frac*(drag_fac_2[type[i]]*v[i][1] + drag_fac_1[type[i]]);
+           gamma_z = frac*(drag_fac_2[type[i]]*v[i][2] + drag_fac_1[type[i]]);
+        } else {
+           gamma_x = drag_fac_2[type[i]]*v[i][0] + drag_fac_1[type[i]];
+           gamma_y = drag_fac_2[type[i]]*v[i][1] + drag_fac_1[type[i]];
+           gamma_z = drag_fac_2[type[i]]*v[i][2] + drag_fac_1[type[i]];
+        };
+        f[i][0] -= gamma_x*v[i][0];
+        f[i][1] -= gamma_y*v[i][1];
+        f[i][2] -= gamma_z*v[i][2];
+        f_dot_v_current += sqrt(pow(gamma_x*v[i][0], 2.0) + pow(gamma_y*v[i][1], 2.0) + pow(gamma_z*v[i][2], 2.0))*v_mag;
+     };
+  };
+  this_step = update->ntimestep;
+  electronic_loss_this_node += (this_step - last_step)*update->dt*0.5*(f_dot_v_prior + f_dot_v_current);
+  last_step = this_step;
+  f_dot_v_prior = f_dot_v_current;
 };
 
 // ---------------------------------------------------------------------
 
 void FixElectronStoppingFit::post_force_respa(int vflag, int ilevel, int iloop)
 {
-   if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa-1) post_force(vflag);
 };
 
 // ---------------------------------------------------------------------
 
 double FixElectronStoppingFit::compute_scalar()
 {
-   MPI_Allreduce(&electronic_loss_this_node,&electronic_loss,1,MPI_DOUBLE,MPI_SUM,world);
-   return electronic_loss;
+  MPI_Allreduce(&electronic_loss_this_node,&electronic_loss,1,MPI_DOUBLE,MPI_SUM,world);
+  return electronic_loss;
 };
 
 // ---------------------------------------------------------------------

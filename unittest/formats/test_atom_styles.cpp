@@ -54,7 +54,7 @@ using LAMMPS_NS::utils::split_words;
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-const double EPSILON=1.0e-14;
+const double EPSILON=5.0e-14;
 
 namespace LAMMPS_NS {
 using ::testing::Eq;

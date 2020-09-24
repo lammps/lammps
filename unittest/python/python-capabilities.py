@@ -17,10 +17,12 @@ class PythonCapabilities(unittest.TestCase):
                     if not line or line.startswith('#') or line.startswith('//'): continue
                     parts = line.split('=')
                     key, value_type = parts[0].split(':')
+                    if value_type == "UNINITIALIZED": continue
+                    if value_type == "INTERNAL": continue
                     if len(parts) > 1:
                         value = parts[1]
                         if value_type == "BOOL":
-                            value = (value.upper() == "ON")
+                            value = (value.upper() == "ON") or (value.upper() == "YES") or (value == "1")
                     else:
                         value = None
                     self.cmake_cache[key] = value

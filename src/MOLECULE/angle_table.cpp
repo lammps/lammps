@@ -411,7 +411,7 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
       tb->afile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       ++cerror;
     }
   }
@@ -526,7 +526,7 @@ void AngleTable::param_extract(Table *tb, char *line)
         error->one(FLERR,"Invalid keyword in angle table parameters");
       }
     }
-  } catch(TokenizerException & e) {
+  } catch(TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 

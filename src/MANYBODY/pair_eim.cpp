@@ -1071,7 +1071,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   fclose(fp);
 }
 
-std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string & a, const std::string & b) {
+std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {
   if (a < b) {
     return std::make_pair(a, b);
   }

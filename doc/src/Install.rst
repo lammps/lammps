@@ -23,7 +23,7 @@ need the source code.
 These are the files and sub-directories in the LAMMPS distribution:
 
 +------------+-------------------------------------------+
-| README     | text file                                 |
+| README     | Short description of the LAMMPS package   |
 +------------+-------------------------------------------+
 | LICENSE    | GNU General Public License (GPL)          |
 +------------+-------------------------------------------+
@@ -35,15 +35,19 @@ These are the files and sub-directories in the LAMMPS distribution:
 +------------+-------------------------------------------+
 | examples   | simple test problems                      |
 +------------+-------------------------------------------+
+| fortran    | Fortran wrapper for LAMMPS                |
++------------+-------------------------------------------+
 | lib        | additional provided or external libraries |
 +------------+-------------------------------------------+
 | potentials | interatomic potential files               |
 +------------+-------------------------------------------+
-| python     | Python wrapper on LAMMPS                  |
+| python     | Python wrappers for LAMMPS                |
 +------------+-------------------------------------------+
 | src        | source files                              |
 +------------+-------------------------------------------+
 | tools      | pre- and post-processing tools            |
++------------+-------------------------------------------+
+| unittest   | sources and inputs for testing LAMMPS     |
 +------------+-------------------------------------------+
 
 You will have all of these if you download source.  You will only have

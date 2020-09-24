@@ -73,17 +73,19 @@ FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg
    global_freq = 1;
    
    energy_coh_in = new double[atom->ntypes+1];
+   
    drag_fac_in_1 = new double[atom->ntypes+1];
    drag_fac_in_2 = new double[atom->ntypes+1];
    
    for (int i = 1; i <= atom->ntypes; i++) {
-      energy_coh_in[i] = atof(arg[3*i]);
-      drag_fac_in_1[i] = atof(arg[3*i+1]);
-      drag_fac_in_2[i] = atof(arg[3*i+2]);
+      energy_coh_in[i] = utils::numeric(FLERR,arg[3*i],false,lmp);
+      drag_fac_in_1[i] = utils::numeric(FLERR,arg[3*i+1],false,lmp);
+      drag_fac_in_2[i] = utils::numeric(FLERR,arg[3*i+2],false,lmp);
    };
    
-   v_min_sq   = new double[atom->ntypes+1];
-   v_max_sq   = new double[atom->ntypes+1];
+   v_min_sq = new double[atom->ntypes+1];
+   v_max_sq = new double[atom->ntypes+1];
+   
    drag_fac_1 = new double[atom->ntypes+1];
    drag_fac_2 = new double[atom->ntypes+1];
    

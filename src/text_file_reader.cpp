@@ -164,6 +164,6 @@ void TextFileReader::next_dvector(double * list, int n) {
  * \param   separators  String with list of separators.
  * \return              ValueTokenizer object for read in text */
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators) {
   return ValueTokenizer(next_line(nparams), separators);
 }

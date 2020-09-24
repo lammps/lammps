@@ -3634,12 +3634,12 @@ void PairAIREBO::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",
                                     current_section, potential_name, e.what());
       error->one(FLERR, msg);
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",

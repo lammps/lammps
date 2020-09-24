@@ -610,7 +610,7 @@ void PairADP::read_file(char *filename)
           reader.next_dvector(&file->w2r[i][j][1], file->nr);
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

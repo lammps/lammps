@@ -334,7 +334,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
    return index of match or -1 if no match
 ------------------------------------------------------------------------- */
 
-int ReaderNative::find_label(const std::string & label, const std::map<std::string, int> & labels)
+int ReaderNative::find_label(const std::string &label, const std::map<std::string, int> & labels)
 {
   auto it = labels.find(label);
   if (it != labels.end()) {

@@ -103,6 +103,7 @@ FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg
 
 FixElectronStoppingFit::~FixElectronStoppingFit()
 {
+   delete [] energy_coh_in;
    delete [] drag_fac_in_1;
    delete [] drag_fac_in_2;
    delete [] drag_fac_1;

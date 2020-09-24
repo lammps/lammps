@@ -506,7 +506,7 @@ void PairEAM::read_file(char *filename)
         for (int j = 1; j <= file->nr; ++j)
           file->zr[j] *= sqrt_conv;
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

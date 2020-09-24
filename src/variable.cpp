@@ -885,7 +885,7 @@ char *Variable::retrieve(const char *name)
   if (which[ivar] >= num[ivar]) return nullptr;
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -931,8 +931,8 @@ char *Variable::retrieve(const char *name)
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0)
-      error->all(FLERR,fmt::format("Python variable '{}' does not match "
-                                   "Python function", name));
+      error->all(FLERR,fmt::format("Python variable {} does not match "
+                                   "Python function {}", name, data[ivar][0]));
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -960,7 +960,7 @@ char *Variable::retrieve(const char *name)
 double Variable::compute_equal(int ivar)
 {
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -970,7 +970,8 @@ double Variable::compute_equal(int ivar)
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);
     if (ifunc < 0)
-      print_var_error(FLERR,"Python variable has no function",ivar);
+      print_var_error(FLERR,fmt::format("cannot find python function {}",
+                                        data[ivar][0]),ivar);
     python->invoke_function(ifunc,data[ivar][1]);
     value = atof(data[ivar][1]);
   }
@@ -1004,7 +1005,7 @@ void Variable::compute_atom(int ivar, int igroup,
   double *vstore;
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -1080,7 +1081,7 @@ int Variable::compute_vector(int ivar, double **result)
   }
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -1899,10 +1900,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         int ivar = find(word+2);
         if (ivar < 0)
-          print_var_error(FLERR,"Invalid variable reference "
-                          "in variable formula",ivar);
+          print_var_error(FLERR,fmt::format("Invalid variable reference "
+                                "{} in variable formula",word),ivar);
         if (eval_in_progress[ivar])
-          print_var_error(FLERR,"Variable has circular dependency",ivar);
+          print_var_error(FLERR,"has a circular dependency",ivar);
 
         // parse zero or one trailing brackets
         // point i beyond last bracket
@@ -4217,7 +4218,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         print_var_error(FLERR,"Mis-matched special function variable "
                         "in variable formula",ivar);
       if (eval_in_progress[ivar])
-        print_var_error(FLERR,"Variable has circular dependency",ivar);
+        print_var_error(FLERR,"has a circular dependency",ivar);
 
       double *vec;
       nvec = compute_vector(ivar,&vec);

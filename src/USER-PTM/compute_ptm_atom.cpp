@@ -285,7 +285,7 @@ void ComputePTMAtom::compute_peratom() {
 
   // zero output
 
-  memset(output,0,nmax*NUM_COLUMNS*sizeof(double));
+  memset(&output[0][0],0,nmax*NUM_COLUMNS*sizeof(double));
 
   for (int ii = 0; ii < inum; ii++) {
 
@@ -304,21 +304,17 @@ void ComputePTMAtom::compute_peratom() {
     double scale, rmsd, interatomic_distance;
     double q[4];
     bool standard_orientations = false;
+
+    rmsd = INFINITY;
+    interatomic_distance = q[0] = q[1] = q[2] = q[3] = 0.0;
+
     ptm_index(local_handle, i, get_neighbours, (void*)&nbrlist,
               input_flags, standard_orientations,
               &type, &alloy_type, &scale, &rmsd, q,
               nullptr, nullptr, nullptr, nullptr, &interatomic_distance, nullptr, nullptr);
 
-    if (rmsd > rmsd_threshold) {
-      type = PTM_MATCH_NONE;
-    }
-
-    // printf("%d type=%d rmsd=%f\n", i, type, rmsd);
-
-    if (type == PTM_MATCH_NONE) {
-      type = PTM_LAMMPS_OTHER;
-      rmsd = INFINITY;
-    }
+    if (rmsd > rmsd_threshold) type = PTM_MATCH_NONE;
+    if (type == PTM_MATCH_NONE) type = PTM_LAMMPS_OTHER;
 
     output[i][0] = type;
     output[i][1] = rmsd;
@@ -329,7 +325,6 @@ void ComputePTMAtom::compute_peratom() {
     output[i][6] = q[3];
   }
 
-  // printf("finished ptm analysis\n");
   ptm_uninitialize_local(local_handle);
 }
 

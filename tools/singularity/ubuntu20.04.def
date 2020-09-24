@@ -60,6 +60,8 @@ From: ubuntu:20.04
         texlive-publishers \
         texlive-science \
         dvipng \
+        latexmk \
+        xindy \
         vim-nox \
         virtualenv \
         voro++-dev \

@@ -679,7 +679,7 @@ void PairComb::read_file(char *file)
         params[nparams].cml2     = values.next_double();
         params[nparams].coulcut  = values.next_double();
         params[nparams].hfocor   = values.next_double();
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

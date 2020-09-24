@@ -44,8 +44,9 @@ is called only on a single MPI rank, as that will then trigger the
 a call to ``Error::one()`` for errors instead of ``Error::all()``
 and avoids a "hanging" calculation when run in parallel.
 
-Please also see :cpp:func:`is_integer` and :cpp:func:`is_double` for
-testing strings for compliance without conversion.
+Please also see :cpp:func:`is_integer() <LAMMPS_NS::utils::is_integer>`
+and :cpp:func:`is_double() <LAMMPS_NS::utils::is_double>` for testing
+strings for compliance without conversion.
 
 ----------
 

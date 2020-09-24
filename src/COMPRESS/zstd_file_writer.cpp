@@ -46,7 +46,7 @@ ZstdFileWriter::~ZstdFileWriter()
 
 /* ---------------------------------------------------------------------- */
 
-void ZstdFileWriter::open(const std::string & path)
+void ZstdFileWriter::open(const std::string &path)
 {
     if(isopen()) return;
 

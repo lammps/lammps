@@ -668,7 +668,7 @@ class lammps(object):
   def version(self):
     """Return a numerical representation of the LAMMPS version in use.
 
-    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_version` function of the C-library interface.
 
     :return: version number
     :rtype:  int

@@ -344,7 +344,7 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].cutoff   = values.next_double();
 
         if (unit_convert) params[nparams].k_theta *= conversion_factor;
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

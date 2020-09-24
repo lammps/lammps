@@ -432,7 +432,7 @@ void PairVashishta::read_file(char *file)
           params[nparams].bigb *= conversion_factor;
         }
 
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

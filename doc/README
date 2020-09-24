@@ -9,12 +9,10 @@ src               content files for LAMMPS documentation
 html              HTML version of the LAMMPS manual (see html/Manual.html)
 utils             utilities and settings for building the documentation
 Manual.pdf        PDF version of entire manual
-Developer.pdf     PDF with info about how LAMMPS is structured
 LAMMPS.epub       Manual in ePUB format
 LAMMPS.mobi       Manual in MOBI (Kindle) format
 lammps.1          man page for the lammps command
 msi2lmp.1         man page for the msi2lmp command
-mathjax           code and fonts for rendering math in html
 doctree           temporary data
 docenv            python virtual environment for generating the manual
 doxygen           Doxygen configuration and output
@@ -32,9 +30,9 @@ folder and the PDF manual should be included. If you downloaded LAMMPS
 from GitHub then you either need to download them or build them.
 
 (a) You can "fetch" the current HTML and PDF files from the LAMMPS web
-site.  Just type "make fetch".  This should create a html_www dir and
-Manual_www.pdf/Developer_www.pdf files.  These files will always
-represent the latest published patch/development version of LAMMPS.
+site.  Just type "make fetch".  This should create a html_www directory
+and Manual_www.pdf file.  These will always represent the latest published
+patch/development version of LAMMPS.
 
 (b) You can build the HTML and PDF files yourself, by typing "make html"
 or by "make pdf", respectively.  This requires various tools and files.
@@ -68,6 +66,9 @@ installed.  This includes:
 - tabulary
 - upquote
 - wrapfig
+Also the latexmk script is required to run PDFLaTeX and related tools.
+the required number of times to have self-consistent output and include
+updated bibliography and indices.
 
 Building the EPUB format requires LaTeX installation with the same packages
 as for the PDF format plus the 'dvipng' command to convert the embedded math

@@ -280,7 +280,7 @@ void PairCoulStreitz::read_file(char *file)
         params[nparams].zeta = values.next_double();
         params[nparams].zcore = values.next_double();
 
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

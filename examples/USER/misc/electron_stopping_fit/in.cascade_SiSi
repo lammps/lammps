@@ -26,11 +26,11 @@ fix              1 all nve
 fix              2 all dt/reset 1 NULL 0.001 0.05 emax 10.0
 fix              3 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
 
-thermo           10
+thermo           5
 thermo_style     custom step dt time temp pe ke f_3
 thermo_modify    lost warn flush yes
 
-#dump             0 all custom 25 dump.pka_* id type x y z vx vy vz fx fy fz
+#dump             0 all custom 10 dump.pka_* id type x y z vx vy vz fx fy fz
 #dump_modify      0 first yes
 
-run              250
+run              100

@@ -11,10 +11,9 @@ simple.f90     is the Fortran driver
 
 The 3 codes do the same thing, so you can compare them to see how to
 drive LAMMPS from each language.  See python/example/simple.py
-to do something similar from Python.  The Fortran driver requires an
-additional wrapper library that interfaces the C interface of the
-LAMMPS library to Fortran and also translates the MPI communicator
-from Fortran to C.
+to do something similar from Python.  The Fortran driver requires a
+Fortran module that uses the Fortran 03 ISO_C_BINDING module to
+interface the LAMMPS C library functions to Fortran.
 
 First build LAMMPS as a library (see examples/COUPLE/README), e.g.
 
@@ -64,10 +63,9 @@ The C driver is calling C-style routines in the src/library.cpp file
 of LAMMPS.  You could add any functions you wish to this file to
 manipulate LAMMPS data however you wish.
 
-The Fortran driver is using the same C-style routines, but requires an
-additional wrapper to make them Fortran callable. Only a subset of the
-library functions are currently wrapped, but it should be clear how to
-extend the wrapper if desired.
+The Fortran driver is using the Fortran 03 module which uses a derived
+type with type bound subroutines. Only a small subset of the C library
+functions are currently accessible through the Fortran module.
 
 The C++ driver does the same thing, except that it instantiates LAMMPS
 as an object first.  Some of the functions in src/library.cpp can be

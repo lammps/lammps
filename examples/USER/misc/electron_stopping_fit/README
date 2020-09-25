@@ -26,13 +26,13 @@
       cumulative energy lost to the electron gas via a quadratic
       functional and applies a drag force to the classical equations 
       of motion for atoms moving above some cutoff velocity.
-                  
-                  Usage : fix edrag all electron/stopping/fit 4.63 3.3e-3 4.0e-8
-                  
-                  Input : - Lower energy cutoff (Upper cutoff is assumed
-                            to be 2x this value for truncation)
-                          - Linear coefficient
-                          - Quadratic coefficient (Usually taken = 0)
+      
+      Usage : fix edrag all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+      
+      Input : - Lower energy cutoff (Upper cutoff is assumed
+                to be 2x this value for truncation)
+              - Linear coefficient
+              - Quadratic coefficient (Usually taken = 0)
    
 // ---------------------------------------------------------------------
    

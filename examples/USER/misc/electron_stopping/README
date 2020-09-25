@@ -1,0 +1,53 @@
+// ---------------------------------------------------------------------
+   
+   VERSION: JULY, 2018
+   
+// ---------------------------------------------------------------------
+   
+   This package contains the commands necessary to calculate and apply
+   electronic stopping effects via an inelastic energy-loss (IEL) force.
+   A detailed description of this method can be found in the following
+   papers:
+   
+   J.A. Stewart, G. Brookman, P. Price, M. Franco, W. Ji, K. Hattar,
+   R. Dingreville (2018) Characterizing single isolated radiation-damage
+   events from molecular dynamics via virtual diffraction methods. 
+   Journal of Applied Physics, 123(16), 165902.
+   
+   C.W. Lee, J.A. Stewart, S.M. Foiles, R. Dingreville, and A. Schleife 
+   (2020) Multiscale simulations of electron and ion dynamics in 
+   self-irradiated silicon. Physical Review B, 102(2), 024107.
+   
+// ---------------------------------------------------------------------
+   
+   USAGE AND INPUT:
+   
+   electron/stopping/fit: Calculates electronic stopping power and
+      cumulative energy lost to the electron gas via a quadratic
+      functional and applies a drag force to the classical equations 
+      of motion for atoms moving above some cutoff velocity.
+      
+      Usage : fix edrag all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+      
+      Input : - Lower energy cutoff (Upper cutoff is assumed
+                to be 2x this value for truncation)
+              - Linear coefficient
+              - Quadratic coefficient (Usually taken = 0)
+   
+// ---------------------------------------------------------------------
+   
+   AUTHOR INFORMATION:
+   
+   The primary contributors to this package are:
+      Stephen M. Foiles (Sandia National Laboratories)
+      James A. Stewart (Sandia National Laboratories)
+      
+// ---------------------------------------------------------------------
+   
+   ACKNOWLEDGEMENTS:
+   
+   Thanks for additional contributions and development goes to:
+      Remi Dingreville (Sandia National Laboratories)
+      Elton Y. Chen (Sandia National Laboratories)
+      
+// ---------------------------------------------------------------------

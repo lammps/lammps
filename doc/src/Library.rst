@@ -53,7 +53,7 @@ LAMMPS C Library API
 
 The C library interface is most commonly used path to manage LAMMPS
 instances from a compiled code and it is the basis for the :doc:`Python
-<pg_python>` and :doc:`Fortran <pg_fortran>` modules.  Almost all
+<Python_module>` and :doc:`Fortran <Fortran>` modules.  Almost all
 functions of the C language API require an argument containing a
 "handle" in the form of a ``void *`` type variable, which points to the
 location of a LAMMPS class instance.

@@ -212,58 +212,58 @@ Bibliography
    C.\  Cercignani and M. Lampis. Trans. Theory Stat. Phys. 1, 2, 101 (1971).
 
 **(Cerda)**
-   Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)  
+   Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)
 
 **(Ceriotti)**
-   Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6, 1170-80 (2010) 
+   Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6, 1170-80 (2010)
 
 **(Ceriotti2)**
    Ceriotti, Bussi and Parrinello, Phys Rev Lett 103, 030603 (2009)
 
 **(Cerutti)**
-   Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory and Computation 5, 2322 (2009) 
+   Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory and Computation 5, 2322 (2009)
 
 **(Chen)**
-   J Chen, D Tzou and J Beraun, Int. J. Heat Mass Transfer, 49, 307-316 (2006). 
+   J Chen, D Tzou and J Beraun, Int. J. Heat Mass Transfer, 49, 307-316 (2006).
 
 **(Chenoweth_2008)**
-   Chenoweth, van Duin and Goddard, Journal of Physical Chemistry A, 112, 1040-1053 (2008). 
+   Chenoweth, van Duin and Goddard, Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 **(Clarke)**
    Clarke and Smith, J Chem Phys, 84, 2290 (1986).
 
 **(Coleman)**
-   Coleman, Spearot, Capolungo, MSMSE, 21, 055020 (2013). 
+   Coleman, Spearot, Capolungo, MSMSE, 21, 055020 (2013).
 
 **(Colliex)**
-   Colliex et al. International Tables for Crystallography Volume C: Mathematical and Chemical Tables, 249-429 (2004). 
+   Colliex et al. International Tables for Crystallography Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 **(Cooke)**
-   "Cooke, Kremer and Deserno, Phys. Rev. E, 72, 011506 (2005)"  
+   "Cooke, Kremer and Deserno, Phys. Rev. E, 72, 011506 (2005)"
 
 **(Cornell)**
-   Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995). 
+   Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 **(Cusentino)**
    Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
 
 **(Daivis and Todd)**
-   Daivis and Todd, J Chem Phys, 124, 194103 (2006).  
+   Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 
 **(Daivis and Todd)**
-   Daivis and Todd, Nonequilibrium Molecular Dynamics (book), Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017). 
+   Daivis and Todd, Nonequilibrium Molecular Dynamics (book), Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
 
 **(Dammak)**
-   Dammak, Chalopin, Laroche, Hayoun, and Greffet, Phys Rev Lett, 103, 190601 (2009). 
+   Dammak, Chalopin, Laroche, Hayoun, and Greffet, Phys Rev Lett, 103, 190601 (2009).
 
 **(Darden)**
-   Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).  
+   Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
 
 **(Davidchack)**
-   R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).  
+   R.L Davidchack, T.E. Ouldridge, and M.V. Tretyakov. J. Chem. Phys. 142, 144114 (2015).
 
 **(Daw1)**
-   Daw, Baskes, Phys Rev Lett, 50, 1285 (1983). Daw, Baskes, Phys Rev B, 29, 6443 (1984). 
+   Daw, Baskes, Phys Rev Lett, 50, 1285 (1983). Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 **(Daw2)**
    M.\  S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).
@@ -272,28 +272,28 @@ Bibliography
    Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
 
 **(Deserno)**
-   Deserno and Holm, J Chem Phys, 109, 7694 (1998).  
+   Deserno and Holm, J Chem Phys, 109, 7694 (1998).
 
 **(Destree)**
    M.\  Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert, J Chem Phys, 112, 9632 (2000).
 
 **(Dobson)**
-   Dobson, J Chem Phys, 141, 184103 (2014).  
+   Dobson, J Chem Phys, 141, 184103 (2014).
 
 **(Duffy)**
-   D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19, 016207-016218 (2007). 
+   D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19, 016207-016218 (2007).
 
 **(Dullweber)**
    Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107, 5840 (1997).
 
 **(Dunn1)**
-   Dunn and Noid, J Chem Phys, 143, 243148 (2015).  
+   Dunn and Noid, J Chem Phys, 143, 243148 (2015).
 
 **(Dunn2)**
    Dunn, Lebold, DeLyser, Rudzinski, and Noid, J. Phys. Chem. B, 122, 3363 (2018).
 
 **(Dunweg)**
-   Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).  
+   Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
 **(EDIP)**
    J F Justo et al, Phys Rev B 58, 2539 (1998).
@@ -308,37 +308,37 @@ Bibliography
    M.\  Elstner, D. Poresag, G. Jungnickel, J. Elsner, M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58, 7260 (1998).
 
 **(Erdmann)**
-   U.\  Erdmann , W. Ebeling, L. Schimansky-Geier, and F. Schweitzer, Eur. Phys. J. B 15, 105-113, 2000. 
+   U.\  Erdmann , W. Ebeling, L. Schimansky-Geier, and F. Schweitzer, Eur. Phys. J. B 15, 105-113, 2000.
 
 **(Espanol and Revenga)**
    Espanol, Revenga, Physical Review E, 67, 026705 (2003).
 
 **(Espanol1997)**
-   Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI: 10.1209/epl/i1997-00515-8 
+   Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI: 10.1209/epl/i1997-00515-8
 
 **(Evans and Morriss)**
-   Evans and Morriss, Phys Rev A, 30, 1528 (1984).  
+   Evans and Morriss, Phys Rev A, 30, 1528 (1984).
 
 **(Evans)**
-   Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).  
+   Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).
 
 **(Everaers)**
-   Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).  
+   Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 **(Faken)**
-   Faken, Jonsson, Comput Mater Sci, 2, 279 (1994).  
+   Faken, Jonsson, Comput Mater Sci, 2, 279 (1994).
 
 **(Fath)**
    Fath, Hochbruck, Singh, J Comp Phys, 333, 180-198 (2017).
 
 **(Fennell)**
-   C.\  J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006). 
+   C.\  J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).
 
 **(Feynman)**
-   R.\  Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and Path Integrals, McGraw-Hill, New York (1965). 
+   R.\  Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and Path Integrals, McGraw-Hill, New York (1965).
 
 **(Fichthorn)**
-   Fichthorn, Balankura, Qi, CrystEngComm, 18(29), 5410-5417 (2016).  
+   Fichthorn, Balankura, Qi, CrystEngComm, 18(29), 5410-5417 (2016).
 
 **(Fily)**
    Y.\  Fily and M.C. Marchetti, Phys. Rev. Lett. 108, 235702, 2012.  Default
@@ -347,10 +347,10 @@ Bibliography
    Fincham, Mackrodt and Mitchell, J Phys Condensed Matter, 6, 393-404 (1994).
 
 **(Finnis1)**
-   Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).  
+   Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
 
 **(Finnis2)**
-   M.\  W. Finnis, A. T. Paxton, M. Methfessel, and M. van Schilfgarde, Phys. Rev. Lett., 81, 5149 (1998). 
+   M.\  W. Finnis, A. T. Paxton, M. Methfessel, and M. van Schilfgarde, Phys. Rev. Lett., 81, 5149 (1998).
 
 **(Fiorin)**
    Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
@@ -359,16 +359,16 @@ Bibliography
    Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93 (1989).
 
 **(Fraige)**
-   F.\  Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds, Particuology, 6, 455 (2008). 
+   F.\  Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds, Particuology, 6, 455 (2008).
 
 **(Freitas)**
-   Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016). 
+   Freitas, Asta, and de Koning, Computational Materials Science, 112, 333 (2016).
 
 **(Frenkel)**
    Frenkel and Smit, Understanding Molecular Simulation, Academic Press, London, 2002.
 
 **(GLE4MD)**
-   `http://gle4md.org/ <http://gle4md.org/>`_  
+   `http://gle4md.org/ <http://gle4md.org/>`_
 
 **(Gao)**
    Gao and Weber, Nuclear Instruments and Methods in Physics Research B 191 (2012) 504.
@@ -380,7 +380,7 @@ Bibliography
    Glosli, unpublished, 2005. Streitz, Glosli, Patel, Chan, Yates, de Supinski, Sexton and Gunnels, Journal of Physics: Conference Series, 46, 254 (2006).
 
 **(Goldman1)**
-   Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)  
+   Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
 
 **(Goldman2)**
    Goldman, Srinivasan, Hamel, Fried, Gaus, and Elstner, J. Phys. Chem. C, 117, 7885 (2013).
@@ -389,16 +389,16 @@ Bibliography
    Grime and Voth, to appear in J Chem Theory & Computation (2014).
 
 **(Grimme)**
-   Grimme, J Comput Chem, 27(15), 1787-1799 (2006).  
+   Grimme, J Comput Chem, 27(15), 1787-1799 (2006).
 
 **(Gronbech-Jensen1)**
-   Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)  
+   Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)
 
 **(Gronbech-Jensen2)**
    Gronbech-Jensen and Farago, Mol Phys, 111, 983 (2013)
 
 **(Gronbech-Jensen3)**
-   Hayre, and Farago, Comp Phys Comm, 185, 524 (2014) 
+   Hayre, and Farago, Comp Phys Comm, 185, 524 (2014)
 
 **(Groot)**
    Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI: 10.1063/1.474784
@@ -416,19 +416,19 @@ Bibliography
    David Hardy thesis: Multilevel Summation for the Fast Evaluation of Forces for the Simulation of Biomolecules, University of Illinois at Urbana-Champaign, (2006).
 
 **(Hardy2)**
-   Hardy, Stone, Schulten, Parallel Computing, 35, 164-177 (2009). 
+   Hardy, Stone, Schulten, Parallel Computing, 35, 164-177 (2009).
 
 **(Hecht)**
-   Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).  
+   Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
 
 **(Henkelman1)**
-   Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).  
+   Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
 **(Henkelman2)**
-   Henkelman, Uberuaga, Jonsson, J Chem Phys, 113, 9901-9904 (2000). 
+   Henkelman, Uberuaga, Jonsson, J Chem Phys, 113, 9901-9904 (2000).
 
 **(Henkes)**
-   Henkes, S, Fily, Y., and Marchetti, M. C. Phys. Rev. E, 84, 040301(R), 2011.  
+   Henkes, S, Fily, Y., and Marchetti, M. C. Phys. Rev. E, 84, 040301(R), 2011.
 
 **(Henrich)**
    O.\  Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
@@ -437,46 +437,46 @@ Bibliography
    Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.
 
 **(Heyes)**
-   Heyes, Phys Rev B, 49, 755 (1994).  
+   Heyes, Phys Rev B, 49, 755 (1994).
 
 **(Hijazi)**
-   M.\  Hijazi, D. M. Wilkins, M. Ceriotti, J. Chem. Phys. 148, 184109 (2018) 
+   M.\  Hijazi, D. M. Wilkins, M. Ceriotti, J. Chem. Phys. 148, 184109 (2018)
 
 **(Hockney)**
-   Hockney and Eastwood, Computer Simulation Using Particles, Adam Hilger, NY (1989). 
+   Hockney and Eastwood, Computer Simulation Using Particles, Adam Hilger, NY (1989).
 
 **(Holian)**
-   Holian and Ravelo, Phys Rev B, 51, 11275 (1995). 
+   Holian and Ravelo, Phys Rev B, 51, 11275 (1995).
 
 **(Hone)**
-   T.\  Hone, P. Rossky, G. Voth, J Chem Phys, 124, 154103 (2006). 
+   T.\  Hone, P. Rossky, G. Voth, J Chem Phys, 124, 154103 (2006).
 
 **(Hoover)**
-   Hoover, Phys Rev A, 31, 1695 (1985).  
+   Hoover, Phys Rev A, 31, 1695 (1985).
 
 **(Hummer)**
-   Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)  
+   Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
 **(Hunt)**
-   Hunt, Mol Simul, 42, 347 (2016).  
+   Hunt, Mol Simul, 42, 347 (2016).
 
 **(IPI)**
    `http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
 
 **(IPI-CPC)**
-   Ceriotti, More and Manolopoulos, Comp Phys Comm, 185, 1019-1026 (2014). 
+   Ceriotti, More and Manolopoulos, Comp Phys Comm, 185, 1019-1026 (2014).
 
 **(Ikeshoji)**
-   Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).  
+   Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
 
 **(In 't Veld)**
-   In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).  
+   In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
 
 **(Isele-Holder)**
-   Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
+   Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012).
 
 **(Isele-Holder2)**
-   Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory Comput 9, 5412 (2013). 
+   Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory Comput 9, 5412 (2013).
 
 **(Ismail)**
    Ismail, Tsige, In 't Veld, Grest, Molecular Physics (accepted) (2007).
@@ -488,10 +488,10 @@ Bibliography
    Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar, Wriggers, Schulten. Computational Molecular Dynamics: Challenges, Methods, Ideas, volume 4 of Lecture Notes in Computational Science and
 
 **(Izvekov)**
-   Izvekov, Voth, J Chem Phys 123, 134105 (2005).  
+   Izvekov, Voth, J Chem Phys 123, 134105 (2005).
 
 **(Janssens)**
-   Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature Materials, 5, 124-127 (2006). 
+   Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature Materials, 5, 124-127 (2006).
 
 **(Jaramillo-Botero)**
    Jaramillo-Botero, Su, Qi, Goddard, Large-scale, Long-term Non-adiabatic Electron Molecular Dynamics for Describing Material Properties and Phenomena in Extreme Environments, J Comp
@@ -500,28 +500,28 @@ Bibliography
    Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
 
 **(Jiang)**
-   Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,  J Phys Chem Lett, 2, 87-92 (2011). 
+   Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,  J Phys Chem Lett, 2, 87-92 (2011).
 
 **(Johnson et al, 1971)**
    Johnson, K. L., Kendall, K., & Roberts, A. D. (1971).  Surface energy and the contact of elastic solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
 
 **(Jones)**
-   Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940.  
+   Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940.
 
 **(Jonsson)**
    Jonsson, Mills and Jacobsen, in Classical and Quantum Dynamics in Condensed Phase Simulations, edited by Berne, Ciccotti, and Coker World Scientific, Singapore, 1998, p 385.
 
 **(Jorgensen)**
-   Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem Phys, 79, 926 (1983). 
+   Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem Phys, 79, 926 (1983).
 
 **(Jusufi)**
    Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112, 13783 (2008).
 
 **(Kamberaj)**
-   Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).  
+   Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).
 
 **(Katsura)**
-   H.\  Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)  
+   H.\  Katsura, N. Nagaosa, A.V. Balatsky. Phys. Rev. Lett., 95(5), 057205. (2005)
 
 **(Kelchner)**
    Kelchner, Plimpton, Hamilton, Phys Rev B, 58, 11085 (1998).
@@ -530,16 +530,16 @@ Bibliography
    Khrapak, Chaudhuri, and Morfill, J Chem Phys, 134, 054120 (2011).
 
 **(Kim)**
-   Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).  
+   Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
 
 **(Klapp)**
-   Klapp, Schoen, J Chem Phys, 117, 8050 (2002).  
+   Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 
 **(Kolafa)**
-   Kolafa and Perram, Molecular Simulation, 9, 351 (1992).  
+   Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
 
 **(Kolmogorov)**
-   A.\  N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).  
+   A.\  N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
 
 **(Kong)**
    L.T. Kong, G. Bartels, C. Campana, C. Denniston, and Martin H. Muser, `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
@@ -548,19 +548,19 @@ Bibliography
    L.T. Kong, `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_
 
 **(Kremer)**
-   Kremer, Grest, J Chem Phys, 92, 5057 (1990).  
+   Kremer, Grest, J Chem Phys, 92, 5057 (1990).
 
 **(Kuhn and Bagi, 2005)**
    Kuhn, M. R., & Bagi, K. (2004). Contact rolling and deformation in granular media.  International journal of solids and structures, 41(21), 5793-5820.
 
 **(Kumagai)**
-   T.\  Kumagai, S. Izumi, S. Hara, S. Sakai, Comp. Mat. Science, 39, 457 (2007). 
+   T.\  Kumagai, S. Izumi, S. Hara, S. Sakai, Comp. Mat. Science, 39, 457 (2007).
 
 **(Kumar)**
    Kumar and Higdon, Phys Rev E, 82, 051401 (2010).
 
 **(Kumar)**
-   Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)  
+   Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)
 
 **(Lamoureux and Roux)**
    G.\  Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)
@@ -587,31 +587,31 @@ Bibliography
    Lechman, et al, in preparation (2010).
 
 **(Lee)**
-   Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).  
+   Lee, Baskes, Phys. Rev. B, 62, 8564-8567 (2000).
 
 **(Lee2)**
-   Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).  
+   Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
 
 **(Lenart)**
-   Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126, 044509 (2007). 
+   Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126, 044509 (2007).
 
 **(Lenosky)**
    Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter, Kress, Modelling Simulation Materials Science Engineering, 8, 825 (2000).
 
 **(Leven1)**
-   I.\  Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).  
+   I.\  Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 **(Leven2)**
-   I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).  
+   I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 **(Li2013_POF)**
-   Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI: 10.1063/1.4812366. 
+   Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI: 10.1063/1.4812366.
 
 **(Li2014_JCP)**
    Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265: 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
 
 **(Li2015_CC)**
-   Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040 (2015).  DOI: 10.1039/C5CC01684C. 
+   Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040 (2015).  DOI: 10.1039/C5CC01684C.
 
 **(Li2015_JCP)**
    Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143: 014101 (2015).  DOI: 10.1063/1.4923254.
@@ -632,19 +632,19 @@ Bibliography
    J.\  H. Los et al. "Extended Tersoff potential for boron nitride: Energetics and elastic properties of pristine and defective h-BN", Phys. Rev. B 96 (184108), 2017.
 
 **(Luding, 2008)**
-   Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235. 
+   Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235.
 
 **(Maaravi)**
-   T.\  Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).  
+   T.\  Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
 
 **(MacKerell)**
    MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).
 
 **(Mackay and Denniston)**
-   Mackay, F. E., and Denniston, C., Coupling MD particles to a lattice-Boltzmann fluid through the use of conservative forces, J. Comput. Phys. 237 (2013) 289-298.  
+   Mackay, F. E., and Denniston, C., Coupling MD particles to a lattice-Boltzmann fluid through the use of conservative forces, J. Comput. Phys. 237 (2013) 289-298.
 
 **(Mackay et al.)**
-   Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.  
+   Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
 
 **(Magda)**
    Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985); erratum in JCP 84, 2901 (1986).
@@ -668,70 +668,70 @@ Bibliography
    Marshall, J. S. (2009). Discrete-element modeling of particulate aerosol flows.  Journal of Computational Physics, 228(5), 1541-1561.
 
 **(Martyna1992)**
-   Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992); Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117. 
+   Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992); Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
 **(Martyna1994)**
-   Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).  
+   Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 **(Mason)**
-   J.\  K. Mason, Acta Cryst A65, 259 (2009).  
+   J.\  K. Mason, Acta Cryst A65, 259 (2009).
 
 **(Mattice)**
-   Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994.  
+   Mattice, Suter, Conformational Theory of Large Molecules, Wiley, New York, 1994.
 
 **(Maxwell)**
-   J.C. Maxwell, Philos. Tans. Royal Soc. London, 157: 49-88 (1867). 
+   J.C. Maxwell, Philos. Tans. Royal Soc. London, 157: 49-88 (1867).
 
 **(Mayergoyz)**
-   I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)  
+   I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
 **(Mayo)**
-   Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909 (1990). 
+   Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909 (1990).
 
 **(Mees)**
-   M.\  J. Mees, G. Pourtois, E. C. Neyts, B. J. Thijsse, and A. Stesmans, Phys. Rev. B 85, 134301 (2012). 
+   M.\  J. Mees, G. Pourtois, E. C. Neyts, B. J. Thijsse, and A. Stesmans, Phys. Rev. B 85, 134301 (2012).
 
 **(Mei)**
    Mei, Davenport, Fernando, Phys Rev B, 43 4653 (1991)
 
 **(Melchor)**
-   Gonzalez-Melchor, Mayoral, Velazquez, and Alejandre, J Chem Phys, 125, 224107 (2006).  
+   Gonzalez-Melchor, Mayoral, Velazquez, and Alejandre, J Chem Phys, 125, 224107 (2006).
 
 **(Meloni)**
    Meloni, Rosati and Colombo, J Chem Phys, 126, 121102 (2007).
 
 **(Meremianin)**
-   Meremianin, J. Phys. A,  39, 3099 (2006).  
+   Meremianin, J. Phys. A,  39, 3099 (2006).
 
 **(Mezei)**
-   Mezei, J Chem Phys, 86, 7084 (1987)  
+   Mezei, J Chem Phys, 86, 7084 (1987)
 
 **(Mickel)**
-   W.\  Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013). 
+   W.\  Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke, J. Chem. Phys. 138, 044501 (2013).
 
 **(Mie)**
-   G.\  Mie, Ann Phys, 316, 657 (1903).  
+   G.\  Mie, Ann Phys, 316, 657 (1903).
 
 **(Miller1)**
-   T.\  F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).  
+   T.\  F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
 
 **(Miller2)**
    Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys, 144, 184107 (2016).
 
 **(Minary)**
-   Minary, Martyna, and Tuckerman, J Chem Phys, 18, 2510 (2003).  
+   Minary, Martyna, and Tuckerman, J Chem Phys, 18, 2510 (2003).
 
 **(Mindlin and Deresiewicz, 1953)**
    Mindlin, R.D., & Deresiewicz, H (1953). Elastic Spheres in Contact under Varying Oblique Force. J. Appl. Mech., ASME 20, 327-344.
 
 **(Mindlin, 1949)**
-   Mindlin, R. D. (1949). Compliance of elastic bodies in contact.  J. Appl. Mech., ASME 16, 259-268. 
+   Mindlin, R. D. (1949). Compliance of elastic bodies in contact.  J. Appl. Mech., ASME 16, 259-268.
 
 **(Miron)**
    R.\  A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
 
 **(Mishin)**
-   Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029 (2005). 
+   Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029 (2005).
 
 **(Mitchell and Finchham)**
    Mitchell, Finchham, J Phys Condensed Matter, 5, 1031-1038 (1993).
@@ -755,13 +755,13 @@ Bibliography
    Y.\  Mori, Y. Okamoto, J. Phys. Soc. Jpn., 7, 074003 (2010).
 
 **(Moriarty1)**
-   Moriarty, Physical Review B, 38, 3199 (1988).  
+   Moriarty, Physical Review B, 38, 3199 (1988).
 
 **(Moriarty2)**
-   Moriarty, Physical Review B, 42, 1609 (1990). Moriarty, Physical Review B 49, 12431 (1994). 
+   Moriarty, Physical Review B, 42, 1609 (1990). Moriarty, Physical Review B 49, 12431 (1994).
 
 **(Moriarty3)**
-   Moriarty, Benedict, Glosli, Hood, Orlikowski, Patel, Soderlind, Streitz, Tang, and Yang, Journal of Materials Research, 21, 563 (2006). 
+   Moriarty, Benedict, Glosli, Hood, Orlikowski, Patel, Soderlind, Streitz, Tang, and Yang, Journal of Materials Research, 21, 563 (2006).
 
 **(Morris)**
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
@@ -770,22 +770,22 @@ Bibliography
    Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ , `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
 
 **(Muller-Plathe1)**
-   Muller-Plathe, J Chem Phys, 106, 6082 (1997).  
+   Muller-Plathe, J Chem Phys, 106, 6082 (1997).
 
 **(Muller-Plathe2)**
-   Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).  
+   Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
 
 **(Murdick)**
-   D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R. Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006). 
+   D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R. Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 
 **(Murty)**
-   M.V.R. Murty, H.A. Atwater, Phys Rev B, 51, 4889 (1995).  
+   M.V.R. Murty, H.A. Atwater, Phys Rev B, 51, 4889 (1995).
 
 **(Nakano)**
-   A.\  Nakano, Computer Physics Communications, 104, 59-69 (1997).  
+   A.\  Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 **(Neelov)**
-   Neelov, Holm, J Chem Phys 132, 234103 (2010)  
+   Neelov, Holm, J Chem Phys 132, 234103 (2010)
 
 **(Negre2016)**
    C.\  F. A. Negre, S. M. Mniszewski, M. J. Cawkwell, N. Bock, M. E. Wall, and A. M. N. Niklasson, J. Chem. Theory Comp., 12, 3063 (2016).
@@ -806,31 +806,31 @@ Bibliography
    The spline-based MEAM+SW format was first devised and used to develop potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 
 **(Niklasson2002)**
-   A.\  M. N. Niklasson, Phys. Rev. B, 66, 155115 (2002).  
+   A.\  M. N. Niklasson, Phys. Rev. B, 66, 155115 (2002).
 
 **(Niklasson2008)**
-   A.\  M. N. Niklasson, Phys. Rev. Lett., 100, 123004 (2008). 
+   A.\  M. N. Niklasson, Phys. Rev. Lett., 100, 123004 (2008).
 
 **(Niklasson2014)**
-   A.\  M. N. Niklasson and M. Cawkwell, J. Chem. Phys., 141, 164123, (2014). 
+   A.\  M. N. Niklasson and M. Cawkwell, J. Chem. Phys., 141, 164123, (2014).
 
 **(Niklasson2017)**
-   A.\  M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).  
+   A.\  M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).
 
 **(Noid)**
    Noid, Chu, Ayton, Krishna, Izvekov, Voth, Das, Andersen, J Chem Phys 128, 134105 (2008).
 
 **(Nordlund95)**
-   Nordlund, Kai. Computational materials science 3.4 (1995): 448-456.  
+   Nordlund, Kai. Computational materials science 3.4 (1995): 448-456.
 
 **(Nordlund98)**
-   Nordlund, Kai, et al.  Physical Review B 57.13 (1998): 7556.  
+   Nordlund, Kai, et al.  Physical Review B 57.13 (1998): 7556.
 
 **(Norman)**
-   G E Norman, S V Starikov, V V Stegailov et al., Contrib. Plasma Phys., 53, 129-139 (2013). 
+   G E Norman, S V Starikov, V V Stegailov et al., Contrib. Plasma Phys., 53, 129-139 (2013).
 
 **(Noskov)**
-   Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).  
+   Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 **(Nurdin)**
    Nurdin and Schotte Phys Rev E, 61(4), 3579 (2000)
@@ -839,31 +839,31 @@ Bibliography
    O'Connor et al., J. Chem. Phys. 142, 024903 (2015).
 
 **(Okabe)**
-   T.\  Okabe, M. Kawata, Y. Okamoto, M. Masuhiro, Chem. Phys. Lett., 335, 435-439 (2001). 
+   T.\  Okabe, M. Kawata, Y. Okamoto, M. Masuhiro, Chem. Phys. Lett., 335, 435-439 (2001).
 
 **(Ollila et al.)**
-   Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.  
+   Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.
 
 **(Omelyan)**
-   Omelyan, Mryglod, and Folk. Phys. Rev. Lett. 86(5), 898. (2001). 
+   Omelyan, Mryglod, and Folk. Phys. Rev. Lett. 86(5), 898. (2001).
 
 **(Oppelstrup)**
    Oppelstrup, unpublished, 2015. Oppelstrup and Moriarty, to be published.
 
 **(Orsi)**
-   Orsi & Essex, The ELBA force field for coarse-grain modeling of lipid membranes, PloS ONE 6(12): e28637, 2011. 
+   Orsi & Essex, The ELBA force field for coarse-grain modeling of lipid membranes, PloS ONE 6(12): e28637, 2011.
 
 **(Otis R. Walton)**
-   Walton, O.R., Personal Communication  
+   Walton, O.R., Personal Communication
 
 **(Ouldridge)**
-   T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).  
+   T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
 
 **(Ouldridge-DPhil)**
-   T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).  
+   T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
 
 **(Ouyang1)**
-   W.\  Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).  
+   W.\  Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
 
 **(Ouyang2)**
    W.\  Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
@@ -872,28 +872,28 @@ Bibliography
    PASS webpage: https://www.sdu.dk/en/DPASS
 
 **(PLUMED)**
-   G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)  
+   G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
 **(Paquay)**
    Paquay and Kusters, Biophys. J., 110, 6, (2016). preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.
 
 **(Park)**
-   Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)  
+   Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
 
 **(Parks)**
-   Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008). 
+   Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
 
 **(Parrinello1981)**
    Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
 **(Paula Leite2016)**
-   Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126, 044509 (2016). 
+   Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126, 044509 (2016).
 
 **(Paula Leite2017)**
-   Paula Leite, Santos-Florez, and de Koning, Phys Rev E, 96, 32115 (2017). 
+   Paula Leite, Santos-Florez, and de Koning, Phys Rev E, 96, 32115 (2017).
 
 **(Pearlman)**
-   Pearlman, J Chem Phys, 98, 1487 (1994)  
+   Pearlman, J Chem Phys, 98, 1487 (1994)
 
 **(Pedersen)**
    Pedersen, J. Chem. Phys., 139, 104102 (2013).
@@ -902,34 +902,34 @@ Bibliography
    Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76 (1996).
 
 **(Perram)**
-   Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).  
+   Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).
 
 **(Petersen)**
-   Petersen, J Chem Phys, 103, 3668 (1995).  
+   Petersen, J Chem Phys, 103, 3668 (1995).
 
 **(Petersen)**
-   Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J Chem Phys, 132, 174106 (2010). 
+   Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J Chem Phys, 132, 174106 (2010).
 
 **(Pettifor_1)**
-   D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 (1999). 
+   D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 (1999).
 
 **(Pettifor_2)**
-   D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 4124 (2000). 
+   D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 4124 (2000).
 
 **(Pettifor_3)**
-   D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 (2002). 
+   D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 (2002).
 
 **(Phillips)**
    C.\  L. Phillips, J. A. Anderson, S. C. Glotzer, Comput Phys Comm, 230, 7191-7201 (2011).
 
 **(Piaggi)**
-   Piaggi and Parrinello, J Chem Phys, 147, 114112 (2017).  
+   Piaggi and Parrinello, J Chem Phys, 147, 114112 (2017).
 
 **(Pisarev)**
    V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26, 475401 (2014).
 
 **(Pollock)**
-   Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).  
+   Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
 
 **(Price1)**
    Price and Brooks, J Chem Phys, 121, 10096 (2004).
@@ -947,58 +947,58 @@ Bibliography
    J.\  Ramirez, S.K. Sukumaran, B. Vorselaars and A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).
 
 **(Rappe)**
-   Rappe and Goddard III, Journal of Physical Chemistry, 95, 3358-3363 (1991). 
+   Rappe and Goddard III, Journal of Physical Chemistry, 95, 3358-3363 (1991).
 
 **(Ravelo)**
    Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).
 
 **(ReaxFF)**
-   A.\  C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J Physical Chemistry, 105, 9396-9049 (2001) 
+   A.\  C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J Physical Chemistry, 105, 9396-9049 (2001)
 
 **(Rector)**
    Rector, Van Swol, Henderson, Molecular Physics, 82, 1009 (1994).
 
 **(Ree)**
-   Ree, Journal of Chemical Physics, 73, 5401 (1980).  
+   Ree, Journal of Chemical Physics, 73, 5401 (1980).
 
 **(Reed)**
-   Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503 (2003). 
+   Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503 (2003).
 
 **(Reed2)**
-   Reed, J. Phys. Chem. C, 116, 2205 (2012).  
+   Reed, J. Phys. Chem. C, 116, 2205 (2012).
 
 **(Rick)**
    S.\  W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 16141 (1994).
 
 **(Rohart)**
-   Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013). 
+   Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
 **(Rosenberger)**
    Rosenberger, Sanyal, Shell and van der Vegt,  Journal of Chemical Physics, 2019, 151 (4), 044111.
 
 **(Rubensson)**
-   E.\  H. Rubensson, A. M. N. Niklasson, SIAM J. Sci. Comput. 36 (2), 147-170, (2014). 
+   E.\  H. Rubensson, A. M. N. Niklasson, SIAM J. Sci. Comput. 36 (2), 147-170, (2014).
 
 **(Rutherford)**
-   A M Rutherford and D M Duffy, J. Phys.: Condens. Matter, 19, 496201-496210 (2007). 
+   A M Rutherford and D M Duffy, J. Phys.: Condens. Matter, 19, 496201-496210 (2007).
 
 **(Ryckaert)**
-   J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, J of Comp Phys, 23, 327-341 (1977). 
+   J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, J of Comp Phys, 23, 327-341 (1977).
 
 **(SMTB-Q_1)**
-   N.\  Salles, O. Politano, E. Amzallag, R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189 
+   N.\  Salles, O. Politano, E. Amzallag, R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 
 **(SMTB-Q_2)**
-   E.\  Maras, N. Salles, R. Tetot, T. Ala-Nissila, H. Jonsson, J. Phys. Chem. C 2015, 119, 10391-10399 
+   E.\  Maras, N. Salles, R. Tetot, T. Ala-Nissila, H. Jonsson, J. Phys. Chem. C 2015, 119, 10391-10399
 
 **(SMTB-Q_3)**
-   R.\  Tetot, N. Salles, S. Landron, E. Amzallag, Surface Science 616, 19-8722 28 (2013) 
+   R.\  Tetot, N. Salles, S. Landron, E. Amzallag, Surface Science 616, 19-8722 28 (2013)
 
 **(SRIM)**
-   SRIM webpage: http://www.srim.org/  
+   SRIM webpage: http://www.srim.org/
 
 **(SW)**
-   F.\  H. Stillinger, and T. A. Weber, Phys. Rev. B, 31, 5262 (1985).  
+   F.\  H. Stillinger, and T. A. Weber, Phys. Rev. B, 31, 5262 (1985).
 
 **(SWM4-NDP)**
    Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys Let, 418, 245-249 (2006)
@@ -1013,10 +1013,10 @@ Bibliography
    Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
 
 **(Sanyal1)**
-   Sanyal and Shell, Journal of Chemical Physics, 2016, 145 (3), 034109. 
+   Sanyal and Shell, Journal of Chemical Physics, 2016, 145 (3), 034109.
 
 **(Sanyal2)**
-   Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.  
+   Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 
 **(Schelling)**
    Patrick K. Schelling, Comp. Mat. Science, 44, 274 (2008).
@@ -1028,43 +1028,43 @@ Bibliography
    Schlitter and Klahn, "The free energy of a reaction coordinate at multiple constraints: a concise formulation", Molecular Physics, 101, 3439-3443 (2003).
 
 **(Schmid)**
-   S.\  Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013). 
+   S.\  Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
 
 **(Schneider)**
-   Schneider and Stoll, Phys Rev B, 17, 1302 (1978).  
+   Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
 
 **(Schratt & Mohles)**
    Schratt, Mohles. Comp. Mat. Sci. 182 (2020) 109774  ----------
 
 **(Schroeder)**
-   Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010). 
+   Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010).
 
 **(Semaev)**
-   Semaev, Cryptography and Lattices, 181 (2001).  
+   Semaev, Cryptography and Lattices, 181 (2001).
 
 **(Sheppard)**
    Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106 (2008).  See ref 1 in this paper for original reference to Qmin in Jonsson, Mills, Jacobsen.
 
 **(Shinoda)**
-   Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).  
+   Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
 
 **(Shinoda)**
-   Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).  
+   Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 **(Sides)**
    Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42, 199-208 (2004).
 
 **(Silbert)**
-   Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev E, 64, p 051302 (2001). 
+   Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev E, 64, p 051302 (2001).
 
 **(Silbert, 2001)**
    Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001).  Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E,
 
 **(Silling 2000)**
-   Silling, J Mech Phys Solids, 48, 175-209 (2000).  
+   Silling, J Mech Phys Solids, 48, 175-209 (2000).
 
 **(Silling 2007)**
-   Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007). 
+   Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).
 
 **(Singh)**
    Singh and Warner, Acta Mater, 58, 5797-5805 (2010),
@@ -1073,85 +1073,85 @@ Bibliography
    Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J Chem Phys, 136 (13) 134903, 2012.
 
 **(Sirk2)**
-   Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).  
+   Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).
 
 **(Skomski)**
    Skomski, R. (2008). Simple models of magnetism. Oxford University Press.
 
 **(Snodin)**
-   B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).  
+   B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).
 
 **(Srivastava)**
-   Zhigilei, Wei, Srivastava, Phys. Rev. B 71, 165417 (2005).  
+   Zhigilei, Wei, Srivastava, Phys. Rev. B 71, 165417 (2005).
 
 **(Steinbach)**
    Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
 
 **(Steinhardt)**
-   P.\  Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983). 
+   P.\  Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).
 
 **(Stiles)**
-   Stiles , Hubbard, and Kayser, J Chem Phys, 77, 6189 (1982). 
+   Stiles , Hubbard, and Kayser, J Chem Phys, 77, 6189 (1982).
 
 **(Stillinger)**
-   Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).  
+   Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
 
 **(Stoddard)**
-   Stoddard and Ford, Phys Rev A, 8, 1504 (1973).  
+   Stoddard and Ford, Phys Rev A, 8, 1504 (1973).
 
 **(Streitz)**
-   F.\  H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003 (1994). 
+   F.\  H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003 (1994).
 
 **(Strong)**
-   Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).  
+   Strong and Eaves, J. Phys. Chem. B 121, 189 (2017).
 
 **(Stuart)**
-   Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486 (2000). 
+   Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486 (2000).
 
 **(Stukowski)**
-   Stukowski, Sadigh, Erhart, Caro; Modeling Simulation Materials Science & Engineering, 7, 075005 (2009). 
+   Stukowski, Sadigh, Erhart, Caro; Modeling Simulation Materials Science & Engineering, 7, 075005 (2009).
 
 **(Su)**
-   Su and Goddard, Excited Electron Dynamics Modeling of Warm Dense Matter, Phys Rev Lett, 99:185003 (2007). 
+   Su and Goddard, Excited Electron Dynamics Modeling of Warm Dense Matter, Phys Rev Lett, 99:185003 (2007).
 
 **(Sulc1)**
-   P.\  Sulc, F. Romano, T. E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).  
+   P.\  Sulc, F. Romano, T. E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).
 
 **(Sulc2)**
    P.\  Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
 
 **(Sun)**
-   Sun, J. Phys. Chem. B, 102, 7338-7364 (1998).  
+   Sun, J. Phys. Chem. B, 102, 7338-7364 (1998).
 
 **(Surblys)**
-   Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).  
+   Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
 
 **(Sutmann)**
-   Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)  
+   Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
 
 **(Swinburne)**
    Swinburne and Marinica, Physical Review Letters, 120, 1 (2018)
 
 **(Tadmor)**
-   Tadmor, Elliott, Sethna, Miller and Becker, JOM, 63, 17 (2011). doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-011-0102-6>`_ 
+   Tadmor, Elliott, Sethna, Miller and Becker, JOM, 63, 17 (2011). doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-011-0102-6>`_
 
 **(Tainter 2011)**
-   Tainter, Pieniazek, Lin, and Skinner, J. Chem. Phys., 134, 184501 (2011) 
+   Tainter, Pieniazek, Lin, and Skinner, J. Chem. Phys., 134, 184501 (2011)
 
 **(Tainter 2015)**
    Tainter, Shi, and Skinner, 11, 2268 (2015)
 
 **(Templeton2010)**
-   Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.  
+   Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.
 
 **(Templeton2011)**
-   Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.  
+   Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.
 
 **(Tersoff_1)**
-   J.\  Tersoff, Phys Rev B, 37, 6991 (1988).  
+   J.\  Tersoff, Phys Rev B, 37, 6991 (1988).
 
 **(Tersoff_2)**
-   J.\  Tersoff, Phys Rev B, 38, 9902 (1988).  
+   J.\  Tersoff, Phys Rev B, 38, 9902 (1988).
 
 **(Tersoff_3)**
    J.\  Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
@@ -1160,19 +1160,19 @@ Bibliography
    Theodorou, Suter, Macromolecules, 18, 1206 (1985).
 
 **(Thole)**
-   Chem Phys, 59, 341 (1981).  
+   Chem Phys, 59, 341 (1981).
 
 **(Thompson1)**
-   Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).  
+   Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
 
 **(Thompson2)**
-   Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).  
+   Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
 
 **(Thornton et al, 2013)**
    Thornton, C., Cummins, S. J., & Cleary, P. W. (2013).  An investigation of the comparative behavior of alternative contact force models during inelastic collisions. Powder
 
 **(Thornton, 1991)**
-   Thornton, C. (1991). Interparticle sliding in the presence of adhesion.  J. Phys. D: Appl. Phys. 24 1942 
+   Thornton, C. (1991). Interparticle sliding in the presence of adhesion.  J. Phys. D: Appl. Phys. 24 1942
 
 **(To)**
    Q.D. To, V.H. Vu, G. Lauriat, and C. Leonard. J. Math. Phys. 56, 103101 (2015).
@@ -1181,7 +1181,7 @@ Bibliography
    B.\  D. Todd, Denis J. Evans, and Peter J. Daivis: "Pressure tensor for inhomogeneous fluids", Phys. Rev. E 52, 1627 (1995).
 
 **(Toukmaji)**
-   Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113, 10913 (2000). 
+   Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113, 10913 (2000).
 
 **(Toxvaerd)**
    Toxvaerd, Dyre, J Chem Phys, 134, 081102 (2011).
@@ -1196,10 +1196,10 @@ Bibliography
    Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007).
 
 **(Tuckerman1)**
-   M.\  Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).  
+   M.\  Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 **(Tuckerman2)**
-   Tuckerman, Alejandre, Lopez-Rendon, Jochim, and Martyna, J Phys A: Math Gen, 39, 5629 (2006). 
+   Tuckerman, Alejandre, Lopez-Rendon, Jochim, and Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 **(Tuckerman3)**
    Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990 (1992).
@@ -1208,46 +1208,46 @@ Bibliography
    Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys, 106, 5615 (1997).
 
 **(Ulomek)**
-   Ulomek, Brien, Foiles, Mohles, Modelling Simul. Mater. Sci. Eng. 23 (2015) 025007  
+   Ulomek, Brien, Foiles, Mohles, Modelling Simul. Mater. Sci. Eng. 23 (2015) 025007
 
 **(Vaiwala)**
-   Vaiwala, Jadhav, and Thaokar, J Chem Phys, 146, 124904 (2017). 
+   Vaiwala, Jadhav, and Thaokar, J Chem Phys, 146, 124904 (2017).
 
 **(Valone)**
-   Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).  
+   Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
 
 **(Varshalovich)**
-   Varshalovich, Moskalev, Khersonskii, Quantum Theory of Angular Momentum, World Scientific, Singapore (1987). 
+   Varshalovich, Moskalev, Khersonskii, Quantum Theory of Angular Momentum, World Scientific, Singapore (1987).
 
 **(Vashishta1990)**
-   P.\  Vashishta, R. K. Kalia, J. P. Rino, Phys. Rev. B 41, 12197 (1990). 
+   P.\  Vashishta, R. K. Kalia, J. P. Rino, Phys. Rev. B 41, 12197 (1990).
 
 **(Vashishta2007)**
-   P.\  Vashishta, R. K. Kalia, A. Nakano, J. P. Rino. J. Appl. Phys. 101, 103515 (2007). 
+   P.\  Vashishta, R. K. Kalia, A. Nakano, J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
 
 **(Veld)**
-   In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).  
+   In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
 
 **(Volkov1)**
-   Volkov and Zhigilei, J Phys Chem C, 114, 5513 (2010).  
+   Volkov and Zhigilei, J Phys Chem C, 114, 5513 (2010).
 
 **(Volkov2)**
    Volkov, Simov and Zhigilei, APS Meeting Abstracts, Q31.013 (2008).
 
 **(Voter1998)**
-   Voter, Phys Rev B, 57, 13985 (1998).  
+   Voter, Phys Rev B, 57, 13985 (1998).
 
 **(Voter2000)**
-   Sorensen and Voter, J Chem Phys, 112, 9599 (2000)  
+   Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
 **(Voter2002)**
    Voter, Montalenti, Germann, Annual Review of Materials Research 32, 321 (2002).
 
 **(Voter2013)**
-   S.\  Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139, 144110 (2013). 
+   S.\  Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139, 144110 (2013).
 
 **(Wagner)**
-   Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.  
+   Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.
 
 **(Wang et al, 2015)**
    Wang, Y., Alonso-Marroquin, F., & Guo, W. W. (2015).  Rolling and sliding in 3-D discrete element models. Particuology, 23, 49-55.
@@ -1256,19 +1256,19 @@ Bibliography
    J.\  Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular Matter, 13, 1 (2011).
 
 **(Wang2)**
-   J.\  Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).  
+   J.\  Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
 **(Wang3)**
-   Wang and Holm, J Chem Phys, 115, 6277 (2001).  
+   Wang and Holm, J Chem Phys, 115, 6277 (2001).
 
 **(Wang4)**
-   Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).  
+   Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 **(Ward)**
-   D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A. Zimmerman, Phys. Rev. B, 85,115206 (2012). 
+   D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A. Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
 **(Warren)**
-   Warren, Phys Rev E, 68, 066702 (2003).  
+   Warren, Phys Rev E, 68, 066702 (2003).
 
 **(Watkins)**
    Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).
@@ -1277,10 +1277,10 @@ Bibliography
    Weeks, Chandler and Andersen, J. Chem. Phys., 54, 5237 (1971)
 
 **(WeinanE)**
-   E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).  
+   E, Ren, Vanden-Eijnden, Phys Rev B, 66, 052301 (2002).
 
 **(Wen)**
-   M.\  Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98, 235404 (2018) 
+   M.\  Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B, 98, 235404 (2018)
 
 **(Wennberg)**
    Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput, 9, 3527 (2013).
@@ -1289,28 +1289,28 @@ Bibliography
    Who, Author2, Author3, J of Long Range Solvers, 35, 164-177 (2012).
 
 **(Wicaksono1)**
-   Wicaksono, Sinclair, Militzer, Computational Materials Science, 117, 397-405 (2016). 
+   Wicaksono, Sinclair, Militzer, Computational Materials Science, 117, 397-405 (2016).
 
 **(Wicaksono2)**
-   Wicaksono, figshare, https://doi.org/10.6084/m9.figshare.1488628.v1 (2015). 
+   Wicaksono, figshare, https://doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
 **(Wirnsberger)**
    Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104 (2015).
 
 **(Wolf)**
-   D.\  Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem Phys, 110, 8254 (1999). 
+   D.\  Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem Phys, 110, 8254 (1999).
 
 **(Wolff)**
-   Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).  
+   Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 **(Wood)**
-   Wood and Thompson, J Chem Phys, 148, 241721, (2018)  
+   Wood and Thompson, J Chem Phys, 148, 241721, (2018)
 
 **(Yeh)**
-   Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).  
+   Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
 
 **(ZBL)**
-   J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges of Ions in Matter' Vol 1, 1985, Pergamon Press. 
+   J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges of Ions in Matter' Vol 1, 1985, Pergamon Press.
 
 **(Zhang1)**
    Zhang and Makse, Phys Rev E, 72, p 011301 (2005).
@@ -1328,43 +1328,43 @@ Bibliography
    Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B, 109, 15060-15067 (2005).
 
 **(Zhigilei1)**
-   Volkov and Zhigilei, ACS Nano 4, 6187 (2010).  
+   Volkov and Zhigilei, ACS Nano 4, 6187 (2010).
 
 **(Zhigilei2)**
-   Volkov, Simov, Zhigilei, ASME paper IMECE2008, 68021 (2008).  
+   Volkov, Simov, Zhigilei, ASME paper IMECE2008, 68021 (2008).
 
 **(Zhigilei3)**
-   Volkov, Zhigilei, J. Phys. Chem. C 114, 5513 (2010).  
+   Volkov, Zhigilei, J. Phys. Chem. C 114, 5513 (2010).
 
 **(Zhigilei4)**
-   Wittmaack, Banna, Volkov, Zhigilei, Carbon 130, 69 (2018).  
+   Wittmaack, Banna, Volkov, Zhigilei, Carbon 130, 69 (2018).
 
 **(Zhigilei5)**
-   Wittmaack, Volkov, Zhigilei, Compos. Sci. Technol. 166, 66 (2018).  
+   Wittmaack, Volkov, Zhigilei, Compos. Sci. Technol. 166, 66 (2018).
 
 **(Zhigilei6)**
-   Wittmaack, Volkov, Zhigilei, Carbon 143, 587 (2019).  
+   Wittmaack, Volkov, Zhigilei, Carbon 143, 587 (2019).
 
 **(Zhigilei7)**
-   Volkov, Zhigilei, Phys. Rev. Lett. 104, 215902 (2010).  
+   Volkov, Zhigilei, Phys. Rev. Lett. 104, 215902 (2010).
 
 **(Zhigilei8)**
-   Volkov, Shiga, Nicholson, Shiomi, Zhigilei, J. Appl. Phys. 111, 053501 (2012).  
+   Volkov, Shiga, Nicholson, Shiomi, Zhigilei, J. Appl. Phys. 111, 053501 (2012).
 
 **(Zhigilei9)**
-   Volkov, Zhigilei, Appl. Phys. Lett. 101, 043113 (2012).  
+   Volkov, Zhigilei, Appl. Phys. Lett. 101, 043113 (2012).
 
 **(Zhigilei10)**
-   Jacobs, Nicholson, Zemer, Volkov, Zhigilei, Phys. Rev. B 86, 165414 (2012).  
+   Jacobs, Nicholson, Zemer, Volkov, Zhigilei, Phys. Rev. B 86, 165414 (2012).
 
 **(Zhou1)**
    Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).
 
 **(Zhou3)**
-   X.\  W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).  
+   X.\  W. Zhou, M. E. Foster, R. E. Jones, P. Yang, H. Fan, and F. P. Doty, J. Mater. Sci. Res., 4, 15 (2015).
 
 **(Zhou4)**
-   X.\  W. Zhou, M. E. Foster, J. A. Ronevich, and C. W. San Marchi, J. Comp. Chem., 41, 1299 (2020).  
+   X.\  W. Zhou, M. E. Foster, J. A. Ronevich, and C. W. San Marchi, J. Comp. Chem., 41, 1299 (2020).
 
 **(Zhu)**
    Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).
@@ -1373,10 +1373,10 @@ Bibliography
    J.F. Ziegler, J. P. Biersack and U. Littmark, "The Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
 
 **(Zimmerman2004)**
-   Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004),12:S319.  
+   Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004),12:S319.
 
 **(Zimmerman2010)**
-   Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.  
+   Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.
 
 **(de Buyl)**
    de Buyl, Colberg and Hofling, H5MD: A structured, efficient, and portable file format for molecular data, Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
@@ -1385,7 +1385,7 @@ Bibliography
    de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
 
 **(electronic stopping)**
-   Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29  
+   Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29
 
 **(tenWolde)**
    P.\  R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel, J. Chem. Phys. 104, 9932 (1996).

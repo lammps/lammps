@@ -288,13 +288,16 @@ void PairPACE::coeff(int narg, char **arg) {
     }
     basis_set->load(potential_file_name);
 
-    if (screen) fprintf(screen, "Total number of basis functions\n");
-    if (logfile) fprintf(logfile, "Total number of basis functions\n");
-    for (SPECIES_TYPE mu = 0; mu < basis_set->nelements; mu++) {
-        int n_r1 = basis_set->total_basis_size_rank1[mu];
-        int n = basis_set->total_basis_size[mu];
-        if (screen) fprintf(screen, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
-        if (logfile) fprintf(logfile, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
+    if (comm->me == 0) {
+        if (screen) fprintf(screen, "Total number of basis functions\n");
+        if (logfile) fprintf(logfile, "Total number of basis functions\n");
+
+        for (SPECIES_TYPE mu = 0; mu < basis_set->nelements; mu++) {
+            int n_r1 = basis_set->total_basis_size_rank1[mu];
+            int n = basis_set->total_basis_size[mu];
+            if (screen) fprintf(screen, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
+            if (logfile) fprintf(logfile, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
+        }
     }
 
     // read args that map atom types to pACE elements

@@ -22,11 +22,10 @@
    
    USAGE AND INPUT:
    
-   fix_elec_drag: Calculates electronic stopping power and cumulative
-                  energy lost to the electron gas via a quadratic
-                  functional and applies a drag force to the classical
-                  equations of motion for atoms moving above some
-                  cutoff velocity.
+   electron/stopping/fit: Calculates electronic stopping power and
+      cumulative energy lost to the electron gas via a quadratic
+      functional and applies a drag force to the classical equations 
+      of motion for atoms moving above some cutoff velocity.
                   
                   Usage : fix edrag all electron/stopping/fit 4.63 3.3e-3 4.0e-8
                   

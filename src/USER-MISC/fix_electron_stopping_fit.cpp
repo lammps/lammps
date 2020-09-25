@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "error.h"
 #include "citeme.h"
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -180,7 +181,9 @@ void FixElectronStoppingFit::post_force(int vflag)
         f[i][0] -= gamma_x*v[i][0];
         f[i][1] -= gamma_y*v[i][1];
         f[i][2] -= gamma_z*v[i][2];
-        f_dot_v_current += sqrt(pow(gamma_x*v[i][0], 2.0) + pow(gamma_y*v[i][1], 2.0) + pow(gamma_z*v[i][2], 2.0))*v_mag;
+        f_dot_v_current += v_mag*sqrt( MathSpecial::square(gamma_x*v[i][0]) 
+                                     + MathSpecial::square(gamma_y*v[i][1]) 
+                                     + MathSpecial::square(gamma_z*v[i][2]) );
      };
   };
   this_step = update->ntimestep;

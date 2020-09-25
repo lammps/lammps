@@ -312,6 +312,32 @@ TEST_F(SimpleCommandsTest, Units)
 
     TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
 }
+
+TEST_F(SimpleCommandsTest, Shell)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    char * test_var = getenv("TEST_VARIABLE");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq("simpletest"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
+    lmp->input->one("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    char * test_var2 = getenv("TEST_VARIABLE2");
+    char * other_var = getenv("OTHER_VARIABLE");
+
+    ASSERT_NE(test_var2, nullptr);
+    ASSERT_THAT(test_var2, StrEq("simpletest2"));
+
+    ASSERT_NE(other_var, nullptr);
+    ASSERT_THAT(other_var, StrEq("2"));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

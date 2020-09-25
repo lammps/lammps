@@ -47,7 +47,7 @@ Note that heFFTe also provides more and different flags and tuning parameters as
 
 #### Testing
 
-For testing purposes, we have created an input file, `in.heffte` , which is based on the *Rhodopsin* protein benchmark) and is available within the `bench` directory. It provides a 3D FFT benchmark at output. Also, a better analysis of the impact and speedup achieved for FFTs, can be achieved by changing the geometry (`data.rhodo`).
+For testing purposes, we have created an input file, `in.heffte` , which is based on the *Rhodopsin* protein benchmark) and is available within the `bench` directory. It provides a 3D FFT benchmark at output. Also, a better analysis of the impact and speedup for FFTs, could be achieved by changing the geometry (`data.rhodo`).
 
 Running examples (Using Summit supercomputer):
 

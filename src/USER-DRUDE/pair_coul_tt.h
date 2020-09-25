@@ -21,7 +21,6 @@ PairStyle(coul/tt,PairCoulTT)
 #define LMP_PAIR_COULTT_H
 
 #include "pair.h"
-#include <vector>
 
 namespace LAMMPS_NS {
 

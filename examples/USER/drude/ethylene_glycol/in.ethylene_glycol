@@ -14,7 +14,7 @@ pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.600 8.0 coul/tt 4 8.0
 pair_modify tail yes
 kspace_style pppm 1.0e-5
 
-read_data data.eg.lmp
+read_data data.ethylene_glycol
 
 pair_coeff    1    1 lj/cut/coul/long     0.057289     3.500000  # CTO CTO ~
 pair_coeff    1    2 lj/cut/coul/long     0.091945     3.304542  # CTO OHG ~
@@ -78,4 +78,3 @@ thermo 10
 
 run 2000
 
-write_data data-eq.eg.lmp

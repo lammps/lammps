@@ -13,20 +13,20 @@
 
 #include "pair_coul_tt.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "fix.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "modify.h"
 #include "error.h"
 
-#include "fix.h"
-#include "fix_drude.h"
-#include "domain.h"
-#include "modify.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -286,7 +286,7 @@ void PairCoulTT::init_style()
     error->all(FLERR,"Pair style coul/tt requires atom attribute q");
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
+    if (utils::strmatch(modify->fix[ifix]->style,"drude") == 0 break;
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
@@ -438,9 +438,9 @@ double PairCoulTT::single(int i, int j, int itype, int jtype,
 void *PairCoulTT::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"scale") == 0) return (void *) scale;
-  if (strcmp(str,"b") == 0) return (void *) b;
-  if (strcmp(str,"c") == 0) return (void *) c;
-  if (strcmp(str,"ntt") == 0) return (void *) ntt;
+  if (utils::strmatch(str,"scale") == 0) return (void *) scale;
+  if (utils::strmatch(str,"b") == 0) return (void *) b;
+  if (utils::strmatch(str,"c") == 0) return (void *) c;
+  if (utils::strmatch(str,"ntt") == 0) return (void *) ntt;
   return nullptr;
 }

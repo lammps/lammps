@@ -10,8 +10,8 @@ of time and requests from the LAMMPS user community.
 .. toctree::
    :maxdepth: 1
 
-   pg_dev_org
-   pg_dev_flow
-   pg_dev_write
-   pg_dev_utils
-   pg_dev_classes
+   Developer_org
+   Developer_flow
+   Developer_write
+   Developer_utils
+   Classes

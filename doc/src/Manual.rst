@@ -73,9 +73,9 @@ Programmer Documentation
    :name: progdoc
    :includehidden:
 
-   pg_library
+   Library
    Modify
-   pg_developer
+   Developer
 
 .. toctree::
    :caption: Index

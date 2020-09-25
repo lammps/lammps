@@ -91,15 +91,15 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 .. toctree::
    :maxdepth: 1
 
-   pg_lib_create
-   pg_lib_execute
-   pg_lib_properties
-   pg_lib_objects
-   pg_lib_scatter
-   pg_lib_neighbor
-   pg_lib_config
-   pg_lib_utility
-   pg_lib_add
+   Library_create
+   Library_execute
+   Library_properties
+   Library_objects
+   Library_scatter
+   Library_neighbor
+   Library_config
+   Library_utility
+   Library_add
 
 --------------------
 
@@ -119,7 +119,7 @@ Python classes to run LAMMPS are available and they build on each other.
 .. toctree::
    :maxdepth: 1
 
-   pg_python
+   Python_module
 
 -------------------
 
@@ -136,7 +136,7 @@ be very similar to the C library API and the basic Python module.
 .. toctree::
    :maxdepth: 1
 
-   pg_fortran
+   Fortran
 
 -------------------
 
@@ -153,6 +153,6 @@ The following links provide some examples and references to the C++ API.
 .. toctree::
    :maxdepth: 1
 
-   pg_cplusplus
+   Cplusplus
 
 

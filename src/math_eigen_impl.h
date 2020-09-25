@@ -849,6 +849,7 @@ void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Dealloc() {
   //assert(! is_preallocated);
   Dealloc2D(&M);
+  delete[] max_idx_row;
   Init();
 }
 

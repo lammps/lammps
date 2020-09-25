@@ -115,11 +115,9 @@ Because of the dynamic loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object oriented, but
 otherwise trying to be very similar to the C library API.  Three different
 Python classes to run LAMMPS are available and they build on each other.
-
-.. toctree::
-   :maxdepth: 1
-
-   Python_module
+More information on this is in the :doc:`Python_head`
+section of the manual and for using the LAMMPS Python modules is in
+:doc:`Python_module`.
 
 -------------------
 

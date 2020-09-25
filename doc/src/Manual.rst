@@ -58,7 +58,6 @@ User Documentation
    Howto
    Examples
    Tools
-   Python_head
    Errors
    Manual_build
 
@@ -74,6 +73,7 @@ Programmer Documentation
    :includehidden:
 
    Library
+   Python_head
    Modify
    Developer
 

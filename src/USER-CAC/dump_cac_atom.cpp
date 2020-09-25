@@ -366,7 +366,7 @@ void DumpCACAtom::pack(tagint *ids)
               }   
               buf[m++] = tag_map;
               buf[m++] = node_types[i][polyscan];
-              if(charge_flag) buf[m++] = node_charges[i][0];
+              if(charge_flag) buf[m++] = node_charges[i][polyscan];
               buf[m++] = xmap[0];
               buf[m++] = xmap[1];
               buf[m++] = xmap[2];

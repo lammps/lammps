@@ -286,7 +286,7 @@ void PairCoulTT::init_style()
     error->all(FLERR,"Pair style coul/tt requires atom attribute q");
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (utils::strmatch(modify->fix[ifix]->style,"drude") == 0 break;
+    if (utils::strmatch(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 

@@ -18,22 +18,20 @@
 
 #include "fix_electron_stopping_fit.h"
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "citeme.h"
 #include "compute.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "math_special.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "comm.h"
-#include "error.h"
-#include "citeme.h"
-#include "math_special.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,7 +39,7 @@ using namespace FixConst;
 // ---------------------------------------------------------------------
 
 static const char cite_fix_electron_stopping_fit_c[] =
-  "fix_elec_drag command:\n\n"
+  "fix electron/stopping/fit command:\n\n"
   "@Article{Stewart2018,\n"
   " author  = { J.A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville },\n"
   " title   = { Characterizing single isolated radiation-damage events from molecular dynamics via virtual diffraction methods },\n"
@@ -68,6 +66,8 @@ FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg
   drag_fac_in_2(nullptr), drag_fac_1(nullptr), drag_fac_2(nullptr), 
   v_min_sq(nullptr), v_max_sq(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_electron_stopping_fit_c);
+  
   if (narg < 3 + 3*atom->ntypes) {
      error->all(FLERR,"Incorrect number of fix electron/stopping/fit arguments");
   }
@@ -95,10 +95,8 @@ FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg
   for (int i = 1; i <= atom->ntypes; i++) {
      double mvv;
      mvv = 2.0*energy_coh_in[i]/force->mvv2e;
-     
      v_min_sq[i] = 1.0*mvv/atom->mass[i];
      v_max_sq[i] = 2.0*mvv/atom->mass[i];
-     
      drag_fac_1[i] = drag_fac_in_1[i];
      drag_fac_2[i] = drag_fac_in_2[i];
   };

@@ -78,7 +78,7 @@ double ComputePressureUef::compute_scalar()
   addstep(update->ntimestep+1);
 
   int k =0;
-  scalar = 0;
+  scalar = 0.0;
   if (ext_flags[0]) {
     scalar += vector[0];
     k++;
@@ -92,7 +92,7 @@ double ComputePressureUef::compute_scalar()
     k++;
   }
 
-  scalar /= k;
+  if (k > 1) scalar /= k;
   return scalar;
 }
 

@@ -26,8 +26,17 @@ event as atoms are migrating between sub-domains.
 
      handle = lammps_open_no_mpi(0, NULL, NULL);
      lammps_file(handle,"in.sysinit");
-     printf("running simulation with %g atoms\n",
+     printf("Running a simulation with %g atoms.\n",
             lammps_get_natoms(handle));
+
+     printf(" %d local and %d ghost atoms. %d atom types\n",
+            lammps_extract_setting(handle,"nlocal"),
+            lammps_extract_setting(handle,"nghost"),
+            lammps_extract_setting(handle,"ntypes"));
+
+     double  *dt = (double *)lammps_extract_global(handle,"dt");
+     printf("Changing timestep from %g to 0.5\n", *dt);
+     *dt = 0.5;
 
      lammps_command(handle,"run 1000 post no");
 

@@ -663,6 +663,7 @@ The singularity sub-directory contains container definitions files
 that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
+For more details please see the README.md file in that folder.
 
 ----------
 

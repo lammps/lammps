@@ -160,7 +160,7 @@ void PairCoulTT::compute(int eflag, int vflag)
         if (drudetype[type[i]] == CORE_TYPE && drudetype[type[j]] == CORE_TYPE)
           dcoul = qqrd2e * ( -(q[i]+q[di])*q[dj] - q[di]*(q[j]+q[dj]) ) * scale[itype][jtype] * rinv;
         else
-          dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;     
+          dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
 
         factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
         if(eflag) factor_e = - beta*gamma*factor_coul;
@@ -174,7 +174,7 @@ void PairCoulTT::compute(int eflag, int vflag)
           f[j][1] -= dely*fpair;
           f[j][2] -= delz*fpair;
         }
-       
+
         if (eflag)
           ecoul = factor_e * dcoul;
 
@@ -286,7 +286,7 @@ void PairCoulTT::init_style()
     error->all(FLERR,"Pair style coul/tt requires atom attribute q");
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (utils::strmatch(modify->fix[ifix]->style,"drude") == 0) break;
+    if (utils::strmatch(modify->fix[ifix]->style,"^drude")) break;
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
@@ -438,9 +438,9 @@ double PairCoulTT::single(int i, int j, int itype, int jtype,
 void *PairCoulTT::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (utils::strmatch(str,"scale") == 0) return (void *) scale;
-  if (utils::strmatch(str,"b") == 0) return (void *) b;
-  if (utils::strmatch(str,"c") == 0) return (void *) c;
-  if (utils::strmatch(str,"ntt") == 0) return (void *) ntt;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  if (strcmp(str,"b") == 0) return (void *) b;
+  if (strcmp(str,"c") == 0) return (void *) c;
+  if (strcmp(str,"ntt") == 0) return (void *) ntt;
   return nullptr;
 }

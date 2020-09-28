@@ -262,8 +262,8 @@ void PairSpinNeel::compute(int eflag, int vflag)
       fm[i][2] += fmi[2];
 
       if (eflag) {
-        evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
-        evdwl *= 0.5*hbar;
+        evdwl -= compute_neel_energy(i,j,rsq,eij,spi,spj);
+        // evdwl *= 0.5*hbar;
         emag[i] += evdwl;
       } else evdwl = 0.0;
 
@@ -588,12 +588,12 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   // compute Neel's functions
 
   ra = rsq/g3[itype][jtype]/g3[itype][jtype];
-  gr = 4.0*g1[itype][jtype]*ra;
+  gr = 4.0*g1_mech[itype][jtype]*ra;
   gr *= (1.0-g2[itype][jtype]*ra);
   gr *= exp(-ra);
 
   ra = rsq/q3[itype][jtype]/q3[itype][jtype];
-  qr = 4.0*q1[itype][jtype]*ra;
+  qr = 4.0*q1_mech[itype][jtype]*ra;
   qr *= (1.0-q2[itype][jtype]*ra);
   qr *= exp(-ra);
 

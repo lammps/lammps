@@ -246,6 +246,7 @@ void PairSpinExchangeBiquadratic::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_exchange(i,j,rsq,fmi,spi,spj);
+        
         if (lattice_flag)
           compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
       
@@ -253,22 +254,26 @@ void PairSpinExchangeBiquadratic::compute(int eflag, int vflag)
           evdwl -= compute_energy(i,j,rsq,spi,spj);
           emag[i] += evdwl;
         } else evdwl = 0.0;
+
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
+        }
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
       }
-
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -363,20 +368,13 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
 {
   int *type = atom->type;
   int itype,jtype;
-  double Jex,Kex,ra,sdots;
-  double rj,rk,r2j,r2k,ir3j,ir3k;
+  double Jex,Kex,r2j,r2k,sdots;
   itype = type[i];
   jtype = type[j];
 
-  ra = sqrt(rsq);
-  rj = ra/J3[itype][jtype];
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  ir3j = 1.0/(rj*rj*rj);
-  rk = ra/K3[itype][jtype];
-  r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
-  ir3k = 1.0/(rk*rk*rk);
+  r2k = rsq/J3[itype][jtype]/J3[itype][jtype];
  
-  // BS model
   Jex = 4.0*J1_mag[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -385,45 +383,27 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
   
-  // modified Yukawa
-  // Jex = (1.0-J2[itype][jtype]*r2j);
-  // Jex *= J1_mag[itype][jtype]*ir3j;
-  // Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
-  // 
-  // Kex = (1.0-K2[itype][jtype]*r2k);
-  // Kex *= K1_mag[itype][jtype]*ir3k;
-  // Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
- 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fmi[0] += Jex*spj[0] + 2.0*Kex*spj[0]*sdots;
-  fmi[1] += Jex*spj[1] + 2.0*Kex*spj[1]*sdots;
-  fmi[2] += Jex*spj[2] + 2.0*Kex*spj[2]*sdots;
+  fmi[0] += (Jex*spj[0] + 2.0*Kex*spj[0]*sdots);
+  fmi[1] += (Jex*spj[1] + 2.0*Kex*spj[1]*sdots);
+  fmi[2] += (Jex*spj[2] + 2.0*Kex*spj[2]*sdots);
 }
 
 /* ----------------------------------------------------------------------
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, double rsq, 
-    double eij[3], double fi[3],  double spi[3], double spj[3])
+void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, 
+    double rsq, double eij[3], double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;
   int itype,jtype;
   double Jex,Jex_mech,Kex,Kex_mech,ra,sdots;
-  // double rj,rk,r2j,r2k,ir3j,ir3k;
   double rja,rka,rjr,rkr,iJ3,iK3;
   itype = type[i];
   jtype = type[j];
 
-  // ra = sqrt(rsq);
-  // rj = ra/J3[itype][jtype];
-  // r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  // ir3j = 1.0/(rj*rj*rj);
-  // rk = ra/K3[itype][jtype];
-  // r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
-  // ir3k = 1.0/(rk*rk*rk);
-  
   Jex = J1_mech[itype][jtype];
   iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
   Kex = K1_mech[itype][jtype];
@@ -434,35 +414,22 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, double rsq
   rka = rsq*iK3;
   rkr = sqrt(rsq)*iK3;
  
-  // BS model
   Jex_mech = 1.0-rja-J2[itype][jtype]*rja*(2.0-rja);
   Jex_mech *= 8.0*Jex*rjr*exp(-rja);
-  Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
+  // Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
   
   Kex_mech = 1.0-rka-K2[itype][jtype]*rka*(2.0-rka);
   Kex_mech *= 8.0*Kex*rkr*exp(-rka);
-  Kex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
+  // Kex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  // modified Yukawa
-  // Jex_mech = J2[itype][jtype]*2.0*ra/(J3[itype][jtype]*J3[itype][jtype]);
-  // Jex_mech += (3.0/ra+1.0/J3[itype][jtype])*(1.0-J2[itype][jtype]*r2j);
-  // Jex_mech *= -J1_mech[itype][jtype]*ir3j;
-  // Jex_mech *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
-
-  // Kex_mech = K2[itype][jtype]*2.0*ra/(K3[itype][jtype]*K3[itype][jtype]);
-  // Kex_mech += (3.0/ra+1.0/K3[itype][jtype])*(1.0-K2[itype][jtype]*r2k);
-  // Kex_mech *= -K1_mech[itype][jtype]*ir3k;
-  // Kex_mech *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
-  
-  // sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
-  fi[1] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
-  fi[2] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
-  // fi[0] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[0];
-  // fi[1] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[1];
-  // fi[2] += (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[2];
+  fi[0] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
+  fi[1] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
+  fi[2] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
+  // fi[0] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
+  // fi[1] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
+  // fi[2] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -488,7 +455,6 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
   ir3k = 1.0/(rk*rk*rk);
  
-  // BS model 
   Jex = 4.0*J1_mech[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -497,19 +463,10 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
 
-  // modified Yukawa
-  // Jex = (1.0-J2[itype][jtype]*r2j);
-  // Jex *= J1_mech[itype][jtype]*ir3j;
-  // Jex *= exp((J3[itype][jtype]-ra)/J3[itype][jtype]);
-  // 
-  // Kex = (1.0-K2[itype][jtype]*r2k);
-  // Kex *= K1_mech[itype][jtype]*ir3k;
-  // Kex *= exp((K3[itype][jtype]-ra)/K3[itype][jtype]);
-
-  // sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
 
   energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
+  // energy = 0.5*(Jex*(sdots) + Kex*(sdots*sdots-1.0));
   return energy;
 }
 

@@ -240,28 +240,26 @@ void PairSpinExchange::compute(int eflag, int vflag)
           evdwl *= 0.5*hbar;
           emag[i] += evdwl;
         } else evdwl = 0.0;
+
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
+        }
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
       }
-
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      // if (eflag) {
-      //   evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-      //   evdwl *= 0.5*hbar;
-      //   emag[i] += evdwl;
-      // } else evdwl = 0.0;
-
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -389,9 +387,12 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq,
   Jex_mech *= 8.0*Jex*rr*exp(-ra);
   Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= Jex_mech*eij[0];
-  fi[1] -= Jex_mech*eij[1];
-  fi[2] -= Jex_mech*eij[2];
+  fi[0] -= 0.5*Jex_mech*eij[0];
+  fi[1] -= 0.5*Jex_mech*eij[1];
+  fi[2] -= 0.5*Jex_mech*eij[2];
+  // fi[0] -= Jex_mech*eij[0];
+  // fi[1] -= Jex_mech*eij[1];
+  // fi[2] -= Jex_mech*eij[2];
 }
 
 /* ----------------------------------------------------------------------

@@ -72,9 +72,9 @@ fix DTINV all drude/transform/inverse
 
 fix ICECUBE all momentum 1000 linear 1 1 1
 
-thermo_style custom step time cpu etotal ke pe ebond eangle evdwl ecoul elong &
+thermo_style custom step etotal ke pe ebond eangle evdwl ecoul elong &
   press vol density c_TATOM c_TDRUDE[1] c_TDRUDE[2]
-thermo 10
+thermo 50
 
-run 2000
+run 500
 

@@ -1,16 +1,16 @@
 /***************************************************************************
-                                 dpd_ext.cpp
+                              dpd_stat_ext.cpp
                              -------------------
-                            Trung Dac Nguyen (ORNL)
+                        Trung Dac Nguyen (Northwestern)
 
-  Functions for LAMMPS access to dpd acceleration routines.
+  Functions for LAMMPS access to dpd/tstat acceleration routines.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Jan 15, 2014
-    email                : nguyentd@ornl.gov
+    begin                : Sep 18, 2020
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #include <iostream>
@@ -41,7 +41,7 @@ int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   int gpu_rank=DPDTMF.device->gpu_rank();
   int procs_per_gpu=DPDTMF.device->procs_per_gpu();
 
-  DPDTMF.device->init_message(screen,"dpd",first_gpu,last_gpu);
+  DPDTMF.device->init_message(screen,"dpd/tstat",first_gpu,last_gpu);
 
   bool message=false;
   if (DPDTMF.device->replica_me()==0 && screen)

@@ -341,7 +341,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       ++cerror;
     }
 
@@ -491,7 +491,7 @@ void BondTable::param_extract(Table *tb, char *line)
         error->one(FLERR,"Invalid keyword in bond table parameters");
       }
     }
-  } catch(TokenizerException & e) {
+  } catch(TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 

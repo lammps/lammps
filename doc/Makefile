@@ -1,6 +1,12 @@
 # Makefile for LAMMPS documentation
 
 SHELL          = /bin/bash
+HAS_BASH       = YES
+ifeq (,$(wildcard $(SHELL)))
+OSHELL         := $(SHELL)
+override SHELL = /bin/sh
+HAS_BASH       = NO
+endif
 BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
@@ -37,7 +43,9 @@ HAS_VIRTUALENV = YES
 endif
 
 ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell which latexmk >/dev/null 2>&1; echo $$?), 0)
 HAS_PDFLATEX = YES
+endif
 endif
 
 
@@ -55,6 +63,7 @@ DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+
 # ------------------------------------------
 
 help:
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html          create HTML doc pages in html dir"
 	@echo "  pdf           create Manual.pdf in this dir"
@@ -72,7 +81,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(POLYFILL) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
 	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
@@ -87,6 +96,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
 html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
@@ -110,6 +120,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@echo "Build finished. The HTML pages are in doc/html."
 
 spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
@@ -120,6 +131,7 @@ spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@echo "Spell check finished."
 
 epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
@@ -140,8 +152,9 @@ mobi: epub
 	@echo "Conversion finished. The MOBI manual file is created."
 
 pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
-	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
@@ -155,15 +168,13 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		deactivate ;\
 	)
 	@cd latex && \
-		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-		mv temp Makefile && \
 		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
 		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
-		make && \
-		make && \
-		make && \
+		sed 's/\\contentsname}{.*}}/\\contentsname}{LAMMPS Documentation}}/g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		$(MAKE) $(MFLAGS) && \
 		mv LAMMPS.pdf ../Manual.pdf && \
 		cd ../;
 	@rm -rf latex/_sources
@@ -211,6 +222,7 @@ doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
 # ------------------------------------------
 
 $(VENV):
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "python3 was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@if [ "$(HAS_DOXYGEN)" == "NO" ] ; then echo "doxygen was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please see README for further instructions" 1>&2; exit 1; fi
@@ -225,8 +237,12 @@ $(VENV):
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
 
+# fall back to using wget and/or unencrypted download, if curl fails
 $(POLYFILL): $(MATHJAX)
-	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6"
+	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		curl -s -o $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		wget -O $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
+		wget -O $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

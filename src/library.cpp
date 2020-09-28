@@ -48,6 +48,17 @@
 
 using namespace LAMMPS_NS;
 
+// for printing the non-null pointer argument warning only once
+
+static int ptr_argument_flag = 1;
+static void ptr_argument_warning()
+{
+  if (!ptr_argument_flag) return;
+  fprintf(stderr,"Using a 'void **' argument to return the LAMMPS handle "
+          "is deprecated.  Please use the return value instead.\n");
+  ptr_argument_flag = 0;
+}
+
 // ----------------------------------------------------------------------
 // utility macros
 // ----------------------------------------------------------------------
@@ -73,7 +84,7 @@ using namespace LAMMPS_NS;
   try
 
 #define END_CAPTURE \
-  catch(LAMMPSAbortException & ae) { \
+  catch(LAMMPSAbortException &ae) { \
     int nprocs = 0; \
     MPI_Comm_size(ae.universe, &nprocs ); \
     \
@@ -82,7 +93,7 @@ using namespace LAMMPS_NS;
     } else { \
       error->set_last_error(ae.message, ERROR_NORMAL); \
     } \
-  } catch(LAMMPSException & e) { \
+  } catch(LAMMPSException &e) { \
     error->set_last_error(e.message, ERROR_NORMAL); \
   }
 #else
@@ -111,13 +122,17 @@ will be called during creation of the LAMMPS class instance.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 18Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
 
 .. note::
 
@@ -126,6 +141,9 @@ fails a null pointer is returned.
    contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
    ``#include "library.h"``.  In that case, you must use the
    :cpp:func:`lammps_open_no_mpi` function.
+
+*See also*
+   :cpp:func:`lammps_open_no_mpi`, :cpp:func:`lammps_open_fortran`
 
 \endverbatim
  *
@@ -140,6 +158,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
   LAMMPS *lmp = nullptr;
   lammps_mpi_init();
+  if (ptr) ptr_argument_warning();
 
 #ifdef LAMMPS_EXCEPTIONS
   try
@@ -147,7 +166,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
   }
-  catch(LAMMPSException & e) {
+  catch(LAMMPSException &e) {
     fmt::print(stderr, "LAMMPS Exception: {}", e.message);
     *ptr = nullptr;
   }
@@ -177,13 +196,21 @@ be compatible with that of the calling code.
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionchanged:: 15Sep2020
+.. versionchanged:: 18Sep2020
 
    This function now has the pointer to the created LAMMPS class
    instance as return value.  For backward compatibility it is still
    possible to provide the address of a pointer variable as final
-   argument *ptr*\ .  This use is deprecated and may be removed in
-   the future.  The *ptr* argument may be ``NULL`` and is then ignored.
+   argument *ptr*\ .
+
+.. deprecated:: 18Sep2020
+
+   The *ptr* argument will be removed in a future release of LAMMPS.
+   It should be set to ``NULL`` instead.
+
+
+*See also*
+   :cpp:func:`lammps_open`, :cpp:func:`lammps_open_fortran`
 
 \endverbatim
  *
@@ -214,7 +241,10 @@ communicator with ``MPI_Comm_f2c()`` and then calls
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
+
+*See also*
+   :cpp:func:`lammps_open_fortran`, :cpp:func:`lammps_open_no_mpi`
 
 \endverbatim
  *
@@ -263,7 +293,7 @@ The MPI standard requires that any MPI application must call
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -295,7 +325,7 @@ before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After this function no
 more MPI calls may be made.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -529,7 +559,7 @@ growing with every new LAMMPS release.
 int lammps_version(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-  return atoi(lmp->universe->num_ver);
+  return lmp->num_ver;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -550,7 +580,7 @@ third number is the maximum amount of RAM (not swap) used by the process
 so far. If any of the two latter parameters is not supported by the operating
 system it will be set to zero.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -579,10 +609,12 @@ to the C language representation use ``MPI_Comm_f2c()``.
 
 If LAMMPS was compiled with MPI_STUBS, this function returns -1.
 
-.. versionadded:: 15Sep2020
+.. versionadded:: 18Sep2020
+
+*See also*
+   :cpp:func:`lammps_open_fortran`
 
 \endverbatim
- * \sa lammps_open_fortran
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \return         Fortran representation of the LAMMPS world communicator */
@@ -617,6 +649,13 @@ size and dereference it.  The size of that integer (in bytes) can be
 queried by calling :cpp:func:`lammps_extract_setting` to return
 the size of a ``bigint`` integer.
 
+.. versionchanged:: 18Sep2020
+
+   The type of the return value was changed from ``int`` to ``double``
+   to accommodate reporting atom counts for larger systems that would
+   overflow a 32-bit int without having to depend on a 64-bit bit
+   integer type definition.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -640,7 +679,7 @@ double lammps_get_natoms(void *handle)
 This function returns the current value of a :doc:`thermo keyword
 <thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
 give access to the storage of the desired data but returns its value as
-a double, so it can also return information that is computed on-the-fly.
+a ``double``, so it can also return information that is computed on-the-fly.
 
 \endverbatim
  *
@@ -789,7 +828,7 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 This function will retrieve or compute global properties. In contrast to
 :cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
 following keywords are currently supported.  If a keyword is not
-recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_global`.
+recognized, the function returns -1.
 
 .. list-table::
    :header-rows: 1
@@ -833,6 +872,9 @@ recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_
    * - rmass_flag
      - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
 
+*See also*
+   :cpp:func:`lammps_extract_global`
+
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance
@@ -875,7 +917,7 @@ int lammps_extract_setting(void *handle, const char *keyword)
 This function returns a pointer to the location of some global property
 stored in one of the constituent classes of a LAMMPS instance.  The
 returned pointer is cast to ``void *`` and needs to be cast to a pointer
-of the type that the entity represents.  The pointers returned by this
+of the type that the entity represents. The pointers returned by this
 function are generally persistent; therefore it is not necessary to call
 the function again, unless a :doc:`clear` command is issued which wipes
 out and recreates the contents of the :cpp:class:`LAMMPS
@@ -1185,7 +1227,7 @@ of data type that the entity represents.
 A table with supported keywords is included in the documentation
 of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
-.. note::
+.. warning::
 
    The pointers returned by this function are generally not persistent
    since per-atom data may be re-distributed, re-allocated, and
@@ -1202,6 +1244,117 @@ void *lammps_extract_atom(void *handle, const char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data type of internal global LAMMPS variables or arrays.
+ *
+\verbatim embed:rst
+
+This function returns an integer that encodes the data type of the global
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_global` can use this information
+to then decide how to cast the (void*) pointer and access the data.
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          integer constant encoding the data type of the property
+ *                  or -1 if not found. */
+
+int lammps_extract_global_datatype(void *handle, const char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(name,"units") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxxlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxxhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxylo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxyhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxzlo") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"boxzhi") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"periodicity") == 0) return LAMMPS_INT;
+  if (strcmp(name,"triclinic") == 0) return LAMMPS_INT;
+  if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nangles") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"ndihedrals") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nimpropers") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"nlocal") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nghost") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nmax") == 0) return LAMMPS_INT;
+  if (strcmp(name,"ntypes") == 0) return LAMMPS_INT;
+
+  if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
+
+  // update->atime can be referenced as a pointer
+  // thermo "timer" data cannot be, since it is computed on request
+  // lammps_get_thermo() can access all thermo keywords by value
+
+  if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
+
+  // global constants defined by units
+
+  if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ftm2v") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mv2d") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"nktv2p") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qqr2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qe2f") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"vxmu2f") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xxt2kmu") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"dielectric") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qqrd2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"e_mass") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"hhmrr2e") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mvh2r") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"angstrom") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"femtosecond") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"qelectron") == 0) return LAMMPS_DOUBLE;
+
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data type of a LAMMPS per-atom property
+ *
+\verbatim embed:rst
+
+This function returns an integer that encodes the data type of the per-atom
+property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
+values. Callers of :cpp:func:`lammps_extract_atom` can use this information
+to then decide how to cast the (void*) pointer and access the data.
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    string with the name of the extracted property
+ * \return         integer constant encoding the data type of the property
+ *                 or -1 if not found.
+ * */
+
+int lammps_extract_atom_datatype(void *handle, const char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  return lmp->atom->extract_datatype(name);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1430,11 +1583,13 @@ lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function are generally not persistent
-since the computed data may be re-distributed, re-allocated, and
-re-ordered at every invocation. It is advisable to re-invoke this
-function before the data is accessed, or make a copy if the data shall
-be used after other LAMMPS commands have been issued.
+.. warning::
+
+   The pointers returned by this function are generally not persistent
+   since the computed data may be re-distributed, re-allocated, and
+   re-ordered at every invocation. It is advisable to re-invoke this
+   function before the data is accessed, or make a copy if the data shall
+   be used after other LAMMPS commands have been issued.
 
 .. note::
 
@@ -1614,12 +1769,14 @@ The following table lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function for per-atom or local data are
-generally not persistent, since the computed data may be re-distributed,
-re-allocated, and re-ordered at every invocation of the fix.  It is thus
-advisable to re-invoke this function before the data is accessed, or
-make a copy, if the data shall be used after other LAMMPS commands have
-been issued.
+.. warning::
+
+   The pointers returned by this function for per-atom or local data are
+   generally not persistent, since the computed data may be re-distributed,
+   re-allocated, and re-ordered at every invocation of the fix.  It is thus
+   advisable to re-invoke this function before the data is accessed, or
+   make a copy, if the data shall be used after other LAMMPS commands have
+   been issued.
 
 .. note::
 

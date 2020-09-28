@@ -64,11 +64,6 @@ enum{ISO,ANISO,TRICLINIC};
 
 const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
 
-// NB:
-// - Keep error and warning messages less than 255 chars long.
-// - Allocate your char buffer to be 1 char longer than this
-const int MAX_MESSAGE_LENGTH = 255;
-
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */

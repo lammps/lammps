@@ -64,7 +64,7 @@ void ResetMolIDs::command(int narg, char **arg)
     error->all(FLERR,"Reset_mol_ids command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use reset_mol_ids unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Can only use reset_mol_ids on molecular systems");
 
   // process args

@@ -48,6 +48,20 @@ enum ExecutionSpace{Host,Device};
 template <class T> class MyPoolChunk;
 template <class T> class MyPage;
 
+/** \class LAMMPS_NS::Pointers
+ * \brief Base class for LAMMPS features
+ *
+ * The Pointers class contains references to many of the pointers
+ * and members of the LAMMPS_NS::LAMMPS class. Derived classes thus
+ * gain access to the constituent class instances in the LAMMPS
+ * composite class and thus to the core functionality of LAMMPS.
+ *
+ * This kind of construct is needed, since the LAMMPS constructor
+ * should only be run once per LAMMPS instance and thus classes
+ * cannot be derived from LAMMPS itself. The Pointers class
+ * constructor instead only initializes C++ references to component
+ * pointer in the LAMMPS class. */
+
 class Pointers {
  public:
   Pointers(LAMMPS *ptr) :

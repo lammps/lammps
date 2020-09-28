@@ -17,6 +17,7 @@
 
 #include <cstring>
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -970,7 +971,7 @@ void FixRigid::apply_langevin_thermostat()
 {
   if (me == 0) {
     double gamma1,gamma2;
-
+    double wbody[3],tbody[3];
     double delta = update->ntimestep - update->beginstep;
     if (delta != 0.0) delta /= update->endstep - update->beginstep;
     t_target = t_start + delta * (t_stop-t_start);
@@ -991,12 +992,23 @@ void FixRigid::apply_langevin_thermostat()
 
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-      langextra[i][3] = inertia[i][0]*gamma1*omega[i][0] +
+
+      // convert omega from space frame to body frame
+
+      MathExtra::transpose_matvec(ex_space[i],ey_space[i],ez_space[i],omega[i],wbody);
+
+      // compute langevin torques in the body frame
+
+      tbody[0] = inertia[i][0]*gamma1*wbody[0] +
         sqrt(inertia[i][0])*gamma2*(random->uniform()-0.5);
-      langextra[i][4] = inertia[i][1]*gamma1*omega[i][1] +
+      tbody[1] = inertia[i][1]*gamma1*wbody[1] +
         sqrt(inertia[i][1])*gamma2*(random->uniform()-0.5);
-      langextra[i][5] = inertia[i][2]*gamma1*omega[i][2] +
+      tbody[2] = inertia[i][2]*gamma1*wbody[2] +
         sqrt(inertia[i][2])*gamma2*(random->uniform()-0.5);
+
+      // convert langevin torques from body frame back to space frame
+
+      MathExtra::matvec(ex_space[i],ey_space[i],ez_space[i],tbody,&langextra[i][3]);
     }
   }
 
@@ -1948,7 +1960,7 @@ void FixRigid::setup_bodies_static()
     tensor[0][2] = tensor[2][0] = all[ibody][4];
     tensor[0][1] = tensor[1][0] = all[ibody][5];
 
-    ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia[ibody],evectors);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for rigid body");
 

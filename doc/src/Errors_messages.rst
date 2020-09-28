@@ -5708,6 +5708,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule file has dihedrals but no ndihedrals setting*
    Self-explanatory.
 
+*Molecule file has fragments but no nfragments setting*
+   Self-explanatory.
+
 *Molecule file has impropers but no nimpropers setting*
    Self-explanatory.
 
@@ -5715,6 +5718,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Molecule file has no Body Integers section*
+   Self-explanatory.
+
+*Molecule file has no Fragments section*
    Self-explanatory.
 
 *Molecule file has special flags but no bonds*

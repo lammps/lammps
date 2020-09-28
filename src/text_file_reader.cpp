@@ -30,11 +30,15 @@ using namespace LAMMPS_NS;
  * The value of the class member variable *ignore_comments* controls
  * whether any text following the pound sign (#) should be ignored (true)
  * or not (false). Default: true, i.e. ignore.
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`TextFileReader`
+
+\endverbatim
  *
  * \param  filename  Name of file to be read
- * \param  filetype  Description of file type for error messages
- *
- * \sa PotentialFileReader */
+ * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
   : filename(filename), filetype(filetype), ignore_comments(true)
@@ -160,6 +164,6 @@ void TextFileReader::next_dvector(double * list, int n) {
  * \param   separators  String with list of separators.
  * \return              ValueTokenizer object for read in text */
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators) {
   return ValueTokenizer(next_line(nparams), separators);
 }

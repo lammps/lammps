@@ -487,3 +487,41 @@ e.g. to Python. Of course, the calling code has to be set up to
    cleanly recover from an exception since not all parallel ranks may
    throw an exception and thus other MPI ranks may get stuck waiting for
    messages from the ones with errors.
+
+----------
+
+.. _trap_fpe:
+
+Trigger selected floating-point exceptions
+------------------------------------------
+
+Many kinds of CPUs have the capability to detect when a calculation
+results in an invalid math operation like a division by zero or calling
+the square root with a negative argument.  The default behavior on
+most operating systems is to continue and have values for ``NaN`` (= not
+a number) or ``Inf`` (= infinity).  This allows software to detect and
+recover from such conditions.  This behavior can be changed, however,
+often through use of compiler flags.  On Linux systems (or more general
+on systems using the GNU C library), these so-called floating-point traps
+can also be selectively enabled through library calls.  LAMMPS supports
+that by setting the ``-DLAMMPS_TRAP_FPE`` pre-processor define.  As it is
+done in the ``main()`` function, this applies only to the standalone
+executable, not the library.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D CMAKE_TUNE_FLAGS=-DLAMMPS_TRAP_FPE
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_TRAP_FPE
+
+After compilation with this flag set, the LAMMPS executable will stop
+and produce a core dump when a division by zero, overflow, illegal math
+function argument or other invalid floating point operation is encountered.

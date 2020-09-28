@@ -332,7 +332,7 @@ void Finish::end(int flag)
     mpi_timings("Pair",timer,Timer::PAIR, world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
 
-    if (atom->molecular)
+    if (atom->molecular != Atom::ATOMIC)
       mpi_timings("Bond",timer,Timer::BOND,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
 
@@ -391,7 +391,7 @@ void Finish::end(int flag)
       utils::logmesg(lmp,fmt::format(thr_fmt,me,thr_total,thr_total/time_loop*100.0));
 
       omp_times(fixomp,"Pair",Timer::PAIR,nthreads,screen,logfile);
-      if (atom->molecular)
+      if (atom->molecular != Atom::ATOMIC)
         omp_times(fixomp,"Bond",Timer::BOND,nthreads,screen,logfile);
       if (force->kspace)
         omp_times(fixomp,"Kspace",Timer::KSPACE,nthreads,screen,logfile);
@@ -585,7 +585,7 @@ void Finish::end(int flag)
       mesg += fmt::format("Total # of neighbors = {:.8g}\n",nall);
       if (atom->natoms > 0)
         mesg += fmt::format("Ave neighs/atom = {:.8}\n",nall/atom->natoms);
-      if (atom->molecular && atom->natoms > 0)
+      if ((atom->molecular != Atom::ATOMIC) && (atom->natoms > 0))
         mesg += fmt::format("Ave special neighs/atom = {:.8}\n",
                             nspec_all/atom->natoms);
       mesg += fmt::format("Neighbor list builds = {}\n",neighbor->ncalls);

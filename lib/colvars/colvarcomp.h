@@ -1358,8 +1358,14 @@ protected:
   cvm::atom_group  *atoms;
 
   /// Reference coordinates (for RMSD calculation only)
+  /// Includes sets with symmetry permutations (n_permutations * n_atoms)
   std::vector<cvm::atom_pos>  ref_pos;
 
+  /// Number of permutations of symmetry-related atoms
+  size_t n_permutations;
+
+  /// Index of the permutation yielding the smallest RMSD (0 for identity)
+  size_t best_perm_index;
 public:
 
   /// Constructor
@@ -1487,8 +1493,6 @@ class colvar::linearCombination
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// If all sub-cvs use explicit gradients then we also use it
@@ -1508,8 +1512,6 @@ class colvar::CVBasedPath
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// Reference colvar values from path
@@ -1661,6 +1663,33 @@ public:
 
 #endif // C++11 checking
 
+
+// \brief Colvar component: total value of a scalar map
+// (usually implemented as a grid by the simulation engine)
+class colvar::map_total
+  : public colvar::cvc
+{
+public:
+
+  map_total();
+  map_total(std::string const &conf);
+  virtual ~map_total() {}
+  virtual int init(std::string const &conf);
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+
+protected:
+
+  /// Identifier of the map object (as used by the simulation engine)
+  std::string map_name;
+
+  /// Index of the map objet in the proxy arrays
+  int volmap_index;
+};
+
+
+
 // metrics functions for cvc implementations
 
 // simple definitions of the distance functions; these are useful only
@@ -1691,6 +1720,6 @@ public:
   {                                                                     \
     return this->dist2_lgrad(x2, x1);                                   \
   }                                                                     \
-                                                                        \
+
 
 #endif

@@ -84,8 +84,19 @@ event as atoms are migrating between sub-domains.
 
 -----------------------
 
+.. doxygenfunction:: lammps_extract_global_datatype
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_extract_global
    :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_extract_atom_datatype
+   :project: progguide
+
 
 -----------------------
 

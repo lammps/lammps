@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-TokenizerException::TokenizerException(const std::string & msg, const std::string & token){
+TokenizerException::TokenizerException(const std::string &msg, const std::string &token){
     if(token.empty()) {
         message = msg;
     } else {
@@ -37,18 +37,23 @@ TokenizerException::TokenizerException(const std::string & msg, const std::strin
  * This tokenizer will break down a string into sub-strings (i.e words)
  * separated by the given separator characters.
  *
- * \param str         string to be processed
- * \param separators  string with separator characters (default: " \t\r\n\f")
- *
- * \sa ValueTokenizer TokenizerException */
+\verbatim embed:rst
 
-Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
+*See also*
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+
+\endverbatim
+ *
+ * \param str         string to be processed
+ * \param separators  string with separator characters (default: " \t\r\n\f") */
+
+Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
 {
     reset();
 }
 
-Tokenizer::Tokenizer(const Tokenizer & rhs) :
+Tokenizer::Tokenizer(const Tokenizer &rhs) :
     text(rhs.text), separators(rhs.separators), ntokens(rhs.ntokens)
 {
     reset();
@@ -70,7 +75,7 @@ void Tokenizer::reset() {
  *
  * \param  str  string to be searched for
  * \return      true if string was found, false if not */
-bool Tokenizer::contains(const std::string & str) const {
+bool Tokenizer::contains(const std::string &str) const {
     return text.find(str) != std::string::npos;
 }
 
@@ -152,18 +157,25 @@ std::vector<std::string> Tokenizer::as_vector() {
 
 /*! Class for reading text with numbers
  *
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`Tokenizer`
+
+\endverbatim
+ *
  * \param str         String to be processed
  * \param separators  String with separator characters (default: " \t\r\n\f")
  *
- * \sa Tokenizer InvalidIntegerException InvalidFloatException */
+ * \see Tokenizer InvalidIntegerException InvalidFloatException */
 
-ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
+ValueTokenizer::ValueTokenizer(const std::string &str, const std::string &separators) : tokens(str, separators) {
 }
 
-ValueTokenizer::ValueTokenizer(const ValueTokenizer & rhs) : tokens(rhs.tokens) {
+ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
 }
 
-ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tokens)) {
+ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {
 }
 
 /*! Indicate whether more tokens are available
@@ -177,7 +189,7 @@ bool ValueTokenizer::has_next() const {
  *
  * \param  value  string with value to be searched for
  * \return        true if string was found, false if not */
-bool ValueTokenizer::contains(const std::string & value) const {
+bool ValueTokenizer::contains(const std::string &value) const {
     return tokens.contains(value);
 }
 

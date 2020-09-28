@@ -313,7 +313,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       mesg += "# For Simulator             : ";
       mesg += std::string(sim_name) + " " + sim_version + "\n";
       mesg += "# Running on                : LAMMPS ";
-      mesg += universe->version;
+      mesg += lmp->version;
       mesg += "\n";
       mesg += "#\n";
 

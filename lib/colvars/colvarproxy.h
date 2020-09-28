@@ -16,7 +16,8 @@
 #include "colvarmodule.h"
 #include "colvartypes.h"
 #include "colvarvalue.h"
-
+#include "colvarproxy_tcl.h"
+#include "colvarproxy_volmaps.h"
 
 /// \file colvarproxy.h
 /// \brief Colvars proxy classes
@@ -29,7 +30,7 @@
 ///
 /// To interface to a new MD engine, the simplest solution is to derive a new
 /// class from \link colvarproxy \endlink.  Currently implemented are: \link
-/// colvarproxy_lammps \endlink, \link colvarproxy_namd \endlink, \link
+/// colvarproxy_lammps, \endlink, \link colvarproxy_namd, \endlink, \link
 /// colvarproxy_vmd \endlink.
 
 
@@ -121,7 +122,14 @@ public:
   /// Are total forces from the current step available?
   virtual bool total_forces_same_step() const;
 
+  /// Get the molecule ID when called in VMD; raise error otherwise
+  /// \param molid Set this argument equal to the current VMD molid
+  virtual int get_molid(int &molid);
+
 protected:
+
+  /// Whether the total forces have been requested
+  bool total_force_requested;
 
   /// \brief Type of boundary conditions
   ///
@@ -542,46 +550,6 @@ public:
 };
 
 
-/// Methods for using Tcl within Colvars
-class colvarproxy_tcl {
-
-public:
-
-  /// Constructor
-  colvarproxy_tcl();
-
-  /// Destructor
-  virtual ~colvarproxy_tcl();
-
-  /// Is Tcl available? (trigger initialization if needed)
-  int tcl_available();
-
-  /// Tcl implementation of script_obj_to_str()
-  char const *tcl_obj_to_str(unsigned char *obj);
-
-  /// Run a user-defined colvar forces script
-  int tcl_run_force_callback();
-
-  int tcl_run_colvar_callback(
-              std::string const &name,
-              std::vector<const colvarvalue *> const &cvcs,
-              colvarvalue &value);
-
-  int tcl_run_colvar_gradient_callback(
-              std::string const &name,
-              std::vector<const colvarvalue *> const &cvcs,
-              std::vector<cvm::matrix2d<cvm::real> > &gradient);
-
-protected:
-
-  /// Pointer to Tcl interpreter object
-  void *tcl_interp_;
-
-  /// Set Tcl pointers
-  virtual void init_tcl_pointers();
-};
-
-
 /// Methods for data input/output
 class colvarproxy_io {
 
@@ -600,21 +568,6 @@ public:
   /// \brief Set the current frame number (as well as colvarmodule::it)
   // Returns error code
   virtual int set_frame(long int);
-
-  /// \brief Returns a reference to the given output channel;
-  /// if this is not open already, then open it
-  virtual std::ostream *output_stream(std::string const &output_name,
-                                      std::ios_base::openmode mode =
-                                      std::ios_base::out);
-
-  /// Returns a reference to output_name if it exists, NULL otherwise
-  virtual std::ostream *get_output_stream(std::string const &output_name);
-
-  /// \brief Flushes the given output channel
-  virtual int flush_output_stream(std::ostream *os);
-
-  /// \brief Closes the given output channel
-  virtual int close_output_stream(std::string const &output_name);
 
   /// \brief Rename the given file, before overwriting it
   virtual int backup_file(char const *filename);
@@ -644,30 +597,49 @@ public:
     return rename_file(filename.c_str(), newfilename.c_str());
   }
 
-  /// \brief Prefix of the input state file
+  /// Prefix of the input state file to be read next
   inline std::string & input_prefix()
   {
     return input_prefix_str;
   }
 
-  /// \brief Prefix to be used for output restart files
-  inline std::string & restart_output_prefix()
-  {
-    return restart_output_prefix_str;
-  }
-
-  /// \brief Prefix to be used for output files (final system
-  /// configuration)
+  /// Default prefix to be used for all output files (final configuration)
   inline std::string & output_prefix()
   {
     return output_prefix_str;
   }
 
+  /// Prefix of the restart (checkpoint) file to be written next
+  inline std::string & restart_output_prefix()
+  {
+    return restart_output_prefix_str;
+  }
+
+  /// Default restart frequency (as set by the simulation engine)
+  inline int default_restart_frequency() const
+  {
+    return restart_frequency_engine;
+  }
+
+  /// Buffer from which the input state information may be read
+  inline char const * & input_buffer()
+  {
+    return input_buffer_;
+  }
+
 protected:
 
-  /// \brief Prefix to be used for input files (restarts, not
-  /// configuration)
-  std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
+  /// Prefix of the input state file to be read next
+  std::string input_prefix_str;
+
+  /// Default prefix to be used for all output files (final configuration)
+  std::string output_prefix_str;
+
+  /// Prefix of the restart (checkpoint) file to be written next
+  std::string restart_output_prefix_str;
+
+  /// How often the simulation engine will write its own restart
+  int restart_frequency_engine;
 
   /// \brief Currently opened output files: by default, these are ofstream objects.
   /// Allows redefinition to implement different output mechanisms
@@ -675,6 +647,8 @@ protected:
   /// \brief Identifiers for output_stream objects: by default, these are the names of the files
   std::list<std::string>    output_stream_names;
 
+  /// Buffer from which the input state information may be read
+  char const *input_buffer_;
 };
 
 
@@ -687,6 +661,7 @@ class colvarproxy
   : public colvarproxy_system,
     public colvarproxy_atoms,
     public colvarproxy_atom_groups,
+    public colvarproxy_volmaps,
     public colvarproxy_smp,
     public colvarproxy_replicas,
     public colvarproxy_script,
@@ -717,6 +692,9 @@ public:
   /// \brief Reset proxy state, e.g. requested atoms
   virtual int reset();
 
+  /// Close any open files to prevent data loss
+  int close_files();
+
   /// (Re)initialize required member data after construction
   virtual int setup();
 
@@ -731,20 +709,34 @@ public:
   /// Print a message to the main log
   virtual void log(std::string const &message) = 0;
 
-  /// Print a message to the main log and let the rest of the program handle the error
+  /// Print a message to the main log and/or let the host code know about it
   virtual void error(std::string const &message) = 0;
 
-  /// Print a message to the main log and exit with error code
-  virtual void fatal_error(std::string const &message) = 0;
+  /// Record error message (used by VMD to collect them after a script call)
+  void add_error_msg(std::string const &message);
 
-  /// \brief Restarts will be written each time this number of steps has passed
-  virtual size_t restart_frequency();
+  /// Retrieve accumulated error messages
+  std::string const & get_error_msgs();
+
+  /// As the name says
+  void clear_error_msgs();
 
   /// Whether a simulation is running (warn against irrecovarable errors)
   inline bool simulation_running() const
   {
     return b_simulation_running;
   }
+
+  /// Is the current step a repetition of a step just executed?
+  /// This is set to true when the step 0 of a new "run" command is being
+  /// executed, regardless of whether a state file has been loaded.
+  inline bool simulation_continuing() const
+  {
+    return b_simulation_continuing;
+  }
+
+  /// Called at the end of a simulation segment (i.e. "run" command)
+  int post_run();
 
   /// Convert a version string "YYYY-MM-DD" into an integer
   int get_version_from_string(char const *version_string);
@@ -755,16 +747,45 @@ public:
     return version_int;
   }
 
+  /// \brief Returns a reference to the given output channel;
+  /// if this is not open already, then open it
+  virtual std::ostream *output_stream(std::string const &output_name,
+                                      std::ios_base::openmode mode =
+                                      std::ios_base::out);
+
+  /// Returns a reference to output_name if it exists, NULL otherwise
+  virtual std::ostream *get_output_stream(std::string const &output_name);
+
+  /// \brief Flushes the given output channel
+  virtual int flush_output_stream(std::ostream *os);
+
+  /// \brief Flushes all output channels
+  virtual int flush_output_streams();
+
+  /// \brief Closes the given output channel
+  virtual int close_output_stream(std::string const &output_name);
+
 protected:
+
+  /// Collected error messages
+  std::string error_output;
 
   /// Whether a simulation is running (warn against irrecovarable errors)
   bool b_simulation_running;
+
+  /// Is the current step a repetition of a step just executed?
+  /// This is set to true when the step 0 of a new "run" command is being
+  /// executed, regardless of whether a state file has been loaded.
+  bool b_simulation_continuing;
 
   /// Whether the entire module should be deallocated by the host engine
   bool b_delete_requested;
 
   /// Integer representing the version string (allows comparisons)
   int version_int;
+
+  /// Raise when the output stream functions are used on threads other than 0
+  void smp_stream_error();
 
 };
 

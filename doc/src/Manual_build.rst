@@ -18,7 +18,6 @@ files. Here is a list with descriptions:
    LAMMPS.mobi      # Manual in MOBI e-book format
    docenv           # virtualenv folder for processing the manual sources
    doctrees         # temporary data from processing the manual
-   mathjax          # code and fonts for rendering math in html
    doxygen          # doxygen configuration and output
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
@@ -34,11 +33,10 @@ of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
    site.  Just type ``make fetch``.  This should download a html_www
-   directory and a Manual_www.pdf file.  Note that if
-   new LAMMPS features have been added more recently than the date of
-   your LAMMPS version, the fetched documentation will include those
-   changes (but your source code will not, unless you update your local
-   repository).
+   directory and a Manual_www.pdf file.  Note that if new LAMMPS features
+   have been added more recently than the date of your LAMMPS version, the
+   fetched documentation will include those changes (but your source code
+   will not, unless you update your local repository).
 
 b. You can build the HTML or PDF files yourself, by typing ``make html``
    or ``make pdf``.  This requires various tools and files.  Some of them
@@ -133,7 +131,8 @@ Installing prerequisites for PDF build
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
-of LaTeX styles/packages are required.
+of LaTeX styles/packages are required.  To run the PDFLaTeX translation
+the ``latexmk`` script needs to be installed as well.
 
 Installing prerequisites for e-book reader builds
 =================================================

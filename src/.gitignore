@@ -33,7 +33,6 @@
 /pair_kim.h
 
 /superpose3d.h
-/math_eigen.h
 
 /kokkos.cpp
 /kokkos.h

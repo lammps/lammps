@@ -114,6 +114,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   error = new Error(this);
   universe = new Universe(this,communicator);
 
+  version = (const char *) LAMMPS_VERSION;
+  num_ver = utils::date2num(version);
+
   clientserver = 0;
   cslib = nullptr;
   cscomm = 0;
@@ -460,7 +463,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({})\n",universe->version));
+      utils::logmesg(this,fmt::format("LAMMPS ({})\n",version));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -538,15 +541,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && (!helpflag)) {
       const char fmt[] = "LAMMPS ({})\nRunning on {} partitions of processors\n";
       if (universe->uscreen)
-        fmt::print(universe->uscreen,fmt,universe->version,universe->nworlds);
+        fmt::print(universe->uscreen,fmt,version,universe->nworlds);
 
       if (universe->ulogfile)
-        fmt::print(universe->ulogfile,fmt,universe->version,universe->nworlds);
+        fmt::print(universe->ulogfile,fmt,version,universe->nworlds);
     }
 
     if ((me == 0) && (!helpflag))
       utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
-                                      universe->version, universe->iworld));
+                                      version, universe->iworld));
   }
 
   // check consistency of datatype settings in lmptype.h

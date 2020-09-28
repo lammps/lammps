@@ -274,7 +274,7 @@ void FixHyperLocal::init()
   if (force->newton_pair == 0)
     error->all(FLERR,"Hyper local requires newton pair on");
 
-  if (atom->molecular && me == 0)
+  if ((atom->molecular != Atom::ATOMIC) && (me == 0))
     error->warning(FLERR,"Hyper local for molecular systems "
                    "requires care in defining hyperdynamic bonds");
 

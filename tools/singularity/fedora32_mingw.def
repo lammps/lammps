@@ -30,12 +30,12 @@ From: fedora:32
                mingw32-expat mingw64-expat \
                mingw64-expat-static mingw32-expat-static \
                mingw32-sqlite-static mingw64-sqlite-static \
-               enchant python3-virtualenv doxygen \
+               enchant python3-virtualenv doxygen latexmk \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
-               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
+               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng texlive-xindy \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
                zstd libzstd-devel
         dnf clean all

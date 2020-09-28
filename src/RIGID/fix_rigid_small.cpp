@@ -18,6 +18,7 @@
 #include <cstring>
 #include <utility>
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -818,6 +819,7 @@ void FixRigidSmall::initial_integrate(int vflag)
 void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
+  double wbody[3],tbody[3];
 
   // grow langextra if needed
 
@@ -837,12 +839,15 @@ void FixRigidSmall::apply_langevin_thermostat()
   double mvv2e = force->mvv2e;
   double ftm2v = force->ftm2v;
 
-  double *vcm,*omega,*inertia;
+  double *vcm,*omega,*inertia,*ex_space,*ey_space,*ez_space;
 
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     vcm = body[ibody].vcm;
     omega = body[ibody].omega;
     inertia = body[ibody].inertia;
+    ex_space = body[ibody].ex_space;
+    ey_space = body[ibody].ey_space;
+    ez_space = body[ibody].ez_space;
 
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
@@ -853,12 +858,23 @@ void FixRigidSmall::apply_langevin_thermostat()
 
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-    langextra[ibody][3] = inertia[0]*gamma1*omega[0] +
+
+    // convert omega from space frame to body frame
+
+    MathExtra::transpose_matvec(ex_space,ey_space,ez_space,omega,wbody);
+
+    // compute langevin torques in the body frame
+
+    tbody[0] = inertia[0]*gamma1*wbody[0] +
       sqrt(inertia[0])*gamma2*(random->uniform()-0.5);
-    langextra[ibody][4] = inertia[1]*gamma1*omega[1] +
+    tbody[1] = inertia[1]*gamma1*wbody[1] +
       sqrt(inertia[1])*gamma2*(random->uniform()-0.5);
-    langextra[ibody][5] = inertia[2]*gamma1*omega[2] +
+    tbody[2] = inertia[2]*gamma1*wbody[2] +
       sqrt(inertia[2])*gamma2*(random->uniform()-0.5);
+
+    // convert langevin torques from body frame back to space frame
+
+    MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);
   }
 }
 
@@ -2085,7 +2101,7 @@ void FixRigidSmall::setup_bodies_static()
     tensor[0][1] = tensor[1][0] = itensor[ibody][5];
 
     inertia = body[ibody].inertia;
-    ierror = MathExtra::jacobi(tensor,inertia,evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia,evectors);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for rigid body");
 

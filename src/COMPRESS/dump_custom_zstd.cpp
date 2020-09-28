@@ -98,7 +98,7 @@ void DumpCustomZstd::openfile()
 
     try {
       writer.open(filecurrent);
-    } catch (FileWriterException & e) {
+    } catch (FileWriterException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -185,7 +185,7 @@ int DumpCustomZstd::modify_param(int narg, char **arg)
         writer.setCompressionLevel(compression_level);
         return 2;
       }
-    } catch (FileWriterException & e) {
+    } catch (FileWriterException &e) {
       error->one(FLERR, e.what());
     }
   }

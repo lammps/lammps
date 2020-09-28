@@ -38,7 +38,7 @@
 #      define LAMMPS_OMP_COMPAT 4
 #    endif
 #  elif defined(__GNUC__)
-#    if __GNUC__ >= 0
+#    if __GNUC__ >= 9
 #      define LAMMPS_OMP_COMPAT 4
 #    endif
 #  endif

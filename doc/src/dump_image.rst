@@ -87,9 +87,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   dump d0 all image 100 dump.\*.jpg type type
-   dump d1 mobile image 500 snap.\*.png element element ssao yes 4539 0.6
-   dump d2 all image 200 img-\*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
+   dump d0 all image 100 dump.*.jpg type type
+   dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6
+   dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
    dump m0 all movie 1000 movie.mpg type type size 640 480
    dump m1 all movie 1000 movie.avi type type size 640 480
    dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720

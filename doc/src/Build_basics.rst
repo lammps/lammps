@@ -329,6 +329,7 @@ LAMMPS.
 ----------
 
 .. _exe:
+.. _library:
 
 Build the LAMMPS executable and library
 ---------------------------------------

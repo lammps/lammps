@@ -340,7 +340,7 @@ to the screen and log file.  Note that since the LAMMPS print command
 itself takes a string in quotes as its argument, the Python string
 must be delimited with a different style of quotes.
 
-The :doc:`Python library <Python_library>` doc page describes the syntax
+The :doc:`Python_head` doc page describes the syntax
 for how Python wraps the various functions included in the LAMMPS
 library interface.
 

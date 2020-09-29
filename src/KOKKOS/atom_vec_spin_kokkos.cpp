@@ -24,18 +24,19 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_spin_kokkos.h"
-#include <cmath>
-#include <cstring>
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "error.h"
-#include "fix.h"
-#include "memory_kokkos.h"
 #include "modify.h"
+#include "fix.h"
+#include "atom_masks.h"
+#include "memory_kokkos.h"
+#include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
+
+#define DELTA 10
 
 /* ---------------------------------------------------------------------- */
 
@@ -159,10 +160,10 @@ void AtomVecSpinKokkos::copy(int i, int j, int delflag)
   h_v(j,1) = h_v(i,1);
   h_v(j,2) = h_v(i,2);
 
-  h_sp(j,0) = h_sp(i,0)
-  h_sp(j,1) = h_sp(i,1)
-  h_sp(j,2) = h_sp(i,2)
-  h_sp(j,3) = h_sp(i,3)
+  h_sp(j,0) = h_sp(i,0); 
+  h_sp(j,1) = h_sp(i,1);
+  h_sp(j,2) = h_sp(i,2);
+  h_sp(j,3) = h_sp(i,3);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -263,7 +264,7 @@ struct AtomVecSpinKokkos_PackBorder {
       const typename ArrayTypes<DeviceType>::t_sp_array &sp,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
   _buf(buf),_list(list),_iswap(iswap),
-    _x(x),_sp(sp),_tag(tag),_type(type),_mask(mask),
+    _x(x),_tag(tag),_type(type),_mask(mask),_sp(sp),
     _dx(dx),_dy(dy),_dz(dz) {}
   
   KOKKOS_INLINE_FUNCTION

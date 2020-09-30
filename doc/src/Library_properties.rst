@@ -1,18 +1,22 @@
 Retrieving or setting LAMMPS system properties
 ==============================================
 
-The library interface allows to extract different kinds of information
-about the active simulation instance and also to modify some of it.
-This enables combining MD simulation steps with other processing and
-simulation methods computed in the calling code or another code that is
-coupled to LAMMPS via the library interface.  In some cases the data
-returned is direct reference to the original data inside LAMMPS cast
-to a void pointer.  In that case the data needs to be cast to a suitable
-pointer to be able to access it, and you need to know the correct dimensions
-and lengths.  When accessing per-atom data, please note that this data
-is the per-processor **local** data and indexed accordingly. These arrays
-can change sizes and order at every neighbor list rebuild and atom sort
-event as atoms are migrating between sub-domains.
+The library interface allows extraction of different kinds of
+information about the active simulation instance and also
+modifications to it.  This enables combining of a LAMMPS simulation
+with other processing and simulation methods computed by the calling
+code, or by another code that is coupled to LAMMPS via the library
+interface.  In some cases the data returned is direct reference to the
+original data inside LAMMPS, cast to a void pointer.  In that case the
+data needs to be cast to a suitable pointer for the calling program to
+access it, and you may need to know the correct dimensions and
+lengths.  This also means you can directly change those value(s) from
+the calling program, e.g. to modify atom positions.  Of course, this
+should be done with care.  When accessing per-atom data, please note
+that this data is the per-processor **local** data and is indexed
+accordingly. Per-atom data can change sizes and ordering at every
+neighbor list rebuild or atom sort event as atoms migrate between
+sub-domains and processors.
 
 .. code-block:: C
 

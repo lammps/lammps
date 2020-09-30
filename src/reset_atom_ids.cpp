@@ -368,9 +368,9 @@ void ResetIDs::sort()
   // bins are numbered from 0 to Nbins-1
 
   bigint nbins = (bigint) nbinx*nbiny*nbinz;
-  int nlo = nbins / nprocs;
-  int nhi = nlo + 1;
-  int nplo = nprocs - (nbins % nprocs);
+  bigint nlo = nbins / nprocs;
+  bigint nhi = nlo + 1;
+  bigint nplo = nprocs - (nbins % nprocs);
   bigint nbinlo = nplo*nlo;
 
   if (me < nplo) {

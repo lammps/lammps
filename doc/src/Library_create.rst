@@ -3,9 +3,9 @@ Creating or deleting a LAMMPS object
 
 The :cpp:func:`lammps_open` and :cpp:func:`lammps_open_no_mpi`
 functions are used to create and initialize a
-:cpp:func:`LAMMPS` instance.  The calling program has to
-provide a handle where a reference to this instance can be stored and
-which has to be used in all subsequent function calls until that
+:cpp:func:`LAMMPS` instance.  The calling program provides
+a handle where a reference to this instance can be stored and
+which is then used in all subsequent function calls until that
 instance is destroyed by calling :cpp:func:`lammps_close`.
 Here is a simple example demonstrating its use:
 
@@ -39,9 +39,9 @@ Here is a simple example demonstrating its use:
      return 0;
    }
 
-The LAMMPS library will be using the MPI library it was compiled with
+The LAMMPS library uses the MPI library it was compiled with
 and will either run on all processors in the ``MPI_COMM_WORLD``
-communicator or on the set of processors in the communicator given in
+communicator or on the set of processors in the communicator passed as
 the ``comm`` argument of :cpp:func:`lammps_open`.  This means
 the calling code can run LAMMPS on all or a subset of processors.  For
 example, a wrapper code might decide to alternate between LAMMPS and
@@ -55,13 +55,14 @@ concurrently on split communicators, or run them one after the other.
 The :cpp:func:`lammps_open` function may be called multiple
 times for this latter purpose.
 
-The :cpp:func:`lammps_close` function is used to shut down
-the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class pointed to by the handle
-passed as an argument and free all its memory. This has to be called for
-every instance created with any of the :cpp:func:`lammps_open` functions.  It will, however, **not** call
-``MPI_Finalize()``, since that may only be called once.  See
-:cpp:func:`lammps_mpi_finalize` for an alternative to calling
-``MPI_Finalize()`` explicitly in the calling program.
+The :cpp:func:`lammps_close` function is used to shut down the
+:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class pointed to by the handle
+passed as an argument and free all its memory. This has to be called
+for every instance created with one of the :cpp:func:`lammps_open`
+functions.  It will, however, **not** call ``MPI_Finalize()``, since
+that may only be called once.  See :cpp:func:`lammps_mpi_finalize` for
+an alternative to invoking ``MPI_Finalize()`` explicitly from the
+calling program.
 
 The :cpp:func:`lammps_free` function is a clean-up
 function to free memory that the library allocated previously

@@ -7,19 +7,19 @@ LAMMPS commands like in an input file.  This can be done through reading
 a file or passing single commands or lists of commands or blocks of
 commands with the following functions.
 
-Via these functions, the calling code can have the LAMMPS instance act
-on a series of :doc:`input file commands <Commands_all>` that are either
-read from a file or passed as strings.  This for, for example, allows to
-setup a problem from a template file and then run it in stages while
-performing other operations in between or concurrently.  The caller can
-interleave the LAMMPS function calls with operations it performs, calls
-to extract information from or set information within LAMMPS, or calls
-to another code's library.
+Via these functions, the calling code can have LAMMPS act on a series
+of :doc:`input file commands <Commands_all>` that are either read from
+a file or passed as strings.  For example, this allows setup of a
+problem from an input script, and then running it in stages while
+performing other operations in between or concurrently.  The caller
+can interleave the LAMMPS function calls with operations it performs,
+such as calls to extract information from or set information within
+LAMMPS, or calls to another code's library.
 
-Also equivalent to regular :doc:`input script parsing <Commands_parse>`
-is the handling of comments and expansion of variables with ``${name}``
-or ``$(expression)`` syntax before the commands are parsed and
-executed. Below is a short example using some of these functions.
+Just as with :doc:`input script parsing <Commands_parse>` comments can
+be included in the file or strings, and expansion of variables with
+``${name}`` or ``$(expression)`` syntax is performed.
+Below is a short example using some of these functions.
 
 .. code-block:: C
 

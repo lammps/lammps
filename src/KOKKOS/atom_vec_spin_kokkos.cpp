@@ -135,10 +135,10 @@ void AtomVecSpinKokkos::grow_reset()
   sp = atomKK->sp; 
   d_sp = atomKK->k_sp.d_view;
   h_sp = atomKK->k_sp.h_view;
-  fm = atom->fm; 
+  fm = atomKK->fm; 
   d_fm = atomKK->k_fm.d_view;
   h_fm = atomKK->k_fm.h_view;
-  fm_long = atom->fm_long;
+  fm_long = atomKK->fm_long;
   d_fm_long = atomKK->k_fm_long.d_view;
   h_fm_long = atomKK->k_fm_long.h_view;
 }
@@ -537,10 +537,10 @@ struct AtomVecSpinKokkos_UnpackBorder {
       _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
       _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
       _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
-      _sp(i+_first) = _buf(i,6);
-      _sp(i+_first) = _buf(i,7);
-      _sp(i+_first) = _buf(i,8);
-      _sp(i+_first) = _buf(i,9);
+      _sp(i+_first,0) = _buf(i,6);
+      _sp(i+_first,1) = _buf(i,7);
+      _sp(i+_first,2) = _buf(i,8);
+      _sp(i+_first,3) = _buf(i,9);
   }
 };
 
@@ -1296,3 +1296,13 @@ void AtomVecSpinKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
   }
 }
 
+/* ----------------------------------------------------------------------
+   clear all forces (mech and mag)
+------------------------------------------------------------------------- */
+
+void AtomVecSpinKokkos::force_clear(int /*n*/, size_t nbytes)
+{
+  memset(&atom->f[0][0],0,3*nbytes);
+  memset(&atom->fm[0][0],0,3*nbytes);
+  memset(&atom->fm_long[0][0],0,3*nbytes);
+}

@@ -102,13 +102,13 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
   DAT::t_v_array d_v;
   DAT::t_f_array d_f;
 
-  DAT::t_x_array d_sp;
-  DAT::t_x_array d_fm;
-  DAT::t_x_array d_fm_long;
+  DAT::t_sp_array d_sp;
+  DAT::t_fm_array d_fm;
+  DAT::t_fm_long_array d_fm_long;
 
-  HAT::t_x_array h_sp;
-  HAT::t_x_array h_fm;
-  HAT::t_x_array h_fm_long;
+  HAT::t_sp_array h_sp;
+  HAT::t_fm_array h_fm;
+  HAT::t_fm_long_array h_fm_long;
 
   DAT::tdual_int_1d k_count;
 };

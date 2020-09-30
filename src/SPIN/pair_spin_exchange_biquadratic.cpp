@@ -416,11 +416,9 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
  
   Jex_mech = 1.0-rja-J2[itype][jtype]*rja*(2.0-rja);
   Jex_mech *= 8.0*Jex*rjr*exp(-rja);
-  // Jex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
   
   Kex_mech = 1.0-rka-K2[itype][jtype]*rka*(2.0-rka);
   Kex_mech *= 8.0*Kex*rkr*exp(-rka);
-  // Kex_mech *= (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 

@@ -850,6 +850,7 @@ Dealloc() {
   //assert(! is_preallocated);
   Dealloc2D(&M);
   delete[] max_idx_row;
+  max_idx_row = nullptr;
   Init();
 }
 

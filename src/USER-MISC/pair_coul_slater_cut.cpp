@@ -152,10 +152,10 @@ void PairCoulSlaterCut::write_restart_settings(FILE *fp)
 void PairCoulSlaterCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&lamda,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&lamda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);

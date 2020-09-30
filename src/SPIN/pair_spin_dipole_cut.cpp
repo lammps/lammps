@@ -379,7 +379,7 @@ void PairSpinDipoleCut::compute_dipolar(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleCut::compute_dipolar_mech(int /* i */, int /* j */, double eij[3],
-    double fi[3], double spi[3], double spj[3], double r2inv)
+    double fi[3], double spi[4], double spj[4], double r2inv)
 {
   double sisj,sieij,sjeij;
   double gigjri4,bij,pre;

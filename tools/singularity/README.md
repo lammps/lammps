@@ -5,12 +5,12 @@ for [Singularity](https://sylabs.io), suitable for compiling and testing
 LAMMPS on a variety of OS variants with support for most standard
 packages and - for some of them - also building/spellchecking the manual
 in all supported formats. This allows to test and debug LAMMPS code on
-different OS variants than what is locally installed on your development
+different OS variants without doing a full installation on your development
 workstation, e.g. when bugs are reported that can only be reproduced on
 a specific OS or with specific (mostly older) versions of tools,
 compilers, or libraries.
 
-Ready-to-use container images built from these definition files are
+Ready-to-use container images built from some these definition files are
 occasionally uploaded to the container library at sylabs.io. They
 can be found here: https://cloud.sylabs.io/library/lammps/default/lammps_development#
 and will be signed with a GPG key that has the fingerprint:
@@ -25,7 +25,7 @@ git clone --depth 500  git://github.com/lammps/lammps.git lammps
 mkdir build-centos7
 cd build-centos7
 sudo singularity build centos7.sif ../tools/singularity/centos7.def
-singularity shell centos7.sif
+singularity exec centos7.sif bash --login
 cmake -C ../cmake/presets/most.cmake ../cmake
 make
 ```
@@ -39,7 +39,7 @@ git clone --depth 500  git://github.com/lammps/lammps.git lammps
 mkdir build-ubuntu18
 cd build-ubuntu18
 singularity pull library://lammps/default/lammps_development:ubuntu18.04
-singularity shell lammps_development_ubuntu18.04.sif
+singularity exec lammps_development_ubuntu18.04.sif bash --login
 cmake -C ../cmake/presets/most.cmake ../cmake
 make
 ```

@@ -78,10 +78,10 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #endif
   }
 
+#if defined(_OPENMP)
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of OpenMP threads requested");
 
-#if defined(_OPENMP)
   int reset_thr = 0;
 #endif
   if (nthreads != comm->nthreads) {

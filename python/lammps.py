@@ -199,8 +199,8 @@ class lammps(object):
     elif any([f.startswith('liblammps') and f.endswith('.dll')
               for f in os.listdir(modpath)]):
       lib_ext = ".dll"
-    elif any([f.startswith('liblammps') and f.endswith('.dll')
-              for f in os.listdir(winpath)]):
+    elif os.path.exists(winpath) and any([f.startswith('liblammps') and f.endswith('.dll')
+                  for f in os.listdir(winpath)]):
       lib_ext = ".dll"
       modpath = winpath
     else:

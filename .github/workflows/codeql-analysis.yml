@@ -43,7 +43,7 @@ jobs:
        mkdir build
        cd build
        cmake -C ../cmake/presets/most.cmake ../cmake -DBUILD_SHARED_LIBS=on
-       make
+       make -j2
 
     - name: Perform CodeQL Analysis
       if: ${{ github.repository == 'lammps/lammps' }}

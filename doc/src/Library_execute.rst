@@ -1,6 +1,15 @@
 Executing LAMMPS commands
 =========================
 
+This section documents the following functions:
+
+- :cpp:func:`lammps_file`
+- :cpp:func:`lammps_command`
+- :cpp:func:`lammps_commands_list`
+- :cpp:func:`lammps_commands_string`
+
+--------------------
+
 Once a LAMMPS instance is created, there are multiple ways to "drive" a
 simulation.  In most cases it is easiest to process single or multiple
 LAMMPS commands like in an input file.  This can be done through reading

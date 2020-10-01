@@ -1,6 +1,18 @@
 Creating or deleting a LAMMPS object
 ====================================
 
+This section documents the following functions:
+
+- :cpp:func:`lammps_open`
+- :cpp:func:`lammps_open_no_mpi`
+- :cpp:func:`lammps_open_fortran`
+- :cpp:func:`lammps_close`
+- :cpp:func:`lammps_mpi_init`
+- :cpp:func:`lammps_mpi_finalize`
+- :cpp:func:`lammps_free`
+
+--------------------
+
 The :cpp:func:`lammps_open` and :cpp:func:`lammps_open_no_mpi` functions
 are used to create and initialize a :cpp:func:`LAMMPS` instance.  They
 return a reference to this instance as a ``void *`` pointer to be used

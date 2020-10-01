@@ -1,6 +1,24 @@
 Retrieving or setting LAMMPS system properties
 ==============================================
 
+This section documents the following functions:
+
+- :cpp:func:`lammps_version`
+- :cpp:func:`lammps_memory_usage`
+- :cpp:func:`lammps_get_mpi_comm`
+- :cpp:func:`lammps_get_natoms`
+- :cpp:func:`lammps_get_thermo`
+- :cpp:func:`lammps_extract_box`
+- :cpp:func:`lammps_reset_box`
+- :cpp:func:`lammps_extract_setting`
+- :cpp:func:`lammps_extract_global_datatype`
+- :cpp:func:`lammps_extract_global`
+- :cpp:func:`lammps_extract_atom_datatype`
+- :cpp:func:`lammps_extract_atom`
+- :cpp:func:`lammps_create_atoms`
+
+--------------------
+
 The library interface allows extraction of different kinds of
 information about the active simulation instance and also
 modifications to it.  This enables combining of a LAMMPS simulation

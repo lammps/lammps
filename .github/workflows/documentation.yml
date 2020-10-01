@@ -1,0 +1,21 @@
+name: documentation
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'doc/*'
+
+jobs:
+  build:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    container: "lammps/buildenv:fedora32_mingw"
+    steps:
+      - uses: actions/checkout@master
+      - name: Generate HTML
+        run: make -C doc -j 2 html
+      - name: Generate PDF
+        run: make -C doc -j 2 pdf
+      - name: Check Spelling
+        run: make -C doc -j 2 spelling

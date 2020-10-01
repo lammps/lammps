@@ -18,18 +18,18 @@ This section documents the following functions:
 
 --------------------
 
-The following library functions can be used to query the LAMMPS library
-about compile time settings and included packages and styles.  This
-enables programs that use the library interface to run LAMMPS
-simulations to determine, whether the linked LAMMPS library is compatible
-with the requirements of the application without crashing during the
-LAMMPS functions (e.g. due to missing pair styles from packages) or to
-choose between different options (e.g. whether to use ``lj/cut``,
-``lj/cut/opt``, ``lj/cut/omp`` or ``lj/cut/intel``).  Most of the
-functions can be called directly without first creating a LAMMPS
-instance.  While crashes within LAMMPS may be recovered from through
-enabling :ref:`exceptions <exceptions>`, avoiding them proactively is
-a safer approach.
+These library functions can be used to query the LAMMPS library for
+compile time settings and included packages and styles.  This enables
+programs that use the library interface to determine whether the
+linked LAMMPS library is compatible with the requirements of the
+application without crashing during the LAMMPS functions (e.g. due to
+missing pair styles from packages) or to choose between different
+options (e.g. whether to use ``lj/cut``, ``lj/cut/opt``,
+``lj/cut/omp`` or ``lj/cut/intel``).  Most of the functions can be
+called directly without first creating a LAMMPS instance.  While
+crashes within LAMMPS may be recovered from by enabling
+:ref:`exceptions <exceptions>`, avoiding them proactively is a safer
+approach.
 
 .. code-block:: C
    :caption: Example for using configuration settings functions

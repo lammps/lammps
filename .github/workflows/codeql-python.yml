@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['cpp', 'python']
+        language: ['python']
 
     steps:
     - name: Checkout repository
@@ -36,14 +36,6 @@ jobs:
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
-
-    - name: Building LAMMPS via CMake
-      if: ${{ github.repository == 'lammps/lammps' }}
-      run: |
-       mkdir build
-       cd build
-       cmake -C ../cmake/presets/most.cmake ../cmake -DBUILD_SHARED_LIBS=on
-       make -j2
 
     - name: Perform CodeQL Analysis
       if: ${{ github.repository == 'lammps/lammps' }}

@@ -81,7 +81,7 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 
    No checks are made on the arguments of the function calls of the C
    library interface.  *All* function arguments must be non-NULL unless
-   *explicitly* allowed, and msut point to consistent and valid data.  Buffers
+   *explicitly* allowed, and must point to consistent and valid data.  Buffers
    for storing returned data must be allocated to a suitable size.
    Passing invalid or unsuitable information will likely cause crashes
    or corrupt data.

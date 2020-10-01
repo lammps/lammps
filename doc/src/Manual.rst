@@ -58,7 +58,6 @@ User Documentation
    Howto
    Examples
    Tools
-   Python_head
    Errors
    Manual_build
 
@@ -73,9 +72,10 @@ Programmer Documentation
    :name: progdoc
    :includehidden:
 
-   pg_library
+   Library
+   Python_head
    Modify
-   pg_developer
+   Developer
 
 .. toctree::
    :caption: Index
@@ -91,6 +91,7 @@ Programmer Documentation
    dihedrals
    impropers
    fix_modify_atc_commands
+   Bibliography
 
 Indices and tables
 ******************

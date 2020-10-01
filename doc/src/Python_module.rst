@@ -204,7 +204,7 @@ to "compute" what the next LAMMPS command should be.
    .. tab:: lammps API
 
       Same as in the equivalent
-      :doc:`C library functions <pg_lib_execute>`, commands can be read from a file, a
+      :doc:`C library functions <Library_execute>`, commands can be read from a file, a
       single string, a list of strings and a block of commands in a single
       multi-line string. They are processed under the same boundary conditions
       as the C library counterparts.  The example below demonstrates the use

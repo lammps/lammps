@@ -63,7 +63,7 @@ TEST_F(LibraryProperties, memory_usage)
     lammps_memory_usage(lmp, meminfo);
     EXPECT_GT(meminfo[0], 0.0);
 #if defined(__linux__) || defined(_WIN32)
-    EXPECT_GT(meminfo[1], 0.0);
+    EXPECT_GE(meminfo[1], 0.0);
 #endif
     EXPECT_GT(meminfo[2], 0.0);
 };

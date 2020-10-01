@@ -34,7 +34,7 @@ Examples
    restart 0
    restart 1000 poly.restart
    restart 1000 poly.restart.mpiio
-   restart 1000 restart.\*.equil
+   restart 1000 restart.*.equil
    restart 10000 poly.%.1 poly.%.2 nfile 10
    restart v_mystep poly.restart
 

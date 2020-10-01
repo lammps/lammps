@@ -7,8 +7,8 @@ Creating or deleting a LAMMPS object
 
 With the Python interface the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructors for the
-:py:meth:`lammps <lammps.lammps.__init__()>`, :py:meth:`PyLammps <lammps.PyLammps.__init__()>`,
-and :py:meth:`PyLammps <lammps.IPyLammps.__init__()>` classes.
+:py:class:`lammps <lammps.lammps>`, :py:class:`PyLammps <lammps.PyLammps>`,
+and :py:class:`IPyLammps <lammps.IPyLammps>` classes.
 Internally it will call either :cpp:func:`lammps_open` or :cpp:func:`lammps_open_no_mpi` from the C
 library API to create the class instance.
 
@@ -38,19 +38,22 @@ Here are simple examples using all three Python interfaces:
 
          # NOTE: argv[0] is set by the lammps class constructor
          args = ["-log", "none"]
+
          # create LAMMPS instance
          lmp = lammps(cmdargs=args)
+
          # get and print numerical version code
          print("LAMMPS Version: ", lmp.version())
+
          # explicitly close and delete LAMMPS instance (optional)
          lmp.close()
 
    .. tab:: PyLammps API
 
-      The :py:class:`PyLammps` class is a wrapper around the
-      :py:class:`lammps` class and all of its lower level functions.
-      By default, it will create a new instance of :py:class:`lammps` passing
-      along all arguments to the constructor of :py:class:`lammps`.
+      The :py:class:`PyLammps <lammps.PyLammps>` class is a wrapper around the
+      :py:class:`lammps <lammps.lammps>` class and all of its lower level functions.
+      By default, it will create a new instance of :py:class:`lammps <lammps.lammps>` passing
+      along all arguments to the constructor of :py:class:`lammps <lammps.lammps>`.
 
       .. code-block:: python
 
@@ -58,14 +61,18 @@ Here are simple examples using all three Python interfaces:
 
          # NOTE: argv[0] is set by the lammps class constructor
          args = ["-log", "none"]
+
          # create LAMMPS instance
          L = PyLammps(cmdargs=args)
+
          # get and print numerical version code
          print("LAMMPS Version: ", L.version())
+
          # explicitly close and delete LAMMPS instance (optional)
          L.close()
 
-      :py:class:`PyLammps` objects can also be created on top of an existing :py:class:`lammps` object:
+      :py:class:`PyLammps <lammps.PyLammps>` objects can also be created on top of an existing
+      :py:class:`lammps <lammps.lammps>` object:
 
       .. code-block:: Python
 
@@ -73,6 +80,7 @@ Here are simple examples using all three Python interfaces:
          ...
          # create LAMMPS instance
          lmp = lammps(cmdargs=args)
+
          # create PyLammps instance using previously created LAMMPS instance
          L = PyLammps(ptr=lmp)
 
@@ -82,8 +90,8 @@ Here are simple examples using all three Python interfaces:
 
    .. tab:: IPyLammps API
 
-      The :py:class:`IPyLammps` class is an extension of the
-      :py:class:`PyLammps` class. It has the same construction behavior. By
+      The :py:class:`IPyLammps <lammps.IPyLammps>` class is an extension of the
+      :py:class:`PyLammps <lammps.PyLammps>` class. It has the same construction behavior. By
       default, it will create a new instance of :py:class:`lammps` passing
       along all arguments to the constructor of :py:class:`lammps`.
 
@@ -93,10 +101,13 @@ Here are simple examples using all three Python interfaces:
 
          # NOTE: argv[0] is set by the lammps class constructor
          args = ["-log", "none"]
+
          # create LAMMPS instance
          L = IPyLammps(cmdargs=args)
+
          # get and print numerical version code
          print("LAMMPS Version: ", L.version())
+
          # explicitly close and delete LAMMPS instance (optional)
          L.close()
 
@@ -108,6 +119,7 @@ Here are simple examples using all three Python interfaces:
          ...
          # create LAMMPS instance
          lmp = lammps(cmdargs=args)
+
          # create PyLammps instance using previously created LAMMPS instance
          L = PyLammps(ptr=lmp)
 
@@ -117,52 +129,12 @@ Here are simple examples using all three Python interfaces:
 
 In all of the above cases, same as with the :ref:`C library API <lammps_c_api>`, this will use the
 ``MPI_COMM_WORLD`` communicator for the MPI library that LAMMPS was
-compiled with.  The :py:func:`lmp.close() <lammps.lammps.close>` call is
+compiled with. 
+
+The :py:func:`lmp.close() <lammps.lammps.close()>` call is
 optional since the LAMMPS class instance will also be deleted
 automatically during the :py:class:`lammps <lammps.lammps>` class
 destructor.
-
-.. code-block:: Python
-
-   lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
-                            # 4 optional args are allowed: name, cmdargs, ptr, comm
-   lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
-   lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
-   lmp = lammps(name="g++")   # create a LAMMPS object using the liblammps_g++.so library
-   lmp = lammps(name="g++",cmdargs=list)    # add LAMMPS command-line args, e.g. list = ["-echo","screen"]
-
-   lmp.close()              # destroy a LAMMPS object
-
-The lines
-
-.. code-block:: Python
-
-   from lammps import lammps
-   lmp = lammps()
-
-create an instance of LAMMPS, wrapped in a Python class by the lammps
-Python module, and return an instance of the Python class as lmp.  It
-is used to make all subsequent calls to the LAMMPS library.
-
-Additional arguments to lammps() can be used to tell Python the name
-of the shared library to load or to pass arguments to the LAMMPS
-instance, the same as if LAMMPS were launched from a command-line
-prompt.
-
-If the ptr argument is set like this:
-
-.. code-block:: Python
-
-   lmp = lammps(ptr=lmpptr)
-
-then lmpptr must be an argument passed to Python via the LAMMPS
-:doc:`python <python>` command, when it is used to define a Python
-function that is invoked by the LAMMPS input script.  This mode of
-calling Python from LAMMPS is described in the :doc:`Python call <Python_call>` doc page.  The variable lmpptr refers to the
-instance of LAMMPS that called the embedded Python interpreter.  Using
-it as an argument to lammps() allows the returned Python class
-instance "lmp" to make calls to that instance of LAMMPS.  See the
-:doc:`python <python>` command doc page for examples using this syntax.
 
 Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.
@@ -178,12 +150,13 @@ script, and coordinate and run multiple simulations, e.g.
 Executing LAMMPS commands
 *************************
 
-Once an instance of the :py:class:`lammps`, :py:class:`PyLammps`, or
-:py:class:`IPyLammps` class is created, there are multiple ways to "feed" it
-commands. In a way that is not very different from running a LAMMPS input
-script, except that Python has many more facilities for structured
-programming than the LAMMPS input script syntax. Furthermore it is possible
-to "compute" what the next LAMMPS command should be.
+Once an instance of the :py:class:`lammps <lammps.lammps>`,
+:py:class:`PyLammps <lammps.PyLammps>`, or
+:py:class:`IPyLammps <lammps.IPyLammps>` class is created, there are
+multiple ways to "feed" it commands. In a way that is not very different from
+running a LAMMPS input script, except that Python has many more facilities
+for structured programming than the LAMMPS input script syntax. Furthermore
+it is possible to "compute" what the next LAMMPS command should be.
 
 .. tabs::
 
@@ -194,20 +167,24 @@ to "compute" what the next LAMMPS command should be.
       single string, a list of strings and a block of commands in a single
       multi-line string. They are processed under the same boundary conditions
       as the C library counterparts.  The example below demonstrates the use
-      of :py:func:`lammps.file`, :py:func:`lammps.command`,
-      :py:func:`lammps.commands_list`, and :py:func:`lammps.commands_string`:
+      of :py:func:`lammps.file()`, :py:func:`lammps.command()`,
+      :py:func:`lammps.commands_list()`, and :py:func:`lammps.commands_string()`:
 
       .. code-block:: python
 
          from lammps import lammps
          lmp = lammps()
+
          # read commands from file 'in.melt'
          lmp.file('in.melt')
+
          # issue a single command
          lmp.command('variable zpos index 1.0')
+
          # create 10 groups with 10 atoms each
          cmds = ["group g{} id {}:{}".format(i,10*i+1,10*(i+1)) for i in range(10)]
          lmp.commands_list(cmds)
+
          # run commands from a multi-line string
          block = """
          clear
@@ -220,7 +197,8 @@ to "compute" what the next LAMMPS command should be.
    .. tab:: PyLammps/IPyLammps API
 
       Unlike the lammps API, the PyLammps/IPyLammps APIs allow running LAMMPS
-      commands by calling equivalent member functions.
+      commands by calling equivalent member functions of :py:class:`PyLammps <lammps.PyLammps>`
+      and :py:class:`IPyLammps <lammps.IPyLammps>` instances.
 
       For instance, the following LAMMPS command
 
@@ -228,7 +206,8 @@ to "compute" what the next LAMMPS command should be.
 
          region box block 0 10 0 5 -0.5 0.5
 
-      can be executed using the following Python code if *L* is a :py:class:`lammps` instance:
+      can be executed using with the lammps AI with the following Python code if *L* is an
+      instance of :py:class:`lammps <lammps.lammps>`:
 
       .. code-block:: Python
 
@@ -236,7 +215,7 @@ to "compute" what the next LAMMPS command should be.
 
       With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts.
       These parts are then passed to a member function with the name of the command.
-      For the ``region`` command that means the :code:`region` method can be called.
+      For the ``region`` command that means the :code:`region()` method can be called.
       The arguments of the command can be passed as one string, or
       individually.
 
@@ -269,10 +248,13 @@ to "compute" what the next LAMMPS command should be.
 
          from lammps import PyLammps
          L = PyLammps()
+
          # read commands from file 'in.melt'
          L.file('in.melt')
+      
          # issue a single command
          L.variable('zpos', 'index', 1.0)
+
          # create 10 groups with 10 atoms each
          for i in range(10):
             L.group(f"g{i}", "id", f"{10*i+1}:{10*(i+1)}")
@@ -283,76 +265,102 @@ to "compute" what the next LAMMPS command should be.
          L.create_atoms(1, "single", 1.0, 1.0, "${zpos}")
 
 
-.. code-block:: Python
-
-   lmp.file(file)           # run an entire input script, file = "in.lj"
-   lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100"
-   lmp.commands_list(cmdlist)     # invoke commands in cmdlist = **"run 10", "run 20"**
-   lmp.commands_string(multicmd)  # invoke commands in multicmd = "run 10\nrun 20"
-
-The file(), command(), commands_list(), commands_string() methods
-allow an input script, a single command, or multiple commands to be
-invoked.
-
-
 Retrieving or setting LAMMPS system properties
 **********************************************
 
-.. code-block:: Python
+Similar to what is described in :doc:`Library_properties`, the instances of
+:py:class:`lammps <lammps.lammps>`, :py:class:`PyLammps <lammps.PyLammps>`, or
+:py:class:`IPyLammps <lammps.IPyLammps>` can be used to extract different kinds
+of information about the active LAMMPS instance and also to modify some of it. The
+main difference between the interfaces is how the information is exposed.
 
-   version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
+While the :py:class:`lammps <lammps.lammps>` is just a thin layer that wraps C API calls,
+:py:class:`PyLammps <lammps.PyLammps>` and :py:class:`IPyLammps <lammps.IPyLammps>` expose
+information as objects and properties.
 
-   size = lmp.extract_setting(name)     # return data type info
+In some cases the data returned is a direct reference to the original data
+inside LAMMPS cast to ``ctypes`` pointers. Where possible, the wrappers will
+determine the ``ctypes`` data type and cast pointers accordingly. If
+``numpy`` is installed arrays can also be extracted as numpy arrays, which
+will access the C arrays directly and have the correct dimensions to protect
+against invalid accesses.
 
-   xlo = lmp.extract_global(name,type)  # extract a global quantity
-                                        # name = "boxxlo", "nlocal", etc
-                                        # type = 0 = int
-                                        #        1 = double
+.. warning::
 
-   boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()  # extract box info
+   When accessing per-atom data,
+   please note that this data is the per-processor local data and indexed
+   accordingly. These arrays can change sizes and order at every neighbor list
+   rebuild and atom sort event as atoms are migrating between sub-domains.
+
+.. tabs::
+
+   .. tab:: lammps API
+
+      .. code-block:: python
+
+         from lammps import lammps
+
+         lmp = lammps()
+         lmp.file("in.sysinit")
+
+         natoms = lmp.get_natoms()
+         print(f"running simulation with {natoms} atoms")
+
+         lmp.command("run 1000 post no");
+
+         for i in range(10):
+            lmp.command("run 100 pre no post no")
+            pe = lmp.get_thermo("pe")
+            ke = lmp.get_thermo("ke")
+            print(f"PE = {pe}\nKE = {ke}")
+
+         lmp.close()
+
+      Methods:
+
+      * :py:meth:`get_version() <lammps.lammps.get_version()>`: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
+      * :py:meth:`get_thermo() <lammps.lammps.get_thermo()>`: return current value of a thermo keyword
+      * :py:meth:`get_natoms() <lammps.lammps.get_natoms()>`: total # of atoms as int
+      * :py:meth:`reset_box() <lammps.lammps.reset_box()>`: reset the simulation box size
+      * :py:meth:`extract_setting() <lammps.lammps.extract_setting()>`: return a global setting
+      * :py:meth:`extract_global() <lammps.lammps.extract_global()>`: extract a global quantity
+      * :py:meth:`extract_atom() <lammps.lammps.extract_atom()>`: extract a per-atom quantity
+      * :py:meth:`extract_box() <lammps.lammps.extract_box()>`: extract box info
+      * :py:meth:`create_atoms() <lammps.lammps.create_atoms()>`: create N atoms with IDs, types, x, v, and image flags
+
+      Numpy Methods:
+
+      * :py:meth:`numpy.extract_atom() <lammps.lammps.numpy.extract_atom()>`: extract a per-atom quantity as numpy array
+
+   .. tab:: PyLammps/IPyLammps API
+
+      .. code-block:: python
+      
+         from lammps import PyLammps
+      
+         L = PyLammps()
+         L.file("in.sysinit")
+      
+         print(f"running simulation with {L.system.natoms} atoms")
+      
+         L.run(1000, "post no");
+      
+         for i in range(10):
+            L.run(100, "pre no post no")
+            pe = L.eval("pe")
+            ke = L.eval("ke")
+            print(f"PE = {pe}\nKE = {ke}")
 
 
-   value = lmp.get_thermo(name)              # return current value of a thermo keyword
-   natoms = lmp.get_natoms()                 # total # of atoms as int
-
-   lmp.reset_box(boxlo,boxhi,xy,yz,xz)       # reset the simulation box size
-
-   lmp.create_atoms(n,ids,types,x,v,image,shrinkexceed)   # create N atoms with IDs, types, x, v, and image flags
-
-
-The :py:meth:`get_thermo() <lammps.lammps.get_thermo()>` method returns the current value of a thermo
-keyword as a float.
-
-The get_natoms() method returns the total number of atoms in the
-simulation, as an int.
-
-
-The reset_box() method resets the size and shape of the simulation
-box, e.g. as part of restoring a previously extracted and saved state
-of a simulation.
-
-
-The extract_setting(), extract_global(), extract_box(),
-extract_atom(), extract_compute(), extract_fix(), and
-extract_variable() methods return values or pointers to data
-structures internal to LAMMPS.
-
-For extract_global() see the src/library.cpp file for the list of
-valid names.  New names could easily be added.  A double or integer is
-returned.  You need to specify the appropriate data type via the type
-argument.
 
 Retrieving or setting properties of LAMMPS objects
 **************************************************
 
-.. code-block:: Python
+* :py:meth:`extract_compute() <lammps.lammps.extract_compute()>`
+* :py:meth:`extract_fix() <lammps.lammps.extract_fix()>`
+* :py:meth:`extract_variable() <lammps.lammps.extract_variable()>`
 
-   coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
-                                             # name = "x", "type", etc
-                                             # type = 0 = vector of ints
-                                             #        1 = array of ints
-                                             #        2 = vector of doubles
-                                             #        3 = array of doubles
+.. code-block:: Python
 
    eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
    v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix

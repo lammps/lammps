@@ -6,9 +6,9 @@ processors into a contiguous global list ordered by atom ID.  The same
 list is returned to all calling processors.  It also contains
 functions which scatter per-atom data from a contiguous global list
 across the processors that own those atom IDs.  It also has a
-create_atoms() function which can create a new simulation by
-scattering atms appropriately to owning processors in the LAMMPS
-spatial decomposition.
+create_atoms() function which can create new atoms by scattering them
+appropriately to owning processors in the LAMMPS spatial
+decomposition.
 
 It documents the following functions:
 

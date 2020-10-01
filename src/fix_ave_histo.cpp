@@ -760,7 +760,7 @@ void FixAveHisto::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // merge histogram stats across procs if necessary
@@ -1046,7 +1046,7 @@ bigint FixAveHisto::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= static_cast<bigint>(nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

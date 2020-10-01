@@ -53,8 +53,10 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeViscosityCos::~ComputeViscosityCos() {
-  if (!copymode)
+  if (!copymode) {
     delete[] vector;
+    delete[] extlist;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

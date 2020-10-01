@@ -51,6 +51,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   multireplica = 0;
 
   eflag_global = vflag_global = -1;
+  eflag_atom = vflag_atom = 0;
 
   dt_default = 1;
   unit_style = nullptr;

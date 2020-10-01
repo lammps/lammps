@@ -33,7 +33,6 @@
 
 #include <cmath>
 
-
 #define TEAMSIZE 128
 
 /* ---------------------------------------------------------------------- */
@@ -1151,20 +1150,43 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     const F_FLOAT r_vdw = paramstwbp(itype,jtype).r_vdw;
     const F_FLOAT epsilon = paramstwbp(itype,jtype).epsilon;
 
+
     // shielding
     if (vdwflag == 1 || vdwflag == 3) {
+      #ifdef HIP_OPT_USE_LESS_MATH
+      F_FLOAT tmp_var;
+      tmp_var = pow(rij,gp[28]-2.0);
+      powr_vdw = tmp_var*rij*rij;
+      powgi_vdw = pow(1.0/gamma_w,gp[28]);
+      dfn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]-1.0);
+      fn13  = dfn13*(powr_vdw+powgi_vdw);
+      dfn13 = dfn13*tmp_var;
+
+      exp2 = exp(0.5*alpha*(1.0-fn13/r_vdw));
+      exp1 = exp2*exp2;
+      #else
       powr_vdw = pow(rij,gp[28]);
       powgi_vdw = pow(1.0/gamma_w,gp[28]);
+
       fn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]);
+
       exp1 = exp(alpha*(1.0-fn13/r_vdw));
       exp2 = exp(0.5*alpha*(1.0-fn13/r_vdw));
+
       dfn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]-1.0)*pow(rij,gp[28]-2.0);
+      #endif
+
       etmp = epsilon*(exp1-2.0*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*dfn13;
     } else {
+      #ifdef HIP_OPT_USE_LESS_MATH
+      exp2 = exp(0.5*alpha*(1.0-rij/r_vdw));
+      exp1 = exp2*exp2;
+      #else
       exp1 = exp(alpha*(1.0-rij/r_vdw));
       exp2 = exp(0.5*alpha*(1.0-rij/r_vdw));
+      #endif
       etmp = epsilon*(exp1-2.0*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
@@ -1201,10 +1223,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
 
     const F_FLOAT ftotal = fvdwl + fcoul;
     fxtmp += delx*ftotal;
-    fytmp += dely*ftotal;
-    fztmp += delz*ftotal;
     a_f(j,0) -= delx*ftotal;
+    fytmp += dely*ftotal;
     a_f(j,1) -= dely*ftotal;
+    fztmp += delz*ftotal;
     a_f(j,2) -= delz*ftotal;
 
     if (eflag) ev.evdwl += evdwl;
@@ -2267,16 +2289,29 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
     SBO2 = 0.0;
     CSBO2 = 0.0;
   } else if (SBO > 0.0 && SBO <= 1.0) {
+    #ifdef HIP_OPT_USE_LESS_MATH
+    CSBO2 = pow( SBO, p_val9 - 1.0 );
+    SBO2 = CSBO2*SBO;
+    CSBO2 = p_val9 * CSBO2;
+    #else
     SBO2 = pow( SBO, p_val9 );
     CSBO2 = p_val9 * pow( SBO, p_val9 - 1.0 );
+    #endif
   } else if (SBO > 1.0 && SBO < 2.0) {
+    #ifdef HIP_OPT_USE_LESS_MATH
+    CSBO2 = pow( 2.0 - SBO, p_val9 - 1.0 );
+    SBO2 = 2.0 - CSBO2*(2.0 - SBO);
+    CSBO2 = p_val9 * CSBO2;
+    #else
     SBO2 = 2.0 - pow( 2.0-SBO, p_val9 );
     CSBO2 = p_val9 * pow( 2.0 - SBO, p_val9 - 1.0 );
+    #endif
   } else {
     SBO2 = 2.0;
     CSBO2 = 0.0;
   }
   expval6 = exp( p_val6 * d_Delta_boc[i] );
+
 
   F_FLOAT CdDelta_i = 0.0;
   F_FLOAT fitmp[3],fjtmp[3];
@@ -2352,12 +2387,28 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       p_val7 = paramsthbp(jtype,itype,ktype).p_val7;
       theta_00 = paramsthbp(jtype,itype,ktype).theta_00;
 
+
+      #ifdef HIP_OPT_USE_LESS_MATH
+      F_FLOAT tmp_var;
+      tmp_var = pow( BOA_ij, p_val4 - 1.0 );
+      exp3ij = exp( -p_val3 * tmp_var * BOA_ij);
+      f7_ij = 1.0 - exp3ij;
+      Cf7ij = p_val3 * p_val4 * tmp_var * exp3ij;
+
+      tmp_var =  pow( BOA_ik, p_val4 - 1.0 );
+      exp3jk = exp( -p_val3 * tmp_var * BOA_ik);
+      f7_jk = 1.0 - exp3jk;
+      Cf7jk = p_val3 * p_val4 * tmp_var * exp3jk;
+      #else
       exp3ij = exp( -p_val3 * pow( BOA_ij, p_val4 ) );
       f7_ij = 1.0 - exp3ij;
       Cf7ij = p_val3 * p_val4 * pow( BOA_ij, p_val4 - 1.0 ) * exp3ij;
+
       exp3jk = exp( -p_val3 * pow( BOA_ik, p_val4 ) );
       f7_jk = 1.0 - exp3jk;
       Cf7jk = p_val3 * p_val4 * pow( BOA_ik, p_val4 - 1.0 ) * exp3jk;
+      #endif
+
       expval7 = exp( -p_val7 * d_Delta_boc[i] );
       trm8 = 1.0 + expval6 + expval7;
       f8_Dj = p_val5 - ( (p_val5 - 1.0) * (2.0 + expval6) / trm8 );

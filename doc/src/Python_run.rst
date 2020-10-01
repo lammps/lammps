@@ -5,9 +5,9 @@ Running LAMMPS and Python in serial:
 -------------------------------------
 
 To run a LAMMPS in serial, type these lines into Python
-interactively from the bench directory:
+interactively from the ``bench`` directory:
 
-.. parsed-literal::
+.. code-block:: python
 
    >>> from lammps import lammps
    >>> lmp = lammps()
@@ -17,35 +17,22 @@ Or put the same lines in the file ``test.py`` and run it as
 
 .. code-block:: bash
 
-   % python test.py
+   $ python3 test.py
 
 Either way, you should see the results of running the ``in.lj`` benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:
 
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_serial -in in.lj
 
-Test LAMMPS and Python in parallel:
----------------------------------------
-
-To run LAMMPS in parallel, assuming you have installed the
-`PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
-above, create a ``test.py`` file containing these lines:
-
-.. code-block:: python
-
-   import pypar
-   from lammps import lammps
-   lmp = lammps()
-   lmp.file("in.lj")
-   print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
-   pypar.finalize()
+Running LAMMPS and Python in parallel with MPI (mpi4py)
+-------------------------------------------------------
 
 To run LAMMPS in parallel, assuming you have installed the
 `mpi4py <https://mpi4py.readthedocs.io>`_ package as discussed
-above, create a ``test.py`` file containing these lines:
+:ref:`python_install_mpi4py`, create a ``test.py`` file containing these lines:
 
 .. code-block:: python
 
@@ -55,14 +42,61 @@ above, create a ``test.py`` file containing these lines:
    lmp.file("in.lj")
    me = MPI.COMM_WORLD.Get_rank()
    nprocs = MPI.COMM_WORLD.Get_size()
-   print "Proc %d out of %d procs has" % (me,nprocs),lmp
+   print("Proc %d out of %d procs has" % (me,nprocs),lmp)
    MPI.Finalize()
 
-You can run either script in parallel as:
+You can run the script in parallel as:
 
 .. code-block:: bash
 
-   $ mpirun -np 4 python test.py
+   $ mpirun -np 4 python3 test.py
+
+and you should see the same output as if you had typed
+
+.. code-block:: bash
+
+   $ mpirun -np 4 lmp_mpi -in in.lj
+
+Note that without the mpi4py specific lines from ``test.py``
+
+.. code-block::
+
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
+
+running the script with ``mpirun`` on :math:`P` processors would lead to
+:math:`P` independent simulations to run parallel, each with a single
+processor. Therefore, if you use the mpi4py lines and you see multiple LAMMPS
+single processor outputs. that means mpi4py isn't working correctly.
+
+Also note that once you import the mpi4py module, mpi4py initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the mpi4py documentation.  The last line of your Python
+script should be ``MPI.finalize()``, to insure MPI is shut down
+correctly.
+
+Running LAMMPS and Python in parallel with MPI (pypar)
+------------------------------------------------------
+
+To run LAMMPS in parallel, assuming you have installed the
+`PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
+in :ref:`python_install_mpi4py`, create a ``test.py`` file containing these lines:
+
+.. code-block:: python
+
+   import pypar
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
+   print("Proc %d out of %d procs has" % (pypar.rank(),pypar.size()), lmp)
+   pypar.finalize()
+
+You can run the script in parallel as:
+
+.. code-block:: bash
+
+   $ mpirun -np 4 python3 test.py
 
 and you should see the same output as if you had typed
 
@@ -72,7 +106,7 @@ and you should see the same output as if you had typed
 
 Note that if you leave out the 3 lines from ``test.py`` that specify PyPar
 commands you will instantiate and run LAMMPS independently on each of
-the :math:`P` processors specified in the mpirun command.  In this case you
+the :math:`P` processors specified in the ``mpirun`` command.  In this case you
 should get 4 sets of output, each showing that a LAMMPS run was made
 on a single processor, instead of one set of output showing that
 LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
@@ -84,8 +118,8 @@ described in the PyPar documentation.  The last line of your Python
 script should be ``pypar.finalize()``, to insure MPI is shut down
 correctly.
 
-Running Python scripts:
----------------------------
+Running Python scripts
+----------------------
 
 Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:

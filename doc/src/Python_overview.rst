@@ -46,7 +46,7 @@ launch one or more simulations.  In Python lingo, this is called
 
 
 Second, the lower-level Python interface can be used indirectly through
-the provided :code`PyLammps` and :code:`IPyLammps` wrapper classes, written in Python.
+the provided :code:`PyLammps` and :code:`IPyLammps` wrapper classes, written in Python.
 These wrappers try to simplify the usage of LAMMPS in Python by
 providing an object-based interface to common LAMMPS functionality.
 They also reduces the amount of code necessary to parameterize LAMMPS

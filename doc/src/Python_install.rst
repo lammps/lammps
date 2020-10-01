@@ -35,10 +35,10 @@ Both CMake and traditional make build options offer ways to automate these tasks
 
       LAMMPS can be configured and compiled as shared library with CMake by enabling the ``BUILD_SHARED_LIBS`` option.
       The file name of the shared library depends on the platform (Unix/Linux, MacOS, Windows) and the build configuration
-      being used. See :ref:`Build the LAMMPS executable and library <library>` for more details and how the name is
-      determined.
+      being used. See :ref:`Build the LAMMPS executable and library <library>` for more details and how the name of the
+      shared library and executable is determined.
 
-      After compilation, the generated binaries, shared library, Python module,
+      After compilation, the generated executables, shared library, Python module,
       and other files can be installed to a custom location defined by the
       ``CMAKE_INSTALL_PREFIX`` setting.  By default, this is set to the current
       user's ``$HOME/.local`` directory. This leads to an installation to the following locations:
@@ -51,6 +51,8 @@ Both CMake and traditional make build options offer ways to automate these tasks
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS shared library  | * ``$HOME/.local/lib/`` (32bit)                           |                                                             |
       |                        | * ``$HOME/.local/lib64/`` (64bit)                         |                                                             |
+      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | ``$HOME/.local/bin/``                                     |                                                             |
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS potential files | ``$HOME/.local/share/lammps/potentials/``                 |                                                             |
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
@@ -77,7 +79,7 @@ Both CMake and traditional make build options offer ways to automate these tasks
              # compile LAMMPS (in parallel for faster builds)
              cmake --build . --parallel
 
-             # install LAMMPS into myvenv
+             # install LAMMPS into $HOME/.local
              cmake --install .
 
       2. Configure Environment Variables
@@ -100,9 +102,15 @@ Both CMake and traditional make build options offer ways to automate these tasks
          containing its potential files.  This can be set with the ``LAMMPS_POTENTIALS``
          environment variable:
 
-         .. code-block::
+         .. code-block:: bash
 
             export LAMMPS_POTENTIALS=$HOME/.local/share/lammps/potentials
+
+         If you are planning to also use the LAMMPS executable (e.g., ``lmp``), also set the ``PATH`` variable:
+
+         .. code-block:: bash
+
+            export PATH=$HOME/.local/bin:$PATH
 
          To set these environment variables for each new shell, add the above
          ``export`` commands at the end of the ``$HOME/.bashrc`` file.
@@ -144,6 +152,8 @@ Both CMake and traditional make build options offer ways to automate these tasks
       | LAMMPS shared library  | * ``/usr/lib/`` (32bit)                           |                                                             |
       |                        | * ``/usr/lib64/`` (64bit)                         |                                                             |
       +------------------------+---------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | ``/usr/bin/``                                     |                                                             |
+      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS potential files | ``/usr/share/lammps/potentials/``                 |                                                             |
       +------------------------+---------------------------------------------------+-------------------------------------------------------------+
 
@@ -170,10 +180,10 @@ Both CMake and traditional make build options offer ways to automate these tasks
              sudo cmake --install .
 
          Unlike the local user installation, no additional environment
-         variables need to be set.  The system locations such as ``/usr/lib`` and
+         variables need to be set.  The system locations such as ``/usr/lib``, and
          ``/usr/lib64`` are already part of the search path of the dynamic library
-         loader.  Therefore ``LD_LIBRARY_PATH`` or ``DYLD_LIBRARY_PATH`` on MacOS do not
-         have be set.
+         loader.  Therefore ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH`` on MacOS) does not
+         have be set. The same is true for ``PATH``.
 
          All other environment variables will be automatically set when
          launching a new shell.  This is due to files installed in system folders
@@ -235,6 +245,8 @@ Both CMake and traditional make build options offer ways to automate these tasks
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/`` (32bit)                           |                                                             |
       |                        | * ``$VIRTUAL_ENV/lib64/`` (64bit)                         |                                                             |
+      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | ``$VIRTUAL_ENV/bin/``                                     |                                                             |
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS potential files | ``$VIRTUAL_ENV/share/lammps/potentials/``                 |                                                             |
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
@@ -337,7 +349,7 @@ Both CMake and traditional make build options offer ways to automate these tasks
       wrap LAMMPS.  On Linux this is a library file that ends in ``.so``, not
       ``.a``.
 
-      From the src directory, type
+      From the ``src`` directory, type
 
       .. code-block:: bash
 
@@ -375,7 +387,7 @@ Both CMake and traditional make build options offer ways to automate these tasks
 
       If you set the paths to these files as environment variables, you only
       have to do it once.  For the csh or tcsh shells, add something like
-      this to your ~/.cshrc file, one line for each of the two files:
+      this to your ``~/.cshrc`` file, one line for each of the two files:
 
       .. code-block:: csh
 
@@ -414,6 +426,8 @@ Both CMake and traditional make build options offer ways to automate these tasks
       environment variable as described above.
 
 
+.. _python_install_mpi4py:
+
 Extending Python to run in parallel
 ===================================
 
@@ -431,7 +445,7 @@ and as of version 2.0.0 mpi4py allows passing a custom MPI communicator
 to the LAMMPS constructor, which means one can easily run one or more
 LAMMPS instances on subsets of the total MPI ranks.
 
-To install mpi4py (version 3.0.3 as of Sep 2020),
+Install mpi4py via ``pip`` (version 3.0.3 as of Sep 2020):
 
 .. tabs::
 
@@ -458,6 +472,23 @@ To install mpi4py (version 3.0.3 as of Sep 2020),
 
 For more detailed installation instructions, please see the `mpi4py installation <mpi4py_install>`_ page.
 
+.. note::
+
+   To use mpi4py and LAMMPS in parallel from Python, you must
+   insure both are using the same version of MPI.  If you only have one
+   MPI installed on your system, this is not an issue, but it can be if
+   you have multiple MPIs.  Your LAMMPS build is explicit about which MPI
+   it is using, since it is either detected during CMake configuration or
+   in the traditional make build system you  specify the details in your
+   low-level ``src/MAKE/Makefile.foo`` file.
+   mpi4py uses the ``mpicc`` command to find
+   information about the MPI it uses to build against.  And it tries to
+   load "libmpi.so" from the ``LD_LIBRARY_PATH``.  This may or may not find
+   the MPI library that LAMMPS is using.  If you have problems running
+   both mpi4py and LAMMPS together, this is an issue you may need to
+   address, e.g. by moving other MPI installations so that mpi4py finds
+   the right one.
+
 If you have successfully installed mpi4py, you should be able to run
 Python and type
 
@@ -470,7 +501,7 @@ on a simple test script
 
 .. code-block:: bash
 
-   $ mpirun -np 4 python test.py
+   $ mpirun -np 4 python3 test.py
 
 where ``test.py`` contains the lines
 
@@ -478,22 +509,15 @@ where ``test.py`` contains the lines
 
    from mpi4py import MPI
    comm = MPI.COMM_WORLD
-   print "Proc %d out of %d procs" % (comm.Get_rank(),comm.Get_size())
+   print("Proc %d out of %d procs" % (comm.Get_rank(),comm.Get_size()))
 
 and see one line of output for each processor you run on.
 
-.. note::
+.. code-block:: bash
 
-   To use mpi4py and LAMMPS in parallel from Python, you must
-   insure both are using the same version of MPI.  If you only have one
-   MPI installed on your system, this is not an issue, but it can be if
-   you have multiple MPIs.  Your LAMMPS build is explicit about which MPI
-   it is using, since you specify the details in your low-level
-   src/MAKE/Makefile.foo file.  mpi4py uses the "mpicc" command to find
-   information about the MPI it uses to build against.  And it tries to
-   load "libmpi.so" from the ``LD_LIBRARY_PATH``.  This may or may not find
-   the MPI library that LAMMPS is using.  If you have problems running
-   both mpi4py and LAMMPS together, this is an issue you may need to
-   address, e.g. by moving other MPI installations so that mpi4py finds
-   the right one.
-
+   # NOTE: the line order is not deterministic
+   $ mpirun -np 4 python3 test.py
+   Proc 0 out of 4 procs
+   Proc 1 out of 4 procs
+   Proc 2 out of 4 procs
+   Proc 3 out of 4 procs

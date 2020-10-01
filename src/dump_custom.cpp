@@ -234,7 +234,7 @@ DumpCustom::~DumpCustom()
 
   for (int i = 0; i < ncustom; i++) delete [] id_custom[i];
   memory->sfree(id_custom);
-  delete [] flag_custom;
+  memory->sfree(flag_custom);
 
   memory->destroy(choose);
   memory->destroy(dchoose);

@@ -94,6 +94,10 @@ struct PairReaxComputeMulti2{};
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeAngular{};
 
+//LG sorting atoms for processing in PairReaxComputeTorsion
+template<int NEIGHFLAG, int EVFLAG>
+struct PairReaxComputeTorsion_preview{};
+
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeTorsion{};
 
@@ -222,6 +226,10 @@ class PairReaxCKokkos : public PairReaxC {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxComputeTorsion_preview<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
@@ -339,6 +347,10 @@ class PairReaxCKokkos : public PairReaxC {
   int Init_Lookup_Tables();
   void Deallocate_Lookup_Tables();
   void LR_vdW_Coulomb( int i, int j, double r_ij, LR_data *lr );
+
+  int* counters;
+  int *counters_jj_min, *counters_jj_max,*counters_kk_min,*counters_kk_max;
+  size_t counters_length;
 
   typedef Kokkos::DualView<int*,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType> k_params_sing;

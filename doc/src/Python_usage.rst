@@ -356,9 +356,10 @@ against invalid accesses.
 Retrieving or setting properties of LAMMPS objects
 **************************************************
 
-* :py:meth:`extract_compute() <lammps.lammps.extract_compute()>`
-* :py:meth:`extract_fix() <lammps.lammps.extract_fix()>`
-* :py:meth:`extract_variable() <lammps.lammps.extract_variable()>`
+* :py:meth:`extract_compute() <lammps.lammps.extract_compute()>`: extract value(s) from a compute
+* :py:meth:`extract_fix() <lammps.lammps.extract_fix()>`: extract value(s) from a fix
+* :py:meth:`extract_variable() <lammps.lammps.extract_variable()>`: extract value(s) from a variable
+* :py:meth:`set_variable() <lammps.lammps.set_variable()>`: set existing named string-style variable to value
 
 .. code-block:: Python
 
@@ -381,14 +382,6 @@ Retrieving or setting properties of LAMMPS objects
 
    flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
 
-For extract_atom(), a pointer to internal LAMMPS atom-based data is
-returned, which you can use via normal Python subscripting.  See the
-extract() method in the src/atom.cpp file for a list of valid names.
-Again, new names could easily be added if the property you want is not
-listed.  A pointer to a vector of doubles or integers, or a pointer to
-an array of doubles (double \*\*) or integers (int \*\*) is returned.  You
-need to specify the appropriate data type via the type argument.
-
 For extract_compute() and extract_fix(), the global, per-atom, or
 local data calculated by the compute or fix can be accessed.  What is
 returned depends on whether the compute or fix calculates a scalar or
@@ -405,7 +398,8 @@ data types.  See the doc pages for individual :doc:`computes <compute>`
 and :doc:`fixes <fix>` for a description of what they calculate and
 store.
 
-For extract_variable(), an :doc:`equal-style or atom-style variable <variable>` is evaluated and its result returned.
+For extract_variable(), an :doc:`equal-style or atom-style variable <variable>`
+is evaluated and its result returned.
 
 For equal-style variables a single double value is returned and the
 group argument is ignored.  For atom-style variables, a vector of
@@ -464,10 +458,10 @@ like this:
 
 .. code-block:: Python
 
-   from ctypes import \*
+   from ctypes import *
    natoms = lmp.get_natoms()
-   n3 = 3\*natoms
-   x = (n3\*c_double)()
+   n3 = 3*natoms
+   x = (n3*c_double)()
    x[0] = x coord of atom with ID 1
    x[1] = y coord of atom with ID 1
    x[2] = z coord of atom with ID 1

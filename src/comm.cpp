@@ -76,6 +76,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   grid2proc = nullptr;
   xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
+  multi_bytype = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -326,6 +327,11 @@ void Comm::modify_params(int narg, char **arg)
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i] = cut;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"cutoff/bytype") == 0) {
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use cutoff/bytype in mode multi only");
+      multi_bytype = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;

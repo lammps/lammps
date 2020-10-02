@@ -11,27 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NBIN_CLASS
+#ifdef NSTENCIL_CLASS
 
-NBinStyle(standard,
-          NBinStandard,
-          NB_STANDARD)
+NStencilStyle(full/bytype/3d,
+              NStencilFullBytype3d,
+              NS_FULL | NS_BYTYPE | NS_3D |
+              NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI)
 
 #else
 
-#ifndef LMP_NBIN_STANDARD_H
-#define LMP_NBIN_STANDARD_H
+#ifndef LMP_NSTENCIL_FULL_BYTYPE_3D_H
+#define LMP_NSTENCIL_FULL_BYTYPE_3D_H
 
-#include "nbin.h"
+#include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NBinStandard : public NBin {
+class NStencilFullBytype3d : public NStencil {
  public:
-  NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
-  void setup_bins(int);
-  void bin_atoms();
+  NStencilFullBytype3d(class LAMMPS *);
+  ~NStencilFullBytype3d();
+  void create();
+  void create_setup();
+
+private:
+  int ** maxstencil_type;
+
+  void copy_bin_info_bytype(int);
+  int  copy_neigh_info_bytype(int);
+  void create_newtoff(int, int, double);
+
 };
 
 }
@@ -40,17 +49,5 @@ class NBinStandard : public NBin {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
 
 */

@@ -11,27 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NBIN_CLASS
+#ifdef NPAIR_CLASS
 
-NBinStyle(standard,
-          NBinStandard,
-          NB_STANDARD)
+NPairStyle(half/size/bytype/newtoff,
+           NPairHalfSizeBytypeNewtoff,
+           NP_HALF | NP_SIZE | NP_BYTYPE | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else
 
-#ifndef LMP_NBIN_STANDARD_H
-#define LMP_NBIN_STANDARD_H
+#ifndef LMP_NPAIR_HALF_SIZE_BYTYPE_NEWTOFF_H
+#define LMP_NPAIR_HALF_SIZE_BYTYPE_NEWTOFF_H
 
-#include "nbin.h"
+#include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NBinStandard : public NBin {
+class NPairHalfSizeBytypeNewtoff : public NPair {
  public:
-  NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
-  void setup_bins(int);
-  void bin_atoms();
+  NPairHalfSizeBytypeNewtoff(class LAMMPS *);
+  ~NPairHalfSizeBytypeNewtoff() {}
+  void build(class NeighList *);
 };
 
 }
@@ -40,17 +39,5 @@ class NBinStandard : public NBin {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
 
 */

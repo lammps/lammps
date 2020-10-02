@@ -161,6 +161,7 @@ class Comm : protected Pointers {
                          int (*)(int, char *, int &, int *&, char *&, void *),
                          int, char *&, int, void *, int);
   void rendezvous_stats(int, int, int, int, int, int, bigint);
+  int multi_bytype;                 // 1 if multi cutoff is intra-type cutoff
 
  public:
   enum{MULTIPLE};

@@ -13,25 +13,37 @@
 
 #ifdef NBIN_CLASS
 
-NBinStyle(standard,
-          NBinStandard,
-          NB_STANDARD)
+NBinStyle(bytype,
+          NBinBytype,
+          NB_BYTYPE)
 
 #else
 
-#ifndef LMP_NBIN_STANDARD_H
-#define LMP_NBIN_STANDARD_H
+#ifndef LMP_NBIN_BYTYPE_H
+#define LMP_NBIN_BYTYPE_H
 
 #include "nbin.h"
 
 namespace LAMMPS_NS {
 
-class NBinStandard : public NBin {
+class NBinBytype : public NBin {
  public:
-  NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
+
+  NBinBytype(class LAMMPS *);
+  ~NBinBytype();
+  void bin_atoms_setup(int);
   void setup_bins(int);
-  void bin_atoms();
+  void bin_atoms();  
+
+  int coord2bin(double *x, int itype);
+  bigint memory_usage();
+
+ private:
+  int maxtypes;
+  int * maxbins_type;
+
+  void setup_types();
+  int itype_min();
 };
 
 }
@@ -40,17 +52,5 @@ class NBinStandard : public NBin {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
 
 */

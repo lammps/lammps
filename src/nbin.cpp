@@ -150,6 +150,15 @@ int NBin::coord2bin(double *x)
 
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
+/* ----------------------------------------------------------------------
+   to be overridden by NBinType
+   ------------------------------------------------------------------------- */
+
+int NBin::coord2bin(double * x, int itype)
+{
+  error->all(FLERR,"coord2bin(x, itype) not available.\n");
+  return -1;
+}
 
 /* ---------------------------------------------------------------------- */
 

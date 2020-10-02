@@ -11,27 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NBIN_CLASS
+#ifdef NSTENCIL_CLASS
 
-NBinStyle(standard,
-          NBinStandard,
-          NB_STANDARD)
+NStencilStyle(half/bytype/2d/newton,
+              NStencilHalfBytype2dNewton,
+              NS_HALF | NS_BYTYPE | NS_2D | NS_NEWTON | NS_ORTHO)
 
 #else
 
-#ifndef LMP_NBIN_STANDARD_H
-#define LMP_NBIN_STANDARD_H
+#ifndef LMP_NSTENCIL_HALF_BYTYPE_2D_NEWTON_H
+#define LMP_NSTENCIL_HALF_BYTYPE_2D_NEWTON_H
 
-#include "nbin.h"
+#include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NBinStandard : public NBin {
+class NStencilHalfBytype2dNewton : public NStencil {
  public:
-  NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
-  void setup_bins(int);
-  void bin_atoms();
+  NStencilHalfBytype2dNewton(class LAMMPS *);
+  ~NStencilHalfBytype2dNewton();
+  void create_setup();
+  void create();
+
+ private:
+  int ** maxstencil_type;
+
+  void copy_bin_info_bytype(int);
+  int  copy_neigh_info_bytype(int);
+  void create_newton(int, int, double);
+  void create_newtoff(int, int, double);
 };
 
 }
@@ -40,17 +48,5 @@ class NBinStandard : public NBin {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
 
 */

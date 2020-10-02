@@ -34,6 +34,10 @@ class NStencil : protected Pointers {
 
   double cutoff_custom;            // cutoff set by requestor
 
+  // BYTYPE stencils
+  int ** nstencil_type;            // No. of bins for stencil[itype][jtype]
+  int *** stencil_type;            // Stencil for [itype][jtype]
+
   NStencil(class LAMMPS *);
   virtual ~NStencil();
   void post_constructor(class NeighRequest *);

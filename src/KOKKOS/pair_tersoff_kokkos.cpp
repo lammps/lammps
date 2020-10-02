@@ -320,6 +320,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
 
 /* ---------------------------------------------------------------------- */
 
+
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -348,6 +349,9 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
   F_FLOAT f_x = 0.0;
   F_FLOAT f_y = 0.0;
   F_FLOAT f_z = 0.0;
+
+
+#ifndef HIP_OPT_COMBINED_JJ_LLOPS_TERSOFF
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i,jj);
@@ -393,7 +397,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
       if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,frep,delx,dely,delz);
     }
   }
-
+#endif
   // attractive: bond order
 
   for (int jj = 0; jj < jnum; jj++) {
@@ -486,6 +490,46 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
         if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj,fk,delrij,delrik);
       }
     }
+
+    #ifdef HIP_OPT_COMBINED_JJ_LLOPS_TERSOFF
+
+    const tagint jtag = tag(j);
+    bool CONTINUE_FLAG=false;
+
+    if (itag > jtag) {
+      if ((itag+jtag) % 2 == 0) CONTINUE_FLAG=true;
+    } else if (itag < jtag) {
+      if ((itag+jtag) % 2 == 1) CONTINUE_FLAG=true;
+    } else {
+      if (x(j,2)  < ztmp) CONTINUE_FLAG=true;
+      if (x(j,2) == ztmp && x(j,1)  < ytmp) CONTINUE_FLAG=true;
+      if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) CONTINUE_FLAG=true;
+    }
+    if (CONTINUE_FLAG != true){
+       const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,rij);
+       const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,rij);
+       const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * rij);
+       const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp *
+                          (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1) / rij;
+       const F_FLOAT eng = tmp_fce * paramskk(itype,jtype,jtype).biga * tmp_exp;
+
+       f_x += delx1*frep;
+       fj_x -= delx1*frep;
+
+       f_y += dely1*frep;
+       fj_y -= dely1*frep;
+
+       f_z += delz1*frep;
+       fj_z -= delz1*frep;
+
+       if (EVFLAG) {
+          if (eflag) ev.evdwl += eng;
+          if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,frep,delx1,dely1,delz1);
+       }
+    }
+
+    #endif
+
     a_f(j,0) += fj_x;
     a_f(j,1) += fj_y;
     a_f(j,2) += fj_z;

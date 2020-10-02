@@ -12,6 +12,7 @@ used together.
    Python_run
    Python_usage
    Python_call
+   Python_config
    Python_module
    Python_examples
    Python_error

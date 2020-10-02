@@ -11,11 +11,10 @@ jobs:
     continue-on-error: true
     runs-on: ubuntu-latest
     container: "lammps/buildenv:fedora32_mingw"
+    strategy:
+      matrix:
+        target: ['html', 'pdf', 'spelling']
     steps:
       - uses: actions/checkout@master
-      - name: Generate HTML
-        run: make -C doc -j 2 html
-      - name: Generate PDF
-        run: make -C doc -j 2 pdf
-      - name: Check Spelling
-        run: make -C doc -j 2 spelling
+      - name: Generate ${{ matrix.target }}
+        run: make -C doc ${{ matrix.target }}

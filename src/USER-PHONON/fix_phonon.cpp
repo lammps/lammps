@@ -23,7 +23,7 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "fix_phonon.h"
@@ -68,13 +68,13 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (narg < 8) error->all(FLERR,"Illegal fix phonon command: number of arguments < 8");
 
-  nevery = force->inumeric(FLERR, arg[3]);   // Calculate this fix every n steps!
+  nevery = utils::inumeric(FLERR, arg[3],false,lmp);   // Calculate this fix every n steps!
   if (nevery < 1) error->all(FLERR,"Illegal fix phonon command");
 
-  nfreq  = force->inumeric(FLERR, arg[4]);   // frequency to output result
+  nfreq  = utils::inumeric(FLERR, arg[4],false,lmp);   // frequency to output result
   if (nfreq < 1) error->all(FLERR,"Illegal fix phonon command");
 
-  waitsteps = force->bnumeric(FLERR,arg[5]); // Wait this many timesteps before actually measuring
+  waitsteps = utils::bnumeric(FLERR,arg[5],false,lmp); // Wait this many timesteps before actually measuring
   if (waitsteps < 0) error->all(FLERR,"Illegal fix phonon command: waitsteps < 0 !");
 
   int n = strlen(arg[6]) + 1; // map file
@@ -95,12 +95,12 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   while (iarg < narg){
     if (strcmp(arg[iarg],"sysdim") == 0){
       if (++iarg >= narg) error->all(FLERR,"Illegal fix phonon command: incomplete command line options.");
-      sdim = force->inumeric(FLERR, arg[iarg]);
+      sdim = utils::inumeric(FLERR, arg[iarg],false,lmp);
       if (sdim < 1) error->all(FLERR,"Illegal fix phonon command: sysdim should not be less than 1.");
 
     } else if (strcmp(arg[iarg],"nasr") == 0){
       if (++iarg >= narg) error->all(FLERR,"Illegal fix phonon command: incomplete command line options.");
-      nasr = force->inumeric(FLERR, arg[iarg]);
+      nasr = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
     } else {
       error->all(FLERR,"Illegal fix phonon command: unknown option read!");
@@ -162,7 +162,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
   memory->create(fft_data, MAX(1,mynq)*2, "fix_phonon:fft_data");
 
-  // allocate variables; MAX(1,... is used because NULL buffer will result in error for MPI
+  // allocate variables; MAX(1,... is used because a null buffer will result in error for MPI
   memory->create(RIloc,ngroup,(sysdim+1),"fix_phonon:RIloc");
   memory->create(RIall,ngroup,(sysdim+1),"fix_phonon:RIall");
   memory->create(Rsort,ngroup, sysdim, "fix_phonon:Rsort");
@@ -184,7 +184,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   // output some information on the system to log file
   if (me == 0){
     flog = fopen(logfile, "w");
-    if (flog == NULL) {
+    if (flog == nullptr) {
       char str[MAXLINE];
       sprintf(str,"Can not open output file %s",logfile);
       error->one(FLERR,str);
@@ -563,34 +563,34 @@ void FixPhonon::readmap()
   // read from map file for others
   char line[MAXLINE];
   FILE *fp = fopen(mapfile, "r");
-  if (fp == NULL){
+  if (fp == nullptr){
     sprintf(line,"Cannot open input map file %s", mapfile);
     error->all(FLERR,line);
   }
 
-  if (fgets(line,MAXLINE,fp) == NULL)
+  if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading header of mapping file!");
-  nx     = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
-  ny     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-  nz     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-  nucell = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
+  nx     = utils::inumeric(FLERR, strtok(line, " \n\t\r\f"),false,lmp);
+  ny     = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+  nz     = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+  nucell = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
   ntotal = nx*ny*nz;
   if (ntotal*nucell != ngroup)
     error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
 
   // second line of mapfile is comment
-  if (fgets(line,MAXLINE,fp) == NULL)
+  if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading comment of mapping file!");
 
   int ix, iy, iz, iu;
   // the remaining lines carry the mapping info
   for (int i = 0; i < ngroup; ++i){
-    if (fgets(line,MAXLINE,fp) == NULL) {info = 1; break;}
-    ix   = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
-    iy   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    iz   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    iu   = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
-    itag = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
+    if (fgets(line,MAXLINE,fp) == nullptr) {info = 1; break;}
+    ix   = utils::inumeric(FLERR, strtok(line, " \n\t\r\f"),false,lmp);
+    iy   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+    iz   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+    iu   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+    itag = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
 
     // check if index is in correct range
     if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||

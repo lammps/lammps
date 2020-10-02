@@ -18,22 +18,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_local_density.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
 #include "citeme.h"
-#include "utils.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -67,28 +62,28 @@ PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
   // stuff read from tabulated file
   nLD = 0;
   nrho = 0;
-  rho_min = NULL;
-  rho_max = NULL;
-  a = NULL;
-  b = NULL;
-  c0 = NULL;
-  c2 = NULL;
-  c4 = NULL;
-  c6 = NULL;
-  uppercut = NULL;
-  lowercut = NULL;
-  uppercutsq = NULL;
-  lowercutsq = NULL;
-  frho = NULL;
-  rho = NULL;
+  rho_min = nullptr;
+  rho_max = nullptr;
+  a = nullptr;
+  b = nullptr;
+  c0 = nullptr;
+  c2 = nullptr;
+  c4 = nullptr;
+  c6 = nullptr;
+  uppercut = nullptr;
+  lowercut = nullptr;
+  uppercutsq = nullptr;
+  lowercutsq = nullptr;
+  frho = nullptr;
+  rho = nullptr;
 
   // splined arrays
-  frho_spline = NULL;
+  frho_spline = nullptr;
 
   // per-atom arrays
   nmax = 0;
-  fp = NULL;
-  localrho = NULL;
+  fp = nullptr;
+  localrho = nullptr;
 
   // set comm size needed by this pair
   comm_forward = 1;
@@ -672,7 +667,7 @@ void PairLocalDensity::parse_file(char *filename) {
 
   if (me == 0) {
     fptr = fopen(filename, "r");
-    if (fptr == NULL) {
+    if (fptr == nullptr) {
       char str[128];
       sprintf(str,"Cannot open Local Density potential file %s",filename);
       error->one(FLERR,str);
@@ -729,23 +724,23 @@ void PairLocalDensity::parse_file(char *filename) {
     for (k = 0; k < nLD; k++) {
 
         // parse upper and lower cut values
-        if (fgets(line,MAXLINE,fptr)==NULL) break;
+        if (fgets(line,MAXLINE,fptr)==nullptr) break;
         sscanf(line, "%lf %lf", &lowercut[k], &uppercut[k]);
 
         // parse and broadcast central atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         char *tmp = strtok(line, " /t/n/r/f");
-        while (tmp != NULL) {
+        while (tmp != nullptr) {
             a[k][atoi(tmp)] = 1;
-            tmp = strtok(NULL, " /t/n/r/f");
+            tmp = strtok(nullptr, " /t/n/r/f");
         }
 
         // parse neighbor atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         tmp = strtok(line, " /t/n/r/f");
-        while (tmp != NULL) {
+        while (tmp != nullptr) {
             b[k][atoi(tmp)] = 1;
-            tmp = strtok(NULL, " /t/n/r/f");
+            tmp = strtok(nullptr, " /t/n/r/f");
         }
 
         // parse min, max and delta rho values

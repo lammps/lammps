@@ -30,7 +30,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,10 +43,10 @@ enum{DIAMETER,CHARGE};
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
+nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   dynamic_group_allow = 1;
@@ -95,12 +96,12 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
       n = strlen(arg[iarg+2]) + 1;
       adapt[nadapt].pparam = new char[n];
-      adapt[nadapt].pair = NULL;
+      adapt[nadapt].pair = nullptr;
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
-                    adapt[nadapt].jlo,adapt[nadapt].jhi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
+                    adapt[nadapt].jlo,adapt[nadapt].jhi,error);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -108,6 +109,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
+
     } else if (strcmp(arg[iarg],"bond") == 0 ){
       if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
       adapt[nadapt].which = BOND;
@@ -116,10 +118,10 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       strcpy(adapt[nadapt].bstyle,arg[iarg+1]);
       n = strlen(arg[iarg+2]) + 1;
       adapt[nadapt].bparam = new char[n];
-      adapt[nadapt].bond = NULL;
+      adapt[nadapt].bond = nullptr;
       strcpy(adapt[nadapt].bparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->nbondtypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         n = strlen(&arg[iarg+4][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -127,6 +129,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
+
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
@@ -137,10 +140,12 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
-      if (strcmp(arg[iarg+1],"diameter") == 0 || strcmp(arg[iarg+1],"diameter/disc") == 0) {
+      if (strcmp(arg[iarg+1],"diameter") == 0 ||
+          strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
         discflag = 0;
@@ -163,6 +168,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 
   resetflag = 0;
   scaleflag = 0;
+  massflag = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
@@ -177,8 +183,21 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal fix adapt command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      if (iarg+2 > narg)error->all(FLERR,"Illegal fix adapt command");
+      if (strcmp(arg[iarg+1],"no") == 0) massflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) massflag = 1;
+      else error->all(FLERR,"Illegal fix adapt command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt command");
   }
+
+  // if scaleflag set with diameter or charge adaptation,
+  // then previous step scale factors are written to restart file
+  // initialize them here in case one is used and other is never defined
+
+  if (scaleflag && (diamflag || chgflag)) restart_global = 1;
+  previous_diam_scale = previous_chg_scale = 1.0;
 
   // allocate pair style arrays
 
@@ -238,28 +257,21 @@ int FixAdapt::setmask()
 
 void FixAdapt::post_constructor()
 {
+  if (!resetflag) return;
   if (!diamflag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
 
-  id_fix_diam = NULL;
-  id_fix_chg = NULL;
-
-  char **newarg = new char*[6];
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "1";
+  id_fix_diam = nullptr;
+  id_fix_chg = nullptr;
 
   if (diamflag && atom->radius_flag) {
-    int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
-    id_fix_diam = new char[n];
-    strcpy(id_fix_diam,id);
-    strcat(id_fix_diam,"_FIX_STORE_DIAM");
-    newarg[0] = id_fix_diam;
-    modify->add_fix(6,newarg);
+    std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
+    id_fix_diam = new char[fixcmd.size()+1];
+    strcpy(id_fix_diam,fixcmd.c_str());
+    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
+    modify->add_fix(fixcmd);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
@@ -277,12 +289,11 @@ void FixAdapt::post_constructor()
   }
 
   if (chgflag && atom->q_flag) {
-    int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
-    id_fix_chg = new char[n];
-    strcpy(id_fix_chg,id);
-    strcat(id_fix_chg,"_FIX_STORE_CHG");
-    newarg[0] = id_fix_chg;
-    modify->add_fix(6,newarg);
+    std::string fixcmd = id + std::string("_FIX_STORE_CHG");
+    id_fix_chg = new char[fixcmd.size()+1];
+    strcpy(id_fix_chg,fixcmd.c_str());
+    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
+    modify->add_fix(fixcmd);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
@@ -298,8 +309,6 @@ void FixAdapt::post_constructor()
       }
     }
   }
-
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,7 +340,7 @@ void FixAdapt::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
-      ad->pair = NULL;
+      ad->pair = nullptr;
 
       // if ad->pstyle has trailing sub-style annotation ":N",
       //   strip it for pstyle arg to pair_match() and set nsub = N
@@ -345,7 +354,7 @@ void FixAdapt::init()
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
         *cptr = '\0';
-        nsub = force->inumeric(FLERR,cptr+1);
+        nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
       if (lmp->suffix_enable) {
@@ -357,12 +366,12 @@ void FixAdapt::init()
         ad->pair = force->pair_match(psuffix,1,nsub);
         delete[] psuffix;
       }
-      if (ad->pair == NULL) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == NULL)
+      if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
+      if (ad->pair == nullptr)
         error->all(FLERR,"Fix adapt pair style does not exist");
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt pair style param not supported");
 
       // for pair styles only parameters that are 2-d arrays in atom types or
@@ -387,7 +396,7 @@ void FixAdapt::init()
 
       delete [] pstyle;
     } else if (ad->which == BOND){
-      ad->bond = NULL;
+      ad->bond = nullptr;
       anybond = 1;
 
       int n = strlen(ad->bstyle) + 1;
@@ -403,13 +412,13 @@ void FixAdapt::init()
         ad->bond = force->bond_match(bsuffix);
         delete [] bsuffix;
       }
-      if (ad->bond == NULL) ad->bond = force->bond_match(bstyle);
-      if (ad->bond == NULL )
+      if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle);
+      if (ad->bond == nullptr )
         error->all(FLERR,"Fix adapt bond style does not exist");
 
       void *ptr = ad->bond->extract(ad->bparam,ad->bdim);
 
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt bond style param not supported");
 
       // for bond styles, use a vector
@@ -422,7 +431,7 @@ void FixAdapt::init()
       delete [] bstyle;
 
     } else if (ad->which == KSPACE) {
-      if (force->kspace == NULL)
+      if (force->kspace == nullptr)
         error->all(FLERR,"Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
@@ -432,15 +441,19 @@ void FixAdapt::init()
           error->all(FLERR,"Fix adapt requires atom attribute diameter");
         if (!atom->rmass_flag)
           error->all(FLERR,"Fix adapt requires atom attribute mass");
-        if (discflag && domain->dimension!=2)
+        if (discflag && domain->dimension != 2)
           error->all(FLERR,"Fix adapt requires 2d simulation");
+        if (!restart_reset) previous_diam_scale = 1.0;
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
           error->all(FLERR,"Fix adapt requires atom attribute charge");
+        if (!restart_reset) previous_chg_scale = 1.0;
       }
     }
   }
+
+  if (restart_reset) restart_reset = 0;
 
   // make copy of original pair/bond array values
 
@@ -570,48 +583,54 @@ void FixAdapt::change_settings()
 
     } else if (ad->which == ATOM) {
 
-      // reset radius from diameter
-      // also scale rmass to new value
+      // reset radius to new value, for both owned and ghost atoms
+      // also reset rmass to new value assuming density remains constant
+      // for scaleflag, previous_diam_scale is the scale factor on previous step
 
       if (ad->aparam == DIAMETER) {
-        double density;
-
-        // Get initial diameter if `scale` keyword is used
-
-        double *vec = fix_diam->vstore;
+        double scale;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        for (i = 0; i < nall; i++)
+        if (scaleflag) scale = value / previous_diam_scale;
+
+        for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {
-            if (discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-            else density = rmass[i] / (4.0*MY_PI/3.0 *
-                                       radius[i]*radius[i]*radius[i]);
-            if (scaleflag) radius[i] = value * vec[i];
+            if (massflag) {
+              if (!scaleflag) scale = 0.5*value / radius[i];
+              if (discflag) rmass[i] *= scale*scale;
+              else rmass[i] *= scale*scale*scale;
+            }
+            if (scaleflag) radius[i] *= scale;
             else radius[i] = 0.5*value;
-            if (discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
-            else rmass[i] = 4.0*MY_PI/3.0 *
-                            radius[i]*radius[i]*radius[i] * density;
           }
+        }
+
+        if (scaleflag) previous_diam_scale = value;
+
+      // reset charge to new value, for both owned and ghost atoms
+      // for scaleflag, previous_chg_scale is the scale factor on previous step
 
       } else if (ad->aparam == CHARGE) {
-
-        // Get initial charge if `scale` keyword is used
-
-        double *vec = fix_chg->vstore;
+        double scale;
         double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        for (i = 0; i < nall; i++)
+        if (scaleflag) scale = value / previous_chg_scale;
+
+        for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {
-            if (scaleflag) q[i] = value * vec[i];
+            if (scaleflag) q[i] *= scale;
             else q[i] = value;
           }
+        }
+
+        if (scaleflag) previous_chg_scale = value;
       }
     }
   }
@@ -672,7 +691,7 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ATOM) {
       if (diamflag) {
-        double density;
+        double scale;
 
         double *vec = fix_diam->vstore;
         double *radius = atom->radius;
@@ -680,15 +699,16 @@ void FixAdapt::restore_settings()
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
 
+        if (scaleflag) scale = previous_diam_scale;
+
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-            if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-            else density = rmass[i] / (4.0*MY_PI/3.0 *
-                                       radius[i]*radius[i]*radius[i]);
+            if (massflag) {
+              if (!scaleflag) scale = vec[i] / radius[i];
+              if (discflag) rmass[i] *= scale*scale;
+              else rmass[i] *= scale*scale*scale;
+            }
             radius[i] = vec[i];
-            if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
-            else rmass[i] = 4.0*MY_PI/3.0 *
-                            radius[i]*radius[i]*radius[i] * density;
           }
       }
       if (chgflag) {
@@ -716,4 +736,29 @@ void FixAdapt::set_arrays(int i)
 {
   if (fix_diam) fix_diam->vstore[i] = atom->radius[i];
   if (fix_chg) fix_chg->vstore[i] = atom->q[i];
+}
+
+/* ----------------------------------------------------------------------
+   write scale factors for diameter and charge to restart file
+------------------------------------------------------------------------- */
+
+void FixAdapt::write_restart(FILE *fp)
+{
+  int size = 2*sizeof(double);
+
+  fwrite(&size,sizeof(int),1,fp);
+  fwrite(&previous_diam_scale,sizeof(double),1,fp);
+  fwrite(&previous_chg_scale,sizeof(double),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   use scale factors from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixAdapt::restart(char *buf)
+{
+  double *dbuf = (double *) buf;
+
+  previous_diam_scale = dbuf[0];
+  previous_chg_scale = dbuf[1];
 }

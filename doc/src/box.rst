@@ -38,7 +38,7 @@ skewed the triclinic box is; see the :doc:`Howto triclinic <Howto_triclinic>` do
 boxes in LAMMPS.
 
 LAMMPS normally requires that no tilt factor can skew the box more
-than half the distance of the parallel box length, which is the 1st
+than half the distance of the parallel box length, which is the first
 dimension in the tilt factor (x for xz).  If *tilt* is set to
 *small*\ , which is the default, then an error will be
 generated if a box is created which exceeds this limit.  If *tilt*
@@ -58,7 +58,11 @@ This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
 :doc:`read_restart <read_restart>` command.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_molecular_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -30,9 +30,9 @@ using namespace LAMMPS_NS;
 
 AtomVecMolecularKokkos::AtomVecMolecularKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
@@ -121,7 +121,7 @@ void AtomVecMolecularKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom4");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -133,7 +133,7 @@ void AtomVecMolecularKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecMolecularKokkos::grow_reset()
+void AtomVecMolecularKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -1987,9 +1987,9 @@ int AtomVecMolecularKokkos::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecMolecularKokkos::memory_usage()
+double AtomVecMolecularKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);

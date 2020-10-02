@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -34,6 +34,9 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;
+  nbondlist = nullptr;
+  maxbond = nullptr;
+  bondlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,6 +108,18 @@ void BondHybrid::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
+  // need to clear per-thread storage once here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
+
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];
     neighbor->bondlist = bondlist[m];
@@ -151,7 +166,7 @@ void BondHybrid::allocate()
   maxbond = new int[nstyles];
   bondlist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maxbond[m] = 0;
-  for (int m = 0; m < nstyles; m++) bondlist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) bondlist[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -253,7 +268,7 @@ void BondHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   // 2nd arg = bond sub-style name
   // allow for "none" as valid sub-style name
@@ -336,7 +351,7 @@ void BondHybrid::write_restart(FILE *fp)
 void BondHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Bond*[nstyles];
   keywords = new char*[nstyles];
@@ -345,10 +360,10 @@ void BondHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_bond(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);

@@ -18,7 +18,7 @@
 #include "pair_colloid_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -95,10 +95,21 @@ void PairColloidGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = colloid_gpu_compute_n(neighbor->ago, inum, nall,
-                                       atom->x, atom->type, domain->sublo,
-                                       domain->subhi, atom->tag, atom->nspecial,
+                                       atom->x, atom->type, sublo,
+                                       subhi, atom->tag, atom->nspecial,
                                        atom->special, eflag, vflag, eflag_atom,
                                        vflag_atom, host_start,
                                        &ilist, &numneigh, cpu_time, success);
@@ -147,7 +158,7 @@ void PairColloidGPU::init_style()
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
-  int **_form = NULL;
+  int **_form = nullptr;
   int n=atom->ntypes;
   memory->create(_form,n+1,n+1,"colloid/gpu:_form");
   for (int i = 1; i <= n; i++) {

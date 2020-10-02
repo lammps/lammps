@@ -18,7 +18,7 @@
 #include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -77,7 +77,7 @@ PairVashishtaGPU::PairVashishtaGPU(LAMMPS *lmp) : PairVashishta(lmp), gpu_mode(G
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -104,10 +104,21 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = vashishta_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
+                                   atom->x, atom->type, sublo,
+                                   subhi, atom->tag, atom->nspecial,
                                    atom->special, eflag, vflag, eflag_atom,
                                    vflag_atom, host_start,
                                    &ilist, &numneigh, cpu_time, success);
@@ -158,11 +169,11 @@ void PairVashishtaGPU::init_style()
   double *bigw, *c0, *costheta, *bigb;
   double *big2b, *bigc;
 
-  cutsq = r0 = gamma = eta = NULL;
-  lam1inv = lam4inv = zizj = mbigd = NULL;
-  dvrc = big6w = heta = bigh = NULL;
-  bigw = c0 = costheta = bigb = NULL;
-  big2b = bigc = NULL;
+  cutsq = r0 = gamma = eta = nullptr;
+  lam1inv = lam4inv = zizj = mbigd = nullptr;
+  dvrc = big6w = heta = bigh = nullptr;
+  bigw = c0 = costheta = bigb = nullptr;
+  big2b = bigc = nullptr;
 
   memory->create(cutsq,nparams,"pair:cutsq");
   memory->create(r0,nparams,"pair:r0");

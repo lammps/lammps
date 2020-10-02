@@ -217,5 +217,5 @@ void *PairCoulMSM::extract(const char *str, int &dim)
     dim = 2;
     return (void *) scale;
   }
-  return NULL;
+  return nullptr;
 }

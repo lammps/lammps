@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
 
-#include <Kokkos_Cuda.hpp>
+#include <type_traits>
 #include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
 
 namespace Kokkos {
@@ -81,18 +81,19 @@ struct in_place_shfl_op {
     union conv_type {
       Scalar orig;
       shfl_type conv;
+      // This should be fine, members get explicitly reset, which changes the
+      // active member
+      KOKKOS_FUNCTION conv_type() { conv = 0; }
     };
     conv_type tmp_in;
     tmp_in.orig = in;
-    conv_type tmp_out;
-    tmp_out.conv = tmp_in.conv;
+    shfl_type tmp_out;
+    tmp_out = reinterpret_cast<shfl_type&>(tmp_in.orig);
     conv_type res;
     //------------------------------------------------
-    res.conv = self().do_shfl_op(
-        mask, reinterpret_cast<shfl_type const&>(tmp_out.conv), lane_or_delta,
-        width);
+    res.conv = self().do_shfl_op(mask, tmp_out, lane_or_delta, width);
     //------------------------------------------------
-    out = res.orig;
+    out = reinterpret_cast<Scalar&>(res.conv);
   }
 
 // TODO: figure out why 64-bit shfl fails in Clang

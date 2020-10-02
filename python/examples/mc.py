@@ -27,7 +27,7 @@ if len(argv) != 2:
 
 infile = sys.argv[1]
 
-from lammps import lammps
+from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL
 lmp = lammps()
 
 # run infile one line at a time
@@ -42,14 +42,14 @@ lmp.command("variable e equal pe")
 
 lmp.command("run 0")
 
-natoms = lmp.extract_global("natoms",0)
-emin = lmp.extract_compute("thermo_pe",0,0) / natoms
+natoms = lmp.extract_global("natoms")
+emin = lmp.extract_compute("thermo_pe",LMP_STYLE_GLOBAL,LAMMPS_INT) / natoms
 lmp.command("variable emin equal $e")
 
 # disorder the system
 # estart = initial energy
 
-x = lmp.extract_atom("x",3)
+x = lmp.extract_atom("x")
 
 for i in range(natoms):
   x[i][0] += deltaperturb * (2*random.random()-1)
@@ -58,10 +58,10 @@ for i in range(natoms):
 lmp.command("variable elast equal $e")
 lmp.command("thermo_style custom step v_emin v_elast pe")
 lmp.command("run 0")
-x = lmp.extract_atom("x",3)
+x = lmp.extract_atom("x")
 lmp.command("variable elast equal $e")
   
-estart = lmp.extract_compute("thermo_pe",0,0) / natoms
+estart = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
 
 # loop over Monte Carlo moves
 # extract x after every run, in case reneighboring changed ptr in LAMMPS
@@ -78,8 +78,8 @@ for i in range(nloop):
   x[iatom][1] += deltamove * (2*random.random()-1)
 
   lmp.command("run 1 pre no post no")
-  x = lmp.extract_atom("x",3)
-  e = lmp.extract_compute("thermo_pe",0,0) / natoms
+  x = lmp.extract_atom("x")
+  e = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
 
   if e <= elast:
     elast = e
@@ -96,10 +96,10 @@ for i in range(nloop):
 # final energy and stats
 
 lmp.command("variable nbuild equal nbuild")
-nbuild = lmp.extract_variable("nbuild",None,0)
+nbuild = lmp.extract_variable("nbuild", None, LMP_VAR_EQUAL)
 
 lmp.command("run 0")
-estop = lmp.extract_compute("thermo_pe",0,0) / natoms
+estop = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
 
 print("MC stats:")
 print("  starting energy =",estart)

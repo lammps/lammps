@@ -52,9 +52,9 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
 
   // tbath - temp of bath, the same as defined in thermostat
 
-  lambda = force->numeric(FLERR,arg[3]);
-  eta = force->numeric(FLERR,arg[4]);
-  h0 = force->numeric(FLERR,arg[5]);
+  lambda = utils::numeric(FLERR,arg[3],false,lmp);
+  eta = utils::numeric(FLERR,arg[4],false,lmp);
+  h0 = utils::numeric(FLERR,arg[5],false,lmp);
 
   int n = strlen(arg[6])+1;
   id_nh = new char[n];
@@ -132,7 +132,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
 
   pressflag = 0;
   int *p_flag = (int *)nh->extract("p_flag",ifix);
-  if ((p_flag == NULL) || (ifix != 1) || (p_flag[0] == 0)
+  if ((p_flag == nullptr) || (ifix != 1) || (p_flag[0] == 0)
       || (p_flag[1] == 0) || (p_flag[2] == 0)) {
     pressflag = 0;
   } else if ((p_flag[0] == 1) && (p_flag[1] == 1)
@@ -203,7 +203,7 @@ void FixGrem::init()
 
   double *t_start = (double *)nh->extract("t_start",ifix);
   double *t_stop = (double *)nh->extract("t_stop",ifix);
-  if ((t_start != NULL) && (t_stop != NULL) && (ifix == 0)) {
+  if ((t_start != nullptr) && (t_stop != nullptr) && (ifix == 0)) {
     tbath = *t_start;
     if (*t_start != *t_stop)
       error->all(FLERR,"Thermostat temperature ramp not allowed");
@@ -215,7 +215,7 @@ void FixGrem::init()
     int *p_flag = (int *)nh->extract("p_flag",ifix);
     double *p_start = (double *) nh->extract("p_start",ifix);
     double *p_stop = (double *) nh->extract("p_stop",ifix);
-    if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
+    if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)
         && (ifix == 1)) {
       ifix = 0;
       pressref = p_start[0];
@@ -291,5 +291,5 @@ void *FixGrem::extract(const char *str, int &dim)
   if (strcmp(str,"scale_grem") == 0) {
     return &scale_grem;
   }
-  return NULL;
+  return nullptr;
 }

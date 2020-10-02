@@ -99,7 +99,8 @@ can then later be used to compute the potential of mean force (PMF)
 by averaging over multiple independent trajectories along the same
 pulling path.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix stores the direction of the spring, current pulling target
 distance and the running PMF to :doc:`binary restart files <restart>`.
@@ -126,7 +127,7 @@ displacement).
 
 The force is the total force on the group of atoms by the spring.  In
 the case of the *couple* style, it is the force on the fix group
-(group-ID) or the negative of the force on the 2nd group (group-ID2).
+(group-ID) or the negative of the force on the second group (group-ID2).
 The vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -146,7 +147,10 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`,
 :doc:`fix colvars <fix_colvars>`, :doc:`fix plumed <fix_plumed>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

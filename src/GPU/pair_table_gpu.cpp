@@ -18,7 +18,7 @@
 #include "pair_table_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -99,9 +99,20 @@ void PairTableGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = table_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                     atom->type, domain->sublo, domain->subhi,
+                                     atom->type, sublo, subhi,
                                      atom->tag, atom->nspecial, atom->special,
                                      eflag, vflag, eflag_atom, vflag_atom,
                                      host_start, &ilist, &numneigh, cpu_time,
@@ -154,8 +165,8 @@ void PairTableGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   // pack tables and send them to device
-  double ***table_coeffs = NULL;
-  double **table_data = NULL;
+  double ***table_coeffs = nullptr;
+  double **table_data = nullptr;
   memory->create(table_coeffs, ntypes+1, ntypes+1, 6, "table:coeffs");
 
   Table *tb;

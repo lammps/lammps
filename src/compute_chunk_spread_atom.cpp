@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_chunk_spread_atom.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +37,7 @@ enum{COMPUTE,FIX};
 ComputeChunkSpreadAtom::
 ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), ids(NULL), which(NULL), argindex(NULL), value2index(NULL)
+  idchunk(nullptr), ids(nullptr), which(nullptr), argindex(nullptr), value2index(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute chunk/spread/atom command");
 
@@ -54,7 +53,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -69,7 +68,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0) {
@@ -162,8 +161,8 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom vector or array
 
   nmax = 0;
-  vector_atom = NULL;
-  array_atom = NULL;
+  vector_atom = nullptr;
+  array_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

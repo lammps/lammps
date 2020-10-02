@@ -181,28 +181,28 @@ namespace Kokkos {
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const std::string& arg_alloc_label,
                            const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), arg_alloc_label, arg_alloc_size);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), "no-label", arg_alloc_size);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void kokkos_free(void* arg_alloc) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::deallocate_tracked(
       arg_alloc);
 }
 
 template <class Space = typename Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_realloc(void* arg_alloc, const size_t arg_alloc_size) {
-  typedef typename Space::memory_space MemorySpace;
+  using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::reallocate_tracked(
       arg_alloc, arg_alloc_size);
 }
@@ -255,6 +255,14 @@ class ScopeGuard {
 
 #include <Kokkos_Crs.hpp>
 #include <Kokkos_WorkGraphPolicy.hpp>
+// Including this in Kokkos_Parallel_Reduce.hpp led to a circular dependency
+// because Kokkos::Sum is used in Kokkos_Combined_Reducer.hpp and the default.
+// The real answer is to finally break up Kokkos_Parallel_Reduce.hpp into
+// smaller parts...
+#include <impl/Kokkos_Combined_Reducer.hpp>
+// Yet another workaround to deal with circular dependency issues because the
+// implementation of the RAII wrapper is using Kokkos::single.
+#include <Kokkos_AcquireUniqueTokenImpl.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

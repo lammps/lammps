@@ -33,23 +33,24 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_bop.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
-#include <cctype>
-#include <mpi.h>
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
 #define EPSILON 1.0e-6
 
 /* ---------------------------------------------------------------------- */
@@ -63,114 +64,114 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
   allocated = 0;
 
-  BOP_index = NULL;
-  BOP_index3 = NULL;
-  BOP_total = NULL;
-  BOP_total3 = NULL;
-  map = NULL;
-  pi_a = NULL;
-  pro_delta = NULL;
-  pi_delta = NULL;
-  pi_p = NULL;
-  pi_c = NULL;
-  r1 = NULL;
-  sigma_r0 = NULL;
-  pi_r0 = NULL;
-  phi_r0 = NULL;
-  sigma_rc = NULL;
-  pi_rc = NULL;
-  phi_rc = NULL;
-  sigma_beta0 = NULL;
-  pi_beta0 = NULL;
-  phi0 = NULL;
-  sigma_n = NULL;
-  pi_n = NULL;
-  phi_m = NULL;
-  sigma_nc = NULL;
-  pi_nc = NULL;
-  phi_nc = NULL;
-  pro = NULL;
-  sigma_delta = NULL;
-  sigma_c = NULL;
-  sigma_a = NULL;
-  sigma_f = NULL;
-  sigma_k = NULL;
-  small3 = NULL;
-  rcut = NULL;
-  rcut3 = NULL;
-  rcutsq = NULL;
-  rcutsq3 = NULL;
-  dr = NULL;
-  rdr = NULL;
-  dr3 = NULL;
-  rdr3 = NULL;
-  disij = NULL;
-  rij = NULL;
-  neigh_index = NULL;
-  neigh_index3 = NULL;
-  neigh_flag = NULL;
-  neigh_flag3 = NULL;
-  cosAng = NULL;
-  betaS = NULL;
-  dBetaS = NULL;
-  betaP = NULL;
-  dBetaP = NULL;
-  repul = NULL;
-  dRepul = NULL;
-  itypeSigBk = NULL;
-  itypePiBk = NULL;
-  pBetaS = NULL;
-  pBetaS1 = NULL;
-  pBetaS2 = NULL;
-  pBetaS3 = NULL;
-  pBetaS4 = NULL;
-  pBetaS5 = NULL;
-  pBetaS6 = NULL;
-  pLong = NULL;
-  pLong1 = NULL;
-  pLong2 = NULL;
-  pLong3 = NULL;
-  pLong4 = NULL;
-  pLong5 = NULL;
-  pLong6 = NULL;
-  pBetaP = NULL;
-  pBetaP1 = NULL;
-  pBetaP2 = NULL;
-  pBetaP3 = NULL;
-  pBetaP4 = NULL;
-  pBetaP5 = NULL;
-  pBetaP6 = NULL;
-  pRepul = NULL;
-  pRepul1 = NULL;
-  pRepul2 = NULL;
-  pRepul3 = NULL;
-  pRepul4 = NULL;
-  pRepul5 = NULL;
-  pRepul6 = NULL;
-  FsigBO = NULL;
-  FsigBO1 = NULL;
-  FsigBO2 = NULL;
-  FsigBO3 = NULL;
-  FsigBO4 = NULL;
-  FsigBO5 = NULL;
-  FsigBO6 = NULL;
-  rcmin = NULL;
-  rcmax = NULL;
-  rcmaxp = NULL;
-  setflag = NULL;
-  cutsq = NULL;
-  cutghost = NULL;
+  BOP_index = nullptr;
+  BOP_index3 = nullptr;
+  BOP_total = nullptr;
+  BOP_total3 = nullptr;
+  map = nullptr;
+  pi_a = nullptr;
+  pro_delta = nullptr;
+  pi_delta = nullptr;
+  pi_p = nullptr;
+  pi_c = nullptr;
+  r1 = nullptr;
+  sigma_r0 = nullptr;
+  pi_r0 = nullptr;
+  phi_r0 = nullptr;
+  sigma_rc = nullptr;
+  pi_rc = nullptr;
+  phi_rc = nullptr;
+  sigma_beta0 = nullptr;
+  pi_beta0 = nullptr;
+  phi0 = nullptr;
+  sigma_n = nullptr;
+  pi_n = nullptr;
+  phi_m = nullptr;
+  sigma_nc = nullptr;
+  pi_nc = nullptr;
+  phi_nc = nullptr;
+  pro = nullptr;
+  sigma_delta = nullptr;
+  sigma_c = nullptr;
+  sigma_a = nullptr;
+  sigma_f = nullptr;
+  sigma_k = nullptr;
+  small3 = nullptr;
+  rcut = nullptr;
+  rcut3 = nullptr;
+  rcutsq = nullptr;
+  rcutsq3 = nullptr;
+  dr = nullptr;
+  rdr = nullptr;
+  dr3 = nullptr;
+  rdr3 = nullptr;
+  disij = nullptr;
+  rij = nullptr;
+  neigh_index = nullptr;
+  neigh_index3 = nullptr;
+  neigh_flag = nullptr;
+  neigh_flag3 = nullptr;
+  cosAng = nullptr;
+  betaS = nullptr;
+  dBetaS = nullptr;
+  betaP = nullptr;
+  dBetaP = nullptr;
+  repul = nullptr;
+  dRepul = nullptr;
+  itypeSigBk = nullptr;
+  itypePiBk = nullptr;
+  pBetaS = nullptr;
+  pBetaS1 = nullptr;
+  pBetaS2 = nullptr;
+  pBetaS3 = nullptr;
+  pBetaS4 = nullptr;
+  pBetaS5 = nullptr;
+  pBetaS6 = nullptr;
+  pLong = nullptr;
+  pLong1 = nullptr;
+  pLong2 = nullptr;
+  pLong3 = nullptr;
+  pLong4 = nullptr;
+  pLong5 = nullptr;
+  pLong6 = nullptr;
+  pBetaP = nullptr;
+  pBetaP1 = nullptr;
+  pBetaP2 = nullptr;
+  pBetaP3 = nullptr;
+  pBetaP4 = nullptr;
+  pBetaP5 = nullptr;
+  pBetaP6 = nullptr;
+  pRepul = nullptr;
+  pRepul1 = nullptr;
+  pRepul2 = nullptr;
+  pRepul3 = nullptr;
+  pRepul4 = nullptr;
+  pRepul5 = nullptr;
+  pRepul6 = nullptr;
+  FsigBO = nullptr;
+  FsigBO1 = nullptr;
+  FsigBO2 = nullptr;
+  FsigBO3 = nullptr;
+  FsigBO4 = nullptr;
+  FsigBO5 = nullptr;
+  FsigBO6 = nullptr;
+  rcmin = nullptr;
+  rcmax = nullptr;
+  rcmaxp = nullptr;
+  setflag = nullptr;
+  cutsq = nullptr;
+  cutghost = nullptr;
 
-  gfunc = NULL;
-  gfunc1 = NULL;
-  gfunc2 = NULL;
-  gfunc3 = NULL;
-  gfunc4 = NULL;
-  gfunc5 = NULL;
-  gfunc6 = NULL;
-  gpara = NULL;
-  bt_sg=NULL;
-  bt_pi=NULL;
+  gfunc = nullptr;
+  gfunc1 = nullptr;
+  gfunc2 = nullptr;
+  gfunc3 = nullptr;
+  gfunc4 = nullptr;
+  gfunc5 = nullptr;
+  gfunc6 = nullptr;
+  gpara = nullptr;
+  bt_sg=nullptr;
+  bt_pi=nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -256,12 +257,8 @@ PairBOP::~PairBOP()
     memory->destroy(gfunc6);
     memory->destroy(gpara);
   }
-  if(allocate_sigma) {
-    destroy_sigma();
-  }
-  if(allocate_pi) {
-    destroy_pi();
-  }
+  memory->destroy(bt_sg);
+  memory->destroy(bt_pi);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -294,7 +291,6 @@ void PairBOP::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int cnt1;
-  MPI_Comm_rank(world,&me);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -616,7 +612,6 @@ void PairBOP::coeff(int narg, char **arg)
 {
   int i,j;
   int n = atom->ntypes;
-  MPI_Comm_rank(world,&me);
 
   delete[] map;
   map = new int[n+1];
@@ -636,8 +631,6 @@ void PairBOP::coeff(int narg, char **arg)
   bop_step=0;
   nb_pi=0;
   nb_sg=0;
-  allocate_sigma=0;
-  allocate_pi=0;
   allocate_neigh=0;
   update_list=0;
   maxnall=0;
@@ -645,7 +638,7 @@ void PairBOP::coeff(int narg, char **arg)
   read_table(arg[2]);
 
   // match element names to BOP word types
-  if (me == 0) {
+  if (comm->me == 0) {
     for (i = 3; i < narg; i++) {
       if (strcmp(arg[i],"NULL") == 0) {
         map[i-2] = -1;
@@ -659,7 +652,7 @@ void PairBOP::coeff(int narg, char **arg)
   }
 
   MPI_Bcast(&map[1],atom->ntypes,MPI_INT,0,world);
-  if (me == 0) {
+  if (comm->me == 0) {
     if (elements) {
       for (i = 0; i < bop_types; i++) delete [] elements[i];
       delete [] elements;
@@ -696,12 +689,9 @@ void PairBOP::init_style()
 
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
-  if (comm->cutghostuser < 3.0*cutmax - EPSILON) {
-    char str[128];
-    sprintf(str,"Pair style bop requires comm ghost cutoff "
-            "at least 3x larger than %g",cutmax);
-    error->all(FLERR,str);
-  }
+  if (comm->cutghostuser < 3.0*cutmax - EPSILON)
+    error->all(FLERR,fmt::format("Pair style bop requires comm ghost cutoff "
+                                 "at least 3x larger than {}",cutmax));
 
   // need a full neighbor list and neighbors of ghosts
 
@@ -769,19 +759,18 @@ void PairBOP::gneigh()
   int *type = atom->type;
 
   if(allocate_neigh==0) {
-    memory->create (BOP_index,nall,"BOP_index");
-    memory->create (BOP_index3,nall,"BOP_index3");
-    memory->create (BOP_total,nall,"BOP_total");
-    memory->create (BOP_total3,nall,"BOP_total");
-    if (otfly==0) memory->create (cos_index,nall,"cos_index");
+    memory->create(BOP_index,nall,"BOP_index");
+    memory->create(BOP_index3,nall,"BOP_index3");
+    memory->create(BOP_total,nall,"BOP_total");
+    memory->create(BOP_total3,nall,"BOP_total");
+    if (otfly==0) memory->create(cos_index,nall,"cos_index");
     allocate_neigh=1;
-  }
-  else {
-    memory->grow (BOP_index,nall,"BOP_index");
-    memory->grow (BOP_index3,nall,"BOP_index3");
-    memory->grow (BOP_total,nall,"BOP_total");
-    memory->grow (BOP_total3,nall,"BOP_total3");
-    if (otfly==0) memory->grow (cos_index,nall,"cos_index");
+  } else {
+    memory->grow(BOP_index,nall,"BOP_index");
+    memory->grow(BOP_index3,nall,"BOP_index3");
+    memory->grow(BOP_total,nall,"BOP_total");
+    memory->grow(BOP_total3,nall,"BOP_total3");
+    if (otfly==0) memory->grow(cos_index,nall,"cos_index");
     allocate_neigh=1;
   }
   ilist = list->ilist;
@@ -1035,145 +1024,6 @@ void PairBOP::gneigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::theta()
-{
-  int i,j,ii,jj,kk;
-  int itype,jtype,i12;
-  int temp_ij,temp_ik,temp_ijk;
-  int n,nlocal,nall,ks;
-  int nlisti;
-  int *ilist;
-  int *iilist;
-  int **firstneigh;
-  double rj2,rk2,rsq,ps;
-  double rj1k1,rj2k2;
-  double **x = atom->x;
-  int *type = atom->type;
-
-  nlocal = atom->nlocal;
-  nall = nlocal+atom->nghost;
-  ilist = list->ilist;
-  firstneigh = list->firstneigh;
-  if(update_list!=0)
-    memory_theta_grow();
-  else
-    memory_theta_create();
-  for (ii = 0; ii < nall; ii++) {
-    if(ii<nlocal)
-      i= ilist[ii];
-    else
-      i=ii;
-    itype = map[type[i]]+1;
-
-    iilist=firstneigh[i];
-    nlisti=BOP_total[i];
-    for(jj=0;jj<nlisti;jj++) {
-      temp_ij=BOP_index[i]+jj;
-      j=iilist[neigh_index[temp_ij]];
-      jtype = map[type[j]]+1;
-      if(itype==jtype)
-        i12=itype-1;
-      else if(itype<jtype)
-        i12=itype*bop_types-itype*(itype+1)/2+jtype-1;
-      else
-        i12=jtype*bop_types-jtype*(jtype+1)/2+itype-1;
-      if(i12>=npairs) {
-        error->one(FLERR,"Too many atom pairs for pair bop");
-      }
-      disij[0][temp_ij]=x[j][0]-x[i][0];
-      disij[1][temp_ij]=x[j][1]-x[i][1];
-      disij[2][temp_ij]=x[j][2]-x[i][2];
-      rsq=disij[0][temp_ij]*disij[0][temp_ij]
-          +disij[1][temp_ij]*disij[1][temp_ij]
-          +disij[2][temp_ij]*disij[2][temp_ij];
-      rij[temp_ij]=sqrt(rsq);
-      if(rij[temp_ij]<=rcut[i12])
-        neigh_flag[temp_ij]=1;
-      else
-        neigh_flag[temp_ij]=0;
-      if(rij[temp_ij]<=rcut3[i12])
-        neigh_flag3[temp_ij]=1;
-      else
-        neigh_flag3[temp_ij]=0;
-      ps=rij[temp_ij]*rdr[i12]+1.0;
-      ks=(int)ps;
-      if(nr-1<ks)
-        ks=nr-1;
-      ps=ps-ks;
-      if(ps>1.0)
-        ps=1.0;
-      betaS[temp_ij]=((pBetaS3[i12][ks-1]*ps+pBetaS2[i12][ks-1])*ps+pBetaS1[i12][ks-1])*ps+pBetaS[i12][ks-1];
-      dBetaS[temp_ij]=(pBetaS6[i12][ks-1]*ps+pBetaS5[i12][ks-1])*ps
-          +pBetaS4[i12][ks-1];
-      betaP[temp_ij]=((pBetaP3[i12][ks-1]*ps+pBetaP2[i12][ks-1])*ps
-          +pBetaP1[i12][ks-1])*ps+pBetaP[i12][ks-1];
-      dBetaP[temp_ij]=(pBetaP6[i12][ks-1]*ps+pBetaP5[i12][ks-1])*ps
-          +pBetaP4[i12][ks-1];
-      repul[temp_ij]=((pRepul3[i12][ks-1]*ps+pRepul2[i12][ks-1])*ps
-          +pRepul1[i12][ks-1])*ps+pRepul[i12][ks-1];
-      dRepul[temp_ij]=(pRepul6[i12][ks-1]*ps+pRepul5[i12][ks-1])*ps
-          +pRepul4[i12][ks-1];
-    }
-  }
-  for (ii = 0; ii < nall; ii++) {
-    n=0;
-    if(ii<nlocal)
-      i= ilist[ii];
-    else
-      i=ii;
-    iilist=firstneigh[i];
-    nlisti=BOP_total[i];
-    for(jj=0;jj<nlisti;jj++) {
-      temp_ij=BOP_index[i]+jj;
-      j=iilist[neigh_index[temp_ij]];
-      rj2=rij[temp_ij]*rij[temp_ij];
-      for(kk=jj+1;kk<nlisti;kk++) {
-        if(cos_index[i]+n>=cos_total) {
-          error->one(FLERR,"Too many atom triplets for pair bop");
-        }
-        temp_ik=BOP_index[i]+kk;
-        temp_ijk=cos_index[i]+n;
-        if(temp_ijk>=cos_total) {
-          error->one(FLERR,"Too many atom triplets for pair bop");
-        }
-        rk2=rij[temp_ik]*rij[temp_ik];
-        rj1k1=rij[temp_ij]*rij[temp_ik];
-        rj2k2=rj1k1*rj1k1;
-        if(temp_ijk>=cos_total) {
-          error->one(FLERR,"Too many atom triplets for pair bop");
-        }
-        cosAng[temp_ijk]=(disij[0][temp_ij]*disij[0][temp_ik]+disij[1][temp_ij]
-            *disij[1][temp_ik]+disij[2][temp_ij]*disij[2][temp_ik])/rj1k1;
-        dcAng[temp_ijk][0][0]=(disij[0][temp_ik]*rj1k1-cosAng[temp_ijk]
-              *disij[0][temp_ij]*rk2)/(rj2k2);
-        dcAng[temp_ijk][1][0]=(disij[1][temp_ik]*rj1k1-cosAng[temp_ijk]
-            *disij[1][temp_ij]*rk2)/(rj2k2);
-        dcAng[temp_ijk][2][0]=(disij[2][temp_ik]*rj1k1-cosAng[temp_ijk]
-            *disij[2][temp_ij]*rk2)/(rj2k2);
-        dcAng[temp_ijk][0][1]=(disij[0][temp_ij]*rj1k1-cosAng[temp_ijk]
-            *disij[0][temp_ik]*rj2)/(rj2k2);
-        dcAng[temp_ijk][1][1]=(disij[1][temp_ij]*rj1k1-cosAng[temp_ijk]
-            *disij[1][temp_ik]*rj2)/(rj2k2);
-        dcAng[temp_ijk][2][1]=(disij[2][temp_ij]*rj1k1-cosAng[temp_ijk]
-            *disij[2][temp_ik]*rj2)/(rj2k2);
-        n++;
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairBOP::theta_mod()
-{
-  if(update_list!=0)
-    memory_theta_grow();
-  else
-    memory_theta_create();
-}
-
-/* ---------------------------------------------------------------------- */
-
 /*  The formulation differs slightly to avoid negative square roots
     in the calculation of Sigma^(1/2) of (a) Eq. 6 and (b) Eq. 11 */
 
@@ -1276,15 +1126,10 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
   nlocal = atom->nlocal;
   ilist = list->ilist;
   firstneigh = list->firstneigh;
-  MPI_Comm_rank(world,&me);
 
   if(nb_sg==0) {
     nb_sg=(maxneigh)*(maxneigh/2);
   }
-  if(allocate_sigma) {
-    destroy_sigma();
-  }
-
   create_sigma(nb_sg);
   sigB=0;
   if(itmp<nlocal) {
@@ -3939,9 +3784,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 // Loop over all local atoms for i
 
-  if(allocate_pi) {
-    destroy_pi();
-  }
   create_pi(nb_pi);
   piB=0;
     i = ilist[itmp];
@@ -5007,106 +4849,15 @@ double PairBOP::PiBo(int itmp, int jtmp)
           }
         }
       }
-  destroy_pi();
   return(piB);
 }
 
 /* ----------------------------------------------------------------------
-   read BOP potential file
+   allocate BOP tables
 ------------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
-
-void _noopt PairBOP::read_table(char *filename)
+void PairBOP::allocate_tables()
 {
-  int i,j,k,n,m;
-  int buf1,pass;
-  int nws,ws;
-  double buf2;
-  char s[MAXLINE],buf[2];
-
-  MPI_Comm_rank(world,&me);
-  if (me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open BOP potential file %s",filename);
-      error->one(FLERR,str);
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);  // skip first comment line
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    sscanf(s,"%d",&bop_types);
-    elements = new char*[bop_types];
-    for(i=0;i<bop_types;i++) elements[i]=NULL;
-    for(i=0;i<bop_types;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      nws=0;
-      ws=1;
-      for(j=0;j<(int)strlen(s);j++) {
-        if(ws==1) {
-          if(isspace(s[j])) {
-            ws=1;
-          } else {
-            ws=0;
-          }
-        } else {
-          if(isspace(s[j])) {
-            ws=1;
-            nws++;
-          } else {
-            ws=0;
-          }
-        }
-      }
-      if(nws!=3){
-         error->all(FLERR,"Incorrect table format check for element types");
-      }
-      sscanf(s,"%d %lf %s",&buf1,&buf2,buf);
-      n= strlen(buf)+1;
-      elements[i] = new char[n];
-      strcpy(elements[i],buf);
-    }
-    nws=0;
-    ws=1;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    for(j=0;j<(int)strlen(s);j++) {
-      if(ws==1) {
-        if(isspace(s[j])) {
-          ws=1;
-        } else {
-          ws=0;
-        }
-      } else {
-        if(isspace(s[j])) {
-          ws=1;
-          nws++;
-        } else {
-          ws=0;
-        }
-      }
-    }
-    if (nws==3) {
-      sscanf(s,"%d %d %d",&nr,&ntheta,&nBOt);
-      npower=2;
-      if(ntheta<=10) npower=ntheta;
-    } else if (nws==2) {
-      sscanf(s,"%d %d",&nr,&nBOt);
-      ntheta=0;
-      npower=3;
-    } else {
-      error->one(FLERR,"Unsupported BOP potential file format");
-    }
-    fclose(fp);
-    npairs=bop_types*(bop_types+1)/2;
-  }
-
-  MPI_Bcast(&nr,1,MPI_INT,0,world);
-  MPI_Bcast(&nBOt,1,MPI_INT,0,world);
-  MPI_Bcast(&ntheta,1,MPI_INT,0,world);
-  MPI_Bcast(&bop_types,1,MPI_INT,0,world);
-  MPI_Bcast(&npairs,1,MPI_INT,0,world);
-  MPI_Bcast(&npower,1,MPI_INT,0,world);
-
   memory->destroy(pi_a);
   memory->destroy(pro_delta);
   memory->destroy(pi_delta);
@@ -5150,330 +4901,347 @@ void _noopt PairBOP::read_table(char *filename)
   memory->create(gfunc5,bop_types,bop_types,bop_types,ntheta,"BOP:gfunc5");
   memory->create(gfunc6,bop_types,bop_types,bop_types,ntheta,"BOP:gfunc6");
   memory->create(gpara,bop_types,bop_types,bop_types,npower+1,"BOP:gpara");
+}
 
-  allocate();
-  if (me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open BOP potential file %s",filename);
-      error->one(FLERR,str);
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);  // skip first comment line
-    for(i=0;i<bop_types+2;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    sscanf(s,"%lf%lf%lf%lf%lf%lf%lf",&small1,&small2,&small3g
-        ,&small4,&small5,&small6,&small7);
-    for(i=0;i<bop_types;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf",&pi_p[i]);
-    }
-    cutmax=0;
-    for(i=0;i<npairs;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf",&rcut[i]);
-      if(rcut[i]>cutmax)
-        cutmax=rcut[i];
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf%lf%lf%lf",&sigma_c[i],&sigma_a[i],&pi_c[i],&pi_a[i]);
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf%lf",&sigma_delta[i],&pi_delta[i]);
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf%lf%lf",&sigma_f[i],&sigma_k[i],&small3[i]);
-    }
-    if(nws==3) {
-      for(i=0;i<bop_types;i++)
-        for(j=0;j<bop_types;j++)
-          for(k=j;k<bop_types;k++) {
-            if(npower<=2) {
-              for(m=0;m<ntheta;m++) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gfunc[j][i][k][n],&gfunc[j][i][k][n+1]
-                    ,&gfunc[j][i][k][n+2],&gfunc[j][i][k][n+3],&gfunc[j][i][k][n+4]);
-                n+=4;
+/* ----------------------------------------------------------------------
+   read BOP potential file
+------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- */
+
+void _noopt PairBOP::read_table(char *filename)
+{
+  if (comm->me == 0) {
+    try {
+      PotentialFileReader reader(lmp, filename, "bop");
+
+      bop_types = reader.next_int();
+      elements = new char*[bop_types];
+      for(int i=0; i < bop_types; i++) {
+        ValueTokenizer values = reader.next_values(3);
+        values.next_int();
+        values.next_double();
+        std::string name = values.next_string();
+
+        elements[i] = new char[name.length()+1];
+        strcpy(elements[i], name.c_str());
+      }
+
+      ValueTokenizer values = reader.next_values(2);
+      int format = values.count();
+
+      switch(format) {
+        case 3:
+          nr = values.next_int();
+          ntheta = values.next_int();
+          nBOt = values.next_int();
+          if(ntheta <= 10)
+            npower = ntheta;
+          else
+            npower = 2;
+          break;
+
+        case 2:
+          nr = values.next_int();
+          nBOt = values.next_int();
+          ntheta = 0;
+          npower = 3;
+          break;
+
+        default:
+          error->one(FLERR,"Unsupported BOP potential file format");
+      }
+
+      npairs = bop_types*(bop_types+1)/2;
+
+      allocate_tables();
+      allocate();
+
+      values = reader.next_values(7);
+
+      small1  = values.next_double();
+      small2  = values.next_double();
+      small3g = values.next_double();
+      small4  = values.next_double();
+      small5  = values.next_double();
+      small6  = values.next_double();
+      small7  = values.next_double();
+
+      for(int i = 0; i < bop_types; i++) {
+        pi_p[i] = reader.next_double();
+      }
+
+      cutmax = 0.0;
+
+      for(int i = 0; i < npairs; i++) {
+        rcut[i] = reader.next_double();
+        if (rcut[i] > cutmax)
+          cutmax = rcut[i];
+
+        values = reader.next_values(4);
+        sigma_c[i] = values.next_double();
+        sigma_a[i] = values.next_double();
+        pi_c[i]    = values.next_double();
+        pi_a[i]    = values.next_double();
+
+        values = reader.next_values(2);
+        sigma_delta[i] = values.next_double();
+        pi_delta[i]    = values.next_double();
+
+        values = reader.next_values(3);
+        sigma_f[i] = values.next_double();
+        sigma_k[i] = values.next_double();
+        small3[i]  = values.next_double();
+      }
+
+      if(format == 3) {
+        for(int i = 0; i < bop_types; i++)
+          for(int j = 0; j < bop_types; j++)
+            for(int k = j; k < bop_types; k++) {
+              if(npower <= 2) {
+                reader.next_dvector(&gfunc[j][i][k][0], ntheta);
+              } else {
+                reader.next_dvector(&gpara[j][i][k][0], npower+1);
+              }
+            }
+      } else {
+        for(int i = 0; i < bop_types; i++)
+          for(int j = 0; j < bop_types; j++)
+            for(int k = 0; k < bop_types; k++) {
+              reader.next_dvector(&gpara[i][j][k][0], 3);
+              gpara[j][i][k][3] = 0;
+            }
+      }
+
+      for(int i = 0; i < npairs; i++) {
+        reader.next_dvector(&pRepul[i][0], nr);
+      }
+
+      for(int i = 0; i < npairs; i++) {
+        reader.next_dvector(&pBetaS[i][0], nr);
+      }
+
+      for(int i = 0; i < npairs; i++) {
+        reader.next_dvector(&pBetaP[i][0], nr);
+      }
+
+      for(int i = 0; i < npairs; i++) {
+        reader.next_dvector(&FsigBO[i][0], nBOt);
+      }
+
+      for(int i = 0; i < bop_types; i++) {
+        pro_delta[i] = reader.next_double();
+      }
+
+      for(int i = 0; i < bop_types; i++) {
+        pro[i] = reader.next_double();
+      }
+
+      for(int i=0;i<npairs;i++) {
+        rcut3[i]=0.0;
+      }
+
+      if(format == 3) {
+        for(int i = 0; i < npairs; i++) {
+          rcut3[i] = reader.next_double();
+        }
+        for(int i = 0; i < npairs; i++) {
+          reader.next_dvector(&pLong[i][0], nr);
+        }
+      }
+
+      rcutall=0.0;
+      for(int i=0; i < npairs; i++) {
+        if(rcut[i]>rcutall)
+          rcutall=rcut[i];
+        if(rcut3[i]>rcutall)
+          rcutall=rcut3[i];
+        rcutsq[i]=rcut[i]*rcut[i];
+        dr[i]=rcut[i]/((double)nr-1.0);
+        rdr[i]=1.0/dr[i];
+        if (format == 3) {
+          rcutsq3[i]=rcut3[i]*rcut3[i];
+          dr3[i]=rcut3[i]/((double)nr-1.0);
+          rdr3[i]=1.0/dr3[i];
+        }
+      }
+
+      rctroot=rcutall;
+      dtheta=2.0/((double)ntheta-1.0);
+      rdtheta=1.0/dtheta;
+      dBO=1.0/((double)nBOt-1.0);
+      rdBO=1.0/(double)dBO;
+
+      for (int i = 0; i < npairs; i++) {
+        pBetaS1[i][0]=pBetaS[i][1]-pBetaS[i][0];
+        pBetaS1[i][1]=0.5*(pBetaS[i][2]-pBetaS[i][0]);
+        pBetaS1[i][nr-2]=0.5*(pBetaS[i][nr-1]-pBetaS[i][nr-3]);
+        pBetaS1[i][nr-1]=pBetaS[i][nr-1]-pBetaS[i][nr-2];
+        pBetaP1[i][0]=pBetaP[i][1]-pBetaP[i][0];
+        pBetaP1[i][1]=0.5*(pBetaP[i][2]-pBetaP[i][0]);
+        pBetaP1[i][nr-2]=0.5*(pBetaP[i][nr-1]-pBetaP[i][nr-3]);
+        pBetaP1[i][nr-1]=pBetaP[i][nr-1]-pBetaP[i][nr-2];
+        pRepul1[i][0]=pRepul[i][1]-pRepul[i][0];
+        pRepul1[i][1]=0.5*(pRepul[i][2]-pRepul[i][0]);
+        pRepul1[i][nr-2]=0.5*(pRepul[i][nr-1]-pRepul[i][nr-3]);
+        pRepul1[i][nr-1]=pRepul[i][nr-1]-pRepul[i][nr-2];
+        FsigBO1[i][0]=FsigBO[i][1]-FsigBO[i][0];
+        FsigBO1[i][1]=0.5*(FsigBO[i][2]-FsigBO[i][0]);
+        FsigBO1[i][nBOt-2]=0.5*(FsigBO[i][nBOt-1]-FsigBO[i][nBOt-3]);
+        FsigBO1[i][nBOt-1]=FsigBO[i][nBOt-1]-FsigBO[i][nBOt-2];
+        pLong1[i][0]=pLong[i][1]-pLong[i][0];
+        pLong1[i][1]=0.5*(pLong[i][2]-pLong[i][0]);
+        pLong1[i][nBOt-2]=0.5*(pLong[i][nr-1]-pLong[i][nr-3]);
+        pLong1[i][nBOt-1]=pLong[i][nr-1]-pLong[i][nr-2];
+        for (int k = 2; k < nr-2; k++) {
+          pBetaS1[i][k]=((pBetaS[i][k-2]-pBetaS[i][k+2])
+              +8.0*(pBetaS[i][k+1]-pBetaS[i][k-1]))/12.0;
+          pBetaP1[i][k]=((pBetaP[i][k-2]-pBetaP[i][k+2])
+              +8.0*(pBetaP[i][k+1]-pBetaP[i][k-1]))/12.0;
+          pRepul1[i][k]=((pRepul[i][k-2]-pRepul[i][k+2])
+              +8.0*(pRepul[i][k+1]-pRepul[i][k-1]))/12.0;
+          pLong1[i][k]=((pLong[i][k-2]-pLong[i][k+2])
+              +8.0*(pLong[i][k+1]-pLong[i][k-1]))/12.0;
+        }
+        for (int k=2; k < nr-2; k++) {
+          FsigBO1[i][k]=((FsigBO[i][k-2]-FsigBO[i][k+2])
+              +8.0*(FsigBO[i][k+1]-FsigBO[i][k-1]))/12.0;
+        }
+        for (int k = 0; k < nr-1; k++) {
+          pBetaS2[i][k]=3.0*(pBetaS[i][k+1]-pBetaS[i][k])
+              -2.0*pBetaS1[i][k]-pBetaS1[i][k+1];
+          pBetaS3[i][k]=pBetaS1[i][k]+pBetaS1[i][k+1]
+              -2.0*(pBetaS[i][k+1]-pBetaS[i][k]);
+          pBetaP2[i][k]=3.0*(pBetaP[i][k+1]-pBetaP[i][k])
+              -2.0*pBetaP1[i][k]-pBetaP1[i][k+1];
+          pBetaP3[i][k]=pBetaP1[i][k]+pBetaP1[i][k+1]
+              -2.0*(pBetaP[i][k+1]-pBetaP[i][k]);
+          pRepul2[i][k]=3.0*(pRepul[i][k+1]-pRepul[i][k])
+              -2.0*pRepul1[i][k]-pRepul1[i][k+1];
+          pRepul3[i][k]=pRepul1[i][k]+pRepul1[i][k+1]
+              -2.0*(pRepul[i][k+1]-pRepul[i][k]);
+          pLong2[i][k]=3.0*(pLong[i][k+1]-pLong[i][k])
+              -2.0*pLong1[i][k]-pLong1[i][k+1];
+          pLong3[i][k]=pLong1[i][k]+pLong1[i][k+1]
+              -2.0*(pLong[i][k+1]-pLong[i][k]);
+        }
+
+        for (int k = 0; k < nBOt-1; k++) {
+          FsigBO2[i][k]=3.0*(FsigBO[i][k+1]-FsigBO[i][k])
+              -2.0*FsigBO1[i][k]-FsigBO1[i][k+1];
+          FsigBO3[i][k]=FsigBO1[i][k]+FsigBO1[i][k+1]
+              -2.0*(FsigBO[i][k+1]-FsigBO[i][k]);
+        }
+
+        pBetaS2[i][nr-1]=0.0;
+        pBetaS3[i][nr-1]=0.0;
+        pBetaP2[i][nr-1]=0.0;
+        pBetaP3[i][nr-1]=0.0;
+        pRepul2[i][nr-1]=0.0;
+        pRepul3[i][nr-1]=0.0;
+        pLong2[i][nr-1]=0.0;
+        pLong3[i][nr-1]=0.0;
+        FsigBO2[i][nBOt-1]=0.0;
+        FsigBO3[i][nBOt-1]=0.0;
+
+        for (int k=0; k < nr; k++) {
+          pBetaS4[i][k]=pBetaS1[i][k]/dr[i];
+          pBetaS5[i][k]=2.0*pBetaS2[i][k]/dr[i];
+          pBetaS6[i][k]=3.0*pBetaS3[i][k]/dr[i];
+          pBetaP4[i][k]=pBetaP1[i][k]/dr[i];
+          pBetaP5[i][k]=2.0*pBetaP2[i][k]/dr[i];
+          pBetaP6[i][k]=3.0*pBetaP3[i][k]/dr[i];
+          pRepul4[i][k]=pRepul1[i][k]/dr[i];
+          pRepul5[i][k]=2.0*pRepul2[i][k]/dr[i];
+          pRepul6[i][k]=3.0*pRepul3[i][k]/dr[i];
+          if (format == 3) {
+            pLong4[i][k]=pLong1[i][k]/dr3[i];
+            pLong5[i][k]=2.0*pLong2[i][k]/dr3[i];
+            pLong6[i][k]=3.0*pLong3[i][k]/dr3[i];
+          }
+        }
+        for (int k=0; k < nBOt; k++) {
+          FsigBO4[i][k]=FsigBO1[i][k]/dBO;
+          FsigBO5[i][k]=2.0*FsigBO2[i][k]/dBO;
+          FsigBO6[i][k]=3.0*FsigBO3[i][k]/dBO;
+        }
+      }
+
+      if (npower <= 2) {
+        for (int i = 0; i < bop_types; i++) {
+          for (int j = 0; j < bop_types; j++) {
+            for (int k = j; k < bop_types; k++) {
+              gfunc1[j][i][k][0] = gfunc[j][i][k][1] - gfunc[j][i][k][0];
+              gfunc1[j][i][k][1] = 0.5 * (gfunc[j][i][k][2] - gfunc[j][i][k][0]);
+              gfunc1[j][i][k][ntheta - 2] = 0.5 * (gfunc[j][i][k][ntheta - 1] - gfunc[j][i][k][ntheta - 3]);
+              gfunc1[j][i][k][ntheta - 1] = 0.5 * (gfunc[j][i][k][ntheta - 1] - gfunc[j][i][k][ntheta - 2]);
+
+              for (int m = 2; m < ntheta - 2; m++) {
+                gfunc1[j][i][k][m] = ((gfunc[j][i][k][m - 2] - gfunc[j][i][k][m + 2]) +
+                                      8.0 * (gfunc[j][i][k][m + 1] - gfunc[j][i][k][m + 1] - gfunc[j][i][k][m - 1])) /
+                                    12.0;
+              }
+
+              for (int m = 0; m < ntheta - 1; m++) {
+                gfunc2[j][i][k][m] = 3.0 * (gfunc[j][i][k][m + 1] - gfunc[j][i][k][m]) -
+                                    2.0 * gfunc1[j][i][k][m] - gfunc1[j][i][k][m + 1];
+                gfunc3[j][i][k][m] = gfunc1[j][i][k][m] + gfunc1[j][i][k][m + 1] -
+                                    2.0 * (gfunc[j][i][k][m + 1] - gfunc[j][i][k][m]);
+              }
+
+              gfunc2[j][i][k][ntheta - 1] = 0.0;
+              gfunc3[j][i][k][ntheta - 1] = 0.0;
+
+              for (int m = 0; m < ntheta; m++) {
+                gfunc4[j][i][k][ntheta - 1] = gfunc1[j][i][k][m] / dtheta;
+                gfunc5[j][i][k][ntheta - 1] = 2.0 * gfunc2[j][i][k][m] / dtheta;
+                gfunc6[j][i][k][ntheta - 1] = 3.0 * gfunc3[j][i][k][m] / dtheta;
+              }
+            }
+          }
+        }
+      }
+
+      for (int i = 0; i < bop_types; i++) {
+        for (int j = 0; j < bop_types; j++) {
+          for (int k = 0; k < j; k++) {
+            if (npower <= 2) {
+              for (int n = 0; n < ntheta; n++) {
+                gfunc[j][i][k][n] = gfunc[k][i][j][n];
+                gfunc1[j][i][k][n] = gfunc1[k][i][j][n];
+                gfunc2[j][i][k][n] = gfunc2[k][i][j][n];
+                gfunc3[j][i][k][n] = gfunc3[k][i][j][n];
+                gfunc4[j][i][k][n] = gfunc4[k][i][j][n];
+                gfunc5[j][i][k][n] = gfunc5[k][i][j][n];
+                gfunc6[j][i][k][n] = gfunc6[k][i][j][n];
               }
             } else {
-              if(npower==3) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3]);
+              for (int n = 0; n < npower + 1; n++) {
+                gpara[j][i][k][n] = gpara[k][i][j][n];
               }
-              else if(npower==4) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-              }
-              else if(npower==5) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf",&gpara[j][i][k][5]);
-              }
-              else if(npower==6) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6]);
-              }
-              else if(npower==7) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7]);
-              }
-              else if(npower==8) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8]);
-              }
-              else if(npower==9) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8],&gpara[j][i][k][9]);
-              }
-              else if(npower==10) {
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][0],&gpara[j][i][k][1],&gpara[j][i][k][2],&gpara[j][i][k][3],&gpara[j][i][k][4]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf%lf%lf%lf%lf",&gpara[j][i][k][5],&gpara[j][i][k][6],&gpara[j][i][k][7],&gpara[j][i][k][8],&gpara[j][i][k][9]);
-                utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-                sscanf(s,"%lf",&gpara[j][i][k][10]);
-              }
-            }
-          }
-    } else {
-      for(i=0;i<bop_types;i++)
-        for(j=0;j<bop_types;j++)
-          for(k=0;k<bop_types;k++) {
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-            sscanf(s,"%lf%lf%lf",&gpara[i][j][k][0],&gpara[i][j][k][1],&gpara[i][j][k][2]);
-            gpara[j][i][k][3]=0;
-          }
-    }
-    for(i=0;i<npairs;i++) {
-      for(j=0;j<nr;j++) {
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        sscanf(s,"%lf%lf%lf%lf%lf",&pRepul[i][j],&pRepul[i][j+1]
-            ,&pRepul[i][j+2],&pRepul[i][j+3],&pRepul[i][j+4]);
-        j+=4;
-      }
-    }
-    for(i=0;i<npairs;i++) {
-      for(j=0;j<nr;j++) {
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        sscanf(s,"%lf%lf%lf%lf%lf",&pBetaS[i][j],&pBetaS[i][j+1]
-            ,&pBetaS[i][j+2],&pBetaS[i][j+3],&pBetaS[i][j+4]);
-        j+=4;
-      }
-    }
-    for(i=0;i<npairs;i++) {
-      for(j=0;j<nr;j++) {
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        sscanf(s,"%lf%lf%lf%lf%lf",&pBetaP[i][j],&pBetaP[i][j+1]
-            ,&pBetaP[i][j+2],&pBetaP[i][j+3],&pBetaP[i][j+4]);
-        j+=4;
-      }
-    }
-    for(i=0;i<npairs;i++) {
-      for(j=0;j<nBOt;j++) {
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        sscanf(s,"%lf%lf%lf%lf%lf",&FsigBO[i][j],&FsigBO[i][j+1]
-            ,&FsigBO[i][j+2],&FsigBO[i][j+3],&FsigBO[i][j+4]);
-        j+=4;
-      }
-    }
-    for(i=0;i<bop_types;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf",&pro_delta[i]);
-    }
-    for(i=0;i<bop_types;i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf",&pro[i]);
-    }
-    for(i=0;i<npairs;i++) {
-      rcut3[i]=0.0;
-    }
-    pass=0;
-    i=0;
-    if(nws==3) {
-      for(i=0;i<npairs;i++) {
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        sscanf(s,"%lf",&rcut3[i]);
-      }
-      for(i=0;i<npairs;i++) {
-        for(j=0;j<nr;j++) {
-          pass=0;
-          while(fgets(s,MAXLINE,fp)!=NULL&&pass==0) {
-            sscanf(s,"%lf%lf%lf%lf%lf",&pLong[i][j],&pLong[i][j+1]
-              ,&pLong[i][j+2],&pLong[i][j+3],&pLong[i][j+4]);
-            j+=4;
-            pass=1;
-          }
-        }
-      }
-    }
-
-    rcutall=0.0;
-    for(i=0;i<npairs;i++) {
-      if(rcut[i]>rcutall)
-        rcutall=rcut[i];
-      if(rcut3[i]>rcutall)
-        rcutall=rcut3[i];
-      rcutsq[i]=rcut[i]*rcut[i];
-      rcutsq3[i]=rcut3[i]*rcut3[i];
-      dr[i]=rcut[i]/((double)nr-1.0);
-      rdr[i]=1.0/dr[i];
-      dr3[i]=rcut3[i]/((double)nr-1.0);
-      rdr3[i]=1.0/dr3[i];
-    }
-    rctroot=rcutall;
-    dtheta=2.0/((double)ntheta-1.0);
-    rdtheta=1.0/dtheta;
-    dBO=1.0/((double)nBOt-1.0);
-    rdBO=1.0/(double)dBO;
-    for(i=0;i<npairs;i++) {
-      pBetaS1[i][0]=pBetaS[i][1]-pBetaS[i][0];
-      pBetaS1[i][1]=0.5*(pBetaS[i][2]-pBetaS[i][0]);
-      pBetaS1[i][nr-2]=0.5*(pBetaS[i][nr-1]-pBetaS[i][nr-3]);
-      pBetaS1[i][nr-1]=pBetaS[i][nr-1]-pBetaS[i][nr-2];
-      pBetaP1[i][0]=pBetaP[i][1]-pBetaP[i][0];
-      pBetaP1[i][1]=0.5*(pBetaP[i][2]-pBetaP[i][0]);
-      pBetaP1[i][nr-2]=0.5*(pBetaP[i][nr-1]-pBetaP[i][nr-3]);
-      pBetaP1[i][nr-1]=pBetaP[i][nr-1]-pBetaP[i][nr-2];
-      pRepul1[i][0]=pRepul[i][1]-pRepul[i][0];
-      pRepul1[i][1]=0.5*(pRepul[i][2]-pRepul[i][0]);
-      pRepul1[i][nr-2]=0.5*(pRepul[i][nr-1]-pRepul[i][nr-3]);
-      pRepul1[i][nr-1]=pRepul[i][nr-1]-pRepul[i][nr-2];
-      FsigBO1[i][0]=FsigBO[i][1]-FsigBO[i][0];
-      FsigBO1[i][1]=0.5*(FsigBO[i][2]-FsigBO[i][0]);
-      FsigBO1[i][nBOt-2]=0.5*(FsigBO[i][nBOt-1]-FsigBO[i][nBOt-3]);
-      FsigBO1[i][nBOt-1]=FsigBO[i][nBOt-1]-FsigBO[i][nBOt-2];
-      pLong1[i][0]=pLong[i][1]-pLong[i][0];
-      pLong1[i][1]=0.5*(pLong[i][2]-pLong[i][0]);
-      pLong1[i][nBOt-2]=0.5*(pLong[i][nr-1]-pLong[i][nr-3]);
-      pLong1[i][nBOt-1]=pLong[i][nr-1]-pLong[i][nr-2];
-      for(k=2;k<nr-2;k++) {
-        pBetaS1[i][k]=((pBetaS[i][k-2]-pBetaS[i][k+2])
-            +8.0*(pBetaS[i][k+1]-pBetaS[i][k-1]))/12.0;
-        pBetaP1[i][k]=((pBetaP[i][k-2]-pBetaP[i][k+2])
-            +8.0*(pBetaP[i][k+1]-pBetaP[i][k-1]))/12.0;
-        pRepul1[i][k]=((pRepul[i][k-2]-pRepul[i][k+2])
-            +8.0*(pRepul[i][k+1]-pRepul[i][k-1]))/12.0;
-        pLong1[i][k]=((pLong[i][k-2]-pLong[i][k+2])
-            +8.0*(pLong[i][k+1]-pLong[i][k-1]))/12.0;
-      }
-      for(k=2;k<nr-2;k++) {
-        FsigBO1[i][k]=((FsigBO[i][k-2]-FsigBO[i][k+2])
-            +8.0*(FsigBO[i][k+1]-FsigBO[i][k-1]))/12.0;
-      }
-      for(k=0;k<nr-1;k++) {
-        pBetaS2[i][k]=3.0*(pBetaS[i][k+1]-pBetaS[i][k])
-            -2.0*pBetaS1[i][k]-pBetaS1[i][k+1];
-        pBetaS3[i][k]=pBetaS1[i][k]+pBetaS1[i][k+1]
-            -2.0*(pBetaS[i][k+1]-pBetaS[i][k]);
-        pBetaP2[i][k]=3.0*(pBetaP[i][k+1]-pBetaP[i][k])
-            -2.0*pBetaP1[i][k]-pBetaP1[i][k+1];
-        pBetaP3[i][k]=pBetaP1[i][k]+pBetaP1[i][k+1]
-            -2.0*(pBetaP[i][k+1]-pBetaP[i][k]);
-        pRepul2[i][k]=3.0*(pRepul[i][k+1]-pRepul[i][k])
-            -2.0*pRepul1[i][k]-pRepul1[i][k+1];
-        pRepul3[i][k]=pRepul1[i][k]+pRepul1[i][k+1]
-            -2.0*(pRepul[i][k+1]-pRepul[i][k]);
-        pLong2[i][k]=3.0*(pLong[i][k+1]-pLong[i][k])
-            -2.0*pLong1[i][k]-pLong1[i][k+1];
-        pLong3[i][k]=pLong1[i][k]+pLong1[i][k+1]
-            -2.0*(pLong[i][k+1]-pLong[i][k]);
-      }
-      for(k=0;k<nBOt-1;k++) {
-        FsigBO2[i][k]=3.0*(FsigBO[i][k+1]-FsigBO[i][k])
-            -2.0*FsigBO1[i][k]-FsigBO1[i][k+1];
-        FsigBO3[i][k]=FsigBO1[i][k]+FsigBO1[i][k+1]
-            -2.0*(FsigBO[i][k+1]-FsigBO[i][k]);
-      }
-      pBetaS2[i][nr-1]=0.0;
-      pBetaS3[i][nr-1]=0.0;
-      pBetaP2[i][nr-1]=0.0;
-      pBetaP3[i][nr-1]=0.0;
-      pRepul2[i][nr-1]=0.0;
-      pRepul3[i][nr-1]=0.0;
-      pLong2[i][nr-1]=0.0;
-      pLong3[i][nr-1]=0.0;
-      FsigBO2[i][nBOt-1]=0.0;
-      FsigBO3[i][nBOt-1]=0.0;
-      for(k=0;k<nr;k++) {
-        pBetaS4[i][k]=pBetaS1[i][k]/dr[i];
-        pBetaS5[i][k]=2.0*pBetaS2[i][k]/dr[i];
-        pBetaS6[i][k]=3.0*pBetaS3[i][k]/dr[i];
-        pBetaP4[i][k]=pBetaP1[i][k]/dr[i];
-        pBetaP5[i][k]=2.0*pBetaP2[i][k]/dr[i];
-        pBetaP6[i][k]=3.0*pBetaP3[i][k]/dr[i];
-        pRepul4[i][k]=pRepul1[i][k]/dr[i];
-        pRepul5[i][k]=2.0*pRepul2[i][k]/dr[i];
-        pRepul6[i][k]=3.0*pRepul3[i][k]/dr[i];
-        pLong4[i][k]=pLong1[i][k]/dr3[i];
-        pLong5[i][k]=2.0*pLong2[i][k]/dr3[i];
-        pLong6[i][k]=3.0*pLong3[i][k]/dr3[i];
-      }
-      for(k=0;k<nBOt;k++) {
-        FsigBO4[i][k]=FsigBO1[i][k]/dBO;
-        FsigBO5[i][k]=2.0*FsigBO2[i][k]/dBO;
-        FsigBO6[i][k]=3.0*FsigBO3[i][k]/dBO;
-      }
-    }
-    if(npower<=2) {
-      for(i=0;i<bop_types;i++) {
-        for(j=0;j<bop_types;j++) {
-          for(k=j;k<bop_types;k++) {
-            gfunc1[j][i][k][0]=gfunc[j][i][k][1]-gfunc[j][i][k][0];
-            gfunc1[j][i][k][1]=0.5*(gfunc[j][i][k][2]-gfunc[j][i][k][0]);
-            gfunc1[j][i][k][ntheta-2]=0.5*(gfunc[j][i][k][ntheta-1]-gfunc[j][i][k][ntheta-3]);
-            gfunc1[j][i][k][ntheta-1]=0.5*(gfunc[j][i][k][ntheta-1]-gfunc[j][i][k][ntheta-2]);
-            for(m=2;m<ntheta-2;m++) {
-              gfunc1[j][i][k][m]=((gfunc[j][i][k][m-2]-gfunc[j][i][k][m+2])+
-                  8.0*(gfunc[j][i][k][m+1]-gfunc[j][i][k][m+1]-gfunc[j][i][k][m-1]))/12.0;
-            }
-            for(m=0;m<ntheta-1;m++) {
-              gfunc2[j][i][k][m]=3.0*(gfunc[j][i][k][m+1]-gfunc[j][i][k][m])-
-                  2.0*gfunc1[j][i][k][m]-gfunc1[j][i][k][m+1];
-              gfunc3[j][i][k][m]=gfunc1[j][i][k][m]+gfunc1[j][i][k][m+1]-
-                  2.0*(gfunc[j][i][k][m+1]-gfunc[j][i][k][m]);
-            }
-            gfunc2[j][i][k][ntheta-1]=0.0;
-            gfunc3[j][i][k][ntheta-1]=0.0;
-            for(m=0;m<ntheta;m++) {
-              gfunc4[j][i][k][ntheta-1]=gfunc1[j][i][k][m]/dtheta;
-              gfunc5[j][i][k][ntheta-1]=2.0*gfunc2[j][i][k][m]/dtheta;
-              gfunc6[j][i][k][ntheta-1]=3.0*gfunc3[j][i][k][m]/dtheta;
             }
           }
         }
       }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    } catch (FileReaderException &fre) {
+      error->one(FLERR, fre.what());
     }
-    for(i=0;i<bop_types;i++) {
-      for(j=0;j<bop_types;j++) {
-        for(k=0;k<j;k++) {
-          if(npower<=2) {
-            for(n=0;n<ntheta;n++) {
-              gfunc[j][i][k][n]=gfunc[k][i][j][n];
-              gfunc1[j][i][k][n]=gfunc1[k][i][j][n];
-              gfunc2[j][i][k][n]=gfunc2[k][i][j][n];
-              gfunc3[j][i][k][n]=gfunc3[k][i][j][n];
-              gfunc4[j][i][k][n]=gfunc4[k][i][j][n];
-              gfunc5[j][i][k][n]=gfunc5[k][i][j][n];
-              gfunc6[j][i][k][n]=gfunc6[k][i][j][n];
-            }
-          } else {
-            for(n=0;n<npower+1;n++) {
-              gpara[j][i][k][n]=gpara[k][i][j][n];
-            }
-          }
-        }
-      }
-    }
-    fclose(fp);
   }
+
+  MPI_Bcast(&nr,1,MPI_INT,0,world);
+  MPI_Bcast(&nBOt,1,MPI_INT,0,world);
+  MPI_Bcast(&ntheta,1,MPI_INT,0,world);
+  MPI_Bcast(&bop_types,1,MPI_INT,0,world);
+  MPI_Bcast(&npairs,1,MPI_INT,0,world);
+  MPI_Bcast(&npower,1,MPI_INT,0,world);
+
+  if (comm->me != 0){
+    allocate_tables();
+    allocate();
+  }
+
   MPI_Bcast(&rdBO,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&dBO,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&rdtheta,1,MPI_DOUBLE,0,world);
@@ -5554,26 +5322,6 @@ void _noopt PairBOP::read_table(char *filename)
   } else {
     MPI_Bcast(&gpara[0][0][0][0],bop_types*bop_types*bop_types*(npower+1),MPI_DOUBLE,0,world);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairBOP::cutoff(double rp,double vrcut,int mode,double r)
-{
-  double tmp,tmp_beta,tmp_alpha,cut_store;
-
-  if(mode==1) {
-    tmp=(rsmall-rbig)*(r-rp)/(vrcut-rp)+rbig;
-    cut_store=(erfc(tmp)-erfc(rsmall))/(erfc(rbig)-erfc(rsmall));
-  }
-  else {
-    tmp_beta=log(log(rbig)/log(rsmall))/log(rp/vrcut);
-    tmp_alpha=-log(rbig)/pow(rp,tmp_beta);
-    cut_store=(exp(-tmp_alpha*pow(r,tmp_beta))-exp(-tmp_alpha*pow(vrcut
-        ,tmp_beta)))/(exp(-tmp_alpha*pow(rp,tmp_beta))-exp(-tmp_alpha
-        *pow(vrcut,tmp_beta)));
-  }
-  return(cut_store);
 }
 
 /* ----------------------------------------------------------------------
@@ -5879,12 +5627,12 @@ void PairBOP::memory_theta_destroy()
   memory->destroy(neigh_flag3);
   memory->destroy(neigh_index);
   memory->destroy(neigh_index3);
-  itypeSigBk = NULL;
-  itypePiBk = NULL;
-  neigh_flag = NULL;
-  neigh_flag3 = NULL;
-  neigh_index = NULL;
-  neigh_index3 = NULL;
+  itypeSigBk = nullptr;
+  itypePiBk = nullptr;
+  neigh_flag = nullptr;
+  neigh_flag3 = nullptr;
+  neigh_index = nullptr;
+  neigh_index3 = nullptr;
   if(otfly==0) {
     memory->destroy(cosAng);
     memory->destroy(dcAng);
@@ -5904,26 +5652,14 @@ void PairBOP::memory_theta_destroy()
 
 void PairBOP::create_pi(int n_tot)
 {
+  memory->destroy(bt_pi);
   bt_pi = (B_PI *) memory->smalloc(n_tot*sizeof(B_PI),"BOP:bt_pi");
-  allocate_pi=1;
 }
 
 void PairBOP::create_sigma(int n_tot)
 {
-  bt_sg = (B_SG *) memory->smalloc(n_tot*sizeof(B_SG),"BOP:bt_sg");
-  allocate_sigma=1;
-}
-
-void PairBOP::destroy_pi()
-{
-  memory->destroy(bt_pi);
-  allocate_pi=0;
-}
-
-void PairBOP::destroy_sigma()
-{
   memory->destroy(bt_sg);
-  allocate_sigma=0;
+  bt_sg = (B_SG *) memory->smalloc(n_tot*sizeof(B_SG),"BOP:bt_sg");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -5944,7 +5680,7 @@ void PairBOP::grow_pi(int n1, int n2)
     }
   }
   memory->destroy(bt_pi);
-  bt_pi=NULL;
+  bt_pi=nullptr;
   bt_pi = (B_PI *) memory->smalloc(n2*sizeof(B_PI),"BOP:bt_pi");
   for(i=0;i<n1;i++) {
     bt_pi[i].temp = bt_temp[i].temp;
@@ -6000,7 +5736,7 @@ void PairBOP::grow_sigma(int n1,int n2)
     }
   }
   memory->destroy(bt_sg);
-  bt_sg=NULL;
+  bt_sg=nullptr;
   bt_sg = (B_SG *) memory->smalloc(n2*sizeof(B_SG),"BOP:bt_sg");
   for(i=0;i<n1;i++) {
     bt_sg[i].temp = bt_temp[i].temp;

@@ -12,9 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nph_kokkos.h"
-#include <cstring>
+
 #include "modify.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -71,7 +73,7 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 namespace LAMMPS_NS {
 template class FixNPHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNPHKokkos<LMPHostType>;
 #endif
 }

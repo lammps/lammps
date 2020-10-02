@@ -67,9 +67,9 @@ void TemperGrem::command(int narg, char **arg)
   if (narg != 7 && narg != 8)
     error->universe_all(FLERR,"Illegal temper command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  nevery = force->inumeric(FLERR,arg[1]);
-  double lambda = force->numeric(FLERR,arg[2]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+  double lambda = utils::numeric(FLERR,arg[2],false,lmp);
 
   // ignore temper command, if walltime limit was already reached
   if (timer->is_timeout()) return;
@@ -106,11 +106,11 @@ void TemperGrem::command(int narg, char **arg)
     pressref = p_start[0];
   }
 
-  seed_swap = force->inumeric(FLERR,arg[5]);
-  seed_boltz = force->inumeric(FLERR,arg[6]);
+  seed_swap = utils::inumeric(FLERR,arg[5],false,lmp);
+  seed_boltz = utils::inumeric(FLERR,arg[6],false,lmp);
 
   my_set_lambda = universe->iworld;
-  if (narg == 8) my_set_lambda = force->inumeric(FLERR,arg[7]);
+  if (narg == 8) my_set_lambda = utils::inumeric(FLERR,arg[7],false,lmp);
   if ((my_set_lambda < 0) || (my_set_lambda >= universe->nworlds))
     error->universe_one(FLERR,"Illegal temperature index");
 
@@ -167,7 +167,7 @@ void TemperGrem::command(int narg, char **arg)
   // warm up Boltzmann RNG
 
   if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
-  else ranswap = NULL;
+  else ranswap = nullptr;
   ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 

@@ -16,23 +16,24 @@
                          Rolf Isele-Holder (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "pppm_disp_omp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
-#include "timer.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

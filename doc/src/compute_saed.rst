@@ -57,8 +57,8 @@ is computed from the structure factor F using the equations:
 
 .. math::
 
-  I = & \frac{F^{*}F}{N} \\
-  F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k} \cdot \mathbf{r}_j)
+   I = & \frac{F^{*}F}{N} \\
+   F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k} \cdot \mathbf{r}_j)
 
 Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
 position of each atom, :math:`f_j` are atomic scattering factors.
@@ -68,8 +68,8 @@ reciprocal lattice nodes. The mesh spacing is defined either (a)  by
 the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
-.. image:: JPG/saed_mesh_small.jpg
-   :target: JPG/saed_mesh.jpg
+.. image:: img/saed_mesh.jpg
+   :scale: 75%
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is
@@ -103,8 +103,8 @@ mesh and a *dR_Ewald* thick surface of the Ewald sphere.  See the
 example 3D intensity data and the intersection of a [010] zone axis
 in the below image.
 
-.. image:: JPG/saed_ewald_intersect_small.jpg
-   :target: JPG/saed_ewald_intersect.jpg
+.. image:: img/saed_ewald_intersect.jpg
+   :scale: 75%
    :align: center
 
 The atomic scattering factors, fj, accounts for the reduction in
@@ -116,8 +116,8 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-  f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
-  a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
+   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
 
 Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
@@ -228,7 +228,8 @@ type. Valid chemical symbols for compute saed are:
 If the *echo* keyword is specified, compute saed will provide extra
 reporting information to the screen.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector.  The length of the vector is
 the number of reciprocal lattice nodes that are explored by the mesh.

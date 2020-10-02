@@ -16,23 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_aggregate_atom.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
-#include "group.h"
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -40,11 +40,11 @@ using namespace LAMMPS_NS;
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  aggregateID(NULL)
+  aggregateID(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute aggregate/atom command");
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   cutsq = cutoff*cutoff;
 
   if (atom->avec->bonds_allow == 0)
@@ -71,10 +71,10 @@ void ComputeAggregateAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute aggregate/atom unless atoms have IDs");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Compute aggregate/atom requires a bond style to be defined");
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,

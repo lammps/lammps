@@ -27,7 +27,6 @@ PairStyle(lj/sdk,PairLJSDK)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-class LAMMPS;
 
 class PairLJSDK : public Pair {
  public:

@@ -22,9 +22,9 @@
 
 #include "pair_kolmogorov_crespi_full.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -53,23 +54,23 @@ PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
 
   // initialize element to parameter maps
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  cutKCsq = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  cutKCsq = nullptr;
+  map = nullptr;
 
   nmax = 0;
   maxlocal = 0;
-  KC_numneigh = NULL;
-  KC_firstneigh = NULL;
-  ipage = NULL;
+  KC_numneigh = nullptr;
+  KC_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  normal = NULL;
-  dnormal = NULL;
-  dnormdri = NULL;
+  normal = nullptr;
+  dnormal = nullptr;
+  dnormdri = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -136,8 +137,8 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  if (narg == 2) tap_flag = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -167,7 +168,7 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -176,7 +177,7 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -249,15 +250,15 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
   int params_per_line = 12;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
-    if (fp == NULL) {
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open KC potential file %s",filename);
       error->one(FLERR,str);
@@ -274,7 +275,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -287,7 +288,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -296,7 +297,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -306,7 +307,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -316,7 +317,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line
@@ -335,6 +336,11 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -409,7 +415,7 @@ void PairKolmogorovCrespiFull::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -684,7 +690,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
 
 void PairKolmogorovCrespiFull::KC_neigh()
 {
-  int i,j,ii,jj,n,allnum,inum,jnum,itype,jtype;
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -701,7 +707,6 @@ void PairKolmogorovCrespiFull::KC_neigh()
                                              "KolmogorovCrespiFull:firstneigh");
   }
 
-  inum = list->inum;
   allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;

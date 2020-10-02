@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "compute.h"
 #include "modify.h"
 #include "pair.h"
-#include "utils.h"
+
 #include "timer.h"
 
 #include "plumed/wrapper/Plumed.h"
@@ -53,8 +53,8 @@ using namespace FixConst;
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  p(NULL), nlocal(0), gatindex(NULL), masses(NULL), charges(NULL),
-  id_pe(NULL), id_press(NULL)
+  p(nullptr), nlocal(0), gatindex(nullptr), masses(nullptr), charges(nullptr),
+  id_pe(nullptr), id_press(nullptr)
 {
 
   if (!atom->tag_enable)
@@ -68,7 +68,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
                    "Group will be ignored.");
 
 #if defined(__PLUMED_DEFAULT_KERNEL)
-  if (getenv("PLUMED_KERNEL") == NULL)
+  if (getenv("PLUMED_KERNEL") == nullptr)
     putenv(plumed_default_kernel);
 #endif
 
@@ -82,6 +82,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
                "Only Plumed 2.4.x, 2.5.x, and 2.6.x are tested and supported.");
 
+#if !defined(MPI_STUBS)
   // If the -partition option is activated then enable
   // inter-partition communication
 
@@ -100,7 +101,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
       //    it is defined inside plumed.
       p->cmd("GREX setMPIIntercomm",&inter_comm);
     }
-    p->cmd("GREX init",NULL);
+    p->cmd("GREX init",nullptr);
   }
 
   // The general communicator is independent of the existence of partitions,
@@ -108,7 +109,6 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // whereas if partitions are not defined then world is equal to
   // MPI_COMM_WORLD.
 
-#if !defined(MPI_STUBS)
   // plumed does not know about LAMMPS using the MPI STUBS library and will
   // fail if this is called under these circumstances
   p->cmd("setMPIComm",&world);

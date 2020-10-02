@@ -67,34 +67,116 @@ int hip_get_max_block_size(typename DriverType::functor_type const &f,
       f, vector_length, shmem_extra_block, shmem_extra_thread);
 }
 
-template <class FunctorType, class LaunchBounds>
-int hip_get_max_block_size(const HIPInternal * /*hip_instance*/,
-                           const hipFuncAttributes &attr,
-                           const FunctorType & /*f*/,
-                           const size_t /*vector_length*/,
-                           const size_t /*shmem_block*/,
-                           const size_t /*shmem_thread*/) {
-  // FIXME_HIP find a better algorithm. Be aware that
-  // maxThreadsPerMultiProcessor, regsPerBlock, and l2CacheSize are bugged and
-  // always return zero
-  // https://github.com/ROCm-Developer-Tools/HIP/blob/6c5fa32815650cc20a4f783d09b013610348a4d5/include/hip/hcc_detail/hip_runtime_api.h#L438-L440
-  // and we don't have access to the same information than we do for CUDA
-
-  int const max_threads_per_block_mi60 = 1024;
-  int const max_threads_per_block      = LaunchBounds::maxTperB == 0
-                                        ? max_threads_per_block_mi60
+template <class FunctorType, class LaunchBounds, typename F>
+int hip_internal_get_block_size(const F &condition_check,
+                                const HIPInternal *hip_instance,
+                                const hipFuncAttributes &attr,
+                                const FunctorType &f,
+                                const size_t vector_length,
+                                const size_t shmem_block,
+                                const size_t shmem_thread) {
+  const int min_blocks_per_sm =
+      LaunchBounds::minBperSM == 0 ? 1 : LaunchBounds::minBperSM;
+  const int max_threads_per_block = LaunchBounds::maxTperB == 0
+                                        ? hip_instance->m_maxThreadsPerBlock
                                         : LaunchBounds::maxTperB;
-  return std::min(attr.maxThreadsPerBlock, max_threads_per_block);
+
+  const int regs_per_wavefront  = attr.numRegs;
+  const int regs_per_sm         = hip_instance->m_regsPerSM;
+  const int shmem_per_sm        = hip_instance->m_shmemPerSM;
+  const int max_shmem_per_block = hip_instance->m_maxShmemPerBlock;
+  const int max_blocks_per_sm   = hip_instance->m_maxBlocksPerSM;
+  const int max_threads_per_sm  = hip_instance->m_maxThreadsPerSM;
+
+// FIXME_HIP this is broken in 3.5, but should be in 3.6
+#if (HIP_VERSION_MAJOR > 3 || HIP_VERSION_MINOR > 5 || \
+     HIP_VERSION_PATCH >= 20226)
+  int block_size = std::min(attr.maxThreadsPerBlock, max_threads_per_block);
+#else
+  int block_size = max_threads_per_block;
+#endif
+  KOKKOS_ASSERT(block_size > 0);
+
+  int functor_shmem = ::Kokkos::Impl::FunctorTeamShmemSize<FunctorType>::value(
+      f, block_size / vector_length);
+  int total_shmem = shmem_block + shmem_thread * (block_size / vector_length) +
+                    functor_shmem + attr.sharedSizeBytes;
+  int max_blocks_regs =
+      regs_per_sm / (regs_per_wavefront * (block_size / HIPTraits::WarpSize));
+  int max_blocks_shmem =
+      (total_shmem < max_shmem_per_block)
+          ? (total_shmem > 0 ? shmem_per_sm / total_shmem : max_blocks_regs)
+          : 0;
+  int blocks_per_sm  = std::min(max_blocks_regs, max_blocks_shmem);
+  int threads_per_sm = blocks_per_sm * block_size;
+  if (threads_per_sm > max_threads_per_sm) {
+    blocks_per_sm  = max_threads_per_sm / block_size;
+    threads_per_sm = blocks_per_sm * block_size;
+  }
+  int opt_block_size = (blocks_per_sm >= min_blocks_per_sm) ? block_size : 0;
+  int opt_threads_per_sm = threads_per_sm;
+  // printf("BlockSizeMax: %i Shmem: %i %i %i %i Regs: %i %i Blocks: %i %i
+  // Achieved: %i %i Opt: %i %i\n",block_size,
+  //   shmem_per_sm,max_shmem_per_block,functor_shmem,total_shmem,
+  //   regs_per_sm,regs_per_wavefront,max_blocks_shmem,max_blocks_regs,blocks_per_sm,threads_per_sm,opt_block_size,opt_threads_per_sm);
+  block_size -= HIPTraits::WarpSize;
+  while (condition_check(blocks_per_sm) &&
+         (block_size >= HIPTraits::WarpSize)) {
+    functor_shmem = ::Kokkos::Impl::FunctorTeamShmemSize<FunctorType>::value(
+        f, block_size / vector_length);
+    total_shmem = shmem_block + shmem_thread * (block_size / vector_length) +
+                  functor_shmem + attr.sharedSizeBytes;
+    max_blocks_regs =
+        regs_per_sm / (regs_per_wavefront * (block_size / HIPTraits::WarpSize));
+    max_blocks_shmem =
+        (total_shmem < max_shmem_per_block)
+            ? (total_shmem > 0 ? shmem_per_sm / total_shmem : max_blocks_regs)
+            : 0;
+    blocks_per_sm  = std::min(max_blocks_regs, max_blocks_shmem);
+    threads_per_sm = blocks_per_sm * block_size;
+    if (threads_per_sm > max_threads_per_sm) {
+      blocks_per_sm  = max_threads_per_sm / block_size;
+      threads_per_sm = blocks_per_sm * block_size;
+    }
+    if ((blocks_per_sm >= min_blocks_per_sm) &&
+        (blocks_per_sm <= max_blocks_per_sm)) {
+      if (threads_per_sm >= opt_threads_per_sm) {
+        opt_block_size     = block_size;
+        opt_threads_per_sm = threads_per_sm;
+      }
+    }
+    // printf("BlockSizeMax: %i Shmem: %i %i %i %i Regs: %i %i Blocks: %i %i
+    // Achieved: %i %i Opt: %i %i\n",block_size,
+    //   shmem_per_sm,max_shmem_per_block,functor_shmem,total_shmem,
+    //   regs_per_sm,regs_per_wavefront,max_blocks_shmem,max_blocks_regs,blocks_per_sm,threads_per_sm,opt_block_size,opt_threads_per_sm);
+    block_size -= HIPTraits::WarpSize;
+  }
+  return opt_block_size;
 }
 
+template <class FunctorType, class LaunchBounds>
+int hip_get_max_block_size(const HIPInternal *hip_instance,
+                           const hipFuncAttributes &attr, const FunctorType &f,
+                           const size_t vector_length, const size_t shmem_block,
+                           const size_t shmem_thread) {
+  return hip_internal_get_block_size<FunctorType, LaunchBounds>(
+      [](int x) { return x == 0; }, hip_instance, attr, f, vector_length,
+      shmem_block, shmem_thread);
+}
 template <typename DriverType>
 struct HIPGetMaxBlockSize<DriverType, Kokkos::LaunchBounds<>, true> {
   static int get_block_size(typename DriverType::functor_type const &f,
                             size_t const vector_length,
                             size_t const shmem_extra_block,
                             size_t const shmem_extra_thread) {
-    unsigned int numBlocks = 0;
-    int blockSize          = 1024;
+// FIXME_HIP -- remove this once the API change becomes mature
+#if !defined(__HIP__)
+    using blocktype = unsigned int;
+#else
+    using blocktype = int;
+#endif
+    blocktype numBlocks = 0;
+    int blockSize       = 1024;
     int sharedmem =
         shmem_extra_block + shmem_extra_thread * (blockSize / vector_length) +
         ::Kokkos::Impl::FunctorTeamShmemSize<
@@ -150,23 +232,13 @@ int hip_get_opt_block_size(typename DriverType::functor_type const &f,
 }
 
 template <typename FunctorType, typename LaunchBounds>
-int hip_get_opt_block_size(HIPInternal const * /*hip_instance*/,
-                           hipFuncAttributes const &attr,
-                           FunctorType const & /*f*/,
-                           size_t const /*vector_length*/,
-                           size_t const /*shmem_block*/,
-                           size_t const /*shmem_thread*/) {
-  // FIXME_HIP find a better algorithm. Be aware that
-  // maxThreadsPerMultiProcessor, regsPerBlock, and l2CacheSize are bugged and
-  // always return zero
-  // https://github.com/ROCm-Developer-Tools/HIP/blob/6c5fa32815650cc20a4f783d09b013610348a4d5/include/hip/hcc_detail/hip_runtime_api.h#L438-L440
-  // and we don't have access to the same information than we do for CUDA
-
-  int const max_threads_per_block_mi60 = 1024;
-  int const max_threads_per_block      = LaunchBounds::maxTperB == 0
-                                        ? max_threads_per_block_mi60
-                                        : LaunchBounds::maxTperB;
-  return std::min(attr.maxThreadsPerBlock, max_threads_per_block);
+int hip_get_opt_block_size(HIPInternal const *hip_instance,
+                           hipFuncAttributes const &attr, FunctorType const &f,
+                           size_t const vector_length, size_t const shmem_block,
+                           size_t const shmem_thread) {
+  return hip_internal_get_block_size<FunctorType, LaunchBounds>(
+      [](int) { return true; }, hip_instance, attr, f, vector_length,
+      shmem_block, shmem_thread);
 }
 
 // FIXME_HIP the code is identical to the false struct except for

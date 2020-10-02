@@ -1,16 +1,17 @@
 .. index:: pair_style hybrid
+.. index:: pair_style hybrid/kk
+.. index:: pair_style hybrid/overlay
+.. index:: pair_style hybrid/overlay/kk
 
 pair_style hybrid command
 =========================
 
-pair_style hybrid/kk command
-============================
+Accelerator Variants: *hybrid/kk*
 
 pair_style hybrid/overlay command
 =================================
 
-pair_style hybrid/overlay/kk command
-====================================
+Accelerator Variants: *hybrid/overlay/kk*
 
 Syntax
 """"""
@@ -51,7 +52,7 @@ be used for a simulation of a metal droplet on a LJ surface.  The
 metal atoms interact with each other via an *eam* potential, the
 surface atoms interact with each other via a *lj/cut* potential, and
 the metal/surface interaction is also computed via a *lj/cut*
-potential.  The *hybrid/overlay* style could be used as in the 2nd
+potential.  The *hybrid/overlay* style could be used as in the second
 example above, where multiple potentials are superposed in an additive
 fashion to compute the interaction between atoms.  In this example,
 using *lj/cut* and *coul/long* together gives the same result as if
@@ -72,7 +73,7 @@ sub-style.  For efficiency this should only be done if your model
 requires it.  E.g. if you have different regions of Si and C atoms and
 wish to use a Tersoff potential for pure Si for one set of atoms, and
 a Tersoff potential for pure C for the other set (presumably with some
-3rd potential for Si-C interactions), then the sub-style *tersoff*
+third potential for Si-C interactions), then the sub-style *tersoff*
 could be listed twice.  But if you just want to use a Lennard-Jones or
 other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
@@ -364,7 +365,8 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Any pair potential settings made via the
 :doc:`pair_modify <pair_modify>` command are passed along to all
@@ -412,5 +414,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:**
+Default
+"""""""
+
 none

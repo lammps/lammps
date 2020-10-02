@@ -24,8 +24,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   dump 1 all cfg/uef 10 dump.\*.cfg mass type xs ys zs
-   dump 2 all cfg/uef 100 dump.\*.cfg mass type xs ys zs id c_stress
+   dump 1 all cfg/uef 10 dump.*.cfg mass type xs ys zs
+   dump 2 all cfg/uef 100 dump.*.cfg mass type xs ys zs id c_stress
 
 Description
 """""""""""
@@ -54,4 +54,7 @@ Related commands
 :doc:`dump <dump>`,
 :doc:`fix nvt/uef <fix_nh_uef>`
 
-**Default:** none
+Default
+"""""""
+
+none

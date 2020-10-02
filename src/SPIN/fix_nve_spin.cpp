@@ -60,9 +60,9 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(NULL), spin_pairs(NULL),
-  rsec(NULL), stack_head(NULL), stack_foot(NULL),
-  backward_stacks(NULL), forward_stacks(NULL)
+  pair(nullptr), spin_pairs(nullptr),
+  rsec(nullptr), stack_head(nullptr), stack_foot(nullptr),
+  backward_stacks(nullptr), forward_stacks(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_nve_spin);
 
@@ -77,7 +77,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // checking if map array or hash is defined
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix NVE/spin requires an atom map, see atom_modify");
 
   // defining sector_flag

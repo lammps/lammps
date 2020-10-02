@@ -52,7 +52,7 @@ void MsgMPITwo::init(char *filename)
 {
   if (client) {
     if (me == 0) {
-      FILE *fp = NULL;
+      FILE *fp = nullptr;
       while (!fp) {
         fp = fopen(filename,"r");
         if (!fp) sleep(1);

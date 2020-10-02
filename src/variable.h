@@ -24,11 +24,12 @@ class Variable : protected Pointers {
   Variable(class LAMMPS *);
   ~Variable();
   void set(int, char **);
+  void set(const std::string &);
   void set(char *, int, char **);
-  int set_string(char *, char *);
+  int set_string(const char *, const char *);
   int next(int, char **);
 
-  int find(char *);
+  int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
 
@@ -38,7 +39,7 @@ class Variable : protected Pointers {
   char *pythonstyle(char *, char *);
   int internalstyle(int);
 
-  char *retrieve(char *);
+  char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
@@ -92,9 +93,9 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
+      array(nullptr), iarray(nullptr), barray(nullptr),
       selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL) {}
+      first(nullptr), second(nullptr), extra(nullptr) {}
   };
 
   int compute_python(int);
@@ -123,7 +124,8 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int, int global=1);
+  void print_var_error(const std::string &, int, const std::string &,
+                       int, int global=1);
   void print_tree(Tree *, int);
 };
 

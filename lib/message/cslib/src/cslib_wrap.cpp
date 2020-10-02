@@ -44,7 +44,7 @@ void cslib_open_fortran(int csflag, const char *mode, const char *str,
                         const void *pcomm, void **csptr)
 {
   MPI_Comm ccomm;
-  void *pccomm = NULL;
+  void *pccomm = nullptr;
 
   if (pcomm) {
     MPI_Fint *fcomm = (MPI_Fint *) pcomm;

@@ -12,20 +12,21 @@
    ------------------------------------------------------------------------- */
 
 #include "fix_langevin_kokkos.h"
-#include <cmath>
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "update.h"
-#include "error.h"
-#include "memory_kokkos.h"
-#include "compute.h"
-#include "comm.h"
-#include "modify.h"
 #include "input.h"
-#include "region.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "update.h"
 #include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -62,7 +63,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 
   if(gjfflag){
     grow_arrays(atomKK->nmax);
-    atom->add_callback(0);
+    atom->add_callback(Atom::GROW);
     // initialize franprev to zero
     for (int i = 0; i < atomKK->nlocal; i++) {
       franprev[i][0] = 0.0;
@@ -137,7 +138,7 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::initial_integrate(int vflag)
+void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
@@ -168,7 +169,7 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::post_force(int vflag)
+void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // sync the device views which might have been modified on host
   atomKK->sync(execution_space,datamask_read);
@@ -734,7 +735,7 @@ void FixLangevinKokkos<DeviceType>::reset_dt()
 template<class DeviceType>
 double FixLangevinKokkos<DeviceType>::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL) return 0.0;
+  if (!tallyflag || flangevin == nullptr) return 0.0;
 
   v = atomKK->k_v.template view<DeviceType>();
   mask = atomKK->k_mask.template view<DeviceType>();
@@ -873,7 +874,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
    ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   h_franprev(j,0) = h_franprev(i,0);
   h_franprev(j,1) = h_franprev(i,1);
@@ -892,24 +893,24 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::cleanup_copy()
 {
-  random = NULL;
-  tstr = NULL;
-  gfactor1 = NULL;
-  gfactor2 = NULL;
-  ratio = NULL;
-  id_temp = NULL;
-  flangevin = NULL;
-  tforce = NULL;
+  random = nullptr;
+  tstr = nullptr;
+  gfactor1 = nullptr;
+  gfactor2 = nullptr;
+  ratio = nullptr;
+  id_temp = nullptr;
+  flangevin = nullptr;
+  tforce = nullptr;
   gjfflag = 0;
-  franprev = NULL;
-  lv = NULL;
-  id = style = NULL;
-  vatom = NULL;
+  franprev = nullptr;
+  lv = nullptr;
+  id = style = nullptr;
+  vatom = nullptr;
 }
 
 namespace LAMMPS_NS {
 template class FixLangevinKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixLangevinKokkos<LMPHostType>;
 #endif
 }

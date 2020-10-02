@@ -6,7 +6,7 @@ name gives more details.
 
 User packages have been contributed by users, and begin with the
 "user" prefix.  If a contribution is a single command (single file),
-it is typically in the user-misc package.  User packages don't
+it is typically in the USER-MISC package.  User packages don't
 necessarily meet the requirements of the :doc:`standard packages <Packages_standard>`. This means the developers will try
 to keep things working and usually can answer technical questions
 about compiling the package. If you have problems using a specific
@@ -66,6 +66,8 @@ package:
 | :ref:`USER-MEAMC <PKG-USER-MEAMC>`             | modified EAM potential (C++)                                    | :doc:`pair_style meam/c <pair_meamc>`                                         | meamc                                                | no      |
 +------------------------------------------------+-----------------------------------------------------------------+-------------------------------------------------------------------------------+------------------------------------------------------+---------+
 | :ref:`USER-MESODPD <PKG-USER-MESODPD>`         | mesoscale DPD models                                            | :doc:`pair_style edpd <pair_mesodpd>`                                         | USER/mesodpd                                         | no      |
++------------------------------------------------+-----------------------------------------------------------------+-------------------------------------------------------------------------------+------------------------------------------------------+---------+
+| :ref:`USER-MESONT <PKG-USER-MESONT>`           | mesoscopic tubular potential model for nanotubes                | pair style :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>` | USER/mesont                                          | int     |
 +------------------------------------------------+-----------------------------------------------------------------+-------------------------------------------------------------------------------+------------------------------------------------------+---------+
 | :ref:`USER-MGPT <PKG-USER-MGPT>`               | fast MGPT multi-ion potentials                                  | :doc:`pair_style mgpt <pair_mgpt>`                                            | USER/mgpt                                            | no      |
 +------------------------------------------------+-----------------------------------------------------------------+-------------------------------------------------------------------------------+------------------------------------------------------+---------+

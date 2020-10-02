@@ -16,32 +16,31 @@
 ------------------------------------------------------------------------- */
 
 #include "min_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_minimize_kokkos.h"
-#include "compute.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_minimize_kokkos.h"
+#include "force.h"
 #include "improper.h"
+#include "kokkos.h"
 #include "kspace.h"
+#include "modify.h"
+#include "neighbor.h"
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "kokkos.h"
-#include "atom_masks.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +49,7 @@ using namespace LAMMPS_NS;
 MinKokkos::MinKokkos(LAMMPS *lmp) : Min(lmp)
 {
   atomKK = (AtomKokkos *) atom;
-  fix_minimize_kk = NULL;
+  fix_minimize_kk = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

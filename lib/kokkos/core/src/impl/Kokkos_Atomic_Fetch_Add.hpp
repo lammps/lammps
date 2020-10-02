@@ -160,8 +160,10 @@ atomic_fetch_add(volatile T* const dest,
     if (!done) {
       bool locked = Impl::lock_address_cuda_space((void*)dest);
       if (locked) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = return_val + val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -329,6 +331,7 @@ inline T atomic_fetch_add(
                             const T>::type& val) {
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
 
   // Don't use the following line of code here:
@@ -343,6 +346,7 @@ inline T atomic_fetch_add(
   *dest       = return_val + val;
   const T tmp = *dest;
   (void)tmp;
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
 
   return return_val;

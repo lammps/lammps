@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_buck_coul_long_intel.h"
 #include "atom.h"
@@ -617,10 +617,10 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * odetable = detable;
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
-      if (ospecial_lj != NULL && oc_force != NULL && orho_inv != NULL &&
-          oc_energy != NULL && otable != NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && _cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr && orho_inv != nullptr &&
+          oc_energy != nullptr && otable != nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
           nocopy(oc_force, oc_energy: alloc_if(0) free_if(1)) \
@@ -662,10 +662,10 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL && orho_inv != NULL &&
-          oc_energy != NULL && otable !=NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr && orho_inv != nullptr &&
+          oc_energy != nullptr && otable !=nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \

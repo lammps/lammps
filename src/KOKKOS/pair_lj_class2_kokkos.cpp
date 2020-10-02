@@ -46,7 +46,7 @@ PairLJClass2Kokkos<DeviceType>::PairLJClass2Kokkos(LAMMPS *lmp) : PairLJClass2(l
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ PairLJClass2Kokkos<DeviceType>::~PairLJClass2Kokkos()
   if (allocated) {
     k_cutsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    cutsq = NULL;
+    cutsq = nullptr;
   }
 }
 
@@ -67,9 +67,9 @@ template<class DeviceType>
 void PairLJClass2Kokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,9 +247,6 @@ void PairLJClass2Kokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/class2/kk");
   }
@@ -285,7 +282,7 @@ double PairLJClass2Kokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJClass2Kokkos<LMPHostType>;
 #endif
 }

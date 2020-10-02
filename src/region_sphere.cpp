@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "region_sphere.h"
+
+#include "error.h"
+#include "input.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "input.h"
-#include "variable.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -27,7 +28,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL)
+  Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr)
 {
   options(narg-6,&arg[6]);
 
@@ -39,7 +40,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     xstyle = VARIABLE;
     varshape = 1;
   } else {
-    xc = xscale*force->numeric(FLERR,arg[2]);
+    xc = xscale*utils::numeric(FLERR,arg[2],false,lmp);
     xstyle = CONSTANT;
   }
 
@@ -51,7 +52,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     ystyle = VARIABLE;
     varshape = 1;
   } else {
-    yc = yscale*force->numeric(FLERR,arg[3]);
+    yc = yscale*utils::numeric(FLERR,arg[3],false,lmp);
     ystyle = CONSTANT;
   }
 
@@ -63,7 +64,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     zstyle = VARIABLE;
     varshape = 1;
   } else {
-    zc = zscale*force->numeric(FLERR,arg[4]);
+    zc = zscale*utils::numeric(FLERR,arg[4],false,lmp);
     zstyle = CONSTANT;
   }
 
@@ -75,7 +76,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     rstyle = VARIABLE;
     varshape = 1;
   } else {
-    radius = xscale*force->numeric(FLERR,arg[5]);
+    radius = xscale*utils::numeric(FLERR,arg[5],false,lmp);
     rstyle = CONSTANT;
   }
 

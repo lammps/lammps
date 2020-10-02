@@ -15,21 +15,21 @@
    Contributing authors: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_intel.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -711,6 +711,8 @@ void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
       if (type2rhor[i][j] >= 0) {
         const int joff = ioff + j * fc.rhor_jstride();
         for (int k = 0; k < nr + 1; k++) {
+          if ((type2rhor[j][i] < 0) || (type2rhor[i][j] < 0))
+            continue;
           if (type2rhor[j][i] != type2rhor[i][j])
             _onetype = 0;
           else if (_onetype < 0)

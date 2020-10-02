@@ -21,24 +21,22 @@
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "min_spin_lbfgs.h"
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
+#include "math_const.h"
+#include "memory.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
-#include "memory.h"
-#include "modify.h"
-#include "math_special.h"
-#include "math_const.h"
 #include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,7 +60,7 @@ static const char cite_minstyle_spin_lbfgs[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), rho(NULL), ds(NULL), dy(NULL), sp_copy(NULL)
+  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_lbfgs);
   nlocal_max = 0;
@@ -156,7 +154,7 @@ int MinSpinLBFGS::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     double discrete_factor;
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     maxepsrot = MY_2PI / (10 * discrete_factor);
     return 2;
   }

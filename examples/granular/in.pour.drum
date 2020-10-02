@@ -92,6 +92,8 @@ fix		5 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindl
 
 # 'Turn' drum by switching the direction of gravity
 unfix		grav
+unfix		ins1
+unfix		ins2
 fix		grav all gravity 10 vector 0 -1 0
 
 variable	theta equal 2*PI*elapsed/20000.0

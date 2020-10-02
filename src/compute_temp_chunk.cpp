@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -31,8 +31,8 @@ enum{TEMP,KECOM,INTERNAL};
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL),
-  countall(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
+  which(nullptr), idchunk(nullptr), id_bias(nullptr), sum(nullptr), sumall(nullptr), count(nullptr),
+  countall(nullptr), massproc(nullptr), masstotal(nullptr), vcm(nullptr), vcmall(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
@@ -71,7 +71,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   comflag = 0;
   biasflag = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   adof = domain->dimension;
   cdof = 0.0;
 
@@ -94,12 +94,12 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/chunk command");
-      adof = force->numeric(FLERR,arg[iarg+1]);
+      adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/chunk command");
-      cdof = force->numeric(FLERR,arg[iarg+1]);
+      cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute temp/chunk command");
   }

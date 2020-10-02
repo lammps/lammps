@@ -14,7 +14,7 @@
 #ifndef LMP_DOMAIN_KOKKOS_H
 #define LMP_DOMAIN_KOKKOS_H
 
-#include "domain.h"
+#include "domain.h"             // IWYU pragma: export
 #include "kokkos_type.h"
 #include "kokkos_few.h"
 

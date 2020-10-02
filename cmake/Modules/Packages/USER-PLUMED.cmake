@@ -55,8 +55,8 @@ if(DOWNLOAD_PLUMED)
   endif()
   include(ExternalProject)
   ExternalProject_Add(plumed_build
-    URL https://github.com/plumed/plumed2/releases/download/v2.6.0/plumed-src-2.6.0.tgz
-    URL_MD5 204d2edae58d9b10ba3ad460cad64191
+    URL https://github.com/plumed/plumed2/releases/download/v2.6.1/plumed-src-2.6.1.tgz
+    URL_MD5 89a9a450fc6025299fe16af235957163
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}
@@ -70,9 +70,6 @@ if(DOWNLOAD_PLUMED)
   ExternalProject_get_property(plumed_build INSTALL_DIR)
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::PLUMED plumed_build)
-  if(NOT BUILD_SHARED_LIBS)
-    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
-  endif()
   if(PLUMED_MODE STREQUAL "STATIC")
     set_target_properties(LAMMPS::PLUMED PROPERTIES IMPORTED_LOCATION ${INSTALL_DIR}/lib/libplumed.a INTERFACE_LINK_LIBRARIES "${PLUMED_LINK_LIBS};${CMAKE_DL_LIBS}")
   elseif(PLUMED_MODE STREQUAL "SHARED")

@@ -17,25 +17,25 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -49,8 +49,8 @@ using namespace std;
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL), cglist(NULL)
+  qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
+  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), cglist(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -84,7 +84,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
       } else {
-        nnn = force->numeric(FLERR,arg[iarg+1]);
+        nnn = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (nnn <= 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
       }
@@ -92,7 +92,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"degrees") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      nqlist = force->numeric(FLERR,arg[iarg+1]);
+      nqlist = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (nqlist <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       memory->destroy(qlist);
@@ -102,7 +102,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
       for (int il = 0; il < nqlist; il++) {
-        qlist[il] = force->numeric(FLERR,arg[iarg+il]);
+        qlist[il] = utils::numeric(FLERR,arg[iarg+il],false,lmp);
         if (qlist[il] < 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
         if (qlist[il] > qmax) qmax = qlist[il];
@@ -126,7 +126,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       qlcompflag = 1;
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      qlcomp = force->numeric(FLERR,arg[iarg+1]);
+      qlcomp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iqlcomp = -1;
       for (int il = 0; il < nqlist; il++)
         if (qlcomp == qlist[il]) {
@@ -139,7 +139,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      double cutoff = force->numeric(FLERR,arg[iarg+1]);
+      double cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff <= 0.0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
@@ -147,7 +147,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"chunksize") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      chunksize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (chunksize <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
@@ -186,7 +186,7 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 
 void ComputeOrientOrderAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute orientorder/atom requires a "
                "pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;
@@ -255,6 +255,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+  memset(&qnarray[0][0],0,nmax*ncol*sizeof(double));
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -317,7 +318,6 @@ void ComputeOrientOrderAtom::compute_peratom()
       }
 
       calc_boop(rlist, ncount, qn, qlist, nqlist);
-
     }
   }
 }
@@ -466,21 +466,26 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
 
+      // calculate spherical harmonics
+      // Ylm, -l <= m <= l
+      // sign convention: sign(Yll(0,0)) = (-1)^l
+
       qnm_r[il][l] += polar_prefactor(l, 0, costheta);
       double expphim_r = expphi_r;
       double expphim_i = expphi_i;
       for(int m = 1; m <= +l; m++) {
+
         double prefactor = polar_prefactor(l, m, costheta);
-        double c_r = prefactor * expphim_r;
-        double c_i = prefactor * expphim_i;
-        qnm_r[il][m+l] += c_r;
-        qnm_i[il][m+l] += c_i;
+        double ylm_r = prefactor * expphim_r;
+        double ylm_i = prefactor * expphim_i;
+        qnm_r[il][m+l] += ylm_r;
+        qnm_i[il][m+l] += ylm_i;
         if(m & 1) {
-          qnm_r[il][-m+l] -= c_r;
-          qnm_i[il][-m+l] += c_i;
+          qnm_r[il][-m+l] -= ylm_r;
+          qnm_i[il][-m+l] += ylm_i;
         } else {
-          qnm_r[il][-m+l] += c_r;
-          qnm_i[il][-m+l] -= c_i;
+          qnm_r[il][-m+l] += ylm_r;
+          qnm_i[il][-m+l] -= ylm_i;
         }
         double tmp_r = expphim_r*expphi_r - expphim_i*expphi_i;
         double tmp_i = expphim_r*expphi_i + expphim_i*expphi_r;
@@ -514,19 +519,6 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
     qn[jj++] = qnormfac * sqrt(qm_sum);
   }
-
-  // TODO:
-  // 1. [done]Need to allocate extra memory in qnarray[] for this option
-  // 2. [done]Need to add keyword option
-  // 3. [done]Need to calculate Clebsch-Gordan/Wigner 3j coefficients
-  //     (Can try getting them from boop.py first)
-  // 5. [done]Compare to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
-  // 6. [done]I get the right answer for W_l, but need to make sure that factor of 1/sqrt(l+1) is right for cglist
-  // 7. Add documentation
-  // 8. [done] run valgrind
-  // 9. [done] Add Wlhat
-  // 10. Update memory_usage()
-  // 11. Add exact FCC values for W_4, W_4_hat
 
   // calculate W_l
 
@@ -564,7 +556,6 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           idxcg_count++;
         }
       }
-  //      Whats = [w/(q/np.sqrt(np.pi * 4 / (2 * l + 1)))**3 if abs(q) > 1.0e-6 else 0.0 for l,q,w in zip(range(1,max_l+1),Qs,Ws)]
       if (qn[il] < QEPSILON)
         qn[jj++] = 0.0;
       else {
@@ -575,7 +566,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
-  // Calculate components of Q_l, for l=qlcomp
+  // Calculate components of Q_l/|Q_l|, for l=qlcomp
 
   if (qlcompflag) {
     int il = iqlcomp;
@@ -629,6 +620,7 @@ double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta)
 
 /* ----------------------------------------------------------------------
    associated legendre polynomial
+   sign convention: P(l,l) = (2l-1)!!(-sqrt(1-x^2))^l
 ------------------------------------------------------------------------- */
 
 double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
@@ -638,9 +630,9 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
   double p(1.0), pm1(0.0), pm2(0.0);
 
   if (m != 0) {
-    const double sqx = sqrt(1.0-x*x);
+    const double msqx = -sqrt(1.0-x*x);
     for (int i=1; i < m+1; ++i)
-      p *= static_cast<double>(2*i-1) * sqx;
+      p *= static_cast<double>(2*i-1) * msqx;
   }
 
   for (int i=m+1; i < l+1; ++i) {
@@ -723,11 +715,8 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
 
 double ComputeOrientOrderAtom::factorial(int n)
 {
-  if (n < 0 || n > nmaxfactorial) {
-    char str[128];
-    sprintf(str, "Invalid argument to factorial %d", n);
-    error->all(FLERR, str);
-  }
+  if (n < 0 || n > nmaxfactorial)
+    error->all(FLERR,fmt::format("Invalid argument to factorial {}", n));
 
   return nfac_table[n];
 }

@@ -366,20 +366,6 @@ class SimpleTaskScheduler
 
   //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  // For backwards compatibility purposes only
-  KOKKOS_DEPRECATED
-  KOKKOS_INLINE_FUNCTION
-  memory_pool* memory() const noexcept KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE {
-    if (m_queue != nullptr)
-      return &(m_queue->get_memory_pool());
-    else
-      return nullptr;
-  }
-#endif
-
-  //----------------------------------------------------------------------------
-
   template <int TaskEnum, typename DepFutureType, typename FunctorType>
   KOKKOS_FUNCTION static Kokkos::BasicFuture<typename FunctorType::value_type,
                                              scheduler_type>

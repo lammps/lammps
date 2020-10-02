@@ -46,9 +46,9 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   void data_atom(double *, tagint, char **);
   void pack_data(double **);
   void write_data(FILE *, int, double **);
-  bigint memory_usage();
+  double memory_usage();
 
-  void grow_reset();
+  void grow_pointers();
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space);

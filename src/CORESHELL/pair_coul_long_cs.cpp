@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 PairCoulLongCS::PairCoulLongCS(LAMMPS *lmp) : PairCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
-  ftable = NULL;
+  single_enable = 0; // TODO: single function does not match compute
+  ftable = nullptr;
   qdist = 0.0;
 }
 

@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "math_const.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -60,8 +61,8 @@ PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -116,20 +117,20 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short_2body.extent(1) != max_neighs) ||
-     (d_neighbors_short_2body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_2body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_2body.extent(0) != ignum)) {
     d_neighbors_short_2body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_2body",ignum,max_neighs);
   }
-  if (d_numneigh_short_2body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_2body.extent(0)!=ignum) {
     d_numneigh_short_2body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_2body",ignum);
   }
 
-  if ((d_neighbors_short_3body.extent(1) != max_neighs) ||
-     (d_neighbors_short_3body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_3body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_3body.extent(0) != ignum)) {
     d_neighbors_short_3body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_3body",ignum,max_neighs);
   }
 
-  if (d_numneigh_short_3body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_3body.extent(0)!=ignum) {
     d_numneigh_short_3body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_3body",ignum);
   }
 
@@ -372,7 +373,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
   const int i = d_ilist[ii];
 
-  const tagint itag = tag[i];
   const int itype = d_map[type[i]];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -389,7 +389,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short_2body(i,jj);
     j &= NEIGHMASK;
-    const tagint jtag = tag[j];
 
     const int jtype = d_map[type[j]];
 
@@ -911,7 +910,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
+void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const int &i,
           const F_FLOAT &evdwl, const F_FLOAT &ecoul,
                      F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
 {
@@ -942,7 +941,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 
 namespace LAMMPS_NS {
 template class PairVashishtaKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairVashishtaKokkos<LMPHostType>;
 #endif
 }

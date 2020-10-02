@@ -51,7 +51,7 @@ class DumpMolfile : public Dump {
   virtual void write_header(bigint) {};
   virtual void pack(tagint *);
   virtual void write_data(int, double *);
-  virtual bigint memory_usage();
+  virtual double memory_usage();
   virtual void openfile();
 };
 

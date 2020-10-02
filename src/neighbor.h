@@ -123,7 +123,7 @@ class Neighbor : protected Pointers {
   int exclude_setting();            // return exclude value to accelerator pkg
   class NeighRequest *find_request(void *);  // find a neighbor request
 
-  bigint memory_usage();
+  double memory_usage();
 
   bigint last_setup_bins;          // step of last neighbor::setup_bins() call
 

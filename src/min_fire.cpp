@@ -16,21 +16,18 @@
                          Erik Bitzek, FAU Erlangen-Nuernberg
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "min_fire.h"
-#include "universe.h"
+
 #include "atom.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
-#include "variable.h"
-#include "modify.h"
-#include "compute.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "comm.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

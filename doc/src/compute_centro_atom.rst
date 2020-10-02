@@ -101,7 +101,8 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *centro/atom* style.
 
-**Output info:**
+Output info
+"""""""""""
 
 By default, this compute calculates the centrosymmetry value for each
 atom as a per-atom vector, which can be accessed by any command that
@@ -132,7 +133,7 @@ simulation into gold (FCC).  These were provided by Jon Zimmerman
    Stacking faults ~ 5.0 (4.0 to 6.0)
    Free surface ~ 23.0
 
-These values are \*not\* normalized by the square of the lattice
+These values are **not** normalized by the square of the lattice
 parameter.  If they were, normalized values would be:
 
 .. parsed-literal::

@@ -48,13 +48,13 @@ ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  structure = NULL;
+  structure = nullptr;
   maxneigh = 0;
   legacy = 0;
-  distsq = NULL;
-  nearest = NULL;
-  nearest_n0 = NULL;
-  nearest_n1 = NULL;
+  distsq = nullptr;
+  nearest = nullptr;
+  nearest_n0 = nullptr;
+  nearest_n1 = nullptr;
 
   int iarg = 3;
   while (narg > iarg) {

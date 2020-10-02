@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_torque_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), torque(NULL), torqueall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr), torque(nullptr), torqueall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute torque/chunk command");
 

@@ -69,7 +69,7 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
     typename IntelBuffers<flt_t,flt_t>::vec4_t **lj;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0,NULL,_cop); }
+    ~ForceConst() { set_ntypes(0,nullptr,_cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

@@ -15,10 +15,16 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+  class Angle;
+  class Bond;
+  class Dihedral;
+  class Improper;
+  class KSpace;
+  class Pair;
 
 class Force : protected Pointers {
  public:
@@ -47,23 +53,23 @@ class Force : protected Pointers {
 
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings
 
-  class Pair *pair;
+  Pair *pair;
   char *pair_style;
   char *pair_restart;
 
-  class Bond *bond;
+  Bond *bond;
   char *bond_style;
 
-  class Angle *angle;
+  Angle *angle;
   char *angle_style;
 
-  class Dihedral *dihedral;
+  Dihedral *dihedral;
   char *dihedral_style;
 
-  class Improper *improper;
+  Improper *improper;
   char *improper_style;
 
-  class KSpace *kspace;
+  KSpace *kspace;
   char *kspace_style;
 
   typedef Pair *(*PairCreator)(LAMMPS *);
@@ -101,45 +107,35 @@ class Force : protected Pointers {
   void init();
   void setup();
 
-  void create_pair(const char *, int);
-  class Pair *new_pair(const char *, int, int &);
-  class Pair *pair_match(const char *, int, int nsub=0);
+  void create_pair(const std::string &, int);
+  Pair *new_pair(const std::string &, int, int &);
+  Pair *pair_match(const std::string &, int, int nsub=0);
   char *pair_match_ptr(Pair *);
 
-  void create_bond(const char *, int);
-  class Bond *new_bond(const char *, int, int &);
-  class Bond *bond_match(const char *);
+  void create_bond(const std::string &, int);
+  Bond *new_bond(const std::string &, int, int &);
+  Bond *bond_match(const std::string &);
 
-  void create_angle(const char *, int);
-  class Angle *new_angle(const char *, int, int &);
-  class Angle *angle_match(const char *);
+  void create_angle(const std::string &, int);
+  Angle *new_angle(const std::string &, int, int &);
+  Angle *angle_match(const std::string &);
 
-  void create_dihedral(const char *, int);
-  class Dihedral *new_dihedral(const char *, int, int &);
-  class Dihedral *dihedral_match(const char *);
+  void create_dihedral(const std::string &, int);
+  Dihedral *new_dihedral(const std::string &, int, int &);
+  Dihedral *dihedral_match(const std::string &);
 
-  void create_improper(const char *, int);
-  class Improper *new_improper(const char *, int, int &);
-  class Improper *improper_match(const char *);
+  void create_improper(const std::string &, int);
+  Improper *new_improper(const std::string &, int, int &);
+  Improper *improper_match(const std::string &);
 
-  void create_kspace(const char *, int);
-  class KSpace *new_kspace(const char *, int, int &);
-  class KSpace *kspace_match(const char *, int);
+  void create_kspace(const std::string &, int);
+  KSpace *new_kspace(const std::string &, int, int &);
+  KSpace *kspace_match(const std::string &, int);
 
-  void store_style(char *&, const char *, int);
+  void store_style(char *&, const std::string &, int);
   void set_special(int, char **);
-  void bounds(const char *, int, char *, int, int &, int &, int nmin=1);
-  void boundsbig(const char *, int, char *, bigint, bigint &, bigint &, bigint nmin=1);
-  double numeric(const char *, int, char *);
-  int inumeric(const char *, int, char *);
-  bigint bnumeric(const char *, int, char *);
-  tagint tnumeric(const char *, int, char *);
 
-  FILE *open_potential(const char *);
-  const char *potential_name(const char *);
-  void potential_date(FILE *, const char *);
-
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   void create_factories();

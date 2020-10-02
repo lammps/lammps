@@ -11,15 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_tdpd_cc_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -31,13 +32,13 @@ ComputeTDPDCCAtom::ComputeTDPDCCAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all(FLERR,"Number of arguments for compute tdpd/cc/atom command != 4");
   if (atom->tdpd_flag != 1) error->all(FLERR,"compute tdpd/cc/atom command requires atom_style with concentration (e.g. tdpd)");
 
-  index = force->inumeric(FLERR,arg[3]);
+  index = utils::inumeric(FLERR,arg[3],false,lmp);
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
   nmax = 0;
-  cc_vector = NULL;
+  cc_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

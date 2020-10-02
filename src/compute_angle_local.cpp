@@ -38,7 +38,7 @@ enum{THETA,ENG,VARIABLE};
 
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), tstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), tstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 
@@ -77,7 +77,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  tstr = NULL;
+  tstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -123,8 +123,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,7 +146,7 @@ ComputeAngleLocal::~ComputeAngleLocal()
 
 void ComputeAngleLocal::init()
 {
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"No angle style is defined for compute angle/local");
 
   if (nvar) {
@@ -227,7 +227,7 @@ int ComputeAngleLocal::compute_angles(int flag)
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) na = num_angle[atom2];
+    if (molecular == Atom::MOLECULAR) na = num_angle[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -236,7 +236,7 @@ int ComputeAngleLocal::compute_angles(int flag)
     }
 
     for (i = 0; i < na; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != angle_atom2[atom2][i]) continue;
         atype = angle_type[atom2][i];
         atom1 = atom->map(angle_atom1[atom2][i]);

@@ -62,11 +62,11 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   // wall/particle coefficients
 
-  kn = force->numeric(FLERR,arg[3]);
+  kn = utils::numeric(FLERR,arg[3],false,lmp);
 
-  c_n = force->numeric(FLERR,arg[4]);
+  c_n = utils::numeric(FLERR,arg[4],false,lmp);
   if (strcmp(arg[5],"NULL") == 0) c_t = 0.5 * c_n;
-  else c_t = force->numeric(FLERR,arg[5]);
+  else c_t = utils::numeric(FLERR,arg[5],false,lmp);
 
   if (kn < 0.0 || c_n < 0.0 || c_t < 0.0)
     error->all(FLERR,"Illegal fix wall/body/polyhedron command");
@@ -78,25 +78,25 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/body/polyhedron command");
     wallstyle = XPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"yplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/body/polyhedron command");
     wallstyle = YPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"zplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/body/polyhedron command");
     wallstyle = ZPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   }
 
@@ -111,8 +111,8 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
       else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
       else error->all(FLERR,"Illegal fix wall/body/polyhedron command");
-      amplitude = force->numeric(FLERR,arg[iarg+2]);
-      period = force->numeric(FLERR,arg[iarg+3]);
+      amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       wiggle = 1;
       iarg += 4;
     } else error->all(FLERR,"Illegal fix wall/body/polyhedron command");
@@ -132,19 +132,19 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   time_origin = update->ntimestep;
 
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
   facmax = facnummax = 0;
-  face = NULL;
-  facnum = facfirst = NULL;
+  face = nullptr;
+  facnum = facfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -233,7 +233,7 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to NULL, it's skipped since lo/hi are infinity
+  //   if wall was set to a null pointer, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
 

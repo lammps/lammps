@@ -63,7 +63,7 @@ chunkID.  This means that the original chunk IDs (e.g. molecule IDs)
 will have been compressed to remove chunk IDs with no atoms assigned
 to them.  Thus a compressed chunk ID of 3 may correspond to an original
 chunk ID (molecule ID in this case) of 415.  The *id* attribute will
-then be 415 for the 3rd chunk.
+then be 415 for the third chunk.
 
 The *coordN* attributes can only be used if a *binning* style was used
 in the :doc:`compute chunk/atom <compute_chunk_atom>` command referenced
@@ -88,7 +88,8 @@ command, for example:
    compute myChunk2 all com/chunk cc1
    fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector or global array depending on
 the number of input values.  The length of the vector or number of
@@ -116,4 +117,7 @@ Related commands
 
 :doc:`fix ave/chunk <fix_ave_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none

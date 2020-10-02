@@ -36,7 +36,7 @@ all effects due to atoms passing through periodic boundaries.
 
 A vector of four quantities per atom is calculated by this compute.
 The first 3 elements of the vector are the dx,dy,dz displacements.
-The 4th component is the total displacement, i.e. sqrt(dx\*dx + dy\*dy +
+The fourth component is the total displacement, i.e. sqrt(dx\*dx + dy\*dy +
 dz\*dz).
 
 The displacement of an atom is from its original position at the time
@@ -121,7 +121,8 @@ would be empty.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 4 columns, which can be
 accessed by indices 1-4 by any command that uses per-atom values from
@@ -143,4 +144,7 @@ Related commands
 
 :doc:`compute msd <compute_msd>`, :doc:`dump custom <dump>`, :doc:`fix store/state <fix_store_state>`
 
-**Default:** none
+Default
+"""""""
+
+none

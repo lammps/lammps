@@ -1,5 +1,4 @@
 variable	sname index ch4
-log		${sname}.nve.log
 
 units 		electron
 newton		on

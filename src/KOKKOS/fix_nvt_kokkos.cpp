@@ -12,10 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nvt_kokkos.h"
-#include <cstring>
+
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -52,7 +54,7 @@ FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 namespace LAMMPS_NS {
 template class FixNVTKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNVTKokkos<LMPHostType>;
 #endif
 }

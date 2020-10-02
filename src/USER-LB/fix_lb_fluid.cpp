@@ -18,8 +18,8 @@
 
 #include "fix_lb_fluid.h"
 #include <cmath>
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <algorithm>
 #include <utility>
@@ -116,8 +116,8 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   setArea = 0;
   numvel = 15;
 
-  Gamma = NULL;
-  NodeArea = NULL;
+  Gamma = nullptr;
+  NodeArea = nullptr;
 
   int iarg = 7;
   while (iarg < narg){
@@ -129,7 +129,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       double areafactor = atof(arg[iarg+2]);
       if(itype <= 0 || itype > atom->ntypes || areafactor < 0.0)
         error->all(FLERR,"Illegal fix lb/fluid command: setArea");
-      if(NodeArea == NULL){
+      if(NodeArea == nullptr){
         NodeArea = new double[atom->ntypes+1];
         for(int i=0; i<=atom->ntypes; i++) NodeArea[i] = -1.0;
       }
@@ -142,7 +142,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       setGamma = 1;
       double Gammaone;
       Gammaone = atof(arg[iarg+1]);
-      if(Gamma == NULL)
+      if(Gamma == nullptr)
         Gamma = new double[atom->ntypes+1];
       for(int i=0; i<=atom->ntypes; i++) Gamma[i] = Gammaone;
       iarg += 2;
@@ -240,32 +240,32 @@ a z wall velocity without implementing fixed BCs in z");
   // perform initial allocation of atom-based array register
   // with Atom class
   //--------------------------------------------------------------------------
-  hydroF = NULL;
+  hydroF = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   for(int i=0; i<atom->nmax; i++)
     for(int j=0; j<3; j++)
     hydroF[i][j] = 0.0;
 
-  Ng_lb = NULL;
-  w_lb = NULL;
-  mg_lb = NULL;
-  e = NULL;
-  feq = NULL;
-  feqold = NULL;
-  feqn = NULL;
-  feqoldn = NULL;
-  f_lb = NULL;
-  fnew = NULL;
-  density_lb = NULL;
-  u_lb = NULL;
-  altogether = NULL;
-  buf = NULL;
-  Ff = NULL;
-  Fftempx = NULL;
-  Fftempy = NULL;
-  Fftempz = NULL;
+  Ng_lb = nullptr;
+  w_lb = nullptr;
+  mg_lb = nullptr;
+  e = nullptr;
+  feq = nullptr;
+  feqold = nullptr;
+  feqn = nullptr;
+  feqoldn = nullptr;
+  f_lb = nullptr;
+  fnew = nullptr;
+  density_lb = nullptr;
+  u_lb = nullptr;
+  altogether = nullptr;
+  buf = nullptr;
+  Ff = nullptr;
+  Fftempx = nullptr;
+  Fftempy = nullptr;
+  Fftempz = nullptr;
 
   //--------------------------------------------------------------------------
   // Set the lattice Boltzmann dt.
@@ -510,7 +510,7 @@ a z wall velocity without implementing fixed BCs in z");
 FixLbFluid::~FixLbFluid()
 {
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
   memory->destroy(hydroF);
 
   memory->destroy(Ng_lb);

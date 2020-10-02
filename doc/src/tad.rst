@@ -58,18 +58,21 @@ Run a temperature accelerated dynamics (TAD) simulation. This method
 requires two or more partitions to perform NEB transition state
 searches.
 
-TAD is described in :ref:`this paper <Voter2000>` by Art Voter.  It is a method
-that uses accelerated dynamics at an elevated temperature to generate
-results at a specified lower temperature.  A good overview of
-accelerated dynamics methods for such systems is given in :ref:`this review paper <Voter2002>` from the same group. In general, these methods assume
-that the long-time dynamics is dominated by infrequent events i.e. the
-system is confined to low energy basins for long periods,
-punctuated by brief, randomly-occurring transitions to adjacent
-basins.  TAD is suitable for infrequent-event systems, where in
+TAD is described in :ref:`this paper <Voter2000>` by Art Voter.  It is
+a method that uses accelerated dynamics at an elevated temperature to
+generate results at a specified lower temperature.  A good overview of
+accelerated dynamics methods (AMD) for such systems is given in
+:ref:`this review paper <Voter2002>` from the same group.  To quote
+from the review paper: "The dynamical evolution is characterized by
+vibrational excursions within a potential basin, punctuated by
+occasional transitions between basins.  The transition probability is
+characterized by p(t) = k\*exp(-kt) where k is the rate constant."
+
+TAD is a suitable AMD method for infrequent-event systems, where in
 addition, the transition kinetics are well-approximated by harmonic
-transition state theory (hTST). In hTST, the temperature dependence of
-transition rates follows the Arrhenius relation.  As a consequence a
-set of event times generated in a high-temperature simulation can be
+transition state theory (hTST).  In hTST, the temperature dependence
+of transition rates follows the Arrhenius relation.  As a consequence
+a set of event times generated in a high-temperature simulation can be
 mapped to a set of much longer estimated times in the low-temperature
 system. However, because this mapping involves the energy barrier of
 the transition event, which is different for each event, the first
@@ -79,8 +82,8 @@ events from the current basin. After each event, the simulation is
 reflected backwards into the current basin.  This is repeated until
 the stopping criterion is satisfied, at which point the event with the
 earliest low-temperature occurrence time is selected.  The stopping
-criterion is that the confidence measure be greater than
-1-\ *delta*\ . The confidence measure is the probability that no earlier
+criterion is that the confidence measure be greater than 1-\ *delta*\
+. The confidence measure is the probability that no earlier
 low-temperature event will occur at some later time in the
 high-temperature simulation.  hTST provides an lower bound for this
 probability, based on the user-specified minimum pre-exponential

@@ -18,7 +18,7 @@
 #if defined(LMP_HAS_PNETCDF)
 
 #include <unistd.h>
-#include <cstdlib>
+
 #include <cstring>
 #include <pnetcdf.h>
 #include "dump_netcdf_mpiio.h"
@@ -69,7 +69,7 @@ const int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
-#define NCERR(x) ncerr(x, NULL, __LINE__)
+#define NCERR(x) ncerr(x, nullptr, __LINE__)
 #define NCERRX(x, descr) ncerr(x, descr, __LINE__)
 #if !defined(NC_64BIT_DATA)
 #define NC_64BIT_DATA NC_64BIT_OFFSET
@@ -190,13 +190,13 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
   }
 
   n_buffer = 0;
-  int_buffer = NULL;
-  double_buffer = NULL;
+  int_buffer = nullptr;
+  double_buffer = nullptr;
 
   double_precision = false;
 
   thermo = false;
-  thermovar = NULL;
+  thermovar = nullptr;
 
   framei = 0;
 }
@@ -497,7 +497,7 @@ void DumpNetCDFMPIIO::openfile()
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "program",
                               6, "LAMMPS") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "programVersion",
-                              strlen(universe->version), universe->version) );
+                              strlen(lmp->version), lmp->version) );
 
     // units
     if (!strcmp(update->unit_style, "lj")) {
@@ -767,7 +767,7 @@ void DumpNetCDFMPIIO::write()
 
   // pack my data into buf
 
-  pack(NULL);
+  pack(nullptr);
 
   // each process writes its data
 
@@ -1003,7 +1003,7 @@ int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
     iarg++;
     if (iarg >= narg)
       error->all(FLERR,"expected additional arg after 'at' keyword.");
-    framei = force->inumeric(FLERR,arg[iarg]);
+    framei = utils::inumeric(FLERR,arg[iarg],false,lmp);
     if (framei == 0) error->all(FLERR,"frame 0 not allowed for 'at' keyword.");
     else if (framei < 0) framei--;
     iarg++;

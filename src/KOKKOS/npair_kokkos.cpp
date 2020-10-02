@@ -55,6 +55,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+  k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info
 
@@ -102,14 +103,14 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
 
     int maxstencil = ns->get_maxstencil();
 
-    if (maxstencil > k_stencil.extent(0))
+    if (maxstencil > (int)k_stencil.extent(0))
       k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
     for (int k = 0; k < maxstencil; k++)
       k_stencil.h_view(k) = ns->stencil[k];
-      k_stencil.modify<LMPHostType>();
-      k_stencil.sync<DeviceType>();
+    k_stencil.modify<LMPHostType>();
+    k_stencil.sync<DeviceType>();
     if (GHOST) {
-      if (maxstencil > k_stencilxyz.extent(0))
+      if (maxstencil > (int)k_stencilxyz.extent(0))
         k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
       for (int k = 0; k < maxstencil; k++) {
         k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
@@ -211,7 +212,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
     data.h_resize() = 0;
 
     Kokkos::deep_copy(d_scalars, h_scalars);
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
 #else
@@ -225,7 +226,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       if (newton_pair) {
         if (SIZE) {
           NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -243,7 +244,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
         } else {
           NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -263,7 +264,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       } else {
         if (SIZE) {
           NPairKokkosBuildFunctorSize<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -281,14 +282,17 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
         } else {
           NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -301,7 +305,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
     if(data.h_resize()) {
       list->maxneighs = data.h_new_maxneighs() * 1.2;
-      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->d_neighbors = typename AT::t_neighbors_2d(Kokkos::NoInit("neighbors"), list->d_neighbors.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;
       data.neigh_list.maxneighs = list->maxneighs;
     }
@@ -390,7 +394,7 @@ void NeighborKokkosExecute<DeviceType>::
   int n = 0;
   int which = 0;
   int moltemplate;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
   // get subview of neighbors of i
 
@@ -424,7 +428,7 @@ void NeighborKokkosExecute<DeviceType>::
     const X_FLOAT delz = ztmp - x(j, 2);
     const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
     if(rsq <= cutneighsq(itype,jtype)) {
-      if (molecular) {
+      if (molecular != Atom::ATOMIC) {
         if (!moltemplate)
           which = find_special(i,j);
             /* else if (imol >= 0) */
@@ -481,7 +485,7 @@ void NeighborKokkosExecute<DeviceType>::
         const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
             /* else if (imol >= 0) */
@@ -522,15 +526,33 @@ void NeighborKokkosExecute<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef KOKKOS_ENABLE_CUDA
-extern __shared__ X_FLOAT sharedmem[];
+#ifdef KOKKOS_ENABLE_HIP
+#include <hip/hip_version.h>
+#if HIP_VERSION_MAJOR < 3 || (HIP_VERSION_MAJOR == 3 && HIP_VERSION_MINOR < 7)
+// ROCm versions < 3.7 are missing __syncthreads_count, so we define a functional
+// but (probably) not performant workaround
+__device__ __forceinline__ int __syncthreads_count(int predicate) {
+  __shared__ int test_block[1];
+  if (!(threadIdx.x || threadIdx.y || threadIdx.z))
+    test_block[0] = 0;
+  __syncthreads();
+  atomicAdd(test_block, predicate);
+  __threadfence_block();
+  return test_block[0];
+}
+#endif
+#endif
 
-/* ---------------------------------------------------------------------- */
-
+#ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__ inline
 void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
 {
+#ifdef KOKKOS_ENABLE_HIP
+  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
+#else
+  extern __shared__ X_FLOAT sharedmem[];
+#endif
   /* loop over atoms in i's bin,
   */
   const int atoms_per_bin = c_bins.extent(1);
@@ -607,7 +629,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
       const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
       if(rsq <= cutneighsq(itype,jtype)) {
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           int which = 0;
           if (!moltemplate)
             which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
@@ -685,7 +707,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
         const X_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             int which = 0;
             if (!moltemplate)
               which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
@@ -741,7 +763,7 @@ void NeighborKokkosExecute<DeviceType>::
   int n = 0;
   int which = 0;
   int moltemplate;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
   // get subview of neighbors of i
 
@@ -780,7 +802,7 @@ void NeighborKokkosExecute<DeviceType>::
         const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq <= cutneighsq(itype,jtype)) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(i,j);
             /* else if (imol >= 0) */
@@ -964,11 +986,16 @@ void NeighborKokkosExecute<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__ inline
 void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
 {
+#ifdef KOKKOS_ENABLE_HIP
+  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
+#else
+  extern __shared__ X_FLOAT sharedmem[];
+#endif
   /* loop over atoms in i's bin,
    */
   const int atoms_per_bin = c_bins.extent(1);
@@ -1147,7 +1174,7 @@ template class NPairKokkos<LMPDeviceType,1,1,0,0>;
 template class NPairKokkos<LMPDeviceType,1,0,1,0>;
 template class NPairKokkos<LMPDeviceType,1,0,0,1>;
 template class NPairKokkos<LMPDeviceType,1,0,1,1>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairKokkos<LMPHostType,0,0,0,0>;
 template class NPairKokkos<LMPHostType,0,1,0,0>;
 template class NPairKokkos<LMPHostType,1,0,0,0>;

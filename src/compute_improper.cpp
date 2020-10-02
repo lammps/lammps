@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_improper.h"
-#include <mpi.h>
+
 #include "update.h"
 #include "force.h"
 #include "improper.h"
@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 ComputeImproper::ComputeImproper(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  emine(NULL)
+  emine(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute improper command");
 

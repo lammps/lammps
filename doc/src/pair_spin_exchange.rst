@@ -202,7 +202,9 @@ Related commands
 :doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_eam <pair_eam>`,
 
-**Default:**
+Default
+"""""""
+
 
 The default *offset* keyword value is *no*.
 

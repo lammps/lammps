@@ -16,22 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_fcc.h"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <mpi.h>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "force.h"
-#include "math_const.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -54,8 +53,8 @@ static const char cite_fix_orient_fcc[] =
 
 FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL),
-  sort(NULL), list(NULL)
+  xifilename(nullptr), chifilename(nullptr), order(nullptr), nbr(nullptr),
+  sort(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_fcc);
 
@@ -73,12 +72,12 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nstats = force->inumeric(FLERR,arg[3]);
-  direction_of_motion = force->inumeric(FLERR,arg[4]);
-  a = force->numeric(FLERR,arg[5]);
-  Vxi = force->numeric(FLERR,arg[6]);
-  uxif_low = force->numeric(FLERR,arg[7]);
-  uxif_high = force->numeric(FLERR,arg[8]);
+  nstats = utils::inumeric(FLERR,arg[3],false,lmp);
+  direction_of_motion = utils::inumeric(FLERR,arg[4],false,lmp);
+  a = utils::numeric(FLERR,arg[5],false,lmp);
+  Vxi = utils::numeric(FLERR,arg[6],false,lmp);
+  uxif_low = utils::numeric(FLERR,arg[7],false,lmp);
+  uxif_high = utils::numeric(FLERR,arg[8],false,lmp);
 
   if (direction_of_motion == 0) {
     int n = strlen(arg[9]) + 1;
@@ -113,7 +112,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *inpfile = fopen(xifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
@@ -123,7 +122,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     fclose(inpfile);
 
     inpfile = fopen(chifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
@@ -448,20 +447,12 @@ void FixOrientFCC::post_force(int /*vflag*/)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-      if (screen) fprintf(screen,
-                          "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                          " atoms have %d neighbors\n",
-                          update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,
-                           "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                           " atoms have %d neighbors\n",
-                           update->ntimestep,atom->natoms,total);
-      if (screen)
-        fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
-      if (logfile)
-        fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
+      std::string mesg = fmt::format("orient step {}: {} atoms have {} "
+                                     "neighbors\n", update->ntimestep,
+                                     atom->natoms,total);
+      mesg += fmt::format("  neighs: min = {}, max ={}, ave = {}\n",
+                          min,max,ave);
+      utils::logmesg(lmp,mesg);
     }
   }
 }

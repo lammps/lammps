@@ -16,7 +16,7 @@
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop_profile.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 
@@ -65,8 +65,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
   if (originflag == COORD)
-    origin = force->numeric(FLERR,arg[4]);
-  delta = force->numeric(FLERR,arg[5]);
+    origin = utils::numeric(FLERR,arg[4],false,lmp);
+  delta = utils::numeric(FLERR,arg[5],false,lmp);
   invdelta = 1.0/delta;
 
   // parse values until one isn't recognized
@@ -112,8 +112,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   // initialize some variables
 
   nbins = 0;
-  coord = coordp = NULL;
-  values_local = values_global = array = NULL;
+  coord = coordp = nullptr;
+  values_local = values_global = array = nullptr;
 
   // bin setup
 
@@ -173,7 +173,7 @@ void ComputeStressMopProfile::init()
 
   //This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute stress/mop/profile");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
@@ -185,15 +185,15 @@ void ComputeStressMopProfile::init()
     //Compute stress/mop/profile only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=NULL)
+    if (force->bond!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for bond potentials");
-    if (force->angle!=NULL)
+    if (force->angle!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for angle potentials");
-    if (force->dihedral!=NULL)
+    if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
-    if (force->improper!=NULL)
+    if (force->improper!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for improper potentials");
-    if (force->kspace!=NULL)
+    if (force->kspace!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 

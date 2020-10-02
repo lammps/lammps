@@ -58,7 +58,8 @@ the LAMMPS data file or elsewhere.
 Two examples input scripts are provided in the examples/USER/quip
 directory.
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.

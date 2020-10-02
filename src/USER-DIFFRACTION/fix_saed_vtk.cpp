@@ -17,18 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_saed_vtk.h"
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include "update.h"
-#include "modify.h"
+
 #include "compute.h"
 #include "compute_saed.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 #include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
+#include <cmath>
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -41,16 +40,16 @@ enum{FIRST,MULTI};
 /* ---------------------------------------------------------------------- */
 
 FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ids(NULL), fp(NULL), vector(NULL),
-  vector_total(NULL), vector_list(NULL), compute_saed(NULL), filename(NULL)
+  Fix(lmp, narg, arg), ids(nullptr), fp(nullptr), vector(nullptr),
+  vector_total(nullptr), vector_list(nullptr), compute_saed(nullptr), filename(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
@@ -67,7 +66,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   options(narg,arg);
 
   which = 0;
-  ids = NULL;
+  ids = nullptr;
 
   nvalues = 0;
 
@@ -137,16 +136,14 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for averaging
 
-  vector = vector_total = NULL;
-  vector_list = NULL;
+  vector = vector_total = nullptr;
+  vector_list = nullptr;
 
   if (ave == WINDOW)
     memory->create(vector_list,nwindow,nvalues,"saed/vtk:vector_list");
 
   memory->create(vector,nrows,"saed/vtk:vector");
   memory->create(vector_total,nrows,"saed/vtk:vector_total");
-
-  extlist = NULL;
 
   vector_flag = 1;
   size_vector = nrows;
@@ -283,7 +280,6 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
 FixSAEDVTK::~FixSAEDVTK()
 {
-  delete [] extlist;
   delete [] filename;
   delete [] ids;
   memory->destroy(vector);
@@ -426,7 +422,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
       fp = fopen(nName,"w");
 
-      if (fp == NULL) {
+      if (fp == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
         error->one(FLERR,str);
@@ -532,7 +528,7 @@ void FixSAEDVTK::options(int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   ave = ONE;
   startstep = 0;
   overwrite = 0;
@@ -553,7 +549,7 @@ void FixSAEDVTK::options(int narg, char **arg)
          snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
          fp = fopen(nName,"w");
 
-        if (fp == NULL) {
+        if (fp == nullptr) {
           char str[128];
           snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
           error->one(FLERR,str);
@@ -568,14 +564,14 @@ void FixSAEDVTK::options(int narg, char **arg)
       else error->all(FLERR,"Illegal fix saed/vtk command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix saed/vtk command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;

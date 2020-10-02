@@ -197,7 +197,8 @@ algorithm.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -266,7 +267,10 @@ Related commands
 
 :doc:`hyper <hyper>`, :doc:`fix hyper/local <fix_hyper_local>`
 
-**Default:** None
+Default
+"""""""
+
+none
 
 ----------
 

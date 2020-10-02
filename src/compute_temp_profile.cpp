@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_profile.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -30,7 +30,7 @@ enum{TENSOR,BIN};
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
+  bin(nullptr), vbin(nullptr), binave(nullptr), tbin(nullptr), tbinall(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
@@ -39,9 +39,9 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
-  xflag = force->inumeric(FLERR,arg[3]);
-  yflag = force->inumeric(FLERR,arg[4]);
-  zflag = force->inumeric(FLERR,arg[5]);
+  xflag = utils::inumeric(FLERR,arg[3],false,lmp);
+  yflag = utils::inumeric(FLERR,arg[4],false,lmp);
+  zflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (zflag && domain->dimension == 2)
     error->all(FLERR,"Compute temp/profile cannot use vz for 2d systemx");
 
@@ -57,44 +57,44 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   if (strcmp(arg[iarg],"x") == 0) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
-    nbinx = force->inumeric(FLERR,arg[iarg+1]);
+    nbinx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
   } else if (strcmp(arg[iarg],"y") == 0) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
-    nbiny = force->inumeric(FLERR,arg[iarg+1]);
+    nbiny = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
   } else if (strcmp(arg[iarg],"z") == 0) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinz = force->inumeric(FLERR,arg[iarg+1]);
+    nbinz = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
   } else if (strcmp(arg[iarg],"xy") == 0) {
     if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
-    nbinx = force->inumeric(FLERR,arg[iarg+1]);
-    nbiny = force->inumeric(FLERR,arg[iarg+2]);
+    nbinx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    nbiny = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"yz") == 0) {
     if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbiny = force->inumeric(FLERR,arg[iarg+1]);
-    nbinz = force->inumeric(FLERR,arg[iarg+2]);
+    nbiny = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    nbinz = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"xz") == 0) {
     if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinx = force->inumeric(FLERR,arg[iarg+1]);
-    nbinz = force->inumeric(FLERR,arg[iarg+2]);
+    nbinx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    nbinz = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"xyz") == 0) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinx = force->inumeric(FLERR,arg[iarg+1]);
-    nbiny = force->inumeric(FLERR,arg[iarg+2]);
-    nbinz = force->inumeric(FLERR,arg[iarg+3]);
+    nbinx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    nbiny = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+    nbinz = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
     iarg += 4;
   } else error->all(FLERR,"Illegal compute temp/profile command");
 

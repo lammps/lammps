@@ -27,11 +27,11 @@ executable itself can be placed elsewhere.
 
 As LAMMPS runs it prints info to the screen and a logfile named
 *log.lammps*\ .  More info about output is given on the
-:doc:`Run output <Run_output>` doc page.
+:doc:`screen and logfile output <Run_output>` page.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See the :doc:`Errors <Errors>` doc page for a
+message and continue.  See the :doc:`Common Problems <Errors>` page for a
 discussion of the various kinds of errors LAMMPS can or can't detect,
 a list of all ERROR and WARNING messages, and what to do about them.
 

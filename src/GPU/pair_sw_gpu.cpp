@@ -18,7 +18,7 @@
 #include "pair_sw_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -76,7 +76,7 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -103,10 +103,21 @@ void PairSWGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = sw_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
+                                   atom->x, atom->type, sublo,
+                                   subhi, atom->tag, atom->nspecial,
                                    atom->special, eflag, vflag, eflag_atom,
                                    vflag_atom, host_start,
                                    &ilist, &numneigh, cpu_time, success);
@@ -151,9 +162,9 @@ void PairSWGPU::init_style()
   double *epsilon, *sigma, *lambda, *gamma;
   double *biga, *bigb, *powerp, *powerq;
   double *_cut, *_cutsq, *costheta;
-  epsilon = sigma = lambda = gamma = NULL;
-  biga = bigb = powerp = powerq = NULL;
-  _cut = _cutsq = costheta = NULL;
+  epsilon = sigma = lambda = gamma = nullptr;
+  biga = bigb = powerp = powerq = nullptr;
+  _cut = _cutsq = costheta = nullptr;
 
   memory->create(epsilon,nparams,"pair:epsilon");
   memory->create(sigma,nparams,"pair:sigma");

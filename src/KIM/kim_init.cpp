@@ -57,34 +57,23 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_init.h"
-#include <cstring>
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include "error.h"
-#include "atom.h"
+
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
-#include "modify.h"
-#include "update.h"
-#include "universe.h"
-#include "input.h"
-#include "variable.h"
-#include "citeme.h"
+#include "error.h"
 #include "fix_store_kim.h"
+#include "input.h"
 #include "kim_units.h"
+#include "modify.h"
+#include "universe.h"
+#include "variable.h"
+
+#include <cstring>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
-
-#ifdef SNUM
-#undef SNUM
-#endif
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
 
 using namespace LAMMPS_NS;
 
@@ -107,7 +96,12 @@ void KimInit::command(int narg, char **arg)
   } else unit_conversion_mode = false;
 
   char *model_units;
-  KIM_Model *pkim = NULL;
+  KIM_Model *pkim = nullptr;
+
+  if (universe->me == 0)
+    std::remove("kim.log");
+  if (universe->nprocs > 1)
+    MPI_Barrier(universe->uworld);
 
   determine_model_type_and_units(model_name, user_units, &model_units, pkim);
 
@@ -116,8 +110,8 @@ void KimInit::command(int narg, char **arg)
   do_init(model_name, user_units, model_units, pkim);
 }
 
-
 /* ---------------------------------------------------------------------- */
+
 namespace {
 void get_kim_unit_names(
     char const * const system,
@@ -165,6 +159,7 @@ void get_kim_unit_names(
   }
 }
 }  // namespace
+
 void KimInit::determine_model_type_and_units(char * model_name,
                                              char * user_units,
                                              char ** model_units,
@@ -191,8 +186,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM_Collections_Destroy(&kim_Coll);
 
   if (KIM_CollectionItemType_Equal(itemType,
-                                   KIM_COLLECTION_ITEM_TYPE_portableModel))
-  {
+                                   KIM_COLLECTION_ITEM_TYPE_portableModel)) {
     get_kim_unit_names(user_units, lengthUnit, energyUnit,
                        chargeUnit, temperatureUnit, timeUnit, error);
     int kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
@@ -243,8 +237,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
       KIM_Model_Destroy(&pkim);
       error->all(FLERR,"KIM Model does not support the requested unit system");
     }
-  }
-  else if (KIM_CollectionItemType_Equal(
+  } else if (KIM_CollectionItemType_Equal(
                itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
     KIM_SimulatorModel * kim_SM;
     kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
@@ -275,11 +268,10 @@ void KimInit::determine_model_type_and_units(char * model_name,
       std::string mesg("Incompatible units for KIM Simulator Model, "
                        "required units = ");
       mesg += *model_units;
-      error->all(FLERR,mesg.c_str());
+      error->all(FLERR,mesg);
     }
   }
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -289,11 +281,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) modify->delete_fix(ifix);
-  char *fixarg[3];
-  fixarg[0] = (char *)"KIM_MODEL_STORE";
-  fixarg[1] = (char *)"all";
-  fixarg[2] = (char *)"STORE/KIM";
-  modify->add_fix(3,fixarg);
+  modify->add_fix("KIM_MODEL_STORE all STORE/KIM");
   ifix = modify->find_fix("KIM_MODEL_STORE");
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
@@ -302,13 +290,14 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   fix_store->setptr("model_units", (void *) model_units);
 
   // Begin output to log file
-  kim_init_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim-init ==========================================\n");
 
-  int kimerror;
   KIM_SimulatorModel * simulatorModel;
-  if (model_type == SM)
-  {
-    kimerror = KIM_SimulatorModel_Create(model_name,&simulatorModel);
+  if (model_type == SM) {
+    int kim_error =
+      KIM_SimulatorModel_Create(model_name,&simulatorModel);
+    if (kim_error)
+      error->all(FLERR,"Unable to load KIM Simulator Model.");
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(
@@ -324,12 +313,11 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       mesg += "# For Simulator             : ";
       mesg += std::string(sim_name) + " " + sim_version + "\n";
       mesg += "# Running on                : LAMMPS ";
-      mesg += universe->version;
+      mesg += lmp->version;
       mesg += "\n";
       mesg += "#\n";
 
-      if (screen) fputs(mesg.c_str(),screen);
-      if (logfile) fputs(mesg.c_str(),logfile);
+      utils::logmesg(lmp,mesg);
     }
 
     fix_store->setptr("simulator_model", (void *) simulatorModel);
@@ -346,7 +334,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   std::string cmd("units ");
   cmd += model_units;
-  input->one(cmd.c_str());
+  input->one(cmd);
 
   if (model_type == SM) {
     int sim_fields, sim_lines;
@@ -370,216 +358,141 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
     // reset template map.
     KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
-  }
-  else if (model_type == MO)
-  {
+  } else if (model_type == MO) {
     int numberOfParameters;
     KIM_Model_GetNumberOfParameters(pkim, &numberOfParameters);
 
     std::string mesg = "\nThis model has ";
-    if (numberOfParameters)
-    {
+    if (numberOfParameters) {
       KIM_DataType kim_DataType;
       int extent;
-      char const *str_name = NULL;
-      char const *str_desc = NULL;
+      char const *str_name = nullptr;
+      char const *str_desc = nullptr;
 
-      mesg += SNUM(numberOfParameters);
-      mesg += " mutable parameters. \n";
+      mesg += std::to_string(numberOfParameters) + " mutable parameters. \n";
 
       int max_len(0);
-      for (int i = 0; i < numberOfParameters; ++i)
-      {
+      for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,
         &extent, &str_name, &str_desc);
-        max_len = MAX(max_len, strlen(str_name));
+        max_len = MAX(max_len, (int)strlen(str_name));
       }
-      ++max_len;
-      mesg += "No.     |  Parameter name  ";
-      for (int i = 18; i < max_len; ++i)
-        mesg += " ";
-      mesg += "|  data type  |  extent\n";
-      for (int i = 0; i < 8 + MAX(18, max_len); ++i)
-        mesg += "-";
-      mesg += "-----------------------\n";
-      for (int i = 0; i < numberOfParameters; ++i)
-      {
+      max_len = MAX(18,max_len+1);
+      mesg += fmt::format(" No.      | {:<{}} | data type  | extent\n",
+                          "Parameter name", max_len);
+      mesg += fmt::format("{:-<{}}\n","-",max_len+35);
+      for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,
         &extent, &str_name, &str_desc);
-        mesg += SNUM(i+1);
-        for (int j = SNUM(i+1).size(); j < 8; ++j)
-          mesg += " ";
-        mesg += "| ";
-        mesg += str_name;
-        for (int j = strlen(str_name) + 1; j < MAX(18, strlen(str_name) + 1); ++j)
-          mesg += " ";
-        mesg += "|  \"";
-        mesg += KIM_DataType_ToString(kim_DataType);
-        if (KIM_DataType_Equal(kim_DataType, KIM_DATA_TYPE_Integer))
-          mesg += "\"  | ";
-        else
-          mesg += "\"   | ";
-        mesg += SNUM(extent);
-        mesg += "\n";
+        auto data_type = std::string("\"");
+        data_type += KIM_DataType_ToString(kim_DataType) + std::string("\"");
+        mesg += fmt::format(" {:<8} | {:<{}} | {:<10} | {}\n",i+1,str_name,
+                            max_len,data_type,extent);
       }
-    }
-    else
-      mesg += "No mutable parameters. \n";
+    } else mesg += "No mutable parameters. \n";
 
     KIM_Model_Destroy(&pkim);
-
-    if (comm->me == 0)
-    {
-      input->write_echo(mesg.c_str());
-    }
+    input->write_echo(mesg);
   }
 
   // End output to log file
-  kim_init_log_delimiter("end");
-
+  input->write_echo("#=== END kim-init ============================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::kim_init_log_delimiter(std::string const &begin_end) const
+void KimInit::do_variables(const std::string &from, const std::string &to)
 {
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim-init ==========================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim-init ============================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimInit::do_variables(char *user_units, char *model_units)
-{
-  char *from = user_units, *to = model_units;
-  Variable *variable = input->variable;
-
   // refuse conversion from or to reduced units
 
-  if ((strcmp(from,"lj") == 0) || (strcmp(to,"lj") == 0))
+  if ((from == "lj") || (to == "lj"))
     error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
 
   // get index to internal style variables. create, if needed.
   // set conversion factors for newly created variables.
   double conversion_factor;
   int ier;
-  char *args[3];
   std::string var_str;
-  args[1] = (char *)"internal";
-  args[2] = (char *)"1.0";
   int v_unit;
-  int const nunits = 14;
-  char *units[nunits] = {(char *)"mass",
-                         (char *)"distance",
-                         (char *)"time",
-                         (char *)"energy",
-                         (char *)"velocity",
-                         (char *)"force",
-                         (char *)"torque",
-                         (char *)"temperature",
-                         (char *)"pressure",
-                         (char *)"viscosity",
-                         (char *)"charge",
-                         (char *)"dipole",
-                         (char *)"efield",
-                         (char *)"density"};
+  const char *units[] = {"mass",
+                         "distance",
+                         "time",
+                         "energy",
+                         "velocity",
+                         "force",
+                         "torque",
+                         "temperature",
+                         "pressure",
+                         "viscosity",
+                         "charge",
+                         "dipole",
+                         "efield",
+                         "density",
+                         nullptr};
 
-  if (comm->me == 0) {
-    std::string mesg("# Conversion factors from ");
-    mesg += from;
-    mesg += " to ";
-    mesg += to;
-    mesg += ":\n";
-    input->write_echo(mesg.c_str());
-  }
+  input->write_echo(fmt::format("# Conversion factors from {} to {}:\n",
+                                from,to));
 
-  for (int i = 0; i < nunits; i++) {
-    var_str = std::string("_u_") + std::string(units[i]);
-    args[0] = (char *)var_str.c_str();
-    v_unit = variable->find(args[0]);
+  auto variable = input->variable;
+  for (int i = 0; units[i] != nullptr; ++i) {
+    var_str = std::string("_u_") + units[i];
+    v_unit = variable->find(var_str.c_str());
     if (v_unit < 0) {
-      variable->set(3,args);
-      v_unit = variable->find(args[0]);
+      variable->set(var_str + " internal 1.0");
+      v_unit = variable->find(var_str.c_str());
     }
     ier = lammps_unit_conversion(units[i],
                                  from,
                                  to,
                                  conversion_factor);
-    if (ier != 0) {
-      std::string err = std::string("Unable to obtain conversion factor: ") +
-                        "unit = " + units[i] + "; "
-                        "from = " + from + "; "
-                        "to = " + to + ".";
-      error->all(FLERR,err.c_str());
-    }
+    if (ier != 0)
+      error->all(FLERR,fmt::format("Unable to obtain conversion factor: "
+                                   "unit = {}; from = {}; to = {}.",
+                                   units[i], from, to));
+
     variable->internal_set(v_unit,conversion_factor);
-    if (comm->me == 0) {
-      std::stringstream mesg;
-      mesg << "variable " << std::setw(15) << std::left << var_str
-           << " internal "
-           << std::setprecision(12) << std::scientific << conversion_factor
-           << std::endl;
-      input->write_echo(mesg.str().c_str());
-    }
+    input->write_echo(fmt::format("variable {:<15s} internal {:<15.12e}\n",
+                                  var_str, conversion_factor));
   }
-  if (comm->me == 0) input->write_echo("#\n");
+  input->write_echo("#\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::write_log_cite(char * model_name)
+void KimInit::write_log_cite(char *model_name)
 {
   KIM_Collections * coll;
   int err = KIM_Collections_Create(&coll);
   if (err) return;
 
   int extent;
-  if (model_type == MO)
-  {
+  if (model_type == MO) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-        coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
-  }
-  else if (model_type == SM)
-  {
+      coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
+  } else if (model_type == SM) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-        coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
-  }
-  else
-  {
+      coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
+  } else {
     error->all(FLERR,"Unknown model type.");
   }
 
-  if (err)
-  {
+  if (err) {
     KIM_Collections_Destroy(&coll);
     return;
   }
 
-  for (int i = 0; i < extent;++i)
-  {
+  for (int i = 0; i < extent; ++i) {
     char const * fileName;
     int availableAsString;
     char const * fileString;
     err = KIM_Collections_GetItemMetadataFile(
-        coll,i,&fileName,NULL,NULL,&availableAsString,&fileString);
+        coll,i,&fileName,nullptr,nullptr,&availableAsString,&fileString);
     if (err) continue;
 
-    if (0 == strncmp("kimcite",fileName,7))
-    {
+    if (0 == strncmp("kimcite",fileName,7)) {
       if ((lmp->citeme) && (availableAsString)) lmp->citeme->add(fileString);
     }
   }
 
   KIM_Collections_Destroy(&coll);
 }
-
-#undef SNUM

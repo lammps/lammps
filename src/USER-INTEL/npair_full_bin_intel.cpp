@@ -16,12 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bin_intel.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "group.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 

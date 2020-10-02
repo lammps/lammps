@@ -1,7 +1,10 @@
 .. index:: compute coord/atom
+.. index:: compute coord/atom/kk
 
 compute coord/atom command
 ==========================
+
+Accelerator Variants: *coord/atom/kk*
 
 Syntax
 """"""
@@ -60,7 +63,7 @@ keywords are listed, a single coordination number is calculated, which
 includes atoms of all types (same as the "\*" format, see below).
 
 The *typeN* keywords can be specified in one of two ways.  An explicit
-numeric value can be used, as in the 2nd example above.  Or a
+numeric value can be used, as in the second example above.  Or a
 wild-card asterisk can be used to specify a range of atom types.  This
 takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of
 atom types, then an asterisk with no numeric values means all types
@@ -109,7 +112,16 @@ too frequently.
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
-**Output info:**
+----------
+
+
+.. include:: accel_styles.rst
+
+
+----------
+
+Output info
+"""""""""""
 
 For *cstyle* cutoff, this compute can calculate a per-atom vector or
 array.  If single *type1* keyword is specified (or if none are

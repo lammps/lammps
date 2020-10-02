@@ -1,7 +1,11 @@
 .. index:: fix bond/create
+.. index:: fix bond/create/angle
 
 fix bond/create command
 =======================
+
+fix bond/create/angle command
+=============================
 
 Syntax
 """"""
@@ -17,7 +21,7 @@ Syntax
 * Rmin = 2 atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
-* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype*
+* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*
 
   .. parsed-literal::
 
@@ -36,6 +40,9 @@ Syntax
          dihedraltype = type of created dihedrals
        *itype* value = impropertype
          impropertype = type of created impropers
+       *aconstrain* value = amin amax
+         amin = minimal angle at which new bonds can be created
+         amax = maximal angle at which new bonds can be created
 
 Examples
 """"""""
@@ -45,6 +52,7 @@ Examples
    fix 5 all bond/create 10 1 2 0.8 1
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2
+   fix 5 all bond/create/angle 10 1 2 1.122 1 aconstrain 120 180 prob 1 4928459 iparam 2 1 jparam 2 2
 
 Description
 """""""""""
@@ -110,7 +118,16 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
 
-Any bond that is created is assigned a bond type of *bondtype*
+The *aconstrain* keyword is only available with the fix
+bond/create/angle command.  It allows to specify a minimal and maximal
+angle *amin* and *amax* between the two prospective bonding partners and
+a third particle that is already bonded to one of the two partners.
+Such a criterion can be important when new angles are defined together
+with the formation of a new bond.  Without a restriction on the
+permissible angle, and for stiffer angle potentials, very large energies
+can arise and lead to uncontrolled behavior.
+
+Any bond that is created is assigned a bond type of *bondtype*.
 
 When a bond is created, data structures within LAMMPS that store bond
 topology are updated to reflect the creation.  If the bond is part of
@@ -154,13 +171,13 @@ of type *angletype*\ , with parameters assigned by the corresponding
 .. note::
 
    LAMMPS stores and maintains a data structure with a list of the
-   1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+   first, second, and third neighbors of each atom (within the bond topology of
    the system) for use in weighting pairwise interactions for bonded
-   atoms.  Note that adding a single bond always adds a new 1st neighbor
-   but may also induce \*many\* new 2nd and 3rd neighbors, depending on the
+   atoms.  Note that adding a single bond always adds a new first neighbor
+   but may also induce \*many\* new second and third neighbors, depending on the
    molecular topology of your system.  The "extra special per atom"
    parameter must typically be set to allow for the new maximum total
-   size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 2
+   size (first + second + third neighbors) of this per-atom list.  There are 2
    ways to do this.  See the :doc:`read_data <read_data>` or
    :doc:`create_box <create_box>` commands for details.
 
@@ -172,12 +189,12 @@ of type *angletype*\ , with parameters assigned by the corresponding
    considered for pairwise interactions, using the weighting rules set by
    the :doc:`special_bonds <special_bonds>` command.  Consider a new bond
    created between atoms I,J.  If J has a bonded neighbor K, then K
-   becomes a 2nd neighbor of I.  Even if the *atype* keyword is not used
+   becomes a second neighbor of I.  Even if the *atype* keyword is not used
    to create angle I-J-K, the pairwise interaction between I and K will
    be potentially turned off or weighted by the 1-3 weighting specified
    by the :doc:`special_bonds <special_bonds>` command.  This is the case
    even if the "angle yes" option was used with that command.  The same
-   is true for 3rd neighbors (1-4 interactions), the *dtype* keyword, and
+   is true for third neighbors (1-4 interactions), the *dtype* keyword, and
    the "dihedral yes" option used with the
    :doc:`special_bonds <special_bonds>` command.
 
@@ -216,14 +233,17 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
-length 2, which can be accessed by various :doc:`output commands <Howto_output>`.  The vector values calculated by this fix
-are "intensive".
+length 2, which can be accessed by various :doc:`output commands
+<Howto_output>`.  The vector values calculated by this fix are
+"intensive".
 
 These are the 2 quantities:
 

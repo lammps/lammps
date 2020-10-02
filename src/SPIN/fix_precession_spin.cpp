@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_precession_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -44,7 +44,7 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(NULL)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -59,7 +59,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  magstr = NULL;
+  magstr = nullptr;
   magfieldstyle = CONSTANT;
 
   H_field = 0.0;
@@ -80,33 +80,33 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
     if (strcmp(arg[iarg],"zeeman") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       zeeman_flag = 1;
-      H_field = force->numeric(FLERR,arg[iarg+1]);
-      nhx = force->numeric(FLERR,arg[iarg+2]);
-      nhy = force->numeric(FLERR,arg[iarg+3]);
-      nhz = force->numeric(FLERR,arg[iarg+4]);
+      H_field = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      nhx = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nhy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      nhz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
     } else if (strcmp(arg[iarg],"anisotropy") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       aniso_flag = 1;
-      Ka = force->numeric(FLERR,arg[iarg+1]);
-      nax = force->numeric(FLERR,arg[iarg+2]);
-      nay = force->numeric(FLERR,arg[iarg+3]);
-      naz = force->numeric(FLERR,arg[iarg+4]);
+      Ka = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      nax = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nay = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      naz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
     } else if (strcmp(arg[iarg],"cubic") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       cubic_flag = 1;
-      k1c = force->numeric(FLERR,arg[iarg+1]);
-      k2c = force->numeric(FLERR,arg[iarg+2]);
-      nc1x = force->numeric(FLERR,arg[iarg+3]);
-      nc1y = force->numeric(FLERR,arg[iarg+4]);
-      nc1z = force->numeric(FLERR,arg[iarg+5]);
-      nc2x = force->numeric(FLERR,arg[iarg+6]);
-      nc2y = force->numeric(FLERR,arg[iarg+7]);
-      nc2z = force->numeric(FLERR,arg[iarg+8]);
-      nc3x = force->numeric(FLERR,arg[iarg+9]);
-      nc3y = force->numeric(FLERR,arg[iarg+10]);
-      nc3z = force->numeric(FLERR,arg[iarg+11]);
+      k1c = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      k2c = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nc1x = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      nc1y = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      nc1z = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      nc2x = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+      nc2y = utils::numeric(FLERR,arg[iarg+7],false,lmp);
+      nc2z = utils::numeric(FLERR,arg[iarg+8],false,lmp);
+      nc3x = utils::numeric(FLERR,arg[iarg+9],false,lmp);
+      nc3y = utils::numeric(FLERR,arg[iarg+10],false,lmp);
+      nc3z = utils::numeric(FLERR,arg[iarg+11],false,lmp);
       iarg += 12;
     } else error->all(FLERR,"Illegal precession/spin command");
   }

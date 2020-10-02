@@ -16,18 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region_ees.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "math_extra.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -54,9 +54,9 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   idregion = new char[n];
   strcpy(idregion,arg[3]);
 
-  epsilon = force->numeric(FLERR,arg[4]);
-  sigma = force->numeric(FLERR,arg[5]);
-  cutoff = force->numeric(FLERR,arg[6]);
+  epsilon = utils::numeric(FLERR,arg[4],false,lmp);
+  sigma = utils::numeric(FLERR,arg[5],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[6],false,lmp);
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region/ees cutoff <= 0.0");
 

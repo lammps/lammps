@@ -14,16 +14,13 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis)
 ------------------------------------------------------------------------- */
-
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "fft3d_kokkos.h"
-#include "remap_kokkos.h"
+
 #include "error.h"
 #include "kokkos.h"
+#include "remap_kokkos.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +35,8 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective) :
+             int scaled, int permute, int *nbuf, int usecollective,
+             int usecuda_aware) :
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
@@ -70,8 +68,8 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf,usecollective,nthreads);
-  if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
+                            scaled,permute,nbuf,usecollective,nthreads,usecuda_aware);
+  if (plan == nullptr) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,6 +366,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
                           2 = permute twice = slow->fast, fast->mid, mid->slow
    nbuf                 returns size of internal storage buffers used by FFT
    usecollective        use collective MPI operations for remapping data
+   usecuda_aware        use CUDA-Aware MPI or not
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -378,7 +377,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
        int out_ilo, int out_ihi, int out_jlo, int out_jhi,
        int out_klo, int out_khi,
        int scaled, int permute, int *nbuf, int usecollective,
-       int nthreads)
+       int nthreads, int usecuda_aware)
 {
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   int me,nprocs;
@@ -404,7 +403,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
   plan = new struct fft_plan_3d_kokkos<DeviceType>;
   remapKK = new RemapKokkos<DeviceType>(lmp);
-  if (plan == NULL) return NULL;
+  if (plan == nullptr) return nullptr;
 
   // remap from initial distribution to layout needed for 1st set of 1d FFTs
   // not needed if all procs own entire fast axis initially
@@ -423,7 +422,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     first_jhi = in_jhi;
     first_klo = in_klo;
     first_khi = in_khi;
-    plan->pre_plan = NULL;
+    plan->pre_plan = nullptr;
   }
   else {
     first_ilo = 0;
@@ -435,8 +434,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->pre_plan =
       remapKK->remap_3d_create_plan_kokkos(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                            first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
-    if (plan->pre_plan == NULL) return NULL;
+                           first_klo,first_khi,2,0,0,FFT_PRECISION,
+                           usecollective,usecuda_aware);
+    if (plan->pre_plan == nullptr) return nullptr;
   }
 
   // 1d FFTs along fast axis
@@ -460,8 +460,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
                            second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective);
-  if (plan->mid1_plan == NULL) return NULL;
+                           usecollective,usecuda_aware);
+  if (plan->mid1_plan == nullptr) return nullptr;
 
   // 1d FFTs along mid axis
 
@@ -500,8 +500,9 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                          second_jlo,second_jhi,second_klo,second_khi,
                          second_ilo,second_ihi,
                          third_jlo,third_jhi,third_klo,third_khi,
-                         third_ilo,third_ihi,2,1,0,FFT_PRECISION,usecollective);
-  if (plan->mid2_plan == NULL) return NULL;
+                         third_ilo,third_ihi,2,1,0,FFT_PRECISION,
+                         usecollective,usecuda_aware);
+  if (plan->mid2_plan == nullptr) return nullptr;
 
   // 1d FFTs along slow axis
 
@@ -520,15 +521,16 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   MPI_Allreduce(&flag,&remapflag,1,MPI_INT,MPI_MAX,comm);
 
   if (remapflag == 0)
-    plan->post_plan = NULL;
+    plan->post_plan = nullptr;
   else {
     plan->post_plan =
       remapKK->remap_3d_create_plan_kokkos(comm,
                            third_klo,third_khi,third_ilo,third_ihi,
                            third_jlo,third_jhi,
                            out_klo,out_khi,out_ilo,out_ihi,
-                           out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION,0);
-    if (plan->post_plan == NULL) return NULL;
+                           out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION,
+                           usecollective,usecuda_aware);
+    if (plan->post_plan == nullptr) return nullptr;
   }
 
   // configure plan memory pointers and allocate work space
@@ -646,39 +648,39 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
   plan->plan_fast_forward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-                       NULL,&nfast,1,plan->length1,
-                       NULL,&nfast,1,plan->length1,
+                       nullptr,&nfast,1,plan->length1,
+                       nullptr,&nfast,1,plan->length1,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
   plan->plan_fast_backward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-                       NULL,&nfast,1,plan->length1,
-                       NULL,&nfast,1,plan->length1,
+                       nullptr,&nfast,1,plan->length1,
+                       nullptr,&nfast,1,plan->length1,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
   plan->plan_mid_forward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-                       NULL,&nmid,1,plan->length2,
-                       NULL,&nmid,1,plan->length2,
+                       nullptr,&nmid,1,plan->length2,
+                       nullptr,&nmid,1,plan->length2,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
   plan->plan_mid_backward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-                       NULL,&nmid,1,plan->length2,
-                       NULL,&nmid,1,plan->length2,
+                       nullptr,&nmid,1,plan->length2,
+                       nullptr,&nmid,1,plan->length2,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
 
   plan->plan_slow_forward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-                       NULL,&nslow,1,plan->length3,
-                       NULL,&nslow,1,plan->length3,
+                       nullptr,&nslow,1,plan->length3,
+                       nullptr,&nslow,1,plan->length3,
                        FFTW_FORWARD,FFTW_ESTIMATE);
 
   plan->plan_slow_backward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-                       NULL,&nslow,1,plan->length3,
-                       NULL,&nslow,1,plan->length3,
+                       nullptr,&nslow,1,plan->length3,
+                       nullptr,&nslow,1,plan->length3,
                        FFTW_BACKWARD,FFTW_ESTIMATE);
 
 #elif defined(FFT_CUFFT)
@@ -702,16 +704,16 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
   kissfftKK = new KissFFTKokkos<DeviceType>();
 
-  plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,NULL,NULL);
-  plan->cfg_fast_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,1,NULL,NULL);
+  plan->cfg_fast_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,0,nullptr,nullptr);
+  plan->cfg_fast_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nfast,1,nullptr,nullptr);
 
   if (nmid == nfast) {
     plan->cfg_mid_forward = plan->cfg_fast_forward;
     plan->cfg_mid_backward = plan->cfg_fast_backward;
   }
   else {
-    plan->cfg_mid_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,0,NULL,NULL);
-    plan->cfg_mid_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,1,NULL,NULL);
+    plan->cfg_mid_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,0,nullptr,nullptr);
+    plan->cfg_mid_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nmid,1,nullptr,nullptr);
   }
 
   if (nslow == nfast) {
@@ -723,8 +725,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->cfg_slow_backward = plan->cfg_mid_backward;
   }
   else {
-    plan->cfg_slow_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,0,NULL,NULL);
-    plan->cfg_slow_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,1,NULL,NULL);
+    plan->cfg_slow_forward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,0,nullptr,nullptr);
+    plan->cfg_slow_backward = KissFFTKokkos<DeviceType>::kiss_fft_alloc_kokkos(nslow,1,nullptr,nullptr);
   }
 
 #endif
@@ -900,7 +902,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
 
 namespace LAMMPS_NS {
 template class FFT3dKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FFT3dKokkos<LMPHostType>;
 #endif
 }

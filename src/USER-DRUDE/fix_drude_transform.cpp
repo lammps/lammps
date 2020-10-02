@@ -13,7 +13,7 @@
 
 /** Fix Drude Transform ******************************************************/
 #include "fix_drude_transform.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "fix_drude.h"
@@ -29,11 +29,11 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 template <bool inverse>
 FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mcoeff(NULL)
+  Fix(lmp, narg, arg), mcoeff(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
   comm_forward = 9;
-  fix_drude = NULL;
+  fix_drude = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

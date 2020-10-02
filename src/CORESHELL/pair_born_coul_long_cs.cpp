@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 PairBornCoulLongCS::PairBornCoulLongCS(LAMMPS *lmp) : PairBornCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
-  ftable = NULL;
+  single_enable = 0; // TODO: single function does not match compute
+  ftable = nullptr;
   writedata = 1;
 }
 

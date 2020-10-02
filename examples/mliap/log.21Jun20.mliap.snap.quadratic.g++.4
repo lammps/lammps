@@ -1,0 +1,151 @@
+LAMMPS (15 Jun 2020)
+# Demonstrate MLIAP interface to quadratic SNAP potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.1803
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary	p p p
+
+lattice         bcc $a
+lattice         bcc 3.1803
+Lattice spacing in x,y,z = 3.1803 3.1803 3.1803
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+region		box block 0 4 0 ${ny} 0 ${nz}
+region		box block 0 4 0 4 0 ${nz}
+region		box block 0 4 0 4 0 4
+create_box	1 box
+Created orthogonal box = (0.0 0.0 0.0) to (12.7212 12.7212 12.7212)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 128 atoms
+  create_atoms CPU = 0.000 seconds
+displace_atoms  all random 0.01 0.01 0.01 12345
+
+mass 1 183.84
+
+# choose potential
+
+include W.quadratic.mliap
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model quadratic W.quadratic.mliap.model descriptor sna W.quadratic.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model quadratic W.quadratic.mliap.model descriptor sna W.quadratic.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model quadratic W.quadratic.mliap.model descriptor sna W.quadratic.mliap.descriptor
+SNAP keyword rcutfac 4.73442 
+SNAP keyword twojmax 6 
+SNAP keyword nelems 1 
+SNAP keyword elems W 
+SNAP keyword radelems 0.5 
+SNAP keyword welems 1 
+SNAP keyword rfac0 0.99363 
+SNAP keyword rmin0 0 
+SNAP keyword bzeroflag 1 
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff 1 1 zbl 74 ${zblz}
+pair_coeff 1 1 zbl 74 74
+pair_coeff * * mliap W
+
+
+# Setup output
+
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
+thermo		10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check no
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.8
+  ghost atom cutoff = 5.8
+  binsize = 2.9, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zbl, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair mliap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.031 | 6.032 | 6.033 Mbytes
+Step Temp E_pair c_energy TotEng Press v_press 
+       0          300   -1.1602728   -1.1602728   -1.1217977     600047.3    -600047.3 
+      10    288.46387   -1.1587932   -1.1587932   -1.1217976    600359.75   -600359.75 
+      20    268.69718   -1.1562579   -1.1562579   -1.1217974    600870.22   -600870.22 
+      30    243.19855   -1.1529874   -1.1529874   -1.1217971     601511.5    -601511.5 
+      40    215.13122   -1.1493875   -1.1493875   -1.1217969    602202.36   -602202.36 
+      50    187.82673   -1.1458855   -1.1458855   -1.1217966    602860.26   -602860.26 
+      60    164.26822   -1.1428639   -1.1428639   -1.1217965    603413.25   -603413.25 
+      70    146.65179   -1.1406045   -1.1406045   -1.1217964    603809.35   -603809.35 
+      80    136.10769   -1.1392522   -1.1392522   -1.1217964    604022.32   -604022.32 
+      90    132.62756    -1.138806    -1.138806   -1.1217964    604053.33   -604053.33 
+     100    135.19841   -1.1391358   -1.1391358   -1.1217966    603928.48   -603928.48 
+Loop time of 0.520935 on 4 procs for 100 steps with 128 atoms
+
+Performance: 8.293 ns/day, 2.894 hours/ns, 191.963 timesteps/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.4001     | 0.44784    | 0.49877    |   6.8 | 85.97
+Neigh   | 0.00728    | 0.0080255  | 0.008793   |   0.8 |  1.54
+Comm    | 0.012664   | 0.064342   | 0.11287    |  18.2 | 12.35
+Output  | 0.000511   | 0.00053725 | 0.000613   |   0.0 |  0.10
+Modify  | 7.3e-05    | 7.925e-05  | 8.3e-05    |   0.0 |  0.02
+Other   |            | 0.0001087  |            |       |  0.02
+
+Nlocal:    32 ave 35 max 29 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    431 ave 434 max 428 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    928 ave 1019 max 837 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  1856 ave 2030 max 1682 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58
+Neighbor list builds = 100
+Dangerous builds not checked
+
+Total wall time: 0:00:00

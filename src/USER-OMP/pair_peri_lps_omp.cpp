@@ -12,24 +12,24 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
-#include <cfloat>
 #include "pair_peri_lps_omp.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "fix_peri_neigh.h"
 #include "force.h"
-#include "memory.h"
 #include "lattice.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "math_const.h"
-
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -71,7 +71,7 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {

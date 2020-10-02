@@ -1,0 +1,105 @@
+# Demonstrate bispectrum computes
+
+# initialize simulation
+
+variable 	nsteps index 0
+variable 	nrep equal 1
+variable 	a equal 2.0
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable 	nx equal ${nrep}
+variable 	ny equal ${nrep}
+variable 	nz equal ${nrep}
+
+boundary	p p p
+
+atom_modify	map hash
+lattice         bcc $a
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	2 box
+create_atoms	2 box
+
+mass 		* 180.88
+
+displace_atoms 	all random 0.1 0.1 0.1 123456
+
+# set up reference potential
+
+variable 	zblcutinner equal 4
+variable 	zblcutouter equal 4.8
+variable 	zblz equal 73
+pair_style 	zbl ${zblcutinner} ${zblcutouter}
+pair_coeff 	* * ${zblz} ${zblz}
+
+# choose SNA parameters
+
+variable 	twojmax equal 2
+variable 	rcutfac equal 1.0
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	radelem1 equal 2.3
+variable 	radelem2 equal 2.0
+variable	wj1 equal 1.0
+variable	wj2 equal 0.96
+variable	quadratic equal 0
+variable	bzero equal 0
+variable	switch equal 0
+variable 	snap_options string &
+"${rcutfac} ${rfac0} ${twojmax} ${radelem1} ${radelem2} ${wj1} ${wj2} rmin0 ${rmin0} quadraticflag ${quadratic} bzeroflag ${bzero} switchflag ${switch}"
+
+# set up per-atom computes
+
+compute 	b all sna/atom ${snap_options}
+compute 	vb all snav/atom ${snap_options}
+compute 	db all snad/atom ${snap_options}
+
+# perform sums over atoms
+
+group 		snapgroup1 type 1
+group 		snapgroup2 type 2
+compute         bsum1 snapgroup1 reduce sum c_b[*]
+compute         bsum2 snapgroup2 reduce sum c_b[*]
+# fix 		bsum1 all ave/time 1 1 1 c_bsum1 file bsum1.dat mode vector
+# fix 		bsum2 all ave/time 1 1 1 c_bsum2 file bsum2.dat mode vector
+compute		vbsum all reduce sum c_vb[*]
+# fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
+variable	db_2_25 equal c_db[2][25]
+
+thermo 		100
+
+# test output:   1: total potential energy
+#                2: xy component of stress tensor
+#                3: Sum(B_{000}^i, all i of type 2) 
+#                4: xz component of Sum(Sum(r_j*dB_{222}^i/dR[j]), all i of type 2), all j)
+#                5: y component of -Sum(d(B_{222}^i)/dR[2]), all i of type 2)
+#
+#                followed by 5 counterparts from compute snap
+
+# run compute mliap with gradgradflag = 1
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 1
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg1.dat mode vector
+
+thermo_style	custom &
+		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
+		c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
+thermo_modify 	norm no
+
+run             ${nsteps}
+
+uncompute	snap
+unfix		snap
+
+# run compute mliap with gradgradflag = 0
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 0
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg0.dat mode vector
+
+thermo_style	custom &
+		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
+		c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
+thermo_modify 	norm no
+
+run             ${nsteps}

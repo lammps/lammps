@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "min_quickmin.h"
-#include <mpi.h>
-#include <cmath>
-#include "universe.h"
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

@@ -493,7 +493,7 @@ struct TestReducers {
   }
 
   static void test_minloc(int N) {
-    typedef typename Kokkos::MinLoc<Scalar, int>::value_type value_type;
+    using value_type = typename Kokkos::MinLoc<Scalar, int>::value_type;
 
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);
@@ -556,7 +556,7 @@ struct TestReducers {
   }
 
   static void test_maxloc(int N) {
-    typedef typename Kokkos::MaxLoc<Scalar, int>::value_type value_type;
+    using value_type = typename Kokkos::MaxLoc<Scalar, int>::value_type;
 
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);
@@ -619,7 +619,7 @@ struct TestReducers {
   }
 
   static void test_minmaxloc(int N) {
-    typedef typename Kokkos::MinMaxLoc<Scalar, int>::value_type value_type;
+    using value_type = typename Kokkos::MinMaxLoc<Scalar, int>::value_type;
 
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);

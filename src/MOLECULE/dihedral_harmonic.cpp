@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_harmonic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -25,7 +25,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -274,11 +274,11 @@ void DihedralHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  int sign_one = force->inumeric(FLERR,arg[2]);
-  int multiplicity_one = force->inumeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int sign_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int multiplicity_one = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // require sign = +/- 1 for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break
@@ -328,9 +328,9 @@ void DihedralHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&sign[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&sign[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&sign[1],atom->ndihedraltypes,MPI_INT,0,world);

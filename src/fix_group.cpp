@@ -12,20 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_group.h"
-#include <cstring>
-#include "group.h"
-#include "update.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
-#include "region.h"
-#include "modify.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +34,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), idvar(NULL), idprop(NULL)
+idregion(nullptr), idvar(nullptr), idprop(nullptr)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
@@ -86,7 +87,7 @@ idregion(NULL), idvar(NULL), idprop(NULL)
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
       iarg += 2;
     } else error->all(FLERR,"Illegal group command");
@@ -209,9 +210,9 @@ void FixGroup::set_group()
   //   operate differently due to invocation this early in timestep
   // e.g. perform ghost comm update due to atoms having just moved
 
-  double *var = NULL;
-  int *ivector = NULL;
-  double *dvector = NULL;
+  double *var = nullptr;
+  int *ivector = nullptr;
+  double *dvector = nullptr;
 
   if (varflag) {
     update->post_integrate = 1;
@@ -264,5 +265,5 @@ void *FixGroup::extract(const char *str, int &/*unused*/)
   if (strcmp(str,"property") == 0 && propflag) return (void *) idprop;
   if (strcmp(str,"variable") == 0 && varflag) return (void *) idvar;
   if (strcmp(str,"region") == 0 && regionflag) return (void *) idregion;
-  return NULL;
+  return nullptr;
 }

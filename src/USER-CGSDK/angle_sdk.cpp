@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_sdk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -30,7 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "lj_sdk_common.h"
 
@@ -241,10 +241,10 @@ void AngleSDK::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
   double repscale_one=1.0;
 
   // backward compatibility with old cg/cmm style input:
@@ -253,9 +253,9 @@ void AngleSDK::coeff(int narg, char **arg)
   // otherwise assume repscale 1.0, since we were using
   // epsilon to turn repulsion on or off.
   if (narg == 6) {
-    repscale_one = force->numeric(FLERR,arg[4]);
+    repscale_one = utils::numeric(FLERR,arg[4],false,lmp);
     if (repscale_one > 0.0) repscale_one = 1.0;
-  } else if (narg == 4) repscale_one = force->numeric(FLERR,arg[3]);
+  } else if (narg == 4) repscale_one = utils::numeric(FLERR,arg[3],false,lmp);
   else if (narg == 3) repscale_one = 1.0;
   else error->all(FLERR,"Incorrect args for angle coefficients");
 
@@ -290,7 +290,7 @@ void AngleSDK::init_style()
 
   if (repflag) {
     int itmp;
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"Angle style SDK requires use of a compatible with Pair style");
 
     lj1 = (double **) force->pair->extract("lj1",itmp);
@@ -333,9 +333,9 @@ void AngleSDK::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&repscale[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&repscale[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

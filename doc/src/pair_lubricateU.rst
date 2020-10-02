@@ -1,4 +1,5 @@
 .. index:: pair_style lubricateU
+.. index:: pair_style lubricateU/poly
 
 pair_style lubricateU command
 =============================
@@ -22,7 +23,9 @@ Syntax
 * flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
-**Examples:** (all assume radius = 1)
+Examples
+""""""""
+(all assume radius = 1)
 
 .. code-block:: LAMMPS
 
@@ -161,7 +164,8 @@ must be specified.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See

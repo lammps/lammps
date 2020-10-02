@@ -19,16 +19,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ti_spring.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
-#include "force.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -69,15 +69,15 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   time_depend = 1;
 
   // Spring constant.
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   if (k <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
 
   // Perform initial allocation of atom-based array
   // Register with Atom class
-  xoriginal = NULL;
+  xoriginal = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -93,15 +93,15 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
   // Time variables.
   t0 = update->ntimestep;  // timestep of original/starting coordinates
-  t_switch = force->bnumeric(FLERR,arg[4]); // Number of steps for switching
-  t_equil  = force->bnumeric(FLERR,arg[5]); // Number of steps for equilibration
+  t_switch = utils::bnumeric(FLERR,arg[4],false,lmp); // Number of steps for switching
+  t_equil  = utils::bnumeric(FLERR,arg[5],false,lmp); // Number of steps for equilibration
   if ((t_switch <= 0) || (t_equil < 0))
     error->all(FLERR,"Illegal fix ti/spring command");
 
   // Coupling parameter initialization
   sf = 1;
   if (narg > 6) {
-    if (strcmp(arg[6], "function") == 0) sf = force->inumeric(FLERR,arg[7]);
+    if (strcmp(arg[6], "function") == 0) sf = utils::inumeric(FLERR,arg[7],false,lmp);
     else error->all(FLERR,"Illegal fix ti/spring switching function");
     if ((sf!=1) && (sf!=2))
       error->all(FLERR,"Illegal fix ti/spring switching function");
@@ -117,8 +117,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 FixTISpring::~FixTISpring()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored array
   memory->destroy(xoriginal);
@@ -315,6 +315,7 @@ int FixTISpring::unpack_exchange(int nlocal, double *buf)
 
 int FixTISpring::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = 4;
   buf[1] = xoriginal[i][0];
   buf[2] = xoriginal[i][1];
@@ -331,6 +332,7 @@ void FixTISpring::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

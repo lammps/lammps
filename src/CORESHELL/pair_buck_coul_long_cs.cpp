@@ -42,7 +42,8 @@ PairBuckCoulLongCS::PairBuckCoulLongCS(LAMMPS *lmp) : PairBuckCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
   writedata = 1;
-  ftable = NULL;
+  single_enable = 0;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

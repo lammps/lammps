@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_deform.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "domain.h"
 #include "atom.h"
@@ -47,7 +47,7 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

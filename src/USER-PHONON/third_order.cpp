@@ -3,29 +3,28 @@
 //
 
 #include "third_order.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "error.h"
-#include "group.h"
-#include "force.h"
-#include "memory.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "update.h"
+#include "math_special.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
-#include "finish.h"
-#include "math_special.h"
+#include "update.h"
+
+#include <cstring>
 #include <algorithm>
-#include <complex>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -33,7 +32,7 @@ enum{REGULAR,BALLISTICO};
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(nullptr)
 {
   external_force_clear = 1;
 }
@@ -43,7 +42,7 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
 ThirdOrder::~ThirdOrder()
 {
   if (fp && me == 0) fclose(fp);
-  fp = NULL;
+  fp = nullptr;
   memory->destroy(groupmap);
 }
 
@@ -132,9 +131,9 @@ void ThirdOrder::command(int narg, char **arg)
   if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
   else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
   else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
-  del = force->numeric(FLERR, arg[2]);
+  del = utils::numeric(FLERR, arg[2],false,lmp);
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"third_order command requires an atom map, see atom_modify");
 
   // move atoms by 3-vector or specified variable(s)
@@ -170,13 +169,11 @@ void ThirdOrder::options(int narg, char **arg)
   if (narg < 0) error->all(FLERR,"Illegal third_order command");
   int iarg = 0;
   const char *filename = "third_order.dat";
-  std::stringstream fss;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
-      fss << arg[iarg + 1];
-      filename = fss.str().c_str();
+      filename = arg[iarg + 1];
       file_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"binary") == 0) {
@@ -223,7 +220,7 @@ void ThirdOrder::openfile(const char* filename)
     fp = fopen(filename,"w");
   }
 
-  if (fp == NULL) error->one(FLERR,"Cannot open dump file");
+  if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
   file_opened = 1;
 }
@@ -411,7 +408,7 @@ void ThirdOrder::update_force()
     force->pair->compute(eflag,vflag);
     timer->stamp(Timer::PAIR);
   }
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);

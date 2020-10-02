@@ -1,4 +1,4 @@
-#DATE: 2017-11-20 CONTRIBUTOR: Michal Kanski michal.kanski@uj.edu.pl CITATION: Michal Kanski, Dawid Maciazek, Zbigniew Postawa, Adri C.T. van Duin, Chowdhury Ashraf, and Barbara J. Garrison Development of a Charge-Implicit ReaxFF Potential for Hydrocarbon Systems, J. Phys. Chem. Lett., 2018, 9, pp 359–363 DOI: 10.1021/acs.jpclett.7b03155
+#DATE: 2017-11-20 UNITS: real CONTRIBUTOR: Michal Kanski michal.kanski@uj.edu.pl CITATION: Michal Kanski, Dawid Maciazek, Zbigniew Postawa, Adri C.T. van Duin, Chowdhury Ashraf, and Barbara J. Garrison Development of a Charge-Implicit ReaxFF Potential for Hydrocarbon Systems, J. Phys. Chem. Lett., 2018, 9, pp 359–363 DOI: 10.1021/acs.jpclett.7b03155
 #Correcting potential for cireaxFF CC
 
 CC_cireaxFF

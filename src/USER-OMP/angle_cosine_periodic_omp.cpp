@@ -22,7 +22,7 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "timer.h"
+
 #include "math_special.h"
 
 #include "suffix.h"

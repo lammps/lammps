@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_efield.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -40,8 +40,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), xstr(NULL), ystr(NULL), zstr(NULL),
-  estr(NULL), idregion(NULL), efield(NULL)
+  Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr),
+  estr(nullptr), idregion(nullptr), efield(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 
@@ -57,14 +57,14 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
 
   qe2f = force->qe2f;
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    ex = qe2f * force->numeric(FLERR,arg[3]);
+    ex = qe2f * utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
 
@@ -73,7 +73,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    ey = qe2f * force->numeric(FLERR,arg[4]);
+    ey = qe2f * utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
 
@@ -82,15 +82,15 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    ez = qe2f * force->numeric(FLERR,arg[5]);
+    ez = qe2f * utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 
   // optional args
 
   iregion = -1;
-  idregion = NULL;
-  estr = NULL;
+  idregion = nullptr;
+  estr = nullptr;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -272,7 +272,7 @@ void FixEfield::post_force(int vflag)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();

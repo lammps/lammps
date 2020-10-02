@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "lammps.h"
-#include <mpi.h>
 #include "input.h"
+
+#include <mpi.h>
+#include <cstdlib>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
-#endif
-
-#ifdef FFT_FFTW3
-#include <fftw3.h>
 #endif
 
 #if defined(LAMMPS_EXCEPTIONS)
@@ -54,9 +52,10 @@ int main(int argc, char **argv)
     LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
     lammps->input->file();
     delete lammps;
-  } catch(LAMMPSAbortException & ae) {
+  } catch(LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
-  } catch(LAMMPSException & e) {
+  } catch(LAMMPSException &e) {
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
   }
@@ -67,14 +66,4 @@ int main(int argc, char **argv)
 #endif
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
-
-#ifdef FFT_FFTW3
-  // tell fftw3 to delete its global memory pool
-  // and thus avoid bogus valgrind memory leak reports
-#ifdef FFT_SINGLE
-  fftwf_cleanup();
-#else
-  fftw_cleanup();
-#endif
-#endif
 }

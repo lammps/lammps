@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_limit.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -22,7 +22,7 @@
 #include "modify.h"
 #include "comm.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +40,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   dynamic_group_allow = 1;
 
-  xlimit = force->numeric(FLERR,arg[3]);
+  xlimit = utils::numeric(FLERR,arg[3],false,lmp);
 
   ncount = 0;
 }

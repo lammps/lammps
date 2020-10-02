@@ -15,20 +15,15 @@
    Contributing authors: William McDoniel (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_long_coul_long_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "group.h"
-#include "kspace.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "neighbor.h"
 #include "suffix.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +36,7 @@ PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 

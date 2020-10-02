@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mscg.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "mscg.h"
 #include "atom.h"
 #include "comm.h"
@@ -43,7 +43,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix mscg command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix mscg command");
 
   me = comm->me;
@@ -65,7 +65,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   nframes = n_frames = block_size = 0;
   range_flag = 0;
   name_flag = 0;
-  f = NULL;
+  f = nullptr;
 
   type_names = new char*[natoms];
   for (int i = 0; i < natoms; i++) type_names[i] = new char[24];

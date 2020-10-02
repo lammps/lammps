@@ -85,7 +85,6 @@ void VelocityCAC::command(int narg, char **arg)
   // set defaults
 
   temperature = NULL;
-  temperature_cac = NULL;
   dist_flag = 0;
   sum_flag = 0;
   momentum_flag = 1;
@@ -194,8 +193,7 @@ void VelocityCAC::create(double t_desired, int seed)
     arg[1] = group->names[igroup];
     arg[2] = (char *) "temp";
     if (temperature == NULL) {
-      temperature = new ComputeTemp(lmp,3,arg);
-      temperature_cac = new ComputeNodalTemp(lmp,3,arg);
+      temperature = new ComputeNodalTemp(lmp,3,arg);
       tcreate_flag = 1;
     } else temperature_nobias = new ComputeTemp(lmp,3,arg);
     delete [] arg;
@@ -208,8 +206,6 @@ void VelocityCAC::create(double t_desired, int seed)
     error->warning(FLERR,"Mismatch between velocity/cac and compute groups");
   temperature->init();
   temperature->setup();
-  temperature_cac->init();
-  temperature_cac->setup();
   if (temperature_nobias) {
     temperature_nobias->init();
     temperature_nobias->setup();
@@ -362,14 +358,17 @@ void VelocityCAC::create(double t_desired, int seed)
           vy = random->gaussian();
           vz = random->gaussian();
         }
-        for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+        for (int ipoly = 0; ipoly < poly_count[i];ipoly++) {	
           for(int k=0; k<nodes_per_element; k++){
             if (rmass) factor = 1.0/sqrt(rmass[i]);
-            else factor = 1.0/sqrt(mass[node_types[i][poly_counter]]);
-            nodal_velocities[i][poly_counter][k][0] = vx * factor;
-            nodal_velocities[i][poly_counter][k][1] = vy * factor;
-            if (dim == 3) nodal_velocities[i][poly_counter][k][2] = vz * factor;
-            else nodal_velocities[i][poly_counter][k][2] = 0.0;
+            else factor = 1.0/sqrt(mass[node_types[i][ipoly]]);
+            nodal_velocities[i][ipoly][k][0] = vx * factor;
+            nodal_velocities[i][ipoly][k][1] = vy * factor;
+            if (dim == 3) nodal_velocities[i][ipoly][k][2] = vz * factor;
+            else nodal_velocities[i][ipoly][k][2] = 0.0;
+            v[i][0] += nodal_velocities[i][ipoly][k][0];
+            v[i][1] += nodal_velocities[i][ipoly][k][1];
+            v[i][2] += nodal_velocities[i][ipoly][k][2];
           }
         }
         v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
@@ -391,11 +390,10 @@ void VelocityCAC::create(double t_desired, int seed)
   double t, t_cac;
   if ((bias_flag == 0) || (temperature_nobias == NULL)){
     t = temperature->compute_scalar();
-    t_cac = temperature_cac->compute_scalar();
   } else {
     t = temperature_nobias->compute_scalar();
   }
-  rescale(t_cac,t_desired);
+  rescale(t,t_desired);
 
   // if bias_flag set, restore bias velocity to all atoms
   // reapply needed for temperature computes where velocity
@@ -427,7 +425,6 @@ void VelocityCAC::create(double t_desired, int seed)
   delete random;
   if (tcreate_flag){
     delete temperature;
-    delete temperature_cac;
   }
   if (temperature_nobias) delete temperature_nobias;
 }
@@ -610,12 +607,13 @@ void VelocityCAC::scale(int /*narg*/, char **arg)
   // if temperature = NULL, create a new ComputeTemp with the velocity group
 
   int tflag = 0;
+
   if (temperature == NULL) {
     char **arg = new char*[3];
     arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
     arg[2] = (char *) "temp";
-    temperature = new ComputeTemp(lmp,3,arg);
+    temperature = new ComputeNodalTemp(lmp,3,arg);
     tflag = 1;
     delete [] arg;
   }
@@ -645,7 +643,9 @@ void VelocityCAC::scale(int /*narg*/, char **arg)
 
   // if temperature was created, delete it
 
-  if (tflag) delete temperature;
+  if (tflag){
+    delete temperature;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -780,11 +780,14 @@ void VelocityCAC::rescale(double t_old, double t_new)
       v[i][0] = 0;
       v[i][1] = 0;
       v[i][2] = 0;
-      for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+      for (int ipoly = 0; ipoly < poly_count[i];ipoly++) {	
         for(int k=0; k<nodes_per_element; k++){
-          nodal_velocities[i][poly_counter][k][0]*= factor;
-          nodal_velocities[i][poly_counter][k][1] *= factor;
-          nodal_velocities[i][poly_counter][k][2] *= factor;
+          nodal_velocities[i][ipoly][k][0] *= factor;
+          nodal_velocities[i][ipoly][k][1] *= factor;
+          nodal_velocities[i][ipoly][k][2] *= factor;
+          v[i][0] += nodal_velocities[i][ipoly][k][0];
+          v[i][1] += nodal_velocities[i][ipoly][k][1];
+          v[i][2] += nodal_velocities[i][ipoly][k][2];
         }
       }
       v[i][0] = v[i][0] / nodes_per_element / poly_count[i];

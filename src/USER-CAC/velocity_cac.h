@@ -39,7 +39,6 @@ class VelocityCAC : protected Pointers {
   int bias_flag,loop_flag,scale_flag,rfix;
   double xscale,yscale,zscale;
   class Compute *temperature;
-  class Compute *temperature_cac;
 
   void set(int, char **);
   void scale(int, char **);

@@ -44,6 +44,9 @@ functions. Below is a detailed documentation of the API.
 .. autoclass:: lammps.lammps
    :members:
 
+.. autoclass:: lammps.numpy_wrapper
+   :members:
+
 ----------
 
 The ``PyLammps`` class API

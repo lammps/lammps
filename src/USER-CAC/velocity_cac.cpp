@@ -344,6 +344,9 @@ void VelocityCAC::create(double t_desired, int seed)
     for (i = 0; i < nlocal; i++) {
       nodes_per_element = nodes_count_list[element_type[i]];
       if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
         random->reset(seed,x[i]);
         if (dist_flag == 0) {
           vx = random->uniform() - 0.5;
@@ -364,6 +367,9 @@ void VelocityCAC::create(double t_desired, int seed)
             else nodal_velocities[i][poly_counter][k][2] = 0.0;
           }
         }
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
       }
     }
   }
@@ -760,6 +766,9 @@ void VelocityCAC::rescale(double t_old, double t_new)
   for (int i = 0; i < nlocal; i++) {
     nodes_per_element = nodes_count_list[element_type[i]];
     if (mask[i] & groupbit){
+      v[i][0] = 0;
+      v[i][1] = 0;
+      v[i][2] = 0;
       for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
         for(int k=0; k<nodes_per_element; k++){
           nodal_velocities[i][poly_counter][k][0]*= factor;
@@ -767,6 +776,9 @@ void VelocityCAC::rescale(double t_old, double t_new)
           nodal_velocities[i][poly_counter][k][2] *= factor;
         }
       }
+      v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+      v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+      v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
     }
   }
 }

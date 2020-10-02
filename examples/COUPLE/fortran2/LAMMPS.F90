@@ -46,7 +46,7 @@
 !!    subroutine lammps_extract_fix (fix, ptr, id, style, type, i, j)
 !!    subroutine lammps_extract_variable (variable, ptr, name, group)
 !!    double precision function lammps_get_thermo (ptr, name)
-!!    integer function lammps_get_natoms (ptr)
+!!    double precision function lammps_get_natoms (ptr)
 !!    subroutine lammps_set_variable (ptr, name, str, [err])
 !!    subroutine lammps_reset_box (ptr, boxlo, boxhi, xy, yz, xz)
 !!    subroutine lammps_gather_atoms (ptr, name, count, data)
@@ -116,6 +116,7 @@ module LAMMPS
       lammps_instance => C_ptr
    implicit none
    private
+
    ! We inherit some ISO_C_BINDING entities for ease of use
    public :: lammps_instance, C_ptr, C_double, C_int
    ! Only the following functions may be called by the user:
@@ -139,6 +140,22 @@ module LAMMPS
 #ifdef LAMMPS_EXCEPTIONS
    public :: lammps_has_error, lammps_get_last_error_message
 #endif
+
+   !! constants for extracting data from computes and fixes
+   !! and data types
+
+   INTEGER, PARAMETER :: LMP_STYLE_GLOBAL = 0, LMP_STYLE_ATOM = 1, &
+       LMP_STYLE_LOCAL = 2, LMP_TYPE_SCALAR = 0, LMP_TYPE_VECTOR = 1, &
+       LMP_TYPE_ARRAY = 2, LMP_SIZE_VECTOR = 3, LMP_SIZE_ROWS = 4, &
+       LMP_SIZE_COLS = 5, LAMMPS_INT = 0, LAMMPS_INT_2D = 1, &
+       LAMMPS_DOUBLE = 2, LAMMPS_DOUBLE_2D = 3, LAMMPS_INT64 = 4, &
+       LAMMPS_INT64_2D = 5, LAMMPS_STRING = 6
+
+   PUBLIC :: LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL, &
+       LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, &
+       LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS,  LAMMPS_INT, &
+       LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, &
+       LAMMPS_INT64_2D, LAMMPS_STRING 
 
    !! Functions supplemental to the prototypes in library.h. {{{1
    !! The function definitions (in C++) are contained in LAMMPS-wrapper.cpp.
@@ -327,9 +344,9 @@ module LAMMPS
 
       function lammps_get_natoms (ptr) result (natoms) &
       bind (C, name='lammps_get_natoms')
-         import :: C_ptr, C_int
+         import :: C_ptr, C_double
          type (C_ptr), value :: ptr
-         integer (C_int) :: natoms
+         real (C_double) :: natoms
       end function lammps_get_natoms
 
       function lammps_actual_set_variable (ptr, name, str) result (err) &
@@ -934,6 +951,7 @@ contains !! Wrapper functions local to this module {{{1
       end if
       Cptr = lammps_extract_fix_Cptr (ptr, id, style, type, i, j)
       call C_F_pointer (Cptr, Fptr)
+      fix = Fptr
       nullify (Fptr)
       ! Memory is only allocated for "global" fix variables
       if ( style == 0 ) call lammps_free (Cptr)
@@ -1293,7 +1311,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / natoms
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))

@@ -725,6 +725,9 @@ class lammps(object):
     else: return
     self.lib.lammps_file(self.lmp, path)
 
+    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
+      raise self._lammps_exception
+
   # -------------------------------------------------------------------------
 
   def command(self,cmd):
@@ -761,6 +764,9 @@ class lammps(object):
     self.lib.lammps_commands_list.argtypes = [c_void_p, c_int, c_char_p * narg]
     self.lib.lammps_commands_list(self.lmp,narg,args)
 
+    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
+      raise self._lammps_exception
+
   # -------------------------------------------------------------------------
 
   def commands_string(self,multicmd):
@@ -775,6 +781,9 @@ class lammps(object):
     """
     if type(multicmd) is str: multicmd = multicmd.encode()
     self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
+
+    if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
+      raise self._lammps_exception
 
   # -------------------------------------------------------------------------
 

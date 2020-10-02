@@ -4454,7 +4454,7 @@ the failing MPI ranks to send messages.
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param buffer   string buffer to copy the error message to
  * \param buf_size size of the provided string buffer
- * \return 1 when all ranks had the error, 1 on a single rank error.
+ * \return 1 when all ranks had the error, 2 on a single rank error.
  */
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS

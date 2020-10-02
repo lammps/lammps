@@ -298,6 +298,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
+    const F_FLOAT cutmax_sq = cutmax*cutmax;
 
     const int jnum = d_numneigh[i];
     int inside = 0;
@@ -310,7 +311,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
       const X_FLOAT delz = ztmp - x(j,2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutmax*cutmax) {
+      if (rsq < cutmax_sq) {
         d_neighbors_short(i,inside) = j;
         inside++;
       }

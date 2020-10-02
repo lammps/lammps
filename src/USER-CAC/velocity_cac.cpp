@@ -24,6 +24,7 @@
 #include "fix.h"
 #include "compute.h"
 #include "compute_temp.h"
+#include "compute_cac_nodal_temp.h"
 #include "random_park.h"
 #include "group.h"
 #include "comm.h"
@@ -84,6 +85,7 @@ void VelocityCAC::command(int narg, char **arg)
   // set defaults
 
   temperature = NULL;
+  temperature_cac = NULL;
   dist_flag = 0;
   sum_flag = 0;
   momentum_flag = 1;
@@ -193,7 +195,7 @@ void VelocityCAC::create(double t_desired, int seed)
     arg[2] = (char *) "temp";
     if (temperature == NULL) {
       temperature = new ComputeTemp(lmp,3,arg);
-      temperature_cac = new ComputeNodalTemp(lmp,3,arg)
+      temperature_cac = new ComputeNodalTemp(lmp,3,arg);
       tcreate_flag = 1;
     } else temperature_nobias = new ComputeTemp(lmp,3,arg);
     delete [] arg;
@@ -386,11 +388,13 @@ void VelocityCAC::create(double t_desired, int seed)
   // if bias flag is set, bias velocities have already been removed:
   //   no-bias compute calculates temp only for new thermal velocities
 
-  double t;
-  if ((bias_flag == 0) || (temperature_nobias == NULL))
+  double t, t_cac;
+  if ((bias_flag == 0) || (temperature_nobias == NULL)){
     t = temperature->compute_scalar();
     t_cac = temperature_cac->compute_scalar();
-  else t = temperature_nobias->compute_scalar();
+  } else {
+    t = temperature_nobias->compute_scalar();
+  }
   rescale(t_cac,t_desired);
 
   // if bias_flag set, restore bias velocity to all atoms
@@ -421,7 +425,10 @@ void VelocityCAC::create(double t_desired, int seed)
   // if temperature compute was created, delete it
 
   delete random;
-  if (tcreate_flag) delete temperature;
+  if (tcreate_flag){
+    delete temperature;
+    delete temperature_cac;
+  }
   if (temperature_nobias) delete temperature_nobias;
 }
 

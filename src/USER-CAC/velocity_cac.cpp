@@ -193,6 +193,7 @@ void VelocityCAC::create(double t_desired, int seed)
     arg[2] = (char *) "temp";
     if (temperature == NULL) {
       temperature = new ComputeTemp(lmp,3,arg);
+      temperature_cac = new ComputeNodalTemp(lmp,3,arg)
       tcreate_flag = 1;
     } else temperature_nobias = new ComputeTemp(lmp,3,arg);
     delete [] arg;
@@ -205,6 +206,8 @@ void VelocityCAC::create(double t_desired, int seed)
     error->warning(FLERR,"Mismatch between velocity/cac and compute groups");
   temperature->init();
   temperature->setup();
+  temperature_cac->init();
+  temperature_cac->setup();
   if (temperature_nobias) {
     temperature_nobias->init();
     temperature_nobias->setup();
@@ -386,8 +389,9 @@ void VelocityCAC::create(double t_desired, int seed)
   double t;
   if ((bias_flag == 0) || (temperature_nobias == NULL))
     t = temperature->compute_scalar();
+    t_cac = temperature_cac->compute_scalar();
   else t = temperature_nobias->compute_scalar();
-  rescale(t,t_desired);
+  rescale(t_cac,t_desired);
 
   // if bias_flag set, restore bias velocity to all atoms
   // reapply needed for temperature computes where velocity

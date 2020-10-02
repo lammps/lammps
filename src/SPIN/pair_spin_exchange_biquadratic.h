@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PairSpinExchangeBiquadratic : public PairSpin {
  public:
-  PairSpinExchangeBiquadratic(LAMMPS *lmp) : PairSpin(lmp) {}
+  PairSpinExchangeBiquadratic(class LAMMPS *);
   virtual ~PairSpinExchangeBiquadratic();
   void settings(int, char **);
   void coeff(int, char **);
@@ -48,6 +48,8 @@ class PairSpinExchangeBiquadratic : public PairSpin {
   double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
+  
+  int e_offset;                         // apply energy offset
   double **J1_mag;                      // H exchange coeffs in eV
   double **J1_mech;                     // mech exchange coeffs in
   double **J2, **J3;                    // J1 in eV, J2 in Ang-1, J3 in Ang

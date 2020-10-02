@@ -40,6 +40,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
+PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) : 
+  PairSpin(lmp) 
+{
+  e_offset = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 PairSpinExchangeBiquadratic::~PairSpinExchangeBiquadratic()
 {
   if (allocated) {
@@ -66,6 +74,8 @@ void PairSpinExchangeBiquadratic::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+
   cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
@@ -91,9 +101,9 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
   // check if args correct
 
   if (strcmp(arg[2],"biquadratic") != 0)
-    error->all(FLERR,"Incorrect args in pair_style command");
-  if (narg != 10)
-    error->all(FLERR,"Incorrect args in pair_style command");
+    error->all(FLERR,"Incorrect args for pair coefficients");
+  if ((narg != 10) && (narg != 12))
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -101,6 +111,7 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
 
   // get exchange arguments from input command
 
+  int iarg = 10;
   const double rc = force->numeric(FLERR,arg[3]);
   const double j1 = force->numeric(FLERR,arg[4]);
   const double j2 = force->numeric(FLERR,arg[5]);
@@ -108,6 +119,19 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
   const double k1 = force->numeric(FLERR,arg[7]);
   const double k2 = force->numeric(FLERR,arg[8]);
   const double k3 = force->numeric(FLERR,arg[9]);
+
+  // read energy offset flag if specified
+
+  while (iarg < narg) { 
+    if (strcmp(arg[10],"offset") == 0) { 
+      if (strcmp(arg[11],"yes") == 0) {
+        e_offset = 1;
+      } else if  (strcmp(arg[11],"no") == 0) {
+        e_offset = 0;
+      } else error->all(FLERR,"Incorrect args for pair coefficients");
+      iarg += 2; 
+    } else error->all(FLERR,"Incorrect args for pair coefficients");
+  }
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -399,8 +423,9 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
 {
   int *type = atom->type;
   int itype,jtype;
-  double Jex,Jex_mech,Kex,Kex_mech,ra,sdots;
+  double Jex,Jex_mech,Kex,Kex_mech,sdots;
   double rja,rka,rjr,rkr,iJ3,iK3;
+  double fx, fy, fz;
   itype = type[i];
   jtype = type[j];
 
@@ -422,12 +447,25 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
-  fi[0] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
-  fi[1] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
-  fi[2] -= 0.5*(Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
-  // fi[0] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
-  // fi[1] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
-  // fi[2] -= (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
+  // apply or not energy and force offset
+  
+  fx = fy = fz = 0.0;
+  if (e_offset == 1) { // set offset
+    fx = (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
+    fy = (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[1];
+    fz = (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[2];
+  } else if (e_offset == 0) { // no offset ("normal" calculation)
+    fx =  (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[0];
+    fy =  (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[1];
+    fz =  (Jex_mech*sdots + Kex_mech*sdots*sdots)*eij[2];
+  } else error->all(FLERR,"Illegal option in pair exchange/biquadratic command");
+
+  fi[0] -= 0.5*fx;
+  fi[1] -= 0.5*fy;
+  fi[2] -= 0.5*fz;
+  // fi[0] -= fx;
+  // fi[1] -= fy;
+  // fi[2] -= fz;
 }
 
 /* ----------------------------------------------------------------------
@@ -463,8 +501,14 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
 
-  energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
-  // energy = 0.5*(Jex*(sdots) + Kex*(sdots*sdots-1.0));
+  // apply or not energy and force offset
+  
+  if (e_offset == 1) { // set offset
+    energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
+  } else if (e_offset == 0) { // no offset ("normal" calculation)
+    energy = 0.5*(Jex*sdots + Kex*sdots*sdots);
+  } else error->all(FLERR,"Illegal option in pair exchange/biquadratic command");
+  
   return energy;
 }
 
@@ -571,6 +615,7 @@ void PairSpinExchangeBiquadratic::read_restart(FILE *fp)
 void PairSpinExchangeBiquadratic::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_spin_exchange_global,sizeof(double),1,fp);
+  fwrite(&e_offset,sizeof(int),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -583,10 +628,12 @@ void PairSpinExchangeBiquadratic::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR,&cut_spin_exchange_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&e_offset,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_spin_exchange_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&e_offset,1,MPI_INT,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }

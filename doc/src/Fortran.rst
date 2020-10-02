@@ -33,6 +33,13 @@ Fortran code using the interface.
    cover the entire range of functionality available in the C and
    Python library interfaces.
 
+.. note::
+
+   A contributed (and complete!) Fortran interface is available
+   in the ``examples/COUPLE/fortran2`` folder.  Please see the
+   README file in that folder for more information about that
+   Fortran interface and how to contact its author and maintainer.
+
 ----------
 
 Creating or deleting a LAMMPS object

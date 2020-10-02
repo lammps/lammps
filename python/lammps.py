@@ -1706,13 +1706,6 @@ class lammps(object):
   def set_fix_external_callback(self, fix_name, callback, caller=None):
     import numpy as np
 
-    def _ctype_to_numpy_int(ctype_int):
-          if ctype_int == c_int32:
-            return np.int32
-          elif ctype_int == c_int64:
-            return np.int64
-          return np.intc
-
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
       tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)
       x   = self.numpy.darray(x_ptr, nlocal, 3)

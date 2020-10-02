@@ -699,6 +699,18 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  @property
+  def _lammps_exception(self):
+    sb = create_string_buffer(100)
+    error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+    error_msg = sb.value.decode().strip()
+
+    if error_type == 2:
+      return MPIAbortException(error_msg)
+    return Exception(error_msg)
+
+  # -------------------------------------------------------------------------
+
   def file(self, path):
     """Read LAMMPS commands from a file.
 
@@ -729,13 +741,7 @@ class lammps(object):
     self.lib.lammps_command(self.lmp,cmd)
 
     if self.has_exceptions and self.lib.lammps_has_error(self.lmp):
-      sb = create_string_buffer(100)
-      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
-      error_msg = sb.value.decode().strip()
-
-      if error_type == 2:
-        raise MPIAbortException(error_msg)
-      raise Exception(error_msg)
+      raise self._lammps_exception
 
   # -------------------------------------------------------------------------
 

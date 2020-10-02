@@ -318,7 +318,7 @@ against invalid accesses.
 
       Methods:
 
-      * :py:meth:`get_version() <lammps.lammps.get_version()>`: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
+      * :py:meth:`version() <lammps.lammps.version()>`: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
       * :py:meth:`get_thermo() <lammps.lammps.get_thermo()>`: return current value of a thermo keyword
       * :py:meth:`get_natoms() <lammps.lammps.get_natoms()>`: total # of atoms as int
       * :py:meth:`reset_box() <lammps.lammps.reset_box()>`: reset the simulation box size
@@ -330,7 +330,7 @@ against invalid accesses.
 
       Numpy Methods:
 
-      * :py:meth:`numpy.extract_atom() <lammps.lammps.numpy.extract_atom()>`: extract a per-atom quantity as numpy array
+      * :py:meth:`numpy.extract_atom() <lammps.numpy_wrapper.extract_atom()>`: extract a per-atom quantity as numpy array
 
    .. tab:: PyLammps/IPyLammps API
 

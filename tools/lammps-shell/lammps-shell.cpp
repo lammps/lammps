@@ -32,6 +32,25 @@ using namespace LAMMPS_NS;
 
 const int buflen = 512;
 char buf[buflen];
+void *lmp = nullptr;
+enum {
+    ATOM,
+    INTEGRATE,
+    MINIMIZE,
+    PAIR,
+    BOND,
+    ANGLE,
+    DIHEDRAL,
+    IMPROPER,
+    KSPACE,
+    FIX,
+    COMPUTE,
+    REGION,
+    DUMP
+};
+const char *lmp_style[] = {"atom",    "integrate", "minimize", "pair",   "bond",
+                           "angle",   "dihedral",  "improper", "kspace", "fix",
+                           "compute", "region",    "dump"};
 
 std::vector<std::string> commands;
 
@@ -116,14 +135,32 @@ static char *dupstring(const std::string &text)
     return copy;
 }
 
+template <int STYLE> char *style_generator(const char *text, int state)
+{
+    static int idx, num, len;
+    if (!state) {
+        idx = 0;
+        num = lammps_style_count(lmp, lmp_style[STYLE]);
+        len = strlen(text);
+    }
+
+    while (idx < num) {
+        lammps_style_name(lmp, lmp_style[STYLE], idx, buf, buflen);
+        ++idx;
+        if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
+    }
+    return nullptr;
+}
+
 extern "C" {
 static char *cmd_generator(const char *text, int state)
 {
-    static std::size_t idx;
+    static std::size_t idx, len;
     if (!state) idx = 0;
+    len = strlen(text);
 
     do {
-        if (commands[idx].substr(0, strlen(text)) == text)
+        if ((len == 0) || (commands[idx].substr(0, len) == text))
             return dupstring(commands[idx++]);
         else
             ++idx;
@@ -131,9 +168,77 @@ static char *cmd_generator(const char *text, int state)
     return nullptr;
 }
 
+static char *atom_generator(const char *text, int state)
+{
+    return style_generator<ATOM>(text, state);
+}
+
+static char *integrate_generator(const char *text, int state)
+{
+    return style_generator<INTEGRATE>(text, state);
+}
+
+static char *minimize_generator(const char *text, int state)
+{
+    return style_generator<MINIMIZE>(text, state);
+}
+
+static char *pair_generator(const char *text, int state)
+{
+    return style_generator<PAIR>(text, state);
+}
+
+static char *bond_generator(const char *text, int state)
+{
+    return style_generator<BOND>(text, state);
+}
+
+static char *angle_generator(const char *text, int state)
+{
+    return style_generator<ANGLE>(text, state);
+}
+
+static char *dihedral_generator(const char *text, int state)
+{
+    return style_generator<DIHEDRAL>(text, state);
+}
+
+static char *improper_generator(const char *text, int state)
+{
+    return style_generator<IMPROPER>(text, state);
+}
+
+static char *kspace_generator(const char *text, int state)
+{
+    return style_generator<KSPACE>(text, state);
+}
+
+static char *fix_generator(const char *text, int state)
+{
+    return style_generator<FIX>(text, state);
+}
+
+static char *compute_generator(const char *text, int state)
+{
+    return style_generator<COMPUTE>(text, state);
+}
+
+static char *region_generator(const char *text, int state)
+{
+    return style_generator<REGION>(text, state);
+}
+
+static char *dump_generator(const char *text, int state)
+{
+    return style_generator<DUMP>(text, state);
+}
+
 static char **cmd_completion(const char *text, int start, int)
 {
     char **matches = nullptr;
+
+    // avoid segfaults
+    if (strlen(text) == 0) return matches;
 
     if (start == 0) {
         // match command names from the beginning of a line
@@ -143,17 +248,37 @@ static char **cmd_completion(const char *text, int start, int)
         // first split the already completed text
         auto words = utils::split_words(std::string(rl_line_buffer).substr(0, start));
 
-        // these commands have a group id as 3rd word
-        if ((words.size() == 2) &&
-            ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump"))) {
-            std::cout << "#words: " << words.size() << "\n";
+        if (words.size() == 1) { // expand second word
+            if (words[0] == "atom_style") {
+                matches = rl_completion_matches(text, atom_generator);
+            } else if (words[0] == "pair_style") {
+                matches = rl_completion_matches(text, pair_generator);
+            } else if (words[0] == "bond_style") {
+                matches = rl_completion_matches(text, bond_generator);
+            } else if (words[0] == "angle_style") {
+                matches = rl_completion_matches(text, angle_generator);
+            } else if (words[0] == "dihedral_style") {
+                matches = rl_completion_matches(text, dihedral_generator);
+            } else if (words[0] == "improper_style") {
+                matches = rl_completion_matches(text, improper_generator);
+            } else if (words[0] == "kspace_style") {
+                matches = rl_completion_matches(text, kspace_generator);
+            }
+        } else if (words.size() == 2) { // expand third word
+
+            // these commands have a group name as 3rd word
+            if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
+                std::cout << "#words: " << words.size() << "\n";
+            }
         }
     }
+
     return matches;
 }
+
 } // end of extern "C"
 
-static void init_commands(void *lmp)
+static void init_commands()
 {
     // store internal commands
     int ncmds = sizeof(cmdlist) / sizeof(const char *);
@@ -175,7 +300,7 @@ static void init_commands(void *lmp)
     // set name so there can be specific entries in ~/.inputrc
     rl_readline_name = "lammps-shell";
 
-    // attempt completions only if we have are connected to tty,
+    // attempt completions only if we are connected to a tty,
     // otherwise any tabs in redirected input will cause havoc.
     if (isatty(fileno(stdin))) {
         rl_attempted_completion_function = cmd_completion;
@@ -200,7 +325,7 @@ static int help_cmd()
     return 0;
 }
 
-static int lammps_end(void *&lmp)
+static int shell_end()
 {
     write_history(".lammps_history");
     if (lmp) lammps_close(lmp);
@@ -208,7 +333,7 @@ static int lammps_end(void *&lmp)
     return 0;
 }
 
-static int lammps_cmd(void *&lmp, const std::string &cmd)
+static int shell_cmd(const std::string &cmd)
 {
     char *expansion;
     char *text = dupstring(cmd);
@@ -249,7 +374,7 @@ static int lammps_cmd(void *&lmp, const std::string &cmd)
         return help_cmd();
     } else if (words[0] == "exit") {
         free(text);
-        return lammps_end(lmp);
+        return shell_end();
     } else if (words[0] == "history") {
         free(text);
         HIST_ENTRY **list = history_list();
@@ -273,11 +398,11 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    void *lmp = lammps_open_no_mpi(argc, argv, nullptr);
+    lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;
 
     using_history();
-    init_commands(lmp);
+    init_commands();
 
     // pre-load an input file that was provided on the command line
     for (int i = 0; i < argc; ++i) {
@@ -291,10 +416,10 @@ int main(int argc, char **argv)
         if (!line) break;
         trimmed = utils::trim(line);
         if (trimmed.size() > 0) {
-            lammps_cmd(lmp, trimmed);
+            shell_cmd(trimmed);
         }
         free(line);
     }
 
-    return lammps_end(lmp);
+    return shell_end();
 }

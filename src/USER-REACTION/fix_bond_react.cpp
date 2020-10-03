@@ -205,6 +205,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
   memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
@@ -226,6 +227,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
@@ -573,6 +575,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(create_atoms_flag);
   memory->destroy(modify_create_fragid);
 
   memory->destroy(iatomtype);
@@ -1385,6 +1388,13 @@ void FixBondReact::superimpose_algorithm()
       memory->destroy(local_rxncounts);
       memory->destroy(all_localskips);
     }
+  }
+
+  // abort here, for processes that have no reactions
+  // only MPI in get_everything is for create_atoms, which are always in global_megasize
+  if (local_num_mega == 0 && global_megasize == 0) {
+    unlimit_bond();
+    return;
   }
 
   // this updates topology next step
@@ -2496,11 +2506,15 @@ void FixBondReact::glove_ghostcheck()
   int ghostly = 0;
 #if !defined(MPI_STUBS)
   if (comm->style == 0) {
-    for (int i = 0; i < onemol->natoms; i++) {
-      int ilocal = atom->map(glove[i][1]);
-      if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
-        ghostly = 1;
-        break;
+    if (create_atoms_flag[rxnID] == 1) {
+      ghostly = 1;
+    } else {
+      for (int i = 0; i < onemol->natoms; i++) {
+        int ilocal = atom->map(glove[i][1]);
+        if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+          ghostly = 1;
+          break;
+        }
       }
     }
   } else {
@@ -2663,6 +2677,22 @@ void FixBondReact::update_everything()
       }
     }
     delete [] iskip;
+    if (update_num_mega == 0) continue;
+
+    // we can insert atoms here, now that reactions are finalized
+    // can't do it any earlier, due to skipped reactions (max_rxn)
+    // reactions that create atoms are always treated as 'global'
+    if (pass == 1) {
+      for (int i = 0; i < update_num_mega; i++) {
+        rxnID = update_mega_glove[0][i];
+        if (create_atoms_flag[rxnID] == 1) {
+          onemol = atom->molecules[unreacted_mol[rxnID]];
+          twomol = atom->molecules[reacted_mol[rxnID]];
+          insert_atoms(update_mega_glove,i);
+          nlocal = atom->nlocal;
+        }
+      }
+    }
 
     // mark to-delete atoms
     mark = new int[nlocal];
@@ -2698,22 +2728,24 @@ void FixBondReact::update_everything()
 
     //maybe add check that all 1-3 neighbors of a local atoms are at least ghosts -> unneeded --jg
     //okay, here goes:
-    for (int i = 0; i < update_num_mega; i++) {
-      rxnID = update_mega_glove[0][i];
-      twomol = atom->molecules[reacted_mol[rxnID]];
-      for (int j = 0; j < twomol->natoms; j++) {
-        int jj = equivalences[j][1][rxnID]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
-          if (landlocked_atoms[j][rxnID] == 1) {
-            for (int k = 0; k < nspecial[atom->map(update_mega_glove[jj+1][i])][2]; k++) {
-              if (atom->map(special[atom->map(update_mega_glove[jj+1][i])][k]) < 0) {
-                error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away - most likely too many processors");
-              }
-            }
-          }
-        }
-      }
-    }
+    //for (int i = 0; i < update_num_mega; i++) {
+    //  rxnID = update_mega_glove[0][i];
+    //  twomol = atom->molecules[reacted_mol[rxnID]];
+    //  for (int j = 0; j < twomol->natoms; j++) {
+    //    int jj = equivalences[j][1][rxnID]-1;
+    //    int jlocal = atom->map(update_mega_glove[jj+1][i]);
+    //    if (jlocal < nlocal && jlocal >= 0) {
+    //      if (landlocked_atoms[j][rxnID] == 1) {
+    //        for (int k = 0; k < nspecial[jlocal][2]; k++) {
+    //          if (atom->map(special[jlocal][k]) < 0 && create_atoms[j][rxnID] == 0) {
+    //            //error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away - most likely too many processors");
+    //            printf("local is %d other is %d on %d\n", update_mega_glove[jj+1][i],special[jlocal][k],me);
+    //          }
+    //        }
+    //      }
+    //    }
+    //  }
+    //}
 
     int insert_num;
     // very nice and easy to completely overwrite special bond info for landlocked atoms
@@ -3164,7 +3196,227 @@ void FixBondReact::update_everything()
   atom->nimpropers += Tdelta_imprp;
 }
 
+/* ----------------------------------------------------------------------
+insert created atoms
+------------------------------------------------------------------------- */
 
+void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
+{
+  // inserting atoms based off fix_deposit->pre_exchange
+  int flag;
+  imageint imageflag;
+  double coord[3],lamda[3],rotmat[3][3],vnew[3];
+  double *newcoord;
+
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c inserting atoms will overwrite ghost atoms
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
+  double *sublo,*subhi;
+  if (domain->triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  // find current max atom and molecule IDs
+  tagint *tag = atom->tag;
+  double **x = atom->x;
+  tagint *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+
+  tagint maxtag_all,maxmol_all;
+  tagint max = 0;
+  for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
+  MPI_Allreduce(&max,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+  max = 0;
+  for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
+  MPI_Allreduce(&max,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+  int dimension = domain->dimension;
+
+  // only proc that owns reacting atom (use ibonding),
+  // fits post-reaction template to reaction site, for creating atoms
+  int n2superpose = 0;
+  for (int j = 0; j < twomol->natoms; j++) {
+    if (modify_create_fragid[rxnID] >= 0)
+      if (!twomol->fragmentmask[modify_create_fragid[rxnID]][j]) continue;
+    if (!create_atoms[j][rxnID] && !delete_atoms[equivalences[j][1][rxnID]][rxnID])
+      n2superpose++;
+  }
+
+  int ifit = atom->map(my_mega_glove[ibonding[rxnID]+1][iupdate]); // use this local ID to find fitting proc
+  Superpose3D<double, double **> superposer(n2superpose);
+  if (ifit >= 0 && ifit < atom->nlocal) {
+    double **xfrozen; // coordinates for the "frozen" target molecule
+    double **xmobile; // coordinates for the "mobile" molecule
+    memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+    memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+    tagint iatom;
+    tagint iref = -1; // choose first atom as reference
+    int fit_incr = 0;
+    for (int j = 0; j < twomol->natoms; j++) {
+      if (modify_create_fragid[rxnID] >= 0)
+        if (!twomol->fragmentmask[modify_create_fragid[rxnID]][j]) continue;
+      int ipre = equivalences[j][1][rxnID]-1; // equiv pre-reaction template index
+      if (!create_atoms[j][rxnID] && !delete_atoms[ipre][rxnID]) {
+        if (atom->map(my_mega_glove[ipre+1][iupdate]) < 0) {
+          printf("WARNING: eligible atoms skipped for created-atoms fit on %d\n",me);
+          continue;
+        }
+        iatom = atom->map(my_mega_glove[ipre+1][iupdate]);
+        if (iref == -1) iref = iatom;
+        iatom = domain->closest_image(iref,iatom);
+        for (int k = 0; k < 3; k++) {
+          xfrozen[fit_incr][k] = x[iatom][k];
+          xmobile[fit_incr][k] = twomol->x[j][k];
+        }
+        fit_incr++;
+      }
+    }
+    double rmsd = superposer.Superpose(xfrozen, xmobile);
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+        rotmat[i][j] = superposer.R[i][j];
+    memory->destroy(xfrozen);
+    memory->destroy(xmobile);
+  }
+
+  // choose random velocity for new particle
+  // used for every atom in molecule
+  //currently insert with zero velocities
+  //vnew[0] = vxlo + random->uniform() * (vxhi-vxlo);
+  //vnew[1] = vylo + random->uniform() * (vyhi-vylo);
+  //vnew[2] = vzlo + random->uniform() * (vzhi-vzlo);
+
+  // check if new atoms are in my sub-box or above it if I am highest proc
+  // if so, add atom to my list via create_atom()
+  // initialize additional info about the atoms
+  // set group mask to "all" plus fix group
+  int preID; // new equivalences index
+  int root = 0;
+  int add_count = 0;
+  for (int m = 0; m < twomol->natoms; m++) {
+    if (create_atoms[m][rxnID] == 1) {
+      // increase atom count
+      add_count++;
+      preID = onemol->natoms+add_count;
+
+      // apply optimal rotation/translation for created atom coords
+      // also map coords back into simulation box
+      root = 0;
+      if (ifit >= 0 && ifit < atom->nlocal) {
+        root = me;
+        MathExtra::matvec(rotmat,twomol->x[m],coord);
+        for (int i = 0; i < 3; i++) coord[i] += superposer.T[i];
+        imageflag = ((imageint) IMGMAX << IMG2BITS) |
+          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+        domain->remap(coord,imageflag);
+      }
+      MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
+      MPI_Bcast(coord,3,MPI_DOUBLE,root,world);
+
+      if (domain->triclinic) {
+        domain->x2lamda(coord,lamda);
+        newcoord = lamda;
+      } else newcoord = coord;
+
+      flag = 0;
+      if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+          newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
+          newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
+      else if (dimension == 3 && newcoord[2] >= domain->boxhi[2]) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
+          if (comm->myloc[2] == comm->procgrid[2]-1 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+              newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+        } else {
+          if (comm->mysplit[2][1] == 1.0 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+              newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+        }
+      } else if (dimension == 2 && newcoord[1] >= domain->boxhi[1]) {
+        if (comm->layout != Comm::LAYOUT_TILED) {
+          if (comm->myloc[1] == comm->procgrid[1]-1 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+        } else {
+          if (comm->mysplit[1][1] == 1.0 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+        }
+      }
+      root = 0;
+      if (flag) {
+        root = me;
+
+        atom->avec->create_atom(twomol->type[m],coord);
+        int n = atom->nlocal - 1;
+        atom->tag[n] = maxtag_all + add_count;
+
+        // locally update mega_glove
+        my_mega_glove[preID][iupdate] = atom->tag[n];
+
+        if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+        if (atom->molecular == 2) {
+          atom->molindex[n] = 0;
+          atom->molatom[n] = m;
+        }
+
+        atom->mask[n] = 1 | groupbit;
+        atom->image[n] = imageflag;
+        atom->v[n][0] = 0.01;//vnew[0];
+        atom->v[n][1] = 0.01;//vnew[1];
+        atom->v[n][2] = 0.01;//vnew[2];
+        modify->create_attribute(n);
+
+        // initialize group statuses
+        // why aren't these more global...
+        int flag;
+        int index1 = atom->find_custom("limit_tags",flag);
+        int *i_limit_tags = atom->ivector[index1];
+
+        int *i_statted_tags;
+        if (stabilization_flag == 1) {
+          int index2 = atom->find_custom(statted_id,flag);
+          i_statted_tags = atom->ivector[index2];
+        }
+
+        int index3 = atom->find_custom("react_tags",flag);
+        int *i_react_tags = atom->ivector[index3];
+
+        i_limit_tags[n] = update->ntimestep + 1;
+        if (stabilization_flag == 1) i_statted_tags[n] = 0;
+        i_react_tags[n] = rxnID;
+      }
+      // globally update mega_glove and equivalences
+      MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
+      MPI_Bcast(&my_mega_glove[preID][iupdate],1,MPI_LMP_TAGINT,root,world);
+      equivalences[m][0][rxnID] = m+1;
+      equivalences[m][1][rxnID] = preID;
+      reverse_equiv[preID-1][0][rxnID] = preID;
+      reverse_equiv[preID-1][1][rxnID] = m+1;
+    }
+  }
+
+  // reset global natoms
+  // if global map exists, reset it now instead of waiting for comm
+  //   since other pre-exchange fixes may use it
+  //   invoke map_init() b/c atom count has grown
+  atom->natoms += add_count;
+  if (atom->natoms < 0)
+    error->all(FLERR,"Too many total atoms");
+  maxtag_all += add_count;
+  if (maxtag_all >= MAXTAGINT)
+    error->all(FLERR,"New atom IDs exceed maximum allowed ID");
+  if (atom->map_style != Atom::MAP_NONE) {
+    atom->map_init();
+    atom->map_set();
+  }
+}
 
 /* ----------------------------------------------------------------------
 read superimpose file
@@ -3299,6 +3551,7 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
 
 void FixBondReact::CreateAtoms(char *line, int myrxn)
 {
+  create_atoms_flag[myrxn] = 1;
   int tmp;
   for (int i = 0; i < ncreate; i++) {
     readline(line);

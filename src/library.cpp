@@ -4044,6 +4044,14 @@ int lammps_style_name(void *handle, const char *category, int idx,
   return 0;
 }
 
+
+int lammps_has_group(void *, const char *);
+int lammps_group_count(void *);
+int lammps_group_name(void *, int, char *, int);
+
+int lammps_has_id(void *, const char *, const char *);
+int lammps_id_count(void *, const char *);
+int lammps_id_name(void *, const char *, int, char *, int);
 /* ---------------------------------------------------------------------- */
 
 /** This function is used to query whether LAMMPS was compiled with

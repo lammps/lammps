@@ -233,6 +233,23 @@ static char *dump_generator(const char *text, int state)
     return style_generator<DUMP>(text, state);
 }
 
+char *group_generator(const char *text, int state)
+{
+    static int idx, num, len;
+    if (!state) {
+        idx = 0;
+        num = lammps_group_count(lmp);
+        len = strlen(text);
+    }
+
+    while (idx < num) {
+        lammps_group_name(lmp, idx, buf, buflen);
+        ++idx;
+        if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
+    }
+    return nullptr;
+}
+
 static char **cmd_completion(const char *text, int start, int)
 {
     char **matches = nullptr;
@@ -263,12 +280,28 @@ static char **cmd_completion(const char *text, int start, int)
                 matches = rl_completion_matches(text, improper_generator);
             } else if (words[0] == "kspace_style") {
                 matches = rl_completion_matches(text, kspace_generator);
+            } else if (words[0] == "run_style") {
+                matches = rl_completion_matches(text, integrate_generator);
+            } else if (words[0] == "min_style") {
+                matches = rl_completion_matches(text, minimize_generator);
             }
         } else if (words.size() == 2) { // expand third word
 
             // these commands have a group name as 3rd word
             if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
-                std::cout << "#words: " << words.size() << "\n";
+                matches = rl_completion_matches(text, group_generator);
+            } else if (words[0] == "region") {
+                matches = rl_completion_matches(text, region_generator);
+            }
+        } else if (words.size() == 3) { // expand fourth word
+
+            // style name is the fourth word
+            if (words[0] == "fix") {
+                matches = rl_completion_matches(text, fix_generator);
+            } else if (words[0] == "compute") {
+                matches = rl_completion_matches(text, compute_generator);
+            } else if (words[0] == "dump") {
+                matches = rl_completion_matches(text, dump_generator);
             }
         }
     }

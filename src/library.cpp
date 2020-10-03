@@ -4013,18 +4013,17 @@ int lammps_style_count(void *handle, const char *category) {
 
 /** Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
  *
-\verbatim embed:rst
-This function copies the name of the package with the index *idx* into the
-provided C-style string buffer.  The length of the buffer must be provided
-as *buf_size* argument.  If the name of the package exceeds the length of the
-buffer, it will be truncated accordingly.  If the index is out of range,
-the function returns 0 and *buffer* is set to an empty string, otherwise 1.
-Please see :cpp:func:`lammps_has_style` for a list of valid categories.
-\endverbatim
+ *
+ * This function copies the name of the *category* style with the index
+ * *idx* into the provided C-style string buffer.  The length of the buffer
+ * must be provided as *buf_size* argument.  If the name of the style
+ * exceeds the length of the buffer, it will be truncated accordingly.
+ * If the index is out of range, the function returns 0 and *buffer* is
+ * set to an empty string, otherwise 1.
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param category category of styles
- * \param idx      index of the package in the list of included packages (0 <= idx < style count)
+ * \param idx      index of the style in the list of *category* styles (0 <= idx < style count)
  * \param buffer   string buffer to copy the name of the style to
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0

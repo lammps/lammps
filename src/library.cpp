@@ -1266,10 +1266,8 @@ to then decide how to cast the (void*) pointer and access the data.
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
 
-int lammps_extract_global_datatype(void *handle, const char *name)
+int lammps_extract_global_datatype(void *, const char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
-
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
@@ -2959,7 +2957,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
   BEGIN_CAPTURE
   {
-    int i,j,offset,fcid,ltype;
+    int i,offset,fcid,ltype;
 
     // error if tags are not defined or not consecutive
     int flag = 0;
@@ -3216,8 +3214,6 @@ void lammps_gather_subset(void *ptr, char *name,
         lmp->error->warning(FLERR,"Library error in lammps_gather_subset");
       return;
     }
-
-    int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
 

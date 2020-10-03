@@ -4043,10 +4043,79 @@ int lammps_style_name(void *handle, const char *category, int idx,
   return 0;
 }
 
+/* ---------------------------------------------------------------------- */
 
-int lammps_has_group(void *, const char *);
-int lammps_group_count(void *);
-int lammps_group_name(void *, int, char *, int);
+/** Check if a group with a given name has been defined
+ *
+\verbatim embed:rst
+This function checks if a group with the provided *name* is defined
+in the current LAMMPS instance.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  name      name of the style
+ * \return           1 if defined, 0 if not.
+ */
+int lammps_has_group(void *handle, const char *name)
+{
+  LAMMPS *lmp = (LAMMPS *)handle;
+
+  int ngroup = lmp->group->ngroup;
+  char **groups = lmp->group->names;
+
+  for (int i=0; i < ngroup; ++i)
+    if (strcmp(groups[i],name) == 0) return 1;
+
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Count the number of currently defined groups
+ *
+ * This function counts how many groups are defined in the
+ * current LAMMPS instance.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return number of styles in category
+ */
+int lammps_group_count(void *handle)
+{
+  LAMMPS *lmp = (LAMMPS *)handle;
+
+  return lmp->group->ngroup;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Look up the name of a group by index in the list of groups.
+ *
+ * This function copies the name of the group with the index *idx* into
+ * the provided C-style string buffer.  The length of the buffer must be
+ * provided as *buf_size* argument.  If the name of the group exceeds the
+ * length of the buffer, it will be truncated accordingly.  If the index
+ * is out of range, the function returns 0 and *buffer* is set to an empty
+ * string, otherwise 1 is returned.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the group in the list of groups (0 <= idx < group count)
+ * \param buffer   string buffer to copy the name of the style to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_group_name(void *handle, int idx, char *buffer, int buf_size) {
+  LAMMPS *lmp = (LAMMPS *)handle;
+
+  int ngroup = lmp->group->ngroup;
+  char **groups = lmp->group->names;
+  if ((idx >=0) && (idx < ngroup)) {
+    strncpy(buffer, groups[idx], buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
+}
 
 int lammps_has_id(void *, const char *, const char *);
 int lammps_id_count(void *, const char *);

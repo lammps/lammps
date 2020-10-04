@@ -25,6 +25,11 @@
 #define isatty(x) _isatty(x)
 #endif
 
+#if !defined(_WIN32)
+#include <signal.h>
+#else
+#endif
+
 #include <readline/history.h>
 #include <readline/readline.h>
 
@@ -196,6 +201,16 @@ template <int ID, char PREFIX> char *ref_generator(const char *text, int state)
 }
 
 extern "C" {
+
+#if !defined(_WIN32)
+static void ctrl_c_handler(int)
+{
+    if (lmp)
+        if (lammps_is_running(lmp)) lammps_force_timeout(lmp);
+}
+#else
+#endif
+
 static char *cmd_generator(const char *text, int state)
 {
     static std::size_t idx, len;
@@ -452,6 +467,11 @@ static void init_commands()
 
     // read old history
     read_history(".lammps_history");
+
+#if !defined(_WIN32)
+    signal(SIGINT, ctrl_c_handler);
+#else
+#endif
 }
 
 static int help_cmd()

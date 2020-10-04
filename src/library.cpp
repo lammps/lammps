@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "dump.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_external.h"
@@ -31,8 +32,10 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "region.h"
 #include "output.h"
 #include "thermo.h"
 #include "universe.h"
@@ -4117,9 +4120,141 @@ int lammps_group_name(void *handle, int idx, char *buffer, int buf_size) {
   return 0;
 }
 
-int lammps_has_id(void *, const char *, const char *);
-int lammps_id_count(void *, const char *);
-int lammps_id_name(void *, const char *, int, char *, int);
+/* ---------------------------------------------------------------------- */
+
+/** Check if a specific ID exists in the current LAMMPS instance
+ *
+\verbatim embed:rst
+This function checks if the current LAMMPS instance a *category* ID of
+the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
+*fix*\ , *molecule*\ , and *region*\ .
+\endverbatim
+ *
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  category  category of the id
+ * \param  name      name of the id
+ * \return           1 if included, 0 if not.
+ */
+int lammps_has_id(void *handle, const char *category, const char *name) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(category,"compute") == 0) {
+    int ncompute = lmp->modify->ncompute;
+    Compute **compute = lmp->modify->compute;
+    for (int i=0; i < ncompute; ++i) {
+      if (strcmp(name,compute[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"dump") == 0) {
+    int ndump = lmp->output->ndump;
+    Dump **dump = lmp->output->dump;
+    for (int i=0; i < ndump; ++i) {
+      if (strcmp(name,dump[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"fix") == 0) {
+    int nfix = lmp->modify->nfix;
+    Fix **fix = lmp->modify->fix;
+    for (int i=0; i < nfix; ++i) {
+      if (strcmp(name,fix[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"molecule") == 0) {
+    int nmolecule = lmp->atom->nmolecule;
+    Molecule **molecule = lmp->atom->molecules;
+    for (int i=0; i < nmolecule; ++i) {
+      if (strcmp(name,molecule[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"region") == 0) {
+    int nregion = lmp->domain->nregion;
+    Region **region = lmp->domain->regions;
+    for (int i=0; i < nregion; ++i) {
+      if (strcmp(name,region[i]->id) == 0) return 1;
+    }
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Count the number of IDs of a category.
+ *
+\verbatim embed:rst
+This function counts how many IDs in the provided *category*
+are defined in the current LAMMPS instance.
+Please see :cpp:func:`lammps_has_id` for a list of valid
+categories.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of IDs
+ * \return number of IDs in category
+ */
+int lammps_id_count(void *handle, const char *category) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  if (strcmp(category,"compute") == 0) {
+    return lmp->modify->ncompute;
+  } else if (strcmp(category,"dump") == 0) {
+    return lmp->output->ndump;
+  } else if (strcmp(category,"fix") == 0) {
+    return lmp->modify->nfix;
+  } else if (strcmp(category,"molecule") == 0) {
+    return lmp->atom->nmolecule;
+  } else if (strcmp(category,"region") == 0) {
+    return lmp->domain->nregion;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Look up the name of an ID by index in the list of IDs of a given category.
+ *
+ * This function copies the name of the *category* ID with the index
+ * *idx* into the provided C-style string buffer.  The length of the buffer
+ * must be provided as *buf_size* argument.  If the name of the style
+ * exceeds the length of the buffer, it will be truncated accordingly.
+ * If the index is out of range, the function returns 0 and *buffer* is
+ * set to an empty string, otherwise 1.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of IDs
+ * \param idx      index of the ID in the list of *category* styles (0 <= idx < count)
+ * \param buffer   string buffer to copy the name of the style to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_id_name(void *handle, const char *category, int idx,
+                      char *buffer, int buf_size) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(category,"compute") == 0) {
+    if ((idx >=0) && (idx < lmp->modify->ncompute)) {
+      strncpy(buffer, lmp->modify->compute[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"dump") == 0) {
+    if ((idx >=0) && (idx < lmp->output->ndump)) {
+      strncpy(buffer, lmp->output->dump[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"fix") == 0) {
+    if ((idx >=0) && (idx < lmp->modify->nfix)) {
+      strncpy(buffer, lmp->modify->fix[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"molecule") == 0) {
+    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+      strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"region") == 0) {
+    if ((idx >=0) && (idx < lmp->domain->nregion)) {
+      strncpy(buffer, lmp->domain->regions[idx]->id, buf_size);
+      return 1;
+    }
+  }
+  buffer[0] = '\0';
+  return 0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** This function is used to query whether LAMMPS was compiled with

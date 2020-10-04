@@ -439,7 +439,7 @@ is context aware and will expand any first word only to commands
 available in that executable.
 
 - For style commands it will expand to available styles of the
-  corresponding categrory (e.g. pair styles after a
+  corresponding category (e.g. pair styles after a
   :doc:`pair_style <pair_style>` command).
 
 - For :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`dump <dump>`
@@ -479,17 +479,18 @@ On exit the LAMMPS shell will write the history list to a file
 file exists when the LAMMPS shell is launched it will be read to
 populate the history list.
 
-This is realized via the readline library and can thus be customised
-with an .inputrc file in the home directory.  For application specific
-customizations, the LAMMPS shell uses the name "lammps-shell".
+This is realized via the readline library and can thus be customized
+with an ``.inputrc`` file in the home directory.  For application
+specific customization, the LAMMPS shell uses the name "lammps-shell".
 For more information about using and customizing an application using
 readline, please see the available documentation at:
-`http://www.gnu.org/s/readline/#Documentation <http://www.gnu.org/s/readline/#Documentation>`_
+`http://www.gnu.org/s/readline/#Documentation
+<http://www.gnu.org/s/readline/#Documentation>`_
 
 Additional commands
 ===================
 
-The followind commands are added to the LAMMPS shell on top of the
+The following commands are added to the LAMMPS shell on top of the
 regular LAMMPS commands:
 
 .. parsed-literal::

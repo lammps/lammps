@@ -439,7 +439,8 @@ static void init_commands()
     commands.push_back("clear_history");
 
     // set name so there can be specific entries in ~/.inputrc
-    rl_readline_name = "lammps-shell";
+    rl_readline_name               = "lammps-shell";
+    rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&(";
 
     // attempt completions only if we are connected to a tty,
     // otherwise any tabs in redirected input will cause havoc.

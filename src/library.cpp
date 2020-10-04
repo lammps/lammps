@@ -4127,7 +4127,7 @@ int lammps_group_name(void *handle, int idx, char *buffer, int buf_size) {
 \verbatim embed:rst
 This function checks if the current LAMMPS instance a *category* ID of
 the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
-*fix*\ , *molecule*\ , and *region*\ .
+*fix*\ , *molecule*\ , *region*\ , and *variable*\ .
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -4168,6 +4168,12 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
     for (int i=0; i < nregion; ++i) {
       if (strcmp(name,region[i]->id) == 0) return 1;
     }
+  } else if (strcmp(category,"variable") == 0) {
+    int nvariable = lmp->input->variable->nvar;
+    char **varnames = lmp->input->variable->names;
+    for (int i=0; i < nvariable; ++i) {
+      if (strcmp(name,varnames[i]) == 0) return 1;
+    }
   }
   return 0;
 }
@@ -4199,6 +4205,8 @@ int lammps_id_count(void *handle, const char *category) {
     return lmp->atom->nmolecule;
   } else if (strcmp(category,"region") == 0) {
     return lmp->domain->nregion;
+  } else if (strcmp(category,"variable") == 0) {
+    return lmp->input->variable->nvar;
   }
   return 0;
 }
@@ -4248,6 +4256,11 @@ int lammps_id_name(void *handle, const char *category, int idx,
   } else if (strcmp(category,"region") == 0) {
     if ((idx >=0) && (idx < lmp->domain->nregion)) {
       strncpy(buffer, lmp->domain->regions[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"variable") == 0) {
+    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+      strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }
   }

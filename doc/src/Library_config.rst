@@ -15,6 +15,12 @@ This section documents the following functions:
 - :cpp:func:`lammps_has_style`
 - :cpp:func:`lammps_style_count`
 - :cpp:func:`lammps_style_name`
+- :cpp:func:`lammps_has_group`
+- :cpp:func:`lammps_group_count`
+- :cpp:func:`lammps_group_name`
+- :cpp:func:`lammps_has_id`
+- :cpp:func:`lammps_id_count`
+- :cpp:func:`lammps_id_name`
 
 --------------------
 
@@ -122,5 +128,35 @@ a safer approach.
 -----------------------
 
 .. doxygenfunction:: lammps_style_name
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_has_group
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_group_count
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_group_name
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_has_id
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_id_count
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_id_name
    :project: progguide
 

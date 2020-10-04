@@ -38,6 +38,7 @@
 #include "region.h"
 #include "output.h"
 #include "thermo.h"
+#include "timer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -4617,6 +4618,33 @@ void lammps_decode_image_flags(imageint image, int *flags)
   flags[0] = (image & IMGMASK) - IMGMAX;
   flags[1] = (image >> IMGBITS & IMGMASK) - IMGMAX;
   flags[2] = (image >> IMG2BITS) - IMGMAX;
+}
+
+/** Check if LAMMPS is currently inside a run or minimization
+ *
+ * This function can be used from signal handlers or multi-threaded
+ * applications to determine if the LAMMPS instance is currently active.
+ *
+ * \param  handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return        0 if idle or >0 if active */
+
+int lammps_is_running(void *handle)
+{
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  return lmp->update->whichflag;
+}
+
+/** Force a timeout to cleanly stop an ongoing run
+ *
+ * This function can be used from signal handlers or multi-threaded
+ * applications to cleanly terminate an ongoing run.
+ *
+ * \param  handle pointer to a previously created LAMMPS instance cast to ``void *`` */
+
+void lammps_force_timeout(void *handle)
+{
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  return lmp->timer->force_timeout();
 }
 
 // ----------------------------------------------------------------------

@@ -29,7 +29,6 @@
 
 #if !defined(_WIN32)
 #include <signal.h>
-#else
 #endif
 
 #include <readline/history.h>
@@ -206,12 +205,21 @@ extern "C" {
 
 #if !defined(_WIN32)
 static void ctrl_c_handler(int)
-{
-    if (lmp)
-        if (lammps_is_running(lmp)) lammps_force_timeout(lmp);
-}
 #else
+static BOOL WINAPI ctrl_c_handler(DWORD event)
 #endif
+{
+#if defined(_WIN32)
+    if (event == CTRL_C_EVENT) {
+#endif
+        if (lmp)
+            if (lammps_is_running(lmp)) lammps_force_timeout(lmp);
+#if defined(_WIN32)
+        return TRUE;
+    }
+    return FALSE;
+#endif
+}
 
 static char *cmd_generator(const char *text, int state)
 {
@@ -473,6 +481,7 @@ static void init_commands()
 #if !defined(_WIN32)
     signal(SIGINT, ctrl_c_handler);
 #else
+    SetConsoleCtrlHandler(ctrl_c_handler, TRUE);
 #endif
 }
 
@@ -493,6 +502,7 @@ static int shell_end()
 {
     write_history(".lammps_history");
     if (lmp) lammps_close(lmp);
+    lammps_mpi_finalize();
     lmp = nullptr;
     return 0;
 }

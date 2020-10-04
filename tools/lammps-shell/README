@@ -48,9 +48,7 @@ available in that executable.
   to known compute/fix IDs and variable names. Variable name expansion
   is also available for the ${name} variable syntax.
 
-- In all other cases, expansion will be 
-
-For all other
+- In all other cases, expansion will be performed on filenames.
 
 Command line editing and history
 ================================
@@ -95,8 +93,8 @@ regular LAMMPS commands:
 Compilation
 ===========
 
-Compilation of the LAMMPS shell can be enabled by setting the
-CMake variable LAMMPS_SHELL to on or using the makefile in the
+Compilation of the LAMMPS shell can be enabled by setting the CMake
+variable BUILD_LAMMPS_SHELL to "on" or using the makefile in the
 tools/lammps-shell folder to compile after building LAMMPS using
 the conventional make procedure.  The makefile will likely need
 customization depending on the features and settings used for
@@ -105,4 +103,5 @@ compiling LAMMPS.
 Limitations
 ===========
 
-The LAMMPS shell was not designed for use with MPI parallelization.
+The LAMMPS shell was not designed for use with MPI parallelization
+via "mpirun" or "mpiexec" or "srun".

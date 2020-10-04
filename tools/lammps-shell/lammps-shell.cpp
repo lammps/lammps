@@ -3,6 +3,8 @@
 
 // Copyright (c) 2020 Axel Kohlmeyer <akohlmey@gmail.com>
 
+// This software is distributed under the GNU General Public License.
+
 #include "library.h"
 #include "utils.h"
 
@@ -561,6 +563,10 @@ int main(int argc, char **argv)
     std::string trimmed;
 
     std::cout << "LAMMPS Shell version 1.0\n";
+    if (!lammps_config_has_exceptions())
+        std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
+                     "WARNING: Some features will not work as expected\n";
+
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;
 

@@ -34,19 +34,19 @@ const int buflen = 512;
 char buf[buflen];
 void *lmp = nullptr;
 enum {
-    ATOM,
-    INTEGRATE,
-    MINIMIZE,
-    PAIR,
-    BOND,
-    ANGLE,
-    DIHEDRAL,
-    IMPROPER,
-    KSPACE,
-    FIX,
-    COMPUTE,
-    REGION,
-    DUMP
+    ATOM_STYLE,
+    INTEGRATE_STYLE,
+    MINIMIZE_STYLE,
+    PAIR_STYLE,
+    BOND_STYLE,
+    ANGLE_STYLE,
+    DIHEDRAL_STYLE,
+    IMPROPER_STYLE,
+    KSPACE_STYLE,
+    FIX_STYLE,
+    COMPUTE_STYLE,
+    REGION_STYLE,
+    DUMP_STYLE
 };
 const char *lmp_style[] = {"atom",    "integrate", "minimize", "pair",   "bond",
                            "angle",   "dihedral",  "improper", "kspace", "fix",
@@ -170,67 +170,67 @@ static char *cmd_generator(const char *text, int state)
 
 static char *atom_generator(const char *text, int state)
 {
-    return style_generator<ATOM>(text, state);
+    return style_generator<ATOM_STYLE>(text, state);
 }
 
 static char *integrate_generator(const char *text, int state)
 {
-    return style_generator<INTEGRATE>(text, state);
+    return style_generator<INTEGRATE_STYLE>(text, state);
 }
 
 static char *minimize_generator(const char *text, int state)
 {
-    return style_generator<MINIMIZE>(text, state);
+    return style_generator<MINIMIZE_STYLE>(text, state);
 }
 
 static char *pair_generator(const char *text, int state)
 {
-    return style_generator<PAIR>(text, state);
+    return style_generator<PAIR_STYLE>(text, state);
 }
 
 static char *bond_generator(const char *text, int state)
 {
-    return style_generator<BOND>(text, state);
+    return style_generator<BOND_STYLE>(text, state);
 }
 
 static char *angle_generator(const char *text, int state)
 {
-    return style_generator<ANGLE>(text, state);
+    return style_generator<ANGLE_STYLE>(text, state);
 }
 
 static char *dihedral_generator(const char *text, int state)
 {
-    return style_generator<DIHEDRAL>(text, state);
+    return style_generator<DIHEDRAL_STYLE>(text, state);
 }
 
 static char *improper_generator(const char *text, int state)
 {
-    return style_generator<IMPROPER>(text, state);
+    return style_generator<IMPROPER_STYLE>(text, state);
 }
 
 static char *kspace_generator(const char *text, int state)
 {
-    return style_generator<KSPACE>(text, state);
+    return style_generator<KSPACE_STYLE>(text, state);
 }
 
 static char *fix_generator(const char *text, int state)
 {
-    return style_generator<FIX>(text, state);
+    return style_generator<FIX_STYLE>(text, state);
 }
 
 static char *compute_generator(const char *text, int state)
 {
-    return style_generator<COMPUTE>(text, state);
+    return style_generator<COMPUTE_STYLE>(text, state);
 }
 
 static char *region_generator(const char *text, int state)
 {
-    return style_generator<REGION>(text, state);
+    return style_generator<REGION_STYLE>(text, state);
 }
 
 static char *dump_generator(const char *text, int state)
 {
-    return style_generator<DUMP>(text, state);
+    return style_generator<DUMP_STYLE>(text, state);
 }
 
 char *group_generator(const char *text, int state)

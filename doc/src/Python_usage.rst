@@ -356,6 +356,9 @@ against invalid accesses.
 Retrieving or setting properties of LAMMPS objects
 **************************************************
 
+This section documents accessing or modifying data from objects like
+computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
+
 .. tabs::
 
    .. tab:: lammps API

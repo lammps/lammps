@@ -350,7 +350,7 @@ which loads and runs the following function from examples/python/funcs.py:
 .. code-block:: python
 
    def loop(N,cut0,thresh,lmpptr):
-     print "LOOP ARGS",N,cut0,thresh,lmpptr
+     print("LOOP ARGS", N, cut0, thresh, lmpptr)
      from lammps import lammps
      lmp = lammps(ptr=lmpptr)
      natoms = lmp.get_natoms()
@@ -365,12 +365,12 @@ which loads and runs the following function from examples/python/funcs.py:
        lmp.command("pair_coeff * * 1.0 1.0")       # ditto
        lmp.command("run 10")                       # ditto
        pe = lmp.extract_compute("thermo_pe",0,0)   # extract total PE from LAMMPS
-       print "PE",pe/natoms,thresh
+       print("PE", pe/natoms, thresh)
        if pe/natoms < thresh: return
 
 with these input script commands:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python          loop input 4 10 1.0 -4.0 SELF format iffp file funcs.py
    python          loop invoke
@@ -473,11 +473,11 @@ like this:
 .. code-block:: python
 
    import exceptions
-   print "Inside simple function"
+   print("Inside simple function")
    try:
      foo += 1      # one or more statements here
-   except Exception, e:
-     print "FOO error:",e
+   except Exception as e:
+     print("FOO error:", e)
 
 then you will get this message printed to the screen:
 

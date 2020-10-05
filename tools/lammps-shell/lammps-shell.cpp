@@ -357,12 +357,12 @@ char *group_generator(const char *text, int state)
     static int idx, num, len;
     if (!state) {
         idx = 0;
-        num = lammps_group_count(lmp);
+        num = lammps_id_count(lmp, "group");
         len = strlen(text);
     }
 
     while (idx < num) {
-        lammps_group_name(lmp, idx, buf, buflen);
+        lammps_id_name(lmp, "group", idx, buf, buflen);
         ++idx;
         if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
     }

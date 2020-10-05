@@ -22,19 +22,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_exchange_biquadratic.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +73,7 @@ void PairSpinExchangeBiquadratic::settings(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_spin_exchange_global = force->numeric(FLERR,arg[0]);
+  cut_spin_exchange_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -106,19 +103,19 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // get exchange arguments from input command
 
   int iarg = 10;
-  const double rc = force->numeric(FLERR,arg[3]);
-  const double j1 = force->numeric(FLERR,arg[4]);
-  const double j2 = force->numeric(FLERR,arg[5]);
-  const double j3 = force->numeric(FLERR,arg[6]);
-  const double k1 = force->numeric(FLERR,arg[7]);
-  const double k2 = force->numeric(FLERR,arg[8]);
-  const double k3 = force->numeric(FLERR,arg[9]);
+  const double rc = utils::numeric(FLERR,arg[3],false,lmp);
+  const double j1 = utils::numeric(FLERR,arg[4],false,lmp);
+  const double j2 = utils::numeric(FLERR,arg[5],false,lmp);
+  const double j3 = utils::numeric(FLERR,arg[6],false,lmp);
+  const double k1 = utils::numeric(FLERR,arg[7],false,lmp);
+  const double k2 = utils::numeric(FLERR,arg[8],false,lmp);
+  const double k3 = utils::numeric(FLERR,arg[9],false,lmp);
 
   // read energy offset flag if specified
 

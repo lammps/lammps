@@ -90,6 +90,7 @@ if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
 endif()
 
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
+option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
 include(GNUInstallDirs)
 file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
@@ -640,6 +641,18 @@ if(BUILD_TOOLS)
   target_link_libraries(msi2lmp PRIVATE ${MATH_LIBRARIES})
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endif()
+
+if(BUILD_LAMMPS_SHELL)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(READLINE IMPORTED_TARGET REQUIRED readline)
+  if(NOT LAMMPS_EXCEPTIONS)
+    message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
+  endif()
+  add_executable(lammps-shell ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.cpp)
+  target_compile_definitions(lammps-shell PRIVATE -DLAMMPS_LIB_NO_MPI)
+  target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
+  install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 include(Documentation)

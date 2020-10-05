@@ -10,4 +10,4 @@ Retrieving LAMMPS configuration information
 * :py:attr:`lammps.installed_packages <lammps.lammps.installed_pages>`
 
 * :py:meth:`lammps.has_style() <lammps.lammps.has_style()>`
-* :py:meth:`lammps.available_styles() <lammps.lammps.available_styles()`
+* :py:meth:`lammps.available_styles() <lammps.lammps.available_styles()>`

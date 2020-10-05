@@ -91,7 +91,7 @@ Additional components of the ``lammps`` module
 The :py:mod:`lammps` module additionally contains several constants
 and the :py:class:`NeighList <lammps.NeighList>` class:
 
-.. _py_data_constants:
+.. _py_datatype_constants:
 
 Data Types
 ----------
@@ -116,7 +116,9 @@ Style Constants
    Constants in the :py:mod:`lammps` module to select what style of data
    to request from computes or fixes. See :cpp:enum:`_LMP_STYLE_CONST`
    for the equivalent constants in the C library interface. Used in
-   :py:func:`lammps.extract_compute` and :py:func:`lammps.extract_fix`.
+   :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
+   :py:func:`lammps.numpy.extract_compute() <numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <numpy_wrapper.extract_fix>`.
 
 .. _py_type_constants:
 
@@ -129,18 +131,20 @@ Type Constants
    Constants in the :py:mod:`lammps` module to select what type of data
    to request  from computes  or fixes.  See :cpp:enum:`_LMP_TYPE_CONST`
    for the equivalent constants in the C library interface. Used in
-   :py:func:`lammps.extract_compute` and :py:func:`lammps.extract_fix`.
+   :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
+   :py:func:`lammps.numpy.extract_compute() <numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <numpy_wrapper.extract_fix>`.
 
-.. _py_var_constants:
+.. _py_vartype_constants:
 
-Variable Style Constants
+Variable Type Constants
 ------------------------
 
 .. py:data:: LMP_VAR_EQUAL, LMP_VAR_ATOM
    :type: int
 
-   Constants in the :py:mod:`lammps` module to select what style of
-   variable to query when calling :py:func:`lammps.extract_variable`.
+   Constants in the :py:mod:`lammps` module to select what type of
+   variable to query when calling :py:func:`lammps.extract_variable`. See also: :doc:`variable command <variable>`.
 
 Classes representing internal objects
 -------------------------------------

@@ -129,7 +129,7 @@ Here are simple examples using all three Python interfaces:
 
 In all of the above cases, same as with the :ref:`C library API <lammps_c_api>`, this will use the
 ``MPI_COMM_WORLD`` communicator for the MPI library that LAMMPS was
-compiled with. 
+compiled with.
 
 The :py:func:`lmp.close() <lammps.lammps.close()>` call is
 optional since the LAMMPS class instance will also be deleted
@@ -251,7 +251,7 @@ it is possible to "compute" what the next LAMMPS command should be.
 
          # read commands from file 'in.melt'
          L.file('in.melt')
-      
+
          # issue a single command
          L.variable('zpos', 'index', 1.0)
 
@@ -316,7 +316,7 @@ against invalid accesses.
 
          lmp.close()
 
-      Methods:
+      **Methods**:
 
       * :py:meth:`version() <lammps.lammps.version()>`: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
       * :py:meth:`get_thermo() <lammps.lammps.get_thermo()>`: return current value of a thermo keyword
@@ -328,23 +328,23 @@ against invalid accesses.
       * :py:meth:`extract_box() <lammps.lammps.extract_box()>`: extract box info
       * :py:meth:`create_atoms() <lammps.lammps.create_atoms()>`: create N atoms with IDs, types, x, v, and image flags
 
-      Numpy Methods:
+      **Numpy Methods**:
 
       * :py:meth:`numpy.extract_atom() <lammps.numpy_wrapper.extract_atom()>`: extract a per-atom quantity as numpy array
 
    .. tab:: PyLammps/IPyLammps API
 
       .. code-block:: python
-      
+
          from lammps import PyLammps
-      
+
          L = PyLammps()
          L.file("in.sysinit")
-      
+
          print(f"running simulation with {L.system.natoms} atoms")
-      
+
          L.run(1000, "post no");
-      
+
          for i in range(10):
             L.run(100, "pre no post no")
             pe = L.eval("pe")
@@ -356,60 +356,99 @@ against invalid accesses.
 Retrieving or setting properties of LAMMPS objects
 **************************************************
 
-* :py:meth:`extract_compute() <lammps.lammps.extract_compute()>`: extract value(s) from a compute
-* :py:meth:`extract_fix() <lammps.lammps.extract_fix()>`: extract value(s) from a fix
-* :py:meth:`extract_variable() <lammps.lammps.extract_variable()>`: extract value(s) from a variable
-* :py:meth:`set_variable() <lammps.lammps.set_variable()>`: set existing named string-style variable to value
+.. tabs::
 
-.. code-block:: Python
+   .. tab:: lammps API
 
-   eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
-   v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
-                                             # id = ID of compute or fix
-                                             # style = 0 = global data
-                                             #         1 = per-atom data
-                                             #         2 = local data
-                                             # type = 0 = scalar
-                                             #        1 = vector
-                                             #        2 = array
-                                             # i,j = indices of value in global vector or array
+      For :py:meth:`lammps.extract_compute() <lammps.lammps.extract_compute()>` and
+      :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>`, the global, per-atom,
+      or local data calculated by the compute or fix can be accessed. What is returned
+      depends on whether the compute or fix calculates a scalar or vector or array.
+      For a scalar, a single double value is returned.  If the compute or fix calculates
+      a vector or array, a pointer to the internal LAMMPS data is returned, which you can
+      use via normal Python subscripting.
 
-   var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
-                                                # name = name of variable
-                                                # group = group ID (ignored for equal-style variables)
-                                                # flag = 0 = equal-style variable
-                                                #        1 = atom-style variable
+      The one exception is that for a fix that calculates a
+      global vector or array, a single double value from the vector or array
+      is returned, indexed by I (vector) or I and J (array).  I,J are
+      zero-based indices.
+      See the :doc:`Howto output <Howto_output>` doc page for a discussion of
+      global, per-atom, and local data, and of scalar, vector, and array
+      data types.  See the doc pages for individual :doc:`computes <compute>`
+      and :doc:`fixes <fix>` for a description of what they calculate and
+      store.
 
-   flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
+      For :py:meth:`lammps.extract_variable() <lammps.lammps.extract_variable()>`,
+      an :doc:`equal-style or atom-style variable <variable>` is evaluated and
+      its result returned.
 
-For extract_compute() and extract_fix(), the global, per-atom, or
-local data calculated by the compute or fix can be accessed.  What is
-returned depends on whether the compute or fix calculates a scalar or
-vector or array.  For a scalar, a single double value is returned.  If
-the compute or fix calculates a vector or array, a pointer to the
-internal LAMMPS data is returned, which you can use via normal Python
-subscripting.  The one exception is that for a fix that calculates a
-global vector or array, a single double value from the vector or array
-is returned, indexed by I (vector) or I and J (array).  I,J are
-zero-based indices.  The I,J arguments can be left out if not needed.
-See the :doc:`Howto output <Howto_output>` doc page for a discussion of
-global, per-atom, and local data, and of scalar, vector, and array
-data types.  See the doc pages for individual :doc:`computes <compute>`
-and :doc:`fixes <fix>` for a description of what they calculate and
-store.
+      For equal-style variables a single ``c_double`` value is returned and the
+      group argument is ignored.  For atom-style variables, a vector of
+      ``c_double`` is returned, one value per atom, which you can use via normal
+      Python subscripting. The values will be zero for atoms not in the
+      specified group.
 
-For extract_variable(), an :doc:`equal-style or atom-style variable <variable>`
-is evaluated and its result returned.
+      :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.extract_compute()>`,
+      :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.extract_fix()>`, and
+      :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.extract_variable()>` are
+      equivlanent NumPy implementations that return NumPy arrays instead of ``ctypes`` pointers.
 
-For equal-style variables a single double value is returned and the
-group argument is ignored.  For atom-style variables, a vector of
-doubles is returned, one value per atom, which you can use via normal
-Python subscripting. The values will be zero for atoms not in the
-specified group.
+      The :py:meth:`lammps.set_variable() <lammps.lammps.set_variable()>` method sets an
+      existing string-style variable to a new string value, so that subsequent LAMMPS
+      commands can access the variable.
 
-The set_variable() method sets an existing string-style variable to a
-new string value, so that subsequent LAMMPS commands can access the
-variable.
+      **Methods**:
+
+      * :py:meth:`lammps.extract_compute() <lammps.lammps.extract_compute()>`: extract value(s) from a compute
+      * :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>`: extract value(s) from a fix
+      * :py:meth:`lammps.extract_variable() <lammps.lammps.extract_variable()>`: extract value(s) from a variable
+      * :py:meth:`lammps.set_variable() <lammps.lammps.set_variable()>`: set existing named string-style variable to value
+
+      **NumPy Methods**:
+
+      * :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.extract_compute()>`: extract value(s) from a compute, return arrays as numpy arrays
+      * :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.extract_fix()>`: extract value(s) from a fix, return arrays as numpy arrays
+      * :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.extract_variable()>`: extract value(s) from a variable, return arrays as numpy arrays
+
+
+   .. tab:: PyLammps/IPyLammps API
+
+      PyLammps and IPyLammps classes currently do not add any additional ways of
+      retrieving information out of computes and fixes. This information can still be accessed by using the lammps API:
+
+      .. code-block:: python
+
+         L.lmp.extract_compute(...)
+         L.lmp.extract_fix(...)
+         # OR
+         L.lmp.numpy.extract_compute(...)
+         L.lmp.numpy.extract_fix(...)
+
+      LAMMPS variables can be both defined and accessed via the :py:class:`PyLammps <lammps.PyLammps>` interface.
+
+      To define a variable you can use the :doc:`variable <variable>` command:
+
+      .. code-block:: Python
+
+         L.variable("a index 2")
+
+      A dictionary of all variables is returned by the :py:attr:`PyLammps.variables <lammps.PyLammps.variables>` property:
+
+      you can access an individual variable by retrieving a variable object from the
+      ``L.variables`` dictionary by name
+
+      .. code-block:: Python
+
+         a = L.variables['a']
+
+      The variable value can then be easily read and written by accessing the value
+      property of this object.
+
+      .. code-block:: Python
+
+         print(a.value)
+         a.value = 4
+
 
 
 Gather and Scatter Data between MPI processors
@@ -458,7 +497,7 @@ like this:
 
 .. code-block:: Python
 
-   from ctypes import *
+   from ctypes import c_double
    natoms = lmp.get_natoms()
    n3 = 3*natoms
    x = (n3*c_double)()

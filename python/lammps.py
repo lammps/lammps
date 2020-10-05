@@ -1587,7 +1587,7 @@ class lammps(object):
     """
     if idx < 0:
         return None
-    return NeighList(self.lmp, idx)
+    return NeighList(self, idx)
 
   # -------------------------------------------------------------------------
 

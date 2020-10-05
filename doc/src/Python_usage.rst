@@ -334,6 +334,58 @@ against invalid accesses.
 
    .. tab:: PyLammps/IPyLammps API
 
+      In addition to the functions provided by :py:class:`lammps <lammps.lammps>`, :py:class:`PyLammps <lammps.PyLammps>` objects
+      have several properties which allow you to query the system state:
+
+      L.system
+         Is a dictionary describing the system such as the bounding box or number of atoms
+
+      L.system.xlo, L.system.xhi
+         bounding box limits along x-axis
+
+      L.system.ylo, L.system.yhi
+         bounding box limits along y-axis
+
+      L.system.zlo, L.system.zhi
+         bounding box limits along z-axis
+
+      L.communication
+         configuration of communication subsystem, such as the number of threads or processors
+
+      L.communication.nthreads
+         number of threads used by each LAMMPS process
+
+      L.communication.nprocs
+         number of MPI processes used by LAMMPS
+
+      L.fixes
+         List of fixes in the current system
+
+      L.computes
+         List of active computes in the current system
+
+      L.dump
+         List of active dumps in the current system
+
+      L.groups
+         List of groups present in the current system
+
+      **Retrieving the value of an arbitrary LAMMPS expressions**
+
+      LAMMPS expressions can be immediately evaluated by using the ``eval`` method. The
+      passed string parameter can be any expression containing global :doc:`thermo` values,
+      variables, compute or fix data (see :doc:`Howto_output`):
+
+
+      .. code-block:: Python
+
+         result = L.eval("ke") # kinetic energy
+         result = L.eval("pe") # potential energy
+
+         result = L.eval("v_t/2.0")
+
+      **Example**
+
       .. code-block:: python
 
          from lammps import PyLammps

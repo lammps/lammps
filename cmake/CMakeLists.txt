@@ -90,7 +90,7 @@ if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
 endif()
 
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
-option(BUILD_SHELL "Build and install the LAMMPS shell" OFF)
+option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
 include(GNUInstallDirs)
 file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)

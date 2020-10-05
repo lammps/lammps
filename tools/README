@@ -29,6 +29,7 @@ fep                    scripts for free-energy perturbation with USER-FEP pkg
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp                    input pre-processor Perl tool for creating input scripts
 kate                   add-ons to Kate editor for editing LAMMPS input scripts
+lammps-shell           LAMMPS executable enhanced for interactive use
 lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
 matlab                 MatLab scripts for post-processing LAMMPS output

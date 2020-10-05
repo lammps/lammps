@@ -152,3 +152,7 @@ Classes representing internal objects
 .. autoclass:: lammps.NeighList
    :members:
    :no-undoc-members:
+
+.. autoclass:: lammps.NumPyNeighList
+   :members:
+   :no-undoc-members:

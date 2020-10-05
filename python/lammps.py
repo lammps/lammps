@@ -81,7 +81,12 @@ class MPIAbortException(Exception):
 class NeighList:
     """This is a wrapper class that exposes the contents of a neighbor list.
 
-    It can be used like a regular Python list.
+    It can be used like a regular Python list. Each element is a tuple of:
+
+    * the atom local index
+    * its number of neighbors
+    * and a pointer to an c_int array containing local atom indices of its
+      neighbors
 
     Internally it uses the lower-level LAMMPS C-library interface.
 
@@ -109,8 +114,8 @@ class NeighList:
 
     def get(self, element):
         """
-        :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
-        :rtype:  (int, int, numpy.array)
+        :return: tuple with atom local index, numpy array of neighbor local atom indices
+        :rtype:  (int, int, ctypes.POINTER(c_int))
         """
         iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
         return iatom, numneigh, neighbors
@@ -128,6 +133,35 @@ class NeighList:
 
         for ii in range(inum):
             yield self.get(ii)
+
+# -------------------------------------------------------------------------
+
+class NumPyNeighList(NeighList):
+    """This is a wrapper class that exposes the contents of a neighbor list.
+
+    It can be used like a regular Python list. Each element is a tuple of:
+
+    * the atom local index
+    * a NumPy array containing the local atom indices of its neighbors
+
+    Internally it uses the lower-level LAMMPS C-library interface.
+
+    :param lmp: reference to instance of :py:class:`lammps`
+    :type  lmp: lammps
+    :param idx: neighbor list index
+    :type  idx: int
+    """
+    def __init__(self, lmp, idx):
+      super(NumPyNeighList, self).__init__(lmp, idx)
+
+    def get(self, element):
+        """
+        :return: tuple with atom local index, numpy array of neighbor local atom indices
+        :rtype:  (int, numpy.array)
+        """
+        iatom, neighbors = self.lmp.numpy.get_neighlist_element_neighbors(self.idx, element)
+        return iatom, neighbors
+
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -1537,10 +1571,14 @@ class lammps(object):
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
 
+
   # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
+
+    See :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.get_neighlist()>` if you want to use
+    NumPy arrays instead of ``c_int`` pointers.
 
     :param idx: index of neighbor list
     :type  idx: int
@@ -1549,7 +1587,37 @@ class lammps(object):
     """
     if idx < 0:
         return None
-    return NeighList(self, idx)
+    return NeighList(self.lmp, idx)
+
+  # -------------------------------------------------------------------------
+
+  def get_neighlist_size(self, idx):
+    """Return the number of elements in neighbor list with the given index
+
+    :param idx: neighbor list index
+    :type  idx: int
+    :return: number of elements in neighbor list with index idx
+    :rtype:  int
+     """
+    return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
+
+  # -------------------------------------------------------------------------
+
+  def get_neighlist_element_neighbors(self, idx, element):
+    """Return data of neighbor list entry
+
+    :param element: neighbor list index
+    :type  element: int
+    :param element: neighbor list element index
+    :type  element: int
+    :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
+    :rtype:  (int, int, POINTER(c_int))
+    """
+    c_iatom = c_int()
+    c_numneigh = c_int()
+    c_neighbors = POINTER(c_int)()
+    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
+    return c_iatom.value, c_numneigh.value, c_neighbors
 
   # -------------------------------------------------------------------------
 
@@ -1579,7 +1647,7 @@ class lammps(object):
     style = style.encode()
     exact = int(exact)
     idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
-    return self.get_neighlist(idx)
+    return idx
 
   # -------------------------------------------------------------------------
 
@@ -1595,7 +1663,7 @@ class lammps(object):
      """
     fixid = fixid.encode()
     idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
-    return self.get_neighlist(idx)
+    return idx
 
   # -------------------------------------------------------------------------
 
@@ -1611,38 +1679,7 @@ class lammps(object):
      """
     computeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
-    return self.get_neighlist(idx)
-
-  # -------------------------------------------------------------------------
-
-  def get_neighlist_size(self, idx):
-    """Return the number of elements in neighbor list with the given index
-
-    :param idx: neighbor list index
-    :type  idx: int
-    :return: number of elements in neighbor list with index idx
-    :rtype:  int
-     """
-    return self.lib.lammps_neighlist_num_elements(self.lmp, idx)
-
-  # -------------------------------------------------------------------------
-
-  def get_neighlist_element_neighbors(self, idx, element):
-    """Return data of neighbor list entry
-
-    :param element: neighbor list index
-    :type  element: int
-    :param element: neighbor list element index
-    :type  element: int
-    :return: tuple with atom local index, number of neighbors and array of neighbor local atom indices
-    :rtype:  (int, int, numpy.array)
-    """
-    c_iatom = c_int()
-    c_numneigh = c_int()
-    c_neighbors = POINTER(c_int)()
-    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
-    neighbors = self.numpy.iarray(c_int, c_neighbors, c_numneigh.value, 1)
-    return c_iatom.value, c_numneigh.value, neighbors
+    return idx
 
 # -------------------------------------------------------------------------
 
@@ -1664,6 +1701,8 @@ class numpy_wrapper:
   def __init__(self, lmp):
     self.lmp = lmp
 
+  # -------------------------------------------------------------------------
+
   def _ctype_to_numpy_int(self, ctype_int):
     import numpy as np
     if ctype_int == c_int32:
@@ -1671,6 +1710,8 @@ class numpy_wrapper:
     elif ctype_int == c_int64:
       return np.int64
     return np.intc
+
+  # -------------------------------------------------------------------------
 
   def extract_atom(self, name, dtype=LAMMPS_AUTODETECT, nelem=LAMMPS_AUTODETECT, dim=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS as NumPy arrays
@@ -1727,6 +1768,8 @@ class numpy_wrapper:
       return self.iarray(c_int64, raw_ptr, nelem, dim)
     return raw_ptr
 
+  # -------------------------------------------------------------------------
+
   def extract_atom_iarray(self, name, nelem, dim=1):
     warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
 
@@ -1744,6 +1787,8 @@ class numpy_wrapper:
 
     return self.iarray(c_int_type, raw_ptr, nelem, dim)
 
+  # -------------------------------------------------------------------------
+
   def extract_atom_darray(self, name, nelem, dim=1):
     warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
 
@@ -1753,6 +1798,8 @@ class numpy_wrapper:
       raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE_2D)
 
     return self.darray(raw_ptr, nelem, dim)
+
+  # -------------------------------------------------------------------------
 
   def extract_compute(self, cid, style, type):
     """Retrieve data from a LAMMPS compute
@@ -1790,6 +1837,8 @@ class numpy_wrapper:
         ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
         return self.darray(value, nlocal, ncols)
     return value
+
+  # -------------------------------------------------------------------------
 
   def extract_fix(self, fid, style, type, nrow=0, ncol=0):
     """Retrieve data from a LAMMPS fix
@@ -1831,6 +1880,8 @@ class numpy_wrapper:
         return self.darray(value, nrows, ncols)
     return value
 
+  # -------------------------------------------------------------------------
+
   def extract_variable(self, name, group=None, vartype=LMP_VAR_EQUAL):
     """ Evaluate a LAMMPS variable and return its data
 
@@ -1854,6 +1905,43 @@ class numpy_wrapper:
       return np.ctypeslib.as_array(value)
     return value
 
+  # -------------------------------------------------------------------------
+
+  def get_neighlist(self, idx):
+    """Returns an instance of :class:`NumPyNeighList` which wraps access to the neighbor list with the given index
+
+    :param idx: index of neighbor list
+    :type  idx: int
+    :return: an instance of :class:`NumPyNeighList` wrapping access to neighbor list data
+    :rtype:  NumPyNeighList
+    """
+    if idx < 0:
+        return None
+    return NumPyNeighList(self.lmp, idx)
+
+  # -------------------------------------------------------------------------
+
+  def get_neighlist_element_neighbors(self, idx, element):
+    """Return data of neighbor list entry
+
+    This function is a wrapper around the function
+    :py:meth:`lammps.get_neighlist_element_neighbors() <lammps.lammps.get_neighlist_element_neighbors()>`
+    method. It behaves the same as the original method, but returns a NumPy array containing the neighbors
+    instead of a ``ctypes`` pointer.
+
+    :param element: neighbor list index
+    :type  element: int
+    :param element: neighbor list element index
+    :type  element: int
+    :return: tuple with atom local index and numpy array of neighbor local atom indices
+    :rtype:  (int, numpy.array)
+    """
+    iatom, numneigh, c_neighbors = self.lmp.get_neighlist_element_neighbors(idx, element)
+    neighbors = self.iarray(c_int, c_neighbors, numneigh, 1)
+    return iatom, neighbors
+
+  # -------------------------------------------------------------------------
+
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
     import numpy as np
     np_int_type = self._ctype_to_numpy_int(c_int_type)
@@ -1866,6 +1954,8 @@ class numpy_wrapper:
     a = np.frombuffer(ptr.contents, dtype=np_int_type)
     a.shape = (nelem, dim)
     return a
+
+  # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
     import numpy as np

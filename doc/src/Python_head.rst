@@ -13,6 +13,7 @@ used together.
    Python_usage
    Python_call
    Python_config
+   Python_neighbor
    Python_module
    Python_examples
    Python_error

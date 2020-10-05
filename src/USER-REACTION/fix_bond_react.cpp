@@ -1863,6 +1863,8 @@ int FixBondReact::check_constraints()
         if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
       } else if (constraints[i][1] == RMSD) {
         // call superpose
+        int iatom;
+        int iref = -1; // choose first atom as reference
         int n2superpose = 0;
         double **xfrozen; // coordinates for the "frozen" target molecule
         double **xmobile; // coordinates for the "mobile" molecule
@@ -1875,20 +1877,28 @@ int FixBondReact::check_constraints()
           int myincr = 0;
           for (int j = 0; j < onemol->natoms; j++) {
             if (onemol->fragmentmask[ifragment][j]) {
+              iatom = atom->map(glove[j][1]);
+              if (iref == -1) iref = iatom;
+              iatom = domain->closest_image(iref,iatom);
               for (int k = 0; k < 3; k++) {
-                xfrozen[myincr][k] = x[atom->map(glove[j][1])][k];
+                xfrozen[myincr][k] = x[iatom][k];
                 xmobile[myincr][k] = onemol->x[j][k];
               }
               myincr++;
             }
           }
         } else {
+          int iatom;
+          int iref = -1; // choose first atom as reference
           n2superpose = onemol->natoms;
           memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
           memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
           for (int j = 0; j < n2superpose; j++) {
+            iatom = atom->map(glove[j][1]);
+            if (iref == -1) iref = iatom;
+            iatom = domain->closest_image(iref,iatom);
             for (int k = 0; k < 3; k++) {
-              xfrozen[j][k] = x[atom->map(glove[j][1])][k];
+              xfrozen[j][k] = x[iatom][k];
               xmobile[j][k] = onemol->x[j][k];
             }
           }

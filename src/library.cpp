@@ -4252,7 +4252,7 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
     }
   }
 
-  if (compute == nullptr) {
+  if (compute != nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList * list = lmp->neighbor->lists[i];

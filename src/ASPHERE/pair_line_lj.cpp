@@ -74,7 +74,6 @@ void PairLineLJ::compute(int eflag, int vflag)
   double xi[2],xj[2],fi[2],dxi,dxj,dyi,dyj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
   ev_init(eflag,vflag);
 
   double **x = atom->x;

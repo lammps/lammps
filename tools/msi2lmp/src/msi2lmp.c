@@ -152,6 +152,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <ctype.h>
+#endif
+
 /* global variables */
 
 char  *rootname;

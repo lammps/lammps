@@ -1,18 +1,40 @@
 Retrieving or setting LAMMPS system properties
 ==============================================
 
-The library interface allows to extract different kinds of information
-about the active simulation instance and also to modify some of it.
-This enables combining MD simulation steps with other processing and
-simulation methods computed in the calling code or another code that is
-coupled to LAMMPS via the library interface.  In some cases the data
-returned is direct reference to the original data inside LAMMPS cast
-to a void pointer.  In that case the data needs to be cast to a suitable
-pointer to be able to access it, and you need to know the correct dimensions
-and lengths.  When accessing per-atom data, please note that this data
-is the per-processor **local** data and indexed accordingly. These arrays
-can change sizes and order at every neighbor list rebuild and atom sort
-event as atoms are migrating between sub-domains.
+This section documents the following functions:
+
+- :cpp:func:`lammps_version`
+- :cpp:func:`lammps_memory_usage`
+- :cpp:func:`lammps_get_mpi_comm`
+- :cpp:func:`lammps_get_natoms`
+- :cpp:func:`lammps_get_thermo`
+- :cpp:func:`lammps_extract_box`
+- :cpp:func:`lammps_reset_box`
+- :cpp:func:`lammps_extract_setting`
+- :cpp:func:`lammps_extract_global_datatype`
+- :cpp:func:`lammps_extract_global`
+- :cpp:func:`lammps_extract_atom_datatype`
+- :cpp:func:`lammps_extract_atom`
+- :cpp:func:`lammps_create_atoms`
+
+--------------------
+
+The library interface allows extraction of different kinds of
+information about the active simulation instance and also
+modifications to it.  This enables combining of a LAMMPS simulation
+with other processing and simulation methods computed by the calling
+code, or by another code that is coupled to LAMMPS via the library
+interface.  In some cases the data returned is direct reference to the
+original data inside LAMMPS, cast to a void pointer.  In that case the
+data needs to be cast to a suitable pointer for the calling program to
+access it, and you may need to know the correct dimensions and
+lengths.  This also means you can directly change those value(s) from
+the calling program, e.g. to modify atom positions.  Of course, this
+should be done with care.  When accessing per-atom data, please note
+that this data is the per-processor **local** data and is indexed
+accordingly. Per-atom data can change sizes and ordering at every
+neighbor list rebuild or atom sort event as atoms migrate between
+sub-domains and processors.
 
 .. code-block:: C
 
@@ -26,8 +48,17 @@ event as atoms are migrating between sub-domains.
 
      handle = lammps_open_no_mpi(0, NULL, NULL);
      lammps_file(handle,"in.sysinit");
-     printf("running simulation with %g atoms\n",
+     printf("Running a simulation with %g atoms.\n",
             lammps_get_natoms(handle));
+
+     printf(" %d local and %d ghost atoms. %d atom types\n",
+            lammps_extract_setting(handle,"nlocal"),
+            lammps_extract_setting(handle,"nghost"),
+            lammps_extract_setting(handle,"ntypes"));
+
+     double  *dt = (double *)lammps_extract_global(handle,"dt");
+     printf("Changing timestep from %g to 0.5\n", *dt);
+     *dt = 0.5;
 
      lammps_command(handle,"run 1000 post no");
 

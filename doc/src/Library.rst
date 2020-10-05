@@ -9,15 +9,15 @@ script <Python_head>`.  Even the LAMMPS standalone executable is
 essentially a thin wrapper on top of the LAMMPS library, creating a
 LAMMPS instance, processing input and then existing.
 
-Several of these approaches are based on C language wrapper functions
-in the files ``src/library.h`` and ``src/library.cpp``, but it is also
-possible to use C++ directly.  The basic procedure is always the same:
-you create one or more instances of the
-:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` and then pass commands as
-strings or from files to that LAMMPS instance to execute calculations,
-or read, manipulate, and update data from the active class instances
-inside the LAMMPS to do analysis or perform operations that are not
-possible with existing commands.
+Most of the APIs described below are based on C language wrapper
+functions in the files ``src/library.h`` and ``src/library.cpp``, but
+it is also possible to use C++ directly.  The basic procedure is
+always the same: you create one or more instances of
+:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`, pass commands as strings or
+from files to that LAMMPS instance to execute calculations, and/or
+call functions that read, manipulate, and update data from the active
+class instances inside LAMMPS to do analysis or perform operations
+that are not possible with existing input script commands.
 
 .. _thread-safety:
 
@@ -36,13 +36,13 @@ possible with existing commands.
    Another major issue to deal with is to correctly handle MPI.
    Creating a LAMMPS instance requires passing an MPI communicator, or
    it assumes the ``MPI_COMM_WORLD`` communicator, which spans all MPI
-   processor ranks.  When creating multiple LAMMPS object instances from
-   different threads, this communicator has to be different for each
-   thread or else collisions can happen.  or it has to be guaranteed,
-   that only one thread at a time is active.  MPI communicators,
-   however, are not a problem, if LAMMPS is compiled with the MPI STUBS
-   library, which implies that there is no MPI communication and only 1
-   MPI rank.
+   processor ranks.  When creating multiple LAMMPS object instances
+   from different threads, this communicator has to be different for
+   each thread or else collisions can happen.  Or it has to be
+   guaranteed, that only one thread at a time is active.  MPI
+   communicators, however, are not a problem, if LAMMPS is compiled
+   with the MPI STUBS library, which implies that there is no MPI
+   communication and only 1 MPI rank.
 
 ----------
 
@@ -51,7 +51,7 @@ possible with existing commands.
 LAMMPS C Library API
 ====================
 
-The C library interface is most commonly used path to manage LAMMPS
+The C library interface is the most commonly used path to manage LAMMPS
 instances from a compiled code and it is the basis for the :doc:`Python
 <Python_module>` and :doc:`Fortran <Fortran>` modules.  Almost all
 functions of the C language API require an argument containing a
@@ -64,7 +64,7 @@ library interface.  This usually must be the header from the same MPI
 library as the LAMMPS library was compiled with.  The exception is when
 LAMMPS was compiled in serial mode using the ``STUBS`` MPI library.  In
 that case the calling code may be compiled with a different MPI library
-for as long as :cpp:func:`lammps_open_no_mpi` is called to create a
+so long as :cpp:func:`lammps_open_no_mpi` is called to create a
 LAMMPS instance. Then you may set the define ``-DLAMMPS_LIB_NO_MPI``
 when compiling your code and the inclusion of ``mpi.h`` will be skipped
 and consequently the function :cpp:func:`lammps_open` may not be used.
@@ -72,7 +72,7 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 .. admonition:: Errors versus exceptions
    :class: note
 
-   If any of the function calls in the LAMMPS library API will trigger
+   If any of the function calls in the LAMMPS library API trigger
    an error inside LAMMPS, this will result in an abort of the entire
    program.  This is not always desirable.  Instead, LAMMPS can be
    compiled to instead :ref:`throw a C++ exception <exceptions>`.
@@ -81,7 +81,7 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 
    No checks are made on the arguments of the function calls of the C
    library interface.  *All* function arguments must be non-NULL unless
-   *explicitly* allowed and point to consistent and valid data.  Buffers
+   *explicitly* allowed, and must point to consistent and valid data.  Buffers
    for storing returned data must be allocated to a suitable size.
    Passing invalid or unsuitable information will likely cause crashes
    or corrupt data.
@@ -113,10 +113,10 @@ Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
 Because of the dynamic loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object oriented, but
-otherwise trying to be very similar to the C library API.  Three different
+otherwise tries to be very similar to the C library API.  Three different
 Python classes to run LAMMPS are available and they build on each other.
 More information on this is in the :doc:`Python_head`
-section of the manual and for using the LAMMPS Python modules is in
+section of the manual.  Use of the LAMMPS Python module is described in
 :doc:`Python_module`.
 
 -------------------
@@ -127,8 +127,8 @@ LAMMPS Fortran API
 ==================
 
 The LAMMPS Fortran module is a wrapper around calling functions from the
-LAMMPS C library API from Fortran through the ISO_C_BINDING feature in
-Fortran 2003.  The interface is object oriented but otherwise trying to
+LAMMPS C library API.  This is done using the ISO_C_BINDING feature in
+Fortran 2003.  The interface is object oriented but otherwise tries to
 be very similar to the C library API and the basic Python module.
 
 .. toctree::
@@ -144,8 +144,8 @@ LAMMPS C++ API
 ==============
 
 It is also possible to invoke the LAMMPS C++ API directly in your code.
-It is lacking some of the convenience of the C library API, but it allows
-a more direct access to simulation data and thus more low-level manipulations.
+It lacks some of the convenience of the C library API, but it allows
+more direct access to simulation data and thus more low-level manipulations.
 The following links provide some examples and references to the C++ API.
 
 .. toctree::

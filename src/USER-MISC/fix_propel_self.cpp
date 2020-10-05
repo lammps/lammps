@@ -160,13 +160,13 @@ template <int filter_by_type>
 void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 {
   double **f = atom->f;
-  AtomVecEllipsoid *av = static_cast<AtomVecEllipsoid*>(atom->avec);
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int *type = atom->type;
   int* ellipsoid = atom->ellipsoid;
 
+  AtomVecEllipsoid *av = static_cast<AtomVecEllipsoid*>(atom->style_match("ellipsoid"));
   AtomVecEllipsoid::Bonus *bonus = av->bonus;
 
   // Add the active force to the atom force:

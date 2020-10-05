@@ -453,7 +453,7 @@ void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleLong::compute_long_mech(int /* i */, int /* j */, double eij[3],
-    double bij[4], double fi[3], double spi[3], double spj[3])
+    double bij[4], double fi[3], double spi[4], double spj[4])
 {
   double sisj,sieij,sjeij,b2,b3;
   double g1,g2,g1b2_g2b3,gigj,pre;

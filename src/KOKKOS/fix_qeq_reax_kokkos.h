@@ -22,6 +22,7 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #ifndef LMP_FIX_QEQ_REAX_KOKKOS_H
 #define LMP_FIX_QEQ_REAX_KOKKOS_H
 
+#include "kokkos_base.h"
 #include "fix_qeq_reax.h"
 #include "kokkos_type.h"
 #include "neigh_list.h"
@@ -102,6 +103,14 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagZeroQGhosts, const int&) const;
+
+  template<int PACKFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEQPackFwdComm<PACKFLAG>, const int&) const;
+
+  template<int PACKFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEQUnpackFwdComm<PACKFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void vecsum2_item(int) const;

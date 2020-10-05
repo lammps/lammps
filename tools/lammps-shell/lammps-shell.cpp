@@ -575,7 +575,7 @@ int main(int argc, char **argv)
     std::cout << "LAMMPS Shell version 1.0\n";
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
-                     "WARNING: Some features will not work as expected\n";
+                     "WARNING: The shell will terminate on errors.\n";
 
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;

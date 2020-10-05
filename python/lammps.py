@@ -737,14 +737,12 @@ class lammps(object):
     list of the supported keywords.
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
-    corresponds to one of the constants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
-    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+    corresponds to one of the :ref:`data type <py_datatype_constants>`
+    constants define in the :py:mod:`lammps` module.
 
     :param name: name of the property
     :type name:  string
-    :return: datatype of global property
+    :return: data type of global property, see :ref:`py_datatype_constants`
     :rtype: int
     """
     if name: name = name.encode()
@@ -766,15 +764,13 @@ class lammps(object):
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that
-    purpose the :py:mod:`lammps` module contains the constants ``LAMMPS_INT``,
-    ``LAMMPS_DOUBLE``, ``LAMMPS_INT64``, and ``LAMMPS_STRING``. These values
-    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
-    This function returns ``None`` if either the keyword is not recognized,
+    purpose the :py:mod:`lammps` module contains :ref:`data type <py_datatype_constants>`
+    constants. This function returns ``None`` if either the keyword is not recognized,
     or an invalid data type constant is used.
 
     :param name: name of the property
     :type name:  string
-    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
+    :param dtype: data type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
     :return: value of the property or None
     :rtype: int, float, or NoneType
@@ -815,14 +811,12 @@ class lammps(object):
     list of the supported keywords.
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return an integer value that
-    corresponds to one of the constants define in the :py:mod:`lammps` module:
-    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
-    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+    corresponds to one of the :ref:`data type <py_datatype_constants>` constants
+    defined in the :py:mod:`lammps` module.
 
     :param name: name of the property
     :type name:  string
-    :return: data type of per-atom property (see :ref:`py_data_constants`)
+    :return: data type of per-atom property (see :ref:`py_datatype_constants`)
     :rtype: int
     """
     if name: name = name.encode()
@@ -840,11 +834,9 @@ class lammps(object):
     list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
-    by asking the library. You can also force a specific data type.  For
-    that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``, ``LAMMPS_DOUBLE_2D``,
-    ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and ``LAMMPS_STRING``. These values
-    are equivalent to the ones defined in :cpp:enum:`_LMP_DATATYPE_CONST`.
+    by asking the library. You can also force a specific data type by setting ``dtype``
+    to one of the :ref:`data type <py_datatype_constants>` constants defined in the
+    :py:mod:`lammps` module.
     This function returns ``None`` if either the keyword is not
     recognized, or an invalid data type constant is used.
 
@@ -859,7 +851,7 @@ class lammps(object):
 
     :param name: name of the property
     :type name:  string
-    :param dtype: data type of the returned data (see :ref:`py_data_constants`)
+    :param dtype: data type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
     :return: requested data or ``None``
     :rtype: ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.POINTER(ctypes.c_int32)),
@@ -907,12 +899,12 @@ class lammps(object):
 
     :param id: compute ID
     :type id:  string
-    :param style: style of the data retrieve (global, atom, or local)
+    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
     :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array)
+    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
     :type type:  int
-    :return: requested data
-    :rtype: integer or double or pointer to 1d or 2d double array or None
+    :return: requested data as scalar, pointer to 1d or 2d double array, or None
+    :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
     """
     if id: id = id.encode()
     else: return None
@@ -977,33 +969,29 @@ class lammps(object):
 
     :param id: fix ID
     :type id:  string
-    :param style: style of the data retrieve (global, atom, or local)
+    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
     :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array)
+    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
     :type type:  int
     :param nrow: index of global vector element or row index of global array element
     :type nrow:  int
     :param ncol: column index of global array element
     :type ncol:  int
-    :return: requested data
-    :rtype: integer or double value, pointer to 1d or 2d double array  or None
+    :return: requested data or None
+    :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
 
     """
     if id: id = id.encode()
     else: return None
 
     if style == LMP_STYLE_GLOBAL:
-      if type == LMP_TYPE_SCALAR    \
-         or type == LMP_TYPE_VECTOR \
-         or type == LMP_TYPE_ARRAY:
+      if type in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
         ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
         result = ptr[0]
         self.lib.lammps_free(ptr)
         return result
-      elif type == LMP_SIZE_VECTOR  \
-           or type == LMP_SIZE_ROWS \
-           or type == LMP_SIZE_COLS:
+      elif type in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
         ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
         return ptr[0]
@@ -1030,15 +1018,12 @@ class lammps(object):
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
       elif type == LMP_TYPE_ARRAY:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      elif type == LMP_TYPE_SCALAR    \
-           or type == LMP_SIZE_VECTOR \
-           or type == LMP_SIZE_ROWS   \
-           or type == LMP_SIZE_COLS:
+      elif type in (LMP_TYPE_SCALAR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
       else:
         return None
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
-      if type == LMP_TYPE_VECTOR or type == LMP_TYPE_ARRAY:
+      if type in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         return ptr
       else:
         return ptr[0]
@@ -1051,17 +1036,17 @@ class lammps(object):
   # for vector, must copy nlocal returned values to local c_double vector
   # memory was allocated by library interface function
 
-  def extract_variable(self,name,group=None,type=LMP_VAR_EQUAL):
+  def extract_variable(self, name, group=None, vartype=LMP_VAR_EQUAL):
     """ Evaluate a LAMMPS variable and return its data
 
     This function is a wrapper around the function
     :cpp:func:`lammps_extract_variable` of the C-library interface,
     evaluates variable name and returns a copy of the computed data.
     The memory temporarily allocated by the C-interface is deleted
-    after the data is copied to a python variable or list.
+    after the data is copied to a Python variable or list.
     The variable must be either an equal-style (or equivalent)
     variable or an atom-style variable. The variable type has to
-    provided as type parameter which may be two constants:
+    provided as ``vartype`` parameter which may be two constants:
     ``LMP_VAR_EQUAL`` or ``LMP_VAR_STRING``; it defaults to
     equal-style variables.
     The group parameter is only used for atom-style variables and
@@ -1069,26 +1054,24 @@ class lammps(object):
 
     :param name: name of the variable to execute
     :type name: string
-    :param group: name of group for atom style variable
-    :type group: string
-    :param type: type of variable
-    :type type: int
+    :param group: name of group for atom-style variable
+    :type group: string, only for atom-style variables
+    :param vartype: type of variable, see :ref:`py_vartype_constants`
+    :type vartype: int
     :return: the requested data
-    :rtype: double, array of doubles, or None
+    :rtype: c_double, (c_double), or NoneType
     """
     if name: name = name.encode()
     else: return None
     if group: group = group.encode()
-    if type == LMP_VAR_EQUAL:
+    if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
-    if type == LMP_VAR_ATOM:
-      self.lib.lammps_extract_global.restype = POINTER(c_int)
-      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal".encode())
-      nlocal = nlocalptr[0]
+    elif vartype == LMP_VAR_ATOM:
+      nlocal = self.extract_global("nlocal")
       result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
@@ -1692,18 +1675,9 @@ class numpy_wrapper:
   def extract_atom(self, name, dtype=LAMMPS_AUTODETECT, nelem=LAMMPS_AUTODETECT, dim=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS as NumPy arrays
 
-    This is a wrapper around the :cpp:func:`lammps_extract_atom`
-    function of the C-library interface. Its documentation includes a
-    list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the data
-    type by asking the library. You can also force a specific data type.
-    For that purpose the :py:mod:`lammps` module contains the constants
-    ``LAMMPS_INT``, ``LAMMPS_INT_2D``, ``LAMMPS_DOUBLE``,
-    ``LAMMPS_DOUBLE_2D``, ``LAMMPS_INT64``, ``LAMMPS_INT64_2D``, and
-    ``LAMMPS_STRING``.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    This is a wrapper around the :py:meth:`lammps.extract_atom()` method.
+    It behaves the same as the original method, but returns NumPy arrays
+    instead of ``ctypes`` pointers.
 
     .. note::
 
@@ -1716,14 +1690,14 @@ class numpy_wrapper:
 
     :param name: name of the property
     :type name:  string
-    :param dtype: type of the returned data (see :ref:`py_data_constants`)
+    :param dtype: type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
     :param nelem: number of elements in array
     :type nelem:  int, optional
     :param dim: dimension of each element
     :type dim:  int, optional
-    :return: requested data as NumPy array with direct access to C data
-    :rtype: numpy.array
+    :return: requested data as NumPy array with direct access to C data or None
+    :rtype: numpy.array or NoneType
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.lmp.extract_atom_datatype(name)
@@ -1780,51 +1754,103 @@ class numpy_wrapper:
 
     return self.darray(raw_ptr, nelem, dim)
 
-  def extract_compute(self, cid, style, datatype):
-    value = self.lmp.extract_compute(cid, style, datatype)
+  def extract_compute(self, cid, style, type):
+    """Retrieve data from a LAMMPS compute
+
+    This is a wrapper around the
+    :py:meth:`lammps.extract_compute() <lammps.lammps.extract_compute()>` method.
+    It behaves the same as the original method, but returns NumPy arrays
+    instead of ``ctypes`` pointers.
+
+    :param id: compute ID
+    :type id:  string
+    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type style:  int
+    :param type: type of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type type:  int
+    :return: requested data either as float, as NumPy array with direct access to C data, or None
+    :rtype: float, numpy.array, or NoneType
+    """
+    value = self.lmp.extract_compute(cid, style, type)
 
     if style in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
-      if datatype == LMP_TYPE_VECTOR:
+      if type == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
-      elif datatype == LMP_TYPE_ARRAY:
+      elif type == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_ROWS)
         ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
         return self.darray(value, nrows, ncols)
     elif style == LMP_STYLE_ATOM:
-      if datatype == LMP_TYPE_VECTOR:
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
+      if type == LMP_TYPE_VECTOR:
+        nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif datatype == LMP_TYPE_ARRAY:
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
+      elif type == LMP_TYPE_ARRAY:
+        nlocal = self.lmp.extract_global("nlocal")
         ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
         return self.darray(value, nlocal, ncols)
     return value
 
-  def extract_fix(self, fid, style, datatype, nrow=0, ncol=0):
-    value = self.lmp.extract_fix(fid, style, datatype, nrow, ncol)
+  def extract_fix(self, fid, style, type, nrow=0, ncol=0):
+    """Retrieve data from a LAMMPS fix
+
+    This is a wrapper around the :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>` method.
+    It behaves the same as the original method, but returns NumPy arrays
+    instead of ``ctypes`` pointers.
+
+    :param id: fix ID
+    :type id:  string
+    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type style:  int
+    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type type:  int
+    :param nrow: index of global vector element or row index of global array element
+    :type nrow:  int
+    :param ncol: column index of global array element
+    :type ncol:  int
+    :return: requested data
+    :rtype: integer or double value, pointer to 1d or 2d double array  or None
+
+    """
+    value = self.lmp.extract_fix(fid, style, type, nrow, ncol)
     if style == LMP_STYLE_ATOM:
-      if datatype == LMP_TYPE_VECTOR:
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
+      if type == LMP_TYPE_VECTOR:
+        nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif datatype == LMP_TYPE_ARRAY:
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
+      elif type == LMP_TYPE_ARRAY:
+        nlocal = self.lmp.extract_global("nlocal")
         ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nlocal, ncols)
     elif style == LMP_STYLE_LOCAL:
-      if datatype == LMP_TYPE_VECTOR:
+      if type == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
         return self.darray(value, nrows)
-      elif datatype == LMP_TYPE_ARRAY:
+      elif type == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
         ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nrows, ncols)
     return value
 
-  def extract_variable(self, name, group=None, datatype=LMP_VAR_EQUAL):
+  def extract_variable(self, name, group=None, vartype=LMP_VAR_EQUAL):
+    """ Evaluate a LAMMPS variable and return its data
+
+    This function is a wrapper around the function
+    :py:meth:`lammps.extract_variable() <lammps.lammps.extract_variable()>`
+    method. It behaves the same as the original method, but returns NumPy arrays
+    instead of ``ctypes`` pointers.
+
+    :param name: name of the variable to execute
+    :type name: string
+    :param group: name of group for atom-style variable (ignored for equal-style variables)
+    :type group: string
+    :param vartype: type of variable, see :ref:`py_vartype_constants`
+    :type vartype: int
+    :return: the requested data or None
+    :rtype: c_double, numpy.array, or NoneType
+    """
     import numpy as np
-    value = self.lmp.extract_variable(name, group, datatype)
-    if datatype == LMP_VAR_ATOM:
+    value = self.lmp.extract_variable(name, group, vartype)
+    if vartype == LMP_VAR_ATOM:
       return np.ctypeslib.as_array(value)
     return value
 

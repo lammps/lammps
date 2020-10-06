@@ -18,13 +18,14 @@
 !   See README for compilation instructions
 
 PROGRAM f_driver
+  USE mpi
+  USE liblammps
   IMPLICIT NONE
-  INCLUDE 'mpif.h'
 
   INTEGER, PARAMETER :: fp=20
   INTEGER :: n, narg, ierr, me, nprocs, natoms
-  INTEGER :: lammps, nprocs_lammps, comm_lammps
-  INTEGER (kind=8) :: ptr
+  INTEGER :: color, nprocs_lammps, comm_lammps
+  TYPE(LAMMPS) :: lmp
 
   REAL (kind=8), ALLOCATABLE :: x(:)
   REAL (kind=8), PARAMETER   :: epsilon=0.1
@@ -58,14 +59,14 @@ PROGRAM f_driver
      END IF
   END IF
 
-  lammps = 0
+  color = 0
   IF (me < nprocs_lammps) THEN
-     lammps = 1
+     color = 1
   ELSE
-     lammps = MPI_UNDEFINED
+     color = MPI_UNDEFINED
   END IF
 
-  CALL mpi_comm_split(MPI_COMM_WORLD,lammps,0,comm_lammps,ierr)
+  CALL mpi_comm_split(MPI_COMM_WORLD,color,0,comm_lammps,ierr)
 
   ! open LAMMPS input script on rank zero
 
@@ -81,7 +82,7 @@ PROGRAM f_driver
   ! (could just send it to proc 0 of comm_lammps and let it Bcast)
   ! all LAMMPS procs call lammps_command() on the line */
 
-  IF (lammps == 1) CALL lammps_open(comm_lammps,ptr)
+  IF (color == 1) lmp=lammps(comm=comm_lammps)
 
   n = 0
   DO
@@ -99,7 +100,7 @@ PROGRAM f_driver
      CALL mpi_bcast(n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
      IF (n == 0) EXIT
      CALL mpi_bcast(line,n,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-     IF (lammps == 1) CALL lammps_command(ptr,line,n)
+     IF (color == 1) CALL lmp%command(line(1:n))
   END DO
   CLOSE(UNIT=fp)
 
@@ -109,27 +110,27 @@ PROGRAM f_driver
   ! put coords back into LAMMPS
   ! run a single step with changed coords */
 
-  IF (lammps == 1) THEN
-     CALL lammps_command(ptr,'run 10',6)
+  IF (color == 1) THEN
+     CALL lmp%command('run 10')
 
-     CALL lammps_get_natoms(ptr,natoms)
+     natoms = NINT(lmp%get_natoms())
      ALLOCATE(x(3*natoms))
 
      ! these calls are commented out, b/c libfwrapper.c
      ! needs to be updated to use gather_atoms and scatter_atoms
 
-     !CALL lammps_gather_atoms(ptr,'x',1,3,x);
+     !CALL lammps_gather_atoms(ptr,'x',1,3,x)
      !x(1) = x(1) + epsilon
-     !CALL lammps_scatter_atoms(ptr,'x',1,3,x);
+     !CALL lammps_scatter_atoms(ptr,'x',1,3,x)
 
      DEALLOCATE(x)
 
-     CALL lammps_command(ptr,'run 1',5);
+     CALL lmp%command('run 1')
   END IF
 
   ! free LAMMPS object
 
-  IF (lammps == 1) CALL lammps_close(ptr);
+  IF (color == 1) CALL lmp%close()
 
   ! close down MPI
 

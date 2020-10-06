@@ -64,6 +64,8 @@ From: ubuntu:18.04
         texlive-publishers \
         texlive-science \
         dvipng \
+        latexmk \
+        xindy \
         vim-nox \
         virtualenv \
         voro++-dev \

@@ -224,6 +224,7 @@ ComputeSlice::~ComputeSlice()
   for (int m = 0; m < nvalues; m++) delete [] ids[m];
   delete [] ids;
   delete [] value2index;
+  delete [] extlist;
 
   memory->destroy(vector);
   memory->destroy(array);

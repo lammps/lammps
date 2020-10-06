@@ -61,7 +61,7 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
     if(!reader) {
       error->one(FLERR, fmt::format("cannot open {} potential file {}", potential_name, filename));
     }
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
 }
@@ -84,7 +84,7 @@ void PotentialFileReader::ignore_comments(bool value) {
 void PotentialFileReader::skip_line() {
   try {
     reader->skip_line();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
 }
@@ -103,7 +103,7 @@ void PotentialFileReader::skip_line() {
 char *PotentialFileReader::next_line(int nparams) {
   try {
     return reader->next_line(nparams);
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return nullptr;
@@ -121,7 +121,7 @@ char *PotentialFileReader::next_line(int nparams) {
 void PotentialFileReader::next_dvector(double * list, int n) {
   try {
     return reader->next_dvector(list, n);
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
 }
@@ -136,10 +136,10 @@ void PotentialFileReader::next_dvector(double * list, int n) {
  * \param   separators  String with list of separators.
  * \return              ValueTokenizer object for read in text */
 
-ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string & separators) {
+ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string &separators) {
   try {
     return reader->next_values(nparams, separators);
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return ValueTokenizer("");
@@ -153,7 +153,7 @@ double PotentialFileReader::next_double() {
   try {
     char * line = reader->next_line(1);
     return ValueTokenizer(line).next_double();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return 0.0;
@@ -167,7 +167,7 @@ int PotentialFileReader::next_int() {
   try {
     char * line = reader->next_line(1);
     return ValueTokenizer(line).next_int();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return 0;
@@ -181,7 +181,7 @@ tagint PotentialFileReader::next_tagint() {
   try {
     char * line = reader->next_line(1);
     return ValueTokenizer(line).next_tagint();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return 0;
@@ -195,7 +195,7 @@ bigint PotentialFileReader::next_bigint() {
   try {
     char * line = reader->next_line(1);
     return ValueTokenizer(line).next_bigint();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return 0;
@@ -209,7 +209,7 @@ std::string PotentialFileReader::next_string() {
   try {
     char * line = reader->next_line(1);
     return ValueTokenizer(line).next_string();
-  } catch (FileReaderException & e) {
+  } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
   return "";

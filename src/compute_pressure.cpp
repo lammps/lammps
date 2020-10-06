@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vptr(nullptr), id_temp(nullptr)
+  vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
   if (igroup) error->all(FLERR,"Compute pressure must use group all");
@@ -146,6 +146,7 @@ ComputePressure::~ComputePressure()
   delete [] id_temp;
   delete [] vector;
   delete [] vptr;
+  delete [] pstyle;
 }
 
 /* ---------------------------------------------------------------------- */

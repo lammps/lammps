@@ -885,7 +885,7 @@ char *Variable::retrieve(const char *name)
   if (which[ivar] >= num[ivar]) return nullptr;
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -931,8 +931,8 @@ char *Variable::retrieve(const char *name)
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0)
-      error->all(FLERR,fmt::format("Python variable '{}' does not match "
-                                   "Python function", name));
+      error->all(FLERR,fmt::format("Python variable {} does not match "
+                                   "Python function {}", name, data[ivar][0]));
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -960,7 +960,7 @@ char *Variable::retrieve(const char *name)
 double Variable::compute_equal(int ivar)
 {
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -970,7 +970,8 @@ double Variable::compute_equal(int ivar)
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);
     if (ifunc < 0)
-      print_var_error(FLERR,"Python variable has no function",ivar);
+      print_var_error(FLERR,fmt::format("cannot find python function {}",
+                                        data[ivar][0]),ivar);
     python->invoke_function(ifunc,data[ivar][1]);
     value = atof(data[ivar][1]);
   }
@@ -1004,7 +1005,7 @@ void Variable::compute_atom(int ivar, int igroup,
   double *vstore;
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -1080,7 +1081,7 @@ int Variable::compute_vector(int ivar, double **result)
   }
 
   if (eval_in_progress[ivar])
-    print_var_error(FLERR,"Variable has a circular dependency",ivar);
+    print_var_error(FLERR,"has a circular dependency",ivar);
 
   eval_in_progress[ivar] = 1;
 
@@ -1899,10 +1900,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         int ivar = find(word+2);
         if (ivar < 0)
-          print_var_error(FLERR,"Invalid variable reference "
-                          "in variable formula",ivar);
+          print_var_error(FLERR,fmt::format("Invalid variable reference "
+                                "{} in variable formula",word),ivar);
         if (eval_in_progress[ivar])
-          print_var_error(FLERR,"Variable has circular dependency",ivar);
+          print_var_error(FLERR,"has a circular dependency",ivar);
 
         // parse zero or one trailing brackets
         // point i beyond last bracket
@@ -2686,23 +2687,23 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == STAGGER) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
-    int lower = update->ntimestep/ivalue1 * ivalue1;
-    int delta = update->ntimestep - lower;
+    bigint lower = update->ntimestep/ivalue1 * ivalue1;
+    bigint delta = update->ntimestep - lower;
     if (delta < ivalue2) tree->value = lower+ivalue2;
     else tree->value = lower+ivalue1;
     return tree->value;
   }
 
   if (tree->type == LOGFREQ) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
+    bigint ivalue3 = static_cast<bigint> (collapse_tree(tree->extra[0]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -2710,9 +2711,9 @@ double Variable::collapse_tree(Tree *tree)
       error->one(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
     else {
-      int lower = ivalue1;
+      bigint lower = ivalue1;
       while (update->ntimestep >= ivalue3*lower) lower *= ivalue3;
-      int multiple = update->ntimestep/lower;
+      bigint multiple = update->ntimestep/lower;
       if (multiple < ivalue2) tree->value = (multiple+1)*lower;
       else tree->value = lower*ivalue3;
     }
@@ -2720,9 +2721,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LOGFREQ2) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
+    bigint ivalue3 = static_cast<bigint> (collapse_tree(tree->extra[0]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -2732,7 +2733,7 @@ double Variable::collapse_tree(Tree *tree)
     else {
       tree->value = ivalue1;
       double delta = ivalue1*(ivalue3-1.0)/ivalue2;
-      int count = 0;
+      bigint count = 0;
       while (update->ntimestep >= tree->value) {
         tree->value += delta;
         count++;
@@ -2744,9 +2745,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LOGFREQ3) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
+    bigint ivalue3 = static_cast<bigint> (collapse_tree(tree->extra[0]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -2759,7 +2760,7 @@ double Variable::collapse_tree(Tree *tree)
       tree->value = ivalue1;
       double logsp = ivalue1;
       double factor = pow(((double)ivalue3)/ivalue1, 1.0/(ivalue2-1));
-      int linsp = ivalue1;
+      bigint linsp = ivalue1;
       while (update->ntimestep >= (tree->value)) {
         logsp *= factor;
         linsp++;
@@ -2773,9 +2774,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == STRIDE) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
+    bigint ivalue3 = static_cast<bigint> (collapse_tree(tree->extra[0]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -2783,7 +2784,7 @@ double Variable::collapse_tree(Tree *tree)
       error->one(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
     else if (update->ntimestep < ivalue2) {
-      int offset = update->ntimestep - ivalue1;
+      bigint offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
       if (tree->value > ivalue2) tree->value = (double) MAXBIGINT;
     } else tree->value = (double) MAXBIGINT;
@@ -2791,12 +2792,12 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == STRIDE2) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
-    int ivalue4 = static_cast<int> (collapse_tree(tree->extra[1]));
-    int ivalue5 = static_cast<int> (collapse_tree(tree->extra[2]));
-    int ivalue6 = static_cast<int> (collapse_tree(tree->extra[3]));
+    bigint ivalue1 = static_cast<bigint> (collapse_tree(tree->first));
+    bigint ivalue2 = static_cast<bigint> (collapse_tree(tree->second));
+    bigint ivalue3 = static_cast<bigint> (collapse_tree(tree->extra[0]));
+    bigint ivalue4 = static_cast<bigint> (collapse_tree(tree->extra[1]));
+    bigint ivalue5 = static_cast<bigint> (collapse_tree(tree->extra[2]));
+    bigint ivalue6 = static_cast<bigint> (collapse_tree(tree->extra[3]));
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE || tree->extra[1]->type != VALUE ||
         tree->extra[2]->type != VALUE || tree->extra[3]->type != VALUE)
@@ -2812,15 +2813,15 @@ double Variable::collapse_tree(Tree *tree)
     if (update->ntimestep < ivalue1) istep = ivalue1;
     else if (update->ntimestep < ivalue2) {
       if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
-        int offset = update->ntimestep - ivalue1;
+        bigint offset = update->ntimestep - ivalue1;
         istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
         if (update->ntimestep < ivalue2 && istep > ivalue4)
           tree->value = ivalue4;
       } else {
-        int offset = update->ntimestep - ivalue4;
+        bigint offset = update->ntimestep - ivalue4;
         istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
         if (istep > ivalue5) {
-          int offset = ivalue5 - ivalue1;
+          bigint offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
           if (istep > ivalue2) istep = MAXBIGINT;
         }
@@ -4217,7 +4218,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         print_var_error(FLERR,"Mis-matched special function variable "
                         "in variable formula",ivar);
       if (eval_in_progress[ivar])
-        print_var_error(FLERR,"Variable has circular dependency",ivar);
+        print_var_error(FLERR,"has a circular dependency",ivar);
 
       double *vec;
       nvec = compute_vector(ivar,&vec);
@@ -4713,7 +4714,7 @@ int Variable::is_constant(char *word)
 double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
-  if (strcmp(word,"version") == 0) return atof(universe->num_ver);
+  if (strcmp(word,"version") == 0) return lmp->num_ver;
   if (strcmp(word,"yes") == 0) return 1.0;
   if (strcmp(word,"no") == 0) return 0.0;
   if (strcmp(word,"on") == 0) return 1.0;

@@ -849,6 +849,8 @@ void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Dealloc() {
   //assert(! is_preallocated);
   Dealloc2D(&M);
+  delete[] max_idx_row;
+  max_idx_row = nullptr;
   Init();
 }
 
@@ -933,7 +935,7 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
   //assert(matrix_size > 0);
   //assert(0 < this->tridiag_eps_ratio && this->tridiag_eps_ratio < 1);
 
-  std::vector<std::vector<T>> u;     // Lanczos vectors
+  std::vector<std::vector<T>> u; // Lanczos vectors
   std::vector<real_t<T>> alpha; // Diagonal elements of an approximated tridiagonal matrix
   std::vector<real_t<T>> beta;  // Subdiagonal elements of an approximated tridiagonal matrix
 

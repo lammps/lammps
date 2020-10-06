@@ -23,25 +23,28 @@ The content for this manual is part of the LAMMPS distribution.  You
 can build a local copy of the Manual as HTML pages or a PDF file, by
 following the steps on the :doc:`Manual build <Manual_build>` doc page.
 The manual is organized in two parts:
-1) A :ref:`User documentation <user_documentation>` for how to install
-and use LAMMPS and 2) a :ref:`Programmer documentation <programmer_documentation>`
-for how to write programs using the LAMMPS library or how to modify LAMMPS.
+1) the :ref:`User documentation <user_documentation>` for how to install
+and use LAMMPS and 2) the :ref:`Programmer documentation <programmer_documentation>`
+for how to write programs using the LAMMPS library from different
+programming languages and how to modify and extend LAMMPS.
 
-----------
+.. only:: html
 
-Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
-every LAMMPS command.
+   Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
+   every LAMMPS command.
 
 .. _lws: https://lammps.sandia.gov
+
+----------
 
 User Documentation
 ******************
 
-..   :caption: User Documentation
 .. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
+   :caption: User Documentation
    :name: userdoc
    :includehidden:
 
@@ -55,23 +58,24 @@ User Documentation
    Howto
    Examples
    Tools
-   Python_head
    Errors
    Manual_build
 
 Programmer Documentation
 ************************
-..   :caption: Programmer Documentation
+
 .. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
+   :caption: Programmer Documentation
    :name: progdoc
    :includehidden:
 
-   pg_library
+   Library
+   Python_head
    Modify
-   pg_developer
+   Developer
 
 .. toctree::
    :caption: Index
@@ -87,6 +91,7 @@ Programmer Documentation
    dihedrals
    impropers
    fix_modify_atc_commands
+   Bibliography
 
 Indices and tables
 ******************

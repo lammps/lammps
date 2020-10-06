@@ -16,6 +16,7 @@
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;
+using ::LAMMPS_NS::tagint;
 
 class LibraryProperties : public ::testing::Test {
 protected:
@@ -53,16 +54,16 @@ protected:
 
 TEST_F(LibraryProperties, version)
 {
-    EXPECT_GE(20200824, lammps_version(lmp));
+    EXPECT_LT(20200917, lammps_version(lmp));
 };
 
 TEST_F(LibraryProperties, memory_usage)
 {
     double meminfo[3];
-    lammps_memory_usage(lmp,meminfo);
+    lammps_memory_usage(lmp, meminfo);
     EXPECT_GT(meminfo[0], 0.0);
 #if defined(__linux__) || defined(_WIN32)
-    EXPECT_GT(meminfo[1], 0.0);
+    EXPECT_GE(meminfo[1], 0.0);
 #endif
     EXPECT_GT(meminfo[2], 0.0);
 };
@@ -264,8 +265,7 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log",      "none",
-                              "-echo",       "screen",    "-nocite"};
+        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
 
         char **argv = (char **)args;
         int argc    = sizeof(args) / sizeof(char *);
@@ -303,7 +303,7 @@ TEST_F(AtomProperties, invalid)
 TEST_F(AtomProperties, mass)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
-    double * mass = (double *)lammps_extract_atom(lmp, "mass");
+    double *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
 }
@@ -311,7 +311,7 @@ TEST_F(AtomProperties, mass)
 TEST_F(AtomProperties, id)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
-    LAMMPS_NS::tagint * id = (LAMMPS_NS::tagint *)lammps_extract_atom(lmp, "id");
+    tagint *id = (tagint *)lammps_extract_atom(lmp, "id");
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id[0], 1);
     ASSERT_EQ(id[1], 2);
@@ -320,7 +320,7 @@ TEST_F(AtomProperties, id)
 TEST_F(AtomProperties, type)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "type"), LAMMPS_INT);
-    int * type = (int *)lammps_extract_atom(lmp, "type");
+    int *type = (int *)lammps_extract_atom(lmp, "type");
     ASSERT_NE(type, nullptr);
     ASSERT_EQ(type[0], 1);
     ASSERT_EQ(type[1], 1);
@@ -329,7 +329,7 @@ TEST_F(AtomProperties, type)
 TEST_F(AtomProperties, position)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
-    double ** x = (double **)lammps_extract_atom(lmp, "x");
+    double **x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);
     EXPECT_DOUBLE_EQ(x[0][1], 1.0);

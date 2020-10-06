@@ -37,7 +37,7 @@ if (Python_EXECUTABLE)
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
     endif()
   else()
-    set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE})
+    set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
   endif()
 
   add_test(NAME PythonOpen

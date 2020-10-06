@@ -169,6 +169,8 @@ class lammps(object):
     # determine module file location
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
+    # for windows installers the shared library is in a different folder
+    winpath = abspath(os.path.join(modpath,'..','bin'))
     self.lib = None
     self.lmp = None
 
@@ -197,6 +199,10 @@ class lammps(object):
     elif any([f.startswith('liblammps') and f.endswith('.dll')
               for f in os.listdir(modpath)]):
       lib_ext = ".dll"
+    elif os.path.exists(winpath) and any([f.startswith('liblammps') and f.endswith('.dll')
+                  for f in os.listdir(winpath)]):
+      lib_ext = ".dll"
+      modpath = winpath
     else:
       lib_ext = ".so"
 
@@ -668,7 +674,7 @@ class lammps(object):
   def version(self):
     """Return a numerical representation of the LAMMPS version in use.
 
-    This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
+    This is a wrapper around the :cpp:func:`lammps_version` function of the C-library interface.
 
     :return: version number
     :rtype:  int

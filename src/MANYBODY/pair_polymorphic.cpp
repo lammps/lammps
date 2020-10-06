@@ -612,7 +612,7 @@ void PairPolymorphic::read_file(char *file)
 
         if ((ng == 0) || (nr == 0) || (nx == 0))
           error->one(FLERR,"Error reading potential file header");
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR,"Potential file incompatible with this pair style version");
       }
 
@@ -631,7 +631,7 @@ void PairPolymorphic::read_file(char *file)
         p.cutsq = p.cut*p.cut;
         p.xi = values.next_double();
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

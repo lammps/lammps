@@ -159,11 +159,11 @@ others (e.g. GCC version 9 and beyond, Clang version 10 and later) may
 implement strict OpenMP 4.0 and later semantics, which are incompatible
 with the OpenMP 3.1 semantics used in LAMMPS for maximal compatibility
 with compiler versions in use.  If compilation with OpenMP enabled fails
-because of your compiler requiring strict OpenMP 4.0 semantic, you can
+because of your compiler requiring strict OpenMP 4.0 semantics, you can
 change the behavior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the
 ``LMP_INC`` variable in your makefile, or add it to the command line
-while configuring with CMake. CMake will detect the suitable setting for
-the GNU, Clang, and Intel compilers.
+while configuring with CMake.  LAMMPS will auto-detect a suitable setting
+for most GNU, Clang, and Intel compilers.
 
 ----------
 
@@ -541,7 +541,8 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value       # yes or no (default)
+         -D BUILD_TOOLS=value         # yes or no (default)
+         -D BUILD_LAMMPS_SHELL=value  # yes or no (default)
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -556,6 +557,9 @@ using CMake or Make.
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
          make thermo_extract   # build only thermo_extract tool
+
+         cd lammps/tools/lammps-shell
+         make                  # build LAMMPS shell
 
 ----------
 

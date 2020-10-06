@@ -30,11 +30,6 @@ using namespace LAMMPS_NS;
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (const char *) LAMMPS_VERSION;
-  auto tmp_ver = new char[10];
-  snprintf(tmp_ver,10,"%08d",utils::date2num(version));
-  num_ver = tmp_ver;
-
   uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);
   MPI_Comm_size(uworld,&nprocs);
@@ -59,7 +54,6 @@ Universe::~Universe()
   memory->destroy(procs_per_world);
   memory->destroy(root_proc);
   memory->destroy(uni2orig);
-  delete [] num_ver;
 }
 
 /* ----------------------------------------------------------------------

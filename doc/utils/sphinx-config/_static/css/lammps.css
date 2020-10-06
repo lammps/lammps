@@ -27,6 +27,14 @@ hr {
      margin-bottom: 12px !important;
 }
 
+#user-documentation.section h2 {
+     display: none;
+}
+
+#programmer-documentation.section h2 {
+     display: none;
+}
+
 .ui.tabular.menu .item {
     padding-right: 1em;
     padding-left: 1em;
@@ -35,7 +43,7 @@ hr {
     border-radius: 6px;
 }
 
-.btn {
+.btn, .btn:active {
     padding: 4px;
     font-size: 80%;
     border-radius: 4px;

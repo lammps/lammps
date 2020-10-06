@@ -424,7 +424,7 @@ void WriteRestart::write(std::string file)
 
 void WriteRestart::header()
 {
-  write_string(VERSION,universe->version);
+  write_string(VERSION,lmp->version);
   write_int(SMALLINT,sizeof(smallint));
   write_int(IMAGEINT,sizeof(imageint));
   write_int(TAGINT,sizeof(tagint));

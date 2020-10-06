@@ -12,7 +12,11 @@ except:
     pass
 
 try:
-    lmp = lammps()
+    if 'LAMMPS_MACHINE_NAME' in os.environ:
+        machine = os.environ['LAMMPS_MACHINE_NAME']
+    else:
+        machine = ""
+    lmp = lammps(name=machine)
     has_mpi = lmp.has_mpi_support
     lmp.close()
 except:

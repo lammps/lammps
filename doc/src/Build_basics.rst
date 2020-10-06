@@ -542,7 +542,8 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value       # yes or no (default)
+         -D BUILD_TOOLS=value         # yes or no (default)
+         -D BUILD_LAMMPS_SHELL=value  # yes or no (default)
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -557,6 +558,9 @@ using CMake or Make.
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
          make thermo_extract   # build only thermo_extract tool
+
+         cd lammps/tools/lammps-shell
+         make                  # build LAMMPS shell
 
 ----------
 

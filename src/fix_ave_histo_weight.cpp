@@ -403,7 +403,7 @@ void FixAveHistoWeight::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // merge histogram stats across procs if necessary

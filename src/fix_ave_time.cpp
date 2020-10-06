@@ -640,7 +640,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep
@@ -743,7 +743,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         if (!varlen[i] || which[i] != COMPUTE) continue;
         if (nrepeat > 1 && ave == ONE) {
           Compute *compute = modify->compute[value2index[i]];
-          compute->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+          compute->lock(this,ntimestep,ntimestep+static_cast<bigint>(nrepeat-1)*nevery);
         } else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
           Compute *compute = modify->compute[value2index[i]];
           compute->lock(this,update->ntimestep,-1);
@@ -838,7 +838,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   }
 
   irepeat = 0;
-  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // unlock any variable length computes at end of Nfreq epoch
@@ -1146,7 +1146,7 @@ bigint FixAveTime::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= static_cast<bigint>(nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

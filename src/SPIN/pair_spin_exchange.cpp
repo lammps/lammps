@@ -426,10 +426,6 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq,
   fi[0] -= 0.5*fx;
   fi[1] -= 0.5*fy;
   fi[2] -= 0.5*fz;
-  // fi[0] -= fx;
-  // fi[1] -= fy;
-  // fi[2] -= fz;
-
 }
 
 /* ----------------------------------------------------------------------

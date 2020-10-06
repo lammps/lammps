@@ -3,13 +3,15 @@ Installation
 
 The LAMMPS Python module enables calling the :ref:`LAMMPS C library API <lammps_c_api>`
 from Python by dynamically loading functions in the LAMMPS shared library through the
-Python ``ctypes`` module. Because of the dynamic loading, it is required that
-LAMMPS is compiled in *shared mode*.
+Python ``ctypes`` module.  Because of the dynamic loading, it is required that
+LAMMPS is compiled in :ref:`"shared" mode <exe>`.  It is also recommended
+to compile LAMMPS with :ref:`C++ exceptions <exceptions>` enabled.
 
 Two files are necessary for Python to be able to invoke LAMMPS code:
 
-* LAMMPS Python Module (``python/lammps.py``)
-* LAMMPS Shared Library (e.g., ``liblammps.so``)
+* The LAMMPS Python Module (``lammps.py``) from the ``python`` folder
+* The LAMMPS Shared Library (``liblammps.so``, ``liblammps.dylib`` or ``liblammps.dll``)
+  from the folder where you compiled LAMMPS.
 
 
 .. _python_virtualenv: https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment
@@ -24,7 +26,7 @@ Installing the LAMMPS Python Module and Shared Library
 Making LAMMPS usable within Python and vice versa requires putting the LAMMPS
 Python module into a location that the Python interpreter can find and
 installing the LAMMPS shared library into a folder that the dynamic loader
-searches. For some potentials LAMMPS also needs to know where it can find the
+searches.  For some potentials LAMMPS also needs to know where it can find the
 necessary potential files.
 
 Both CMake and traditional make build options offer ways to automate these tasks.
@@ -225,13 +227,17 @@ Both CMake and traditional make build options offer ways to automate these tasks
       LAMMPS and its Python module can be installed together into a
       Python virtual environment.
 
-      A virtual environment is a minimalistic Python installation inside of a
-      folder. It allows isolating and customizing a Python environment that is
-      independent from a user or system installation. This gives you the flexibility
-      to install (newer) versions of Python packages that would potentially conflict
-      with already installed system packages. It also does not requite any superuser
-      privileges. See `PEP 405: Python Virtual Environments <python_pep405>`_
-      for more information.
+      A virtual environment is a minimal Python installation inside of a
+      folder.  It allows isolating and customizing a Python environment
+      that is mostly independent from a user or system installation.
+      For the core Python environment, it uses symbolic links to the
+      system installation and thus it can be set up quickly and will not
+      take up much disk space.  This gives you the flexibility to
+      install (newer/different) versions of Python packages that would
+      potentially conflict with already installed system packages.  It
+      also does not requite any superuser privileges. See `PEP 405:
+      Python Virtual Environments <python_pep405>`_ for more
+      information.
 
       To install into the virtual environment, it is first activated and the
       ``CMAKE_INSTALL_PREFIX`` is set to value of the ``$VIRTUAL_ENV`` environment
@@ -266,7 +272,7 @@ Both CMake and traditional make build options offer ways to automate these tasks
 
       2. Modify the ``$HOME/myenv/bin/activate`` script
 
-         The ``activate`` script initializes the environment for use. For convienience,
+         The ``activate`` script initializes the environment for use. For convenience,
          add two additional lines at the end of this script:
 
          * To allow the dynamic library loader to find the LAMMPS shared library, add

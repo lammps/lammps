@@ -68,7 +68,7 @@ Note that without the mpi4py specific lines from ``test.py``
 running the script with ``mpirun`` on :math:`P` processors would lead to
 :math:`P` independent simulations to run parallel, each with a single
 processor. Therefore, if you use the mpi4py lines and you see multiple LAMMPS
-single processor outputs. that means mpi4py isn't working correctly.
+single processor outputs, mpi4py is not working correctly.
 
 Also note that once you import the mpi4py module, mpi4py initializes MPI
 for you, and you can use MPI calls directly in your Python script, as

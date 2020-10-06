@@ -446,7 +446,7 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
       :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.extract_compute()>`,
       :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.extract_fix()>`, and
       :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.extract_variable()>` are
-      equivlanent NumPy implementations that return NumPy arrays instead of ``ctypes`` pointers.
+      equivalent NumPy implementations that return NumPy arrays instead of ``ctypes`` pointers.
 
       The :py:meth:`lammps.set_variable() <lammps.lammps.set_variable()>` method sets an
       existing string-style variable to a new string value, so that subsequent LAMMPS

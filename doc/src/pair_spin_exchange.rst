@@ -1,4 +1,5 @@
 .. index:: pair_style spin/exchange
+.. index:: pair_style spin/exchange/biquadratic
 
 pair_style spin/exchange command
 ================================

@@ -57,7 +57,7 @@ void NPairHalfBinNewtoffGhost::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
 
   int *ilist = list->ilist;
@@ -106,7 +106,7 @@ void NPairHalfBinNewtoffGhost::build(NeighList *list)
           rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular) {
+            if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
                 which = find_special(special[i],nspecial[i],tag[j]);
               else if (imol >= 0)

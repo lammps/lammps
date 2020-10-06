@@ -35,7 +35,8 @@ stable time increment accessible for output purposes.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -58,4 +59,7 @@ Related commands
 
 :doc:`smd/adjust/dt <fix_smd_adjust_dt>`
 
-**Default:** none
+Default
+"""""""
+
+none

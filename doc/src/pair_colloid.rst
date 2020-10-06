@@ -1,13 +1,11 @@
 .. index:: pair_style colloid
+.. index:: pair_style colloid/gpu
+.. index:: pair_style colloid/omp
 
 pair_style colloid command
 ==========================
 
-pair_style colloid/gpu command
-==============================
-
-pair_style colloid/omp command
-==============================
+Accelerator Variants: *colloid/gpu*, *colloid/omp*
 
 Syntax
 """"""
@@ -165,7 +163,8 @@ colloid-solvent cutoff in this case.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A, sigma, d1, and d2
 coefficients and cutoff distance for this pair style can be mixed.  A
@@ -214,7 +213,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

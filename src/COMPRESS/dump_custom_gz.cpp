@@ -16,14 +16,18 @@
 #include "error.h"
 #include "update.h"
 
+
 #include <cstring>
+
 
 using namespace LAMMPS_NS;
 
 DumpCustomGZ::DumpCustomGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
+
+  compression_level = Z_BEST_COMPRESSION;
 
   if (!compressed)
     error->all(FLERR,"Dump custom/gz only writes compressed files");
@@ -35,8 +39,8 @@ DumpCustomGZ::DumpCustomGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpCustomGZ::~DumpCustomGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -91,14 +95,17 @@ void DumpCustomGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
+    std::string mode;
     if (append_flag) {
-      gzFp = gzopen(filecurrent,"ab9");
+      mode = fmt::format("ab{}", compression_level);
     } else {
-      gzFp = gzopen(filecurrent,"wb9");
+      mode = fmt::format("wb{}", compression_level);
     }
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    gzFp = gzopen(filecurrent, mode.c_str());
+
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -120,14 +127,14 @@ void DumpCustomGZ::write_header(bigint ndump)
     gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic == 0) {
       gzprintf(gzFp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxxlo,boxxhi);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxylo,boxyhi);
-      gzprintf(gzFp,"%-1.16g %-1.16g\n",boxzlo,boxzhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+      gzprintf(gzFp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
     } else {
       gzprintf(gzFp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxxlo,boxxhi,boxxy);
-      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxylo,boxyhi,boxxz);
-      gzprintf(gzFp,"%-1.16g %-1.16g %-1.16g\n",boxzlo,boxzhi,boxyz);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+      gzprintf(gzFp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
     }
     gzprintf(gzFp,"ITEM: ATOMS %s\n",columns);
   }
@@ -148,7 +155,7 @@ void DumpCustomGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);
@@ -156,3 +163,21 @@ void DumpCustomGZ::write()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+int DumpCustomGZ::modify_param(int narg, char **arg)
+{
+  int consumed = DumpCustom::modify_param(narg, arg);
+  if(consumed == 0) {
+    if (strcmp(arg[0],"compression_level") == 0) {
+      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      int min_level = Z_DEFAULT_COMPRESSION;
+      int max_level = Z_BEST_COMPRESSION;
+      compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
+      if (compression_level < min_level || compression_level > max_level)
+        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
+      return 2;
+    }
+  }
+  return consumed;
+}

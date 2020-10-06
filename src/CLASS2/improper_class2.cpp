@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_class2.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -27,8 +27,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -523,19 +523,19 @@ void ImproperClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   int count = 0;
 
   if (strcmp(arg[1],"aa") == 0) {
     if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients");
 
-    double k1_one = force->numeric(FLERR,arg[2]);
-    double k2_one = force->numeric(FLERR,arg[3]);
-    double k3_one = force->numeric(FLERR,arg[4]);
-    double theta0_1_one = force->numeric(FLERR,arg[5]);
-    double theta0_2_one = force->numeric(FLERR,arg[6]);
-    double theta0_3_one = force->numeric(FLERR,arg[7]);
+    double k1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double theta0_1_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double theta0_2_one = utils::numeric(FLERR,arg[6],false,lmp);
+    double theta0_3_one = utils::numeric(FLERR,arg[7],false,lmp);
 
     // convert theta0's from degrees to radians
 
@@ -553,8 +553,8 @@ void ImproperClass2::coeff(int narg, char **arg)
   } else {
     if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
 
-    double k0_one = force->numeric(FLERR,arg[1]);
-    double chi0_one = force->numeric(FLERR,arg[2]);
+    double k0_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double chi0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
     // convert chi0 from degrees to radians
 
@@ -598,15 +598,15 @@ void ImproperClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&chi0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&k0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&chi0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&aa_k1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_k2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_k3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_k1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_k2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_k3[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

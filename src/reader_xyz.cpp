@@ -16,10 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_xyz.h"
-#include <cstdlib>
+
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +31,7 @@ enum{ID,TYPE,X,Y,Z};
 ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
-  fieldindex = NULL;
+  fieldindex = nullptr;
   nstep = 0;
 }
 
@@ -53,7 +52,7 @@ ReaderXYZ::~ReaderXYZ()
 int ReaderXYZ::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) return 1;
+  if (eof == nullptr) return 1;
 
   // first line has to have the number of atoms
   // truncate the string to the first whitespace,
@@ -65,7 +64,7 @@ int ReaderXYZ::read_time(bigint &ntimestep)
       break;
     }
   }
-  natoms = force->bnumeric(FLERR,line);
+  natoms = utils::bnumeric(FLERR,line,false,lmp);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
 
@@ -110,7 +109,7 @@ void ReaderXYZ::skip()
      match Nfield fields to per-atom column labels
      allocate and set fieldindex = which column each field maps to
      fieldtype = X,VX,IZ etc
-     fieldlabel = user-specified label or NULL if use fieldtype default
+     fieldlabel = user-specified label or nullptr if use fieldtype default
    xyz flag = scaledflag if has fieldlabel name, else set by x,xs,xu,xsu
    only called by proc 0
 ------------------------------------------------------------------------- */
@@ -175,7 +174,7 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 
   for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 
     ++nid;
     rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
@@ -217,8 +216,8 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 
 void ReaderXYZ::read_lines(int n)
 {
-  char *eof = NULL;
+  char *eof = nullptr;
   if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 }

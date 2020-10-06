@@ -203,7 +203,8 @@ spacings can be different in x,y,z.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the original coordinates of moving atoms to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the
@@ -241,6 +242,9 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`displace_atoms <displace_atoms>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option default is units = lattice.

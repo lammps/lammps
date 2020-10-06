@@ -1,16 +1,12 @@
 .. index:: dihedral_style harmonic
+.. index:: dihedral_style harmonic/intel
+.. index:: dihedral_style harmonic/kk
+.. index:: dihedral_style harmonic/omp
 
 dihedral_style harmonic command
 ===============================
 
-dihedral_style harmonic/intel command
-=====================================
-
-dihedral_style harmonic/kk command
-==================================
-
-dihedral_style harmonic/omp command
-===================================
+Accelerator Variants: *harmonic/intel*, *harmonic/kk*, *harmonic/omp*
 
 Syntax
 """"""
@@ -76,4 +72,7 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

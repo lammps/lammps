@@ -17,11 +17,11 @@
 
 #include "fix_nph_body.h"
 #include <cstring>
-#include <string>
+
 #include "group.h"
 #include "modify.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

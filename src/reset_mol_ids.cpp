@@ -16,26 +16,47 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_mol_ids.h"
-#include <mpi.h>
-#include <string>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
+#include "compute_chunk_atom.h"
+#include "compute_fragment_atom.h"
+#include "domain.h"
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "compute_fragment_atom.h"
-#include "compute_chunk_atom.h"
-#include "utils.h"
-#include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {}
+ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
+  cfa = nullptr;
+  cca = nullptr;
+
+  // default settings
+
+  compressflag = 1;
+  singleflag = 0;
+  offset = -1;
+
+  idfrag.clear();
+  idchunk.clear();
+}
 
 /* ---------------------------------------------------------------------- */
+
+ResetMolIDs::~ResetMolIDs()
+{
+  if (!idfrag.empty()) modify->delete_compute(idfrag);
+  if (compressflag && !idchunk.empty()) modify->delete_compute(idchunk);
+}
+
+/* ----------------------------------------------------------------------
+   called as reset_mol_ids command in input script
+------------------------------------------------------------------------- */
 
 void ResetMolIDs::command(int narg, char **arg)
 {
@@ -43,19 +64,13 @@ void ResetMolIDs::command(int narg, char **arg)
     error->all(FLERR,"Reset_mol_ids command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use reset_mol_ids unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Can only use reset_mol_ids on molecular systems");
 
   // process args
 
   if (narg < 1) error->all(FLERR,"Illegal reset_mol_ids command");
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
-  int groupbit = group->bitmask[igroup];
-
-  int compressflag = 1;
-  int singleflag = 0;
-  tagint offset = -1;
+  char *groupid = arg[0];
 
   int iarg = 1;
   while (iarg < narg) {
@@ -86,20 +101,6 @@ void ResetMolIDs::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
 
-  // create instances of compute fragment/atom, compute reduce (if needed),
-  // and compute chunk/atom.  all use the group-ID for this command
-
-  const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
-  if (singleflag)
-    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,arg[0]));
-  else
-    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,arg[0]));
-
-  const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
-  if (compressflag)
-    modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-                                    idchunk,arg[0]));
-
   // initialize system since comm->borders() will be invoked
 
   lmp->init();
@@ -116,12 +117,73 @@ void ResetMolIDs::command(int narg, char **arg)
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
+  // create computes
+
+  create_computes((char *) "COMMAND",groupid);
+
+  // reset molecule IDs
+
+  reset();
+
+  // total time
+
+  MPI_Barrier(world);
+
+  if (comm->me == 0) {
+    if (nchunk < 0)
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
+    else
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
+    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
+                                   MPI_Wtime()-time1));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   create computes used by reset_mol_ids
+------------------------------------------------------------------------- */
+
+void ResetMolIDs::create_computes(char *fixid, char *groupid)
+{
+  int igroup = group->find(groupid);
+  if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
+  groupbit = group->bitmask[igroup];
+
+  // create instances of compute fragment/atom, compute reduce (if needed),
+  // and compute chunk/atom.  all use the group-ID for this command.
+  // 'fixid' allows for creating independent instances of the computes
+
+  idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
+  if (singleflag)
+    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,groupid));
+  else
+    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,groupid));
+
+  idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
+  if (compressflag)
+    modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
+                                    idchunk,groupid));
+
+  int icompute = modify->find_compute(idfrag);
+  cfa = (ComputeFragmentAtom *) modify->compute[icompute];
+
+
+  if (compressflag) {
+    icompute = modify->find_compute(idchunk);
+    cca = (ComputeChunkAtom *) modify->compute[icompute];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   called from command() and directly from fixes that update molecules
+------------------------------------------------------------------------- */
+
+void ResetMolIDs::reset()
+{
   // invoke peratom method of compute fragment/atom
   // walks bond connectivity and assigns each atom a fragment ID
   // if singleflag = 0, atoms w/out bonds will be assigned fragID = 0
 
-  int icompute = modify->find_compute(idfrag);
-  ComputeFragmentAtom *cfa = (ComputeFragmentAtom *) modify->compute[icompute];
   cfa->compute_peratom();
   double *fragIDs = cfa->vector_atom;
 
@@ -138,15 +200,13 @@ void ResetMolIDs::command(int narg, char **arg)
   // if compressflag = 0, done
   // set nchunk = -1 since cannot easily determine # of new molecule IDs
 
-  int nchunk = -1;
+  nchunk = -1;
 
   // if compressflag = 1, invoke peratom method of compute chunk/atom
   // will compress new molecule IDs to be contiguous 1 to Nmol
   // NOTE: use of compute chunk/atom limits Nmol to a 32-bit int
 
   if (compressflag) {
-    icompute = modify->find_compute(idchunk);
-    ComputeChunkAtom *cca = (ComputeChunkAtom *) modify->compute[icompute];
     cca->compute_peratom();
     double *chunkIDs = cca->vector_atom;
     nchunk = cca->nchunk;
@@ -192,23 +252,5 @@ void ResetMolIDs::command(int narg, char **arg)
         molecule[i] = newid;
       }
     }
-  }
-
-  // clean up
-
-  modify->delete_compute(idfrag);
-  if (compressflag) modify->delete_compute(idchunk);
-
-  // total time
-
-  MPI_Barrier(world);
-
-  if (comm->me == 0) {
-    if (nchunk < 0)
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
-    else
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
-    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
   }
 }

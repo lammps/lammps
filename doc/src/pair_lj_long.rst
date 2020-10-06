@@ -1,22 +1,19 @@
 .. index:: pair_style lj/long/coul/long
+.. index:: pair_style lj/long/coul/long/intel
+.. index:: pair_style lj/long/coul/long/omp
+.. index:: pair_style lj/long/coul/long/opt
+.. index:: pair_style lj/long/tip4p/long
+.. index:: pair_style lj/long/tip4p/long/omp
 
 pair_style lj/long/coul/long command
 ====================================
 
-pair_style lj/long/coul/long/intel command
-==========================================
-
-pair_style lj/long/coul/long/omp command
-========================================
-
-pair_style lj/long/coul/long/opt command
-========================================
+Accelerator Variants: *lj/long/coul/long/intel*, *lj/long/coul/long/omp*, *lj/long/coul/long/opt*
 
 pair_style lj/long/tip4p/long command
 =====================================
 
-pair_style lj/long/tip4p/long/omp command
-=========================================
+Accelerator Variants: *lj/long/tip4p/long/omp*
 
 Syntax
 """"""
@@ -190,7 +187,8 @@ only available if LAMMPS was built with that package. See the :doc:`Build packag
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/long pair styles can be mixed.
@@ -231,7 +229,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

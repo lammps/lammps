@@ -1,13 +1,11 @@
 .. index:: pair_style resquared
+.. index:: pair_style resquared/gpu
+.. index:: pair_style resquared/omp
 
 pair_style resquared command
 ============================
 
-pair_style resquared/gpu command
-================================
-
-pair_style resquared/omp command
-================================
+Accelerator Variants: *resquared/gpu*, *resquared/omp*
 
 Syntax
 """"""
@@ -162,7 +160,8 @@ specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed, but only for sphere pairs.  The
@@ -219,7 +218,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
 :doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair_style gayberne <pair_gayberne>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 
@@ -229,4 +231,4 @@ Related commands
 
 .. _Babadi:
 
-**(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
+**(Babadi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).

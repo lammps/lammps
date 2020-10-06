@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/periodic
+.. index:: angle_style cosine/periodic/omp
 
 angle_style cosine/periodic command
 ===================================
 
-angle_style cosine/periodic/omp command
-=======================================
+Accelerator Variants: *cosine/periodic/omp*
 
 Syntax
 """"""
@@ -70,7 +70,10 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

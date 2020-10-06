@@ -18,7 +18,7 @@
 #include "compute_fep.h"
 #include <cstring>
 #include <cmath>
-#include <mpi.h>
+
 #include "comm.h"
 #include "update.h"
 #include "atom.h"
@@ -34,6 +34,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -56,7 +57,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   fepinitflag = 0;    // avoid init to run entirely when called by write_data
 
-  temp_fep = force->numeric(FLERR,arg[3]);
+  temp_fep = utils::numeric(FLERR,arg[3],false,lmp);
 
   // count # of perturbations
 
@@ -94,10 +95,10 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(arg[iarg+2]) + 1;
       perturb[npert].pparam = new char[n];
       strcpy(perturb[npert].pparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
-                    perturb[npert].ilo,perturb[npert].ihi);
-      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
-                    perturb[npert].jlo,perturb[npert].jhi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
+                    perturb[npert].ilo,perturb[npert].ihi,error);
+      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
+                    perturb[npert].jlo,perturb[npert].jhi,error);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
         perturb[npert].var = new char[n];
@@ -111,8 +112,8 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
         perturb[npert].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal atom argument in compute fep");
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,
-                    perturb[npert].ilo,perturb[npert].ihi);
+      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
+                    perturb[npert].ilo,perturb[npert].ihi,error);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         perturb[npert].var = new char[n];
@@ -157,14 +158,14 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate space for charge, force, energy, virial arrays
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 
   allocate_storage();
 
-  fixgpu = NULL;
+  fixgpu = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,17 +210,17 @@ void ComputeFEP::init()
     if (!input->variable->equalstyle(pert->ivar))
       error->all(FLERR,"Variable for compute fep is of invalid style");
 
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
 
       Pair *pair = force->pair_match(pert->pstyle,1);
-      if (pair == NULL) error->all(FLERR,"compute fep pair style "
+      if (pair == nullptr) error->all(FLERR,"compute fep pair style "
                                    "does not exist");
       void *ptr = pair->extract(pert->pparam,pert->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"compute fep pair style param not supported");
 
       pert->array = (double **) ptr;
@@ -496,10 +497,10 @@ void ComputeFEP::deallocate_storage()
   memory->destroy(keatom_orig);
   memory->destroy(kvatom_orig);
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 }
 
 

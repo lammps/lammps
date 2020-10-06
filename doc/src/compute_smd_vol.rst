@@ -29,7 +29,8 @@ of the per-particle volumes of the group for which the fix is defined.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -53,4 +54,7 @@ Related commands
 
 :doc:`compute smd/rho <compute_smd_rho>`
 
-**Default:** none
+Default
+"""""""
+
+none

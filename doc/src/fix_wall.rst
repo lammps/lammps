@@ -1,10 +1,15 @@
 .. index:: fix wall/lj93
+.. index:: fix wall/lj93/kk
+.. index:: fix wall/lj126
+.. index:: fix wall/lj1043
+.. index:: fix wall/colloid
+.. index:: fix wall/harmonic
+.. index:: fix wall/morse
 
 fix wall/lj93 command
 =====================
 
-fix wall/lj93/kk command
-========================
+Accelerator Variants: *wall/lj93/kk*
 
 fix wall/lj126 command
 ======================
@@ -323,7 +328,8 @@ perturbation on the particles:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

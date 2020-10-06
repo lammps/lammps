@@ -17,10 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_csvr.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -32,7 +32,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -120,7 +120,7 @@ double FixTempCSVR::resamplekin(double ekin_old, double ekin_new){
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), random(NULL)
+  tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csvr command");
 
@@ -133,21 +133,21 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
   extscalar = 1;
 
-  tstr = NULL;
+  tstr = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[3]);
+    t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // error checks
 
@@ -339,10 +339,12 @@ double FixTempCSVR::compute_scalar()
 void FixTempCSVR::write_restart(FILE *fp)
 {
   int nsize = (98+2+3)*comm->nprocs+2; // pRNG state per proc + nprocs + energy
-  double *list;
-  if (comm->me == 0) list = new double[nsize];
-  list[0] = energy;
-  list[1] = comm->nprocs;
+  double *list = nullptr;
+  if (comm->me == 0) {
+    list = new double[nsize];
+    list[0] = energy;
+    list[1] = comm->nprocs;
+  }
   double state[103];
   random->get_state(state);
   MPI_Gather(state,103,MPI_DOUBLE,list+2,103*comm->nprocs,MPI_DOUBLE,0,world);
@@ -351,8 +353,8 @@ void FixTempCSVR::write_restart(FILE *fp)
     int size = nsize * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
+    delete[] list;
   }
-  if (comm->me == 0) delete[] list;
 }
 
 /* ----------------------------------------------------------------------
@@ -381,5 +383,5 @@ void *FixTempCSVR::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

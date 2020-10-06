@@ -140,7 +140,8 @@ combinations, else an error will result.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair styles do not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -169,7 +170,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

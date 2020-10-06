@@ -18,10 +18,10 @@
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -37,7 +37,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -55,7 +55,8 @@ using namespace MathSpecial;
 enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
 enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
-      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
+      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE,
+      TANGENTIAL_MINDLIN_FORCE, TANGENTIAL_MINDLIN_RESCALE_FORCE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
 
@@ -72,14 +73,14 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   neighprev = 0;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
-  onerad_dynamic = NULL;
-  onerad_frozen = NULL;
-  maxrad_dynamic = NULL;
-  maxrad_frozen = NULL;
+  onerad_dynamic = nullptr;
+  onerad_frozen = nullptr;
+  maxrad_dynamic = nullptr;
+  maxrad_frozen = nullptr;
 
-  history_transfer_factors = NULL;
+  history_transfer_factors = nullptr;
 
   dt = update->dt;
 
@@ -96,7 +97,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
-  fix_history = NULL;
+  fix_history = nullptr;
   modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
@@ -175,7 +176,8 @@ void PairGranular::compute(int eflag, int vflag)
   double signtwist, magtwist, magtortwist, Mtcrit;
   double tortwist1, tortwist2, tortwist3;
 
-  double shrmag,rsht;
+  double shrmag,rsht,prjmag;
+  bool frameupdate;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
@@ -372,6 +374,12 @@ void PairGranular::compute(int eflag, int vflag)
         // tangential force, including history effects
         //****************************************
 
+        // For linear, mindlin, mindlin_rescale:
+        // history = cumulative tangential displacement
+        //
+        // For mindlin/force, mindlin_rescale/force:
+        // history = cumulative tangential elastic force
+
         // tangential component
         vt1 = vr1 - vn1;
         vt2 = vr2 - vn2;
@@ -414,12 +422,15 @@ void PairGranular::compute(int eflag, int vflag)
           damp_normal_prefactor;
 
         if (tangential_history) {
-          if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN) {
+          if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE) {
             k_tangential *= a;
           } else if (tangential_model[itype][jtype] ==
-                     TANGENTIAL_MINDLIN_RESCALE) {
+                     TANGENTIAL_MINDLIN_RESCALE ||
+                     tangential_model[itype][jtype] ==
+                     TANGENTIAL_MINDLIN_RESCALE_FORCE) {
             k_tangential *= a;
-            // on unloading, rescale the shear displacements
+            // on unloading, rescale the shear displacements/force
             if (a < history[3]) {
               double factor = a/history[3];
               history[0] *= factor;
@@ -427,37 +438,66 @@ void PairGranular::compute(int eflag, int vflag)
               history[2] *= factor;
             }
           }
-          // rotate and update displacements.
+          // rotate and update displacements / force.
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-            if (fabs(rsht) < EPSILON) rsht = 0;
-            if (rsht > 0) {
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE ||
+                tangential_model[itype][jtype] ==
+                TANGENTIAL_MINDLIN_RESCALE_FORCE)
+              frameupdate = fabs(rsht) < EPSILON*Fscrit;
+            else
+              frameupdate = fabs(rsht)*k_tangential < EPSILON*Fscrit;
+            if (frameupdate) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
-              // if rsht == shrmag, contacting pair has rotated 90 deg
-              // in one step, in which case you deserve a crash!
-              scalefac = shrmag/(shrmag - rsht);
+              // projection
               history[0] -= rsht*nx;
               history[1] -= rsht*ny;
               history[2] -= rsht*nz;
+
               // also rescale to preserve magnitude
+              prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                               history[2]*history[2]);
+              if (prjmag > 0) scalefac = shrmag/prjmag;
+              else scalefac = 0;
               history[0] *= scalefac;
               history[1] *= scalefac;
               history[2] *= scalefac;
             }
             // update history
-            history[0] += vtr1*dt;
-            history[1] += vtr2*dt;
-            history[2] += vtr3*dt;
-            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE)
+            if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+                tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+                tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+              // tangential displacement
+              history[0] += vtr1*dt;
+              history[1] += vtr2*dt;
+              history[2] += vtr3*dt;
+            } else {
+              // tangential force
+              // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
+              history[0] -= k_tangential*vtr1*dt;
+              history[1] -= k_tangential*vtr2*dt;
+              history[2] -= k_tangential*vtr3*dt;
+            }
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE ||
+                tangential_model[itype][jtype] ==
+                TANGENTIAL_MINDLIN_RESCALE_FORCE)
               history[3] = a;
           }
 
           // tangential forces = history + tangential velocity damping
-          fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-          fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-          fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+          if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+            fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
+            fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
+            fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+          } else {
+            fs1 = history[0] - damp_tangential*vtr1;
+            fs2 = history[1] - damp_tangential*vtr2;
+            fs3 = history[2] - damp_tangential*vtr3;
+          }
 
           // rescale frictional displacements and forces if needed
           fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
@@ -465,12 +505,21 @@ void PairGranular::compute(int eflag, int vflag)
             shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                     history[2]*history[2]);
             if (shrmag != 0.0) {
-              history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
-                                              damp_tangential*vtr1);
-              history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
-                                              damp_tangential*vtr2);
-              history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
-                                              damp_tangential*vtr3);
+              if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+                  tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+                  tangential_model[itype][jtype] ==
+                  TANGENTIAL_MINDLIN_RESCALE) {
+                history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
+                                                damp_tangential*vtr1);
+                history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
+                                                damp_tangential*vtr2);
+                history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
+                                                damp_tangential*vtr3);
+              } else {
+                history[0] = Fscrit*fs1/fs + damp_tangential*vtr1;
+                history[1] = Fscrit*fs2/fs + damp_tangential*vtr2;
+                history[2] = Fscrit*fs3/fs + damp_tangential*vtr3;
+              }
               fs1 *= Fscrit/fs;
               fs2 *= Fscrit/fs;
               fs3 *= Fscrit/fs;
@@ -512,18 +561,27 @@ void PairGranular::compute(int eflag, int vflag)
           int rhist1 = rhist0 + 1;
           int rhist2 = rhist1 + 1;
 
-          rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+          k_roll = roll_coeffs[itype][jtype][0];
+          damp_roll = roll_coeffs[itype][jtype][1];
+          Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
+
           if (historyupdate) {
-            if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-            if (rolldotn > 0) { // rotate into tangential plane
+            rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+            frameupdate = fabs(rolldotn)*k_roll < EPSILON*Frcrit;
+            if (frameupdate) { // rotate into tangential plane
               rollmag = sqrt(history[rhist0]*history[rhist0] +
                             history[rhist1]*history[rhist1] +
                             history[rhist2]*history[rhist2]);
-              scalefac = rollmag/(rollmag - rolldotn);
+              // projection
               history[rhist0] -= rolldotn*nx;
               history[rhist1] -= rolldotn*ny;
               history[rhist2] -= rolldotn*nz;
               // also rescale to preserve magnitude
+              prjmag = sqrt(history[rhist0]*history[rhist0] +
+                            history[rhist1]*history[rhist1] +
+                            history[rhist2]*history[rhist2]);
+              if (prjmag > 0) scalefac = rollmag/prjmag;
+              else scalefac = 0;
               history[rhist0] *= scalefac;
               history[rhist1] *= scalefac;
               history[rhist2] *= scalefac;
@@ -533,14 +591,11 @@ void PairGranular::compute(int eflag, int vflag)
             history[rhist2] += vrl3*dt;
           }
 
-          k_roll = roll_coeffs[itype][jtype][0];
-          damp_roll = roll_coeffs[itype][jtype][1];
           fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
           fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
           fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
 
           // rescale frictional displacements and forces if needed
-          Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
 
           fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
           if (fr > Frcrit) {
@@ -698,7 +753,7 @@ void PairGranular::allocate()
 void PairGranular::settings(int narg, char **arg)
 {
   if (narg == 1) {
-    cutoff_global = force->numeric(FLERR,arg[0]);
+    cutoff_global = utils::numeric(FLERR,arg[0],false,lmp);
   } else {
     cutoff_global = -1; // will be set based on particle sizes, model choice
   }
@@ -729,12 +784,13 @@ void PairGranular::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   //Defaults
   normal_model_one = tangential_model_one = -1;
-  roll_model_one = twist_model_one = 0;
+  roll_model_one = ROLL_NONE;
+  twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
 
   int iarg = 2;
@@ -744,35 +800,35 @@ void PairGranular::coeff(int narg, char **arg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hooke option");
       normal_model_one = HOOKE;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // kn
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz") == 0) {
       if (iarg + 2 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = HERTZ;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // kn
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
       iarg += 3;
     } else if (strcmp(arg[iarg], "hertz/material") == 0) {
       if (iarg + 3 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz/material option");
       normal_model_one = HERTZ_MATERIAL;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
       iarg += 4;
     } else if (strcmp(arg[iarg], "dmt") == 0) {
       if (iarg + 4 >= narg)
         error->all(FLERR,"Illegal pair_coeff command, "
                    "not enough parameters provided for Hertz option");
       normal_model_one = DMT;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
+      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "jkr") == 0) {
       if (iarg + 4 >= narg)
@@ -780,10 +836,10 @@ void PairGranular::coeff(int narg, char **arg)
                    "not enough parameters provided for JKR option");
       beyond_contact = 1;
       normal_model_one = JKR;
-      normal_coeffs_one[0] = force->numeric(FLERR,arg[iarg+1]); // E
-      normal_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]); // damping
-      normal_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]); // Poisson's ratio
-      normal_coeffs_one[3] = force->numeric(FLERR,arg[iarg+4]); // cohesion
+      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
+      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
+      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
+      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
       iarg += 5;
     } else if (strcmp(arg[iarg], "damping") == 0) {
       if (iarg+1 >= narg)
@@ -815,12 +871,14 @@ void PairGranular::coeff(int narg, char **arg)
         tangential_model_one = TANGENTIAL_NOHISTORY;
         tangential_coeffs_one[0] = 0;
         // gammat and friction coeff
-        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+2]);
-        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+3]);
+        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         iarg += 4;
       } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
                (strcmp(arg[iarg+1], "mindlin") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
+               (strcmp(arg[iarg+1], "mindlin_rescale") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin/force") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)) {
         if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for tangential model");
@@ -830,9 +888,15 @@ void PairGranular::coeff(int narg, char **arg)
           tangential_model_one = TANGENTIAL_MINDLIN;
         else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0)
           tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
+        else if (strcmp(arg[iarg+1], "mindlin/force") == 0)
+          tangential_model_one = TANGENTIAL_MINDLIN_FORCE;
+        else if (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)
+          tangential_model_one = TANGENTIAL_MINDLIN_RESCALE_FORCE;
         tangential_history = 1;
         if ((tangential_model_one == TANGENTIAL_MINDLIN ||
-             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE) &&
+             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE ||
+             tangential_model_one == TANGENTIAL_MINDLIN_FORCE ||
+             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE_FORCE) &&
             (strcmp(arg[iarg+2], "NULL") == 0)) {
           if (normal_model_one == HERTZ || normal_model_one == HOOKE) {
             error->all(FLERR, "NULL setting for Mindlin tangential "
@@ -841,11 +905,11 @@ void PairGranular::coeff(int narg, char **arg)
           }
           tangential_coeffs_one[0] = -1;
         } else {
-          tangential_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]); // kt
+          tangential_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // kt
         }
         // gammat and friction coeff
-        tangential_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        tangential_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -864,9 +928,9 @@ void PairGranular::coeff(int narg, char **arg)
         roll_model_one = ROLL_SDS;
         roll_history = 1;
         // kR and gammaR and rolling friction coeff
-        roll_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
-        roll_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        roll_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        roll_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        roll_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        roll_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -889,9 +953,9 @@ void PairGranular::coeff(int narg, char **arg)
         twist_model_one = TWIST_SDS;
         twist_history = 1;
         // kt and gammat and friction coeff
-        twist_coeffs_one[0] = force->numeric(FLERR,arg[iarg+2]);
-        twist_coeffs_one[1] = force->numeric(FLERR,arg[iarg+3]);
-        twist_coeffs_one[2] = force->numeric(FLERR,arg[iarg+4]);
+        twist_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        twist_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        twist_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
         iarg += 5;
       } else {
         error->all(FLERR, "Illegal pair_coeff command, "
@@ -900,7 +964,7 @@ void PairGranular::coeff(int narg, char **arg)
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      cutoff_one = force->numeric(FLERR,arg[iarg+1]);
+      cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR, "Illegal pair coeff command");
   }
@@ -1014,7 +1078,8 @@ void PairGranular::init_style()
   }
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      if (tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE) {
+      if (tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE ||
+          tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
         size_history += 1;
         roll_history_index += 1;
         twist_history_index += 1;
@@ -1036,7 +1101,7 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (use_history && fix_history == NULL) {
+  if (use_history && fix_history == nullptr) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
@@ -1060,7 +1125,7 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -1265,20 +1330,20 @@ void PairGranular::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,NULL,error);
-          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,nullptr,error);
+          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);
@@ -1460,7 +1525,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     damp_normal = a*meff;
   } else if (damping_model[itype][jtype] == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;
@@ -1483,6 +1548,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   //****************************************
   // tangential force, including history effects
   //****************************************
+
+  // For linear, mindlin, mindlin_rescale:
+  // history = cumulative tangential displacement
+  //
+  // For mindlin/force, mindlin_rescale/force:
+  // history = cumulative tangential elastic force
 
   // tangential component
   vt1 = vr1 - vn1;
@@ -1519,9 +1590,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal_prefactor;
 
   if (tangential_history) {
-    if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN) {
-      k_tangential *= a;
-    } else if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+    if (tangential_model[itype][jtype] != TANGENTIAL_HISTORY) {
       k_tangential *= a;
     }
 
@@ -1529,9 +1598,17 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         history[2]*history[2]);
 
     // tangential forces = history + tangential velocity damping
-    fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-    fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-    fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+    if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+      fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
+      fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
+      fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+    } else {
+      fs1 = history[0] - damp_tangential*vtr1;
+      fs2 = history[1] - damp_tangential*vtr2;
+      fs3 = history[2] - damp_tangential*vtr3;
+    }
 
     // rescale frictional forces if needed
     fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
@@ -1540,7 +1617,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         fs1 *= Fscrit/fs;
         fs2 *= Fscrit/fs;
         fs3 *= Fscrit/fs;
-                fs *= Fscrit/fs;
+        fs *= Fscrit/fs;
       } else fs1 = fs2 = fs3 = fs = 0.0;
     }
 

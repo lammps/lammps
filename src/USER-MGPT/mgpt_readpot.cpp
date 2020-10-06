@@ -66,7 +66,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
   FILE *in = fopen(potin_file,"r");
   char line[1024];
 
-  if(in == NULL) {
+  if(in == nullptr) {
     fprintf(stderr,"@%s:%d: Error reading potin file. Can not open file \'%s\'.\n",
 	    __FILE__,__LINE__,potin_file);
     exit(1);
@@ -75,7 +75,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
   vsize = 10;
   volarr = (double *) malloc(sizeof(double) * vsize);
   n = 0;
-  while(fgets(line,sizeof(line),in) != NULL) {
+  while(fgets(line,sizeof(line),in) != nullptr) {
     double zval,ivol,rws,mass;
     double r0x,r1x,drx;
     int nrx,i;
@@ -408,7 +408,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 	vpairtab[i*nr+j] = vpairtab[i*nr+j]*fscr + v2a - v2b;
 
 	if(0) if(fabs(vol-ivol) < 0.01) {
-	  static FILE *xfile = NULL;
+	  static FILE *xfile = nullptr;
 	  if(j == 0) {
 	    xfile = fopen("mgpt5-pot.dat","w");
 	    fprintf(xfile,"%%%%  vol = %15.5e  ivol = %15.5e i = %d  ii = %d\n",

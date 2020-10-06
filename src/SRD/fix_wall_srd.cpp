@@ -12,18 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_srd.h"
-#include <mpi.h>
-#include <cstring>
-#include "fix.h"
+
 #include "domain.h"
-#include "lattice.h"
+#include "error.h"
+#include "fix.h"
 #include "input.h"
+#include "lattice.h"
+#include "memory.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{NONE,EDGE,CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), fwall(NULL), fwall_all(NULL)
+  Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/srd command");
 
@@ -76,7 +76,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
         strcpy(varstr[nwall],&arg[iarg+1][2]);
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       nwall++;

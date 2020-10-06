@@ -14,12 +14,10 @@ files. Here is a list with descriptions:
    lammps.1         # man page for the lammps command
    msi2lmp.1        # man page for the msi2lmp command
    Manual.pdf       # large PDF version of entire manual
-   Developer.pdf    # small PDF with info about how LAMMPS is structured
    LAMMPS.epub      # Manual in ePUB e-book format
    LAMMPS.mobi      # Manual in MOBI e-book format
    docenv           # virtualenv folder for processing the manual sources
    doctrees         # temporary data from processing the manual
-   mathjax          # code and fonts for rendering math in html
    doxygen          # doxygen configuration and output
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
@@ -35,11 +33,10 @@ of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
    site.  Just type ``make fetch``.  This should download a html_www
-   directory and Manual_www.pdf/Developer_www.pdf files.  Note that if
-   new LAMMPS features have been added more recently than the date of
-   your LAMMPS version, the fetched documentation will include those
-   changes (but your source code will not, unless you update your local
-   repository).
+   directory and a Manual_www.pdf file.  Note that if new LAMMPS features
+   have been added more recently than the date of your LAMMPS version, the
+   fetched documentation will include those changes (but your source code
+   will not, unless you update your local repository).
 
 b. You can build the HTML or PDF files yourself, by typing ``make html``
    or ``make pdf``.  This requires various tools and files.  Some of them
@@ -48,6 +45,11 @@ b. You can build the HTML or PDF files yourself, by typing ``make html``
    virtual environment and local folders.  This download is required
    only once, unless you type ``make clean-all``.  After that, viewing and
    processing of the documentation can be done without internet access.
+
+A current version of the manual (latest patch release, aka unstable branch)
+is is available online at: `https://lammps.sandia.gov/doc/Manual.html <https://lammps.sandia.gov/doc/Manual.html>`_
+A version of the manual corresponding to the ongoing development
+(aka master branch) is available online at: `https://docs.lammps.org/ <https://docs.lammps.org/>`_
 
 ----------
 
@@ -58,10 +60,9 @@ available:
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
-   make pdf           # generate 2 PDF files (Manual.pdf,Developer.pdf)
-                      #   in doc dir via htmldoc and pdflatex
-   make fetch         # fetch HTML doc pages and 2 PDF files from web site
-                      #   as a tarball and unpack into html dir and 2 PDFs
+   make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
+   make fetch         # fetch HTML doc pages and PDF file from web site
+                      #   as a tarball and unpack into html dir and PDF
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
 
@@ -130,7 +131,8 @@ Installing prerequisites for PDF build
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
-of LaTeX styles/packages are required.
+of LaTeX styles/packages are required.  To run the PDFLaTeX translation
+the ``latexmk`` script needs to be installed as well.
 
 Installing prerequisites for e-book reader builds
 =================================================

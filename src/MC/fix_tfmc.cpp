@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tfmc.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include <cfloat>
@@ -37,16 +37,16 @@ using namespace FixConst;
 
 FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xd(NULL), rotflag(0), random_num(NULL)
+  xd(nullptr), rotflag(0), random_num(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tfmc command");
 
   // although we are not doing MD, we would like to use tfMC as an MD "drop in"
   time_integrate = 1;
 
-  d_max = force->numeric(FLERR,arg[3]);
-  T_set = force->numeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
+  d_max = utils::numeric(FLERR,arg[3],false,lmp);
+  T_set = utils::numeric(FLERR,arg[4],false,lmp);
+  seed = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (d_max <= 0) error->all(FLERR,"Fix tfmc displacement length must be > 0");
   if (T_set <= 0) error->all(FLERR,"Fix tfmc temperature must be > 0");
@@ -62,9 +62,9 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix tfmc command");
       comflag = 1;
-      xflag = force->inumeric(FLERR,arg[iarg+1]);
-      yflag = force->inumeric(FLERR,arg[iarg+2]);
-      zflag = force->inumeric(FLERR,arg[iarg+3]);
+      xflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      yflag = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      zflag = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"rot") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal fix tfmc command");
@@ -83,7 +83,7 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
     comflag = 0;
 
   if (rotflag) {
-    xd = NULL;
+    xd = nullptr;
     nmax = -1;
   }
 
@@ -97,7 +97,7 @@ FixTFMC::~FixTFMC()
   delete random_num;
   if (rotflag) {
     memory->destroy(xd);
-    xd = NULL;
+    xd = nullptr;
     nmax = -1;
   }
 }

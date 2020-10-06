@@ -13,7 +13,7 @@
 
 #include "fix_temp_berendsen.h"
 #include <cstring>
-#include <string>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,7 +37,7 @@ enum{CONSTANT,EQUAL};
 
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), tflag(0)
+  tstr(nullptr), id_temp(nullptr), tflag(0)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen command");
 
@@ -50,20 +50,20 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nevery;
   extscalar = 1;
 
-  tstr = NULL;
+  tstr = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[3]);
+    t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
 
   // error checks
 
@@ -280,5 +280,5 @@ void *FixTempBerendsen::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

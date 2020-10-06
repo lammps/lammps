@@ -1,16 +1,17 @@
 .. index:: pair_style lubricate
+.. index:: pair_style lubricate/omp
+.. index:: pair_style lubricate/poly
+.. index:: pair_style lubricate/poly/omp
 
 pair_style lubricate command
 ============================
 
-pair_style lubricate/omp command
-================================
+Accelerator Variants: *lubricate/omp*
 
 pair_style lubricate/poly command
 =================================
 
-pair_style lubricate/poly/omp command
-=====================================
+Accelerator Variants: *lubricate/poly/omp*
 
 Syntax
 """"""
@@ -162,7 +163,8 @@ must be specified.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See

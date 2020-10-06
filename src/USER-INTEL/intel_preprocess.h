@@ -528,7 +528,7 @@ inline double MIC_Wtime() {
   double time;
   struct timeval tv;
 
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
 }

@@ -29,7 +29,7 @@ molecular systems (:ref:`Lamoureux and Roux <howto-Lamoureux>`):
   to the total charge of the core atom).
 
 A detailed tutorial covering the usage of Drude induced dipoles in
-LAMMPS is on the :doc:`Howto drude2e <Howto_drude2>` doc page.
+LAMMPS is on the :doc:`here <Howto_drude2>`.
 
 As with the core-shell model, the cores and Drude particles should
 appear in the data file as standard atoms. The same holds for the

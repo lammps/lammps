@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_restrain.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,7 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,9 +45,9 @@ enum{BOND,LBOUND,ANGLE,DIHEDRAL};
 
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rstyle(NULL), mult(NULL), ids(NULL), kstart(NULL), kstop(NULL),
-  deqstart(NULL), deqstop(NULL), target(NULL), cos_target(NULL),
-  sin_target(NULL)
+  rstyle(nullptr), mult(nullptr), ids(nullptr), kstart(nullptr), kstop(nullptr),
+  deqstart(nullptr), deqstop(nullptr), target(nullptr), cos_target(nullptr),
+  sin_target(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
 
@@ -83,62 +83,62 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = BOND;
-      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
-      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
-      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
-      deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      ids[nrestrain][0] = utils::tnumeric(FLERR,arg[iarg+1],false,lmp);
+      ids[nrestrain][1] = utils::tnumeric(FLERR,arg[iarg+2],false,lmp);
+      kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      deqstart[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
       if (iarg+6 == narg) {
-        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        deqstop[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         iarg += 6;
       } else {
-        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        deqstop[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
         iarg += 7;
       }
     } else if (strcmp(arg[iarg],"lbound") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = LBOUND;
-      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
-      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
-      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
-      deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      ids[nrestrain][0] = utils::tnumeric(FLERR,arg[iarg+1],false,lmp);
+      ids[nrestrain][1] = utils::tnumeric(FLERR,arg[iarg+2],false,lmp);
+      kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      deqstart[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
       if (iarg+6 == narg) {
-        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        deqstop[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         iarg += 6;
       } else {
-        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        deqstop[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
         iarg += 7;
       }
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = ANGLE;
-      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
-      ids[nrestrain][2] = force->tnumeric(FLERR,arg[iarg+3]);
-      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
-      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
-      target[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+      ids[nrestrain][0] = utils::tnumeric(FLERR,arg[iarg+1],false,lmp);
+      ids[nrestrain][1] = utils::tnumeric(FLERR,arg[iarg+2],false,lmp);
+      ids[nrestrain][2] = utils::tnumeric(FLERR,arg[iarg+3],false,lmp);
+      kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      target[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
       target[nrestrain] *= MY_PI / 180.0;
       iarg += 7;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = DIHEDRAL;
       mult[nrestrain]   = 1;
-      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
-      ids[nrestrain][2] = force->tnumeric(FLERR,arg[iarg+3]);
-      ids[nrestrain][3] = force->tnumeric(FLERR,arg[iarg+4]);
-      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
-      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
-      target[nrestrain] = force->numeric(FLERR,arg[iarg+7]);
+      ids[nrestrain][0] = utils::tnumeric(FLERR,arg[iarg+1],false,lmp);
+      ids[nrestrain][1] = utils::tnumeric(FLERR,arg[iarg+2],false,lmp);
+      ids[nrestrain][2] = utils::tnumeric(FLERR,arg[iarg+3],false,lmp);
+      ids[nrestrain][3] = utils::tnumeric(FLERR,arg[iarg+4],false,lmp);
+      kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+      target[nrestrain] = utils::numeric(FLERR,arg[iarg+7],false,lmp);
       target[nrestrain] *= MY_PI / 180.0;
       cos_target[nrestrain] = cos(target[nrestrain]);
       sin_target[nrestrain] = sin(target[nrestrain]);
       iarg += 8;
       if ((iarg < narg) && (strcmp("mult",arg[iarg]) == 0)) {
         if (iarg+1 > narg) error->all(FLERR,"Illegal fix restrain command");
-        mult[nrestrain] = force->inumeric(FLERR,arg[iarg+1]);
+        mult[nrestrain] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (mult[nrestrain] < 0)
           error->all(FLERR,"Illegal fix restrain command");
         iarg += 2;
@@ -150,7 +150,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
 
   // require atom map to lookup atom IDs
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix restrain requires an atom map, see atom_modify");
 }
 

@@ -1,13 +1,11 @@
 .. index:: fix nvt/sllod
+.. index:: fix nvt/sllod/intel
+.. index:: fix nvt/sllod/omp
 
 fix nvt/sllod command
 =====================
 
-fix nvt/sllod/intel command
-===========================
-
-fix nvt/sllod/omp command
-=========================
+Accelerator Variants: *nvt/sllod/intel*, *nvt/sllod/omp*
 
 Syntax
 """"""
@@ -121,7 +119,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 .. include:: accel_styles.rst
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that

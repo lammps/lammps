@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_dt_reset.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -50,16 +50,16 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   dynamic_group_allow = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");
 
   minbound = maxbound = 1;
   tmin = tmax = 0.0;
   if (strcmp(arg[4],"NULL") == 0) minbound = 0;
-  else tmin = force->numeric(FLERR,arg[4]);
+  else tmin = utils::numeric(FLERR,arg[4],false,lmp);
   if (strcmp(arg[5],"NULL") == 0) maxbound = 0;
-  else tmax = force->numeric(FLERR,arg[5]);
-  xmax = force->numeric(FLERR,arg[6]);
+  else tmax = utils::numeric(FLERR,arg[5],false,lmp);
+  xmax = utils::numeric(FLERR,arg[6],false,lmp);
 
   if (minbound && tmin < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
   if (maxbound && tmax < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
@@ -80,7 +80,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"emax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix dt/reset command");
-      emax = force->numeric(FLERR,arg[iarg+1]);
+      emax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (emax <= 0.0) error->all(FLERR,"Illegal fix dt/reset command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix dt/reset command");
@@ -190,6 +190,7 @@ void FixDtReset::end_of_step()
 
   update->update_time();
   update->dt = dt;
+  update->dt_default = 0;
   if (respaflag) update->integrate->reset_dt();
   if (force->pair) force->pair->reset_dt();
   for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();

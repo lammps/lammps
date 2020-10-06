@@ -1,10 +1,10 @@
 .. index:: fix reax/c/bonds
+.. index:: fix reax/c/bonds/kk
 
 fix reax/c/bonds command
 ========================
 
-fix reax/c/bonds/kk command
-===========================
+Accelerator Variants: *reax/c/bonds/kk*
 
 Syntax
 """"""
@@ -58,7 +58,8 @@ version, but will also take longer to write.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -88,4 +89,7 @@ Related commands
 
 :doc:`pair_style reax/c <pair_reaxc>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
-**Default:** none
+Default
+"""""""
+
+none

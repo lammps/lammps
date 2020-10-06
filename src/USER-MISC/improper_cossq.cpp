@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_cossq.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +26,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -269,10 +269,10 @@ void ImproperCossq::coeff(int narg, char **arg)
    if (!allocated) allocate();
 
    int ilo,ihi;
-   force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+   utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-   double k_one = force->numeric(FLERR,arg[1]);
-   double chi_one = force->numeric(FLERR,arg[2]);
+   double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+   double chi_one = utils::numeric(FLERR,arg[2],false,lmp);
 
    int count = 0;
    for (int i = ilo; i <= ihi; i++) {
@@ -302,8 +302,8 @@ void ImproperCossq::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&chi[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&chi[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

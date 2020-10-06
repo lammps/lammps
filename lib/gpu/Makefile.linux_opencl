@@ -17,8 +17,8 @@ OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
 LMP_INC = -DLAMMPS_SMALLBIG
 
 OCL_INC = -I/usr/local/cuda/include  # Path to CL directory
-OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
-OCL_LINK = -lOpenCL
+OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC) -std=c++11
+OCL_LINK = -L/usr/local/cuda/lib64 -lOpenCL
 OCL_PREC = -D_SINGLE_DOUBLE
 
 BIN_DIR = ./

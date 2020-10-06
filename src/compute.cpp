@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute.h"
+
+#include "atom_masks.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+
 #include <cstring>
 #include <cctype>
-#include "domain.h"
-#include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,10 +37,10 @@ int Compute::instance_total = 0;
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL),
-  vector(NULL), array(NULL), vector_atom(NULL),
-  array_atom(NULL), vector_local(NULL), array_local(NULL), extlist(NULL),
-  tlist(NULL), vbiasall(NULL)
+  id(nullptr), style(nullptr),
+  vector(nullptr), array(nullptr), vector_atom(nullptr),
+  array_atom(nullptr), vector_local(nullptr), array_local(nullptr), extlist(nullptr),
+  tlist(nullptr), vbiasall(nullptr)
 {
   instance_me = instance_total++;
 
@@ -129,7 +130,7 @@ void Compute::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"extra") == 0 ||
         strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      extra_dof = force->numeric(FLERR,arg[iarg+1]);
+      extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0 ||
                strcmp(arg[iarg],"dynamic/dof") == 0) {

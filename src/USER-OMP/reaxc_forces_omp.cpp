@@ -26,13 +26,12 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "omp_compat.h"
 #include "reaxc_forces_omp.h"
-#include <mpi.h>
-#include <cmath>
+
+#include "error.h"
 #include "fix_omp.h"
-#include "reaxc_defs.h"
 #include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 
 #include "reaxc_bond_orders_omp.h"
 #include "reaxc_bonds_omp.h"
@@ -43,6 +42,9 @@
 #include "reaxc_torsion_angles_omp.h"
 #include "reaxc_valence_angles_omp.h"
 #include "reaxc_vector.h"
+
+#include <mpi.h>
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -163,7 +165,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
     class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
     pair_reax_ptr->ev_setup_thr_proxy(0, 1, natoms, system->pair_ptr->eatom,
-                                      system->pair_ptr->vatom, NULL, thr);
+                                      system->pair_ptr->vatom, nullptr, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)

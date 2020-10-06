@@ -1,10 +1,10 @@
 .. index:: pair_style adp
+.. index:: pair_style adp/omp
 
 pair_style adp command
 ======================
 
-pair_style adp/omp command
-==========================
+Accelerator Variants: *adp/omp*
 
 Syntax
 """"""
@@ -140,7 +140,8 @@ array tabulated with a scaling by :math:`r`.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, no special mixing rules are needed, since
@@ -170,7 +171,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_eam <pair_eam>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

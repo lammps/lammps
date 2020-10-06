@@ -12,20 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "bond.h"
-#include <mpi.h>
-#include <ctime>
-#include <string>
+
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -46,9 +44,9 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  setflag = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -236,16 +234,16 @@ void Bond::write_file(int narg, char **arg)
   int itype = 0;
   int jtype = 0;
   if (narg == 8) {
-    itype = force->inumeric(FLERR,arg[6]);
-    jtype = force->inumeric(FLERR,arg[7]);
+    itype = utils::inumeric(FLERR,arg[6],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[7],false,lmp);
     if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in bond_write command");
   }
 
-  int btype = force->inumeric(FLERR,arg[0]);
-  int n = force->inumeric(FLERR,arg[1]);
-  double inner = force->numeric(FLERR,arg[2]);
-  double outer = force->numeric(FLERR,arg[3]);
+  int btype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int n = utils::inumeric(FLERR,arg[1],false,lmp);
+  double inner = utils::numeric(FLERR,arg[2],false,lmp);
+  double outer = utils::numeric(FLERR,arg[3],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid rlo/rhi values in bond_write command");
 
@@ -278,7 +276,7 @@ void Bond::write_file(int narg, char **arg)
       fp = fopen(table_file.c_str(),"a");
     } else {
       char datebuf[16];
-      time_t tv = time(NULL);
+      time_t tv = time(nullptr);
       strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
       utils::logmesg(lmp,fmt::format("Creating table file {} with "
                                      "DATE: {}\n", table_file, datebuf));
@@ -286,7 +284,7 @@ void Bond::write_file(int narg, char **arg)
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
                          datebuf, update->unit_style);
     }
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
                                    arg[4], utils::getsyserror()));
   }

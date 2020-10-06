@@ -1,10 +1,10 @@
 .. index:: fix nphug
+.. index:: fix nphug/omp
 
 fix nphug command
 =================
 
-fix nphug/omp command
-=====================
+Accelerator Variants: *nphug/omp*
 
 Syntax
 """"""
@@ -149,7 +149,8 @@ It also means that changing attributes of *thermo_temp* or
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the values of :math:`E_0`, :math:`V_0`, and :math:`P_0`,
 as well as the state of all the thermostat and barostat variables to

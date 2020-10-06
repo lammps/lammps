@@ -53,21 +53,18 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#if LMP_PYTHON
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#endif
-
 #include "kim_property.h"
 
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "utils.h"
 #include "error.h"
+#include "input.h"
 #include "lmppython.h"
+#include "variable.h"
 
-#include <string>
+#if LMP_PYTHON
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>             // IWYU pragma: export
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -115,7 +112,7 @@ void kimProperty::command(int narg, char **arg)
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // kim_property module
-  PyObject *kim_property = NULL;
+  PyObject *kim_property = nullptr;
 
   // import kim_property
   {
@@ -441,7 +438,7 @@ void kimProperty::command(int narg, char **arg)
                           "evaluation failed!");
       }
     } else
-      pValue = NULL;
+      pValue = nullptr;
 
     // Destroy the variable
     input->variable->set("kim_property_str delete");

@@ -1,4 +1,6 @@
 .. index:: pair_style lj/mdf
+.. index:: pair_style buck/mdf
+.. index:: pair_style lennard/mdf
 
 pair_style lj/mdf command
 =========================
@@ -139,7 +141,8 @@ given or both left out:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the :math:`\epsilon` and
 :math:`\sigma` coefficients and cutoff distances for the lj/mdf pair
@@ -172,7 +175,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

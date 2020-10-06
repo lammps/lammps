@@ -15,7 +15,7 @@
    Contributing author:  Axel Kohlmeyer (ICTP)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+
 #include <cstring>
 #include "fix_qmmm.h"
 #include "atom.h"
@@ -169,7 +169,7 @@ tagint taginthash_lookup(const taginthash_t *tptr, tagint key) {
 
   /* find the entry in the hash table */
   h=taginthash(tptr, key);
-  for (node=tptr->bucket[h]; node!=NULL; node=node->next) {
+  for (node=tptr->bucket[h]; node!=nullptr; node=node->next) {
     if (node->key == key)
       break;
   }
@@ -191,7 +191,7 @@ tagint *taginthash_keys(taginthash_t *tptr) {
   keys = (tagint *)calloc(tptr->entries, sizeof(tagint));
 
   for (tagint i=0; i < tptr->size; ++i) {
-    for (node=tptr->bucket[i]; node != NULL; node=node->next) {
+    for (node=tptr->bucket[i]; node != nullptr; node=node->next) {
       keys[node->data] = node->key;
     }
   }
@@ -242,7 +242,7 @@ void taginthash_destroy(taginthash_t *tptr) {
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
-    while (node != NULL) {
+    while (node != nullptr) {
       last = node;
       node = node->next;
       free(last);
@@ -250,7 +250,7 @@ void taginthash_destroy(taginthash_t *tptr) {
   }
 
   /* free the entire array of buckets */
-  if (tptr->bucket != NULL) {
+  if (tptr->bucket != nullptr) {
     free(tptr->bucket);
     memset(tptr, 0, sizeof(taginthash_t));
   }
@@ -353,11 +353,11 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
   mm_comm = MPI_Comm_f2c(qmmmcfg.mm_comm);
 
   /* initialize storage */
-  qm_idmap = mm_idmap = NULL;
-  qm_remap = mm_remap = NULL;
-  qm_coord = mm_coord = qm_force = mm_force = NULL;
-  qm_charge =NULL;
-  mm_type = NULL;
+  qm_idmap = mm_idmap = nullptr;
+  qm_remap = mm_remap = nullptr;
+  qm_coord = mm_coord = qm_force = mm_force = nullptr;
+  qm_charge =nullptr;
+  mm_type = nullptr;
 
   do_init = 1;
 

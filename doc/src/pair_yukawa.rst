@@ -1,16 +1,12 @@
 .. index:: pair_style yukawa
+.. index:: pair_style yukawa/gpu
+.. index:: pair_style yukawa/omp
+.. index:: pair_style yukawa/kk
 
 pair_style yukawa command
 =========================
 
-pair_style yukawa/gpu command
-=============================
-
-pair_style yukawa/omp command
-=============================
-
-pair_style yukawa/kk command
-============================
+Accelerator Variants: *yukawa/gpu*, *yukawa/omp*, *yukawa/kk*
 
 Syntax
 """"""
@@ -60,7 +56,8 @@ cutoff is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is an energy value mixed
@@ -95,4 +92,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

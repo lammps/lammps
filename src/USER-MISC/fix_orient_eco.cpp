@@ -16,13 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_eco.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -33,8 +30,9 @@
 #include "pair.h"
 #include "respa.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,7 +61,7 @@ struct FixOrientECO::Nbr {
 
 FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg),
-    dir_filename(NULL), order(NULL), nbr(NULL), list(NULL)
+    dir_filename(nullptr), order(nullptr), nbr(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_eco);
 
@@ -82,10 +80,10 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;         //
 
   // parse input parameters
-  u_0 = force->numeric(FLERR, arg[3]);
+  u_0 = utils::numeric(FLERR, arg[3],false,lmp);
   sign = (u_0 >= 0.0 ? 1 : -1);
-  eta = force->numeric(FLERR, arg[4]);
-  r_cut = force->numeric(FLERR, arg[5]);
+  eta = utils::numeric(FLERR, arg[4],false,lmp);
+  r_cut = utils::numeric(FLERR, arg[5],false,lmp);
 
   // read reference orientations from file
   // work on rank 0 only
@@ -97,8 +95,8 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = force->open_potential(dir_filename);
-    if (infile == NULL)
+    FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
+    if (infile == nullptr)
       error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
                                    dir_filename, utils::getsyserror()));
     for (int i = 0; i < 6; ++i) {

@@ -16,17 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "body_rounded_polyhedron.h"
+
+#include "atom.h"
+#include "atom_vec_body.h"
+#include "error.h"
+#include "math_extra.h"
+#include "math_eigen.h"
+#include "memory.h"
+#include "my_pool_chunk.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "my_pool_chunk.h"
-#include "atom_vec_body.h"
-#include "atom.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,8 +44,8 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   // nmin and nmax are minimum and maximum number of vertices
 
-  int nmin = force->inumeric(FLERR,arg[1]);
-  int nmax = force->inumeric(FLERR,arg[2]);
+  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body rounded/polyhedron command");
 
@@ -123,7 +123,7 @@ int BodyRoundedPolyhedron::nfaces(AtomVecBody::Bonus *bonus)
 double *BodyRoundedPolyhedron::faces(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
-  if (nvertices == 1 || nvertices == 2) return NULL;
+  if (nvertices == 1 || nvertices == 2) return nullptr;
   return bonus->dvalue+3*nsub(bonus)+2*nedges(bonus);
 }
 
@@ -243,7 +243,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 
@@ -374,7 +374,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
 /* ----------------------------------------------------------------------
    pack data struct for one body into buf for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is a null pointer, just return buffer size
 ------------------------------------------------------------------------- */
 
 int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf)

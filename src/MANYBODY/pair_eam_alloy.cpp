@@ -16,16 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_alloy.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "memory.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -71,7 +70,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -185,7 +184,7 @@ void PairEAMAlloy::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

@@ -30,7 +30,7 @@ Accelerator Variants: *lj/cut/coul/cut/gpu*, *lj/cut/coul/cut/kk*, *lj/cut/coul/
 pair_style lj/cut/coul/debye command
 ====================================
 
-Accelerator Variants: *lj/cut/coul/debye/gpu*, lj/cut/coul/debye/kk, *lj/cut/coul/debye/omp*
+Accelerator Variants: *lj/cut/coul/debye/gpu*, *lj/cut/coul/debye/kk*, *lj/cut/coul/debye/omp*
 
 pair_style lj/cut/coul/dsf command
 ==================================
@@ -253,7 +253,8 @@ part of the USER-FEP package and is documented with the :doc:`pair_style */soft 
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -297,7 +298,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

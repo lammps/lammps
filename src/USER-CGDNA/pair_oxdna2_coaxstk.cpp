@@ -15,21 +15,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_coaxstk.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "mf_oxdna.h"
+#include "neigh_list.h"
+
 #include <cmath>
 #include <cstring>
-#include "mf_oxdna.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "atom_vec_ellipsoid.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -555,8 +554,8 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // cross-stacking interaction
   count = 0;
@@ -578,30 +577,30 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
 
   double AA_cxst1_one, BB_cxst1_one;
 
-  k_cxst_one = force->numeric(FLERR,arg[2]);
-  cut_cxst_0_one = force->numeric(FLERR,arg[3]);
-  cut_cxst_c_one = force->numeric(FLERR,arg[4]);
-  cut_cxst_lo_one = force->numeric(FLERR,arg[5]);
-  cut_cxst_hi_one = force->numeric(FLERR,arg[6]);
+  k_cxst_one = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_cxst_0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_cxst_c_one = utils::numeric(FLERR,arg[4],false,lmp);
+  cut_cxst_lo_one = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_cxst_hi_one = utils::numeric(FLERR,arg[6],false,lmp);
 
-  a_cxst1_one = force->numeric(FLERR,arg[7]);
-  theta_cxst1_0_one = force->numeric(FLERR,arg[8]);
-  dtheta_cxst1_ast_one = force->numeric(FLERR,arg[9]);
+  a_cxst1_one = utils::numeric(FLERR,arg[7],false,lmp);
+  theta_cxst1_0_one = utils::numeric(FLERR,arg[8],false,lmp);
+  dtheta_cxst1_ast_one = utils::numeric(FLERR,arg[9],false,lmp);
 
-  a_cxst4_one = force->numeric(FLERR,arg[10]);
-  theta_cxst4_0_one = force->numeric(FLERR,arg[11]);
-  dtheta_cxst4_ast_one = force->numeric(FLERR,arg[12]);
+  a_cxst4_one = utils::numeric(FLERR,arg[10],false,lmp);
+  theta_cxst4_0_one = utils::numeric(FLERR,arg[11],false,lmp);
+  dtheta_cxst4_ast_one = utils::numeric(FLERR,arg[12],false,lmp);
 
-  a_cxst5_one = force->numeric(FLERR,arg[13]);
-  theta_cxst5_0_one = force->numeric(FLERR,arg[14]);
-  dtheta_cxst5_ast_one = force->numeric(FLERR,arg[15]);
+  a_cxst5_one = utils::numeric(FLERR,arg[13],false,lmp);
+  theta_cxst5_0_one = utils::numeric(FLERR,arg[14],false,lmp);
+  dtheta_cxst5_ast_one = utils::numeric(FLERR,arg[15],false,lmp);
 
-  a_cxst6_one = force->numeric(FLERR,arg[16]);
-  theta_cxst6_0_one = force->numeric(FLERR,arg[17]);
-  dtheta_cxst6_ast_one = force->numeric(FLERR,arg[18]);
+  a_cxst6_one = utils::numeric(FLERR,arg[16],false,lmp);
+  theta_cxst6_0_one = utils::numeric(FLERR,arg[17],false,lmp);
+  dtheta_cxst6_ast_one = utils::numeric(FLERR,arg[18],false,lmp);
 
-  AA_cxst1_one = force->numeric(FLERR,arg[19]);
-  BB_cxst1_one = force->numeric(FLERR,arg[20]);
+  AA_cxst1_one = utils::numeric(FLERR,arg[19],false,lmp);
+  BB_cxst1_one = utils::numeric(FLERR,arg[20],false,lmp);
 
   b_cxst_lo_one = 0.25 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -
@@ -816,47 +815,47 @@ void PairOxdna2Coaxstk::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          utils::sfread(FLERR,&k_cxst[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_c[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_hi[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_lc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_cxst_hc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&k_cxst[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_hi[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_lc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_cxst_hc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst_hi[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_cxst1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_cxst1_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst1_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst1_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_cxst1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_cxst1_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst1_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst1_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_cxst4[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_cxst4_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst4_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst4[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst4_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_cxst4[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_cxst4_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst4_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst4[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst4_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_cxst5[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_cxst5_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst5_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst5[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst5_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_cxst5[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_cxst5_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst5_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst5[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst5_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_cxst6[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_cxst6_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst6_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_cxst6[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_cxst6_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_cxst6[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_cxst6_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst6_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_cxst6[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_cxst6_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&AA_cxst1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&BB_cxst1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&AA_cxst1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&BB_cxst1[i][j],sizeof(double),1,fp,nullptr,error);
 
         }
 
@@ -920,9 +919,9 @@ void PairOxdna2Coaxstk::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -1024,5 +1023,5 @@ void *PairOxdna2Coaxstk::extract(const char *str, int &dim)
   if (strcmp(str,"AA_cxst1") == 0) return (void *) AA_cxst1;
   if (strcmp(str,"BB_cxst1") == 0) return (void *) BB_cxst1;
 
-  return NULL;
+  return nullptr;
 }

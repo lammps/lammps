@@ -22,14 +22,15 @@
 ------------------------------------------------------------------------- */
 
 #include "min_linesearch.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
-#include "modify.h"
 #include "fix_minimize.h"
-#include "pair.h"
+#include "modify.h"
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -53,8 +54,8 @@ using namespace LAMMPS_NS;
 MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
 {
   searchflag = 1;
-  gextra = hextra = NULL;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  gextra = hextra = nullptr;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,12 +81,12 @@ void MinLineSearch::init()
 
   delete [] gextra;
   delete [] hextra;
-  gextra = hextra = NULL;
+  gextra = hextra = nullptr;
 
   delete [] x0extra_atom;
   delete [] gextra_atom;
   delete [] hextra_atom;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

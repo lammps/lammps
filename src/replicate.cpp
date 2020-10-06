@@ -12,19 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "replicate.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "domain.h"
 #include "comm.h"
-#include "special.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "memory.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -52,9 +50,9 @@ void Replicate::command(int narg, char **arg)
 
   // nrep = total # of replications
 
-  int nx = force->inumeric(FLERR,arg[0]);
-  int ny = force->inumeric(FLERR,arg[1]);
-  int nz = force->inumeric(FLERR,arg[2]);
+  int nx = utils::inumeric(FLERR,arg[0],false,lmp);
+  int ny = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
 
   int bbox_flag = 0;
@@ -156,7 +154,7 @@ void Replicate::command(int narg, char **arg)
   // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atomKK = NULL;
+  atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
 
@@ -593,7 +591,7 @@ void Replicate::command(int narg, char **arg)
                 if (atom->molecular) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -695,7 +693,7 @@ void Replicate::command(int narg, char **arg)
                 if (atom->molecular) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -768,14 +766,14 @@ void Replicate::command(int narg, char **arg)
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }

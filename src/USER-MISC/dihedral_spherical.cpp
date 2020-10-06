@@ -18,21 +18,20 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_spherical.h"
-#include <mpi.h>
-#include <cmath>
-#include <cassert>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
 
-using namespace std;
+#include <cmath>
+#include <cassert>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
@@ -655,16 +654,16 @@ void DihedralSpherical::allocate()
   theta2_shift = new double * [n+1];
   theta2_offset = new double * [n+1];
   for (int i = 1; i <= n; i++) {
-    Ccoeff[i] = NULL;
-    phi_mult[i] = NULL;
-    phi_shift[i] = NULL;
-    phi_offset[i] = NULL;
-    theta1_mult[i] = NULL;
-    theta1_shift[i] = NULL;
-    theta1_offset[i] = NULL;
-    theta2_mult[i] = NULL;
-    theta2_shift[i] = NULL;
-    theta2_offset[i] = NULL;
+    Ccoeff[i] = nullptr;
+    phi_mult[i] = nullptr;
+    phi_shift[i] = nullptr;
+    phi_offset[i] = nullptr;
+    theta1_mult[i] = nullptr;
+    theta1_shift[i] = nullptr;
+    theta1_offset[i] = nullptr;
+    theta2_mult[i] = nullptr;
+    theta2_shift[i] = nullptr;
+    theta2_offset[i] = nullptr;
   }
 
   memory->create(setflag,n+1,"dihedral:setflag");
@@ -681,9 +680,9 @@ void DihedralSpherical::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  int nterms_one = force->inumeric(FLERR,arg[1]);
+  int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -706,16 +705,16 @@ void DihedralSpherical::coeff(int narg, char **arg)
     theta2_offset[i] = new double [nterms_one];
     for (int j = 0; j < nterms_one; j++) {
       int offset = 1+10*j;
-      Ccoeff[i][j] = force->numeric(FLERR,arg[offset+1]);
-      phi_mult[i][j] = force->numeric(FLERR,arg[offset+2]);
-      phi_shift[i][j] = force->numeric(FLERR,arg[offset+3]) * MY_PI/180.0;
-      phi_offset[i][j] = force->numeric(FLERR,arg[offset+4]);
-      theta1_mult[i][j] = force->numeric(FLERR,arg[offset+5]);
-      theta1_shift[i][j] = force->numeric(FLERR,arg[offset+6]) * MY_PI/180.0;
-      theta1_offset[i][j] = force->numeric(FLERR,arg[offset+7]);
-      theta2_mult[i][j] = force->numeric(FLERR,arg[offset+8]);
-      theta2_shift[i][j] = force->numeric(FLERR,arg[offset+9]) * MY_PI/180.0;
-      theta2_offset[i][j] = force->numeric(FLERR,arg[offset+10]);
+      Ccoeff[i][j] = utils::numeric(FLERR,arg[offset+1],false,lmp);
+      phi_mult[i][j] = utils::numeric(FLERR,arg[offset+2],false,lmp);
+      phi_shift[i][j] = utils::numeric(FLERR,arg[offset+3],false,lmp) * MY_PI/180.0;
+      phi_offset[i][j] = utils::numeric(FLERR,arg[offset+4],false,lmp);
+      theta1_mult[i][j] = utils::numeric(FLERR,arg[offset+5],false,lmp);
+      theta1_shift[i][j] = utils::numeric(FLERR,arg[offset+6],false,lmp) * MY_PI/180.0;
+      theta1_offset[i][j] = utils::numeric(FLERR,arg[offset+7],false,lmp);
+      theta2_mult[i][j] = utils::numeric(FLERR,arg[offset+8],false,lmp);
+      theta2_shift[i][j] = utils::numeric(FLERR,arg[offset+9],false,lmp) * MY_PI/180.0;
+      theta2_offset[i][j] = utils::numeric(FLERR,arg[offset+10],false,lmp);
     }
     setflag[i] = 1;
     count++;
@@ -756,7 +755,7 @@ void DihedralSpherical::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -776,16 +775,16 @@ void DihedralSpherical::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      utils::sfread(FLERR,Ccoeff[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,phi_mult[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,phi_shift[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,phi_offset[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta1_mult[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta1_shift[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta1_offset[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta2_mult[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta2_shift[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,theta2_offset[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,Ccoeff[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,phi_mult[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,phi_shift[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,phi_offset[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta1_mult[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta1_shift[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta1_offset[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta2_mult[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta2_shift[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,theta2_offset[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 

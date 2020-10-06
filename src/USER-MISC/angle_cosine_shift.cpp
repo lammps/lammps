@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cosine_shift.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,7 +37,7 @@ using namespace MathConst;
 
 AngleCosineShift::AngleCosineShift(LAMMPS *lmp) : Angle(lmp)
 {
-  kcost = NULL;
+  kcost = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,10 +175,10 @@ void AngleCosineShift::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double umin   = force->numeric(FLERR,arg[1]);
-  double theta0 = force->numeric(FLERR,arg[2]);
+  double umin   = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0 = utils::numeric(FLERR,arg[2],false,lmp);
 
 // k=Umin/2
 
@@ -225,10 +225,10 @@ void AngleCosineShift::read_restart(FILE *fp)
 
   if (comm->me == 0)
     {
-      utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-      utils::sfread(FLERR,&kcost[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-      utils::sfread(FLERR,&ksint[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-      utils::sfread(FLERR,&theta[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+      utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&kcost[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&ksint[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&theta[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
     }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&kcost[1],atom->nangletypes,MPI_DOUBLE,0,world);

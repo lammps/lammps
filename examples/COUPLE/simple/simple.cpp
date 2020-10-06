@@ -25,10 +25,10 @@
 #include <mpi.h>
 
 // these are LAMMPS include files
-#include <lammps/lammps.h>
-#include <lammps/input.h>
-#include <lammps/atom.h>
-#include <lammps/library.h>
+#include "lammps.h"
+#include "input.h"
+#include "atom.h"
+#include "library.h"
 
 using namespace LAMMPS_NS;
 
@@ -135,10 +135,10 @@ int main(int narg, char **arg)
 
   // use commands_string() and commands_list() to invoke more commands
 
-  char *strtwo = (char *) "run 10\nrun 20";
+  const char *strtwo = (char *) "run 10\nrun 20";
   if (lammps == 1) lammps_commands_string(lmp,strtwo);
 
-  char *cmds[2];
+  const char *cmds[2];
   cmds[0] = (char *) "run 10";
   cmds[1] = (char *) "run 20";
   if (lammps == 1) lammps_commands_list(lmp,2,cmds);

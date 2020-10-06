@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_tip4p_long_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "angle.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -53,8 +53,8 @@ PairLJCutTIP4PLongSoft::PairLJCutTIP4PLongSoft(LAMMPS *lmp) :
   respa_enable = 0;
 
   nmax = 0;
-  hneigh = NULL;
-  newsite = NULL;
+  hneigh = nullptr;
+  newsite = nullptr;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -413,18 +413,18 @@ void PairLJCutTIP4PLongSoft::settings(int narg, char **arg)
 {
   if (narg < 9 || narg > 10) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(FLERR,arg[0]);
-  typeH = force->inumeric(FLERR,arg[1]);
-  typeB = force->inumeric(FLERR,arg[2]);
-  typeA = force->inumeric(FLERR,arg[3]);
-  qdist = force->numeric(FLERR,arg[4]);
-  nlambda = force->numeric(FLERR,arg[5]);
-  alphalj = force->numeric(FLERR,arg[6]);
-  alphac = force->numeric(FLERR,arg[7]);
+  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
+  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  nlambda = utils::numeric(FLERR,arg[5],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[6],false,lmp);
+  alphac = utils::numeric(FLERR,arg[7],false,lmp);
 
-  cut_lj_global = force->numeric(FLERR,arg[8]);
+  cut_lj_global = utils::numeric(FLERR,arg[8],false,lmp);
   if (narg == 9) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[9]);
+  else cut_coul = utils::numeric(FLERR,arg[9],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -450,9 +450,9 @@ void PairLJCutTIP4PLongSoft::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style lj/cut/tip4p/long/soft requires atom attribute q");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   PairLJCutCoulLongSoft::init_style();
@@ -517,17 +517,17 @@ void PairLJCutTIP4PLongSoft::read_restart_settings(FILE *fp)
   PairLJCutCoulLongSoft::read_restart_settings(fp);
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,nullptr,error);
 
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -579,7 +579,7 @@ void *PairLJCutTIP4PLongSoft::extract(const char *str, int &dim)
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

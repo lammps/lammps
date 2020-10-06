@@ -1,16 +1,12 @@
 .. index:: pair_style tersoff/zbl
+.. index:: pair_style tersoff/zbl/gpu
+.. index:: pair_style tersoff/zbl/kk
+.. index:: pair_style tersoff/zbl/omp
 
 pair_style tersoff/zbl command
 ==============================
 
-pair_style tersoff/zbl/gpu command
-==================================
-
-pair_style tersoff/zbl/kk command
-=================================
-
-pair_style tersoff/zbl/omp command
-==================================
+Accelerator Variants: *tersoff/zbl/gpu*, *tersoff/zbl/kk*, *tersoff/zbl/omp*
 
 Syntax
 """"""
@@ -238,7 +234,8 @@ providing the base ZBL implementation.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -278,7 +275,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -13,7 +13,7 @@
 
 #include "compute_snad_atom.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -30,13 +30,13 @@
 using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snad(NULL),
-  radelem(NULL), wjelem(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
+  radelem(nullptr), wjelem(nullptr)
 {
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = NULL;
-  wjelem = NULL;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -112,9 +112,9 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snad_atom:map");
-      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       for(int i = 0; i < ntypes; i++) {
-        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snad/atom command");
         map[i+1] = jelem;
@@ -147,7 +147,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  snad = NULL;
+  snad = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,7 +165,7 @@ ComputeSNADAtom::~ComputeSNADAtom()
 
 void ComputeSNADAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute snad/atom requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)

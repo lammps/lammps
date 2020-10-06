@@ -1,4 +1,8 @@
 .. index:: compute force/tally
+.. index:: compute heat/flux/tally
+.. index:: compute pe/tally
+.. index:: compute pe/mol/tally
+.. index:: compute stress/tally
 
 compute force/tally command
 ===========================
@@ -63,7 +67,8 @@ pairwise property computations.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *pe/tally* calculates a global scalar (the energy) and a per
 atom scalar (the contributions of the single atom to the global
@@ -105,4 +110,7 @@ Related commands
 *compute group/group*\ _compute_group_group.html, *compute
 heat/flux*\ _compute_heat_flux.html
 
-**Default:** none
+Default
+"""""""
+
+none

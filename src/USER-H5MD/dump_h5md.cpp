@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include <climits>
 #include "ch5md.h"
@@ -68,13 +68,13 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   size_one = 6;
   sort_flag = 1;
   sortcol = 0;
-  format_default = NULL;
+  format_default = nullptr;
   flush_flag = 0;
   unwrap_flag = 0;
   datafile_from_dump = -1;
-  author_name=NULL;
+  author_name=nullptr;
 
-  every_dump = force->inumeric(FLERR,arg[3]);
+  every_dump = utils::inumeric(FLERR,arg[3],false,lmp);
   every_position = every_image = -1;
   every_velocity = every_force = every_species = -1;
   every_charge = -1;
@@ -175,7 +175,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       if (iarg+1>=narg) {
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
-      if (author_name==NULL) {
+      if (author_name==nullptr) {
         author_name = new char[strlen(arg[iarg])+1];
         strcpy(author_name, arg[iarg+1]);
       } else {
@@ -271,10 +271,10 @@ void DumpH5MD::openfile()
 
   if (me == 0) {
     if (datafile_from_dump<0) {
-      if (author_name==NULL) {
-        datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
+      if (author_name==nullptr) {
+        datafile = h5md_create_file(filename, "N/A", nullptr, "lammps", LAMMPS_VERSION);
       } else {
-        datafile = h5md_create_file(filename, author_name, NULL, "lammps", LAMMPS_VERSION);
+        datafile = h5md_create_file(filename, author_name, nullptr, "lammps", LAMMPS_VERSION);
       }
       group_name_length = strlen(group->names[igroup])+1;
       group_name = new char[group_name_length];
@@ -288,19 +288,19 @@ void DumpH5MD::openfile()
       dims[0] = natoms;
       dims[1] = domain->dimension;
       if (every_position>0) {
-        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-        h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
+        h5md_create_box(&particles_data, dims[1], boundary, true, nullptr, &particles_data.position);
       }
       if (every_image>0)
         particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
       if (every_velocity>0)
-        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
       if (every_force>0)
-        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
       if (every_species>0)
-        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, nullptr);
       if (every_charge>0) {
-        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, nullptr);
         h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
       }
     } else {
@@ -318,26 +318,26 @@ void DumpH5MD::openfile()
       dims[0] = natoms;
       dims[1] = domain->dimension;
       if (every_position>0) {
-        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-        h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+        particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
+        h5md_create_box(&particles_data, dims[1], boundary, true, nullptr, &particles_data.position);
       }
       if (every_image>0)
         particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
       if (every_velocity>0)
-        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
       if (every_force>0)
-        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, nullptr);
       if (every_species>0)
-        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+        particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, nullptr);
       if (every_charge>0) {
-        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+        particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, nullptr);
         h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
       }
 
     }
   }
 
-  if (author_name!=NULL) delete [] author_name;
+  if (author_name!=nullptr) delete [] author_name;
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
   }
@@ -536,7 +536,7 @@ void DumpH5MD::write_fixed_frame()
   edges[2] = boxzhi - boxzlo;
   if (every_position==0) {
     particles_data.position = h5md_create_fixed_data_simple(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, dump_position);
-    h5md_create_box(&particles_data, dims[1], boundary, false, edges, NULL);
+    h5md_create_box(&particles_data, dims[1], boundary, false, edges, nullptr);
     if (every_image==0)
       particles_data.image = h5md_create_fixed_data_simple(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, dump_image);
   }

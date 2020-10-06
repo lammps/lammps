@@ -12,7 +12,8 @@ When offloading to a co-processor from a CPU, the same routine is run
 twice, once on the CPU and once with an offload flag. This allows
 LAMMPS to run on the CPU cores and co-processor cores simultaneously.
 
-**Currently Available USER-INTEL Styles:**
+Currently Available USER-INTEL Styles
+"""""""""""""""""""""""""""""""""""""
 
 * Angle Styles: charmm, harmonic
 * Bond Styles: fene, fourier, harmonic
@@ -31,9 +32,10 @@ LAMMPS to run on the CPU cores and co-processor cores simultaneously.
    support computing per-atom stress.  If any compute or fix in your
    input requires it, LAMMPS will abort with an error message.
 
-**Speed-ups to expect:**
+Speed-up to expect
+"""""""""""""""""""
 
-The speedups will depend on your simulation, the hardware, which
+The speedup will depend on your simulation, the hardware, which
 styles are used, the number of atoms, and the floating-point
 precision mode. Performance improvements are shown compared to
 LAMMPS *without using other acceleration packages* as these are
@@ -59,7 +61,8 @@ instructions to reproduce.
 
 ----------
 
-**Accuracy and order of operations:**
+Accuracy and order of operations
+""""""""""""""""""""""""""""""""
 
 In most molecular dynamics software, parallelization parameters
 (# of MPI, OpenMP, and vectorization) can change the results due
@@ -96,7 +99,8 @@ mode should not be used without appropriate validation.
 
 ----------
 
-**Quick Start for Experienced Users:**
+Quick Start for Experienced Users
+"""""""""""""""""""""""""""""""""
 
 LAMMPS should be built with the USER-INTEL package installed.
 Simulations should be run with 1 MPI task per physical *core*\ ,
@@ -136,7 +140,8 @@ For Intel Xeon Phi co-processors (Offload):
 
 ----------
 
-**Required hardware/software:**
+Required hardware/software
+""""""""""""""""""""""""""
 
 When using Intel compilers version 16.0 or later is required.
 
@@ -159,7 +164,8 @@ For best performance, we recommend that the MCDRAM is configured in
 "Cache" mode can also be used, although the performance might be
 slightly lower.
 
-**Notes about Simultaneous Multithreading:**
+Notes about Simultaneous Multithreading
+"""""""""""""""""""""""""""""""""""""""
 
 Modern CPUs often support Simultaneous Multithreading (SMT). On
 Intel processors, this is called Hyper-Threading (HT) technology.
@@ -196,7 +202,8 @@ this information can normally be obtained with:
 
    cat /proc/cpuinfo
 
-**Building LAMMPS with the USER-INTEL package:**
+Building LAMMPS with the USER-INTEL package
+"""""""""""""""""""""""""""""""""""""""""""
 
 See the :ref:`Build extras <user-intel>` doc page for
 instructions.  Some additional details are covered here.
@@ -263,7 +270,8 @@ recommended CCFLAG options for best performance are "-O2 -fno-alias
    in most of the example Makefiles is to use "-xHost", however this
    should not be used when cross-compiling.
 
-**Running LAMMPS with the USER-INTEL package:**
+Running LAMMPS with the USER-INTEL package
+""""""""""""""""""""""""""""""""""""""""""
 
 Running LAMMPS with the USER-INTEL package is similar to normal use
 with the exceptions that one should 1) specify that LAMMPS should use
@@ -304,7 +312,8 @@ almost all cases.
    recommended, especially when running on a machine with Intel
    Hyper-Threading technology disabled.
 
-**Run with the USER-INTEL package from the command line:**
+Run with the USER-INTEL package from the command line
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 To enable USER-INTEL optimizations for all available styles used in
 the input script, the "-sf intel" :doc:`command-line switch <Run_options>` can be used without any requirement for
@@ -339,7 +348,8 @@ launching MPI applications):
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script                                 # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script -pk intel 0 omp 2 mode double   # Don't use any co-processors that might be available, use 2 OpenMP threads for each task, use double precision
 
-**Or run with the USER-INTEL package by editing an input script:**
+Or run with the USER-INTEL package by editing an input script
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 As an alternative to adding command-line arguments, the input script
 can be edited to enable the USER-INTEL package. This requires adding
@@ -361,7 +371,8 @@ Alternatively, the :doc:`suffix intel <suffix>` command can be added to
 the input script to enable USER-INTEL styles for the commands that
 follow in the input script.
 
-**Tuning for Performance:**
+Tuning for Performance
+""""""""""""""""""""""
 
 .. note::
 
@@ -431,7 +442,8 @@ series processors will always perform better using MCDRAM. Please
 consult your system documentation for the best approach to specify
 that MPI runs are performed in MCDRAM.
 
-**Tuning for Offload Performance:**
+Tuning for Offload Performance
+""""""""""""""""""""""""""""""
 
 The default settings for offload should give good performance.
 
@@ -521,7 +533,8 @@ the pair styles in the USER-INTEL package currently support the
 :doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.
 
-**References:**
+References
+""""""""""
 
 * Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., "Optimizing Classical Molecular Dynamics in LAMMPS," in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.
 * Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. `Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. <http://dl.acm.org/citation.cfm?id=3014915>`_ 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).

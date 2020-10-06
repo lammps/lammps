@@ -16,14 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_zero.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -85,11 +84,11 @@ void BondZero::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   double r0_one = 0.0;
   if (coeffflag && (narg == 2))
-    r0_one = force->numeric(FLERR,arg[1]);
+    r0_one = utils::numeric(FLERR,arg[1],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -127,7 +126,7 @@ void BondZero::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 
@@ -158,5 +157,5 @@ void *BondZero::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"r0")==0) return (void*) r0;
-  return NULL;
+  return nullptr;
 }

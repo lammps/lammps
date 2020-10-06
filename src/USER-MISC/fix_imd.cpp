@@ -48,17 +48,16 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 #include "fix_imd.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
-#include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
+#include "respa.h"
+#include "update.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -208,7 +207,7 @@ tagint taginthash_lookup(const taginthash_t *tptr, tagint key) {
 
   /* find the entry in the hash table */
   h=taginthash(tptr, key);
-  for (node=tptr->bucket[h]; node!=NULL; node=node->next) {
+  for (node=tptr->bucket[h]; node!=nullptr; node=node->next) {
     if (node->key == key)
       break;
   }
@@ -230,7 +229,7 @@ tagint *taginthash_keys(taginthash_t *tptr) {
   keys = (tagint *)calloc(tptr->entries, sizeof(tagint));
 
   for (tagint i=0; i < tptr->size; ++i) {
-    for (node=tptr->bucket[i]; node != NULL; node=node->next) {
+    for (node=tptr->bucket[i]; node != nullptr; node=node->next) {
       keys[node->data] = node->key;
     }
   }
@@ -281,7 +280,7 @@ void taginthash_destroy(taginthash_t *tptr) {
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
-    while (node != NULL) {
+    while (node != nullptr) {
       last = node;
       node = node->next;
       free(last);
@@ -289,7 +288,7 @@ void taginthash_destroy(taginthash_t *tptr) {
   }
 
   /* free the entire array of buckets */
-  if (tptr->bucket != NULL) {
+  if (tptr->bucket != nullptr) {
     free(tptr->bucket);
     memset(tptr, 0, sizeof(taginthash_t));
   }
@@ -446,7 +445,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix imd command");
 
-  imd_port = force->inumeric(FLERR,arg[3]);
+  imd_port = utils::inumeric(FLERR,arg[3],false,lmp);
   if (imd_port < 1024)
     error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
@@ -473,9 +472,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
         nowait_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = force->numeric(FLERR,arg[argsdone+1]);
+      imd_fscale = utils::numeric(FLERR,arg[argsdone+1],false,lmp);
     } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = force->inumeric(FLERR,arg[argsdone+1]);
+      imd_trate = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }
@@ -493,25 +492,25 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
 
   /* initialize various imd state variables. */
-  clientsock = NULL;
-  localsock  = NULL;
+  clientsock = nullptr;
+  localsock  = nullptr;
   nlevels_respa = 0;
   imd_inactive = 0;
   imd_terminate = 0;
   imd_forces = 0;
-  force_buf = NULL;
+  force_buf = nullptr;
   maxbuf = 0;
-  msgdata = NULL;
+  msgdata = nullptr;
   msglen = 0;
-  comm_buf = NULL;
-  idmap = NULL;
-  rev_idmap = NULL;
+  comm_buf = nullptr;
+  idmap = nullptr;
+  rev_idmap = nullptr;
 
   if (me == 0) {
     /* set up incoming socket on MPI rank 0. */
     imdsock_init();
     localsock = imdsock_create();
-    clientsock = NULL;
+    clientsock = nullptr;
     if (imdsock_bind(localsock,imd_port)) {
       perror("bind to socket failed");
       imdsock_destroy(localsock);
@@ -537,9 +536,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
 
     /* set up mutex and condition variable for i/o thread */
     /* hold mutex before creating i/o thread to keep it waiting. */
-    pthread_mutex_init(&read_mutex, NULL);
-    pthread_mutex_init(&write_mutex, NULL);
-    pthread_cond_init(&write_cond, NULL);
+    pthread_mutex_init(&read_mutex, nullptr);
+    pthread_mutex_init(&write_mutex, nullptr);
+    pthread_cond_init(&write_cond, nullptr);
 
     pthread_mutex_lock(&write_mutex);
     buf_has_data=0;
@@ -565,7 +564,7 @@ FixIMD::~FixIMD()
     buf_has_data=-1;
     pthread_cond_signal(&write_cond);
     pthread_mutex_unlock(&write_mutex);
-    pthread_join(iothread, NULL);
+    pthread_join(iothread, nullptr);
 
     /* cleanup */
     pthread_attr_destroy(&iot_attr);
@@ -585,8 +584,8 @@ FixIMD::~FixIMD()
   imdsock_destroy(clientsock);
   imdsock_shutdown(localsock);
   imdsock_destroy(localsock);
-  clientsock=NULL;
-  localsock=NULL;
+  clientsock=nullptr;
+  localsock=nullptr;
   return;
 }
 
@@ -628,7 +627,7 @@ int FixIMD::reconnect()
       }
     }
     connect_msg = 0;
-    clientsock = NULL;
+    clientsock = nullptr;
     if (nowait_flag) {
       int retval = imdsock_selread(localsock,0);
       if (retval > 0) {
@@ -775,7 +774,7 @@ void *fix_imd_ioworker(void *t)
 {
   FixIMD *imd=(FixIMD *)t;
   imd->ioworker();
-  return NULL;
+  return nullptr;
 }
 
 /* the real i/o worker thread */
@@ -788,7 +787,7 @@ void FixIMD::ioworker()
       fprintf(screen,"Asynchronous I/O thread is exiting.\n");
       buf_has_data=0;
       pthread_mutex_unlock(&write_mutex);
-      pthread_exit(NULL);
+      pthread_exit(nullptr);
     } else if (buf_has_data > 0) {
       /* send coordinate data, if client is able to accept */
       if (clientsock && imdsock_selwrite(clientsock,0)) {
@@ -856,9 +855,9 @@ void FixIMD::post_force(int /*vflag*/)
           imd_paused = 0;
           imd_forces = 0;
           memory->destroy(force_buf);
-          force_buf = NULL;
+          force_buf = nullptr;
           imdsock_destroy(clientsock);
-          clientsock = NULL;
+          clientsock = nullptr;
           if (screen)
             fprintf(screen, "IMD client detached. LAMMPS run continues.\n");
 
@@ -876,7 +875,7 @@ void FixIMD::post_force(int /*vflag*/)
           imd_terminate = 1;
           imd_paused = 0;
           imdsock_destroy(clientsock);
-          clientsock = NULL;
+          clientsock = nullptr;
           break;
 
         case IMD_PAUSE:
@@ -959,7 +958,7 @@ void FixIMD::post_force(int /*vflag*/)
     /* check if we need to readjust the forces comm buffer on the receiving nodes. */
     if (me != 0) {
       if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
-        if (force_buf != NULL)
+        if (force_buf != nullptr)
           memory->sfree(force_buf);
         force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
       }
@@ -1201,14 +1200,14 @@ void * imdsock_create(void) {
   imdsocket * s;
 
   s = (imdsocket *) malloc(sizeof(imdsocket));
-  if (s != NULL)
+  if (s != nullptr)
     memset(s, 0, sizeof(imdsocket));
-  else return NULL;
+  else return nullptr;
 
   if ((s->sd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
     printf("Failed to open socket.");
     free(s);
-    return NULL;
+    return nullptr;
   }
 
   return (void *) s;
@@ -1230,7 +1229,7 @@ int imdsock_listen(void * v) {
 
 void *imdsock_accept(void * v) {
   int rc;
-  imdsocket *new_s = NULL, *s = (imdsocket *) v;
+  imdsocket *new_s = nullptr, *s = (imdsocket *) v;
 #if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64)
   unsigned int len;
 #define _SOCKLEN_TYPE unsigned int
@@ -1249,7 +1248,7 @@ void *imdsock_accept(void * v) {
   rc = accept(s->sd, (struct sockaddr *) &s->addr, ( _SOCKLEN_TYPE * ) &len);
   if (rc >= 0) {
     new_s = (imdsocket *) malloc(sizeof(imdsocket));
-    if (new_s != NULL) {
+    if (new_s != nullptr) {
       *new_s = *s;
       new_s->sd = rc;
     }
@@ -1278,7 +1277,7 @@ int  imdsock_read(void * v, void *buf, int len) {
 
 void imdsock_shutdown(void *v) {
   imdsocket * s = (imdsocket *) v;
-  if (s == NULL)
+  if (s == nullptr)
     return;
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -1290,7 +1289,7 @@ void imdsock_shutdown(void *v) {
 
 void imdsock_destroy(void * v) {
   imdsocket * s = (imdsocket *) v;
-  if (s == NULL)
+  if (s == nullptr)
     return;
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -1307,14 +1306,14 @@ int imdsock_selread(void *v, int sec) {
   struct timeval tv;
   int rc;
 
-  if (v == NULL) return 0;
+  if (v == nullptr) return 0;
 
   FD_ZERO(&rfd);
   FD_SET(s->sd, &rfd);
   memset((void *)&tv, 0, sizeof(struct timeval));
   tv.tv_sec = sec;
   do {
-    rc = select(s->sd+1, &rfd, NULL, NULL, &tv);
+    rc = select(s->sd+1, &rfd, nullptr, nullptr, &tv);
   } while (rc < 0 && errno == EINTR);
   return rc;
 
@@ -1326,14 +1325,14 @@ int imdsock_selwrite(void *v, int sec) {
   struct timeval tv;
   int rc;
 
-  if (v == NULL) return 0;
+  if (v == nullptr) return 0;
 
   FD_ZERO(&wfd);
   FD_SET(s->sd, &wfd);
   memset((void *)&tv, 0, sizeof(struct timeval));
   tv.tv_sec = sec;
   do {
-    rc = select(s->sd + 1, NULL, &wfd, NULL, &tv);
+    rc = select(s->sd + 1, nullptr, &wfd, nullptr, &tv);
   } while (rc < 0 && errno == EINTR);
   return rc;
 }

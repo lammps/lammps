@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_bonds.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -44,7 +44,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   ntypes = atom->ntypes;
   nmax = atom->nmax;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
   if (nevery <= 0 )
     error->all(FLERR,"Illegal fix reax/c/bonds command");
@@ -65,7 +65,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 #endif
     } else fp = fopen(arg[4],"w");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix reax/c/bonds file %s",arg[4]);
       error->one(FLERR,str);
@@ -75,9 +75,9 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Atom IDs must be consecutive for fix reax/c bonds");
 
-  abo = NULL;
-  neighid = NULL;
-  numneigh = NULL;
+  abo = nullptr;
+  neighid = nullptr;
+  numneigh = nullptr;
 
   allocate();
 }
@@ -114,7 +114,7 @@ void FixReaxCBonds::setup(int /*vflag*/)
 void FixReaxCBonds::init()
 {
   reaxc = (PairReaxC *) force->pair_match("reax/c",0);
-  if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
+  if (reaxc == nullptr) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                                 "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
 }
@@ -235,7 +235,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
     }
     j += (5+numbonds);
 
-    if (atom->molecule == NULL ) buf[j] = 0.0;
+    if (atom->molecule == nullptr ) buf[j] = 0.0;
     else buf[j] = atom->molecule[i];
     j ++;
 

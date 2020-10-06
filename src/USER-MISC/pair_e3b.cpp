@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_e3b.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <algorithm>
@@ -50,12 +50,12 @@ PairE3B::PairE3B(LAMMPS *lmp) : Pair(lmp),pairPerAtom(10)
   pvector = new double[nextra];
 
   allocatedE3B = false;
-  pairO  = NULL;
-  pairH  = NULL;
-  exps   = NULL;
-  del3   = NULL;
-  fpair3 = NULL;
-  sumExp = NULL;
+  pairO  = nullptr;
+  pairH  = nullptr;
+  exps   = nullptr;
+  del3   = nullptr;
+  fpair3 = nullptr;
+  sumExp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -381,7 +381,7 @@ void PairE3B::allocateE3B()
 void PairE3B::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
-  typeO=force->inumeric(FLERR,arg[0]);
+  typeO=utils::inumeric(FLERR,arg[0],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -421,29 +421,29 @@ void PairE3B::coeff(int narg, char **arg)
   while(iarg < narg) {
     char *keyword = arg[iarg++];
     if (checkKeyword(keyword,"Ea",1,narg-iarg))
-      ea=force->numeric(FLERR,arg[iarg++]);
+      ea=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"Eb",1,narg-iarg))
-      eb=force->numeric(FLERR,arg[iarg++]);
+      eb=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"Ec",1,narg-iarg))
-      ec=force->numeric(FLERR,arg[iarg++]);
+      ec=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"K3",1,narg-iarg))
-      k3=force->numeric(FLERR,arg[iarg++]);
+      k3=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"Rs",1,narg-iarg))
-      rs=force->numeric(FLERR,arg[iarg++]);
+      rs=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"Rc3",1,narg-iarg))
-      rc3=force->numeric(FLERR,arg[iarg++]);
+      rc3=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"Rc2",1,narg-iarg))
-      rc2=force->numeric(FLERR,arg[iarg++]);
+      rc2=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"bondL",1,narg-iarg))
-      bondL=force->numeric(FLERR,arg[iarg++]);
+      bondL=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"E2",1,narg-iarg))
-      e2=force->numeric(FLERR,arg[iarg++]);
+      e2=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"K2",1,narg-iarg))
-      k2=force->numeric(FLERR,arg[iarg++]);
+      k2=utils::numeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"neigh",1,narg-iarg))
-      pairPerAtom=force->inumeric(FLERR,arg[iarg++]);
+      pairPerAtom=utils::inumeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"preset",1,narg-iarg)) {
-      presetFlag=force->inumeric(FLERR,arg[iarg++]);
+      presetFlag=utils::inumeric(FLERR,arg[iarg++],false,lmp);
       presetParam(presetFlag,repeatFlag,bondL);
     } else {
       char str[256];

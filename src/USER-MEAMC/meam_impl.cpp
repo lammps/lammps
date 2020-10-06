@@ -16,8 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "meam.h"
-#include <cstddef>
+
 #include "memory.h"
+
+#include <cstddef>
 
 using namespace LAMMPS_NS;
 
@@ -26,15 +28,15 @@ using namespace LAMMPS_NS;
 MEAM::MEAM(Memory* mem)
   : memory(mem)
 {
-  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = NULL;
+  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = nullptr;
 
   nmax = 0;
-  rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
-  gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;
-  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
+  rho = rho0 = rho1 = rho2 = rho3 = frhop = nullptr;
+  gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
+  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
 
   maxneigh = 0;
-  scrfcn = dscrfcn = fcpair = NULL;
+  scrfcn = dscrfcn = fcpair = nullptr;
 
   neltypes = 0;
   for (int i = 0; i < maxelt; i++) {

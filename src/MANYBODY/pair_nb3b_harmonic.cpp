@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_nb3b_harmonic.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -29,7 +29,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -50,11 +50,11 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  map = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -198,7 +198,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -207,7 +207,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -344,7 +344,7 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].cutoff   = values.next_double();
 
         if (unit_convert) params[nparams].k_theta *= conversion_factor;
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

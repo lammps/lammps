@@ -19,19 +19,17 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald.h"
-#include <mpi.h>
-#include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -41,11 +39,11 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
-  kxvecs(NULL), kyvecs(NULL), kzvecs(NULL), ug(NULL), eg(NULL), vg(NULL),
-  ek(NULL), sfacrl(NULL), sfacim(NULL), sfacrl_all(NULL), sfacim_all(NULL),
-  cs(NULL), sn(NULL), sfacrl_A(NULL), sfacim_A(NULL), sfacrl_A_all(NULL),
-  sfacim_A_all(NULL), sfacrl_B(NULL), sfacim_B(NULL), sfacrl_B_all(NULL),
-  sfacim_B_all(NULL)
+  kxvecs(nullptr), kyvecs(nullptr), kzvecs(nullptr), ug(nullptr), eg(nullptr), vg(nullptr),
+  ek(nullptr), sfacrl(nullptr), sfacim(nullptr), sfacrl_all(nullptr), sfacim_all(nullptr),
+  cs(nullptr), sn(nullptr), sfacrl_A(nullptr), sfacim_A(nullptr), sfacrl_A_all(nullptr),
+  sfacim_A_all(nullptr), sfacrl_B(nullptr), sfacim_B(nullptr), sfacrl_B_all(nullptr),
+  sfacim_B_all(nullptr)
 {
   group_allocate_flag = 0;
   kmax_created = 0;
@@ -55,14 +53,14 @@ Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
   accuracy_relative = 0.0;
 
   kmax = 0;
-  kxvecs = kyvecs = kzvecs = NULL;
-  ug = NULL;
-  eg = vg = NULL;
-  sfacrl = sfacim = sfacrl_all = sfacim_all = NULL;
+  kxvecs = kyvecs = kzvecs = nullptr;
+  ug = nullptr;
+  eg = vg = nullptr;
+  sfacrl = sfacim = sfacrl_all = sfacim_all = nullptr;
 
   nmax = 0;
-  ek = NULL;
-  cs = sn = NULL;
+  ek = nullptr;
+  cs = sn = nullptr;
 
   kcount = 0;
 }
@@ -71,7 +69,7 @@ void Ewald::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------
@@ -123,7 +121,7 @@ void Ewald::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 

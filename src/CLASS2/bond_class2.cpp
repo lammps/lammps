@@ -17,7 +17,7 @@
 
 #include <cstring>
 #include "bond_class2.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -25,7 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -134,12 +134,12 @@ void BondClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double r0_one = force->numeric(FLERR,arg[1]);
-  double k2_one = force->numeric(FLERR,arg[2]);
-  double k3_one = force->numeric(FLERR,arg[3]);
-  double k4_one = force->numeric(FLERR,arg[4]);
+  double r0_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double k2_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k3_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double k4_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -184,10 +184,10 @@ void BondClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k2[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -228,5 +228,5 @@ void *BondClass2::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"r0")==0) return (void*) r0;
-  return NULL;
+  return nullptr;
 }

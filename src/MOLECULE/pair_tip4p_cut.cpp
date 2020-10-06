@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tip4p_cut.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +28,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -39,8 +39,8 @@ PairTIP4PCut::PairTIP4PCut(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
 
   nmax = 0;
-  hneigh = NULL;
-  newsite = NULL;
+  hneigh = nullptr;
+  newsite = nullptr;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -373,12 +373,12 @@ void PairTIP4PCut::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(FLERR,arg[0]);
-  typeH = force->inumeric(FLERR,arg[1]);
-  typeB = force->inumeric(FLERR,arg[2]);
-  typeA = force->inumeric(FLERR,arg[3]);
-  qdist = force->numeric(FLERR,arg[4]);
-  cut_coul = force->numeric(FLERR,arg[5]);
+  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
+  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  cut_coul = utils::numeric(FLERR,arg[5],false,lmp);
 
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
@@ -395,8 +395,8 @@ void PairTIP4PCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -423,9 +423,9 @@ void PairTIP4PCut::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style tip4p/cut requires atom attribute q");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   neighbor->request(this,instance_me);
@@ -475,7 +475,7 @@ void PairTIP4PCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -502,13 +502,13 @@ void PairTIP4PCut::write_restart_settings(FILE *fp)
 void PairTIP4PCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,nullptr,error);
 
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);

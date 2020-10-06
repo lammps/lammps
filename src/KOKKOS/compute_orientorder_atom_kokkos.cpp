@@ -16,23 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom_kokkos.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
+
 #include "atom_kokkos.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor_kokkos.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "math_const.h"
 #include "atom_masks.h"
 #include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor_kokkos.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -435,10 +431,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::select3(int k, int n, int ii) con
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int ncount, int ii, int ineigh) const
+void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int /*ncount*/, int ii, int ineigh) const
 {
-  const int i = d_ilist[ii + chunk_offset];
-
   const double r0 = d_rlist(ii,ineigh,0);
   const double r1 = d_rlist(ii,ineigh,1);
   const double r2 = d_rlist(ii,ineigh,2);

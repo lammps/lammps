@@ -17,7 +17,7 @@
 
 #include "pair_eam_fs_gpu.h"
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -30,7 +30,7 @@
 #include "gpu_extra.h"
 #include "domain.h"
 #include "suffix.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -143,7 +143,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_fs_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_fs_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_fs_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }
@@ -324,7 +324,7 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -441,7 +441,7 @@ void PairEAMFSGPU::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

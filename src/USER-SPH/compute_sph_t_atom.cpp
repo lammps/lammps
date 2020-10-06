@@ -36,7 +36,7 @@ ComputeSPHTAtom::ComputeSPHTAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  tvector = NULL;
+  tvector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -16,21 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cna_atom.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -44,14 +44,14 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  list(NULL), nearest(NULL), nnearest(NULL), pattern(NULL)
+  list(nullptr), nearest(nullptr), nnearest(nullptr), pattern(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cna/atom command");
   cutsq = cutoff*cutoff;
 
@@ -71,7 +71,7 @@ ComputeCNAAtom::~ComputeCNAAtom()
 
 void ComputeCNAAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cna/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,"Compute cna/atom cutoff is longer than pairwise cutoff");

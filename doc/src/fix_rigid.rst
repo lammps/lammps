@@ -1,40 +1,49 @@
 .. index:: fix rigid
+.. index:: fix rigid/omp
+.. index:: fix rigid/nve
+.. index:: fix rigid/nve/omp
+.. index:: fix rigid/nvt
+.. index:: fix rigid/nvt/omp
+.. index:: fix rigid/npt
+.. index:: fix rigid/npt/omp
+.. index:: fix rigid/nph
+.. index:: fix rigid/nph/omp
+.. index:: fix rigid/small
+.. index:: fix rigid/small/omp
+.. index:: fix rigid/nve/small
+.. index:: fix rigid/nvt/small
+.. index:: fix rigid/npt/small
+.. index:: fix rigid/nph/small
 
 fix rigid command
 =================
 
-fix rigid/omp command
-=====================
+Accelerator Variants: *rigid/omp*
 
 fix rigid/nve command
 =====================
 
-fix rigid/nve/omp command
-=========================
+Accelerator Variants: *rigid/nve/omp*
 
 fix rigid/nvt command
 =====================
 
-fix rigid/nvt/omp command
-=========================
+Accelerator Variants: *rigid/nvt/omp*
 
 fix rigid/npt command
 =====================
 
-fix rigid/npt/omp command
-=========================
+Accelerator Variants: *rigid/npt/omp*
 
 fix rigid/nph command
 =====================
 
-fix rigid/nph/omp command
-=========================
+Accelerator Variants: *rigid/nph/omp*
 
 fix rigid/small command
 =======================
 
-fix rigid/small/omp command
-===========================
+Accelerator Variants: *rigid/small/omp*
 
 fix rigid/nve/small command
 ===========================
@@ -740,7 +749,8 @@ rigid/nvt.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about the 4 NVE rigid styles is written to :doc:`binary restart files <restart>`.  The exception is if the *infile* or
 *mol* keyword is used, in which case an auxiliary file is written out

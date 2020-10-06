@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -55,30 +55,30 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
 
   nmax = 0;
-  NCo = NULL;
-  bbij = NULL;
-  map = NULL;
-  esm = NULL;
+  NCo = nullptr;
+  bbij = nullptr;
+  map = nullptr;
+  esm = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
-  intype = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  ddfafb = NULL;
-  phin = NULL;
-  dphin = NULL;
-  erpaw = NULL;
+  intype = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  ddfafb = nullptr;
+  phin = nullptr;
+  dphin = nullptr;
+  erpaw = nullptr;
 
-  sht_num = NULL;
-  sht_first = NULL;
+  sht_num = nullptr;
+  sht_first = nullptr;
 
-  ipage = NULL;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
   // set comm size needed by this Pair
@@ -456,7 +456,7 @@ void PairComb::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -465,7 +465,7 @@ void PairComb::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -542,7 +542,7 @@ void PairComb::init_style()
   //for (i = 0; i < modify->nfix; i++)
   //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
   //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = NULL;
+  //else fixqeq = nullptr;
 
   // need a full neighbor list
 
@@ -554,7 +554,7 @@ void PairComb::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -679,7 +679,7 @@ void PairComb::read_file(char *file)
         params[nparams].cml2     = values.next_double();
         params[nparams].coulcut  = values.next_double();
         params[nparams].hfocor   = values.next_double();
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

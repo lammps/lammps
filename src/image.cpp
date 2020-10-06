@@ -16,16 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "image.h"
-#include <mpi.h>
-#include <cmath>
-#include <cctype>
-#include <cstring>
-#include "math_extra.h"
-#include "random_mars.h"
-#include "math_const.h"
+
 #include "error.h"
-#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
+#include "random_mars.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
 
 #ifdef LAMMPS_JPEG
 #include <jpeglib.h>
@@ -74,8 +74,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   // colors
 
   ncolors = 0;
-  username = NULL;
-  userrgb = NULL;
+  username = nullptr;
+  userrgb = nullptr;
 
   boxcolor = color2rgb("yellow");
   background[0] = background[1] = background[2] = 0;
@@ -112,7 +112,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
 
-  random = NULL;
+  random = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -651,7 +651,7 @@ void Image::draw_cylinder(double *x, double *y,
       double c = surface[0] * surface[0] + surface[1] * surface[1] - radsq;
 
       double partial = b*b - 4*a*c;
-      if (partial < 0) continue;
+      if ((partial < 0.0) || (a == 0.0)) continue;
       partial = sqrt (partial);
 
       double t = (-b + partial) / (2*a);
@@ -1029,13 +1029,13 @@ void Image::write_PNG(FILE *fp)
   png_structp png_ptr;
   png_infop info_ptr;
 
-  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
   if (!png_ptr) return;
 
   info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
-    png_destroy_write_struct(&png_ptr, NULL);
+    png_destroy_write_struct(&png_ptr, nullptr);
     return;
   }
 
@@ -1166,7 +1166,7 @@ int Image::addcolor(char *name, double r, double g, double b)
    if index < 0, return ptr to -index-1 color from userrgb
    if index = 0, search the 2 lists of color names for the string color
    search user-defined color names first, then the list of NCOLORS names
-   return a pointer to the 3 floating point RGB values or NULL if didn't find
+   return a pointer to the 3 floating point RGB values or nullptr if didn't find
 ------------------------------------------------------------------------- */
 
 double *Image::color2rgb(const char *color, int index)
@@ -1458,11 +1458,11 @@ double *Image::color2rgb(const char *color, int index)
   };
 
   if (index > 0) {
-    if (index > NCOLORS) return NULL;
+    if (index > NCOLORS) return nullptr;
     return rgb[index-1];
   }
   if (index < 0) {
-    if (-index > ncolors) return NULL;
+    if (-index > ncolors) return nullptr;
     return userrgb[-index-1];
   }
 
@@ -1472,7 +1472,7 @@ double *Image::color2rgb(const char *color, int index)
     for (int i = 0; i < NCOLORS; i++)
       if (strcmp(color,name[i]) == 0) return rgb[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1620,7 +1620,7 @@ double *Image::element2color(char *element)
 
   for (int i = 0; i < NELEMENTS; i++)
     if (strcmp(element,name[i]) == 0) return rgb[i];
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1708,13 +1708,13 @@ int ColorMap::reset(int narg, char **arg)
 {
   if (!islower(arg[0][0])) {
     mlo = NUMERIC;
-    mlovalue = force->numeric(FLERR,arg[0]);
+    mlovalue = utils::numeric(FLERR,arg[0],false,lmp);
   } else if (strcmp(arg[0],"min") == 0) mlo = MINVALUE;
   else return 1;
 
   if (!islower(arg[1][0])) {
     mhi = NUMERIC;
-    mhivalue = force->numeric(FLERR,arg[1]);
+    mhivalue = utils::numeric(FLERR,arg[1],false,lmp);
   } else if (strcmp(arg[1],"max") == 0) mhi = MAXVALUE;
   else return 1;
 
@@ -1733,12 +1733,12 @@ int ColorMap::reset(int narg, char **arg)
   else return 1;
 
   if (mstyle == SEQUENTIAL) {
-    mbinsize = force->numeric(FLERR,arg[3]);
+    mbinsize = utils::numeric(FLERR,arg[3],false,lmp);
     if (mbinsize <= 0.0) return 1;
     mbinsizeinv = 1.0/mbinsize;
   }
 
-  nentry = force->inumeric(FLERR,arg[4]);
+  nentry = utils::inumeric(FLERR,arg[4],false,lmp);
   if (nentry < 1) return 1;
   delete [] mentry;
   mentry = new MapEntry[nentry];
@@ -1751,7 +1751,7 @@ int ColorMap::reset(int narg, char **arg)
       if (n+2 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].single = NUMERIC;
-        mentry[i].svalue = force->numeric(FLERR,arg[n]);
+        mentry[i].svalue = utils::numeric(FLERR,arg[n],false,lmp);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
       else return 1;
@@ -1761,13 +1761,13 @@ int ColorMap::reset(int narg, char **arg)
       if (n+3 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].lo = NUMERIC;
-        mentry[i].lvalue = force->numeric(FLERR,arg[n]);
+        mentry[i].lvalue = utils::numeric(FLERR,arg[n],false,lmp);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].lo = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].lo = MAXVALUE;
       else return 1;
       if (!islower(arg[n+1][0])) {
         mentry[i].hi = NUMERIC;
-        mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
+        mentry[i].hvalue = utils::numeric(FLERR,arg[n+1],false,lmp);
       } else if (strcmp(arg[n+1],"min") == 0) mentry[i].hi = MINVALUE;
       else if (strcmp(arg[n+1],"max") == 0) mentry[i].hi = MAXVALUE;
       else return 1;
@@ -1791,13 +1791,13 @@ int ColorMap::reset(int narg, char **arg)
         if (n+1 > narg) return 1;
         mentry[i].color = image->color2rgb(arg[n]);
       } else if (expandflag == 1) {
-        mentry[i].color = image->color2rgb(NULL,i+1);
+        mentry[i].color = image->color2rgb(nullptr,i+1);
       } else if (expandflag == 2) {
-        mentry[i].color = image->color2rgb(NULL,-(i+1));
+        mentry[i].color = image->color2rgb(nullptr,-(i+1));
       }
       n += 1;
     }
-    if (mentry[i].color == NULL) return 1;
+    if (mentry[i].color == nullptr) return 1;
   }
 
   if (mstyle == CONTINUOUS) {
@@ -1915,5 +1915,5 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return NULL;
+  return nullptr;
 }

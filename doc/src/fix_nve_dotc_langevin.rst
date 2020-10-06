@@ -138,7 +138,10 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/dot <fix_nve_dot>`, :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

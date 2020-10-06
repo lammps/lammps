@@ -194,7 +194,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     YamlWriter writer(outfile);
 
     // lammps_version
-    writer.emit("lammps_version", lmp->universe->version);
+    writer.emit("lammps_version", lmp->version);
 
     // date_generated
     std::time_t now = time(NULL);
@@ -516,9 +516,11 @@ TEST(FixTimestep, plain)
             std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
     }
 
-    // rigid fixes need work to test properly with r-RESPA
+    // rigid fixes need work to test properly with r-RESPA.
+    // fix nve/limit cannot work with r-RESPA
     ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid")) {
+    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid")
+        && !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

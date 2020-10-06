@@ -15,18 +15,30 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lammps.h"
-#include "force.h"
-#include "error.h"
-#include "comm.h"
-#include "utils.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
+
 #include "fmt/format.h"
+#include "tokenizer.h"
+#include "utils.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+/** Class for reading and parsing text files
+ *
+ * The value of the class member variable *ignore_comments* controls
+ * whether any text following the pound sign (#) should be ignored (true)
+ * or not (false). Default: true, i.e. ignore.
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`TextFileReader`
+
+\endverbatim
+ *
+ * \param  filename  Name of file to be read
+ * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
   : filename(filename), filetype(filetype), ignore_comments(true)
@@ -38,9 +50,13 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
   }
 }
 
+/** Closes the file */
+
 TextFileReader::~TextFileReader() {
   fclose(fp);
 }
+
+/** Read the next line and ignore it */
 
 void TextFileReader::skip_line() {
   char *ptr = fgets(line, MAXLINE, fp);
@@ -49,6 +65,20 @@ void TextFileReader::skip_line() {
     throw EOFException(fmt::format("Missing line in {} file!", filetype));
   }
 }
+
+/** Read the next line(s) until *nparams* words have been read.
+ *
+ * This reads a line and counts the words in it, if the number
+ * is less than the requested number, it will read the next
+ * line, as well.  Output will be a string with all read lines
+ * combined.  The purpose is to somewhat replicate the reading
+ * behavior of formatted files in Fortran.
+ *
+ * If the *ignore_comments* class member has the value *true*,
+ * then any text read in is truncated at the first '#' character.
+ *
+ * \param   nparams  Number of words that must be read. Default: 0
+ * \return           String with the concatenated text */
 
 char *TextFileReader::next_line(int nparams) {
   // concatenate lines until have nparams words
@@ -82,7 +112,6 @@ char *TextFileReader::next_line(int nparams) {
       return nullptr;
     }
 
-
     // strip comment
     if (ignore_comments && (ptr = strchr(line, '#'))) *ptr = '\0';
 
@@ -96,6 +125,15 @@ char *TextFileReader::next_line(int nparams) {
 
   return line;
 }
+
+/** Read lines until *n* doubles have been read and stored in array *list*
+ *
+ * This reads lines from the file using the next_line() function,
+ * and splits them into floating-point numbers using the
+ * ValueTokenizer class and stores the number is the provided list.
+ *
+ * \param  list  Pointer to array with suitable storage for *n* doubles
+ * \param  n     Number of doubles to be read */
 
 void TextFileReader::next_dvector(double * list, int n) {
   int i = 0;
@@ -116,6 +154,16 @@ void TextFileReader::next_dvector(double * list, int n) {
   }
 }
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
+/** Read text until *nparams* words are read and passed to a tokenizer object for custom parsing.
+ *
+ * This reads lines from the file using the next_line() function,
+ * and splits them into floating-point numbers using the
+ * ValueTokenizer class and stores the number is the provided list.
+ *
+ * \param   nparams     Number of words to be read
+ * \param   separators  String with list of separators.
+ * \return              ValueTokenizer object for read in text */
+
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators) {
   return ValueTokenizer(next_line(nparams), separators);
 }

@@ -41,6 +41,7 @@ From: ubuntu:20.04
         libproj-dev \
         libvtk6-dev \
         libyaml-dev \
+        libzstd-dev \
         make \
         mpi-default-bin \
         mpi-default-dev \
@@ -59,6 +60,8 @@ From: ubuntu:20.04
         texlive-publishers \
         texlive-science \
         dvipng \
+        latexmk \
+        xindy \
         vim-nox \
         virtualenv \
         voro++-dev \
@@ -66,26 +69,52 @@ From: ubuntu:20.04
         xxd \
         valgrind \
         gdb \
+        zstd \
         libkim-api-dev \
         openkim-models
 
-    # clean cache
-    rm -rf /var/lib/apt/lists/*
+    ###########################################################################
+    # KIM-API
+    ###########################################################################
 
-        # manually install Plumed
-        mkdir plumed
-        cd plumed
-        version=2.6.0
-        curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
-        tar -xzf plumed.tar.gz
-        cd plumed-${version}
-        ./configure --disable-doc --prefix=/usr
-        make
-        make install
-        # fix up installation for CentOS and Fedora
-        # mv -v /usr/lib/pkgconfig/plumed* /usr/share/pkgconfig/
-        cd ../../
-        rm -rvf plumed
+    # workaround for installing files in /usr/share/doc inside of a container
+    sed -i 's/path-exclude=\/usr\/share\/doc/#path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+    apt-get install -y libkim-api-doc
+    sed -i 's/#path-exclude=\/usr\/share\/doc/path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+
+    # install KIM models
+    KIM_API_EXAMPLES=/usr/share/doc/libkim-api-dev/examples
+    gunzip $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003/LennardJones612_UniversalShifted.params.gz
+    gunzip $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ/ex_model_driver_P_LJ.f90.gz
+
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/LennardJones612__MD_414112407348_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones_Ar
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/ex_model_Ar_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/simulator-models/Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu
+
+
+    ###########################################################################
+    # Plumed
+    ###########################################################################
+
+    export PLUMED_PKG_VERSION=2.6.1
+
+    mkdir plumed
+    cd plumed
+    curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${PLUMED_PKG_VERSION}/plumed-src-${PLUMED_PKG_VERSION}.tgz
+    tar -xzf plumed.tar.gz
+    cd plumed-${PLUMED_PKG_VERSION}
+    ./configure --disable-doc --prefix=/usr
+    make
+    make install
+    cd ../../
+    rm -rvf plumed
+
+    ###########################################################################
+    # Customizations
+    ###########################################################################
 
     # set custom prompt indicating the container name
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
@@ -94,6 +123,13 @@ From: ubuntu:20.04
 PS1="[ubuntu20.04:\u@\h] \W> "
 EOF
     chmod 755 $CUSTOM_PROMPT_ENV
+
+
+    ###########################################################################
+    # Cleanup
+    ###########################################################################
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
     LC_ALL=C

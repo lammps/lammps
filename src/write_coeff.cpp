@@ -12,22 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "write_coeff.h"
-#include <cstring>
-#include <cstdlib>
-#include <cctype>
-#include <unistd.h>
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
+#include "bond.h"
 #include "comm.h"
-#include "force.h"
-#include "universe.h"
-#include "error.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "error.h"
+#include "force.h"
+#include "improper.h"
+#include "pair.h"
+#include "universe.h"
+
+#include <cctype>
+#include <cstring>
+#include <unistd.h>
 
 using namespace LAMMPS_NS;
 
@@ -57,7 +56,7 @@ void WriteCoeff::command(int narg, char **arg)
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
 
-    if (one == NULL)
+    if (one == nullptr)
       error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
                                    file, utils::getsyserror()));
 
@@ -91,24 +90,24 @@ void WriteCoeff::command(int narg, char **arg)
     rewind(one);
 
     FILE *two = fopen(file+4,"w");
-    if (two == NULL)
+    if (two == nullptr)
       error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
                                    file+4, utils::getsyserror()));
 
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
-            universe->version);
+            lmp->version);
 
     while(1) {
       int coeff_mode = REGULAR_MODE;
-      if (fgets(str,256,one) == NULL) break;
+      if (fgets(str,256,one) == nullptr) break;
 
       // some coeffs need special treatment
-      if (strstr(str,"class2") != NULL) {
-        if (strstr(str,"angle_style") != NULL)
+      if (strstr(str,"class2") != nullptr) {
+        if (strstr(str,"angle_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"dihedral_style") != NULL)
+        else if (strstr(str,"dihedral_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"improper_style") != NULL)
+        else if (strstr(str,"improper_style") != nullptr)
           coeff_mode = CLASS2_MODE;
       }
 

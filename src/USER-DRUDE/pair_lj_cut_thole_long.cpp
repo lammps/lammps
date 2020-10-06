@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_thole_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "fix_drude.h"
@@ -29,7 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "modify.h"
 #include "domain.h"
 
@@ -56,9 +56,9 @@ PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
   ewaldflag = pppmflag = 1;
   single_enable = 0;
   writedata = 1;
-  ftable = NULL;
+  ftable = nullptr;
   qdist = 0.0;
-  fix_drude = NULL;
+  fix_drude = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,10 +291,10 @@ void PairLJCutTholeLong::settings(int narg, char **arg)
 {
  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  thole_global = force->numeric(FLERR,arg[0]);
-  cut_lj_global = force->numeric(FLERR,arg[1]);
+  thole_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -320,17 +320,17 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double polar_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double polar_one = utils::numeric(FLERR,arg[4],false,lmp);
   double thole_one = thole_global;
-  if (narg >=6) thole_one = force->numeric(FLERR,arg[5]);
+  if (narg >=6) thole_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 7) cut_lj_one = force->numeric(FLERR,arg[6]);
+  if (narg == 7) cut_lj_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -371,11 +371,11 @@ void PairLJCutTholeLong::init_style()
 
   // set rRESPA cutoffs
 
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -496,16 +496,16 @@ void PairLJCutTholeLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&polar[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&thole[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&polar[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&thole[i][j],sizeof(double),1,fp,nullptr,error);
           ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
-          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -541,15 +541,15 @@ void PairLJCutTholeLong::write_restart_settings(FILE *fp)
 void PairLJCutTholeLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&thole_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&thole_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -602,5 +602,5 @@ void *PairLJCutTholeLong::extract(const char *str, int &dim)
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;
   if (strcmp(str,"ascreen") == 0) return (void *) ascreen;
-  return NULL;
+  return nullptr;
 }

@@ -20,22 +20,19 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_dump.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "reader.h"
-#include "style_reader.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "irregular.h"
+#include "domain.h"
 #include "error.h"
+#include "irregular.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -58,22 +55,22 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   triclinic = domain->triclinic;
 
   nfile = 0;
-  files = NULL;
+  files = nullptr;
 
   nnew = maxnew = 0;
   nfield = 0;
-  fieldtype = NULL;
-  fieldlabel = NULL;
-  fields = NULL;
-  buf = NULL;
+  fieldtype = nullptr;
+  fieldlabel = nullptr;
+  fields = nullptr;
+  buf = nullptr;
 
   int n = strlen("native") + 1;
   readerstyle = new char[n];
   strcpy(readerstyle,"native");
 
   nreader = 0;
-  readers = NULL;
-  nsnapatoms = NULL;
+  readers = nullptr;
+  nsnapatoms = nullptr;
   clustercomm = MPI_COMM_NULL;
   filereader = 0;
   parallel = 0;
@@ -110,13 +107,13 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  bigint nstep = force->bnumeric(FLERR,arg[1]);
+  bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
-  else nremain = fields_and_keywords(0,NULL);
+  else nremain = fields_and_keywords(0,nullptr);
   if (nremain) setup_reader(nremain,&arg[narg-nremain]);
-  else setup_reader(0,NULL);
+  else setup_reader(0,nullptr);
 
   // find the snapshot and read/bcast/process header info
 
@@ -246,7 +243,7 @@ void ReadDump::setup_reader(int narg, char **arg)
     for (int i = 0; i < nreader; i++) \
       readers[i] = new Class(lmp); \
   }
-#include "style_reader.h"
+#include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
@@ -600,7 +597,7 @@ void ReadDump::atoms()
   // if purgeflag set, delete all current atoms
 
   if (purgeflag) {
-    if (atom->map_style) atom->map_clear();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
     npurge = atom->nlocal;
     atom->nlocal = atom->nghost = 0;
     atom->natoms = 0;
@@ -625,7 +622,7 @@ void ReadDump::atoms()
   // this will be needed to match new atoms to old atoms
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -646,7 +643,7 @@ void ReadDump::atoms()
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   } else {
     atom->nghost = 0;
     atom->map_init();
@@ -716,7 +713,7 @@ void ReadDump::read_atoms()
 
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);    // avoid NULL ptr
+        maxnew = MAX(nnew,1);    // avoid null pointer
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -756,7 +753,7 @@ void ReadDump::read_atoms()
       nnew = static_cast<int> (olast - ofirst);
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
-        maxnew = MAX(nnew,1);     // avoid NULL ptr
+        maxnew = MAX(nnew,1);     // avoid null pointer
         memory->create(fields,maxnew,nfield,"read_dump:fields");
       }
 
@@ -782,7 +779,7 @@ void ReadDump::read_atoms()
     nnew = static_cast<int> (sum);
     if (nnew > maxnew || maxnew == 0) {
       memory->destroy(fields);
-      maxnew = MAX(nnew,1);     // avoid NULL ptr
+      maxnew = MAX(nnew,1);     // avoid null pointer
       memory->create(fields,maxnew,nfield,"read_dump:fields");
     }
 
@@ -1108,7 +1105,7 @@ void ReadDump::migrate_new_atoms()
   Irregular *irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
-  newmaxnew = MAX(newmaxnew,1);    // avoid NULL ptr
+  newmaxnew = MAX(newmaxnew,1);    // avoid null pointer
   memory->create(newfields,newmaxnew,nfield,"read_dump:newfields");
   irregular->exchange_data((char *) &fields[0][0],nfield*sizeof(double),
                            (char *) &newfields[0][0]);
@@ -1210,14 +1207,14 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   purgeflag = 0;
   trimflag = 0;
   addflag = NOADD;
-  for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
+  for (int i = 0; i < nfield; i++) fieldlabel[i] = nullptr;
   scaleflag = 0;
   wrapflag = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      multiproc_nfile = force->inumeric(FLERR,arg[iarg+1]);
+      multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

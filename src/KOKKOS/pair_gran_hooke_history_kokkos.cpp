@@ -48,8 +48,8 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -64,7 +64,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (history && fix_history == NULL) {
+  if (history && fix_history == nullptr) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",3);
     char **fixarg = new char*[4];
@@ -288,7 +288,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
   int count = 0;
@@ -300,7 +299,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
     const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const LMP_FLOAT jmass = rmass[j];
     const LMP_FLOAT jrad = radius[j];
     const LMP_FLOAT radsum = irad + jrad;
 
@@ -550,7 +548,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
+void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT & /*ev*/, int i, int j,
                                                                F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                                                                X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {

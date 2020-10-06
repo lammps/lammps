@@ -1,13 +1,11 @@
 .. index:: fix gravity
+.. index:: fix gravity/omp
+.. index:: fix gravity/kk
 
 fix gravity command
 ===================
 
-fix gravity/omp command
-=======================
-
-fix gravity/kk command
-======================
+Accelerator Variants: *gravity/omp*, *gravity/kk*
 
 Syntax
 """"""
@@ -100,7 +98,8 @@ field.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -131,4 +130,7 @@ Related commands
 
 :doc:`atom_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

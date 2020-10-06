@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_group_group.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -45,7 +45,7 @@ enum{OFF,INTER,INTRA};
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  group2(NULL)
+  group2(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
 
@@ -122,15 +122,15 @@ void ComputeGroupGroup::init()
   // if non-hybrid, then error if single_enable = 0
   // if hybrid, let hybrid determine if sub-style sets single_enable = 0
 
-  if (pairflag && force->pair == NULL)
+  if (pairflag && force->pair == nullptr)
     error->all(FLERR,"No pair style defined for compute group/group");
-  if (force->pair_match("^hybrid",0) == NULL
+  if (force->pair_match("^hybrid",0) == nullptr
       && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute group/group");
 
   // error if Kspace style does not compute group/group interactions
 
-  if (kspaceflag && force->kspace == NULL)
+  if (kspaceflag && force->kspace == nullptr)
     error->all(FLERR,"No Kspace style defined for compute group/group");
   if (kspaceflag && force->kspace->group_group_enable == 0)
     error->all(FLERR,"Kspace style does not support compute group/group");
@@ -138,10 +138,10 @@ void ComputeGroupGroup::init()
   if (pairflag) {
     pair = force->pair;
     cutsq = force->pair->cutsq;
-  } else pair = NULL;
+  } else pair = nullptr;
 
   if (kspaceflag) kspace = force->kspace;
-  else kspace = NULL;
+  else kspace = nullptr;
 
   // compute Kspace correction terms
 

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_comb.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "pair_comb.h"
@@ -30,8 +30,8 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,7 +39,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  fp(NULL), comb(NULL), comb3(NULL), qf(NULL), q1(NULL), q2(NULL)
+  fp(nullptr), comb(nullptr), comb3(nullptr), qf(nullptr), q1(nullptr), q2(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
@@ -49,8 +49,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  precision = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  precision = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (nevery <= 0 || precision <= 0.0)
     error->all(FLERR,"Illegal fix qeq/comb command");
@@ -65,7 +65,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/comb command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,std::string("Cannot open fix qeq/comb file ")
                      + arg[iarg+1]);
       }
@@ -85,8 +85,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) qf[i] = 0.0;
 
-  comb = NULL;
-  comb3 = NULL;
+  comb = nullptr;
+  comb3 = nullptr;
 
   comm_forward = 1;
 }
@@ -121,7 +121,7 @@ void FixQEQComb::init()
 
   comb = (PairComb *) force->pair_match("^comb",0);
   comb3 = (PairComb3 *) force->pair_match("^comb3",0);
-  if (comb == NULL && comb3 == NULL)
+  if (comb == nullptr && comb3 == nullptr)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {

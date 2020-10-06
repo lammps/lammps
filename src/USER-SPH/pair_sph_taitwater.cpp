@@ -21,6 +21,7 @@
 #include "error.h"
 #include "domain.h"
 
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -239,13 +240,13 @@ void PairSPHTaitwater::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double rho0_one = force->numeric(FLERR,arg[2]);
-  double soundspeed_one = force->numeric(FLERR,arg[3]);
-  double viscosity_one = force->numeric(FLERR,arg[4]);
-  double cut_one = force->numeric(FLERR,arg[5]);
+  double rho0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double soundspeed_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double viscosity_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   double B_one = soundspeed_one * soundspeed_one * rho0_one / 7.0;
 
   int count = 0;

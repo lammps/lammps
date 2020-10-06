@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -26,17 +26,17 @@
 #include "memory.h"
 #include "error.h"
 #include "respa.h"
-#include "utils.h"
+
 #include "suffix.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(NULL), keywords(NULL), multiple(NULL), nmap(NULL),
-  map(NULL), special_lj(NULL), special_coul(NULL), compute_tally(NULL)
+  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
+  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 
@@ -116,7 +116,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   // check if we are running with r-RESPA using the hybrid keyword
 
-  Respa *respa = NULL;
+  Respa *respa = nullptr;
   respaflag = 0;
   if (strstr(update->integrate_style,"respa")) {
     respa = (Respa *) update->integrate;
@@ -324,7 +324,7 @@ void PairHybrid::settings(int narg, char **arg)
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     force->store_style(keywords[nstyles],arg[iarg],0);
-    special_lj[nstyles] = special_coul[nstyles] = NULL;
+    special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
     // determine list of arguments for pair style settings
@@ -438,8 +438,8 @@ void PairHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times
@@ -456,7 +456,7 @@ void PairHybrid::coeff(int narg, char **arg)
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
         if (!isdigit(arg[3][0]))
           error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = force->inumeric(FLERR,arg[3]);
+        int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;
       } else break;
@@ -706,10 +706,10 @@ void PairHybrid::write_restart(FILE *fp)
     fwrite(keywords[m],sizeof(char),n,fp);
     styles[m]->write_restart_settings(fp);
     // write out per style special settings, if present
-    n = (special_lj[m] == NULL) ? 0 : 1;
+    n = (special_lj[m] == nullptr) ? 0 : 1;
     fwrite(&n,sizeof(int),1,fp);
     if (n) fwrite(special_lj[m],sizeof(double),4,fp);
-    n = (special_coul[m] == NULL) ? 0 : 1;
+    n = (special_coul[m] == nullptr) ? 0 : 1;
     fwrite(&n,sizeof(int),1,fp);
     if (n) fwrite(special_coul[m],sizeof(double),4,fp);
   }
@@ -722,7 +722,7 @@ void PairHybrid::write_restart(FILE *fp)
 void PairHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
@@ -745,32 +745,32 @@ void PairHybrid::read_restart(FILE *fp)
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
-  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,nullptr,error);
   MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],1,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
-    special_lj[m] = special_coul[m] = NULL;
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    special_lj[m] = special_coul[m] = nullptr;
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_lj[m] = new double[4];
-      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n > 0 ) {
       special_coul[m] = new double[4];
-      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);
     }
   }
@@ -813,8 +813,8 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       if (styles[map[itype][jtype][m]]->single_enable == 0)
         error->one(FLERR,"Pair hybrid sub-style does not support single call");
 
-      if ((special_lj[map[itype][jtype][m]] != NULL) ||
-          (special_coul[map[itype][jtype][m]] != NULL))
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
         error->one(FLERR,"Pair hybrid single calls do not support"
                    " per sub-style special bond values");
 
@@ -864,7 +864,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 
     if (multiple[m]) {
       if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
-      int multiflag = force->inumeric(FLERR,arg[2]);
+      int multiflag = utils::inumeric(FLERR,arg[2],false,lmp);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
@@ -934,9 +934,9 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   int i;
 
   special[0] = 1.0;
-  special[1] = force->numeric(FLERR,arg[1]);
-  special[2] = force->numeric(FLERR,arg[2]);
-  special[3] = force->numeric(FLERR,arg[3]);
+  special[1] = utils::numeric(FLERR,arg[1],false,lmp);
+  special[2] = utils::numeric(FLERR,arg[2],false,lmp);
+  special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   // have to cast to PairHybrid to work around C++ access restriction
 
@@ -1006,13 +1006,13 @@ void PairHybrid::restore_special(double *saved)
 /* ----------------------------------------------------------------------
    extract a ptr to a particular quantity stored by pair
    pass request thru to sub-styles
-   return first non-NULL result except for cut_coul request
-   for cut_coul, insure all non-NULL results are equal since required by Kspace
+   return first non-nullptr result except for cut_coul request
+   for cut_coul, insure all non-nullptr results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
 void *PairHybrid::extract(const char *str, int &dim)
 {
-  void *cutptr = NULL;
+  void *cutptr = nullptr;
   void *ptr;
   double cutvalue = 0.0;
   int couldim = -1;
@@ -1037,7 +1037,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   }
 
   if (strcmp(str,"cut_coul") == 0) return cutptr;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

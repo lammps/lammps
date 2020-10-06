@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -174,7 +174,7 @@ void AngleHybrid::allocate()
   maxangle = new int[nstyles];
   anglelist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maxangle[m] = 0;
-  for (int m = 0; m < nstyles; m++) anglelist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) anglelist[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -267,7 +267,7 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   // 2nd arg = angle sub-style name
   // allow for "none" or "skip" as valid sub-style name
@@ -358,7 +358,7 @@ void AngleHybrid::write_restart(FILE *fp)
 void AngleHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Angle*[nstyles];
   keywords = new char*[nstyles];
@@ -367,10 +367,10 @@ void AngleHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_angle(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);

@@ -16,20 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_time.h"
-#include <mpi.h>
-#include <cstdlib>
+
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,19 +43,19 @@ enum{SCALAR,VECTOR};
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  offcol(NULL), varlen(NULL), ids(NULL),
-  fp(NULL), offlist(NULL), format(NULL), format_user(NULL),
-  vector(NULL), vector_total(NULL), vector_list(NULL),
-  column(NULL), array(NULL), array_total(NULL), array_list(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  offcol(nullptr), varlen(nullptr), ids(nullptr),
+  fp(nullptr), offlist(nullptr), format(nullptr), format_user(nullptr),
+  vector(nullptr), vector_total(nullptr), vector_list(nullptr),
+  column(nullptr), array(nullptr), array_total(nullptr), array_list(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/time command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
@@ -88,7 +85,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[6],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[6],mode,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -246,7 +243,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // nrows = # of rows in output array
   // if all columns are variable length, just set nrows = 1 for now
 
-  column = NULL;
+  column = nullptr;
   if (mode == VECTOR) {
     if (all_variable_length == 0) nrows = column_length(0);
     else nrows = 1;
@@ -307,10 +304,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for averaging
 
-  vector = vector_total = NULL;
-  vector_list = NULL;
-  array = array_total = NULL;
-  array_list = NULL;
+  vector = vector_total = nullptr;
+  vector_list = nullptr;
+  array = array_total = nullptr;
+  array_list = nullptr;
 
   if (mode == SCALAR) {
     vector = new double[nvalues];
@@ -324,7 +321,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // VECTOR mode produces either a vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  extlist = NULL;
+  extlist = nullptr;
 
   if (mode == SCALAR) {
     if (nvalues == 1) {
@@ -643,7 +640,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep
@@ -746,7 +743,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         if (!varlen[i] || which[i] != COMPUTE) continue;
         if (nrepeat > 1 && ave == ONE) {
           Compute *compute = modify->compute[value2index[i]];
-          compute->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+          compute->lock(this,ntimestep,ntimestep+static_cast<bigint>(nrepeat-1)*nevery);
         } else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
           Compute *compute = modify->compute[value2index[i]];
           compute->lock(this,update->ntimestep,-1);
@@ -841,7 +838,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   }
 
   irepeat = 0;
-  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // unlock any variable length computes at end of Nfreq epoch
@@ -1025,18 +1022,18 @@ void FixAveTime::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
   noff = 0;
-  offlist = NULL;
+  offlist = nullptr;
   overwrite = 0;
-  format_user = NULL;
+  format_user = nullptr;
   format = (char *) " %g";
-  title1 = NULL;
-  title2 = NULL;
-  title3 = NULL;
+  title1 = nullptr;
+  title2 = nullptr;
+  title3 = nullptr;
 
   // optional args
 
@@ -1045,7 +1042,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/time file {}: {}",
                                        arg[iarg+1], utils::getsyserror()));
       }
@@ -1058,14 +1055,14 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       else error->all(FLERR,"Illegal fix ave/time command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/time command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/time command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
@@ -1076,7 +1073,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
     } else if (strcmp(arg[iarg],"off") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       memory->grow(offlist,noff+1,"ave/time:offlist");
-      offlist[noff++] = force->inumeric(FLERR,arg[iarg+1]);
+      offlist[noff++] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
@@ -1149,7 +1146,7 @@ bigint FixAveTime::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= static_cast<bigint>(nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

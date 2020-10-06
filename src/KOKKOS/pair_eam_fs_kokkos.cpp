@@ -29,7 +29,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -427,8 +427,9 @@ void PairEAMFSKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                          int iswap_in, DAT::tdual_xfloat_1d &buf,
+                                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
@@ -464,7 +465,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSUnpackForwardComm, cons
 
 template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
 
@@ -533,8 +534,8 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTO
 
   // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_rho = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
-  auto a_rho = v_rho.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_rho = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
+  auto a_rho = v_rho.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -704,8 +705,8 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -814,11 +815,11 @@ void PairEAMFSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_eatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (EFLAG) {
     if (eflag_atom) {
@@ -937,7 +938,7 @@ void PairEAMFSKokkos<DeviceType>::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -1001,7 +1002,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];
@@ -1054,7 +1055,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

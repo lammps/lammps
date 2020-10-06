@@ -41,7 +41,8 @@ The *limit_velocity* keyword will control the velocity, scaling the
 norm of the velocity vector to max_vel in case it exceeds this
 velocity limit.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Currently, no part of USER-SMD supports restarting nor
 minimization. This fix has no outputs.
@@ -57,4 +58,7 @@ Related commands
 
 :doc:`smd/integrate_ulsph <fix_smd_integrate_ulsph>`
 
-**Default:** none
+Default
+"""""""
+
+none

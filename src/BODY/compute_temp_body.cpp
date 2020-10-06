@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_body.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "math_extra.h"
 #include "atom.h"
@@ -36,7 +36,7 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_bias(NULL), tbias(NULL), avec(NULL)
+  Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr), avec(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/body command");
 
@@ -47,7 +47,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
 
   tempbias = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   mode = ALL;
 
   int iarg = 3;
@@ -343,7 +343,6 @@ void ComputeTempBody::compute_vector()
 
         inertia = bonus[body[i]].inertia;
         quat = bonus[body[i]].quat;
-        massone = rmass[i];
 
         // wbody = angular velocity in body frame
 

@@ -43,5 +43,6 @@
 */
 
 #include <openmptarget/TestOpenMPTarget_Category.hpp>
-#include <TestReduce.hpp>
+// WORKAROUND OPENMPTARGET: Not implemented
+// #include <TestReduce.hpp>
 #include <TestCXX11Deduction.hpp>

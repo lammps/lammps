@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_exp6_rx.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cfloat>
 #include "atom.h"
@@ -24,7 +24,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "modify.h"
 #include "fix.h"
 
@@ -59,10 +59,10 @@ struct PairExp6ParamDataType
 
    // Default constructor -- nullify everything.
    PairExp6ParamDataType(void)
-      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
-              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
-              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
-              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
+      : n(0), epsilon1(nullptr), alpha1(nullptr), rm1(nullptr), mixWtSite1(nullptr),
+              epsilon2(nullptr), alpha2(nullptr), rm2(nullptr), mixWtSite2(nullptr),
+              epsilonOld1(nullptr), alphaOld1(nullptr), rmOld1(nullptr), mixWtSite1old(nullptr),
+              epsilonOld2(nullptr), alphaOld2(nullptr), rmOld2(nullptr), mixWtSite2old(nullptr)
    {}
 };
 
@@ -74,8 +74,8 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
 
   nspecies = 0;
   nparams = maxparam = 0;
-  params = NULL;
-  mol2param = NULL;
+  params = nullptr;
+  mol2param = nullptr;
   fractionalWeighting = true;
 }
 
@@ -85,7 +85,7 @@ PairExp6rx::~PairExp6rx()
 {
   if (copymode) return;
 
-  if (params != NULL) {
+  if (params != nullptr) {
     for (int i=0; i < nparams; ++i) {
       delete[] params[i].name;
       delete[] params[i].potential;
@@ -549,7 +549,7 @@ void PairExp6rx::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // optional keywords
 
@@ -589,8 +589,8 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   int ilo,ihi,jlo,jhi;
   int n;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   nspecies = atom->nspecies_dpd;
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
@@ -659,17 +659,17 @@ void PairExp6rx::coeff(int narg, char **arg)
   }
   delete[] site1;
   delete[] site2;
-  site1 = site2 = NULL;
+  site1 = site2 = nullptr;
 
   setup();
 
   double cut_one = cut_global;
   if (strcmp(arg[5],"exponent") == 0){
     scalingFlag = EXPONENT;
-    exponentR = force->numeric(FLERR,arg[6]);
-    exponentEpsilon = force->numeric(FLERR,arg[7]);
+    exponentR = utils::numeric(FLERR,arg[6],false,lmp);
+    exponentEpsilon = utils::numeric(FLERR,arg[7],false,lmp);
     if (narg > 9) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 9) cut_one = force->numeric(FLERR,arg[8]);
+    if (narg == 9) cut_one = utils::numeric(FLERR,arg[8],false,lmp);
   } else if (strcmp(arg[5],"polynomial") == 0){
     scalingFlag = POLYNOMIAL;
     memory->create(coeffAlpha,6,"pair:coeffAlpha");
@@ -677,11 +677,11 @@ void PairExp6rx::coeff(int narg, char **arg)
     memory->create(coeffRm,6,"pair:coeffRm");
     read_file2(arg[6]);
     if (narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
+    if (narg == 8) cut_one = utils::numeric(FLERR,arg[7],false,lmp);
   } else if (strcmp(arg[5],"none") == 0){
     scalingFlag = NONE;
     if (narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg == 7) cut_one = force->numeric(FLERR,arg[6]);
+    if (narg == 7) cut_one = utils::numeric(FLERR,arg[6],false,lmp);
   } else {
     error->all(FLERR,"Incorrect args for pair coefficients");
   }
@@ -717,16 +717,16 @@ void PairExp6rx::read_file(char *file)
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
-  fp = NULL;
+  fp = nullptr;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
       error->one(FLERR,str);
@@ -743,7 +743,7 @@ void PairExp6rx::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -765,7 +765,7 @@ void PairExp6rx::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -785,7 +785,7 @@ void PairExp6rx::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
@@ -839,10 +839,10 @@ void PairExp6rx::read_file2(char *file)
   // open file on proc 0
 
   FILE *fp;
-  fp = NULL;
+  fp = nullptr;
   if (comm->me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open polynomial file %s",file);
       error->one(FLERR,str);
@@ -857,7 +857,7 @@ void PairExp6rx::read_file2(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -879,7 +879,7 @@ void PairExp6rx::read_file2(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -899,7 +899,7 @@ void PairExp6rx::read_file2(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     if (strcmp(words[0],"alpha") == 0){
       for (int ii=1; ii<params_per_line; ii++)
@@ -974,11 +974,11 @@ void PairExp6rx::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
@@ -1004,10 +1004,10 @@ void PairExp6rx::write_restart_settings(FILE *fp)
 void PairExp6rx::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

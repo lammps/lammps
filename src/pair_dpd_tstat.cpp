@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_tstat.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"
@@ -21,7 +21,7 @@
 #include "comm.h"
 #include "random_mars.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -142,10 +142,10 @@ void PairDPDTstat::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  t_start = force->numeric(FLERR,arg[0]);
-  t_stop = force->numeric(FLERR,arg[1]);
-  cut_global = force->numeric(FLERR,arg[2]);
-  seed = force->inumeric(FLERR,arg[3]);
+  t_start = utils::numeric(FLERR,arg[0],false,lmp);
+  t_stop = utils::numeric(FLERR,arg[1],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[2],false,lmp);
+  seed = utils::inumeric(FLERR,arg[3],false,lmp);
 
   temperature = t_start;
 
@@ -176,14 +176,14 @@ void PairDPDTstat::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double a0_one = 0.0;
-  double gamma_one = force->numeric(FLERR,arg[2]);
+  double gamma_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -232,12 +232,12 @@ void PairDPDTstat::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -265,11 +265,11 @@ void PairDPDTstat::write_restart_settings(FILE *fp)
 void PairDPDTstat::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&t_start,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&t_stop,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&t_start,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&t_stop,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&t_start,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&t_stop,1,MPI_DOUBLE,0,world);

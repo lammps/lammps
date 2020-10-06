@@ -1,4 +1,5 @@
 .. index:: fix wall/ees
+.. index:: fix wall/region/ees
 
 fix wall/ees command
 ====================

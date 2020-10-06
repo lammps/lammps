@@ -16,28 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <string>
-#include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "compute.h"
-#include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "math_const.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -69,12 +67,12 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   unit_convert_flag = utils::NOCONVERT;
 
   nextra = 0;
-  pvector = NULL;
+  pvector = nullptr;
   single_extra = 0;
-  svector = NULL;
+  svector = nullptr;
 
-  setflag = NULL;
-  cutsq = NULL;
+  setflag = nullptr;
+  cutsq = nullptr;
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
@@ -86,25 +84,26 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   manybody_flag = 0;
   offset_flag = 0;
   mix_flag = GEOMETRIC;
+  mixed_flag = 1;
   tail_flag = 0;
   etail = ptail = etail_ij = ptail_ij = 0.0;
   ncoultablebits = 12;
   ndisptablebits = 12;
   tabinner = sqrt(2.0);
   tabinner_disp = sqrt(2.0);
-  ftable = NULL;
-  fdisptable = NULL;
+  ftable = nullptr;
+  fdisptable = nullptr;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  cvatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
 
   num_tally_compute = 0;
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
 
   nondefault_history_transfer = 0;
   beyond_contact = 0;
@@ -124,7 +123,7 @@ Pair::~Pair()
 {
   num_tally_compute = 0;
   memory->sfree((void *) list_tally_compute);
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
 
   if (copymode) return;
 
@@ -160,23 +159,23 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ncoultablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ndisptablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner = force->numeric(FLERR,arg[iarg+1]);
+      tabinner = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner_disp = force->numeric(FLERR,arg[iarg+1]);
+      tabinner_disp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -251,10 +250,12 @@ void Pair::init()
 
   cutforce = 0.0;
   etail = ptail = 0.0;
+  mixed_flag = 1;
   double cut;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if ((i != j) && setflag[i][j]) mixed_flag = 0;
       cut = init_one(i,j);
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);
@@ -330,7 +331,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   double r,grij,expm2,derfc,egamma,fgamma,rsw;
   double qqrd2e = force->qqrd2e;
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   double g_ewald = force->kspace->g_ewald;
 
@@ -358,8 +359,8 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   memory->create(dctable,ntable,"pair:dctable");
   memory->create(detable,ntable,"pair:detable");
 
-  if (cut_respa == NULL) {
-    vtable = ptable = dvtable = dptable = NULL;
+  if (cut_respa == nullptr) {
+    vtable = ptable = dvtable = dptable = nullptr;
   } else {
     memory->create(vtable,ntable,"pair:vtable");
     memory->create(ptable,ntable,"pair:ptable");
@@ -390,7 +391,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       rtable[i] = rsq_lookup.f;
       ctable[i] = qqrd2e/r;
       if (msmflag) {
@@ -487,7 +488,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       c_tmp = qqrd2e/r;
       if (msmflag) {
         f_tmp = qqrd2e/r * fgamma;
@@ -1619,12 +1620,12 @@ void Pair::write_file(int narg, char **arg)
 
   // parse arguments
 
-  int itype = force->inumeric(FLERR,arg[0]);
-  int jtype = force->inumeric(FLERR,arg[1]);
+  int itype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int jtype = utils::inumeric(FLERR,arg[1],false,lmp);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in pair_write command");
 
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
 
   int style = NONE;
   if (strcmp(arg[3],"r") == 0) style = RLINEAR;
@@ -1632,8 +1633,8 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
-  double inner = force->numeric(FLERR,arg[4]);
-  double outer = force->numeric(FLERR,arg[5]);
+  double inner = utils::numeric(FLERR,arg[4],false,lmp);
+  double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
@@ -1663,7 +1664,7 @@ void Pair::write_file(int narg, char **arg)
       fp = fopen(table_file.c_str(),"a");
     } else {
       char datebuf[16];
-      time_t tv = time(NULL);
+      time_t tv = time(nullptr);
       strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
       utils::logmesg(lmp,fmt::format("Creating table file {} with "
                                      "DATE: {}\n", table_file, datebuf));
@@ -1671,7 +1672,7 @@ void Pair::write_file(int narg, char **arg)
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
                          datebuf, update->unit_style);
     }
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
                                    table_file, utils::getsyserror()));
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
@@ -1706,8 +1707,8 @@ void Pair::write_file(int narg, char **arg)
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
-    q[0] = force->numeric(FLERR,arg[8]);
-    q[1] = force->numeric(FLERR,arg[9]);
+    q[0] = utils::numeric(FLERR,arg[8],false,lmp);
+    q[1] = utils::numeric(FLERR,arg[9],false,lmp);
   }
   double *q_hold;
 

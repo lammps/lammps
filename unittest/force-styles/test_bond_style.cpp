@@ -236,7 +236,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     YamlWriter writer(outfile);
 
     // lammps_version
-    writer.emit("lammps_version", lmp->universe->version);
+    writer.emit("lammps_version", lmp->version);
 
     // date_generated
     std::time_t now = time(NULL);
@@ -762,7 +762,7 @@ TEST(BondStyle, single)
     // gather some information and skip if unsupported
     int nbondtypes = lmp->atom->nbondtypes;
     int molecular  = lmp->atom->molecular;
-    if (molecular != 1) {
+    if (molecular != Atom::MOLECULAR) {
         std::cerr << "Only simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

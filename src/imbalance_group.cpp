@@ -12,12 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_group.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "error.h"
-#include <string>
-#include "fmt/format.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -40,7 +38,7 @@ int ImbalanceGroup::options(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal balance weight command");
 
-  num = force->inumeric(FLERR,arg[0]);
+  num = utils::inumeric(FLERR,arg[0],false,lmp);
   if (num < 1) error->all(FLERR,"Illegal balance weight command");
   if (2*num+1 > narg) error->all(FLERR,"Illegal balance weight command");
 
@@ -50,7 +48,7 @@ int ImbalanceGroup::options(int narg, char **arg)
     id[i] = group->find(arg[2*i+1]);
     if (id[i] < 0)
       error->all(FLERR,"Unknown group in balance weight command");
-    factor[i] = force->numeric(FLERR,arg[2*i+2]);
+    factor[i] = utils::numeric(FLERR,arg[2*i+2],false,lmp);
     if (factor[i] <= 0.0) error->all(FLERR,"Illegal balance weight command");
   }
   return 2*num+1;

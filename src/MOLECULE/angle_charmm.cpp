@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_charmm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -196,12 +196,12 @@ void AngleCharmm::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
-  double k_ub_one = force->numeric(FLERR,arg[3]);
-  double r_ub_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_ub_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double r_ub_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // convert theta0 from degrees to radians
 
@@ -246,10 +246,10 @@ void AngleCharmm::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k_ub[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&r_ub[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k_ub[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r_ub[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

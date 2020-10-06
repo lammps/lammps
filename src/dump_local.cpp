@@ -12,18 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_local.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
-#include "modify.h"
-#include "fix.h"
+
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -37,15 +35,15 @@ enum{INT,DOUBLE};
 
 DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
-  label(NULL), vtype(NULL), vformat(NULL), columns(NULL), field2index(NULL),
-  argindex(NULL), id_compute(NULL), compute(NULL), id_fix(NULL), fix(NULL),
-  pack_choice(NULL)
+  label(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), field2index(nullptr),
+  argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr), fix(nullptr),
+  pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");
 
   clearstep = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
   if (binary)
@@ -57,7 +55,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nfield = input->expand_args(nfield,&arg[5],1,earg);
+  nfield = utils::expand_args(FLERR,nfield,&arg[5],1,earg,lmp);
 
   if (earg != &arg[5]) expand = 1;
 
@@ -75,12 +73,12 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   argindex = new int[nfield];
 
   ncompute = 0;
-  id_compute = NULL;
-  compute = NULL;
+  id_compute = nullptr;
+  compute = nullptr;
 
   nfix = 0;
-  id_fix = NULL;
-  fix = NULL;
+  id_fix = nullptr;
+  fix = nullptr;
 
   // process attributes
 
@@ -97,11 +95,11 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < size_one; i++) {
     if (vtype[i] == INT) strcat(format_default,"%d ");
     else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
-    vformat[i] = NULL;
+    vformat[i] = nullptr;
   }
 
   format_column_user = new char*[size_one];
-  for (int i = 0; i < size_one; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
@@ -182,8 +180,8 @@ void DumpLocal::init_style()
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
+    else ptr = strtok(nullptr," \0");
+    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
 
     if (format_column_user[i]) {
@@ -268,14 +266,14 @@ void DumpLocal::write_header(bigint ndump)
     fprintf(fp,BIGINT_FORMAT "\n",ndump);
     if (domain->triclinic) {
       fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-      fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-      fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
     } else {
       fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-      fprintf(fp,"%g %g\n",boxylo,boxyhi);
-      fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+      fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
     }
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }

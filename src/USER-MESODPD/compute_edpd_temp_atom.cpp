@@ -34,7 +34,7 @@ ComputeEDPDTempAtom::ComputeEDPDTempAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  temp_vector = NULL;
+  temp_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

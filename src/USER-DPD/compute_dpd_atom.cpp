@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), dpdAtom(NULL)
+  Compute(lmp, narg, arg), dpdAtom(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute dpd/atom command");
 

@@ -16,19 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_indent.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "input.h"
-#include "variable.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
 #include "lattice.h"
-#include "update.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-#include "force.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +40,7 @@ enum{INSIDE,OUTSIDE};
 
 FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL), pstr(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix indent command");
 
@@ -53,7 +53,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   k3 = k/3.0;
 
   // read options from end of input line
@@ -407,7 +407,7 @@ void FixIndent::options(int narg, char **arg)
   if (narg < 0) error->all(FLERR,"Illegal fix indent command");
 
   istyle = NONE;
-  xstr = ystr = zstr = rstr = pstr = NULL;
+  xstr = ystr = zstr = rstr = pstr = nullptr;
   xvalue = yvalue = zvalue = rvalue = pvalue = 0.0;
   scaleflag = 1;
   side = OUTSIDE;
@@ -421,22 +421,22 @@ void FixIndent::options(int narg, char **arg)
         int n = strlen(&arg[iarg+1][2]) + 1;
         xstr = new char[n];
         strcpy(xstr,&arg[iarg+1][2]);
-      } else xvalue = force->numeric(FLERR,arg[iarg+1]);
+      } else xvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
         int n = strlen(&arg[iarg+2][2]) + 1;
         ystr = new char[n];
         strcpy(ystr,&arg[iarg+2][2]);
-      } else yvalue = force->numeric(FLERR,arg[iarg+2]);
+      } else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         zstr = new char[n];
         strcpy(zstr,&arg[iarg+3][2]);
-      } else zvalue = force->numeric(FLERR,arg[iarg+3]);
+      } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         int n = strlen(&arg[iarg+4][2]) + 1;
         rstr = new char[n];
         strcpy(rstr,&arg[iarg+4][2]);
-      } else rvalue = force->numeric(FLERR,arg[iarg+4]);
+      } else rvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
 
       istyle = SPHERE;
       iarg += 5;
@@ -450,43 +450,43 @@ void FixIndent::options(int narg, char **arg)
           int n = strlen(&arg[iarg+2][2]) + 1;
           ystr = new char[n];
           strcpy(ystr,&arg[iarg+2][2]);
-        } else yvalue = force->numeric(FLERR,arg[iarg+2]);
+        } else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           zstr = new char[n];
           strcpy(zstr,&arg[iarg+3][2]);
-        } else zvalue = force->numeric(FLERR,arg[iarg+3]);
+        } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else if (strcmp(arg[iarg+1],"y") == 0) {
         cdim = 1;
         if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
           int n = strlen(&arg[iarg+2][2]) + 1;
           xstr = new char[n];
           strcpy(xstr,&arg[iarg+2][2]);
-        } else xvalue = force->numeric(FLERR,arg[iarg+2]);
+        } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           zstr = new char[n];
           strcpy(zstr,&arg[iarg+3][2]);
-        } else zvalue = force->numeric(FLERR,arg[iarg+3]);
+        } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else if (strcmp(arg[iarg+1],"z") == 0) {
         cdim = 2;
         if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
           int n = strlen(&arg[iarg+2][2]) + 1;
           xstr = new char[n];
           strcpy(xstr,&arg[iarg+2][2]);
-        } else xvalue = force->numeric(FLERR,arg[iarg+2]);
+        } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           ystr = new char[n];
           strcpy(ystr,&arg[iarg+3][2]);
-        } else yvalue = force->numeric(FLERR,arg[iarg+3]);
+        } else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else error->all(FLERR,"Illegal fix indent command");
 
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         int n = strlen(&arg[iarg+4][2]) + 1;
         rstr = new char[n];
         strcpy(rstr,&arg[iarg+4][2]);
-      } else rvalue = force->numeric(FLERR,arg[iarg+4]);
+      } else rvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
 
       istyle = CYLINDER;
       iarg += 5;
@@ -502,7 +502,7 @@ void FixIndent::options(int narg, char **arg)
         int n = strlen(&arg[iarg+2][2]) + 1;
         pstr = new char[n];
         strcpy(pstr,&arg[iarg+2][2]);
-      } else pvalue = force->numeric(FLERR,arg[iarg+2]);
+      } else pvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;

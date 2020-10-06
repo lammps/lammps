@@ -12,24 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "velocity.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
+#include "comm.h"
 #include "compute.h"
 #include "compute_temp.h"
-#include "random_park.h"
-#include "group.h"
-#include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_park.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -82,7 +82,7 @@ void Velocity::command(int narg, char **arg)
 
   // set defaults
 
-  temperature = NULL;
+  temperature = nullptr;
   dist_flag = 0;
   sum_flag = 0;
   momentum_flag = 1;
@@ -127,8 +127,8 @@ void Velocity::command(int narg, char **arg)
   // create() invoked differently, so can be called externally
 
   if (style == CREATE) {
-    double t_desired = force->numeric(FLERR,arg[2]);
-    int seed = force->inumeric(FLERR,arg[3]);
+    double t_desired = utils::numeric(FLERR,arg[2],false,lmp);
+    int seed = utils::inumeric(FLERR,arg[3],false,lmp);
     create(t_desired,seed);
   }
   else if (style == SET) set(narg-2,&arg[2]);
@@ -147,7 +147,7 @@ void Velocity::init_external(const char *extgroup)
   if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");
   groupbit = group->bitmask[igroup];
 
-  temperature = NULL;
+  temperature = nullptr;
   dist_flag = 0;
   sum_flag = 0;
   momentum_flag = 1;
@@ -179,18 +179,18 @@ void Velocity::create(double t_desired, int seed)
     }
   }
 
-  // if temperature = NULL or bias_flag set,
+  // if temperature = nullptr or bias_flag set,
   // create a new ComputeTemp with the velocity group
 
   int tcreate_flag = 0;
-  Compute *temperature_nobias = NULL;
+  Compute *temperature_nobias = nullptr;
 
-  if (temperature == NULL || bias_flag) {
+  if (temperature == nullptr || bias_flag) {
     char **arg = new char*[3];
     arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
     arg[2] = (char *) "temp";
-    if (temperature == NULL) {
+    if (temperature == nullptr) {
       temperature = new ComputeTemp(lmp,3,arg);
       tcreate_flag = 1;
     } else temperature_nobias = new ComputeTemp(lmp,3,arg);
@@ -245,14 +245,14 @@ void Velocity::create(double t_desired, int seed)
 
   int m;
   double vx,vy,vz,factor;
-  RanPark *random = NULL;
+  RanPark *random = nullptr;
 
   if (loop_flag == ALL) {
 
     // create an atom map if one doesn't exist already
 
     int mapflag = 0;
-    if (atom->map_style == 0) {
+    if (atom->map_style == Atom::MAP_NONE) {
       mapflag = 1;
       atom->nghost = 0;
       atom->map_init();
@@ -304,7 +304,7 @@ void Velocity::create(double t_desired, int seed)
 
     if (mapflag) {
       atom->map_delete();
-      atom->map_style = 0;
+      atom->map_style = Atom::MAP_NONE;
     }
 
   } else if (loop_flag == LOCAL) {
@@ -368,7 +368,7 @@ void Velocity::create(double t_desired, int seed)
   //   no-bias compute calculates temp only for new thermal velocities
 
   double t;
-  if ((bias_flag == 0) || (temperature_nobias == NULL))
+  if ((bias_flag == 0) || (temperature_nobias == nullptr))
     t = temperature->compute_scalar();
   else t = temperature_nobias->compute_scalar();
   rescale(t,t_desired);
@@ -417,28 +417,28 @@ void Velocity::set(int /*narg*/, char **arg)
   // parse 3 args
 
   xstyle = ystyle = zstyle = CONSTANT;
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[0],"v_") == arg[0]) {
     int n = strlen(&arg[0][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[0][2]);
   } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
-  else vx = force->numeric(FLERR,arg[0]);
+  else vx = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (strstr(arg[1],"v_") == arg[1]) {
     int n = strlen(&arg[1][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[1][2]);
   } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
-  else vy = force->numeric(FLERR,arg[1]);
+  else vy = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (strstr(arg[2],"v_") == arg[2]) {
     int n = strlen(&arg[2][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[2][2]);
   } else if (strcmp(arg[2],"NULL") == 0) zstyle = NONE;
-  else vz = force->numeric(FLERR,arg[2]);
+  else vz = utils::numeric(FLERR,arg[2],false,lmp);
 
   // set and apply scale factors
 
@@ -501,7 +501,7 @@ void Velocity::set(int /*narg*/, char **arg)
 
   // allocate vfield array if necessary
 
-  double **vfield = NULL;
+  double **vfield = nullptr;
   if (varflag == ATOM) memory->create(vfield,atom->nlocal,3,"velocity:vfield");
 
   // set velocities via constants
@@ -531,17 +531,17 @@ void Velocity::set(int /*narg*/, char **arg)
     if (xstyle == EQUAL) vx = input->variable->compute_equal(xvar);
     else if (xstyle == ATOM) {
       if (vfield) input->variable->compute_atom(xvar,igroup,&vfield[0][0],3,0);
-      else input->variable->compute_atom(xvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(xvar,igroup,nullptr,3,0);
     }
     if (ystyle == EQUAL) vy = input->variable->compute_equal(yvar);
     else if (ystyle == ATOM) {
       if (vfield) input->variable->compute_atom(yvar,igroup,&vfield[0][1],3,0);
-      else input->variable->compute_atom(yvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(yvar,igroup,nullptr,3,0);
     }
     if (zstyle == EQUAL) vz = input->variable->compute_equal(zvar);
     else if (zstyle == ATOM) {
       if (vfield) input->variable->compute_atom(zvar,igroup,&vfield[0][2],3,0);
-      else input->variable->compute_atom(zvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(zvar,igroup,nullptr,3,0);
     }
 
     for (int i = 0; i < nlocal; i++)
@@ -578,12 +578,12 @@ void Velocity::set(int /*narg*/, char **arg)
 
 void Velocity::scale(int /*narg*/, char **arg)
 {
-  double t_desired = force->numeric(FLERR,arg[0]);
+  double t_desired = utils::numeric(FLERR,arg[0],false,lmp);
 
-  // if temperature = NULL, create a new ComputeTemp with the velocity group
+  // if temperature = nullptr, create a new ComputeTemp with the velocity group
 
   int tflag = 0;
-  if (temperature == NULL) {
+  if (temperature == nullptr) {
     char **arg = new char*[3];
     arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
@@ -649,14 +649,14 @@ void Velocity::ramp(int /*narg*/, char **arg)
 
   double v_lo,v_hi;
   if (v_dim == 0) {
-    v_lo = xscale*force->numeric(FLERR,arg[1]);
-    v_hi = xscale*force->numeric(FLERR,arg[2]);
+    v_lo = xscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = xscale*utils::numeric(FLERR,arg[2],false,lmp);
   } else if (v_dim == 1) {
-    v_lo = yscale*force->numeric(FLERR,arg[1]);
-    v_hi = yscale*force->numeric(FLERR,arg[2]);
+    v_lo = yscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = yscale*utils::numeric(FLERR,arg[2],false,lmp);
   } else if (v_dim == 2) {
-    v_lo = zscale*force->numeric(FLERR,arg[1]);
-    v_hi = zscale*force->numeric(FLERR,arg[2]);
+    v_lo = zscale*utils::numeric(FLERR,arg[1],false,lmp);
+    v_hi = zscale*utils::numeric(FLERR,arg[2],false,lmp);
   }
 
   int coord_dim = 0;
@@ -667,14 +667,14 @@ void Velocity::ramp(int /*narg*/, char **arg)
 
   double coord_lo,coord_hi;
   if (coord_dim == 0) {
-    coord_lo = xscale*force->numeric(FLERR,arg[4]);
-    coord_hi = xscale*force->numeric(FLERR,arg[5]);
+    coord_lo = xscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = xscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (coord_dim == 1) {
-    coord_lo = yscale*force->numeric(FLERR,arg[4]);
-    coord_hi = yscale*force->numeric(FLERR,arg[5]);
+    coord_lo = yscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = yscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (coord_dim == 2) {
-    coord_lo = zscale*force->numeric(FLERR,arg[4]);
-    coord_hi = zscale*force->numeric(FLERR,arg[5]);
+    coord_lo = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    coord_hi = zscale*utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   // vramp = ramped velocity component for v_dim
@@ -901,7 +901,7 @@ void Velocity::options(int narg, char **arg)
 
   // error check
 
-  if (bias_flag && temperature == NULL)
+  if (bias_flag && temperature == nullptr)
     error->all(FLERR,"Cannot use velocity bias command without temp keyword");
   if (bias_flag && temperature->tempbias == 0)
     error->all(FLERR,"Velocity temperature ID does calculate a velocity bias");

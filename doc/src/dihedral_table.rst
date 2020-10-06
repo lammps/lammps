@@ -1,10 +1,10 @@
 .. index:: dihedral_style table
+.. index:: dihedral_style table/omp
 
 dihedral_style table command
 ============================
 
-dihedral_style table/omp command
-================================
+Accelerator Variants: *table/omp*
 
 Syntax
 """"""
@@ -179,7 +179,8 @@ that matches the specified keyword.
 
 .. include:: accel_styles.rst
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This dihedral style writes the settings for the "dihedral_style table"
 command to :doc:`binary restart files <restart>`, so a dihedral_style
@@ -201,4 +202,7 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

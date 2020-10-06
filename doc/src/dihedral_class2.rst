@@ -1,13 +1,11 @@
 .. index:: dihedral_style class2
+.. index:: dihedral_style class2/omp
+.. index:: dihedral_style class2/kk
 
 dihedral_style class2 command
 =============================
 
-dihedral_style class2/omp command
-=================================
-
-dihedral_style class2/kk command
-================================
+Accelerator Variants: *class2/omp*, *class2/kk*
 
 Syntax
 """"""
@@ -170,7 +168,10 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

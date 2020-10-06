@@ -1,13 +1,8 @@
-LAMMPS Documentation
-####################
+LAMMPS version |version| Documentation
+######################################
 
-|version| version
-*****************
-
-:doc:`What is a LAMMPS version? <Manual_version>`
-
-LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
-Simulator.
+LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
+**M**\ assively **P**\ arallel **S**\ imulator.
 
 LAMMPS is a classical molecular dynamics simulation code with a focus
 on materials modeling.  It was designed to run efficiently on parallel
@@ -27,15 +22,23 @@ all LAMMPS development is coordinated.
 The content for this manual is part of the LAMMPS distribution.  You
 can build a local copy of the Manual as HTML pages or a PDF file, by
 following the steps on the :doc:`Manual build <Manual_build>` doc page.
-There is also a `Developer.pdf <Developer.pdf>`_ document which gives
-a brief description of the basic code structure of LAMMPS.
+The manual is organized in two parts:
+1) the :ref:`User documentation <user_documentation>` for how to install
+and use LAMMPS and 2) the :ref:`Programmer documentation <programmer_documentation>`
+for how to write programs using the LAMMPS library from different
+programming languages and how to modify and extend LAMMPS.
+
+.. only:: html
+
+   Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
+   every LAMMPS command.
+
+.. _lws: https://lammps.sandia.gov
 
 ----------
 
-Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
-every LAMMPS command.
-
-.. _lws: https://lammps.sandia.gov
+User Documentation
+******************
 
 .. _user_documentation:
 .. toctree::
@@ -55,10 +58,24 @@ every LAMMPS command.
    Howto
    Examples
    Tools
-   Modify
-   Python_head
    Errors
    Manual_build
+
+Programmer Documentation
+************************
+
+.. _programmer_documentation:
+.. toctree::
+   :maxdepth: 2
+   :numbered: 3
+   :caption: Programmer Documentation
+   :name: progdoc
+   :includehidden:
+
+   Library
+   Python_head
+   Modify
+   Developer
 
 .. toctree::
    :caption: Index
@@ -74,9 +91,12 @@ every LAMMPS command.
    dihedrals
    impropers
    fix_modify_atc_commands
+   Bibliography
 
 Indices and tables
-==================
+******************
 
-* :ref:`genindex`
-* :ref:`search`
+.. only:: html
+
+   * :ref:`genindex`
+   * :ref:`search`

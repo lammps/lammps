@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_table.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,10 +26,10 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +43,7 @@ BondTable::BondTable(LAMMPS *lmp) : Bond(lmp)
 {
   writedata = 0;
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,7 +142,7 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of bond table entries");
 
   // delete old tables, since cannot just change settings
@@ -157,7 +157,7 @@ void BondTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -170,7 +170,7 @@ void BondTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -254,8 +254,8 @@ void BondTable::write_restart_settings(FILE *fp)
 void BondTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
@@ -278,10 +278,10 @@ double BondTable::single(int type, double rsq, int /*i*/, int /*j*/,
 
 void BondTable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->r = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->rfile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->r = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,7 +341,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       ++cerror;
     }
 
@@ -491,7 +491,7 @@ void BondTable::param_extract(Table *tb, char *line)
         error->one(FLERR,"Invalid keyword in bond table parameters");
       }
     }
-  } catch(TokenizerException & e) {
+  } catch(TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 

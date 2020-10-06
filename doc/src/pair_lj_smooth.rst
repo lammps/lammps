@@ -1,10 +1,10 @@
 .. index:: pair_style lj/smooth
+.. index:: pair_style lj/smooth/omp
 
 pair_style lj/smooth command
 ============================
 
-pair_style lj/smooth/omp command
-================================
+Accelerator Variants: *lj/smooth/omp*
 
 Syntax
 """"""
@@ -75,7 +75,8 @@ specified, the global values for :math:`r_{in}` and :math:`r_c` are used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon, sigma, Rin
 coefficients and the cutoff distance for this pair style can be mixed.
@@ -113,4 +114,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth/linear <pair_lj_smooth_linear>`
 
-**Default:** none
+Default
+"""""""
+
+none

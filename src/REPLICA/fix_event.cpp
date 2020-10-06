@@ -27,8 +27,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), xevent(NULL), xold(NULL), vold(NULL),
-  imageold(NULL), xorig(NULL), vorig(NULL), imageorig(NULL)
+  Fix(lmp, narg, arg), xevent(nullptr), xold(nullptr), vold(nullptr),
+  imageold(nullptr), xorig(nullptr), vorig(nullptr), imageorig(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix event command");
 
@@ -38,7 +38,7 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ FixEvent::~FixEvent()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored array
 

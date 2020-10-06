@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rx.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <cmath>
 #include <cfloat> // DBL_EPSILON
@@ -31,7 +31,7 @@
 #include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
-#include "utils.h"
+
 
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
@@ -67,23 +67,23 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mol2param(NULL), nreactions(0),
-  params(NULL), Arr(NULL), nArr(NULL), Ea(NULL), tempExp(NULL),
-  stoich(NULL), stoichReactants(NULL), stoichProducts(NULL), kR(NULL),
-  pairDPDE(NULL), dpdThetaLocal(NULL), sumWeights(NULL), sparseKinetics_nu(NULL),
-  sparseKinetics_nuk(NULL), sparseKinetics_inu(NULL), sparseKinetics_isIntegralReaction(NULL),
-  kineticsFile(NULL), id_fix_species(NULL),
-  id_fix_species_old(NULL), fix_species(NULL), fix_species_old(NULL)
+  Fix(lmp, narg, arg), mol2param(nullptr), nreactions(0),
+  params(nullptr), Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr),
+  stoich(nullptr), stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr),
+  pairDPDE(nullptr), dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
+  sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr), sparseKinetics_isIntegralReaction(nullptr),
+  kineticsFile(nullptr), id_fix_species(nullptr),
+  id_fix_species_old(nullptr), fix_species(nullptr), fix_species_old(nullptr)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   nevery = 1;
 
   nreactions = maxparam = 0;
-  params = NULL;
-  mol2param = NULL;
-  pairDPDE = NULL;
-  id_fix_species = NULL;
-  id_fix_species_old = NULL;
+  params = nullptr;
+  mol2param = nullptr;
+  pairDPDE = nullptr;
+  id_fix_species = nullptr;
+  id_fix_species_old = nullptr;
 
   const int Verbosity = 1;
 
@@ -166,7 +166,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   diagnosticFrequency = 0;
   for (int i = 0; i < numDiagnosticCounters; ++i){
     diagnosticCounter[i] = 0;
-    diagnosticCounterPerODE[i] = NULL;
+    diagnosticCounterPerODE[i] = nullptr;
   }
 
   if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg==8){
@@ -189,8 +189,8 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
     minSteps = atoi( arg[iarg++] );
     maxIters = atoi( arg[iarg++] );
-    relTol   = strtod( arg[iarg++], NULL);
-    absTol   = strtod( arg[iarg++], NULL);
+    relTol   = strtod( arg[iarg++], nullptr);
+    absTol   = strtod( arg[iarg++], nullptr);
 
     if (iarg < narg)
       diagnosticFrequency = atoi( arg[iarg++] );
@@ -207,10 +207,10 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Initialize/Create the sparse matrix database.
-  sparseKinetics_nu = NULL;
-  sparseKinetics_nuk = NULL;
-  sparseKinetics_inu = NULL;
-  sparseKinetics_isIntegralReaction = NULL;
+  sparseKinetics_nu = nullptr;
+  sparseKinetics_nuk = nullptr;
+  sparseKinetics_inu = nullptr;
+  sparseKinetics_isIntegralReaction = nullptr;
   sparseKinetics_maxReactants = 0;
   sparseKinetics_maxProducts = 0;
   sparseKinetics_maxSpecies = 0;
@@ -259,15 +259,15 @@ void FixRX::post_constructor()
   char **tmpspecies = new char*[maxspecies];
   int tmpmaxstrlen = 0;
   for(int jj=0; jj < maxspecies; jj++)
-    tmpspecies[jj] = NULL;
+    tmpspecies[jj] = nullptr;
 
   // open file on proc 0
 
   FILE *fp;
-  fp = NULL;
+  fp = nullptr;
   if (comm->me == 0) {
-    fp = force->open_potential(kineticsFile);
-    if (fp == NULL) {
+    fp = utils::open_potential(kineticsFile,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",kineticsFile);
       error->one(FLERR,str);
@@ -284,7 +284,7 @@ void FixRX::post_constructor()
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -304,8 +304,8 @@ void FixRX::post_constructor()
 
     nwords = 0;
     word = strtok(line," \t\n\r\f");
-    while (word != NULL){
-      word = strtok(NULL, " \t\n\r\f");
+    while (word != nullptr){
+      word = strtok(nullptr, " \t\n\r\f");
       match=false;
       for(int jj=0;jj<nUniqueSpecies;jj++){
         if(strcmp(word,tmpspecies[jj])==0){
@@ -318,12 +318,12 @@ void FixRX::post_constructor()
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
         tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
-        tmpmaxstrlen = MAX(tmpmaxstrlen,strlen(word));
+        tmpmaxstrlen = MAX(tmpmaxstrlen,(int)strlen(word));
         nUniqueSpecies++;
       }
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok(nullptr, " \t\n\r\f");
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0) break;
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok(nullptr, " \t\n\r\f");
     }
   }
   atom->nspecies_dpd = nUniqueSpecies;
@@ -332,8 +332,8 @@ void FixRX::post_constructor()
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
 
-  id_fix_species = NULL;
-  id_fix_species_old = NULL;
+  id_fix_species = nullptr;
+  id_fix_species_old = nullptr;
 
   n = strlen(id) + strlen("_SPECIES") + 1;
   id_fix_species = new char[n];
@@ -543,7 +543,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int)sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;
@@ -561,7 +561,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int) sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;
@@ -637,10 +637,10 @@ int FixRX::setmask()
 void FixRX::init()
 {
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
 
   bool eos_flag = false;
@@ -853,10 +853,10 @@ void FixRX::read_file(char *file)
   // open file on proc 0
 
   FILE *fp;
-  fp = NULL;
+  fp = nullptr;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open rx file %s",file);
       error->one(FLERR,str);
@@ -872,7 +872,7 @@ void FixRX::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -892,7 +892,7 @@ void FixRX::read_file(char *file)
   }
 
   // open file on proc 0
-  if (comm->me == 0) fp = force->open_potential(file);
+  if (comm->me == 0) fp = utils::open_potential(file,lmp,nullptr);
 
   // read each reaction from kinetics file
   eof=0;
@@ -926,7 +926,7 @@ void FixRX::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -946,9 +946,9 @@ void FixRX::read_file(char *file)
 
     nwords = 0;
     word = strtok(line," \t\n\r\f");
-    while (word != NULL){
+    while (word != nullptr){
       tmpStoich = atof(word);
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok(nullptr, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++){
         if (strcmp(word,&atom->dname[ispecies][0]) == 0){
           stoich[nreactions][ispecies] += sign*tmpStoich;
@@ -965,22 +965,22 @@ void FixRX::read_file(char *file)
         }
         error->all(FLERR,"Illegal fix rx command");
       }
-      word = strtok(NULL, " \t\n\r\f");
-      if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
+      word = strtok(nullptr, " \t\n\r\f");
+      if(word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
       if(strcmp(word,"=") == 0) sign = 1.0;
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
-        if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        if(word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         Arr[nreactions] = atof(word);
-        word = strtok(NULL, " \t\n\r\f");
-        if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        word = strtok(nullptr, " \t\n\r\f");
+        if(word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         nArr[nreactions]  = atof(word);
-        word = strtok(NULL, " \t\n\r\f");
-        if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        word = strtok(nullptr, " \t\n\r\f");
+        if(word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
         Ea[nreactions]  = atof(word);
         sign = -1.0;
         break;
       }
-      word = strtok(NULL, " \t\n\r\f");
+      word = strtok(nullptr, " \t\n\r\f");
     }
     nreactions++;
   }
@@ -1434,7 +1434,7 @@ void FixRX::odeDiagnostics(void)
       my_max[i] = 0;
       my_min[i] = DBL_MAX;
 
-      if (diagnosticCounterPerODE[i] != NULL){
+      if (diagnosticCounterPerODE[i] != nullptr){
         for (int j = 0; j < nlocal; ++j)
           if (mask[j] & groupbit){
             double diff = double(diagnosticCounterPerODE[i][j]) - avg_per_atom[i];
@@ -1637,8 +1637,8 @@ void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])
   ode_counter[1] += nit;
   ode_counter[2] += nfe;
 
-  //if (diagnosticFrequency == 1 && diagnosticCounterPerODE[StepSum] != NULL)
-  if (diagnosticCounterPerODE[StepSum] != NULL){
+  //if (diagnosticFrequency == 1 && diagnosticCounterPerODE[StepSum] != nullptr)
+  if (diagnosticCounterPerODE[StepSum] != nullptr){
     diagnosticCounterPerODE[StepSum][id] = nst;
     diagnosticCounterPerODE[FuncSum][id] = nfe;
   }
@@ -1708,7 +1708,7 @@ int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_param
    const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 
    #define kFor         (userData->kFor)
-   #define kRev         (NULL)
+   #define kRev         (nullptr)
    #define rxnRateLaw   (userData->rxnRateLaw)
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)

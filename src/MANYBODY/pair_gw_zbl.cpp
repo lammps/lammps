@@ -17,21 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gw_zbl.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
 
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
+#include "memory.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -64,7 +61,7 @@ PairGWZBL::PairGWZBL(LAMMPS *lmp) : PairGW(lmp)
 void PairGWZBL::read_file(char *file)
 {
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
@@ -141,7 +138,7 @@ void PairGWZBL::read_file(char *file)
           params[nparams].biga *= conversion_factor;
           params[nparams].bigb *= conversion_factor;
         }
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

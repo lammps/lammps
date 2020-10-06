@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edip.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cfloat>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -35,7 +35,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -52,12 +52,12 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairEDIP::PairEDIP(LAMMPS *lmp) :
-  Pair(lmp), preInvR_ij(NULL), preExp3B_ij(NULL), preExp3BDerived_ij(NULL),
-  preExp2B_ij(NULL), preExp2BDerived_ij(NULL), prePow2B_ij(NULL),
-  preForceCoord(NULL), cutoffFunction(NULL), cutoffFunctionDerived(NULL),
-  pow2B(NULL), exp2B(NULL), exp3B(NULL),  qFunctionGrid(NULL),
-  expMinusBetaZeta_iZeta_iGrid(NULL), tauFunctionGrid(NULL),
-  tauFunctionDerivedGrid(NULL)
+  Pair(lmp), preInvR_ij(nullptr), preExp3B_ij(nullptr), preExp3BDerived_ij(nullptr),
+  preExp2B_ij(nullptr), preExp2BDerived_ij(nullptr), prePow2B_ij(nullptr),
+  preForceCoord(nullptr), cutoffFunction(nullptr), cutoffFunctionDerived(nullptr),
+  pow2B(nullptr), exp2B(nullptr), exp3B(nullptr),  qFunctionGrid(nullptr),
+  expMinusBetaZeta_iZeta_iGrid(nullptr), tauFunctionGrid(nullptr),
+  tauFunctionDerivedGrid(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -65,10 +65,10 @@ PairEDIP::PairEDIP(LAMMPS *lmp) :
   manybody_flag = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -779,7 +779,7 @@ void PairEDIP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -788,7 +788,7 @@ void PairEDIP::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -876,15 +876,15 @@ void PairEDIP::read_file(char *file)
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open EDIP potential file %s",file);
       error->one(FLERR,str);
@@ -902,7 +902,7 @@ void PairEDIP::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -924,7 +924,7 @@ void PairEDIP::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -944,7 +944,7 @@ void PairEDIP::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line

@@ -12,17 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model.h"
-#include "pair_mliap.h"
-#include <cstring>
-#include <cmath>
-#include "atom.h"
-#include "force.h"
+
 #include "comm.h"
-#include "utils.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -33,7 +28,7 @@ using namespace LAMMPS_NS;
 
 MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 {
-  coeffelem = NULL;
+  coeffelem = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
   else {
     nparams = 0;
@@ -85,8 +80,8 @@ void MLIAPModel::read_coeffs(char *coefffilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
-    if (fpcoeff == NULL)
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
+    if (fpcoeff == nullptr)
       error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
                                    coefffilename,utils::getsyserror()));
   }
@@ -99,7 +94,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   while (nwords == 0) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fpcoeff);
       } else n = strlen(line) + 1;
@@ -124,7 +119,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   int iword = 0;
   words[iword] = strtok(line,"' \t\n\r\f");
   iword = 1;
-  words[iword] = strtok(NULL,"' \t\n\r\f");
+  words[iword] = strtok(nullptr,"' \t\n\r\f");
 
   nelements = atoi(words[0]);
   nparams = atoi(words[1]);
@@ -139,7 +134,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
     for (int icoeff = 0; icoeff < nparams; icoeff++) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fpcoeff);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fpcoeff);
         } else n = strlen(line) + 1;

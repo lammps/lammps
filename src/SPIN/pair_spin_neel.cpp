@@ -22,19 +22,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_neel.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -66,7 +63,7 @@ void PairSpinNeel::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_neel_global = force->numeric(FLERR,arg[0]);
+  cut_spin_neel_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -99,16 +96,16 @@ void PairSpinNeel::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  const double rij = force->numeric(FLERR,arg[3]);
-  const double k1 = force->numeric(FLERR,arg[4]);
-  const double k2 = force->numeric(FLERR,arg[5]);
-  const double k3 = force->numeric(FLERR,arg[6]);
-  const double l1 = force->numeric(FLERR,arg[7]);
-  const double l2 = force->numeric(FLERR,arg[8]);
-  const double l3 = force->numeric(FLERR,arg[9]);
+  const double rij = utils::numeric(FLERR,arg[3],false,lmp);
+  const double k1 = utils::numeric(FLERR,arg[4],false,lmp);
+  const double k2 = utils::numeric(FLERR,arg[5],false,lmp);
+  const double k3 = utils::numeric(FLERR,arg[6],false,lmp);
+  const double l1 = utils::numeric(FLERR,arg[7],false,lmp);
+  const double l2 = utils::numeric(FLERR,arg[8],false,lmp);
+  const double l3 = utils::numeric(FLERR,arg[9],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -159,7 +156,7 @@ void *PairSpinNeel::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_neel_global;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -684,19 +681,19 @@ void PairSpinNeel::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&g1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_spin_neel[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&g1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_spin_neel[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&g1_mech[i][j],1,MPI_DOUBLE,0,world);
@@ -730,9 +727,9 @@ void PairSpinNeel::write_restart_settings(FILE *fp)
 void PairSpinNeel::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_neel_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_neel_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_neel_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

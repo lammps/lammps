@@ -20,32 +20,32 @@
 ------------------------------------------------------------------------- */
 
 #include "min.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_minimize.h"
-#include "compute.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_minimize.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "thermo.h"
-#include "timer.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -71,17 +71,17 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
 
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nextra_global = 0;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   external_force_clear = 0;
 
@@ -128,7 +128,7 @@ void Min::init()
 
   nextra_global = 0;
   delete [] fextra;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
   memory->sfree(xextra_atom);
@@ -137,10 +137,10 @@ void Min::init()
   memory->destroy(extra_nlen);
   memory->destroy(extra_max);
   memory->sfree(requestor);
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
@@ -244,7 +244,7 @@ void Min::setup(int flag)
 
   bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
-    ndofme += extra_peratom[m]*atom->nlocal;
+    ndofme += extra_peratom[m]*static_cast<bigint>(atom->nlocal);
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
   ndoftotal += nextra_global;
 
@@ -671,35 +671,35 @@ void Min::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dmax = force->numeric(FLERR,arg[iarg+1]);
+      dmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      delaystep = force->numeric(FLERR,arg[iarg+1]);
+      delaystep = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtgrow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtgrow = force->numeric(FLERR,arg[iarg+1]);
+      dtgrow = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtshrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtshrink = force->numeric(FLERR,arg[iarg+1]);
+      dtshrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alpha0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alpha0 = force->numeric(FLERR,arg[iarg+1]);
+      alpha0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alphashrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alphashrink = force->numeric(FLERR,arg[iarg+1]);
+      alphashrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmax = force->numeric(FLERR,arg[iarg+1]);
+      tmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmin") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmin = force->numeric(FLERR,arg[iarg+1]);
+      tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"halfstepback") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -715,7 +715,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      max_vdotf_negatif = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -760,8 +760,8 @@ void Min::ev_setup()
   delete [] vlist_global;
   delete [] vlist_atom;
   delete [] cvlist_atom;
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = ncvlist_atom = 0;

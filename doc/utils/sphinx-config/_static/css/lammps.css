@@ -7,3 +7,52 @@
     display: block;
     margin-bottom: 0.809em;
 }
+
+.lammps_release {
+    text-align: center;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 0.405em;
+}
+
+.versionmodified {
+    font-weight: bold;
+}
+
+hr {
+     margin: 12px 0;
+}
+
+.rst-content {
+     margin-bottom: 12px !important;
+}
+
+#user-documentation.section h2 {
+     display: none;
+}
+
+#programmer-documentation.section h2 {
+     display: none;
+}
+
+.ui.tabular.menu .item {
+    padding-right: 1em;
+    padding-left: 1em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    border-radius: 6px;
+}
+
+.btn, .btn:active {
+    padding: 4px;
+    font-size: 80%;
+    border-radius: 4px;
+}
+
+.rst-breadcrumbs-buttons {
+    margin: 0;
+}
+
+p {
+   margin-bottom: 12px;
+}

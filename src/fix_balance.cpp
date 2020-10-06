@@ -35,7 +35,7 @@ enum{SHIFT,BISECTION};
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), balance(NULL), irregular(NULL)
+  Fix(lmp, narg, arg), balance(nullptr), irregular(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
@@ -52,9 +52,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   int dimension = domain->dimension;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix balance command");
-  thresh = force->numeric(FLERR,arg[4]);
+  thresh = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (strcmp(arg[5],"shift") == 0) lbstyle = SHIFT;
   else if (strcmp(arg[5],"rcb") == 0) lbstyle = BISECTION;
@@ -66,9 +66,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     if (strlen(arg[iarg+1]) > 3)
       error->all(FLERR,"Illegal fix balance command");
     strcpy(bstr,arg[iarg+1]);
-    nitermax = force->inumeric(FLERR,arg[iarg+2]);
+    nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
-    stopthresh = force->numeric(FLERR,arg[iarg+3]);
+    stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
     if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
     iarg += 4;
   } else if (lbstyle == BISECTION) {

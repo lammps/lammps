@@ -1,37 +1,29 @@
 .. index:: fix nvt
+.. index:: fix nvt/intel
+.. index:: fix nvt/kk
+.. index:: fix nvt/omp
+.. index:: fix npt
+.. index:: fix npt/intel
+.. index:: fix npt/kk
+.. index:: fix npt/omp
+.. index:: fix nph
+.. index:: fix nph/kk
+.. index:: fix nph/omp
 
 fix nvt command
 ===============
 
-fix nvt/intel command
-=====================
-
-fix nvt/kk command
-==================
-
-fix nvt/omp command
-===================
+Accelerator Variants: *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-fix npt/intel command
-=====================
-
-fix npt/kk command
-==================
-
-fix npt/omp command
-===================
+Accelerator Variants: *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============
 
-fix nph/kk command
-==================
-
-fix nph/omp command
-===================
+Accelerator Variants: *nph/kk*, *nph/omp*
 
 Syntax
 """"""
@@ -59,7 +51,7 @@ Syntax
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
        *tchain* value = N
          N = length of thermostat chain (1 = single thermostat)
-       *pchain* values = N
+       *pchain* value = N
          N length of thermostat chain on barostat (0 = no thermostat)
        *mtk* value = *yes* or *no* = add in MTK adjustment term or not
        *tloop* value = M
@@ -572,7 +564,8 @@ the various ways to do this.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These fixes writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the

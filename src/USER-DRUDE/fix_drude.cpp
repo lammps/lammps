@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_drude.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <map>
 #include "atom.h"
@@ -53,11 +53,11 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix drude command");
   }
 
-  drudeid = NULL;
+  drudeid = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+  atom->add_callback(Atom::BORDER);
 
   // one-time assignment of Drude partners
 
@@ -72,9 +72,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
 FixDrude::~FixDrude()
 {
-  atom->delete_callback(id,2);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::BORDER);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::GROW);
   memory->destroy(drudetype);
   memory->destroy(drudeid);
 }
@@ -110,7 +110,7 @@ void FixDrude::build_drudeid(){
   std::vector<tagint> core_drude_vec;
   partner_set = new std::set<tagint>[nlocal]; // Temporary sets of bond partner tags
 
-  if (atom->molecular == 1)
+  if (atom->molecular == Atom::MOLECULAR)
   {
     // Build list of my atoms' bond partners
     for (int i=0; i<nlocal; i++){
@@ -147,7 +147,7 @@ void FixDrude::build_drudeid(){
   // Loop on procs to fill my atoms' sets of bond partners
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             4, ring_build_partner, NULL, (void *)this, 1);
+             4, ring_build_partner, nullptr, (void *)this, 1);
 
   // Build the list of my Drudes' tags
   // The only bond partners of a Drude particle is its core,
@@ -163,7 +163,7 @@ void FixDrude::build_drudeid(){
   // so that each core finds its Drude.
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             3, ring_search_drudeid, NULL, (void *)this, 1);
+             3, ring_search_drudeid, nullptr, (void *)this, 1);
   delete [] partner_set;
 }
 
@@ -338,11 +338,11 @@ void FixDrude::rebuild_special(){
   // Remove Drude particles from the special lists of each proc
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             9, ring_remove_drude, NULL, (void *)this, 1);
+             9, ring_remove_drude, nullptr, (void *)this, 1);
   // Add back Drude particles in the lists just after their core
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             10, ring_add_drude, NULL, (void *)this, 1);
+             10, ring_add_drude, nullptr, (void *)this, 1);
 
   // Check size of special list
   nspecmax_loc = 0;
@@ -373,7 +373,7 @@ void FixDrude::rebuild_special(){
   // Copy core's list into their drude list
   comm->ring(core_special_vec.size(), sizeof(tagint),
              (char *) core_special_vec.data(),
-             11, ring_copy_drude, NULL, (void *)this, 1);
+             11, ring_copy_drude, nullptr, (void *)this, 1);
 }
 
 /* ----------------------------------------------------------------------

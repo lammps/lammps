@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cosine_buck6d.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -28,7 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -251,11 +251,11 @@ void AngleCosineBuck6d::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double c_one = force->numeric(FLERR,arg[1]);
-  int n_one = force->inumeric(FLERR,arg[2]);
-  int th0_one = force->numeric(FLERR,arg[3]);
+  double c_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int n_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int th0_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
 
@@ -281,7 +281,7 @@ void AngleCosineBuck6d::init_style()
 {
   // set local ptrs to buck6d 13 arrays setup by Pair
   int itmp;
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Angle cosine/buck6d is incompatible with Pair style");
   cut_ljsq = (double **) force->pair->extract("cut_ljsq",itmp);
   buck6d1 = (double **) force->pair->extract("buck6d1",itmp);
@@ -332,9 +332,9 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);

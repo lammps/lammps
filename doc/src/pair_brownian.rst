@@ -1,16 +1,17 @@
 .. index:: pair_style brownian
+.. index:: pair_style brownian/omp
+.. index:: pair_style brownian/poly
+.. index:: pair_style brownian/poly/omp
 
 pair_style brownian command
 ===========================
 
-pair_style brownian/omp command
-================================
+Accelerator Variants: *brownian/omp*
 
 pair_style brownian/poly command
 ================================
 
-pair_style brownian/poly/omp command
-====================================
+Accelerator Variants: *brownian/poly/omp*
 
 Syntax
 """"""
@@ -81,7 +82,8 @@ must be specified.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See

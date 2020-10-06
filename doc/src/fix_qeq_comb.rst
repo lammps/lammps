@@ -1,10 +1,10 @@
 .. index:: fix qeq/comb
+.. index:: fix qeq/comb/omp
 
 fix qeq/comb command
 ====================
 
-fix qeq/comb/omp command
-========================
+Accelerator Variants: *qeq/comb/omp*
 
 Syntax
 """"""
@@ -69,7 +69,8 @@ equilibration calculation is written to the specified file.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

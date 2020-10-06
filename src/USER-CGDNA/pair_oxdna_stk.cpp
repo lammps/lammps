@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna_stk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include <utility>
@@ -26,7 +26,7 @@
 #include "neighbor.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -779,8 +779,8 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,imod4,jmod4;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // stacking interaction
   count = 0;
@@ -807,30 +807,30 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   if (strcmp(arg[2],"seqav")  == 0) seqdepflag = 0;
   if (strcmp(arg[2],"seqdep") == 0) seqdepflag = 1;
 
-  T = force->numeric(FLERR,arg[3]);
-  xi_st_one = force->numeric(FLERR,arg[4]);
-  kappa_st_one = force->numeric(FLERR,arg[5]);
+  T = utils::numeric(FLERR,arg[3],false,lmp);
+  xi_st_one = utils::numeric(FLERR,arg[4],false,lmp);
+  kappa_st_one = utils::numeric(FLERR,arg[5],false,lmp);
   epsilon_st_one = stacking_strength(xi_st_one, kappa_st_one, T);
 
-  a_st_one = force->numeric(FLERR,arg[6]);
-  cut_st_0_one = force->numeric(FLERR,arg[7]);
-  cut_st_c_one = force->numeric(FLERR,arg[8]);
-  cut_st_lo_one = force->numeric(FLERR,arg[9]);
-  cut_st_hi_one = force->numeric(FLERR,arg[10]);
+  a_st_one = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_st_0_one = utils::numeric(FLERR,arg[7],false,lmp);
+  cut_st_c_one = utils::numeric(FLERR,arg[8],false,lmp);
+  cut_st_lo_one = utils::numeric(FLERR,arg[9],false,lmp);
+  cut_st_hi_one = utils::numeric(FLERR,arg[10],false,lmp);
 
-  a_st4_one = force->numeric(FLERR,arg[11]);
-  theta_st4_0_one = force->numeric(FLERR,arg[12]);
-  dtheta_st4_ast_one = force->numeric(FLERR,arg[13]);
-  a_st5_one = force->numeric(FLERR,arg[14]);
-  theta_st5_0_one = force->numeric(FLERR,arg[15]);
-  dtheta_st5_ast_one = force->numeric(FLERR,arg[16]);
-  a_st6_one = force->numeric(FLERR,arg[17]);
-  theta_st6_0_one = force->numeric(FLERR,arg[18]);
-  dtheta_st6_ast_one = force->numeric(FLERR,arg[19]);
-  a_st1_one = force->numeric(FLERR,arg[20]);
-  cosphi_st1_ast_one = force->numeric(FLERR,arg[21]);
-  a_st2_one = force->numeric(FLERR,arg[22]);
-  cosphi_st2_ast_one = force->numeric(FLERR,arg[23]);
+  a_st4_one = utils::numeric(FLERR,arg[11],false,lmp);
+  theta_st4_0_one = utils::numeric(FLERR,arg[12],false,lmp);
+  dtheta_st4_ast_one = utils::numeric(FLERR,arg[13],false,lmp);
+  a_st5_one = utils::numeric(FLERR,arg[14],false,lmp);
+  theta_st5_0_one = utils::numeric(FLERR,arg[15],false,lmp);
+  dtheta_st5_ast_one = utils::numeric(FLERR,arg[16],false,lmp);
+  a_st6_one = utils::numeric(FLERR,arg[17],false,lmp);
+  theta_st6_0_one = utils::numeric(FLERR,arg[18],false,lmp);
+  dtheta_st6_ast_one = utils::numeric(FLERR,arg[19],false,lmp);
+  a_st1_one = utils::numeric(FLERR,arg[20],false,lmp);
+  cosphi_st1_ast_one = utils::numeric(FLERR,arg[21],false,lmp);
+  a_st2_one = utils::numeric(FLERR,arg[22],false,lmp);
+  cosphi_st2_ast_one = utils::numeric(FLERR,arg[23],false,lmp);
 
   b_st_lo_one = 2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
         2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
@@ -1094,49 +1094,49 @@ void PairOxdnaStk::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          utils::sfread(FLERR,&epsilon_st[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&a_st[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_c[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_hi[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_lc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_st_hc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st_hi[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&shift_st[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon_st[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&a_st[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_hi[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_lc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_st_hc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st_hi[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&shift_st[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_st4[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_st4_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st4_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st4[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st4_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st4[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_st4_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st4_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st4[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st4_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_st5[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_st5_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st5_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st5[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st5_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st5[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_st5_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st5_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st5[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st5_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_st6[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_st6_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st6_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st6[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_st6_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st6[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_st6_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st6_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st6[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_st6_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_st1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cosphi_st1_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cosphi_st1_c[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&a_st2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cosphi_st2_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_st2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cosphi_st2_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cosphi_st1_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cosphi_st1_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&a_st2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cosphi_st2_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_st2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cosphi_st2_c[i][j],sizeof(double),1,fp,nullptr,error);
 
         }
 
@@ -1202,9 +1202,9 @@ void PairOxdnaStk::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -1308,5 +1308,5 @@ void *PairOxdnaStk::extract(const char *str, int &dim)
   if (strcmp(str,"b_st2") == 0) return (void *) b_st2;
   if (strcmp(str,"cosphi_st2_c") == 0) return (void *) cosphi_st2_c;
 
-  return NULL;
+  return nullptr;
 }

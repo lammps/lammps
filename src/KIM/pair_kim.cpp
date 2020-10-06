@@ -55,21 +55,20 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
-#include <cstring>
-#include <cstdlib>
-#include <string>
-#include <sstream>
+
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "memory.h"
-#include "domain.h"
-#include "utils.h"
-#include "error.h"
+
+#include <cstring>
+#include <sstream>
 
 using namespace LAMMPS_NS;
 
@@ -79,9 +78,9 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   Pair(lmp),
   settings_call_count(0),
   init_style_call_count(0),
-  kim_modelname(NULL),
-  lmps_map_species_to_unique(NULL),
-  lmps_unique_elements(NULL),
+  kim_modelname(nullptr),
+  lmps_map_species_to_unique(nullptr),
+  lmps_unique_elements(nullptr),
   lmps_num_unique_elements(0),
   lmps_units(METAL),
   lengthUnit(KIM_LENGTH_UNIT_unused),
@@ -89,8 +88,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   chargeUnit(KIM_CHARGE_UNIT_unused),
   temperatureUnit(KIM_TEMPERATURE_UNIT_unused),
   timeUnit(KIM_TIME_UNIT_unused),
-  pkim(NULL),
-  pargs(NULL),
+  pkim(nullptr),
+  pargs(nullptr),
   kim_model_support_for_energy(KIM_SUPPORT_STATUS_notSupported),
   kim_model_support_for_forces(KIM_SUPPORT_STATUS_notSupported),
   kim_model_support_for_particleEnergy(KIM_SUPPORT_STATUS_notSupported),
@@ -98,15 +97,15 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   lmps_local_tot_num_atoms(0),
   kim_global_influence_distance(0.0),
   kim_number_of_neighbor_lists(0),
-  kim_cutoff_values(NULL),
-  modelWillNotRequestNeighborsOfNoncontributingParticles(NULL),
-  neighborLists(NULL),
-  kim_particle_codes(NULL),
+  kim_cutoff_values(nullptr),
+  modelWillNotRequestNeighborsOfNoncontributingParticles(nullptr),
+  neighborLists(nullptr),
+  kim_particle_codes(nullptr),
   lmps_maxalloc(0),
-  kim_particleSpecies(NULL),
-  kim_particleContributing(NULL),
-  lmps_stripped_neigh_list(NULL),
-  lmps_stripped_neigh_ptr(NULL)
+  kim_particleSpecies(nullptr),
+  kim_particleContributing(nullptr),
+  lmps_stripped_neigh_list(nullptr),
+  lmps_stripped_neigh_ptr(nullptr)
 {
   // Initialize Pair data members to appropriate values
   single_enable = 0;  // We do not provide the Single() function
@@ -138,7 +137,7 @@ PairKIM::~PairKIM()
 
   if (kim_particle_codes_ok) {
     delete [] kim_particle_codes;
-    kim_particle_codes = NULL;
+    kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
 
@@ -343,8 +342,8 @@ void PairKIM::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -394,7 +393,7 @@ void PairKIM::coeff(int narg, char **arg)
   // setup mapping between LAMMPS unique elements and KIM species codes
   if (kim_particle_codes_ok) {
     delete [] kim_particle_codes;
-    kim_particle_codes = NULL;
+    kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
   kim_particle_codes = new int[lmps_num_unique_elements];
@@ -431,7 +430,7 @@ void PairKIM::coeff(int narg, char **arg)
     int kimerror;
 
     // Parameter name
-    char *paramname = NULL;
+    char *paramname = nullptr;
 
     for (int i = 2 + atom->ntypes; i < narg;) {
       // Parameter name
@@ -444,8 +443,8 @@ void PairKIM::coeff(int narg, char **arg)
       int param_index;
       KIM_DataType kim_DataType;
       int extent;
-      char const *str_name = NULL;
-      char const *str_desc = NULL;
+      char const *str_name = nullptr;
+      char const *str_desc = nullptr;
 
       for (param_index = 0; param_index < numberOfParameters; ++param_index) {
         kimerror = KIM_Model_GetParameterMetadata(pkim, param_index,
@@ -904,7 +903,7 @@ void PairKIM::set_argument_pointers()
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
-          static_cast<double *>(NULL));
+          static_cast<double *>(nullptr));
       }
   }
 
@@ -925,7 +924,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy,
-      static_cast<double *>(NULL));
+      static_cast<double *>(nullptr));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleEnergy,
                                       KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
@@ -938,7 +937,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialForces,
-      static_cast<double *>(NULL));
+      static_cast<double *>(nullptr));
   } else {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
         pargs, KIM_COMPUTE_ARGUMENT_NAME_partialForces, &(atom->f[0][0]));
@@ -961,7 +960,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,
-      static_cast<double *>(NULL));
+      static_cast<double *>(nullptr));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                         KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(

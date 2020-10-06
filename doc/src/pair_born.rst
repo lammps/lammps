@@ -1,37 +1,35 @@
 .. index:: pair_style born
+.. index:: pair_style born/omp
+.. index:: pair_style born/gpu
+.. index:: pair_style born/coul/long
+.. index:: pair_style born/coul/long/gpu
+.. index:: pair_style born/coul/long/omp
+.. index:: pair_style born/coul/msm
+.. index:: pair_style born/coul/msm/omp
+.. index:: pair_style born/coul/wolf
+.. index:: pair_style born/coul/wolf/gpu
+.. index:: pair_style born/coul/wolf/omp
+.. index:: pair_style born/coul/dsf
 
 pair_style born command
 =======================
 
-pair_style born/omp command
-===========================
-
-pair_style born/gpu command
-===========================
+Accelerator Variants: *born/omp*, *born/gpu*
 
 pair_style born/coul/long command
 =================================
 
-pair_style born/coul/long/gpu command
-=====================================
-
-pair_style born/coul/long/omp command
-=====================================
+Accelerator Variants: *born/coul/long/gpu*, *born/coul/long/omp*
 
 pair_style born/coul/msm command
 ================================
 
-pair_style born/coul/msm/omp command
-====================================
+Accelerator Variants: *born/coul/msm/omp*
 
 pair_style born/coul/wolf command
 =================================
 
-pair_style born/coul/wolf/gpu command
-=====================================
-
-pair_style born/coul/wolf/omp command
-=====================================
+Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/omp*
 
 pair_style born/coul/dsf command
 ================================
@@ -160,7 +158,8 @@ pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -196,7 +195,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style buck <pair_buck>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

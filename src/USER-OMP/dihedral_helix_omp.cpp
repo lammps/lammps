@@ -21,7 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "timer.h"
+
 #include "force.h"
 #include "update.h"
 #include "math_const.h"

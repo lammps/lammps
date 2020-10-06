@@ -16,20 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eim.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,25 +41,25 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  setfl = NULL;
+  setfl = nullptr;
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  map = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  map = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
 
-  negativity = NULL;
-  q0 = NULL;
-  cutforcesq = NULL;
-  Fij = NULL;
-  Gij = NULL;
-  phiij = NULL;
+  negativity = nullptr;
+  q0 = nullptr;
+  cutforcesq = nullptr;
+  Fij = nullptr;
+  Gij = nullptr;
+  phiij = nullptr;
 
-  Fij_spline = NULL;
-  Gij_spline = NULL;
-  phiij_spline = NULL;
+  Fij_spline = nullptr;
+  Gij_spline = nullptr;
+  phiij_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -390,7 +388,7 @@ void PairEIM::coeff(int narg, char **arg)
   read_file(arg[2+nelements]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3 + nelements; i < narg; i++) {
     m = i - (3+nelements) + 1;
@@ -1061,10 +1059,10 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   int unit_convert = auto_convert;
-  FILE *fp = force->open_potential(filename.c_str(), &unit_convert);
+  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     error->one(FLERR, fmt::format("cannot open eim potential file {}", filename));
   }
 
@@ -1073,7 +1071,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   fclose(fp);
 }
 
-std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string & a, const std::string & b) {
+std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {
   if (a < b) {
     return std::make_pair(a, b);
   }

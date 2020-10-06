@@ -114,7 +114,8 @@ three keywords.
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
@@ -147,4 +148,7 @@ Related commands
 
 :doc:`pair_style snap  <pair_snap>`, :doc:`compute mliap <compute_mliap>`
 
-**Default:** none
+Default
+"""""""
+
+none

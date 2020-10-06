@@ -105,6 +105,7 @@ class Pair : protected Pointers {
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
+  int mixed_flag;                // 1 if all itype != jtype coeffs are from mixing
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
@@ -196,7 +197,7 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
 
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}

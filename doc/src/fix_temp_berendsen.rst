@@ -117,7 +117,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the cumulative global energy change to
 :doc:`binary restart files <restart>`.  See the
@@ -164,7 +165,10 @@ Related commands
 :doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix press/berendsen <fix_press_berendsen>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

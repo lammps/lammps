@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_opls.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -25,7 +25,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -288,12 +288,12 @@ void DihedralOPLS::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k1_one = force->numeric(FLERR,arg[1]);
-  double k2_one = force->numeric(FLERR,arg[2]);
-  double k3_one = force->numeric(FLERR,arg[3]);
-  double k4_one = force->numeric(FLERR,arg[4]);
+  double k1_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double k2_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k3_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double k4_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // store 1/2 factor with prefactor
 
@@ -331,10 +331,10 @@ void DihedralOPLS::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&k4[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

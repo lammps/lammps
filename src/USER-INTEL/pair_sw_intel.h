@@ -88,7 +88,7 @@ class PairSWIntel : public PairSW {
     fc_packed3 ***p3;
 
     ForceConst() : p2(0), p2f(0), p2f2(0), p2e(0), p3(0), _ntypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL, _cop); }
+    ~ForceConst() { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

@@ -1,10 +1,10 @@
 .. index:: fix npt/asphere
+.. index:: fix npt/asphere/omp
 
 fix npt/asphere command
 =======================
 
-fix npt/asphere/omp command
-===========================
+Accelerator Variants: *npt/asphere/omp*
 
 Syntax
 """"""
@@ -106,7 +106,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 .. include:: accel_styles.rst
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the Nose/Hoover thermostat and barostat
 to :doc:`binary restart files <restart>`.  See the
@@ -157,4 +158,7 @@ Related commands
 
 :doc:`fix npt <fix_nh>`, :doc:`fix nve_asphere <fix_nve_asphere>`, :doc:`fix nvt_asphere <fix_nvt_asphere>`, :doc:`fix_modify <fix_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none

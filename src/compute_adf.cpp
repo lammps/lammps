@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_adf.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -42,18 +43,18 @@ enum{DEGREE, RADIAN, COSINE};
 
 ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL), klo(NULL), khi(NULL),
-  hist(NULL), histall(NULL),
-  rcutinnerj(NULL), rcutinnerk(NULL),
-  rcutouterj(NULL), rcutouterk(NULL),
-  list(NULL),
-  iatomcount(NULL), iatomcountall(NULL), iatomflag(NULL),
-  maxjatom(NULL), maxkatom(NULL),
-  numjatom(NULL), numkatom(NULL),
-  neighjatom(NULL),neighkatom(NULL),
-  jatomflag(NULL), katomflag(NULL),
-  maxjkatom(NULL), numjkatom(NULL),
-  neighjkatom(NULL), bothjkatom(NULL), delrjkatom(NULL)
+  ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr), klo(nullptr), khi(nullptr),
+  hist(nullptr), histall(nullptr),
+  rcutinnerj(nullptr), rcutinnerk(nullptr),
+  rcutouterj(nullptr), rcutouterk(nullptr),
+  list(nullptr),
+  iatomcount(nullptr), iatomcountall(nullptr), iatomflag(nullptr),
+  maxjatom(nullptr), maxkatom(nullptr),
+  numjatom(nullptr), numkatom(nullptr),
+  neighjatom(nullptr),neighkatom(nullptr),
+  jatomflag(nullptr), katomflag(nullptr),
+  maxjkatom(nullptr), numjkatom(nullptr),
+  neighjkatom(nullptr), bothjkatom(nullptr), delrjkatom(nullptr)
 {
   int nargsperadf = 7;
 
@@ -67,7 +68,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   ordinate_style = DEGREE;
   cutflag = 0;
 
-  nbin = force->inumeric(FLERR,arg[3]);
+  nbin = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nbin < 1) error->all(FLERR,"Illegal compute adf command");
 
   // optional args
@@ -134,19 +135,19 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     cutflag = 1;
     iarg = 4;
     for (int m = 0; m < ntriples; m++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[m],ihi[m]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[m],jhi[m]);
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,klo[m],khi[m]);
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[m],ihi[m],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[m],jhi[m],error);
+      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,klo[m],khi[m],error);
       if (ilo[m] > ihi[m] ||
           jlo[m] > jhi[m] ||
           klo[m] > khi[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerj[m] = force->numeric(FLERR,arg[iarg+3]);
-      rcutouterj[m] = force->numeric(FLERR,arg[iarg+4]);
+      rcutinnerj[m] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      rcutouterj[m] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (rcutinnerj[m] < 0.0 || rcutinnerj[m] >= rcutouterj[m])
         error->all(FLERR,"Illegal compute adf command");
-      rcutinnerk[m] = force->numeric(FLERR,arg[iarg+5]);
-      rcutouterk[m] = force->numeric(FLERR,arg[iarg+6]);
+      rcutinnerk[m] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      rcutouterk[m] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
       if (rcutinnerk[m] < 0.0 || rcutinnerk[m] >= rcutouterk[m])
         error->all(FLERR,"Illegal compute adf command");
       iarg += nargsperadf;

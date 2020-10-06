@@ -55,7 +55,8 @@ the total magnetization, and the magnetic temperature. Three variables are
 assigned to those quantities. The thermo and thermo_style commands print them
 every 10 timesteps.
 
-**Output info:**
+Output info
+"""""""""""
 
 The array values are "intensive".  The array values will be in
 metal units (:doc:`units <units>`).
@@ -71,7 +72,9 @@ has to be "spin" for this compute to be valid.
 
 none
 
-**Default:**
+Default
+"""""""
+
 
 none
 

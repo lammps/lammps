@@ -27,7 +27,7 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_torsion_angles_omp.h"
-#include <mpi.h>
+
 #include "fix_omp.h"
 #include "pair_reaxc_omp.h"
 
@@ -35,6 +35,8 @@
 #include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>

@@ -16,23 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_disp.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <cmath>
-#include "math_vector.h"
-#include "math_const.h"
-#include "math_special.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_special.h"
+#include "math_vector.h"
+#include "memory.h"
+#include "pair.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -45,21 +43,21 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
-  kenergy(NULL), kvirial(NULL), energy_self_peratom(NULL), virial_self_peratom(NULL),
-  ekr_local(NULL), hvec(NULL), kvec(NULL), B(NULL), cek_local(NULL), cek_global(NULL)
+  kenergy(nullptr), kvirial(nullptr), energy_self_peratom(nullptr), virial_self_peratom(nullptr),
+  ekr_local(nullptr), hvec(nullptr), kvec(nullptr), B(nullptr), cek_local(nullptr), cek_global(nullptr)
 {
   ewaldflag = dispersionflag = dipoleflag = 1;
 
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
-  kenergy = kvirial = NULL;
-  cek_local = cek_global = NULL;
-  ekr_local = NULL;
-  hvec = NULL;
-  kvec = NULL;
-  B = NULL;
+  kenergy = kvirial = nullptr;
+  cek_local = cek_global = nullptr;
+  ekr_local = nullptr;
+  hvec = nullptr;
+  kvec = nullptr;
+  B = nullptr;
   first_output = 0;
-  energy_self_peratom = NULL;
-  virial_self_peratom = NULL;
+  energy_self_peratom = nullptr;
+  virial_self_peratom = nullptr;
   nmax = 0;
   q2 = 0;
   b2 = 0;
@@ -69,7 +67,7 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
 void EwaldDisp::settings(int narg, char **arg)
 {
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 
@@ -111,8 +109,8 @@ void EwaldDisp::init()
 
   int tmp;
   Pair *pair = force->pair;
-  int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
-  double *cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
+  int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : nullptr;
+  double *cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : nullptr;
   if (!(ptr||cutoff))
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
@@ -425,12 +423,12 @@ void EwaldDisp::deallocate_peratom()                        // free memory
 {
   if (energy_self_peratom) {
     memory->destroy(energy_self_peratom);
-    energy_self_peratom = NULL;
+    energy_self_peratom = nullptr;
   }
 
   if (virial_self_peratom) {
     memory->destroy(virial_self_peratom);
-    virial_self_peratom = NULL;
+    virial_self_peratom = nullptr;
   }
 }
 
@@ -438,12 +436,12 @@ void EwaldDisp::deallocate_peratom()                        // free memory
 
 void EwaldDisp::deallocate()                                // free memory
 {
-  delete [] hvec;                hvec = NULL;
-  delete [] kvec;                kvec = NULL;
-  delete [] kenergy;                kenergy = NULL;
-  delete [] kvirial;                kvirial = NULL;
-  delete [] cek_local;                cek_local = NULL;
-  delete [] cek_global;                cek_global = NULL;
+  delete [] hvec;                hvec = nullptr;
+  delete [] kvec;                kvec = nullptr;
+  delete [] kenergy;                kenergy = nullptr;
+  delete [] kvirial;                kvirial = nullptr;
+  delete [] cek_local;                cek_local = nullptr;
+  delete [] cek_global;                cek_global = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -728,7 +726,7 @@ void EwaldDisp::compute_ek()
 {
   cvector *ekr = ekr_local;
   int lbytes = (2*nbox+1)*sizeof(cvector);
-  hvector *h = NULL;
+  hvector *h = nullptr;
   kvector *k, *nk = kvec+nkvec;
   cvector *z = new cvector[2*nbox+1];
   cvector z1, *zx, *zy, *zz, *zn = z+2*nbox;
@@ -736,7 +734,7 @@ void EwaldDisp::compute_ek()
   vector mui;
   double *x = atom->x[0], *xn = x+3*atom->nlocal, *q = atom->q, qi = 0.0;
   double bi = 0.0, ci[7];
-  double *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : nullptr;
   int i, kx, ky, n = nkvec*nsums, *type = atom->type, tri = domain->triclinic;
   int func[EWALD_NFUNCS];
 
@@ -808,8 +806,8 @@ void EwaldDisp::compute_force()
   vector sum[EWALD_MAX_NSUMS], mui = COMPLEX_NULL;
   complex *cek, zc, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
   complex *cek_coul;
-  double *f = atom->f[0], *fn = f+3*atom->nlocal, *q = atom->q, *t = NULL;
-  double *mu = atom->mu ? atom->mu[0] : NULL;
+  double *f = atom->f[0], *fn = f+3*atom->nlocal, *q = atom->q, *t = nullptr;
+  double *mu = atom->mu ? atom->mu[0] : nullptr;
   const double qscale = force->qqrd2e * scale;
   double *ke, c[EWALD_NFUNCS] = {
     8.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(12.0*volume),
@@ -1004,7 +1002,7 @@ void EwaldDisp::compute_energy_peratom()
   complex *cek_coul;
   double *q = atom->q;
   double *eatomj = eatom;
-  double *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : nullptr;
   const double qscale = force->qqrd2e * scale;
   double *ke = kenergy;
   double c[EWALD_NFUNCS] = {
@@ -1161,8 +1159,8 @@ void EwaldDisp::compute_virial_dipole()
   double sum_total[6];
   complex *cek, zc, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
   complex *cek_coul;
-  double *mu = atom->mu ? atom->mu[0] : NULL;
-  double *vatomj = NULL;
+  double *mu = atom->mu ? atom->mu[0] : nullptr;
+  double *vatomj = nullptr;
   if (vflag_atom && vatom) vatomj = vatom[0];
   const double qscale = force->qqrd2e * scale;
   double *ke, c[EWALD_NFUNCS] = {
@@ -1257,8 +1255,8 @@ void EwaldDisp::compute_virial_peratom()
   complex *cek_coul;
   double *kv;
   double *q = atom->q;
-  double *vatomj = vatom ? vatom[0] : NULL;
-  double *mu = atom->mu ? atom->mu[0] : NULL;
+  double *vatomj = vatom ? vatom[0] : nullptr;
+  double *mu = atom->mu ? atom->mu[0] : nullptr;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
     4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),

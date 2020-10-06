@@ -12,21 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_addforce.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "atom_masks.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,7 +36,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), estr(NULL), idregion(NULL), sforce(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr), idregion(nullptr), sforce(nullptr)
 
 {
   if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
@@ -53,14 +52,14 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   ilevel_respa = 0;
   virial_flag = 1;
 
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
   if (strstr(arg[4],"v_") == arg[4]) {
@@ -68,7 +67,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -76,7 +75,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 
@@ -254,7 +253,7 @@ void FixAddForce::post_force(int vflag)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();

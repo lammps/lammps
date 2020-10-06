@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_buck_long_coul_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "math_vector.h"
@@ -31,7 +31,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -50,9 +50,9 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;
-  ftable = NULL;
-  fdisptable = NULL;
-  cut_respa = NULL;
+  ftable = nullptr;
+  fdisptable = nullptr;
+  cut_respa = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -61,7 +61,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 void PairBuckLongCoulLong::options(char **arg, int order)
 {
-  const char *option[] = {"long", "cut", "off", NULL};
+  const char *option[] = {"long", "cut", "off", nullptr};
   int i;
 
   if (!*arg) error->all(FLERR,"Illegal pair_style buck/long/coul/long command");
@@ -90,15 +90,17 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
     error->warning(FLERR,"Using largest cutoff for buck/long/coul/long");
   if (!*(++arg))
     error->all(FLERR,"Cutoffs missing in pair_style buck/long/coul/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (ewald_off & (1<<6))
     error->all(FLERR,"LJ6 off not supported in pair_style buck/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style buck/long/coul/coul");
-  cut_buck_global = force->numeric(FLERR,*(arg++));
+  cut_buck_global = utils::numeric(FLERR,*(arg++),false,lmp);
   if (narg == 4 && ((ewald_order & 0x42) == 0x42))
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
-  if (narg == 4) cut_coul = force->numeric(FLERR,*arg);
+  if (narg == 4) cut_coul = utils::numeric(FLERR,*arg,false,lmp);
   else cut_coul = cut_buck_global;
 
   if (allocated) {
@@ -175,10 +177,10 @@ void PairBuckLongCoulLong::allocate()
 void *PairBuckLongCoulLong::extract(const char *id, int &dim)
 {
   const char *ids[] = {
-    "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", "cut_LJ", NULL};
+    "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", "cut_LJ", nullptr};
   void *ptrs[] = {
     buck_c, &ewald_order, &cut_coul, &mix_flag, &cut_coul, &cut_buck_global,
-    NULL};
+    nullptr};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
@@ -198,15 +200,15 @@ void PairBuckLongCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,*(arg++),atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,*(arg++),atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,*(arg++),1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,*(arg++),1,atom->ntypes,jlo,jhi,error);
 
-  double buck_a_one = force->numeric(FLERR,*(arg++));
-  double buck_rho_one = force->numeric(FLERR,*(arg++));
-  double buck_c_one = force->numeric(FLERR,*(arg++));
+  double buck_a_one = utils::numeric(FLERR,*(arg++),false,lmp);
+  double buck_rho_one = utils::numeric(FLERR,*(arg++),false,lmp);
+  double buck_c_one = utils::numeric(FLERR,*(arg++),false,lmp);
 
   double cut_buck_one = cut_buck_global;
-  if (narg == 6) cut_buck_one = force->numeric(FLERR,*(arg++));
+  if (narg == 6) cut_buck_one = utils::numeric(FLERR,*(arg++),false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -238,7 +240,7 @@ void PairBuckLongCoulLong::init_style()
 
   // ensure use of KSpace long-range solver, set two g_ewalds
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
   if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
@@ -248,7 +250,7 @@ void PairBuckLongCoulLong::init_style()
   if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
+  else cut_respa = nullptr;
 
   // setup force tables
 
@@ -357,14 +359,14 @@ void PairBuckLongCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&buck_a_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck_rho_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck_c_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_buck_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck_a_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck_rho_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck_c_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_buck_read[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&buck_a_read[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&buck_rho_read[i][j],1,MPI_DOUBLE,0,world);
@@ -387,6 +389,7 @@ void PairBuckLongCoulLong::write_restart_settings(FILE *fp)
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -396,13 +399,14 @@ void PairBuckLongCoulLong::write_restart_settings(FILE *fp)
 void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_buck_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_buck_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_buck_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -411,6 +415,7 @@ void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -529,8 +534,7 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
             if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
           }
         }
-      }
-      else force_coul = ecoul = 0.0;
+      } else force_coul = ecoul = 0.0;
 
       if (rsq < cut_bucksqi[typej]) {                        // buckingham
         double rn = r2inv*r2inv*r2inv,
@@ -543,16 +547,14 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
               force_buck =
                 r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
               if (eflag) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-            }
-            else {                                        // special case
+            } else {                                        // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               force_buck = f*r*expr*buck1i[typej]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*buck2i[typej];
               if (eflag) evdwl = f*expr*buckai[typej] -
                            g6*((a2+1.0)*a2+0.5)*x2+t*buckci[typej];
             }
-          }
-          else {                                              //table real space
+          } else {                                              //table real space
             union_int_float_t disp_t;
             disp_t.f = rsq;
             const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -560,21 +562,18 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
             if (ni == 0) {
               force_buck = r*expr*buck1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej];
               if (eflag) evdwl = expr*buckai[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej];
-            }
-            else {                                             //speial case
+            } else {                                             //special case
               double f = special_lj[ni], t = rn*(1.0-f);
               force_buck = f*r*expr*buck1i[typej] -(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej] +t*buck2i[typej];
               if (eflag) evdwl = f*expr*buckai[typej] -(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej]+t*buckci[typej];
             }
           }
-        }
-        else {                                                // cut
+        } else {                                                // cut
           if (ni == 0) {
             force_buck = r*expr*buck1i[typej]-rn*buck2i[typej];
             if (eflag) evdwl = expr*buckai[typej] -
                          rn*buckci[typej]-offseti[typej];
-          }
-          else {                                        // special case
+          } else {                                        // special case
             double f = special_lj[ni];
             force_buck = f*(r*expr*buck1i[typej]-rn*buck2i[typej]);
             if (eflag)
@@ -1018,7 +1017,7 @@ double PairBuckLongCoulLong::single(int i, int j, int itype, int jtype,
         g6*((a2+1.0)*a2+0.5)*x2+t*buck_c[itype][jtype];
     } else {                                                // cut
       force_buck =
-        buck1[itype][jtype]*r*expr-factor_buck*buck_c[itype][jtype]*r6inv;
+        factor_buck*(buck1[itype][jtype]*r*expr-buck2[itype][jtype]*r6inv);
       eng += buck_a[itype][jtype]*expr-
         factor_buck*(buck_c[itype][jtype]*r6inv-offset[itype][jtype]);
     }

@@ -60,11 +60,9 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
-    numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
-      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -81,7 +79,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
         numtyp r2inv = ucl_recip(rsq);
         numtyp r = ucl_sqrt(rsq);
         numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv*factor_lj;
+        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -90,7 +88,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -148,11 +146,9 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
-    numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
-      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -168,7 +164,7 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
         numtyp r2inv = ucl_recip(rsq);
         numtyp r = ucl_sqrt(rsq);
         numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv*factor_lj;
+        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -177,7 +173,7 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=factor_lj*e;
+          energy+=e; //factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

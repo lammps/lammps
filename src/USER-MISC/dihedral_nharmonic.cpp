@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_nharmonic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -277,21 +277,21 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 {
   if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-  int n = force->inumeric(FLERR,arg[1]);
+  int n = utils::inumeric(FLERR,arg[1],false,lmp);
   if (narg != n + 2)
     error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     a[i] = new double [n];
     nterms[i] = n;
     for (int j = 0; j < n; j++ ) {
-      a[i][j] = force->numeric(FLERR,arg[2+j]);
+      a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }
     count++;
@@ -320,7 +320,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -330,7 +330,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for(int i = 1; i <= atom->ndihedraltypes; i++)
-      utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 
   for (int i = 1; i <= atom->ndihedraltypes; i++ )

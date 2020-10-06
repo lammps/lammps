@@ -30,7 +30,7 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), pe(NULL), id_pe(NULL)
+  FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
 
   // Prevent masses from being updated every timestep
@@ -439,17 +439,17 @@ int FixNPHug::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"e0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    e0 = force->numeric(FLERR,arg[1]);
+    e0 = utils::numeric(FLERR,arg[1],false,lmp);
     e0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"v0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    v0 = force->numeric(FLERR,arg[1]);
+    v0 = utils::numeric(FLERR,arg[1],false,lmp);
     v0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"p0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    p0 = force->numeric(FLERR,arg[1]);
+    p0 = utils::numeric(FLERR,arg[1],false,lmp);
     p0_set = 1;
     return 2;
   }

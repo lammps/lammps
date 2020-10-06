@@ -1,25 +1,20 @@
 .. index:: pair_style dpd
+.. index:: pair_style dpd/gpu
+.. index:: pair_style dpd/intel
+.. index:: pair_style dpd/omp
+.. index:: pair_style dpd/tstat
+.. index:: pair_style dpd/tstat/gpu
+.. index:: pair_style dpd/tstat/omp
 
 pair_style dpd command
 ======================
 
-pair_style dpd/gpu command
-==========================
-
-pair_style dpd/intel command
-============================
-
-pair_style dpd/omp command
-==========================
+Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/omp*
 
 pair_style dpd/tstat command
 ============================
 
-pair_style dpd/tstat/gpu command
-================================
-
-pair_style dpd/tstat/omp command
-================================
+Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/omp*
 
 Syntax
 """"""
@@ -141,7 +136,8 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -203,7 +199,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`pair_style srp <pair_srp>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

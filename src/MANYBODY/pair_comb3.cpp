@@ -18,25 +18,24 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb3.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "my_page.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "group.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -55,38 +54,38 @@ PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
 
   nmax = 0;
-  NCo = NULL;
-  bbij = NULL;
-  map = NULL;
-  esm = NULL;
+  NCo = nullptr;
+  bbij = nullptr;
+  map = nullptr;
+  esm = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
-  intype = NULL;
-  afb = NULL;
-  dafb = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  ddfafb = NULL;
-  phin = NULL;
-  dphin = NULL;
-  erpaw = NULL;
-  vvdw = NULL;
-  vdvdw = NULL;
-  dpl = NULL;
-  xcctmp = NULL;
-  xchtmp = NULL;
-  xcotmp = NULL;
+  intype = nullptr;
+  afb = nullptr;
+  dafb = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  ddfafb = nullptr;
+  phin = nullptr;
+  dphin = nullptr;
+  erpaw = nullptr;
+  vvdw = nullptr;
+  vdvdw = nullptr;
+  dpl = nullptr;
+  xcctmp = nullptr;
+  xchtmp = nullptr;
+  xcotmp = nullptr;
 
-  sht_num = NULL;
-  sht_first = NULL;
+  sht_num = nullptr;
+  sht_first = nullptr;
 
-  ipage = NULL;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
   cflag = 0;
@@ -193,7 +192,7 @@ void PairComb3::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -202,7 +201,7 @@ void PairComb3::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -278,7 +277,7 @@ void PairComb3::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -451,9 +450,9 @@ void PairComb3::read_lib()
               }
             }
 
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -641,7 +640,7 @@ void PairComb3::read_file(char *file)
         params[nparams].addrep     = values.next_double();
         params[nparams].pcross     = values.next_double();
         params[nparams].powermint = int(params[nparams].powerm);
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

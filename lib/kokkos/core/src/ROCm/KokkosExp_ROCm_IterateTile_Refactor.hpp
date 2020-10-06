@@ -48,9 +48,7 @@
 #include <Kokkos_Macros.hpp>
 #if defined(__HCC__) && defined(KOKKOS_ENABLE_ROCM)
 
-#include <iostream>
 #include <algorithm>
-#include <cstdio>
 
 #include <utility>
 
@@ -60,10 +58,8 @@
 // type is not allowed use existing Kokkos functionality, e.g. max blocks, once
 // resolved
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
-#endif
 
 #define threadIdx_x (hc_get_workitem_id(0))
 #define threadIdx_y (hc_get_workitem_id(1))

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_shake.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
@@ -32,8 +32,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,16 +47,16 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(NULL), angle_flag(NULL),
-  type_flag(NULL), mass_list(NULL), bond_distance(NULL), angle_distance(NULL),
-  loop_respa(NULL), step_respa(NULL), x(NULL), v(NULL), f(NULL), ftmp(NULL),
-  vtmp(NULL), mass(NULL), rmass(NULL), type(NULL), shake_flag(NULL),
-  shake_atom(NULL), shake_type(NULL), xshake(NULL), nshake(NULL),
-  list(NULL), b_count(NULL), b_count_all(NULL), b_ave(NULL), b_max(NULL),
-  b_min(NULL), b_ave_all(NULL), b_max_all(NULL), b_min_all(NULL),
-  a_count(NULL), a_count_all(NULL), a_ave(NULL), a_max(NULL), a_min(NULL),
-  a_ave_all(NULL), a_max_all(NULL), a_min_all(NULL), atommols(NULL),
-  onemols(NULL)
+  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
+  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
+  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
+  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
+  onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -70,22 +70,22 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
-  xshake = NULL;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
+  xshake = nullptr;
 
-  ftmp = NULL;
-  vtmp = NULL;
+  ftmp = nullptr;
+  vtmp = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix
 
@@ -95,9 +95,9 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
-  tolerance = force->numeric(FLERR,arg[3]);
-  max_iter = force->inumeric(FLERR,arg[4]);
-  output_every = force->inumeric(FLERR,arg[5]);
+  tolerance = utils::numeric(FLERR,arg[3],false,lmp);
+  max_iter = utils::inumeric(FLERR,arg[4],false,lmp);
+  output_every = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -131,25 +131,25 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     // read numeric args of b,a,t,m
 
     else if (mode == 'b') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = force->numeric(FLERR,arg[next]);
+      double massone = utils::numeric(FLERR,arg[next],false,lmp);
       if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
       if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for fix shake");
@@ -161,7 +161,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  onemols = NULL;
+  onemols = nullptr;
 
   int iarg = next;
   while (iarg < narg) {
@@ -233,7 +233,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // initialize list of SHAKE clusters to constrain
 
   maxlist = 0;
-  list = NULL;
+  list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,7 +242,7 @@ FixShake::~FixShake()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom
@@ -367,7 +367,7 @@ void FixShake::init()
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -378,7 +378,7 @@ void FixShake::init()
 
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
-    if (force->angle == NULL)
+    if (force->angle == nullptr)
       error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
@@ -715,7 +715,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   int max = 0;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
   } else {
     for (i = 0; i < nlocal; i++) {
@@ -749,7 +749,7 @@ void FixShake::find_clusters()
   // set npartner and partner_tag from special arrays
   // -----------------------------------------------------
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) {
       npartner[i] = nspecial[i][0];
       for (j = 0; j < npartner[i]; j++)
@@ -2568,7 +2568,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nbonds;
   int *btype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint *tag = atom->tag;
     tagint **bond_atom = atom->bond_atom;
     nbonds = atom->num_bond[i];
@@ -2595,10 +2595,10 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nbonds) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->bond_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->bond_type[i][m];
       else return btype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->bond_type[i][m] > 0) ||
           (setflag > 0 && atom->bond_type[i][m] < 0))
         atom->bond_type[i][m] = -atom->bond_type[i][m];
@@ -2624,7 +2624,7 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nangles;
   int *atype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint **angle_atom1 = atom->angle_atom1;
     tagint **angle_atom3 = atom->angle_atom3;
     nangles = atom->num_angle[i];
@@ -2652,10 +2652,10 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nangles) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->angle_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->angle_type[i][m];
       else return atype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->angle_type[i][m] > 0) ||
           (setflag > 0 && atom->angle_type[i][m] < 0))
         atom->angle_type[i][m] = -atom->angle_type[i][m];
@@ -2976,7 +2976,7 @@ void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) return onemols;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

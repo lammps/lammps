@@ -42,10 +42,10 @@ Scafacos::Scafacos(LAMMPS *lmp) : KSpace(lmp)
   initialized = 0;
 
   maxatom = 0;
-  xpbc = NULL;
-  epot = NULL;
-  efield = NULL;
-  fcs = NULL;
+  xpbc = nullptr;
+  epot = nullptr;
+  efield = nullptr;
+  fcs = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ void Scafacos::settings(int narg, char **arg)
   int n = strlen(arg[0]) + 1;
   method = new char[n];
   strcpy(method,arg[0]);
-  tolerance = force->numeric(FLERR,arg[1]);
+  tolerance = utils::numeric(FLERR,arg[1],false,lmp);
 
   // optional ScaFaCoS library setting defaults
   // choose the correct default tolerance type for chosen method
@@ -118,7 +118,7 @@ void Scafacos::init()
   if (atom->natoms > INT_MAX && sizeof(int) != 8)
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
-  if (atom->molecular > 0)
+  if (atom->molecular != Atom::ATOMIC)
     error->all(FLERR,
                "Cannot use Scafacos with molecular charged systems yet");
 

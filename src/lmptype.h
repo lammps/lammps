@@ -42,10 +42,10 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <climits>
-#include <cstdlib>
-#include <cstdint>
-#include <cinttypes>
+#include <climits>    // IWYU pragma: export
+#include <cstdlib>    // IWYU pragma: export
+#include <cstdint>    // IWYU pragma: export
+#include <cinttypes>  // IWYU pragma: export
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -79,6 +79,7 @@ namespace LAMMPS_NS {
 
 // for atomic problems that exceed 2 billion (2^31) atoms
 // 32-bit smallint/imageint/tagint, 64-bit bigint
+// atom IDs and molecule IDs are limited to 32-bit
 
 #ifdef LAMMPS_SMALLBIG
 
@@ -100,6 +101,11 @@ typedef int64_t bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT ATOLL
+
+#define LAMMPS_TAGINT    LAMMPS_INT
+#define LAMMPS_TAGINT_2D LAMMPS_INT_2D
+#define LAMMPS_BIGINT    LAMMPS_INT64
+#define LAMMPS_BIGINT_2D LAMMPS_INT64_2D
 
 #define IMGMASK 1023
 #define IMGMAX 512
@@ -133,6 +139,11 @@ typedef int64_t bigint;
 #define ATOTAGINT ATOLL
 #define ATOBIGINT ATOLL
 
+#define LAMMPS_TAGINT    LAMMPS_INT64
+#define LAMMPS_TAGINT_2D LAMMPS_INT64_2D
+#define LAMMPS_BIGINT    LAMMPS_INT64
+#define LAMMPS_BIGINT_2D LAMMPS_INT64_2D
+
 #define IMGMASK 2097151
 #define IMGMAX 1048576
 #define IMGBITS 21
@@ -164,6 +175,11 @@ typedef int bigint;
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
 
+#define LAMMPS_TAGINT    LAMMPS_INT
+#define LAMMPS_TAGINT_2D LAMMPS_INT_2D
+#define LAMMPS_BIGINT    LAMMPS_INT
+#define LAMMPS_BIGINT_2D LAMMPS_INT_2D
+
 #define IMGMASK 1023
 #define IMGMAX 512
 #define IMGBITS 10
@@ -171,22 +187,21 @@ typedef int bigint;
 
 #endif
 
-  /// Data structe for packing 32-bit and 64-bit integers
-  /// into double (communication) buffers
-  ///
-  /// Using this union avoids aliasing issues by having member types
-  /// (double, int) referencing the same buffer memory location.
-  ///
-  /// The explicit constructor for 32-bit integers prevents compilers
-  /// from (incorrectly) calling the double constructor when storing
-  ///  an int into a double buffer.
-  /*
+/** Data structure for packing 32-bit and 64-bit integers
+ * into double (communication) buffers
+ *
+ * Using this union avoids aliasing issues by having member types
+ * (double, int) referencing the same buffer memory location.
+ *
+ * The explicit constructor for 32-bit integers prevents compilers
+ * from (incorrectly) calling the double constructor when storing
+ * an int into a double buffer.
 \verbatim embed:rst
+
 **Usage:**
 
-To copy an integer into a double buffer:
-
-.. code-block: c++
+.. code-block:: c++
+   :caption: To copy an integer into a double buffer:
 
    double buf[2];
    int    foo =   1;
@@ -194,14 +209,13 @@ To copy an integer into a double buffer:
    buf[1] = ubuf(foo).d;
    buf[2] = ubuf(bar).d;
 
-To copy from a double buffer back to an int:
-
-.. code-block: c++
+.. code-block:: c++
+   :caption: To copy from a double buffer back to an int:
 
    foo = (int)    ubuf(buf[1]).i;
    bar = (tagint) ubuf(buf[2]).i;
 
-The typecast prevents compiler warnings about possible truncations.
+The typecasts prevent compiler warnings about possible truncation issues.
 \endverbatim
   */
   union ubuf {
@@ -250,17 +264,23 @@ The typecast prevents compiler warnings about possible truncations.
 // functions and avoid compiler warnings about variable tracking.
 // Disable for broken -D_FORTIFY_SOURCE feature.
 
-#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
-#define _noopt
-#elif defined(__clang__)
+#if defined(__clang__)
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
 #  define _noopt
 #elif defined(__GNUC__)
 #  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
-#    define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
+#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#      define _noopt __attribute__((optimize("no-var-tracking-assignments")))
+#    else
+#      define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
+#    endif
 #  else
-#    define _noopt __attribute__((optimize("O0")))
+#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#      define _noopt
+#    else
+#      define _noopt __attribute__((optimize("O0")))
+#    endif
 #  endif
 #else
 #  define _noopt

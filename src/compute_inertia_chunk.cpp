@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_inertia_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 
 ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL),
-  inertia(NULL), inertiaall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr),
+  inertia(nullptr), inertiaall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute inertia/chunk command");
 

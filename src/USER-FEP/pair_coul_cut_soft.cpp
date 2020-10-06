@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -159,10 +159,10 @@ void PairCoulCutSoft::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphac  = force->numeric(FLERR,arg[1]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[1],false,lmp);
 
-  cut_global = force->numeric(FLERR,arg[2]);
+  cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -185,13 +185,13 @@ void PairCoulCutSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double lambda_one = force->numeric(FLERR,arg[2]);
+  double lambda_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -275,12 +275,12 @@ void PairCoulCutSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&lambda[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -309,12 +309,12 @@ void PairCoulCutSoft::write_restart_settings(FILE *fp)
 void PairCoulCutSoft::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,nullptr,error);
 
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&alphac,1,MPI_DOUBLE,0,world);
@@ -373,5 +373,5 @@ void *PairCoulCutSoft::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  return NULL;
+  return nullptr;
 }

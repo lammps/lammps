@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/squared
+.. index:: angle_style cosine/squared/omp
 
 angle_style cosine/squared command
 ==================================
 
-angle_style cosine/squared/omp command
-======================================
+Accelerator Variants: *cosine/squared/omp*
 
 Syntax
 """"""
@@ -62,4 +62,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

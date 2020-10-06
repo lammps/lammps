@@ -17,21 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dipole_long.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "fix.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -81,7 +78,7 @@ void PairSpinDipoleLong::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_long_global = force->numeric(FLERR,arg[0]);
+  cut_spin_long_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -109,10 +106,10 @@ void PairSpinDipoleLong::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
+  double spin_long_cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -136,7 +133,7 @@ void PairSpinDipoleLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
 
   g_ewald = force->kspace->g_ewald;
@@ -177,7 +174,7 @@ void *PairSpinDipoleLong::extract(const char *str, int &dim)
     dim = 0;
     return (void *) &mix_flag;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -456,7 +453,7 @@ void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleLong::compute_long_mech(int /* i */, int /* j */, double eij[3],
-    double bij[4], double fi[3], double spi[3], double spj[3])
+    double bij[4], double fi[3], double spi[4], double spj[4])
 {
   double sisj,sieij,sjeij,b2,b3;
   double g1,g2,g1b2_g2b3,gigj,pre;
@@ -530,11 +527,11 @@ void PairSpinDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
@@ -559,8 +556,8 @@ void PairSpinDipoleLong::write_restart_settings(FILE *fp)
 void PairSpinDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

@@ -304,21 +304,21 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j<h_table->rsq.extent(1); j++)
+    for(int j = 0; j < (int) h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->drsq.extent(1); j++)
+    for(int j = 0; j < (int) h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j<h_table->e.extent(1); j++)
+    for(int j = 0; j < (int) h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.extent(1); j++)
+    for(int j = 0; j < (int) h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.extent(1); j++)
+    for(int j = 0; j < (int) h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.extent(1); j++)
+    for(int j = 0; j < (int) h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j<h_table->e2.extent(1); j++)
+    for(int j = 0; j < (int) h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j<h_table->f2.extent(1); j++)
+    for(int j = 0; j < (int) h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 
@@ -428,7 +428,7 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -462,7 +462,7 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -522,10 +522,10 @@ template<class DeviceType>
 void PairTableKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  h_table=NULL; d_table=NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

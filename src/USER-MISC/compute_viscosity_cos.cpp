@@ -15,16 +15,17 @@
    Contributing author: Zheng GONG (ENS de Lyon, z.gong@outlook.com)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_viscosity_cos.h"
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,7 +45,7 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
 
   vector = new double[7];
 }
@@ -52,8 +53,10 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeViscosityCos::~ComputeViscosityCos() {
-  if (!copymode)
+  if (!copymode) {
     delete[] vector;
+    delete[] extlist;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

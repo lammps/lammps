@@ -20,9 +20,9 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 
 #include "atom.h"
 #include "comm.h"
@@ -33,8 +33,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -244,7 +244,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // infinite CNT case
 
       if (endflag == 0) {
-        geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
+        geometry(r1,r2,p1,p2,nullptr,p,m,param,basis);
         if (param[0] > cutoff) continue;
         finf(param,evdwl,flocal);
 
@@ -759,8 +759,8 @@ void PairMesoCNT::read_file()
 
     // open file
 
-    fp = force->open_potential(file);
-    if (fp == NULL)
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open mesocnt file: {}",file));
 
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
@@ -846,7 +846,7 @@ void PairMesoCNT::read_data(FILE *fp, double *data,
   double x,xtemp,dxtemp;
 
   for (int i = 0; i < ninput; i++) {
-    if (NULL == fgets(line,MAXLINE,fp))
+    if (nullptr == fgets(line,MAXLINE,fp))
       error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
 
     if (i > 0) xtemp = x;
@@ -899,7 +899,7 @@ void PairMesoCNT::read_data(FILE *fp, double **data,
   for (int i = 0; i < ninput; i++) {
     if (i > 0) xtemp = x;
     for (int j = 0; j < ninput; j++) {
-      if (NULL == fgets(line,MAXLINE,fp))
+      if (nullptr == fgets(line,MAXLINE,fp))
         error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
 
       if (j > 0) ytemp = y;

@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_fourier.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -27,7 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -297,7 +297,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   // require integer values of shift for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break
@@ -306,7 +306,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   double k_one;
   int multiplicity_one;
   double shift_one;
-  int nterms_one = force->inumeric(FLERR,arg[1]);
+  int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -324,9 +324,9 @@ void DihedralFourier::coeff(int narg, char **arg)
     sin_shift[i] = new double [nterms_one];
     for (int j = 0; j<nterms_one; j++) {
       int offset = 1+3*j;
-      k_one = force->numeric(FLERR,arg[offset+1]);
-      multiplicity_one = force->inumeric(FLERR,arg[offset+2]);
-      shift_one = force->numeric(FLERR,arg[offset+3]);
+      k_one = utils::numeric(FLERR,arg[offset+1],false,lmp);
+      multiplicity_one = utils::inumeric(FLERR,arg[offset+2],false,lmp);
+      shift_one = utils::numeric(FLERR,arg[offset+3],false,lmp);
       k[i][j] = k_one;
       multiplicity[i][j] = multiplicity_one;
       shift[i][j] = shift_one;
@@ -365,7 +365,7 @@ void DihedralFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -380,9 +380,9 @@ void DihedralFourier::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 

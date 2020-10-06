@@ -17,12 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_table_cut.h"
-#include <mpi.h>
+
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
-#include <string>
+
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 
@@ -35,7 +35,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -412,8 +412,8 @@ DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : Dihedral(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_dihedral_tablecut);
   ntables = 0;
-  tables = NULL;
-  checkU_fname = checkF_fname = NULL;
+  tables = nullptr;
+  checkU_fname = checkF_fname = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -764,7 +764,7 @@ void DihedralTableCut::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in dihedral style table_cut");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 3)
     error->all(FLERR,"Illegal number of dihedral table entries");
   // delete old tables, since cannot just change settings
@@ -779,7 +779,7 @@ void DihedralTableCut::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -794,11 +794,11 @@ void DihedralTableCut::coeff(int narg, char **arg)
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[2]);
-  double theta0_1_one = force->numeric(FLERR,arg[3]);
-  double theta0_2_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double theta0_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double theta0_2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // convert theta0's from degrees to radians
 
@@ -1029,8 +1029,8 @@ void DihedralTableCut::write_restart_settings(FILE *fp)
 void DihedralTableCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
@@ -1041,10 +1041,10 @@ void DihedralTableCut::read_restart_settings(FILE *fp)
 
 void DihedralTableCut::null_table(Table *tb)
 {
-  tb->phifile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->phi = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->phifile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->phi = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1078,8 +1078,8 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
+  if (fp == nullptr) {
     string err_msg = string("Cannot open file ") + string(file);
     error->one(FLERR,err_msg);
   }
@@ -1087,7 +1087,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
   // loop until section found with matching keyword
 
   while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL) {
+    if (fgets(line,MAXLINE,fp) == nullptr) {
       string err_msg=string("Did not find keyword \"")
         +string(keyword)+string("\" in dihedral table file.");
       error->one(FLERR, err_msg);
@@ -1121,7 +1121,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
 
     // Skip blank lines and delete text following a '#' character
     char *pe = strchr(line, '#');
-    if (pe != NULL) *pe = '\0'; //terminate string at '#' character
+    if (pe != nullptr) *pe = '\0'; //terminate string at '#' character
     char *pc = line;
     while ((*pc != '\0') && isspace(*pc))
       pc++;
@@ -1344,7 +1344,7 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->ninput = atoi(word);
     }
     else if (strcmp(word,"NOF") == 0) {
@@ -1357,20 +1357,20 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
       tb->use_degrees = false;
     }
     else if (strcmp(word,"CHECKU") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       memory->sfree(checkU_fname);
       memory->create(checkU_fname,strlen(word)+1,"dihedral_table:checkU");
       strcpy(checkU_fname, word);
     }
     else if (strcmp(word,"CHECKF") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       memory->sfree(checkF_fname);
       memory->create(checkF_fname,strlen(word)+1,"dihedral_table:checkF");
       strcpy(checkF_fname, word);
     }
     // COMMENTING OUT:  equilibrium angles are not supported
     //else if (strcmp(word,"EQ") == 0) {
-    //  word = strtok(NULL," \t\n\r\f");
+    //  word = strtok(nullptr," \t\n\r\f");
     //  tb->theta0 = atof(word);
     //}
     else {
@@ -1378,7 +1378,7 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
       err_msg += string(" (") + string(word) + string(")");
       error->one(FLERR, err_msg);
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok(nullptr," \t\n\r\f");
   }
 
   if (tb->ninput == 0)

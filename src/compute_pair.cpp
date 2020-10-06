@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "update.h"
@@ -28,7 +28,7 @@ enum{EPAIR,EVDWL,ECOUL};
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pair(NULL), one(NULL)
+  pstyle(nullptr), pair(nullptr), one(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair command");
 
@@ -48,7 +48,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg > iarg) {
     if (isdigit(arg[iarg][0])) {
-      nsub = force->inumeric(FLERR,arg[iarg]);
+      nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
       ++iarg;
       if (nsub <= 0)
         error->all(FLERR,"Illegal compute pair command");
@@ -82,7 +82,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     extvector = 1;
     one = new double[npair];
     vector = new double[npair];
-  } else one = vector = NULL;
+  } else one = vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

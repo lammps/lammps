@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -42,15 +42,15 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
 
   nelements = 0;
-  elements = NULL;
-  radelem = NULL;
-  wjelem = NULL;
-  coeffelem = NULL;
+  elements = nullptr;
+  radelem = nullptr;
+  wjelem = nullptr;
+  coeffelem = nullptr;
 
   beta_max = 0;
-  beta = NULL;
-  bispectrum = NULL;
-  snaptr = NULL;
+  beta = nullptr;
+  bispectrum = nullptr;
+  snaptr = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -515,8 +515,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = force->open_potential(coefffilename);
-    if (fpcoeff == NULL) {
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
+    if (fpcoeff == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
       error->one(FLERR,str);
@@ -531,7 +531,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   while (nwords == 0) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fpcoeff);
       } else n = strlen(line) + 1;
@@ -556,7 +556,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   int iword = 0;
   words[iword] = strtok(line,"' \t\n\r\f");
   iword = 1;
-  words[iword] = strtok(NULL,"' \t\n\r\f");
+  words[iword] = strtok(nullptr,"' \t\n\r\f");
 
   nelements = atoi(words[0]);
   ncoeffall = atoi(words[1]);
@@ -574,7 +574,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fpcoeff);
       } else n = strlen(line) + 1;
@@ -592,9 +592,9 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     iword = 0;
     words[iword] = strtok(line,"' \t\n\r\f");
     iword = 1;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
+    words[iword] = strtok(nullptr,"' \t\n\r\f");
     iword = 2;
-    words[iword] = strtok(NULL,"' \t\n\r\f");
+    words[iword] = strtok(nullptr,"' \t\n\r\f");
 
     char* elemtmp = words[0];
     int n = strlen(elemtmp) + 1;
@@ -615,7 +615,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fpcoeff);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fpcoeff);
         } else n = strlen(line) + 1;
@@ -662,8 +662,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpparam;
   if (comm->me == 0) {
-    fpparam = force->open_potential(paramfilename);
-    if (fpparam == NULL) {
+    fpparam = utils::open_potential(paramfilename,lmp,nullptr);
+    if (fpparam == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open SNAP parameter file %s",paramfilename);
       error->one(FLERR,str);
@@ -674,7 +674,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpparam);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fpparam);
       } else n = strlen(line) + 1;
@@ -697,7 +697,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip single and double quotes from words
 
     char* keywd = strtok(line,"' \t\n\r\f");
-    char* keyval = strtok(NULL,"' \t\n\r\f");
+    char* keyval = strtok(nullptr,"' \t\n\r\f");
 
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP keyword %s %s \n",keywd,keyval);

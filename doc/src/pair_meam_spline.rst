@@ -1,10 +1,10 @@
 .. index:: pair_style meam/spline
+.. index:: pair_style meam/spline/omp
 
 pair_style meam/spline command
 ==============================
 
-pair_style meam/spline/omp command
-==================================
+Accelerator Variants: *meam/spline/omp*
 
 Syntax
 """"""
@@ -16,7 +16,7 @@ Syntax
 Examples
 """"""""
 
-.. code:: LAMMPS
+.. code-block:: LAMMPS
 
    pair_style meam/spline
    pair_coeff * * Ti.meam.spline Ti
@@ -121,7 +121,8 @@ MEAM files.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -151,7 +152,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

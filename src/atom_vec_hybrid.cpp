@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_hybrid.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -30,13 +30,13 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in WriteData
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
 {
   nstyles = 0;
-  styles = NULL;
-  keywords = NULL;
-  fieldstrings = NULL;
+  styles = nullptr;
+  keywords = nullptr;
+  fieldstrings = nullptr;
 
   bonus_flag = 0;
   nstyles_bonus = 0;
-  styles_bonus = NULL;
+  styles_bonus = nullptr;
 
   // these strings will be concatenated from sub-style strings
   // fields_data_atom & fields_data_vel start with fields common to all styles
@@ -121,12 +121,12 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // check for both mass_type = 0 and 1, so can warn
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   maxexchange = 0;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,
                  "Cannot mix molecular and molecule template atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -140,7 +140,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
     maxexchange += styles[k]->maxexchange;
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
   }
 
   // issue a warning if both per-type mass and per-atom rmass are defined
@@ -187,7 +187,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // save concat_grow to check for duplicates of special-case fields
 
   char *concat_grow;;
-  char *null = NULL;
+  char *null = nullptr;
 
   fields_grow = merge_fields(0,fields_grow,1,concat_grow);
   fields_copy = merge_fields(1,fields_copy,0,null);
@@ -379,9 +379,9 @@ int AtomVecHybrid::unpack_restart_bonus(int ilocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-bigint AtomVecHybrid::memory_usage_bonus()
+double AtomVecHybrid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles_bonus; k++)
     bytes += styles_bonus[k]->memory_usage_bonus();
   return bytes;
@@ -595,7 +595,7 @@ void AtomVecHybrid::build_styles()
   nallstyles = 0;
 #define ATOM_CLASS
 #define AtomStyle(key,Class) nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"   // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 
@@ -609,7 +609,7 @@ void AtomVecHybrid::build_styles()
   allstyles[nallstyles] = new char[n];      \
   strcpy(allstyles[nallstyles],#key);       \
   nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }

@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -27,7 +27,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,18 +37,18 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), list(NULL), chi(NULL), eta(NULL),
-  gamma(NULL), zeta(NULL), zcore(NULL), chizj(NULL), shld(NULL),
-  s(NULL), t(NULL), s_hist(NULL), t_hist(NULL), Hdia_inv(NULL), b_s(NULL),
-  b_t(NULL), p(NULL), q(NULL), r(NULL), d(NULL),
-  qf(NULL), q1(NULL), q2(NULL), qv(NULL)
+  Fix(lmp, narg, arg), list(nullptr), chi(nullptr), eta(nullptr),
+  gamma(nullptr), zeta(nullptr), zcore(nullptr), chizj(nullptr), shld(nullptr),
+  s(nullptr), t(nullptr), s_hist(nullptr), t_hist(nullptr), Hdia_inv(nullptr), b_s(nullptr),
+  b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
+  qf(nullptr), q1(nullptr), q2(nullptr), qv(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  cutoff = force->numeric(FLERR,arg[4]);
-  tolerance = force->numeric(FLERR,arg[5]);
-  maxiter = force->inumeric(FLERR,arg[6]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[4],false,lmp);
+  tolerance = utils::numeric(FLERR,arg[5],false,lmp);
+  maxiter = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -58,50 +58,50 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   swa = 0.0;
   swb = cutoff;
 
-  shld = NULL;
+  shld = nullptr;
 
   nlocal = n_cap = 0;
   nall = nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
-  s = NULL;
-  t = NULL;
+  s = nullptr;
+  t = nullptr;
   nprev = 5;
 
-  Hdia_inv = NULL;
-  b_s = NULL;
-  b_t = NULL;
+  Hdia_inv = nullptr;
+  b_s = nullptr;
+  b_t = nullptr;
 
   // CG
-  p = NULL;
-  q = NULL;
-  r = NULL;
-  d = NULL;
+  p = nullptr;
+  q = nullptr;
+  r = nullptr;
+  d = nullptr;
 
   // H matrix
-  H.firstnbr = NULL;
-  H.numnbrs = NULL;
-  H.jlist = NULL;
-  H.val = NULL;
+  H.firstnbr = nullptr;
+  H.numnbrs = nullptr;
+  H.jlist = nullptr;
+  H.val = nullptr;
 
   // others
   cutoff_sq = cutoff*cutoff;
-  chizj = NULL;
-  qf = NULL;
-  q1 = NULL;
-  q2 = NULL;
+  chizj = nullptr;
+  qf = nullptr;
+  q1 = nullptr;
+  q2 = nullptr;
   streitz_flag = 0;
   reax_flag = 0;
-  qv = NULL;
+  qv = nullptr;
 
   comm_forward = comm_reverse = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  s_hist = t_hist = NULL;
+  s_hist = t_hist = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   for( int i = 0; i < atom->nmax; i++ )
     for (int j = 0; j < nprev; ++j )
@@ -122,7 +122,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 FixQEq::~FixQEq()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -707,8 +707,8 @@ void FixQEq::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix qeq parameter file %s",file);
       error->one(FLERR,str);
@@ -726,7 +726,7 @@ void FixQEq::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -751,15 +751,15 @@ void FixQEq::read_file(char *file)
 
     for (n=0, words[n] = strtok(line," \t\n\r\f");
          n < 6;
-         words[++n] = strtok(NULL," \t\n\r\f"));
+         words[++n] = strtok(nullptr," \t\n\r\f"));
 
-    force->bounds(FLERR,words[0],ntypes,nlo,nhi);
+    utils::bounds(FLERR,words[0],1,ntypes,nlo,nhi,error);
     for (n=nlo; n <=nhi; ++n) {
-      chi[n]     = force->numeric(FLERR,words[1]);
-      eta[n]     = force->numeric(FLERR,words[2]);
-      gamma[n]   = force->numeric(FLERR,words[3]);
-      zeta[n]    = force->numeric(FLERR,words[4]);
-      zcore[n]   = force->numeric(FLERR,words[5]);
+      chi[n]     = utils::numeric(FLERR,words[1],false,lmp);
+      eta[n]     = utils::numeric(FLERR,words[2],false,lmp);
+      gamma[n]   = utils::numeric(FLERR,words[3],false,lmp);
+      zeta[n]    = utils::numeric(FLERR,words[4],false,lmp);
+      zcore[n]   = utils::numeric(FLERR,words[5],false,lmp);
       setflag[n] = 1;
     }
   }

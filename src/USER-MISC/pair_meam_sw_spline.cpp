@@ -25,7 +25,7 @@
 
 #include "pair_meam_sw_spline.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -35,7 +35,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -49,13 +49,13 @@ PairMEAMSWSpline::PairMEAMSWSpline(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
 
-  Uprime_values = NULL;
-  //ESWprime_values = NULL;
+  Uprime_values = nullptr;
+  //ESWprime_values = nullptr;
   nmax = 0;
   maxNeighbors = 0;
-  twoBodyInfo = NULL;
+  twoBodyInfo = nullptr;
 
   comm_forward = 1;
   comm_reverse = 0;
@@ -393,7 +393,7 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -402,7 +402,7 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -460,8 +460,8 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 void PairMEAMSWSpline::read_file(const char* filename)
 {
   if(comm->me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if(fp == NULL) {
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
+    if(fp == nullptr) {
       char str[1024];
       snprintf(str,1024,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
@@ -601,23 +601,23 @@ void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
         char line[MAXLINE];
 
         // Parse number of spline knots.
-        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
+        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
         int n = atoi(line);
         if(n < 2)
                 error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
         // Parse first derivatives at beginning and end of spline.
-        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
+        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
         double d0 = atof(strtok(line, " \t\n\r\f"));
-        double dN = atof(strtok(NULL, " \t\n\r\f"));
+        double dN = atof(strtok(nullptr, " \t\n\r\f"));
         init(n, d0, dN);
 
         // Skip line.
-        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
+        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
 
         // Parse knot coordinates.
         for(int i=0; i<n; i++) {
-          utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
+          utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
                 double x, y, y2;
                 if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
                         error->one(FLERR,"Invalid knot line in MEAM potential file");

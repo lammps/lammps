@@ -18,21 +18,19 @@
 ------------------------------------------------------------------------- */
 
 #include "create_bonds.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "comm.h"
-#include "group.h"
-#include "special.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "group.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -69,38 +67,38 @@ void CreateBonds::command(int narg, char **arg)
     igroup = group->find(arg[2]);
     if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
     group2bit = group->bitmask[igroup];
-    btype = force->inumeric(FLERR,arg[3]);
-    rmin = force->numeric(FLERR,arg[4]);
-    rmax = force->numeric(FLERR,arg[5]);
+    btype = utils::inumeric(FLERR,arg[3],false,lmp);
+    rmin = utils::numeric(FLERR,arg[4],false,lmp);
+    rmax = utils::numeric(FLERR,arg[5],false,lmp);
     if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
     iarg = 6;
   } else if (strcmp(arg[0],"single/bond") == 0) {
     style = SBOND;
     if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
-    btype = force->inumeric(FLERR,arg[1]);
-    batom1 = force->tnumeric(FLERR,arg[2]);
-    batom2 = force->tnumeric(FLERR,arg[3]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
+    batom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    batom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
     if (batom1 == batom2)
       error->all(FLERR,"Illegal create_bonds command");
     iarg = 4;
   } else if (strcmp(arg[0],"single/angle") == 0) {
     style = SANGLE;
     if (narg < 5) error->all(FLERR,"Illegal create_bonds command");
-    atype = force->inumeric(FLERR,arg[1]);
-    aatom1 = force->tnumeric(FLERR,arg[2]);
-    aatom2 = force->tnumeric(FLERR,arg[3]);
-    aatom3 = force->tnumeric(FLERR,arg[4]);
+    atype = utils::inumeric(FLERR,arg[1],false,lmp);
+    aatom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    aatom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    aatom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
     if ((aatom1 == aatom2) || (aatom1 == aatom3) || (aatom2 == aatom3))
       error->all(FLERR,"Illegal create_bonds command");
     iarg = 5;
   } else if (strcmp(arg[0],"single/dihedral") == 0) {
     style = SDIHEDRAL;
     if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = force->inumeric(FLERR,arg[1]);
-    datom1 = force->tnumeric(FLERR,arg[2]);
-    datom2 = force->tnumeric(FLERR,arg[3]);
-    datom3 = force->tnumeric(FLERR,arg[4]);
-    datom4 = force->tnumeric(FLERR,arg[5]);
+    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
+    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
+    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
     if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
         (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
       error->all(FLERR,"Illegal create_bonds command");
@@ -108,11 +106,11 @@ void CreateBonds::command(int narg, char **arg)
   } else if (strcmp(arg[0],"single/improper") == 0) {
     style = SIMPROPER;
     if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = force->inumeric(FLERR,arg[1]);
-    datom1 = force->tnumeric(FLERR,arg[2]);
-    datom2 = force->tnumeric(FLERR,arg[3]);
-    datom3 = force->tnumeric(FLERR,arg[4]);
-    datom4 = force->tnumeric(FLERR,arg[5]);
+    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
+    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
+    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
     if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
         (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
       error->all(FLERR,"Illegal create_bonds command");
@@ -199,14 +197,14 @@ void CreateBonds::many()
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Create_bonds requires a pair style be defined");
   if (rmax > neighbor->cutneighmax)
     error->all(FLERR,"Create_bonds max distance > neighbor cutoff");
   if (rmax > neighbor->cutneighmin && comm->me == 0)
     error->warning(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
 
-  // require special_bonds 1-2 weights = 0.0 and KSpace = NULL
+  // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
   // otherwise with newton_bond = 1,
   //   would be hard to check if I-J bond already existed

@@ -50,17 +50,17 @@ const refdata_t structure_sc = {        PTM_MATCH_SC,                        //.
                                         NUM_SC_GRAPHS,                        //.num_graphs
                                         graphs_sc,                        //.graphs
                                         ptm_template_sc,                //.points
-                                        NULL,                                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt1
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_sc,                        //.penrose
-                                        NULL,                                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt1
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_CUBIC_MAPPINGS,                //.num_mappings
                                         mapping_sc,                        //.mapping
-                                        NULL,                                //.mapping_conventional
-                                        NULL,                                //.template_indices
+                                        nullptr,                                //.mapping_conventional
+                                        nullptr,                                //.template_indices
                                 };
 
 const refdata_t structure_fcc = {        PTM_MATCH_FCC,                        //.type
@@ -70,17 +70,17 @@ const refdata_t structure_fcc = {        PTM_MATCH_FCC,                        /
                                         NUM_FCC_GRAPHS,                        //.num_graphs
                                         graphs_fcc,                        //.graphs
                                         ptm_template_fcc,                //.points
-                                        NULL,                                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt1
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_fcc,                        //.penrose
-                                        NULL,                                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt1
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_CUBIC_MAPPINGS,                //.num_mappings
                                         mapping_fcc,                        //.mapping
-                                        NULL,                                //.mapping_conventional
-                                        NULL,                                //.template_indices
+                                        nullptr,                                //.mapping_conventional
+                                        nullptr,                                //.template_indices
                                 };
 
 const refdata_t structure_hcp = {        PTM_MATCH_HCP,                        //.type
@@ -91,12 +91,12 @@ const refdata_t structure_hcp = {        PTM_MATCH_HCP,                        /
                                         graphs_hcp,                        //.graphs
                                         ptm_template_hcp,                //.points
                                         ptm_template_hcp_alt1,                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_hcp,                        //.penrose
                                         penrose_hcp_alt1,                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_HEX_MAPPINGS,                //.num_mappings
                                         mapping_hcp,                        //.mapping
                                         mapping_hcp_conventional,        //.mapping_conventional
@@ -110,17 +110,17 @@ const refdata_t structure_ico = {        PTM_MATCH_ICO,                        /
                                         NUM_ICO_GRAPHS,                        //.num_graphs
                                         graphs_ico,                        //.graphs
                                         ptm_template_ico,                //.points
-                                        NULL,                                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt1
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_ico,                        //.penrose
-                                        NULL,                                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt1
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_ICO_MAPPINGS,                //.num_mappings
                                         mapping_ico,                        //.mapping
-                                        NULL,                                //.mapping_conventional
-                                        NULL,                                //.template_indices
+                                        nullptr,                                //.mapping_conventional
+                                        nullptr,                                //.template_indices
                                 };
 
 const refdata_t structure_bcc = {        PTM_MATCH_BCC,                        //.type
@@ -130,17 +130,17 @@ const refdata_t structure_bcc = {        PTM_MATCH_BCC,                        /
                                         NUM_BCC_GRAPHS,                        //.num_graphs
                                         graphs_bcc,                        //.graphs
                                         ptm_template_bcc,                //.points
-                                        NULL,                                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt1
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_bcc,                        //.penrose
-                                        NULL,                                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt1
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_CUBIC_MAPPINGS,                //.num_mappings
                                         mapping_bcc,                        //.mapping
-                                        NULL,                                //.mapping_conventional
-                                        NULL,                                //.template_indices
+                                        nullptr,                                //.mapping_conventional
+                                        nullptr,                                //.template_indices
                                 };
 
 const refdata_t structure_dcub = {        PTM_MATCH_DCUB,                        //.type
@@ -151,12 +151,12 @@ const refdata_t structure_dcub = {        PTM_MATCH_DCUB,                       
                                         graphs_dcub,                        //.graphs
                                         ptm_template_dcub,                //.points
                                         ptm_template_dcub_alt1,                //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_dcub,                        //.penrose
                                         penrose_dcub_alt1,                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         NUM_DCUB_MAPPINGS,                //.num_mappings
                                         mapping_dcub,                        //.mapping
                                         mapping_dcub_conventional,        //.mapping_conventional
@@ -188,15 +188,15 @@ const refdata_t structure_graphene = {        PTM_MATCH_GRAPHENE,               
                                         -1,                                //.num_facets
                                         -1,                                //.max_degree
                                         -1,                                //.num_graphs
-                                        NULL,                                //.graphs
+                                        nullptr,                                //.graphs
                                         ptm_template_graphene,                //.points
                                         ptm_template_graphene_alt1,        //.points_alt1
-                                        NULL,                                //.points_alt2
-                                        NULL,                                //.points_alt3
+                                        nullptr,                                //.points_alt2
+                                        nullptr,                                //.points_alt3
                                         penrose_graphene,                //.penrose
                                         penrose_graphene_alt1,                //.penrose_alt1
-                                        NULL,                                //.penrose_alt2
-                                        NULL,                                //.penrose_alt3
+                                        nullptr,                                //.penrose_alt2
+                                        nullptr,                                //.penrose_alt3
                                         -1,                                //.num_mappings
                                         mapping_graphene,                //.mapping
                                         mapping_graphene_conventional,        //.mapping_conventional

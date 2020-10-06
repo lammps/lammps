@@ -90,6 +90,7 @@ if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
 endif()
 
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
+option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
 include(GNUInstallDirs)
 file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
@@ -157,11 +158,11 @@ else()
   file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
-  target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/mpi>)
-  install(FILES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps/mpi)
+  target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
   if(BUILD_SHARED_LIBS)
     target_link_libraries(lammps PRIVATE mpi_stubs)
-    target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/mpi>)
+    target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+    target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
   else()
     target_link_libraries(lammps PUBLIC mpi_stubs)
   endif()
@@ -218,10 +219,9 @@ if(BUILD_OMP)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
 
-  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.99.9)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.99.9)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 18.99.9))
-      )
+  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
     # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=4)
@@ -246,6 +246,26 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
       target_compile_options(lammps PUBLIC --coverage)
       target_link_options(lammps PUBLIC --coverage)
     endif()
+  endif()
+endif()
+
+#######################################
+# add custom target for IWYU analysis
+#######################################
+set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
+mark_as_advanced(ENABLE_IWYU)
+if(ENABLE_IWYU)
+  find_program(IWYU_EXE NAMES include-what-you-use iwyu)
+  find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
+  if (IWYU_EXE AND IWYU_TOOL)
+    add_custom_target(
+      iwyu
+      ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -Xiwyu --mapping_file=${CMAKE_CURRENT_SOURCE_DIR}/iwyu/iwyu-extra-map.imp
+      COMMENT "Running IWYU")
+    add_dependencies(iwyu lammps)
+  else()
+    message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
+      "and the iwyu-tool/iwyu_tool script installed in your PATH")
   endif()
 endif()
 
@@ -293,14 +313,13 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   endif()
 endif()
 
-
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)
   find_package(JPEG REQUIRED)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_JPEG)
   if(CMAKE_VERSION VERSION_LESS 3.12)
-    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIR})
+    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIRS})
     target_link_libraries(lammps PRIVATE ${JPEG_LIBRARIES})
   else()
     target_link_libraries(lammps PRIVATE JPEG::JPEG)
@@ -325,20 +344,22 @@ find_program(GZIP_EXECUTABLE gzip)
 find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
 option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
 if(WITH_GZIP)
-  if(NOT GZIP_FOUND)
+  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING))
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
+  else()
     message(FATAL_ERROR "gzip executable not found")
   endif()
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
 endif()
 
 find_program(FFMPEG_EXECUTABLE ffmpeg)
 find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
 option(WITH_FFMPEG "Enable FFMPEG support" ${FFMPEG_FOUND})
 if(WITH_FFMPEG)
-  if(NOT FFMPEG_FOUND)
+  if(FFMPEG_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING))
+    target_compile_definitions(lammps PRIVATE -DLAMMPS_FFMPEG)
+  else()
     message(FATAL_ERROR "ffmpeg executable not found")
   endif()
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_FFMPEG)
 endif()
 
 if(BUILD_SHARED_LIBS)
@@ -556,7 +577,7 @@ if (${_index} GREATER -1)
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
   input.h info.h kspace.h lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h
-  pair.h pointers.h region.h timer.h universe.h update.h variable.h)
+  pair.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
 if(LAMMPS_EXCEPTIONS)
   list(APPEND LAMMPS_CXX_HEADERS exceptions.h)
 endif()
@@ -620,6 +641,18 @@ if(BUILD_TOOLS)
   target_link_libraries(msi2lmp PRIVATE ${MATH_LIBRARIES})
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endif()
+
+if(BUILD_LAMMPS_SHELL)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(READLINE IMPORTED_TARGET REQUIRED readline)
+  if(NOT LAMMPS_EXCEPTIONS)
+    message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
+  endif()
+  add_executable(lammps-shell ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.cpp)
+  target_compile_definitions(lammps-shell PRIVATE -DLAMMPS_LIB_NO_MPI)
+  target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
+  install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 include(Documentation)

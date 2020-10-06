@@ -16,18 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_accelerate_cos.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,7 +33,7 @@ using namespace FixConst;
 FixAccelerateCos::FixAccelerateCos(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg) {
   if (narg < 4) error->all(FLERR, "Illegal fix accelerate/cos command");
-  acceleration = force->numeric(FLERR, arg[3]);
+  acceleration = utils::numeric(FLERR, arg[3],false,lmp);
   if (domain->dimension == 2)
     error->all(FLERR,"Fix accelerate/cos cannot be used with 2d systems");
 }

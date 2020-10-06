@@ -12,30 +12,31 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
-#include "update.h"
+#include "bond.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "pair_hybrid.h"
+#include "update.h"
 
+#include <cctype>
+#include <cstring>
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vptr(NULL), id_temp(NULL)
+  vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
   if (igroup) error->all(FLERR,"Compute pressure must use group all");
@@ -50,7 +51,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
@@ -90,7 +91,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
         if (narg > iarg) {
           if (isdigit(arg[iarg][0])) {
-            nsub = force->inumeric(FLERR,arg[iarg]);
+            nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
             ++iarg;
             if (nsub <= 0)
               error->all(FLERR,"Illegal compute pressure command");
@@ -129,13 +130,13 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL)
+  if (keflag && id_temp == nullptr)
     error->all(FLERR,"Compute pressure requires temperature ID "
                "to include kinetic energy");
 
   vector = new double[size_vector];
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,6 +146,7 @@ ComputePressure::~ComputePressure()
   delete [] id_temp;
   delete [] vector;
   delete [] vptr;
+  delete [] pstyle;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,14 +186,16 @@ void ComputePressure::init()
 
   delete [] vptr;
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 
   if (pairhybridflag && force->pair) nvirial++;
   if (pairflag && force->pair) nvirial++;
-  if (bondflag && atom->molecular && force->bond) nvirial++;
-  if (angleflag && atom->molecular && force->angle) nvirial++;
-  if (dihedralflag && atom->molecular && force->dihedral) nvirial++;
-  if (improperflag && atom->molecular && force->improper) nvirial++;
+  if (atom->molecular != Atom::ATOMIC) {
+    if (bondflag && force->bond) nvirial++;
+    if (angleflag && force->angle) nvirial++;
+    if (dihedralflag && force->dihedral) nvirial++;
+    if (improperflag && force->improper) nvirial++;
+  }
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->thermo_virial) nvirial++;
@@ -220,7 +224,7 @@ void ComputePressure::init()
   // flag Kspace contribution separately, since not summed across procs
 
   if (kspaceflag && force->kspace) kspace_virial = force->kspace->virial;
-  else kspace_virial = NULL;
+  else kspace_virial = nullptr;
 }
 
 /* ----------------------------------------------------------------------

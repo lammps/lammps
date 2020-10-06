@@ -1,10 +1,10 @@
 .. index:: bond_style quartic
+.. index:: bond_style quartic/omp
 
 bond_style quartic command
 ==========================
 
-bond_style quartic/omp command
-==============================
+Accelerator Variants: *quartic/omp*
 
 Syntax
 """"""
@@ -108,4 +108,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

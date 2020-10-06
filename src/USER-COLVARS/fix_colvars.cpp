@@ -25,28 +25,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_colvars.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <memory>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
-#include "citeme.h"
 
 #include "colvarproxy_lammps.h"
 #include "colvarmodule.h"
+
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"
@@ -197,7 +194,7 @@ int inthash_lookup(void *ptr, int key) {
 
   /* find the entry in the hash table */
   h=inthash(tptr, key);
-  for (node=tptr->bucket[h]; node!=NULL; node=node->next) {
+  for (node=tptr->bucket[h]; node!=nullptr; node=node->next) {
     if (node->key == key)
       break;
   }
@@ -249,7 +246,7 @@ void inthash_destroy(inthash_t *tptr) {
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
-    while (node != NULL) {
+    while (node != nullptr) {
       last = node;
       node = node->next;
       free(last);
@@ -257,7 +254,7 @@ void inthash_destroy(inthash_t *tptr) {
   }
 
   /* free the entire array of buckets */
-  if (tptr->bucket != NULL) {
+  if (tptr->bucket != nullptr) {
     free(tptr->bucket);
     memset(tptr, 0, sizeof(inthash_t));
   }
@@ -279,7 +276,7 @@ int FixColvars::instances=0;
  optional keyword value pairs:
 
   input   <input prefix>    (for restarting/continuing, defaults to
-                             NULL, but set to <output prefix> at end)
+                             nullptr, but set to <output prefix> at end)
   output  <output prefix>   (defaults to 'out')
   seed    <integer>         (seed for RNG, defaults to '1966')
   tstat   <fix label>       (label of thermostatting fix)
@@ -308,9 +305,9 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   rng_seed = 1966;
   unwrap_flag = 1;
 
-  inp_name = NULL;
-  out_name = NULL;
-  tmp_name = NULL;
+  inp_name = nullptr;
+  out_name = nullptr;
+  tmp_name = nullptr;
 
   /* parse optional arguments */
   int argsdone = 4;
@@ -324,7 +321,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
     } else if (0 == strcmp(arg[argsdone], "output")) {
       out_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "seed")) {
-      rng_seed = force->inumeric(FLERR,arg[argsdone+1]);
+      rng_seed = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
     } else if (0 == strcmp(arg[argsdone], "unwrap")) {
       if (0 == strcmp(arg[argsdone+1], "yes")) {
         unwrap_flag = 1;
@@ -349,10 +346,10 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   nlevels_respa = 0;
   init_flag = 0;
   num_coords = 0;
-  comm_buf = NULL;
-  force_buf = NULL;
-  proxy = NULL;
-  idmap = NULL;
+  comm_buf = nullptr;
+  force_buf = nullptr;
+  proxy = nullptr;
+  idmap = nullptr;
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
@@ -407,7 +404,7 @@ void FixColvars::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use fix colvars without atom IDs");
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix colvars requires an atom map, see atom_modify");
 
   if ((me == 0) && (update->whichflag == 2))
@@ -448,7 +445,7 @@ void FixColvars::one_time_init()
     if (inp_name) {
       if (strcmp(inp_name,"NULL") == 0) {
         memory->sfree(inp_name);
-        inp_name = NULL;
+        inp_name = nullptr;
       }
     }
 
@@ -502,7 +499,7 @@ int FixColvars::modify_param(int narg, char **arg)
     if (me == 0) {
       if (! proxy)
         error->one(FLERR,"Cannot use fix_modify before initialization");
-      return proxy->add_config_file(arg[1]) == COLVARS_OK ? 0 : 2;
+      return proxy->add_config_file(arg[1]) == COLVARS_OK ? 2 : 0;
     }
     return 2;
   } else if (strcmp(arg[0],"config") == 0) {
@@ -511,7 +508,7 @@ int FixColvars::modify_param(int narg, char **arg)
       if (! proxy)
         error->one(FLERR,"Cannot use fix_modify before initialization");
       std::string const conf(arg[1]);
-      return proxy->add_config_string(conf) == COLVARS_OK ? 0 : 2;
+      return proxy->add_config_string(conf) == COLVARS_OK ? 2 : 0;
     }
     return 2;
   } else if (strcmp(arg[0],"load") == 0) {
@@ -519,7 +516,7 @@ int FixColvars::modify_param(int narg, char **arg)
     if (me == 0) {
       if (! proxy)
         error->one(FLERR,"Cannot use fix_modify before initialization");
-      return proxy->read_state_file(arg[1]) == COLVARS_OK ? 0 : 2;
+      return proxy->read_state_file(arg[1]) == COLVARS_OK ? 2 : 0;
     }
     return 2;
   }
@@ -964,7 +961,7 @@ void FixColvars::write_restart(FILE *fp)
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();
-    int len = strlen(cvm_state) + 1; // need to include terminating NULL byte.
+    int len = strlen(cvm_state) + 1; // need to include terminating null byte.
     fwrite(&len,sizeof(int),1,fp);
     fwrite(cvm_state,1,len,fp);
   }
@@ -987,7 +984,7 @@ void FixColvars::restart(char *buf)
 void FixColvars::post_run()
 {
   if (me == 0) {
-    proxy->write_output_files();
+    proxy->post_run();
   }
 }
 

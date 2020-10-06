@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_controller.h"
-#include <cstdlib>
-#include <cstring>
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{COMPUTE,FIX,VARIABLE};
 
 FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pvID(NULL), cvID(NULL)
+  pvID(nullptr), cvID(nullptr)
 {
   if (narg != 11) error->all(FLERR,"Illegal fix controller command");
 
@@ -43,13 +43,13 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix controller command");
 
-  alpha = force->numeric(FLERR,arg[4]);
-  kp = force->numeric(FLERR,arg[5]);
-  ki = force->numeric(FLERR,arg[6]);
-  kd = force->numeric(FLERR,arg[7]);
+  alpha = utils::numeric(FLERR,arg[4],false,lmp);
+  kp = utils::numeric(FLERR,arg[5],false,lmp);
+  ki = utils::numeric(FLERR,arg[6],false,lmp);
+  kd = utils::numeric(FLERR,arg[7],false,lmp);
 
   // process variable arg
 
@@ -84,7 +84,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
 
   // setpoint arg
 
-  setpoint = force->numeric(FLERR,arg[iarg]);
+  setpoint = utils::numeric(FLERR,arg[iarg],false,lmp);
   iarg++;
 
   // control variable arg

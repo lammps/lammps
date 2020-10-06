@@ -1,19 +1,18 @@
 .. index:: pair_style gauss
+.. index:: pair_style gauss/gpu
+.. index:: pair_style gauss/omp
+.. index:: pair_style gauss/cut
+.. index:: pair_style gauss/cut/omp
 
 pair_style gauss command
 ========================
 
-pair_style gauss/gpu command
-============================
-
-pair_style gauss/omp command
-============================
+Accelerator Variants: *gauss/gpu*, *gauss/omp*
 
 pair_style gauss/cut command
 ============================
 
-pair_style gauss/cut/omp command
-================================
+Accelerator Variants: *gauss/cut/omp*
 
 Syntax
 """"""
@@ -99,7 +98,8 @@ is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
@@ -163,8 +163,18 @@ heading) the following commands could be included in an input script:
 Restrictions
 """"""""""""
 
-The *gauss/cut* style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *gauss/cut* style is part of the USER-MISC package. It is only
+enabled if LAMMPS is build with that package.  See the :doc:`Build
+package <Build_package>` doc page for more info.
+
+The *gauss* style does not apply :doc:`special_bonds <special_bonds>`
+factors. When using this pair style on a system that has bonds, the
+special_bonds factors, if using the default setting of 0.0, may need to
+be adjusted to some very small number (e.g. 1.0e-100), so that those
+special pairs are not completely excluded from the neighbor lists, but
+won't contribute forces or energies from styles (e.g. when used in
+combination with a :doc:`hybrid pair style <pair_hybrid>`) that do
+apply those factors.
 
 Related commands
 """"""""""""""""
@@ -172,7 +182,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style coul/diel <pair_coul_diel>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Lenart2:
 

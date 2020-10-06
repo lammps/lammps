@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -40,7 +40,7 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  ke = NULL;
+  ke = nullptr;
 
   // error check
 

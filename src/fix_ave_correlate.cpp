@@ -18,20 +18,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_correlate.h"
-#include <mpi.h>
-#include <cstdlib>
+
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -48,16 +45,16 @@ enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   Fix (lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL),
-  count(NULL), values(NULL), corr(NULL), save_count(NULL), save_corr(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr), fp(nullptr),
+  count(nullptr), values(nullptr), corr(nullptr), save_count(nullptr), save_corr(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/correlate command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
@@ -65,7 +62,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
+  int nargnew = utils::expand_args(FLERR,narg-6,&arg[6],0,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -115,11 +112,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   ave = ONE;
   startstep = 0;
   prefactor = 1.0;
-  fp = NULL;
+  fp = nullptr;
   overwrite = 0;
-  char *title1 = NULL;
-  char *title2 = NULL;
-  char *title3 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
+  char *title3 = nullptr;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
@@ -140,17 +137,17 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"prefactor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      prefactor = force->numeric(FLERR,arg[iarg+1]);
+      prefactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/correlate file {}:"" {}",
                                        arg[iarg+1], utils::getsyserror()));
       }

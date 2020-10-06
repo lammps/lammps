@@ -85,8 +85,8 @@ PACKUSERUC = $(call uppercase,$(PACKUSER))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
-LIBDIR = $($(@:lib-%=%))
-LIBUSERDIR = $($(@:lib-user-%=%))
+LIBDIR = $(@:lib-%=%)
+LIBUSERDIR = $(@:lib-user-%=%)
 
 # List of all targets
 
@@ -364,7 +364,7 @@ yes-%:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
-	  echo "Package $(@:yes-%=%) does not exist"; \
+	  echo "Package $(YESDIR) does not exist"; exit 1; \
 	elif [ -e $(YESDIR)/Install.sh ]; then \
 	  echo "Installing package $(@:yes-%=%)"; \
 	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
@@ -378,7 +378,7 @@ yes-%:
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
-	  echo "Package $(@:no-%=%) does not exist"; \
+	  echo "Package $(NODIR) does not exist"; exit 1; \
 	elif [ -e $(NODIR)/Install.sh ]; then \
 	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \

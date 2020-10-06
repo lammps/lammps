@@ -13,7 +13,7 @@
 
 #include "compute_snap.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -32,9 +32,9 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snap(NULL),
-  snapall(NULL), snap_peratom(NULL), radelem(NULL), wjelem(NULL),
-  snaptr(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
+  snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
+  snaptr(nullptr)
 {
 
   array_flag = 1;
@@ -42,8 +42,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = NULL;
-  wjelem = NULL;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -118,9 +118,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
-      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       for(int i = 0; i < ntypes; i++) {
-        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snap command");
         map[i+1] = jelem;
@@ -180,7 +180,7 @@ ComputeSnap::~ComputeSnap()
 
 void ComputeSnap::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)

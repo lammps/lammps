@@ -17,11 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qbmsst.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include <string>
+
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -34,8 +34,8 @@
 #include "error.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -100,70 +100,70 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      qmass = force->numeric(FLERR,arg[iarg+1]);
+      qmass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (qmass < 0.0) error->all(FLERR,"Fix qbmsst qmass must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      mu = force->numeric(FLERR,arg[iarg+1]);
+      mu = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (mu < 0.0) error->all(FLERR,"Fix qbmsst mu must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"p0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      p0 = force->numeric(FLERR,arg[iarg+1]);
+      p0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (p0 < 0.0) error->all(FLERR,"Fix qbmsst p0 must be >= 0.0");
       p0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"v0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      v0 = force->numeric(FLERR,arg[iarg+1]);
+      v0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (v0 < 0.0) error->all(FLERR,"Fix qbmsst v0 must be >= 0.0");
       v0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"e0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      e0 = force->numeric(FLERR,arg[iarg+1]);
+      e0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       e0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tscale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      tscale = force->numeric(FLERR,arg[iarg+1]);
+      tscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (tscale < 0.0 || tscale > 1.0) error->all(FLERR,"Fix qbmsst tscale must satisfy 0 <= tscale < 1");
       iarg += 2;
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      t_period = force->numeric(FLERR,arg[iarg+1]);
+      t_period = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (t_period <= 0.0) error->all(FLERR,"Fix qbmsst damp must be > 0.0");
       fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      seed = force->inumeric(FLERR,arg[iarg+1]);
+      seed = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (seed <= 0) error->all(FLERR,"Fix qbmsst seed must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"f_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      f_max = force->numeric(FLERR,arg[iarg+1]);
+      f_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (f_max <= 0) error->all(FLERR,"Fix qbmsst f_max must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"N_f") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      N_f = force->inumeric(FLERR,arg[iarg+1]);
+      N_f = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (N_f <= 0) error->all(FLERR,"Fix qbmsst N_f must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"eta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      eta = force->numeric(FLERR,arg[iarg+1]);
+      eta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (eta <= 0) error->all(FLERR,"Fix qbmsst eta must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      beta = force->inumeric(FLERR,arg[iarg+1]);
+      beta = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (beta <= 0) error->all(FLERR,"Fix qbmsst beta must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"T_init") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      t_init = force->numeric(FLERR,arg[iarg+1]);
+      t_init = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (t_init <= 0) error->all(FLERR,"Fix qbmsst T_init must be >= 0.0");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qbmsst command");
@@ -246,19 +246,19 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
 
   // allocate qbmsst
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
-  old_velocity = NULL;
-  rfix = NULL;
-  gfactor = NULL;
-  random = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
+  old_velocity = nullptr;
+  rfix = nullptr;
+  gfactor = nullptr;
+  random = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
 
   // initialize Marsagxlia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -268,7 +268,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qbmsst:omega_H");
@@ -303,7 +303,7 @@ FixQBMSST::~FixQBMSST()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
@@ -331,7 +331,7 @@ void FixQBMSST::init()
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix qbmsst without per-type mass defined");
 
   // set compute ptrs

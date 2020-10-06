@@ -45,97 +45,99 @@ packages:
 The mechanism for including packages is simple but different for CMake
 versus make.
 
-CMake build
-^^^^^^^^^^^
+.. tabs::
 
-.. code-block:: csh
+   .. tab:: CMake build
 
-   -D PKG_NAME=value          # yes or no (default)
+      .. code-block:: csh
 
-Examples:
+         -D PKG_NAME=value          # yes or no (default)
 
-.. code-block:: csh
+      Examples:
 
-   -D PKG_MANYBODY=yes
-   -D PKG_USER-INTEL=yes
+      .. code-block:: csh
 
-All standard and user packages are included the same way.  Note that
-USER packages have a hyphen between USER and the rest of the package
-name, not an underscore.
+         -D PKG_MANYBODY=yes
+         -D PKG_USER-INTEL=yes
 
-See the shortcut section below for how to install many packages at
-once with CMake.
+      All standard and user packages are included the same way.  Note
+      that USER packages have a hyphen between USER and the rest of the
+      package name, not an underscore.
+
+      See the shortcut section below for how to install many packages at
+      once with CMake.
+
+      .. note::
+
+         If you switch between building with CMake and make builds, no
+         packages in the src directory can be installed when you invoke
+         ``cmake``.  CMake will give an error if that is not the case,
+         indicating how you can un-install all packages in the src dir.
+
+   .. tab:: Traditional make
+
+      .. code-block:: bash
+
+         cd lammps/src
+         make ps                    # check which packages are currently installed
+         make yes-name              # install a package with name
+         make no-name               # un-install a package with name
+         make mpi                   # build LAMMPS with whatever packages are now installed
+
+      Examples:
+
+      .. code-block:: bash
+
+         make no-rigid
+         make yes-user-intel
+
+      All standard and user packages are included the same way.
+
+      See the shortcut section below for how to install many packages at
+      once with make.
+
+      .. note::
+
+         You must always re-build LAMMPS (via make) after installing or
+         un-installing a package, for the action to take effect. The
+         included dependency tracking will make certain only files that
+         are required to be rebuilt are recompiled.
+
+      .. note::
+
+         You cannot install or un-install packages and build LAMMPS in a
+         single make command with multiple targets, e.g. ``make
+         yes-colloid mpi``.  This is because the make procedure creates
+         a list of source files that will be out-of-date for the build
+         if the package configuration changes within the same command.
+         You can include or exclude multiple packages in a single make
+         command, e.g. ``make yes-colloid no-manybody``.
+
+
+Information for both build systems
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Almost all packages can be included or excluded in a LAMMPS build,
+independent of the other packages.  However, some packages include files
+derived from files in other packages.  LAMMPS checks for this and does
+the right thing.  Individual files are only included if their
+dependencies are already included.  Likewise, if a package is excluded,
+other files dependent on that package are also excluded.
 
 .. note::
 
-   If you toggle back and forth between building with CMake vs
-   make, no packages in the src directory can be installed when you
-   invoke cmake.  CMake will give an error if that is not the case,
-   indicating how you can un-install all packages in the src dir.
-
-Traditional make
-^^^^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-   cd lammps/src
-   make ps                    # check which packages are currently installed
-   make yes-name              # install a package with name
-   make no-name               # un-install a package with name
-   make mpi                   # build LAMMPS with whatever packages are now installed
-
-Examples:
-
-.. code-block:: bash
-
-   make no-rigid
-   make yes-user-intel
-
-All standard and user packages are included the same way.
-
-See the shortcut section below for how to install many packages at
-once with make.
-
-.. note::
-
-   You must always re-build LAMMPS (via make) after installing or
-   un-installing a package, for the action to take effect.
-
-.. note::
-
-   You cannot install or un-install packages and build LAMMPS in a
-   single make command with multiple targets, e.g. make yes-colloid mpi.
-   This is because the make procedure creates a list of source files that
-   will be out-of-date for the build if the package configuration changes
-   within the same command.  You can include or exclude multiple packages
-   in a single make command, e.g. make yes-colloid no-manybody.
-
-CMake and make info
-^^^^^^^^^^^^^^^^^^^
-
-Any package can be included or excluded in a LAMMPS build, independent
-of all other packages.  However, some packages include files derived
-from files in other packages.  LAMMPS checks for this and does the
-right thing.  Individual files are only included if their dependencies
-are already included.  Likewise, if a package is excluded, other files
-dependent on that package are also excluded.
-
-When you download a LAMMPS tarball or download LAMMPS source files
-from the git repository, no packages are pre-installed in the
-src directory.
-
-.. note::
-
-   Prior to Aug 2018, if you downloaded a tarball, 3 packages
-   (KSPACE, MANYBODY, MOLECULE) were pre-installed in the src directory.
-   That is no longer the case, so that CMake will build as-is without the
-   need to un-install those packages.
+   By default no package is installed.  Prior to August 2018, however,
+   if you downloaded a tarball, 3 packages (KSPACE, MANYBODY, MOLECULE)
+   were pre-installed via the traditional make procedure in the ``src``
+   directory.  That is no longer the case, so that CMake will build
+   as-is without needing to un-install those packages.
 
 ----------
 
 .. _cmake_presets:
 
 CMake presets for installing many packages
+""""""""""""""""""""""""""""""""""""""""""
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -168,7 +170,8 @@ one of them as a starting point and customize it to your needs.
    in a single cmake run, or change settings incrementally by running
    cmake with new flags.
 
-**Example:**
+Example
+"""""""
 
 .. code-block:: bash
 

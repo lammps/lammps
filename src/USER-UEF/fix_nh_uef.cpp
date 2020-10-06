@@ -57,7 +57,7 @@ static const char cite_user_uef_package[] =
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), uefbox(NULL)
+  FixNH(lmp, narg, arg), uefbox(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 
@@ -82,14 +82,14 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   while (iarg <narg) {
     if (strcmp(arg[iarg],"erate")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      erate[0] = force->numeric(FLERR,arg[iarg+1]);
-      erate[1] = force->numeric(FLERR,arg[iarg+2]);
+      erate[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      erate[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       erate_flag = true;
       iarg += 3;
     } else if (strcmp(arg[iarg],"strain")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      strain[0] = force->numeric(FLERR,arg[iarg+1]);
-      strain[1] = force->numeric(FLERR,arg[iarg+2]);
+      strain[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      strain[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"ext")==0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");

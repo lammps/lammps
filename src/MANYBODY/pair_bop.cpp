@@ -33,22 +33,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_bop.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
-#include <cctype>
-#include <mpi.h>
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,114 +64,114 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
   allocated = 0;
 
-  BOP_index = NULL;
-  BOP_index3 = NULL;
-  BOP_total = NULL;
-  BOP_total3 = NULL;
-  map = NULL;
-  pi_a = NULL;
-  pro_delta = NULL;
-  pi_delta = NULL;
-  pi_p = NULL;
-  pi_c = NULL;
-  r1 = NULL;
-  sigma_r0 = NULL;
-  pi_r0 = NULL;
-  phi_r0 = NULL;
-  sigma_rc = NULL;
-  pi_rc = NULL;
-  phi_rc = NULL;
-  sigma_beta0 = NULL;
-  pi_beta0 = NULL;
-  phi0 = NULL;
-  sigma_n = NULL;
-  pi_n = NULL;
-  phi_m = NULL;
-  sigma_nc = NULL;
-  pi_nc = NULL;
-  phi_nc = NULL;
-  pro = NULL;
-  sigma_delta = NULL;
-  sigma_c = NULL;
-  sigma_a = NULL;
-  sigma_f = NULL;
-  sigma_k = NULL;
-  small3 = NULL;
-  rcut = NULL;
-  rcut3 = NULL;
-  rcutsq = NULL;
-  rcutsq3 = NULL;
-  dr = NULL;
-  rdr = NULL;
-  dr3 = NULL;
-  rdr3 = NULL;
-  disij = NULL;
-  rij = NULL;
-  neigh_index = NULL;
-  neigh_index3 = NULL;
-  neigh_flag = NULL;
-  neigh_flag3 = NULL;
-  cosAng = NULL;
-  betaS = NULL;
-  dBetaS = NULL;
-  betaP = NULL;
-  dBetaP = NULL;
-  repul = NULL;
-  dRepul = NULL;
-  itypeSigBk = NULL;
-  itypePiBk = NULL;
-  pBetaS = NULL;
-  pBetaS1 = NULL;
-  pBetaS2 = NULL;
-  pBetaS3 = NULL;
-  pBetaS4 = NULL;
-  pBetaS5 = NULL;
-  pBetaS6 = NULL;
-  pLong = NULL;
-  pLong1 = NULL;
-  pLong2 = NULL;
-  pLong3 = NULL;
-  pLong4 = NULL;
-  pLong5 = NULL;
-  pLong6 = NULL;
-  pBetaP = NULL;
-  pBetaP1 = NULL;
-  pBetaP2 = NULL;
-  pBetaP3 = NULL;
-  pBetaP4 = NULL;
-  pBetaP5 = NULL;
-  pBetaP6 = NULL;
-  pRepul = NULL;
-  pRepul1 = NULL;
-  pRepul2 = NULL;
-  pRepul3 = NULL;
-  pRepul4 = NULL;
-  pRepul5 = NULL;
-  pRepul6 = NULL;
-  FsigBO = NULL;
-  FsigBO1 = NULL;
-  FsigBO2 = NULL;
-  FsigBO3 = NULL;
-  FsigBO4 = NULL;
-  FsigBO5 = NULL;
-  FsigBO6 = NULL;
-  rcmin = NULL;
-  rcmax = NULL;
-  rcmaxp = NULL;
-  setflag = NULL;
-  cutsq = NULL;
-  cutghost = NULL;
+  BOP_index = nullptr;
+  BOP_index3 = nullptr;
+  BOP_total = nullptr;
+  BOP_total3 = nullptr;
+  map = nullptr;
+  pi_a = nullptr;
+  pro_delta = nullptr;
+  pi_delta = nullptr;
+  pi_p = nullptr;
+  pi_c = nullptr;
+  r1 = nullptr;
+  sigma_r0 = nullptr;
+  pi_r0 = nullptr;
+  phi_r0 = nullptr;
+  sigma_rc = nullptr;
+  pi_rc = nullptr;
+  phi_rc = nullptr;
+  sigma_beta0 = nullptr;
+  pi_beta0 = nullptr;
+  phi0 = nullptr;
+  sigma_n = nullptr;
+  pi_n = nullptr;
+  phi_m = nullptr;
+  sigma_nc = nullptr;
+  pi_nc = nullptr;
+  phi_nc = nullptr;
+  pro = nullptr;
+  sigma_delta = nullptr;
+  sigma_c = nullptr;
+  sigma_a = nullptr;
+  sigma_f = nullptr;
+  sigma_k = nullptr;
+  small3 = nullptr;
+  rcut = nullptr;
+  rcut3 = nullptr;
+  rcutsq = nullptr;
+  rcutsq3 = nullptr;
+  dr = nullptr;
+  rdr = nullptr;
+  dr3 = nullptr;
+  rdr3 = nullptr;
+  disij = nullptr;
+  rij = nullptr;
+  neigh_index = nullptr;
+  neigh_index3 = nullptr;
+  neigh_flag = nullptr;
+  neigh_flag3 = nullptr;
+  cosAng = nullptr;
+  betaS = nullptr;
+  dBetaS = nullptr;
+  betaP = nullptr;
+  dBetaP = nullptr;
+  repul = nullptr;
+  dRepul = nullptr;
+  itypeSigBk = nullptr;
+  itypePiBk = nullptr;
+  pBetaS = nullptr;
+  pBetaS1 = nullptr;
+  pBetaS2 = nullptr;
+  pBetaS3 = nullptr;
+  pBetaS4 = nullptr;
+  pBetaS5 = nullptr;
+  pBetaS6 = nullptr;
+  pLong = nullptr;
+  pLong1 = nullptr;
+  pLong2 = nullptr;
+  pLong3 = nullptr;
+  pLong4 = nullptr;
+  pLong5 = nullptr;
+  pLong6 = nullptr;
+  pBetaP = nullptr;
+  pBetaP1 = nullptr;
+  pBetaP2 = nullptr;
+  pBetaP3 = nullptr;
+  pBetaP4 = nullptr;
+  pBetaP5 = nullptr;
+  pBetaP6 = nullptr;
+  pRepul = nullptr;
+  pRepul1 = nullptr;
+  pRepul2 = nullptr;
+  pRepul3 = nullptr;
+  pRepul4 = nullptr;
+  pRepul5 = nullptr;
+  pRepul6 = nullptr;
+  FsigBO = nullptr;
+  FsigBO1 = nullptr;
+  FsigBO2 = nullptr;
+  FsigBO3 = nullptr;
+  FsigBO4 = nullptr;
+  FsigBO5 = nullptr;
+  FsigBO6 = nullptr;
+  rcmin = nullptr;
+  rcmax = nullptr;
+  rcmaxp = nullptr;
+  setflag = nullptr;
+  cutsq = nullptr;
+  cutghost = nullptr;
 
-  gfunc = NULL;
-  gfunc1 = NULL;
-  gfunc2 = NULL;
-  gfunc3 = NULL;
-  gfunc4 = NULL;
-  gfunc5 = NULL;
-  gfunc6 = NULL;
-  gpara = NULL;
-  bt_sg=NULL;
-  bt_pi=NULL;
+  gfunc = nullptr;
+  gfunc1 = nullptr;
+  gfunc2 = nullptr;
+  gfunc3 = nullptr;
+  gfunc4 = nullptr;
+  gfunc5 = nullptr;
+  gfunc6 = nullptr;
+  gpara = nullptr;
+  bt_sg=nullptr;
+  bt_pi=nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -5224,9 +5223,9 @@ void _noopt PairBOP::read_table(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
     }
   }
@@ -5628,12 +5627,12 @@ void PairBOP::memory_theta_destroy()
   memory->destroy(neigh_flag3);
   memory->destroy(neigh_index);
   memory->destroy(neigh_index3);
-  itypeSigBk = NULL;
-  itypePiBk = NULL;
-  neigh_flag = NULL;
-  neigh_flag3 = NULL;
-  neigh_index = NULL;
-  neigh_index3 = NULL;
+  itypeSigBk = nullptr;
+  itypePiBk = nullptr;
+  neigh_flag = nullptr;
+  neigh_flag3 = nullptr;
+  neigh_index = nullptr;
+  neigh_index3 = nullptr;
   if(otfly==0) {
     memory->destroy(cosAng);
     memory->destroy(dcAng);
@@ -5681,7 +5680,7 @@ void PairBOP::grow_pi(int n1, int n2)
     }
   }
   memory->destroy(bt_pi);
-  bt_pi=NULL;
+  bt_pi=nullptr;
   bt_pi = (B_PI *) memory->smalloc(n2*sizeof(B_PI),"BOP:bt_pi");
   for(i=0;i<n1;i++) {
     bt_pi[i].temp = bt_temp[i].temp;
@@ -5737,7 +5736,7 @@ void PairBOP::grow_sigma(int n1,int n2)
     }
   }
   memory->destroy(bt_sg);
-  bt_sg=NULL;
+  bt_sg=nullptr;
   bt_sg = (B_SG *) memory->smalloc(n2*sizeof(B_SG),"BOP:bt_sg");
   for(i=0;i<n1;i++) {
     bt_sg[i].temp = bt_temp[i].temp;

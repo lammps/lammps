@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pe_tally.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -48,7 +48,7 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
 
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
-  eatom = NULL;
+  eatom = nullptr;
   vector = new double[size_peratom_cols];
 }
 
@@ -65,7 +65,7 @@ ComputePETally::~ComputePETally()
 
 void ComputePETally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute pe/tally without a pair style");
   else
     force->pair->add_tally_callback(this);

@@ -1,64 +1,75 @@
 .. index:: pair_style lj/cut/soft
+.. index:: pair_style lj/cut/soft/omp
+.. index:: pair_style lj/cut/coul/cut/soft
+.. index:: pair_style lj/cut/coul/cut/soft/omp
+.. index:: pair_style lj/cut/coul/long/soft
+.. index:: pair_style lj/cut/coul/long/soft/omp
+.. index:: pair_style lj/cut/tip4p/long/soft
+.. index:: pair_style lj/cut/tip4p/long/soft/omp
+.. index:: pair_style lj/charmm/coul/long/soft
+.. index:: pair_style lj/charmm/coul/long/soft/omp
+.. index:: pair_style lj/class2/soft
+.. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style coul/cut/soft
+.. index:: pair_style coul/cut/soft/omp
+.. index:: pair_style coul/long/soft
+.. index:: pair_style coul/long/soft/omp
+.. index:: pair_style tip4p/long/soft
+.. index:: pair_style tip4p/long/soft/omp
+.. index:: pair_style morse/soft
 
 pair_style lj/cut/soft command
 ==============================
 
-pair_style lj/cut/soft/omp command
-==================================
+Accelerator Variants: *lj/cut/soft/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================
 
-pair_style lj/cut/coul/cut/soft/omp command
-===========================================
+Accelerator Variants: *lj/cut/coul/cut/soft/omp*
 
 pair_style lj/cut/coul/long/soft command
 ========================================
 
-pair_style lj/cut/coul/long/soft/omp command
-============================================
+Accelerator Variants: *lj/cut/coul/long/soft/omp*
 
 pair_style lj/cut/tip4p/long/soft command
-==========================================
+=========================================
 
-pair_style lj/cut/tip4p/long/soft/omp command
-==============================================
+Accelerator Variants: *lj/cut/tip4p/long/soft/omp*
 
 pair_style lj/charmm/coul/long/soft command
-============================================
-
-pair_style lj/charmm/coul/long/soft/omp command
-================================================
-
-pair_style lj/class2/soft command
-==================================
-
-pair_style lj/class2/coul/cut/soft command
 ===========================================
 
-pair_style lj/class2/coul/long/soft command
-============================================
+Accelerator Variants: *lj/charmm/coul/long/soft/omp*
 
-pair_style coul/cut/soft command
+pair_style lj/class2/soft command
 =================================
 
-pair_style coul/cut/soft/omp command
-=====================================
+pair_style lj/class2/coul/cut/soft command
+==========================================
+
+pair_style lj/class2/coul/long/soft command
+===========================================
+
+pair_style coul/cut/soft command
+================================
+
+Accelerator Variants: *coul/cut/soft/omp*
 
 pair_style coul/long/soft command
-==================================
+=================================
 
-pair_style coul/long/soft/omp command
-======================================
+Accelerator Variants: *coul/long/soft/omp*
 
 pair_style tip4p/long/soft command
-===================================
+==================================
 
-pair_style tip4p/long/soft/omp command
-=======================================
+Accelerator Variants: *tip4p/long/soft/omp*
 
 pair_style morse/soft command
-==============================
+=============================
 
 Syntax
 """"""
@@ -347,7 +358,8 @@ used.
 
 ----------
 
-**Mixing, shift, tail correction, restart info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The different versions of the *lj/cut/soft* pair styles support mixing.  For
 atom type pairs I,J and I != J, the :math:`\epsilon` and :math:`\sigma`
@@ -412,7 +424,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

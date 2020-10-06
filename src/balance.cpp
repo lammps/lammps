@@ -19,28 +19,26 @@
 // #define BALANCE_DEBUG 1
 
 #include "balance.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "rcb.h"
-#include "irregular.h"
 #include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix_store.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
-#include "imbalance_time.h"
 #include "imbalance_neigh.h"
 #include "imbalance_store.h"
+#include "imbalance_time.h"
 #include "imbalance_var.h"
+#include "irregular.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "rcb.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,17 +52,17 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_xsplit = user_ysplit = user_zsplit = NULL;
+  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = NULL;
+  proccost = allproccost = nullptr;
 
-  rcb = NULL;
+  rcb = nullptr;
 
   nimbalance = 0;
-  imbalances = NULL;
-  fixstore = NULL;
+  imbalances = nullptr;
+  fixstore = nullptr;
 
-  fp = NULL;
+  fp = nullptr;
   firststep = 1;
 }
 
@@ -99,7 +97,7 @@ Balance::~Balance()
   // check nfix in case all fixes have already been deleted
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = NULL;
+  fixstore = nullptr;
 
   if (fp) fclose(fp);
 }
@@ -119,7 +117,7 @@ void Balance::command(int narg, char **arg)
 
   if (narg < 2) error->all(FLERR,"Illegal balance command");
 
-  thresh = force->numeric(FLERR,arg[0]);
+  thresh = utils::numeric(FLERR,arg[0],false,lmp);
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
@@ -145,7 +143,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[0]; i++)
-          user_xsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_xsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
@@ -165,7 +163,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[1]; i++)
-          user_ysplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_ysplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
@@ -185,7 +183,7 @@ void Balance::command(int narg, char **arg)
         user_zsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[2]; i++)
-          user_zsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_zsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_zsplit[procgrid[2]] = 1.0;
       }
 
@@ -195,9 +193,9 @@ void Balance::command(int narg, char **arg)
       style = SHIFT;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
-      nitermax = force->inumeric(FLERR,arg[iarg+2]);
+      nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      stopthresh = force->numeric(FLERR,arg[iarg+3]);
+      stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 
@@ -248,7 +246,7 @@ void Balance::command(int narg, char **arg)
   // process remaining optional args
 
   options(iarg,narg,arg);
-  if (wtflag) weight_storage(NULL);
+  if (wtflag) weight_storage(nullptr);
 
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
@@ -265,7 +263,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (atom->map_style) atom->map_set();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -387,20 +385,20 @@ void Balance::command(int narg, char **arg)
                                    MPI_Wtime()-start_time);
     mesg += fmt::format("  iteration count = {}\n",niter);
     for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
-    mesg += fmt::format("  initial/final maximal load/proc = {} {}\n"
-                        "  initial/final imbalance factor  = {:.6g} {:.6g}\n",
+    mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
+                        "  initial/final imbalance factor  = {:.8} {:.8}\n",
                         maxinit,maxfinal,imbinit,imbfinal);
 
     if (style != BISECTION) {
       mesg += "  x cuts:";
       for (int i = 0; i <= comm->procgrid[0]; i++)
-        mesg += fmt::format(" {}",comm->xsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->xsplit[i]);
       mesg += "\n  y cuts:";
       for (int i = 0; i <= comm->procgrid[1]; i++)
-        mesg += fmt::format(" {}",comm->ysplit[i]);
+        mesg += fmt::format(" {:.8}",comm->ysplit[i]);
       mesg += "\n  z cuts:";
       for (int i = 0; i <= comm->procgrid[2]; i++)
-        mesg += fmt::format(" {}",comm->zsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->zsplit[i]);
       mesg += "\n";
     }
 
@@ -427,7 +425,7 @@ void Balance::options(int iarg, int narg, char **arg)
   oldrcb = 0;
   outflag = 0;
   int outarg = 0;
-  fp = NULL;
+  fp = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -475,7 +473,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
                                    arg[outarg], utils::getsyserror()));
   }
@@ -641,12 +639,12 @@ int *Balance::bisection(int sortflag)
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   } else {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   }
 
   if (triclinic) domain->lamda2x(nlocal);
@@ -1275,7 +1273,7 @@ void Balance::dumpout(bigint tstep)
 void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim = NULL;
+  const char *dim = nullptr;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;

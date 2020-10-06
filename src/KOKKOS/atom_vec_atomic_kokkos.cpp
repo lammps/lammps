@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_atomic_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 AtomVecAtomicKokkos::AtomVecAtomicKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
@@ -879,9 +879,9 @@ void AtomVecAtomicKokkos::write_data(FILE *fp, int n, double **buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecAtomicKokkos::memory_usage()
+double AtomVecAtomicKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_extep.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -30,7 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "math_const.h"
 
@@ -52,20 +52,20 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
   maxlocal = 0;
-  SR_numneigh = NULL;
-  SR_firstneigh = NULL;
-  ipage = NULL;
+  SR_numneigh = nullptr;
+  SR_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
-  map = NULL;
+  map = nullptr;
 
-  Nt = NULL;
-  Nd = NULL;
+  Nt = nullptr;
+  Nd = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -467,7 +467,7 @@ void PairExTeP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -476,7 +476,7 @@ void PairExTeP::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -544,7 +544,7 @@ void PairExTeP::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -582,15 +582,15 @@ void PairExTeP::read_file(char *file)
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open ExTeP potential file %s",file);
       error->one(FLERR,str);
@@ -607,7 +607,7 @@ void PairExTeP::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -629,7 +629,7 @@ void PairExTeP::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -649,7 +649,7 @@ void PairExTeP::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -737,7 +737,7 @@ void PairExTeP::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       //fputs(line,stdout);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -758,7 +758,7 @@ void PairExTeP::read_file(char *file)
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
     while ((nwords < params_per_line)
-           && (words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+           && (words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // skip line if it is a leftover from the previous section,
     // which can be identified by having 3 elements (instead of 2)

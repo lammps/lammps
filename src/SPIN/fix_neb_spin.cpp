@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neb_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "universe.h"
@@ -46,18 +46,18 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 /* ---------------------------------------------------------------------- */
 
 FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL),
-  xnext(NULL), fnext(NULL), spprev(NULL), spnext(NULL), fmnext(NULL), springF(NULL),
-  tangent(NULL), xsend(NULL), xrecv(NULL), fsend(NULL), frecv(NULL), spsend(NULL),
-  sprecv(NULL), fmsend(NULL), fmrecv(NULL), tagsend(NULL), tagrecv(NULL),
-  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL), spsendall(NULL),
-  sprecvall(NULL), fmsendall(NULL), fmrecvall(NULL), tagsendall(NULL), tagrecvall(NULL),
-  counts(NULL), displacements(NULL)
+  Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), nlenall(nullptr), xprev(nullptr),
+  xnext(nullptr), fnext(nullptr), spprev(nullptr), spnext(nullptr), fmnext(nullptr), springF(nullptr),
+  tangent(nullptr), xsend(nullptr), xrecv(nullptr), fsend(nullptr), frecv(nullptr), spsend(nullptr),
+  sprecv(nullptr), fmsend(nullptr), fmrecv(nullptr), tagsend(nullptr), tagrecv(nullptr),
+  xsendall(nullptr), xrecvall(nullptr), fsendall(nullptr), frecvall(nullptr), spsendall(nullptr),
+  sprecvall(nullptr), fmsendall(nullptr), fmrecvall(nullptr), tagsendall(nullptr), tagrecvall(nullptr),
+  counts(nullptr), displacements(nullptr)
 {
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb_spin command");
 
-  kspring = force->numeric(FLERR,arg[3]);
+  kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // optional params
@@ -229,7 +229,7 @@ void FixNEBSpin::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if (MULTI_PROC && counts == NULL) {
+  if (MULTI_PROC && counts == nullptr) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");
@@ -861,9 +861,9 @@ void FixNEBSpin::inter_replica_comm()
     MPI_Gatherv(fsend[0],3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   } else {
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 xsendall[0],counts,displacements,MPI_DOUBLE,0,world);
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
   if (spsend) {
@@ -872,9 +872,9 @@ void FixNEBSpin::inter_replica_comm()
     MPI_Gatherv(fmsend[0],3*m,MPI_DOUBLE,
                 fmsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   } else {
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 spsendall[0],counts,displacements,MPI_DOUBLE,0,world);
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 fmsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
 

@@ -1,10 +1,10 @@
 .. index:: fix nve/asphere
+.. index:: fix nve/asphere/intel
 
 fix nve/asphere command
 =======================
 
-fix nve/asphere/intel command
-=============================
+Accelerator Variants: *nve/asphere/intel*
 
 Syntax
 """"""
@@ -34,7 +34,8 @@ trajectory consistent with the microcanonical ensemble.
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
 assumes point particles and only updates their position and velocity.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -67,4 +68,7 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/sphere <fix_nve_sphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

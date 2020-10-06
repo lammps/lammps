@@ -1,4 +1,5 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csld
 
 fix temp/csvr command
 =====================
@@ -125,7 +126,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These fixes write the cumulative global energy change and the
 random number generator states to :doc:`binary restart files <restart>`.
@@ -174,7 +176,10 @@ Related commands
 :doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix temp/berendsen <fix_temp_berendsen>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

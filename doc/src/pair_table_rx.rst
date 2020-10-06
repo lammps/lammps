@@ -1,10 +1,10 @@
 .. index:: pair_style table/rx
+.. index:: pair_style table/rx/kk
 
 pair_style table/rx command
 ===========================
 
-pair_style table/rx/kk command
-==============================
+Accelerator Variants: *table/rx/kk*
 
 Syntax
 """"""
@@ -203,7 +203,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -239,7 +240,11 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** fractional weighting
+Default
+"""""""
+
+fractional weighting
+
 
 ----------
 

@@ -14,6 +14,7 @@ used together.
    Python_mpi
    Python_test
    Python_library
+   Python_module
    Python_pylammps
    Python_examples
    Python_call

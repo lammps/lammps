@@ -17,7 +17,7 @@
 
 #include "fix_qeq_slater.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -88,15 +88,15 @@ void FixQEqSlater::init()
 void FixQEqSlater::extract_streitz()
 {
   Pair *pair = force->pair_match("coul/streitz",1);
-  if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
+  if (pair == nullptr) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
   zeta = (double *) pair->extract("zeta",tmp);
   zcore = (double *) pair->extract("zcore",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL
-                  || zeta == NULL || zcore == NULL)
+  if (chi == nullptr || eta == nullptr || gamma == nullptr
+                  || zeta == nullptr || zcore == nullptr)
     error->all(FLERR,
         "Fix qeq/slater could not extract params from pair coul/streitz");
 

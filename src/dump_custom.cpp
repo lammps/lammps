@@ -12,24 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_custom.h"
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "force.h"
-#include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "input.h"
-#include "modify.h"
 #include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "group.h"
+#include "input.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "region.h"
 #include "update.h"
 #include "variable.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -55,19 +53,19 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
-  idregion(NULL), thresh_array(NULL), thresh_op(NULL), thresh_value(NULL),
-  thresh_last(NULL), thresh_fix(NULL), thresh_fixID(NULL), thresh_first(NULL),
-  earg(NULL), vtype(NULL), vformat(NULL), columns(NULL), choose(NULL),
-  dchoose(NULL), clist(NULL), field2index(NULL), argindex(NULL), id_compute(NULL),
-  compute(NULL), id_fix(NULL), fix(NULL), id_variable(NULL), variable(NULL),
-  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL),
-  pack_choice(NULL)
+  idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr), thresh_value(nullptr),
+  thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr), thresh_first(nullptr),
+  earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), choose(nullptr),
+  dchoose(nullptr), clist(nullptr), field2index(nullptr), argindex(nullptr), id_compute(nullptr),
+  compute(nullptr), id_fix(nullptr), fix(nullptr), id_variable(nullptr), variable(nullptr),
+  vbuf(nullptr), id_custom(nullptr), flag_custom(nullptr), typenames(nullptr),
+  pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
   clearstep = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal dump custom command");
 
   // expand args if any have wildcard character "*"
@@ -76,7 +74,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // nfield may be shrunk below if extra optional args exist
 
   expand = 0;
-  nfield = nargnew = input->expand_args(narg-5,&arg[5],1,earg);
+  nfield = nargnew = utils::expand_args(FLERR,narg-5,&arg[5],1,earg,lmp);
   if (earg != &arg[5]) expand = 1;
 
   // allocate field vectors
@@ -89,37 +87,37 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   buffer_allow = 1;
   buffer_flag = 1;
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
 
   nthresh = 0;
-  thresh_array = NULL;
-  thresh_op = NULL;
-  thresh_value = NULL;
-  thresh_last = NULL;
+  thresh_array = nullptr;
+  thresh_op = nullptr;
+  thresh_value = nullptr;
+  thresh_last = nullptr;
 
   nthreshlast = 0;
-  thresh_fix = NULL;
-  thresh_fixID = NULL;
-  thresh_first = NULL;
+  thresh_fix = nullptr;
+  thresh_fixID = nullptr;
+  thresh_first = nullptr;
 
   // computes, fixes, variables which the dump accesses
 
   ncompute = 0;
-  id_compute = NULL;
-  compute = NULL;
+  id_compute = nullptr;
+  compute = nullptr;
 
   nfix = 0;
-  id_fix = NULL;
-  fix = NULL;
+  id_fix = nullptr;
+  fix = nullptr;
 
   nvariable = 0;
-  id_variable = NULL;
-  variable = NULL;
-  vbuf = NULL;
+  id_variable = nullptr;
+  variable = nullptr;
+  vbuf = nullptr;
 
   ncustom = 0;
-  id_custom = NULL;
-  flag_custom = NULL;
+  id_custom = nullptr;
+  flag_custom = nullptr;
 
   // process attributes
   // ioptional = start of additional optional args in expanded args
@@ -144,9 +142,9 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // atom selection arrays
 
   maxlocal = 0;
-  choose = NULL;
-  dchoose = NULL;
-  clist = NULL;
+  choose = nullptr;
+  dchoose = nullptr;
+  clist = nullptr;
 
   // default element name for all types = C
 
@@ -169,11 +167,11 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
     else if (vtype[i] == Dump::STRING) strcat(format_default,"%s ");
     else if (vtype[i] == Dump::BIGINT) strcat(format_default,BIGINT_FORMAT " ");
-    vformat[i] = NULL;
+    vformat[i] = nullptr;
   }
 
   format_column_user = new char*[size_one];
-  for (int i = 0; i < size_one; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
@@ -183,7 +181,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   columns[0] = '\0';
   for (int iarg = 0; iarg < nfield; iarg++) {
     strcat(columns,earg[iarg]);
-    strcat(columns," ");
+    if (iarg+1 < nfield) strcat(columns," ");
   }
 }
 
@@ -236,7 +234,7 @@ DumpCustom::~DumpCustom()
 
   for (int i = 0; i < ncustom; i++) delete [] id_custom[i];
   memory->sfree(id_custom);
-  delete [] flag_custom;
+  memory->sfree(flag_custom);
 
   memory->destroy(choose);
   memory->destroy(dchoose);
@@ -281,8 +279,8 @@ void DumpCustom::init_style()
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
+    else ptr = strtok(nullptr," \0");
+    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
 
     if (format_column_user[i]) {
@@ -302,7 +300,7 @@ void DumpCustom::init_style()
       strcpy(vformat[i],ptr);
     }
 
-    vformat[i] = strcat(vformat[i]," ");
+    if (i+1 < size_one) vformat[i] = strcat(vformat[i]," ");
   }
 
   // setup boundary string
@@ -381,8 +379,83 @@ void DumpCustom::write_header(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::format_magic_string_binary()
+{
+  // use negative ntimestep as marker for new format
+  bigint fmtlen = strlen(MAGIC_STRING);
+  bigint marker = -fmtlen;
+  fwrite(&marker, sizeof(bigint), 1, fp);
+  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::format_endian_binary()
+{
+  int endian = ENDIAN;
+  fwrite(&endian, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::format_revision_binary()
+{
+  int revision = FORMAT_REVISION;
+  fwrite(&revision, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_unit_style_binary()
+{
+  int len = 0;
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    len = strlen(update->unit_style);
+    fwrite(&len, sizeof(int), 1, fp);
+    fwrite(update->unit_style, sizeof(char), len, fp);
+  } else {
+    fwrite(&len, sizeof(int), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_columns_binary()
+{
+  int len = strlen(columns);
+  fwrite(&len, sizeof(int), 1, fp);
+  fwrite(columns, sizeof(char), len, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_time_binary()
+{
+  char flag = time_flag ? 1 : 0;
+  fwrite(&flag, sizeof(char), 1, fp);
+
+  if (time_flag) {
+    double t = compute_time();
+    fwrite(&t, sizeof(double), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::header_format_binary()
+{
+  format_magic_string_binary();
+  format_endian_binary();
+  format_revision_binary();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::header_binary(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -394,6 +467,11 @@ void DumpCustom::header_binary(bigint ndump)
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }
@@ -402,6 +480,8 @@ void DumpCustom::header_binary(bigint ndump)
 
 void DumpCustom::header_binary_triclinic(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -416,6 +496,11 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }
@@ -1563,7 +1648,7 @@ int DumpCustom::add_variable(char *id)
   variable = new int[nvariable+1];
   delete [] vbuf;
   vbuf = new double*[nvariable+1];
-  for (int i = 0; i <= nvariable; i++) vbuf[i] = NULL;
+  for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
   int n = strlen(id) + 1;
   id_variable[nvariable] = new char[n];
@@ -1626,7 +1711,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       // just clear format_column_user allocated by this dump child class
       for (int i = 0; i < size_one; i++) {
         delete [] format_column_user[i];
-        format_column_user[i] = NULL;
+        format_column_user[i] = nullptr;
       }
       return 2;
     }
@@ -1644,7 +1729,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       // replace "d" in format_int_user with bigint format specifier
       // use of &str[1] removes leading '%' from BIGINT_FORMAT string
       char *ptr = strchr(format_int_user,'d');
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,
                    "Dump_modify int format does not contain d character");
       char str[8];
@@ -1660,7 +1745,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       strcpy(format_float_user,arg[2]);
 
     } else {
-      int i = force->inumeric(FLERR,arg[1]) - 1;
+      int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= size_one)
         error->all(FLERR,"Illegal dump_modify command");
       if (format_column_user[i]) delete [] format_column_user[i];
@@ -1706,17 +1791,17 @@ int DumpCustom::modify_param(int narg, char **arg)
         memory->destroy(thresh_array);
         memory->destroy(thresh_op);
         memory->destroy(thresh_value);
-        thresh_array = NULL;
-        thresh_op = NULL;
-        thresh_value = NULL;
-        thresh_last = NULL;
+        thresh_array = nullptr;
+        thresh_op = nullptr;
+        thresh_value = nullptr;
+        thresh_last = nullptr;
         for (int i = 0; i < nthreshlast; i++) {
           modify->delete_fix(thresh_fixID[i]);
           delete [] thresh_fixID[i];
         }
-        thresh_fix = NULL;
-        thresh_fixID = NULL;
-        thresh_first = NULL;
+        thresh_fix = nullptr;
+        thresh_fixID = nullptr;
+        thresh_first = nullptr;
       }
       nthresh = nthreshlast = 0;
       return 2;
@@ -1972,7 +2057,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     // id = dump-ID + nthreshlast + DUMP_STORE, fix group = dump group
 
     if (strcmp(arg[3],"LAST") != 0) {
-      thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
+      thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
     } else {
       thresh_fix = (FixStore **)
@@ -2006,9 +2091,9 @@ int DumpCustom::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
-bigint DumpCustom::memory_usage()
+double DumpCustom::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
   bytes += memory->usage(dchoose,maxlocal);
   bytes += memory->usage(clist,maxlocal);

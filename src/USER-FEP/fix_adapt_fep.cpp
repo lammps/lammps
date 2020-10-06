@@ -33,6 +33,7 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -46,7 +47,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt/fep command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep command");
 
   dynamic_group_allow = 1;
@@ -93,10 +94,10 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(arg[iarg+2]) + 1;
       adapt[nadapt].pparam = new char[n];
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
-                    adapt[nadapt].jlo,adapt[nadapt].jhi);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
+                    adapt[nadapt].jlo,adapt[nadapt].jhi,error);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -124,8 +125,8 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
-      force->bounds(FLERR,arg[iarg+2],atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi);
+      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         adapt[nadapt].var = new char[n];
@@ -171,7 +172,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
-  id_fix_diam = id_fix_chg = NULL;
+  id_fix_diam = id_fix_chg = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,8 +220,8 @@ void FixAdaptFEP::post_constructor()
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
 
-  id_fix_diam = NULL;
-  id_fix_chg = NULL;
+  id_fix_diam = nullptr;
+  id_fix_chg = nullptr;
 
   char **newarg = new char*[6];
   newarg[1] = group->names[igroup];
@@ -306,7 +307,7 @@ void FixAdaptFEP::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
-      Pair *pair = NULL;
+      Pair *pair = nullptr;
 
       if (lmp->suffix_enable) {
         char psuffix[128];
@@ -315,11 +316,11 @@ void FixAdaptFEP::init()
         strcat(psuffix,lmp->suffix);
         pair = force->pair_match(psuffix,1);
       }
-      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
-      if (pair == NULL)
+      if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
+      if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
 
       ad->pdim = 2;
@@ -339,7 +340,7 @@ void FixAdaptFEP::init()
       }
 
     } else if (ad->which == KSPACE) {
-      if (force->kspace == NULL)
+      if (force->kspace == nullptr)
         error->all(FLERR,"Fix adapt/fep kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 

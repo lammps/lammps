@@ -24,7 +24,7 @@
 #include "force.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "thr_omp.h"
 
@@ -43,7 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ThrOMP::ThrOMP(LAMMPS *ptr, int style)
-  : lmp(ptr), fix(NULL), thr_style(style), thr_error(0)
+  : lmp(ptr), fix(nullptr), thr_style(style), thr_error(0)
 {
   // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
@@ -88,7 +88,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->cvatom_pair[0][0]),0,nall*9*sizeof(double));
     } else {
-      thr->cvatom_pair = NULL;
+      thr->cvatom_pair = nullptr;
     }
 
   }
@@ -199,7 +199,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->force->pair->vflag_fdotr) {
 
       // this is a non-hybrid pair style. compute per thread fdotr
-      if (fix->last_pair_hybrid == NULL) {
+      if (fix->last_pair_hybrid == nullptr) {
         if (lmp->neighbor->includegroup == 0)
           thr->virial_fdotr_compute(x, nlocal, nghost, -1);
         else
@@ -485,7 +485,7 @@ void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
       }
     }
   }
-  if (pair->eflag_atom) {
+  if (pair->eflag_atom && thr->eatom_pair) {
     const double epairhalf = 0.5 * (evdwl + ecoul);
     if (newton_pair || i < nlocal) thr->eatom_pair[i] += epairhalf;
     if (newton_pair || j < nlocal) thr->eatom_pair[j] += epairhalf;

@@ -1,13 +1,11 @@
 .. index:: pair_style reax/c
+.. index:: pair_style reax/c/kk
+.. index:: pair_style reax/c/omp
 
 pair_style reax/c command
 =========================
 
-pair_style reax/c/kk command
-============================
-
-pair_style reax/c/omp command
-=============================
+Accelerator Variants: *reax/c/kk*, *reax/c/omp*
 
 Syntax
 """"""
@@ -297,7 +295,8 @@ angle_info: 1 prints angles in the trajectory file (default = 0)
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.

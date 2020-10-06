@@ -16,32 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "prd.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix_event_prd.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "region.h"
-#include "comm.h"
 #include "velocity.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
-#include "fix_event_prd.h"
-#include "force.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -64,7 +61,7 @@ void PRD::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"PRD command before simulation box is defined");
   if (universe->nworlds != universe->nprocs &&
-      atom->map_style == 0)
+      atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use PRD with multi-processor replicas "
                "unless atom map exists");
   if (universe->nworlds == 1 && comm->me == 0)
@@ -74,15 +71,15 @@ void PRD::command(int narg, char **arg)
 
   // read as double so can cast to bigint
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  n_dephase = force->inumeric(FLERR,arg[2]);
-  t_dephase = force->inumeric(FLERR,arg[3]);
-  t_corr = force->inumeric(FLERR,arg[4]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  n_dephase = utils::inumeric(FLERR,arg[2],false,lmp);
+  t_dephase = utils::inumeric(FLERR,arg[3],false,lmp);
+  t_corr = utils::inumeric(FLERR,arg[4],false,lmp);
 
   char *id_compute = new char[strlen(arg[5])+1];
   strcpy(id_compute,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   options(narg-7,&arg[7]);
 
@@ -120,9 +117,9 @@ void PRD::command(int narg, char **arg)
 
   natoms = atom->natoms;
 
-  tagall = NULL;
-  xall = NULL;
-  imageall = NULL;
+  tagall = nullptr;
+  xall = nullptr;
+  imageall = nullptr;
 
   if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(tagall,natoms,"prd:tagall");
@@ -130,8 +127,8 @@ void PRD::command(int narg, char **arg)
     memory->create(imageall,natoms,"prd:imageall");
   }
 
-  counts = NULL;
-  displacements = NULL;
+  counts = nullptr;
+  displacements = nullptr;
 
   if (cmode == MULTI_PROC) {
     memory->create(counts,nprocs,"prd:counts");
@@ -468,7 +465,7 @@ void PRD::command(int narg, char **arg)
   modify->delete_compute("prd_temp");
   modify->delete_fix("prd_event");
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -892,17 +889,17 @@ void PRD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
-      temp_dephase = force->numeric(FLERR,arg[iarg+1]);
+      temp_dephase = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 
@@ -911,16 +908,16 @@ void PRD::options(int narg, char **arg)
       delete [] loop_setting;
       delete [] dist_setting;
 
-      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = NULL;
+      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
       int n = strlen(arg[iarg+1]) + 1;
       loop_setting = new char[n];
       strcpy(loop_setting,arg[iarg+1]);
 
-      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = NULL;
-      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = NULL;
+      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = nullptr;
+      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
       n = strlen(arg[iarg+2]) + 1;
       dist_setting = new char[n];

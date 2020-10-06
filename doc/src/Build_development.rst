@@ -28,6 +28,40 @@ variable VERBOSE set to 1:
 
 ----------
 
+.. _iwyu_processing:
+
+Report missing and unneeded '#include' statements
+-------------------------------------------------
+
+The conventions for how and when to use and order include statements in
+LAMMPS are `documented in a separate file <https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md>`_
+(also included in the source code distribution).  To assist with following
+these conventions one can use the `Include What You Use tool <https://include-what-you-use.org/>`_.
+This is still under development and for large and complex projects like LAMMPS
+there are some false positives, so suggested changes need to be verified manually.
+It is recommended to use at least version 0.14, which has much fewer incorrect
+reports than earlier versions.
+
+The necessary steps to generate the report can be enabled via a
+CMake variable:
+
+.. code-block:: bash
+
+   -D ENABLE_IWYU=value    # value = no (default) or yes
+
+This will check if the required binary (include-what-you-use or iwyu)
+and python script script (iwyu-tool or iwyu_tool or iwyu_tool.py) can
+be found in the path.  The analysis can then be started with:
+
+.. code-block:: bash
+
+   make iwyu
+
+This may first run some compilation, as the analysis is dependent
+on recording all commands required to do the compilation.
+
+----------
+
 .. _sanitizer:
 
 Address, Undefined Behavior, and Thread Sanitizer Support
@@ -37,14 +71,14 @@ Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
 during run-time. They can detect issues like:
 
- - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html>`_
+ - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html#memory-leak-detection>`_
  - `undefined behavior <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_
  - `data races <https://clang.llvm.org/docs/ThreadSanitizer.html>`_
 
 Please note that this kind of instrumentation usually comes with a
 performance hit (but much less than using tools like `Valgrind
-<https://valgrind.org>`_ with a more low level approach).  The to enable
-these features additional compiler flags need to be added to the
+<https://valgrind.org>`_ with a more low level approach).  To enable
+these features, additional compiler flags need to be added to the
 compilation and linking stages.  This is done through setting the
 ``ENABLE_SANITIZER`` variable during configuration. Examples:
 
@@ -77,7 +111,7 @@ error margin).  The status of this automated testing can be viewed on
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <http://pyyaml.org/>`_ library and development
+It requires the `PyYAML <http://pyyaml.org/>`_ library and development
 headers to compile and will download and compile a recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
@@ -378,22 +412,22 @@ The images below illustrate how the data is presented.
 .. list-table::
 
       * - .. figure:: JPG/coverage-overview-top.png
-             :target: JPG/coverage-overview-top.png
+             :scale: 25%
 
           Top of the overview page
 
         - .. figure:: JPG/coverage-overview-manybody.png
-             :target: JPG/coverage-overview-manybody.png
+             :scale: 25%
 
           Styles with good coverage
 
         - .. figure:: JPG/coverage-file-top.png
-             :target: JPG/coverage-file-top.png
+             :scale: 25%
 
           Top of individual source page
 
         - .. figure:: JPG/coverage-file-branches.png
-             :target: JPG/coverage-file-branches.png
+             :scale: 25%
 
           Source page with branches
 

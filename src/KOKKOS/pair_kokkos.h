@@ -19,7 +19,7 @@
 #define LMP_PAIR_KOKKOS_H
 
 #include "Kokkos_Macros.hpp"
-#include "pair.h"
+#include "pair.h"               // IWYU pragma: export
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "Kokkos_Vectorization.hpp"
@@ -51,8 +51,7 @@ struct DoCoul<1> {
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>
-class PairComputeFunctor  {
- public:
+struct PairComputeFunctor  {
   typedef typename PairStyle::device_type device_type ;
   typedef ArrayTypes<device_type> AT;
 
@@ -68,16 +67,16 @@ class PairComputeFunctor  {
   // The force array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_f;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
   //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
 
   //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,Kokkos::Experimental::ScatterSum,NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
 
 
 
@@ -90,12 +89,12 @@ class PairComputeFunctor  {
     f = c.f;
     d_eatom = c.d_eatom;
     d_vatom = c.d_vatom;
-    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.f);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
-    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
+    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.f);
+    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
   };
 
-  // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
+  // Call cleanup_copy which sets allocations to null which are destructed by the PairStyle
   ~PairComputeFunctor() {c.cleanup_copy();list.copymode = 1;};
 
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
@@ -119,7 +118,7 @@ class PairComputeFunctor  {
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
 
-    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
@@ -186,7 +185,7 @@ class PairComputeFunctor  {
   EV_FLOAT compute_item(const int& ii,
                         const NeighListKokkos<device_type> &list, const CoulTag& ) const {
 
-    auto a_f = dup_f.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
     const int i = list.d_ilist[ii];
@@ -587,8 +586,8 @@ class PairComputeFunctor  {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
-    auto a_eatom = dup_eatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
-    auto a_vatom = dup_vatom.template access<AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int EFLAG = c.eflag;
     const int NEWTON_PAIR = c.newton_pair;
@@ -712,7 +711,10 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<!((NE
 }
 
 template<class FunctorStyle>
-int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
+int GetTeamSize(FunctorStyle& KOKKOS_GPU_ARG(functor), int KOKKOS_GPU_ARG(inum),
+                int KOKKOS_GPU_ARG(reduce_flag), int team_size, int KOKKOS_GPU_ARG(vector_length)) {
+
+#ifdef LMP_KOKKOS_GPU
     int team_size_max;
 
     if (reduce_flag)
@@ -720,7 +722,6 @@ int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size,
     else
       team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
 
-#ifdef LMP_KOKKOS_GPU
     if(team_size*vector_length > team_size_max)
       team_size = team_size_max/vector_length;
 #else

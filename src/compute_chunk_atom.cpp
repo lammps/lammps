@@ -14,29 +14,27 @@
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
 #include "compute_chunk_atom.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <map>
-#include <utility>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "comm.h"
 #include "domain.h"
-#include "region.h"
-#include "lattice.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
-#include "comm.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -56,10 +54,10 @@ enum{LIMITMAX,LIMITEXACT};
 
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  chunk_volume_vec(NULL), coord(NULL), ichunk(NULL), chunkID(NULL),
-  cfvid(NULL), idregion(NULL), region(NULL), cchunk(NULL), fchunk(NULL),
-  varatom(NULL), id_fix(NULL), fixstore(NULL), lockfix(NULL), chunk(NULL),
-  exclude(NULL), hash(NULL)
+  chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr), chunkID(nullptr),
+  cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr), fchunk(nullptr),
+  varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr), chunk(nullptr),
+  exclude(nullptr), hash(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 
@@ -75,7 +73,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   binflag = 0;
   ncoord = 0;
-  cfvid = NULL;
+  cfvid = nullptr;
 
   if (strcmp(arg[3],"bin/1d") == 0) {
     binflag = 1;
@@ -108,12 +106,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     ncoord = 1;
     iarg = 4;
     if (iarg+6 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-    sorigin_user[0] = force->numeric(FLERR,arg[iarg]);
-    sorigin_user[1] = force->numeric(FLERR,arg[iarg+1]);
-    sorigin_user[2] = force->numeric(FLERR,arg[iarg+2]);
-    sradmin_user = force->numeric(FLERR,arg[iarg+3]);
-    sradmax_user = force->numeric(FLERR,arg[iarg+4]);
-    nsbin = force->inumeric(FLERR,arg[iarg+5]);
+    sorigin_user[0] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    sorigin_user[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    sorigin_user[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    sradmin_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    sradmax_user = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+    nsbin = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
     iarg += 6;
   } else if (strcmp(arg[3],"bin/cylinder") == 0) {
     binflag = 1;
@@ -134,12 +132,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     }
     if (iarg+5 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
     corigin_user[dim[0]] = 0.0;
-    corigin_user[cdim1] = force->numeric(FLERR,arg[iarg]);
-    corigin_user[cdim2] = force->numeric(FLERR,arg[iarg+1]);
-    cradmin_user = force->numeric(FLERR,arg[iarg+2]);
-    cradmax_user = force->numeric(FLERR,arg[iarg+3]);
+    corigin_user[cdim1] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    corigin_user[cdim2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    cradmin_user = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    cradmax_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
-    ncbin = force->inumeric(FLERR,arg[iarg+4]);
+    ncbin = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
     iarg += 5;
 
   } else if (strcmp(arg[3],"type") == 0) {
@@ -179,7 +177,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   regionflag = 0;
-  idregion = NULL;
+  idregion = nullptr;
   nchunksetflag = 0;
   nchunkflag = EVERY;
   limit = 0;
@@ -218,7 +216,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"limit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      limit = force->inumeric(FLERR,arg[iarg+1]);
+      limit = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (limit < 0) error->all(FLERR,"Illegal compute chunk/atom command");
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
@@ -261,11 +259,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
       if (minflag[idim] == COORD)
-        minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
+        minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
       if (maxflag[idim] == COORD)
-        maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
+        maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
@@ -450,16 +448,16 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // initialize chunk vector and per-chunk info
 
   nmax = 0;
-  chunk = NULL;
+  chunk = nullptr;
   nmaxint = -1;
-  ichunk = NULL;
-  exclude = NULL;
+  ichunk = nullptr;
+  exclude = nullptr;
 
   nchunk = 0;
   chunk_volume_scalar = 1.0;
-  chunk_volume_vec = NULL;
-  coord = NULL;
-  chunkID = NULL;
+  chunk_volume_vec = nullptr;
+  coord = nullptr;
+  chunkID = nullptr;
 
   // computeflag = 1 if this compute might invoke another compute
   // during assign_chunk_ids()
@@ -472,17 +470,17 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   invoked_setup = -1;
   invoked_ichunk = -1;
 
-  id_fix = NULL;
-  fixstore = NULL;
+  id_fix = nullptr;
+  fixstore = nullptr;
 
   if (compress) hash = new std::map<tagint,int>();
-  else hash = NULL;
+  else hash = nullptr;
 
   maxvar = 0;
-  varatom = NULL;
+  varatom = nullptr;
 
   lockcount = 0;
-  lockfix = NULL;
+  lockfix = nullptr;
 
   if (which == MOLECULE) molcheck = 1;
   else molcheck = 0;
@@ -595,7 +593,7 @@ void ComputeChunkAtom::init()
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
     modify->delete_fix(id_fix);
-    fixstore = NULL;
+    fixstore = nullptr;
   }
 }
 
@@ -667,7 +665,7 @@ double ComputeChunkAtom::compute_scalar()
 
 void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 {
-  if (lockfix == NULL) {
+  if (lockfix == nullptr) {
     lockfix = fixptr;
     lockstart = startstep;
     lockstop = stopstep;
@@ -691,7 +689,7 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 void ComputeChunkAtom::unlock(Fix *fixptr)
 {
   if (fixptr != lockfix) return;
-  lockfix = NULL;
+  lockfix = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1051,7 +1049,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 
   // create my list of populated IDs
 
-  int *list = NULL;
+  int *list = nullptr;
   memory->create(list,n,"chunk/atom:list");
 
   n = 0;
@@ -1096,7 +1094,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     memory->destroy(listall);
 
   } else {
-    comm->ring(n,sizeof(int),list,1,idring,NULL,(void *)this,0);
+    comm->ring(n,sizeof(int),list,1,idring,nullptr,(void *)this,0);
   }
 
   memory->destroy(list);
@@ -1983,9 +1981,9 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg+1],"upper") == 0) originflag[idim] = UPPER;
   else originflag[idim] = COORD;
   if (originflag[idim] == COORD)
-    origin[idim] = force->numeric(FLERR,arg[iarg+1]);
+    origin[idim] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
-  delta[idim] = force->numeric(FLERR,arg[iarg+2]);
+  delta[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

@@ -43,40 +43,37 @@ properties of crystals by molecular simulation”, Phys. Rev. E 92, 043303 (2015
 https://doi.org/10.1103/PhysRevE.92.043303
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
 #include "compute_hma.h"
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "group.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "kspace.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
-#include <vector>
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_temp(NULL), deltaR(NULL)
+  Compute(lmp, narg, arg), id_temp(nullptr), deltaR(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
@@ -145,7 +142,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hma command");
       if (computeP>-1) continue;
       computeP = size_vector;
-      deltaPcap = force->numeric(FLERR, arg[iarg+1]);
+      deltaPcap = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       extlist[size_vector] = 0;
       size_vector++;
       iarg++;
@@ -202,7 +199,7 @@ ComputeHMA::~ComputeHMA()
 
 void ComputeHMA::init() {
   if (computeCv>-1) {
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"No pair style is defined for compute hma cv");
     if (force->pair->single_enable == 0)
       error->all(FLERR,"Pair style does not support compute hma cv");
@@ -225,7 +222,7 @@ void ComputeHMA::setup()
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
   double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
-  if (temperat==NULL) error->all(FLERR,"Could not find compute hma temperature ID");
+  if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;
 
   // set fix which stores original atom coords

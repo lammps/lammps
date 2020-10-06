@@ -1,4 +1,6 @@
 .. index:: pair_style thole
+.. index:: pair_style lj/cut/thole/long
+.. index:: pair_style lj/cut/thole/long/omp
 
 pair_style thole command
 ========================
@@ -6,8 +8,7 @@ pair_style thole command
 pair_style lj/cut/thole/long command
 ====================================
 
-pair_style lj/cut/thole/long/omp command
-========================================
+Accelerator Variants: *lj/cut/thole/long/omp*
 
 Syntax
 """"""
@@ -134,7 +135,8 @@ the *pair_style* command line.
 
 .. include:: accel_styles.rst
 
-**Mixing**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The *thole* pair style does not support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
@@ -168,7 +170,10 @@ Related commands
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`
 :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

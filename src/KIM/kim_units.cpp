@@ -57,6 +57,8 @@
 #include <math.h>
 #include <string>
 #include <map>
+#include <utility>
+
 using namespace std;
 
 namespace
@@ -1016,10 +1018,8 @@ double get_torque_conversion_factor(units from_unit_enum, units to_unit_enum)
 double get_temperature_conversion_factor(units from_unit_enum, units to_unit_enum)
 {
   map<units, map<units, double> > conv;
-  double to_si;
 
   conv[kelvin][kelvin] = 1.0;
-
   return conv[from_unit_enum][to_unit_enum];
 }
 

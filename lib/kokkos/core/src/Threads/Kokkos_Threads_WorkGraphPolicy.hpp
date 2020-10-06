@@ -45,6 +45,9 @@
 #ifndef KOKKOS_THREADS_WORKGRAPHPOLICY_HPP
 #define KOKKOS_THREADS_WORKGRAPHPOLICY_HPP
 
+#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_Threads.hpp>
+
 namespace Kokkos {
 namespace Impl {
 
@@ -52,11 +55,10 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
                   Kokkos::Threads> {
  private:
-  typedef Kokkos::WorkGraphPolicy<Traits...> Policy;
+  using Policy = Kokkos::WorkGraphPolicy<Traits...>;
 
-  typedef ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
-                      Kokkos::Threads>
-      Self;
+  using Self = ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
+                           Kokkos::Threads>;
 
   Policy m_policy;
   FunctorType m_functor;

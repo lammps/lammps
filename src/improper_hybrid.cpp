@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -160,7 +160,7 @@ void ImproperHybrid::allocate()
   maximproper = new int[nstyles];
   improperlist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maximproper[m] = 0;
-  for (int m = 0; m < nstyles; m++) improperlist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) improperlist[m] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,7 +263,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   // 2nd arg = improper sub-style name
   // allow for "none" as valid sub-style name
@@ -325,7 +325,7 @@ void ImproperHybrid::write_restart(FILE *fp)
 void ImproperHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Improper*[nstyles];
   keywords = new char*[nstyles];
@@ -334,10 +334,10 @@ void ImproperHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_improper(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);

@@ -1,16 +1,12 @@
 .. index:: pair_style table
+.. index:: pair_style table/gpu
+.. index:: pair_style table/kk
+.. index:: pair_style table/omp
 
 pair_style table command
 ========================
 
-pair_style table/gpu command
-============================
-
-pair_style table/kk command
-===========================
-
-pair_style table/omp command
-============================
+Accelerator Variants: *table/gpu*, *table/kk*, *table/omp*
 
 Syntax
 """"""
@@ -226,7 +222,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -256,7 +253,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

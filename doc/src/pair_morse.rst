@@ -1,25 +1,20 @@
 .. index:: pair_style morse
+.. index:: pair_style morse/gpu
+.. index:: pair_style morse/omp
+.. index:: pair_style morse/opt
+.. index:: pair_style morse/smooth/linear
+.. index:: pair_style morse/smooth/linear/omp
+.. index:: pair_style morse/kk
 
 pair_style morse command
 ========================
 
-pair_style morse/gpu command
-============================
-
-pair_style morse/omp command
-============================
-
-pair_style morse/opt command
-============================
+Accelerator Variants: *morse/gpu*, *morse/omp*, *morse/opt*, *morse/kk*
 
 pair_style morse/smooth/linear command
 ======================================
 
-pair_style morse/smooth/linear/omp command
-==========================================
-
-pair_style morse/kk command
-===========================
+Accelerator Variants: *morse/smooth/linear/omp*
 
 Syntax
 """"""
@@ -103,7 +98,8 @@ LAMMPS was built with that package. See the :doc:`Build package
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 None of these pair styles support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -138,4 +134,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
-**Default:** none
+Default
+"""""""
+
+none

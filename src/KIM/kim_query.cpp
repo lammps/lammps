@@ -56,24 +56,22 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_query.h"
-#include "fix_store_kim.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include <sstream>
+
 #include "comm.h"
 #include "error.h"
+#include "fix_store_kim.h"
+#include "info.h"
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
 #include "version.h"
-#include "info.h"
-#include "fmt/format.h"
+
+#include <cstring>
+#include <sstream>
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
-#include <cstdlib>
 #endif
 
 using namespace LAMMPS_NS;
@@ -340,8 +338,8 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
 /* ---------------------------------------------------------------------- */
 
-void KimQuery::echo_var_assign(const std::string & name,
-                               const std::string & value) const
+void KimQuery::echo_var_assign(const std::string &name,
+                               const std::string &value) const
 {
   input->write_echo(fmt::format("variable {} string {}\n",name,value));
 }

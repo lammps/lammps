@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_thermal_conductivity.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -35,13 +35,13 @@ using namespace FixConst;
 FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
                                                int narg, char **arg) :
   Fix(lmp, narg, arg),
-  index_lo(NULL), index_hi(NULL), ke_lo(NULL), ke_hi(NULL)
+  index_lo(nullptr), index_hi(nullptr), ke_lo(nullptr), ke_hi(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   scalar_flag = 1;
@@ -53,7 +53,7 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
   else if (strcmp(arg[4],"z") == 0) edim = 2;
   else error->all(FLERR,"Illegal fix thermal/conductivity command");
 
-  nbin = force->inumeric(FLERR,arg[5]);
+  nbin = utils::inumeric(FLERR,arg[5],false,lmp);
   if (nbin % 2 || nbin <= 2)
     error->all(FLERR,"Illegal fix thermal/conductivity command");
 
@@ -66,7 +66,7 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix thermal/conductivity command");
-      nswap = force->inumeric(FLERR,arg[iarg+1]);
+      nswap = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nswap <= 0)
         error->all(FLERR,
                    "Fix thermal/conductivity swap value must be positive");

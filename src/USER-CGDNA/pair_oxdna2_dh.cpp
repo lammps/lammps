@@ -15,19 +15,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_dh.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "atom_vec_ellipsoid.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 
@@ -277,16 +276,16 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   count = 0;
 
   double T, rhos_dh_one, qeff_dh_one;
 
-  T = force->numeric(FLERR,arg[2]);
-  rhos_dh_one = force->numeric(FLERR,arg[3]);
-  qeff_dh_one  = force->numeric(FLERR,arg[4]);
+  T = utils::numeric(FLERR,arg[2],false,lmp);
+  rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  qeff_dh_one  = utils::numeric(FLERR,arg[4],false,lmp);
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
   double b_dh_one, cut_dh_ast_one, cut_dh_c_one;
@@ -438,16 +437,16 @@ void PairOxdna2Dh::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          utils::sfread(FLERR,&kappa_dh[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&qeff_dh_pf[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_dh[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_dh_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_dh_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&kappa_dh[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&qeff_dh_pf[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_dh[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_dh_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_dh_c[i][j],sizeof(double),1,fp,nullptr,error);
 
         }
 
@@ -480,9 +479,9 @@ void PairOxdna2Dh::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -532,5 +531,5 @@ void *PairOxdna2Dh::extract(const char *str, int &dim)
   if (strcmp(str,"cut_dh_ast") == 0) return (void *) cut_dh_ast;
   if (strcmp(str,"cut_dh_c") == 0) return (void *) cut_dh_c;
 
-  return NULL;
+  return nullptr;
 }

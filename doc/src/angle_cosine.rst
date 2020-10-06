@@ -1,13 +1,11 @@
 .. index:: angle_style cosine
+.. index:: angle_style cosine/omp
+.. index:: angle_style cosine/kk
 
 angle_style cosine command
 ==========================
 
-angle_style cosine/omp command
-==============================
-
-angle_style cosine/kk command
-=============================
+Accelerator Variants: *cosine/omp*, *cosine/kk*
 
 Syntax
 """"""
@@ -60,4 +58,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

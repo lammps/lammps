@@ -12,17 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_slice.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "update.h"
-#include "modify.h"
+
+#include "error.h"
 #include "fix.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "force.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,15 +34,15 @@ enum{COMPUTE,FIX,VARIABLE};
 
 ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute slice command");
 
   MPI_Comm_rank(world,&me);
 
-  nstart = force->inumeric(FLERR,arg[3]);
-  nstop = force->inumeric(FLERR,arg[4]);
-  nskip = force->inumeric(FLERR,arg[5]);
+  nstart = utils::inumeric(FLERR,arg[3],false,lmp);
+  nstop = utils::inumeric(FLERR,arg[4],false,lmp);
+  nskip = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (nstart < 1 || nstop < nstart || nskip < 1)
     error->all(FLERR,"Illegal compute slice command");
@@ -225,6 +224,7 @@ ComputeSlice::~ComputeSlice()
   for (int m = 0; m < nvalues; m++) delete [] ids[m];
   delete [] ids;
   delete [] value2index;
+  delete [] extlist;
 
   memory->destroy(vector);
   memory->destroy(array);

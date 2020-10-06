@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_global_atom.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -38,8 +39,8 @@ enum{VECTOR,ARRAY};
 
 ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idref(NULL), which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
-  indices(NULL), varatom(NULL), vecglobal(NULL)
+  idref(nullptr), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr),
+  indices(nullptr), varatom(nullptr), vecglobal(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute global/atom command");
 
@@ -80,7 +81,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -95,7 +96,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
     if (strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0 ||
         strncmp(arg[iarg],"v_",2) == 0) {
@@ -233,8 +234,8 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = nvalues;
 
   nmax = maxvector = 0;
-  vector_atom = NULL;
-  array_atom = NULL;
+  vector_atom = nullptr;
+  array_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

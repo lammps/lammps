@@ -16,24 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_pmb.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_peri_neigh.h"
+#include "force.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cfloat>
-#include <cstring>
-#include <string>
-#include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -47,12 +44,12 @@ PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
   ifix_peri = -1;
 
   nmax = 0;
-  s0_new = NULL;
+  s0_new = nullptr;
 
-  kspring = NULL;
-  s00 = NULL;
-  alpha = NULL;
-  cut = NULL;
+  kspring = nullptr;
+  s00 = nullptr;
+  alpha = nullptr;
+  cut = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -311,13 +308,13 @@ void PairPeriPMB::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double kspring_one = force->numeric(FLERR,arg[2]);
-  double cut_one = force->numeric(FLERR,arg[3]);
-  double s00_one = force->numeric(FLERR,arg[4]);
-  double alpha_one = force->numeric(FLERR,arg[5]);
+  double kspring_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double s00_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -360,7 +357,7 @@ void PairPeriPMB::init_style()
 
   if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice->xlattice != domain->lattice->ylattice ||
@@ -413,14 +410,14 @@ void PairPeriPMB::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&kspring[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&kspring[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&kspring[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&s00[i][j],1,MPI_DOUBLE,0,world);

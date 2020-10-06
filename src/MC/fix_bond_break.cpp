@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_break.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "update.h"
 #include "respa.h"
@@ -33,15 +33,15 @@ using namespace FixConst;
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL),
-  broken(NULL), copy(NULL), random(NULL)
+  partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
+  broken(nullptr), copy(nullptr), random(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
 
   force_reneighbor = 1;
@@ -51,8 +51,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  btype = force->inumeric(FLERR,arg[4]);
-  cutoff = force->numeric(FLERR,arg[5]);
+  btype = utils::inumeric(FLERR,arg[4],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[5],false,lmp);
 
   if (btype < 1 || btype > atom->nbondtypes)
     error->all(FLERR,"Invalid bond type in fix bond/break command");
@@ -69,8 +69,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
-      fraction = force->numeric(FLERR,arg[iarg+1]);
-      seed = force->inumeric(FLERR,arg[iarg+2]);
+      fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (fraction < 0.0 || fraction > 1.0)
         error->all(FLERR,"Illegal fix bond/break command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");

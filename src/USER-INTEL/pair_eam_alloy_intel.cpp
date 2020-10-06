@@ -15,18 +15,16 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_alloy_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "memory.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -71,7 +69,7 @@ void PairEAMAlloyIntel::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -185,7 +183,7 @@ void PairEAMAlloyIntel::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

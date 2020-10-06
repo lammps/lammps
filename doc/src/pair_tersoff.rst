@@ -1,25 +1,20 @@
 .. index:: pair_style tersoff
+.. index:: pair_style tersoff/table
+.. index:: pair_style tersoff/gpu
+.. index:: pair_style tersoff/intel
+.. index:: pair_style tersoff/kk
+.. index:: pair_style tersoff/omp
+.. index:: pair_style tersoff/table/omp
 
 pair_style tersoff command
 ==========================
 
+Accelerator Variants: *tersoff/gpu*, *tersoff/intel*, *tersoff/kk*, *tersoff/omp*
+
 pair_style tersoff/table command
 ================================
 
-pair_style tersoff/gpu command
-==============================
-
-pair_style tersoff/intel command
-================================
-
-pair_style tersoff/kk command
-=============================
-
-pair_style tersoff/omp command
-==============================
-
-pair_style tersoff/table/omp command
-====================================
+Accelerator Variants: *tersoff/table/omp*
 
 Syntax
 """"""
@@ -223,7 +218,8 @@ defined in various papers.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -262,7 +258,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

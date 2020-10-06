@@ -12,21 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_halt.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "input.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "timer.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include <string>
-#include "update.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "comm.h"
-#include "timer.h"
-#include "error.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,15 +37,15 @@ enum{NOMSG,YESMSG};
 /* ---------------------------------------------------------------------- */
 
 FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idvar(NULL), dlimit_path(NULL)
+  Fix(lmp, narg, arg), idvar(nullptr), dlimit_path(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix halt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix halt command");
 
   // comparison args
 
-  idvar = NULL;
+  idvar = nullptr;
   int iarg = 4;
 
   if (strcmp(arg[iarg],"tlimit") == 0) {
@@ -80,7 +78,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Invalid fix halt operator");
 
   ++iarg;
-  value = force->numeric(FLERR,arg[iarg]);
+  value = utils::numeric(FLERR,arg[iarg],false,lmp);
 
   // parse optional args
 

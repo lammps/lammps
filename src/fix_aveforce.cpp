@@ -12,18 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_aveforce.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{NONE,CONSTANT,EQUAL};
 
 FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix aveforce command");
 
@@ -46,7 +46,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
 
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
@@ -55,7 +55,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[3],"NULL") == 0) {
     xstyle = NONE;
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
   if (strstr(arg[4],"v_") == arg[4]) {
@@ -65,7 +65,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"NULL") == 0) {
     ystyle = NONE;
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -75,14 +75,14 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[5],"NULL") == 0) {
     zstyle = NONE;
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 
   // optional args
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -197,7 +197,7 @@ void FixAveForce::post_force(int /*vflag*/)
 {
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -265,7 +265,7 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
   if (ilevel == ilevel_respa) post_force(vflag);
   else {
-    Region *region = NULL;
+    Region *region = nullptr;
     if (iregion >= 0) {
       region = domain->regions[iregion];
       region->prematch();

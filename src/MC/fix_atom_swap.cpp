@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_atom_swap.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cctype>
 #include <cfloat>
@@ -50,10 +50,10 @@ using namespace FixConst;
 
 FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), type_list(NULL), mu(NULL), qtype(NULL),
-  sqrt_mass_ratio(NULL), local_swap_iatom_list(NULL),
-  local_swap_jatom_list(NULL), local_swap_atom_list(NULL),
-  random_equal(NULL), random_unequal(NULL), c_pe(NULL)
+  idregion(nullptr), type_list(nullptr), mu(nullptr), qtype(nullptr),
+  sqrt_mass_ratio(nullptr), local_swap_iatom_list(nullptr),
+  local_swap_jatom_list(nullptr), local_swap_atom_list(nullptr),
+  random_equal(nullptr), random_unequal(nullptr), c_pe(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix atom/swap command");
 
@@ -68,10 +68,10 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  ncycles = force->inumeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
-  double temperature = force->numeric(FLERR,arg[6]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  ncycles = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed = utils::inumeric(FLERR,arg[5],false,lmp);
+  double temperature = utils::numeric(FLERR,arg[6],false,lmp);
   beta = 1.0/(force->boltz*temperature);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix atom/swap command");
@@ -105,9 +105,9 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   nswap_successes = 0.0;
 
   atom_swap_nmax = 0;
-  local_swap_atom_list = NULL;
-  local_swap_iatom_list = NULL;
-  local_swap_jatom_list = NULL;
+  local_swap_atom_list = nullptr;
+  local_swap_iatom_list = nullptr;
+  local_swap_jatom_list = nullptr;
 
   // set comm size needed by this Fix
 
@@ -161,7 +161,7 @@ void FixAtomSwap::options(int narg, char **arg)
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         if (nswaptypes >= atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
-        type_list[nswaptypes] = force->numeric(FLERR,arg[iarg]);
+        type_list[nswaptypes] = utils::numeric(FLERR,arg[iarg],false,lmp);
         nswaptypes++;
         iarg++;
       }
@@ -172,7 +172,7 @@ void FixAtomSwap::options(int narg, char **arg)
         if (isalpha(arg[iarg][0])) break;
         nmutypes++;
         if (nmutypes > atom->ntypes) error->all(FLERR,"Illegal fix atom/swap command");
-        mu[nmutypes] = force->numeric(FLERR,arg[iarg]);
+        mu[nmutypes] = utils::numeric(FLERR,arg[iarg],false,lmp);
         iarg++;
       }
     } else error->all(FLERR,"Illegal fix atom/swap command");

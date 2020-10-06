@@ -22,29 +22,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neb_spin.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "citeme.h"
-#include "force.h"
-#include "universe.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
+#include "citeme.h"
 #include "comm.h"
-#include "min.h"
-#include "modify.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix.h"
 #include "fix_neb_spin.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "finish.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -94,11 +91,11 @@ void NEBSpin::command(int narg, char **arg)
 
   if (narg < 6) error->universe_all(FLERR,"Illegal NEBSpin command");
 
-  etol = force->numeric(FLERR,arg[0]);
-  ttol = force->numeric(FLERR,arg[1]);
-  n1steps = force->inumeric(FLERR,arg[2]);
-  n2steps = force->inumeric(FLERR,arg[3]);
-  nevery = force->inumeric(FLERR,arg[4]);
+  etol = utils::numeric(FLERR,arg[0],false,lmp);
+  ttol = utils::numeric(FLERR,arg[1],false,lmp);
+  n1steps = utils::inumeric(FLERR,arg[2],false,lmp);
+  n2steps = utils::inumeric(FLERR,arg[3],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // error checks
 
@@ -126,7 +123,7 @@ void NEBSpin::command(int narg, char **arg)
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEBSpin with a single replica");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use NEBSpin unless atom map exists");
 
   // process file-style setting to setup initial configs for all replicas
@@ -301,7 +298,7 @@ void NEBSpin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-                "GradV0dottan DN0... GradVNdottan DNN\n");
+                "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "
@@ -387,7 +384,7 @@ void NEBSpin::readfile(char *file, int flag)
       open(file);
       while (1) {
         eof = fgets(line,MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of neb/spin file");
+        if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
         start = &line[strspn(line," \t\n\v\f\r")];
         if (*start != '\0' && *start != '#') break;
       }
@@ -401,7 +398,7 @@ void NEBSpin::readfile(char *file, int flag)
         open(file);
         while (1) {
           eof = fgets(line,MAXLINE,fp);
-          if (eof == NULL) error->one(FLERR,"Unexpected end of neb/spin file");
+          if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
           start = &line[strspn(line," \t\n\v\f\r")];
           if (*start != '\0' && *start != '#') break;
         }
@@ -455,7 +452,7 @@ void NEBSpin::readfile(char *file, int flag)
 
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok(nullptr," \t\n\r\f");
 
       // adjust spin coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
@@ -708,7 +705,7 @@ void NEBSpin::open(char *file)
 #endif
   }
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);

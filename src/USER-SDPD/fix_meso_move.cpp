@@ -43,9 +43,9 @@ enum{EQUAL,ATOM};
 
 FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL),
-  vxvarstr(NULL), vyvarstr(NULL), vzvarstr(NULL),
-  xoriginal(NULL), displace(NULL), velocity(NULL) {
+  xvarstr(nullptr), yvarstr(nullptr), zvarstr(nullptr),
+  vxvarstr(nullptr), vyvarstr(nullptr), vzvarstr(nullptr),
+  xoriginal(nullptr), displace(nullptr), velocity(nullptr) {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all(FLERR,
         "fix meso/move command requires atom_style with both energy and density");
@@ -74,17 +74,17 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[4],"NULL") == 0) vxflag = 0;
     else {
       vxflag = 1;
-      vx = force->numeric(FLERR,arg[4]);
+      vx = utils::numeric(FLERR,arg[4],false,lmp);
     }
     if (strcmp(arg[5],"NULL") == 0) vyflag = 0;
     else {
       vyflag = 1;
-      vy = force->numeric(FLERR,arg[5]);
+      vy = utils::numeric(FLERR,arg[5],false,lmp);
     }
     if (strcmp(arg[6],"NULL") == 0) vzflag = 0;
     else {
       vzflag = 1;
-      vz = force->numeric(FLERR,arg[6]);
+      vz = utils::numeric(FLERR,arg[6],false,lmp);
     }
 
   } else if (strcmp(arg[3],"wiggle") == 0) {
@@ -94,69 +94,69 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[4],"NULL") == 0) axflag = 0;
     else {
       axflag = 1;
-      ax = force->numeric(FLERR,arg[4]);
+      ax = utils::numeric(FLERR,arg[4],false,lmp);
     }
     if (strcmp(arg[5],"NULL") == 0) ayflag = 0;
     else {
       ayflag = 1;
-      ay = force->numeric(FLERR,arg[5]);
+      ay = utils::numeric(FLERR,arg[5],false,lmp);
     }
     if (strcmp(arg[6],"NULL") == 0) azflag = 0;
     else {
       azflag = 1;
-      az = force->numeric(FLERR,arg[6]);
+      az = utils::numeric(FLERR,arg[6],false,lmp);
     }
-    period = force->numeric(FLERR,arg[7]);
+    period = utils::numeric(FLERR,arg[7],false,lmp);
     if (period <= 0.0) error->all(FLERR,"Illegal fix meso/move command");
 
   } else if (strcmp(arg[3],"rotate") == 0) {
     if (narg < 11) error->all(FLERR,"Illegal fix meso/move command");
     iarg = 11;
     mstyle = ROTATE;
-    point[0] = force->numeric(FLERR,arg[4]);
-    point[1] = force->numeric(FLERR,arg[5]);
-    point[2] = force->numeric(FLERR,arg[6]);
-    axis[0] = force->numeric(FLERR,arg[7]);
-    axis[1] = force->numeric(FLERR,arg[8]);
-    axis[2] = force->numeric(FLERR,arg[9]);
-    period = force->numeric(FLERR,arg[10]);
+    point[0] = utils::numeric(FLERR,arg[4],false,lmp);
+    point[1] = utils::numeric(FLERR,arg[5],false,lmp);
+    point[2] = utils::numeric(FLERR,arg[6],false,lmp);
+    axis[0] = utils::numeric(FLERR,arg[7],false,lmp);
+    axis[1] = utils::numeric(FLERR,arg[8],false,lmp);
+    axis[2] = utils::numeric(FLERR,arg[9],false,lmp);
+    period = utils::numeric(FLERR,arg[10],false,lmp);
     if (period <= 0.0) error->all(FLERR,"Illegal fix meso/move command");
 
   } else if (strcmp(arg[3],"variable") == 0) {
     if (narg < 10) error->all(FLERR,"Illegal fix meso/move command");
     iarg = 10;
     mstyle = VARIABLE;
-    if (strcmp(arg[4],"NULL") == 0) xvarstr = NULL;
+    if (strcmp(arg[4],"NULL") == 0) xvarstr = nullptr;
     else if (strstr(arg[4],"v_") == arg[4]) {
       int n = strlen(&arg[4][2]) + 1;
       xvarstr = new char[n];
       strcpy(xvarstr,&arg[4][2]);
     } else error->all(FLERR,"Illegal fix meso/move command");
-    if (strcmp(arg[5],"NULL") == 0) yvarstr = NULL;
+    if (strcmp(arg[5],"NULL") == 0) yvarstr = nullptr;
     else if (strstr(arg[5],"v_") == arg[5]) {
       int n = strlen(&arg[5][2]) + 1;
       yvarstr = new char[n];
       strcpy(yvarstr,&arg[5][2]);
     } else error->all(FLERR,"Illegal fix meso/move command");
-    if (strcmp(arg[6],"NULL") == 0) zvarstr = NULL;
+    if (strcmp(arg[6],"NULL") == 0) zvarstr = nullptr;
     else if (strstr(arg[6],"v_") == arg[6]) {
       int n = strlen(&arg[6][2]) + 1;
       zvarstr = new char[n];
       strcpy(zvarstr,&arg[6][2]);
     } else error->all(FLERR,"Illegal fix meso/move command");
-    if (strcmp(arg[7],"NULL") == 0) vxvarstr = NULL;
+    if (strcmp(arg[7],"NULL") == 0) vxvarstr = nullptr;
     else if (strstr(arg[7],"v_") == arg[7]) {
       int n = strlen(&arg[7][2]) + 1;
       vxvarstr = new char[n];
       strcpy(vxvarstr,&arg[7][2]);
     } else error->all(FLERR,"Illegal fix meso/move command");
-    if (strcmp(arg[8],"NULL") == 0) vyvarstr = NULL;
+    if (strcmp(arg[8],"NULL") == 0) vyvarstr = nullptr;
     else if (strstr(arg[8],"v_") == arg[8]) {
       int n = strlen(&arg[8][2]) + 1;
       vyvarstr = new char[n];
       strcpy(vyvarstr,&arg[8][2]);
     } else error->all(FLERR,"Illegal fix meso/move command");
-    if (strcmp(arg[9],"NULL") == 0) vzvarstr = NULL;
+    if (strcmp(arg[9],"NULL") == 0) vzvarstr = nullptr;
     else if (strstr(arg[9],"v_") == arg[9]) {
       int n = strlen(&arg[9][2]) + 1;
       vzvarstr = new char[n];
@@ -234,10 +234,10 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
-  displace = velocity = NULL;
+  displace = velocity = nullptr;
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -259,8 +259,8 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
 FixMesoMove::~FixMesoMove () {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -353,9 +353,9 @@ void FixMesoMove::init () {
   memory->destroy(displace);
   memory->destroy(velocity);
   if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
-  else displace = NULL;
+  else displace = nullptr;
   if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
-  else velocity = NULL;
+  else velocity = nullptr;
 }
 
 void FixMesoMove::setup_pre_force (int /*vflag*/) {
@@ -731,7 +731,7 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
 }
 
 /* ----------------------------------------------------------------------
-   final NVE of particles with NULL components
+   final NVE of particles with nullptr components
 ------------------------------------------------------------------------- */
 
 void FixMesoMove::final_integrate () {

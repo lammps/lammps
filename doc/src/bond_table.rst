@@ -1,10 +1,10 @@
 .. index:: bond_style table
+.. index:: bond_style table/omp
 
 bond_style table command
 ========================
 
-bond_style table/omp command
-============================
+Accelerator Variants: *table/omp*
 
 Syntax
 """"""
@@ -128,7 +128,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This bond style writes the settings for the "bond_style table"
 command to :doc:`binary restart files <restart>`, so a bond_style
@@ -150,4 +151,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -16,28 +16,28 @@
 ------------------------------------------------------------------------- */
 
 #include "tad.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "update.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "neb.h"
 #include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix_event_tad.h"
 #include "fix_store.h"
 #include "force.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
+#include "integrate.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "min.h"
+#include "modify.h"
+#include "neb.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +50,7 @@ TAD::TAD(LAMMPS *lmp) : Pointers(lmp) {}
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != NULL) delete [] neb_logfilename;
+  if (neb_logfilename != nullptr) delete [] neb_logfilename;
   delete [] min_style;
   delete [] min_style_neb;
 }
@@ -62,7 +62,7 @@ TAD::~TAD()
 
 void TAD::command(int narg, char **arg)
 {
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
   nmin_event_list = 10;
@@ -77,17 +77,17 @@ void TAD::command(int narg, char **arg)
     error->all(FLERR,"Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
     error->all(FLERR,"Cannot use TAD with atom_modify sort enabled for NEB");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use TAD unless atom map exists for NEB");
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
-  nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  templo = force->numeric(FLERR,arg[2]);
-  temphi = force->numeric(FLERR,arg[3]);
-  delta_conf = force->numeric(FLERR,arg[4]);
-  tmax = force->numeric(FLERR,arg[5]);
+  nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  templo = utils::numeric(FLERR,arg[2],false,lmp);
+  temphi = utils::numeric(FLERR,arg[3],false,lmp);
+  delta_conf = utils::numeric(FLERR,arg[4],false,lmp);
+  tmax = utils::numeric(FLERR,arg[5],false,lmp);
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
@@ -226,8 +226,8 @@ void TAD::command(int narg, char **arg)
 
   ulogfile_lammps = universe->ulogfile;
   uscreen_lammps = universe->uscreen;
-  ulogfile_neb = NULL;
-  uscreen_neb = NULL;
+  ulogfile_neb = nullptr;
+  uscreen_neb = nullptr;
   if (me_universe == 0 && neb_logfilename)
     ulogfile_neb = fopen(neb_logfilename,"w");
 
@@ -421,7 +421,7 @@ void TAD::command(int narg, char **arg)
   modify->delete_fix("tad_revert");
   delete_event_list();
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -586,16 +586,16 @@ void TAD::options(int narg, char **arg)
   min_style_neb = new char[n];
   strcpy(min_style_neb,"quickmin");
   dt_neb = update->dt;
-  neb_logfilename = NULL;
+  neb_logfilename = nullptr;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal tad command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0 || maxeval < 0 ||
           etol < 0.0 || ftol < 0.0 )
         error->all(FLERR,"Illegal tad command");
@@ -603,11 +603,11 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal tad command");
-      etol_neb = force->numeric(FLERR,arg[iarg+1]);
-      ftol_neb = force->numeric(FLERR,arg[iarg+2]);
-      n1steps_neb = force->inumeric(FLERR,arg[iarg+3]);
-      n2steps_neb = force->inumeric(FLERR,arg[iarg+4]);
-      nevery_neb = force->inumeric(FLERR,arg[iarg+5]);
+      etol_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol_neb = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      n1steps_neb = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      n2steps_neb = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      nevery_neb = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (etol_neb < 0.0 || ftol_neb < 0.0 ||
           n1steps_neb < 0 || n2steps_neb < 0 ||
           nevery_neb < 0) error->all(FLERR,"Illegal tad command");
@@ -623,14 +623,14 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb_step") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      dt_neb = force->numeric(FLERR,arg[iarg+1]);
+      dt_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (dt_neb <= 0.0) error->all(FLERR,"Illegal tad command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
       delete [] neb_logfilename;
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = NULL;
+      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
         int n = strlen(arg[iarg+1]) + 1;
         neb_logfilename = new char[n];
@@ -885,7 +885,7 @@ void TAD::delete_event_list() {
     modify->delete_fix(str);
   }
   memory->sfree(fix_event_list);
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
 

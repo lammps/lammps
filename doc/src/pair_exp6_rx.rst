@@ -1,10 +1,10 @@
 .. index:: pair_style exp6/rx
+.. index:: pair_style exp6/rx/kk
 
 pair_style exp6/rx command
 ==========================
 
-pair_style exp6/rx/kk command
-=============================
+Accelerator Variants: *exp6/rx/kk*
 
 Syntax
 """"""
@@ -156,7 +156,8 @@ comprise the gas mixture.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -185,4 +186,8 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** fractional weighting
+Default
+"""""""
+
+fractional weighting
+

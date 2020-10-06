@@ -1,10 +1,10 @@
 .. index:: compute coord/atom
+.. index:: compute coord/atom/kk
 
 compute coord/atom command
 ==========================
 
-compute coord/atom/kk command
-===================================
+Accelerator Variants: *coord/atom/kk*
 
 Syntax
 """"""
@@ -120,7 +120,8 @@ too frequently.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 For *cstyle* cutoff, this compute can calculate a per-atom vector or
 array.  If single *type1* keyword is specified (or if none are

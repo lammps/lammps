@@ -1,10 +1,10 @@
 .. index:: bond_style harmonic/shift/cut
+.. index:: bond_style harmonic/shift/cut/omp
 
 bond_style harmonic/shift/cut command
 =====================================
 
-bond_style harmonic/shift/cut/omp command
-=========================================
+Accelerator Variants: *harmonic/shift/cut/omp*
 
 Syntax
 """"""
@@ -64,4 +64,7 @@ Related commands
 :doc:`bond_harmonic <bond_harmonic>`,
 :doc:`bond_style harmonic/shift <bond_harmonic_shift>`
 
-**Default:** none
+Default
+"""""""
+
+none

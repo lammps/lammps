@@ -14,7 +14,7 @@
 #include "fix_press_berendsen.h"
 #include <cstring>
 #include <cmath>
-#include <string>
+
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -37,7 +37,7 @@ enum{ISO,ANISO};
 
 FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_temp(NULL), id_press(NULL), tflag(0), pflag(0)
+  id_temp(nullptr), id_press(nullptr), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix press/berendsen command");
 
@@ -68,9 +68,9 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -81,9 +81,9 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -94,25 +94,25 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
-      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
-      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[1] = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
-      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[2] = 1;
       iarg += 4;
       if (dimension == 2)
@@ -132,7 +132,7 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"modulus") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix press/berendsen command");
-      bulkmodulus = force->numeric(FLERR,arg[iarg+1]);
+      bulkmodulus = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (bulkmodulus <= 0.0)
         error->all(FLERR,"Illegal fix press/berendsen command");
       iarg += 2;
@@ -239,7 +239,7 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   pflag = 1;
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -308,7 +308,7 @@ void FixPressBerendsen::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;

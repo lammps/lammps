@@ -1,10 +1,10 @@
 .. index:: fix rx
+.. index:: fix rx/kk
 
 fix rx command
 ==============
 
-fix rx/kk command
-=================
+Accelerator Variants: *rx/kk*
 
 Syntax
 """"""
@@ -222,4 +222,7 @@ Related commands
 :doc:`fix shardlow <fix_shardlow>`,
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -299,7 +299,8 @@ Dozens of pair styles and a version of the PPPM long-range Coulombic
 solver optimized for GPUs.  All such styles have a "gpu" as a suffix
 in their style name. The GPU code can be compiled with either CUDA or
 OpenCL, however the OpenCL variants are no longer actively maintained
-and only the CUDA versions are regularly tested.  The :doc:`Speed gpu <Speed_gpu>` doc page gives details of what hardware and GPU
+and only the CUDA versions are regularly tested.  The
+:doc:`Speed_gpu` page gives details of what hardware and GPU
 software is required on your system, and details on how to build and
 use this package.  Its styles can be invoked at run time via the "-sf
 gpu" or "-suffix gpu" :doc:`command-line switches <Run_options>`.  See
@@ -318,8 +319,8 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * src/GPU: filenames -> commands
 * src/GPU/README
 * lib/gpu/README
-* :doc:`Speed packages <Speed_packages>`
-* :doc:`Speed gpu <Speed_gpu>`
+* :doc:`Accelerator packages <Speed_packages>`
+* :doc:`GPU package <Speed_gpu>`
 * :doc:`Section 2.6 -sf gpu <Run_options>`
 * :doc:`Section 2.6 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
@@ -433,7 +434,7 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  The :doc:`Speed kokkos <Speed_kokkos>` doc page gives
+style name.  The :doc:`KOKKOS package <Speed_kokkos>` doc page gives
 details of what hardware and software is required on your system, and
 how to build and use this package.  Its styles can be invoked at run
 time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
@@ -463,8 +464,8 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * src/KOKKOS: filenames -> commands
 * src/KOKKOS/README
 * lib/kokkos/README
-* :doc:`Speed packages <Speed_packages>`
-* :doc:`Speed kokkos <Speed_kokkos>`
+* :doc:`Accelerator packages <Speed_packages>`
+* :doc:`KOKKOS package <Speed_kokkos>`
 * :doc:`Section 2.6 -k on ... <Run_options>`
 * :doc:`Section 2.6 -sf kk <Run_options>`
 * :doc:`Section 2.6 -pk kokkos <Run_options>`
@@ -665,7 +666,7 @@ A general interface for machine-learning interatomic potentials.
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package<PKG-SNAP>` needs to be installed.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be installed.
 
 **Author:** Aidan Thompson (Sandia).
 
@@ -773,7 +774,7 @@ OPT package
 A handful of pair styles which are optimized for improved CPU
 performance on single or multiple cores.  These include EAM, LJ,
 CHARMM, and Morse potentials.  The styles have an "opt" suffix in
-their style name.  The :doc:`Speed opt <Speed_opt>` doc page gives
+their style name.  The :doc:`OPT package <Speed_opt>` doc page gives
 details of how to build and use this package.  Its styles can be
 invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
 :ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
@@ -789,8 +790,8 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 **Supporting info:**
 
 * src/OPT: filenames -> commands
-* :doc:`Speed packages <Speed_packages>`
-* :doc:`Speed opt <Speed_opt>`
+* :doc:`Accelerator packages <Speed_packages>`
+* :doc:`OPT package <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
@@ -1541,7 +1542,8 @@ USER-INTEL package
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
 styles which are optimized for Intel CPUs and KNLs (Knights Landing).
-All of them have an "intel" in their style name.  The :doc:`Speed intel <Speed_intel>` doc page gives details of what hardware and
+All of them have an "intel" in their style name.  The
+:doc:`USER-INTEL package <Speed_intel>` page gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
 "-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
@@ -1567,8 +1569,8 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 
 * src/USER-INTEL: filenames -> commands
 * src/USER-INTEL/README
-* :doc:`Speed packages <Speed_packages>`
-* :doc:`Speed intel <Speed_intel>`
+* :doc:`Accelerator packages <Speed_packages>`
+* :doc:`USER-INTEL package <Speed_intel>`
 * :doc:`Section 2.6 -sf intel <Run_options>`
 * :doc:`Section 2.6 -pk intel <Run_options>`
 * :doc:`package intel <package>`
@@ -1692,7 +1694,7 @@ USER-MEAMC package
 **Contents:**
 
 A pair style for the modified embedded atom (MEAM) potential
-translated from the Fortran version in the (obsolete) "MEAM" package
+translated from the Fortran version in the (obsolete) MEAM package
 to plain C++. The USER-MEAMC fully replaces the MEAM package, which
 has been removed from LAMMPS after the 12 December 2018 version.
 
@@ -1915,7 +1917,7 @@ USER-OMP package
 Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and
 kspace styles which are altered to enable threading on many-core CPUs
 via OpenMP directives.  All of them have an "omp" in their style name.
-The :doc:`Speed omp <Speed_omp>` doc page gives details of what hardware
+The :doc:`USER-OMP package <Speed_omp>` page gives details of what hardware
 and compilers are required on your system, and how to build and use
 this package.  Its styles can be invoked at run time via the "-sf omp"
 or "-suffix omp" :doc:`command-line switches <Run_options>`.  Also see
@@ -1947,8 +1949,8 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 
 * src/USER-OMP: filenames -> commands
 * src/USER-OMP/README
-* :doc:`Speed packages <Speed_packages>`
-* :doc:`Speed omp <Speed_omp>`
+* :doc:`Accelerator packages <Speed_packages>`
+* :doc:`USER-OMP package <Speed_omp>`
 * :doc:`Section 2.6 -sf omp <Run_options>`
 * :doc:`Section 2.6 -pk omp <Run_options>`
 * :doc:`package omp <package>`

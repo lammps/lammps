@@ -47,6 +47,7 @@
 #include <iostream>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Bitset.hpp>
+#include <array>
 
 namespace Test {
 
@@ -54,9 +55,9 @@ namespace Impl {
 
 template <typename Bitset, bool Set>
 struct TestBitset {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -95,9 +96,9 @@ struct TestBitset {
 
 template <typename Bitset>
 struct TestBitsetTest {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -127,9 +128,9 @@ struct TestBitsetTest {
 
 template <typename Bitset, bool Set>
 struct TestBitsetAny {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -181,16 +182,30 @@ struct TestBitsetAny {
 
 template <typename Device>
 void test_bitset() {
-  typedef Kokkos::Bitset<Device> bitset_type;
-  typedef Kokkos::ConstBitset<Device> const_bitset_type;
+  using bitset_type       = Kokkos::Bitset<Device>;
+  using const_bitset_type = Kokkos::ConstBitset<Device>;
 
-  // unsigned test_sizes[] = { 0u, 1000u, 1u<<14, 1u<<16, 10000001 };
-  unsigned test_sizes[] = {1000u, 1u << 14, 1u << 16, 10000001};
+  {
+    unsigned ts = 100u;
+    bitset_type b1;
+    ASSERT_TRUE(b1.is_allocated());
 
-  for (int i = 0, end = sizeof(test_sizes) / sizeof(unsigned); i < end; ++i) {
+    b1 = bitset_type(ts);
+    bitset_type b2(b1);
+    bitset_type b3(ts);
+
+    ASSERT_TRUE(b1.is_allocated());
+    ASSERT_TRUE(b2.is_allocated());
+    ASSERT_TRUE(b3.is_allocated());
+  }
+
+  std::array<unsigned, 7> test_sizes = {
+      {0u, 10u, 100u, 1000u, 1u << 14, 1u << 16, 10000001}};
+
+  for (const auto test_size : test_sizes) {
     // std::cout << "Bitset " << test_sizes[i] << std::endl;
 
-    bitset_type bitset(test_sizes[i]);
+    bitset_type bitset(test_size);
 
     // std::cout << "  Check initial count " << std::endl;
     // nothing should be set
@@ -253,10 +268,7 @@ void test_bitset() {
   }
 }
 
-// FIXME_HIP deadlock
-#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, bitset) { test_bitset<TEST_EXECSPACE>(); }
-#endif
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_BITSET_HPP

@@ -1,10 +1,10 @@
 .. index:: dihedral_style quadratic
+.. index:: dihedral_style quadratic/omp
 
 dihedral_style quadratic command
 ================================
 
-dihedral_style quadratic/omp command
-====================================
+Accelerator Variants: *quadratic/omp*
 
 Syntax
 """"""
@@ -64,4 +64,7 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

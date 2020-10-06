@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_cd.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -29,8 +29,8 @@
 #include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 
@@ -44,9 +44,9 @@ PairEAMCD::PairEAMCD(LAMMPS *lmp, int _cdeamVersion)
   restartinfo = 0;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  rhoB = NULL;
-  D_values = NULL;
-  hcoeff = NULL;
+  rhoB = nullptr;
+  D_values = nullptr;
+  hcoeff = nullptr;
 
   // Set communication buffer sizes needed by this pair style.
 
@@ -504,15 +504,15 @@ void PairEAMCD::read_h_coeff(char *filename)
     char line[MAXLINE];
     char nextline[MAXLINE];
     int convert_flag = unit_convert_flag;
-    fptr = force->open_potential(filename, &convert_flag);
-    if (fptr == NULL)
+    fptr = utils::open_potential(filename, lmp, &convert_flag);
+    if (fptr == nullptr)
       error->one(FLERR,fmt::format("Cannot open EAMCD potential file {}",
                                    filename));
 
     // h coefficients are stored at the end of the file.
     // Skip to last line of file.
 
-    while(fgets(nextline, MAXLINE, fptr) != NULL) {
+    while(fgets(nextline, MAXLINE, fptr) != nullptr) {
       strcpy(line, nextline);
     }
 

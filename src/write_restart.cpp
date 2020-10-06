@@ -12,32 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "write_restart.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "mpiio.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "mpiio.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 
 #include "lmprestart.h"
 
@@ -51,7 +49,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -159,7 +157,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
 
       multiproc = nprocs/nper;
@@ -177,7 +175,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
       nfile = MIN(nfile,nprocs);
 
@@ -233,7 +231,7 @@ void WriteRestart::write(std::string file)
     if (multiproc) base.replace(base.find("%"),1,"base");
 
     fp = fopen(base.c_str(),"wb");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                     base, utils::getsyserror()));
   }
@@ -288,7 +286,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
 
     std::string multiname = file;
@@ -296,7 +294,7 @@ void WriteRestart::write(std::string file)
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                       multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
@@ -365,7 +363,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
     mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
@@ -395,7 +393,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
 
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -426,7 +424,7 @@ void WriteRestart::write(std::string file)
 
 void WriteRestart::header()
 {
-  write_string(VERSION,universe->version);
+  write_string(VERSION,lmp->version);
   write_int(SMALLINT,sizeof(smallint));
   write_int(IMAGEINT,sizeof(imageint));
   write_int(TAGINT,sizeof(tagint));
@@ -633,7 +631,7 @@ void WriteRestart::version_numeric()
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and an int into restart file
+   write a flag and an int into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int(int flag, int value)
@@ -643,7 +641,7 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a bigint into restart file
+   write a flag and a bigint into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_bigint(int flag, bigint value)
@@ -653,7 +651,7 @@ void WriteRestart::write_bigint(int flag, bigint value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a double into restart file
+   write a flag and a double into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double(int flag, double value)
@@ -663,7 +661,8 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char string (including NULL) into restart file
+   write a flag and a C-style char string (including the terminating null
+   byte) into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_string(int flag, const char *value)
@@ -675,7 +674,7 @@ void WriteRestart::write_string(int flag, const char *value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N ints into restart file
+   write a flag and vector of N ints into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int_vec(int flag, int n, int *vec)
@@ -686,7 +685,7 @@ void WriteRestart::write_int_vec(int flag, int n, int *vec)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N doubles into restart file
+   write a flag and vector of N doubles into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double_vec(int flag, int n, double *vec)

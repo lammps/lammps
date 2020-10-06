@@ -17,14 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_viscosity.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
 #include "error.h"
-#include "force.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,13 +37,13 @@ using namespace FixConst;
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pos_index(NULL), neg_index(NULL), pos_delta(NULL), neg_delta(NULL)
+  pos_index(nullptr), neg_index(nullptr), pos_delta(nullptr), neg_delta(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix viscosity command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix viscosity command");
 
   scalar_flag = 1;
@@ -60,7 +60,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[5],"z") == 0) pdim = 2;
   else error->all(FLERR,"Illegal fix viscosity command");
 
-  nbin = force->inumeric(FLERR,arg[6]);
+  nbin = utils::inumeric(FLERR,arg[6],false,lmp);
   if (nbin % 2 || nbin <= 2) error->all(FLERR,"Illegal fix viscosity command");
 
   // optional keywords
@@ -72,14 +72,14 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
-      nswap = force->inumeric(FLERR,arg[iarg+1]);
+      nswap = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nswap <= 0)
         error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       if (strcmp(arg[iarg+1],"INF") == 0) vtarget = BIG;
-      else vtarget = force->numeric(FLERR,arg[iarg+1]);
+      else vtarget = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (vtarget <= 0.0)
         error->all(FLERR,"Fix viscosity vtarget value must be positive");
       iarg += 2;

@@ -1,10 +1,10 @@
 .. index:: bond_style harmonic/shift
+.. index:: bond_style harmonic/shift/omp
 
 bond_style harmonic/shift command
 =================================
 
-bond_style harmonic/shift/omp command
-=====================================
+Accelerator Variants: *harmonic/shift/omp*
 
 Syntax
 """"""
@@ -65,4 +65,7 @@ Related commands
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`,
 :doc:`bond_harmonic <bond_harmonic>`
 
-**Default:** none
+Default
+"""""""
+
+none

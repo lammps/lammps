@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_chunk.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include <cstring>
 #include <unistd.h>
 #include "atom.h"
@@ -27,8 +27,8 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,20 +46,20 @@ enum{ONE,RUNNING,WINDOW};
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nvalues(0), nrepeat(0),
-  which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
-  fp(NULL), idchunk(NULL), varatom(NULL),
-  count_one(NULL), count_many(NULL), count_sum(NULL),
-  values_one(NULL), values_many(NULL), values_sum(NULL),
-  count_total(NULL), count_list(NULL),
-  values_total(NULL), values_list(NULL)
+  which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr),
+  fp(nullptr), idchunk(nullptr), varatom(nullptr),
+  count_one(nullptr), count_many(nullptr), count_sum(nullptr),
+  values_one(nullptr), values_many(nullptr), values_sum(nullptr),
+  count_total(nullptr), count_list(nullptr),
+  values_total(nullptr), values_list(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/chunk command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   int n = strlen(arg[6]) + 1;
   idchunk = new char[n];
@@ -72,7 +72,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-7,&arg[7],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-7,&arg[7],1,earg,lmp);
 
   if (earg != &arg[7]) expand = 1;
   arg = earg;
@@ -88,7 +88,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 0;
   while (iarg < nargnew) {
 
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = V;
@@ -164,15 +164,15 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   ave = ONE;
   nwindow = 0;
   biasflag = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   adof = domain->dimension;
   cdof = 0.0;
   overwrite = 0;
-  format_user = NULL;
+  format_user = nullptr;
   format = (char *) " %g";
-  char *title1 = NULL;
-  char *title2 = NULL;
-  char *title3 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
+  char *title3 = nullptr;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
@@ -196,7 +196,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix ave/chunk command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/chunk command");
       }
       iarg += 2;
@@ -213,19 +213,19 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
-      adof = force->numeric(FLERR,arg[iarg+1]);
+      adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
-      cdof = force->numeric(FLERR,arg[iarg+1]);
+      cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL)
+        if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/chunk file {}: {}",
                                        arg[iarg+1], utils::getsyserror()));
       }
@@ -409,12 +409,12 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   normcount = 0;
 
   maxvar = 0;
-  varatom = NULL;
+  varatom = nullptr;
 
-  count_one = count_many = count_sum = count_total = NULL;
-  count_list = NULL;
-  values_one = values_many = values_sum = values_total = NULL;
-  values_list = NULL;
+  count_one = count_many = count_sum = count_total = nullptr;
+  count_list = nullptr;
+  values_one = values_many = values_sum = values_total = nullptr;
+  values_list = nullptr;
 
   maxchunk = 0;
   nchunk = 1;
@@ -466,24 +466,24 @@ FixAveChunk::~FixAveChunk()
   }
 
   delete [] idchunk;
-  which = NULL;
-  argindex = NULL;
-  ids = NULL;
-  value2index = NULL;
-  fp = NULL;
-  varatom = NULL;
-  count_one = NULL;
-  count_many = NULL;
-  count_sum = NULL;
-  count_total = NULL;
-  count_list = NULL;
-  values_one = NULL;
-  values_many = NULL;
-  values_sum = NULL;
-  values_total = NULL;
-  values_list = NULL;
-  idchunk = NULL;
-  cchunk = NULL;
+  which = nullptr;
+  argindex = nullptr;
+  ids = nullptr;
+  value2index = nullptr;
+  fp = nullptr;
+  varatom = nullptr;
+  count_one = nullptr;
+  count_many = nullptr;
+  count_sum = nullptr;
+  count_total = nullptr;
+  count_list = nullptr;
+  values_one = nullptr;
+  values_many = nullptr;
+  values_sum = nullptr;
+  values_total = nullptr;
+  values_list = nullptr;
+  idchunk = nullptr;
+  cchunk = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1110,7 +1110,7 @@ void FixAveChunk::allocate()
 
 double FixAveChunk::compute_array(int i, int j)
 {
-  if (values_total == NULL) return 0.0;
+  if (values_total == nullptr) return 0.0;
   if (i >= nchunk) return 0.0;
   if (j < colextra) {
     if (cchunk->compress) {

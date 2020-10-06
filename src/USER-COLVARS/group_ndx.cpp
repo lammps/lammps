@@ -17,12 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "group_ndx.h"
-#include <mpi.h>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
-#include "group.h"
 #include "error.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -144,7 +143,7 @@ void Group2Ndx::command(int narg, char **arg)
 
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,"Cannot open index file for writing");
 
     if (screen)

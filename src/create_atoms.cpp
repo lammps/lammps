@@ -16,31 +16,27 @@
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "comm.h"
-#include "irregular.h"
-#include "modify.h"
-#include "force.h"
-#include "special.h"
 #include "domain.h"
-#include "lattice.h"
-#include "region.h"
-#include "input.h"
-#include "variable.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "math_extra.h"
-#include "math_const.h"
 #include "error.h"
+#include "input.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "special.h"
+#include "variable.h"
 
-#include <string>
-#include "utils.h"
-#include "fmt/format.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -88,7 +84,7 @@ void CreateAtoms::command(int narg, char **arg)
   // parse arguments
 
   if (narg < 2) error->all(FLERR,"Illegal create_atoms command");
-  ntype = force->inumeric(FLERR,arg[0]);
+  ntype = utils::inumeric(FLERR,arg[0],false,lmp);
 
   int iarg;
   if (strcmp(arg[1],"box") == 0) {
@@ -107,15 +103,15 @@ void CreateAtoms::command(int narg, char **arg)
   } else if (strcmp(arg[1],"single") == 0) {
     style = SINGLE;
     if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
-    xone[0] = force->numeric(FLERR,arg[2]);
-    xone[1] = force->numeric(FLERR,arg[3]);
-    xone[2] = force->numeric(FLERR,arg[4]);
+    xone[0] = utils::numeric(FLERR,arg[2],false,lmp);
+    xone[1] = utils::numeric(FLERR,arg[3],false,lmp);
+    xone[2] = utils::numeric(FLERR,arg[4],false,lmp);
     iarg = 5;
   } else if (strcmp(arg[1],"random") == 0) {
     style = RANDOM;
     if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
-    nrandom = force->inumeric(FLERR,arg[2]);
-    seed = force->inumeric(FLERR,arg[3]);
+    nrandom = utils::inumeric(FLERR,arg[2],false,lmp);
+    seed = utils::inumeric(FLERR,arg[3],false,lmp);
     if (strcmp(arg[4],"NULL") == 0) nregion = -1;
     else {
       nregion = domain->find_region(arg[4]);
@@ -134,7 +130,7 @@ void CreateAtoms::command(int narg, char **arg)
   mode = ATOM;
   int molseed;
   varflag = 0;
-  vstr = xstr = ystr = zstr = NULL;
+  vstr = xstr = ystr = zstr = nullptr;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
   subsetflag = NONE;
   int subsetseed;
@@ -146,8 +142,8 @@ void CreateAtoms::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      int ibasis = force->inumeric(FLERR,arg[iarg+1]);
-      int itype = force->inumeric(FLERR,arg[iarg+2]);
+      int ibasis = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      int itype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Invalid basis setting in create_atoms command");
       basistype[ibasis-1] = itype;
@@ -168,7 +164,7 @@ void CreateAtoms::command(int narg, char **arg)
                        "create_atoms has multiple molecules");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
-      molseed = force->inumeric(FLERR,arg[iarg+2]);
+      molseed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
@@ -207,10 +203,10 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
-      thetaone = force->numeric(FLERR,arg[iarg+1]) / 180.0 * MY_PI;;
-      axisone[0] = force->numeric(FLERR,arg[iarg+2]);
-      axisone[1] = force->numeric(FLERR,arg[iarg+3]);
-      axisone[2] = force->numeric(FLERR,arg[iarg+4]);
+      thetaone = utils::numeric(FLERR,arg[iarg+1],false,lmp) / 180.0 * MY_PI;;
+      axisone[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      axisone[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      axisone[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
         error->all(FLERR,"Illegal create_atoms command");
       if (domain->dimension == 2 && (axisone[0] != 0.0 || axisone[1] != 0.0))
@@ -221,16 +217,16 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"ratio") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       subsetflag = RATIO;
-      subsetfrac = force->numeric(FLERR,arg[iarg+1]);
-      subsetseed = force->inumeric(FLERR,arg[iarg+2]);
+      subsetfrac = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      subsetseed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"subset") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       subsetflag = SUBSET;
-      nsubset = force->bnumeric(FLERR,arg[iarg+1]);
-      subsetseed = force->inumeric(FLERR,arg[iarg+2]);
+      nsubset = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
+      subsetseed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nsubset <= 0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
@@ -249,7 +245,7 @@ void CreateAtoms::command(int narg, char **arg)
 
   // error check and further setup for mode = MOLECULE
 
-  ranmol = NULL;
+  ranmol = nullptr;
   if (mode == MOLECULE) {
     if (onemol->xflag == 0)
       error->all(FLERR,"Create_atoms molecule must have coordinates");
@@ -271,7 +267,7 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp,molseed+me);
   }
 
-  ranlatt = NULL;
+  ranlatt = nullptr;
   if (subsetflag != NONE) ranlatt = new RanMars(lmp,subsetseed+me);
 
   // error check and further setup for variable test
@@ -429,7 +425,7 @@ void CreateAtoms::command(int narg, char **arg)
   // if global map exists, reset it
   // invoke map_init() b/c atom count has grown
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
@@ -515,10 +511,10 @@ void CreateAtoms::command(int narg, char **arg)
             molecule[ilocal] = moloffset + 1;
           }
         }
-        if (molecular == 2) {
+        if (molecular == Atom::TEMPLATE) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
-        } else if (molecular) {
+        } else if (molecular != Atom::ATOMIC) {
           if (onemol->bondflag)
             for (int j = 0; j < num_bond[ilocal]; j++)
               bond_atom[ilocal][j] += offset;
@@ -589,7 +585,7 @@ void CreateAtoms::command(int narg, char **arg)
   // only if onemol added bonds but not special info
 
   if (mode == MOLECULE) {
-    if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
+    if (atom->molecular == Atom::MOLECULAR && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
 

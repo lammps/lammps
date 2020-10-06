@@ -1,37 +1,44 @@
 .. index:: pair_style born/coul/dsf/cs
+.. index:: pair_style born/coul/long/cs
+.. index:: pair_style born/coul/long/cs/gpu
+.. index:: pair_style born/coul/wolf/cs
+.. index:: pair_style born/coul/wolf/cs/gpu
+.. index:: pair_style buck/coul/long/cs
+.. index:: pair_style coul/long/cs
+.. index:: pair_style coul/long/cs/gpu
+.. index:: pair_style coul/wolf/cs
+.. index:: pair_style lj/cut/coul/long/cs
+.. index:: pair_style lj/class2/coul/long/cs
 
 pair_style born/coul/dsf/cs command
-====================================
+===================================
 
 pair_style born/coul/long/cs command
-=====================================
-
-pair_style born/coul/long/cs/gpu command
-=========================================
-
-pair_style born/coul/wolf/cs command
-=====================================
-
-pair_style born/coul/wolf/cs/gpu command
-=========================================
-
-pair_style buck/coul/long/cs command
-=====================================
-
-pair_style coul/long/cs command
-================================
-
-pair_style coul/long/cs/gpu command
 ====================================
 
+Accelerator Variants: *born/coul/long/cs/gpu*
+
+pair_style born/coul/wolf/cs command
+====================================
+
+Accelerator Variants: *born/coul/wolf/cs/gpu*
+
+pair_style buck/coul/long/cs command
+====================================
+
+pair_style coul/long/cs command
+===============================
+
+Accelerator Variants: *coul/long/cs/gpu*
+
 pair_style coul/wolf/cs command
-================================
+===============================
 
 pair_style lj/cut/coul/long/cs command
-=======================================
+======================================
 
 pair_style lj/class2/coul/long/cs command
-==========================================
+=========================================
 
 Syntax
 """"""
@@ -161,7 +168,8 @@ pair.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
@@ -181,7 +189,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`,
 :doc:`pair_style buck <pair_buck>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

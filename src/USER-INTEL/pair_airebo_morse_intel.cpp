@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo_morse_intel.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

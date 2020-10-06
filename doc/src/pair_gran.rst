@@ -1,25 +1,25 @@
 .. index:: pair_style gran/hooke
+.. index:: pair_style gran/hooke/omp
+.. index:: pair_style gran/hooke/history
+.. index:: pair_style gran/hooke/history/omp
+.. index:: pair_style gran/hooke/history/kk
+.. index:: pair_style gran/hertz/history
+.. index:: pair_style gran/hertz/history/omp
 
 pair_style gran/hooke command
 =============================
 
-pair_style gran/hooke/omp command
-=================================
+Accelerator Variants: *gran/hooke/omp*
 
 pair_style gran/hooke/history command
 =====================================
 
-pair_style gran/hooke/history/omp command
-=========================================
-
-pair_style gran/hooke/history/kk command
-========================================
+Accelerator Variants: *gran/hooke/history/omp*, *gran/hooke/history/kk*
 
 pair_style gran/hertz/history command
 =====================================
 
-pair_style gran/hertz/history/omp command
-=========================================
+Accelerator Variants: *gran/hertz/history/omp*
 
 Syntax
 """"""
@@ -214,7 +214,8 @@ potential.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
@@ -268,7 +269,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

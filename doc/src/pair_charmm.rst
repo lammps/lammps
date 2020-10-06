@@ -1,55 +1,46 @@
 .. index:: pair_style lj/charmm/coul/charmm
+.. index:: pair_style lj/charmm/coul/charmm/intel
+.. index:: pair_style lj/charmm/coul/charmm/kk
+.. index:: pair_style lj/charmm/coul/charmm/omp
+.. index:: pair_style lj/charmm/coul/charmm/implicit
+.. index:: pair_style lj/charmm/coul/charmm/implicit/kk
+.. index:: pair_style lj/charmm/coul/charmm/implicit/omp
+.. index:: pair_style lj/charmm/coul/long
+.. index:: pair_style lj/charmm/coul/long/gpu
+.. index:: pair_style lj/charmm/coul/long/intel
+.. index:: pair_style lj/charmm/coul/long/kk
+.. index:: pair_style lj/charmm/coul/long/opt
+.. index:: pair_style lj/charmm/coul/long/omp
+.. index:: pair_style lj/charmm/coul/msm
+.. index:: pair_style lj/charmm/coul/msm/omp
+.. index:: pair_style lj/charmmfsw/coul/charmmfsh
+.. index:: pair_style lj/charmmfsw/coul/long
 
 pair_style lj/charmm/coul/charmm command
-=========================================
+========================================
 
-pair_style lj/charmm/coul/charmm/intel command
-===============================================
-
-pair_style lj/charmm/coul/charmm/kk command
-============================================
-
-pair_style lj/charmm/coul/charmm/omp command
-=============================================
+Accelerator Variants: *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
 
 pair_style lj/charmm/coul/charmm/implicit command
-==================================================
+=================================================
 
-pair_style lj/charmm/coul/charmm/implicit/kk command
-=====================================================
-
-pair_style lj/charmm/coul/charmm/implicit/omp command
-======================================================
+Accelerator Variants: *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
 
 pair_style lj/charmm/coul/long command
-=======================================
-
-pair_style lj/charmm/coul/long/gpu command
-===========================================
-
-pair_style lj/charmm/coul/long/intel command
-=============================================
-
-pair_style lj/charmm/coul/long/kk command
-==========================================
-
-pair_style lj/charmm/coul/long/opt command
-===========================================
-
-pair_style lj/charmm/coul/long/omp command
-===========================================
-
-pair_style lj/charmm/coul/msm command
 ======================================
 
-pair_style lj/charmm/coul/msm/omp command
-==========================================
+Accelerator Variants: *lj/charmm/coul/long/gpu*, *lj/charmm/coul/long/intel*, *lj/charmm/coul/long/kk*, *lj/charmm/coul/long/opt*, *lj/charmm/coul/long/omp*
+
+pair_style lj/charmm/coul/msm command
+=====================================
+
+Accelerator Variants: *lj/charmm/coul/msm/omp*
 
 pair_style lj/charmmfsw/coul/charmmfsh command
-===============================================
+==============================================
 
 pair_style lj/charmmfsw/coul/long command
-==========================================
+=========================================
 
 Syntax
 """"""
@@ -239,7 +230,8 @@ the pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon, sigma, epsilon_14,
 and sigma_14 coefficients for all of the lj/charmm pair styles can be
@@ -290,7 +282,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

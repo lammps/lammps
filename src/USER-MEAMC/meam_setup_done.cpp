@@ -1,9 +1,23 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
 #include "meam.h"
+
+#include "math_special.h"
+#include "memory.h"
+
 #include <cmath>
 #include <cstddef>
 #include <algorithm>
-#include "math_special.h"
-#include "memory.h"
 
 using namespace LAMMPS_NS;
 
@@ -172,21 +186,21 @@ MEAM::compute_pair_meam(void)
   double C, s111, s112, s221, S11, S22;
 
   // check for previously allocated arrays and free them
-  if (this->phir != NULL)
+  if (this->phir != nullptr)
     memory->destroy(this->phir);
-  if (this->phirar != NULL)
+  if (this->phirar != nullptr)
     memory->destroy(this->phirar);
-  if (this->phirar1 != NULL)
+  if (this->phirar1 != nullptr)
     memory->destroy(this->phirar1);
-  if (this->phirar2 != NULL)
+  if (this->phirar2 != nullptr)
     memory->destroy(this->phirar2);
-  if (this->phirar3 != NULL)
+  if (this->phirar3 != nullptr)
     memory->destroy(this->phirar3);
-  if (this->phirar4 != NULL)
+  if (this->phirar4 != nullptr)
     memory->destroy(this->phirar4);
-  if (this->phirar5 != NULL)
+  if (this->phirar5 != nullptr)
     memory->destroy(this->phirar5);
-  if (this->phirar6 != NULL)
+  if (this->phirar6 != nullptr)
     memory->destroy(this->phirar6);
 
   // allocate memory for array that defines the potential

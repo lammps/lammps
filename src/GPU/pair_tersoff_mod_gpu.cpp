@@ -18,7 +18,7 @@
 #include "pair_tersoff_mod_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -73,7 +73,7 @@ PairTersoffMODGPU::PairTersoffMODGPU(LAMMPS *lmp) : PairTersoffMOD(lmp),
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -160,11 +160,11 @@ void PairTersoffMODGPU::init_style()
   double *biga, *bigb, *bigr, *bigd;
   double *c1, *c2, *c3, *c4, *c5, *h;
   double *beta, *powern, *ca1, *powern_del, *_cutsq;
-  lam1 = lam2 = lam3 = powermint = NULL;
-  biga = bigb = bigr = bigd = NULL;
-  powern_del = ca1 = NULL;
-  c1 = c2 = c3 = c4 = c5 = h = NULL;
-  beta = powern = _cutsq = NULL;
+  lam1 = lam2 = lam3 = powermint = nullptr;
+  biga = bigb = bigr = bigd = nullptr;
+  powern_del = ca1 = nullptr;
+  c1 = c2 = c3 = c4 = c5 = h = nullptr;
+  beta = powern = _cutsq = nullptr;
 
   memory->create(lam1,nparams,"pair:lam1");
   memory->create(lam2,nparams,"pair:lam2");

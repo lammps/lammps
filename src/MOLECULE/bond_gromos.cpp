@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_gromos.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -123,10 +123,10 @@ void BondGromos::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double r0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -167,8 +167,8 @@ void BondGromos::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -204,5 +204,5 @@ void *BondGromos::extract(const char *str, int &dim)
   dim = 1;
   if (strcmp(str,"kappa")==0) return (void*) k;
   if (strcmp(str,"r0")==0) return (void*) r0;
-  return NULL;
+  return nullptr;
 }

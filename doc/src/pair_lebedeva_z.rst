@@ -67,7 +67,10 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`.
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

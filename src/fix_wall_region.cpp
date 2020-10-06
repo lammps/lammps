@@ -12,17 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "math_const.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/region command");
 
@@ -71,18 +71,18 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 9)
       error->all(FLERR,"Illegal fix wall/region command");
 
-    epsilon = force->numeric(FLERR,arg[5]);
-    alpha = force->numeric(FLERR,arg[6]);
-    sigma = force->numeric(FLERR,arg[7]);
-    cutoff = force->numeric(FLERR,arg[8]);
+    epsilon = utils::numeric(FLERR,arg[5],false,lmp);
+    alpha = utils::numeric(FLERR,arg[6],false,lmp);
+    sigma = utils::numeric(FLERR,arg[7],false,lmp);
+    cutoff = utils::numeric(FLERR,arg[8],false,lmp);
 
   } else {
     if (narg != 8)
       error->all(FLERR,"Illegal fix wall/region command");
 
-    epsilon = force->numeric(FLERR,arg[5]);
-    sigma = force->numeric(FLERR,arg[6]);
-    cutoff = force->numeric(FLERR,arg[7]);
+    epsilon = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma = utils::numeric(FLERR,arg[6],false,lmp);
+    cutoff = utils::numeric(FLERR,arg[7],false,lmp);
   }
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");

@@ -12,18 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_tersoff_table_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define GRIDSTART 0.1
@@ -44,8 +43,8 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 
-  thrGtetaFunction = thrGtetaFunctionDerived = NULL;
-  thrCutoffFunction = thrCutoffFunctionDerived = NULL;
+  thrGtetaFunction = thrGtetaFunctionDerived = nullptr;
+  thrCutoffFunction = thrCutoffFunctionDerived = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +76,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag)
       if (vflag_atom) eval<1,1>(ifrom, ito, thr);

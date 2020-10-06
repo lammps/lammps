@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_nonlinear.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -123,11 +123,11 @@ void BondNonlinear::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[1]);
-  double r0_one = force->numeric(FLERR,arg[2]);
-  double lamda_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double lamda_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -168,9 +168,9 @@ void BondNonlinear::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&epsilon[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&lamda[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&epsilon[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&lamda[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&epsilon[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -211,5 +211,5 @@ void *BondNonlinear::extract(const char *str, int &dim)
   dim = 1;
   if (strcmp(str,"epsilon")==0) return (void*) epsilon;
   if (strcmp(str,"r0")==0) return (void*) r0;
-  return NULL;
+  return nullptr;
 }

@@ -1,10 +1,10 @@
 .. index:: fix eos/table/rx
+.. index:: fix eos/table/rx/kk
 
 fix eos/table/rx command
 ========================
 
-fix eos/table/rx/kk command
-===========================
+Accelerator Variants: *eos/table/rx/kk*
 
 Syntax
 """"""
@@ -194,4 +194,7 @@ Related commands
 :doc:`fix rx <fix_rx>`,
 :doc:`pair dpd/fdt <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

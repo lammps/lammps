@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lcbop.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,7 +29,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -48,13 +48,13 @@ PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
 
   maxlocal = 0;
-  SR_numneigh = NULL;
-  SR_firstneigh = NULL;
-  ipage = NULL;
+  SR_numneigh = nullptr;
+  SR_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  N = NULL;
-  M = NULL;
+  N = nullptr;
+  M = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -135,8 +135,8 @@ void PairLCBOP::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // read args that map atom types to C and NULL
-  // map[i] = which element (0 for C) the Ith atom type is, -1 if NULL
+  // read args that map atom types to C and "NULL"
+  // map[i] = which element (0 for C) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -193,7 +193,7 @@ void PairLCBOP::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -969,8 +969,8 @@ void PairLCBOP::read_file(char *filename)
   // read file on proc 0
 
   if (me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if (fp == NULL) {
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open LCBOP potential file %s",filename);
       error->one(FLERR,str);

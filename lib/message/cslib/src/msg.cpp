@@ -80,9 +80,9 @@ void Msg::allocate(int nheader, int &maxheader, int *&header,
 
 void *Msg::smalloc(int nbytes)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
   void *ptr = (void *) malloc(nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"Failed to allocate %d bytes",nbytes);
   }
@@ -93,7 +93,7 @@ void *Msg::smalloc(int nbytes)
 
 void Msg::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   free(ptr);
 }
 

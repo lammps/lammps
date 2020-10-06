@@ -1,22 +1,19 @@
 .. index:: pair_style tersoff/mod
+.. index:: pair_style tersoff/mod/c
+.. index:: pair_style tersoff/mod/gpu
+.. index:: pair_style tersoff/mod/kk
+.. index:: pair_style tersoff/mod/omp
+.. index:: pair_style tersoff/mod/c/omp
 
 pair_style tersoff/mod command
 ==============================
 
+Accelerator Variants: *tersoff/mod/gpu*, *tersoff/mod/kk*, *tersoff/mod/omp*
+
 pair_style tersoff/mod/c command
 ================================
 
-pair_style tersoff/mod/gpu command
-==================================
-
-pair_style tersoff/mod/kk command
-=================================
-
-pair_style tersoff/mod/omp command
-==================================
-
-pair_style tersoff/mod/c/omp command
-====================================
+Accelerator Variants: *tersoff/mod/c/omp*
 
 Syntax
 """"""
@@ -165,7 +162,8 @@ for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -200,7 +198,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <strings.h>
 #include "atom.h"
@@ -39,7 +39,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -117,16 +117,16 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_hbond = 0;
   system->bndry_cuts.ghost_bond = 0;
   system->bndry_cuts.ghost_cutoff = 0;
-  system->my_atoms = NULL;
+  system->my_atoms = nullptr;
   system->pair_ptr = this;
   system->error_ptr = error;
   control->error_ptr = error;
 
   system->omp_active = 0;
 
-  fix_reax = NULL;
-  tmpid = NULL;
-  tmpbo = NULL;
+  fix_reax = nullptr;
+  tmpid = nullptr;
+  tmpbo = nullptr;
 
   nextra = 14;
   pvector = new double[nextra];
@@ -274,20 +274,20 @@ void PairReaxC::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->safezone = force->numeric(FLERR,arg[iarg+1]);
+      system->safezone = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (system->safezone < 0.0)
         error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->mincap = force->inumeric(FLERR,arg[iarg+1]);
+      system->mincap = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (system->mincap < 0)
         error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"minhbonds") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->minhbonds = force->inumeric(FLERR,arg[iarg+1]);
+      system->minhbonds = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (system->minhbonds < 0)
         error->all(FLERR,"Illegal pair_style reax/c minhbonds command");
       iarg += 2;
@@ -317,8 +317,8 @@ void PairReaxC::coeff( int nargs, char **args )
 
   char *file = args[2];
   FILE *fp;
-  fp = force->open_potential(file);
-  if (fp != NULL)
+  fp = utils::open_potential(file,lmp,nullptr);
+  if (fp != nullptr)
     Read_Force_Field(fp, &(system->reax_param), control);
   else {
       char str[128];
@@ -327,7 +327,7 @@ void PairReaxC::coeff( int nargs, char **args )
   }
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   int itmp = 0;
   int nreax_types = system->reax_param.num_atom_types;
@@ -424,7 +424,7 @@ void PairReaxC::init_style( )
     if (lists[i].allocated != 1)
       lists[i].allocated = 0;
 
-  if (fix_reax == NULL) {
+  if (fix_reax == nullptr) {
     char **fixarg = new char*[3];
     fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
@@ -819,7 +819,7 @@ void *PairReaxC::extract(const char *str, int &dim)
       else gamma[i] = 0.0;
     return (void *) gamma;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

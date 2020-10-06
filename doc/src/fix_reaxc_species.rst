@@ -1,10 +1,10 @@
 .. index:: fix reax/c/species
+.. index:: fix reax/c/species/kk
 
 fix reax/c/species command
 ==========================
 
-fix reax/c/species/kk command
-=============================
+Accelerator Variants: *reax/c/species/kk*
 
 Syntax
 """"""
@@ -112,7 +112,8 @@ average bond-order for the species analysis output on timestep 100.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

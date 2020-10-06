@@ -16,28 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_awpmd_cut.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <map>
-#include <utility>
+
 #include "atom.h"
-#include "update.h"
-#include "min.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
+#include "min.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+#include "update.h"
 
 #include "logexc.h"
 #include "vector_3.h"
 #include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
+
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -48,8 +49,8 @@ PairAWPMDCut::PairAWPMDCut(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
 
   nmax = 0;
-  min_var = NULL;
-  min_varforce = NULL;
+  min_var = nullptr;
+  min_varforce = nullptr;
   nextra = 4;
   pvector = new double[nextra];
 
@@ -81,7 +82,7 @@ PairAWPMDCut::~PairAWPMDCut()
 struct cmp_x{
   double **xx;
   double tol;
-  cmp_x(double **xx_=NULL, double tol_=1e-12):xx(xx_),tol(tol_){}
+  cmp_x(double **xx_=nullptr, double tol_=1e-12):xx(xx_),tol(tol_){}
   bool operator()(const pair<int,int> &left, const pair<int,int> &right) const {
     if(left.first==right.first){
       double d=xx[left.second][0]-xx[right.second][0];
@@ -237,10 +238,10 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       etmap[etag[i]].push_back(i);
     }
     else
-      error->all(FLERR,fmt("Invalid spin value (%d) for particle %d !",spin[i],i));
+      error->all(FLERR,logfmt("Invalid spin value (%d) for particle %d !",spin[i],i));
   }
   // ion force vector
-  Vector_3 *fi=NULL;
+  Vector_3 *fi=nullptr;
   if(wpmd->ni)
     fi= new Vector_3[wpmd->ni];
 
@@ -254,7 +255,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     for(size_t k=0;k<el.size();k++){
       int i=el[k];
       if(spin[el[0]]!=spin[i])
-        error->all(FLERR,fmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
+        error->all(FLERR,logfmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
       double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
@@ -268,7 +269,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       atom->ervel[i]=pv/(m*ermscale);
     }
   }
-  wpmd->set_pbc(NULL); // not required for LAMMPS
+  wpmd->set_pbc(nullptr); // not required for LAMMPS
   wpmd->interaction(0x1|0x4|0x10,fi);
 
    // get forces from the AWPMD solver object
@@ -407,7 +408,7 @@ void PairAWPMDCut::allocate()
 void PairAWPMDCut::settings(int narg, char **arg){
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   ermscale=1.;
   width_pbc=0.;
@@ -427,21 +428,21 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'fix' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(FLERR,arg[i]);
+      wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"harm")){
       wpmd->constraint=AWPMD::HARM;
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'harm' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(FLERR,arg[i]);
+      wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
       wpmd->set_harm_constr(wpmd->w0);
     }
     else if(!strcmp(arg[i],"pbc")){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'pbc' should be followed by a number in awpmd/cut");
-      width_pbc=force->numeric(FLERR,arg[i]);
+      width_pbc=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"relax"))
       wpmd->constraint=AWPMD::RELAX;
@@ -449,7 +450,7 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'ermscale' should be followed by a number in awpmd/cut");
-      ermscale=force->numeric(FLERR,arg[i]);
+      ermscale=utils::numeric(FLERR,arg[i],false,lmp);
     }
     else if(!strcmp(arg[i],"flex_press"))
       flexible_pressure_flag = 1;
@@ -484,11 +485,11 @@ void PairAWPMDCut::coeff(int narg, char **arg)
   }
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+  if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -601,10 +602,10 @@ void PairAWPMDCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -628,9 +629,9 @@ void PairAWPMDCut::write_restart_settings(FILE *fp)
 void PairAWPMDCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

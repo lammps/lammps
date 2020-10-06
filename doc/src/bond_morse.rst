@@ -1,10 +1,10 @@
 .. index:: bond_style morse
+.. index:: bond_style morse/omp
 
 bond_style morse command
 ========================
 
-bond_style morse/omp command
-============================
+Accelerator Variants: *morse/omp*
 
 Syntax
 """"""
@@ -60,4 +60,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

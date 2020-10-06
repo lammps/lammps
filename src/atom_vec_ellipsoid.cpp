@@ -16,16 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_ellipsoid.h"
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,7 +34,7 @@ using namespace MathConst;
 
 AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 4;
@@ -46,7 +46,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -414,9 +414,9 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecEllipsoid::memory_usage_bonus()
+double AtomVecEllipsoid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   return bytes;
 }
@@ -484,7 +484,7 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus ellipsoid info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)

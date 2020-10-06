@@ -12,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include <cstring>
-#include <string>
-#include "my_pool_chunk.h"
-#include "style_body.h"
-#include "body.h"
+#include "style_body.h"    // IWYU pragma: keep
+
 #include "atom.h"
-#include "domain.h"
-#include "modify.h"
+#include "body.h"
+#include "error.h"
 #include "fix.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -31,7 +30,7 @@ using namespace LAMMPS_NS;
 
 AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   // first 3 sizes do not include values from body itself
@@ -50,9 +49,9 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   atom->radius_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
-  bptr = NULL;
+  bptr = nullptr;
 
   if (sizeof(double) == sizeof(int)) intdoubleratio = 1;
   else if (sizeof(double) == 2*sizeof(int)) intdoubleratio = 2;
@@ -105,7 +104,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
-  if (0) bptr = NULL;
+  if (0) bptr = nullptr;
 
 #define BODY_CLASS
 #define BodyStyle(key,Class) \
@@ -552,11 +551,11 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecBody::memory_usage_bonus()
+double AtomVecBody::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
-  bytes += icp->size + dcp->size;
+  bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
@@ -583,7 +582,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus body info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)

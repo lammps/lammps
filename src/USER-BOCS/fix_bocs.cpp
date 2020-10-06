@@ -15,27 +15,30 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bocs.h"
+
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
+#include <vector>
+
 #include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "compute.h"
+#include "compute_pressure_bocs.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_deform.h"
+
 #include "force.h"
 #include "group.h"
-#include "comm.h"
-#include "neighbor.h"
 #include "irregular.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "compute.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
 #include "memory.h"
-#include "error.h"
-#include "citeme.h"
-
-#include "compute_pressure_bocs.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -59,8 +62,7 @@ enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
-// NB: Keep error and warning messages less than 255 chars long.
-const int MAX_MESSAGE_LENGTH = 256;
+const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
@@ -68,10 +70,10 @@ const int MAX_MESSAGE_LENGTH = 256;
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL)
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
+  etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -91,7 +93,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
-  id_dilate = NULL;
+  id_dilate = nullptr;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -106,10 +108,13 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 
-  p_match_coeffs = NULL;
+  p_match_coeffs = nullptr;
+
+  splines = nullptr;
+  spline_length = 0;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -149,10 +154,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix bocs command");
       tstat_flag = 1;
-      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_target = t_start;
-      t_stop = force->numeric(FLERR,arg[iarg+2]);
-      t_period = force->numeric(FLERR,arg[iarg+3]);
+      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (t_start <= 0.0 || t_stop <= 0.0)
         error->all(FLERR,
                    "Target temperature for fix bocs cannot be 0.0");
@@ -167,11 +172,11 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       p_match_flag = 1;
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] =
-                                        force->numeric(FLERR,arg[iarg+1]);
+                                        utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[0] = p_stop[1] = p_stop[2] =
-                                        force->numeric(FLERR,arg[iarg+2]);
+                                        utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[0] = p_period[1] = p_period[2] =
-                                        force->numeric(FLERR,arg[iarg+3]);
+                                        utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_flag[3] = p_flag[4] = p_flag[5] = 0; // MRD
@@ -183,48 +188,47 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
       if ( strcmp(arg[iarg], "analytic") == 0  ) {
         if (iarg + 4 > narg) {
-          error->all(FLERR,"Illegal fix bocs command. basis type analytic"
+          error->all(FLERR,"Illegal fix bocs command. Basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
         }
-        p_basis_type = 0;
-        vavg = force->numeric(FLERR,arg[iarg+1]);
-        N_mol = force->inumeric(FLERR,arg[iarg+2]);
-        N_p_match = force->inumeric(FLERR,arg[iarg+3]);
+        p_basis_type = BASIS_ANALYTIC;
+        vavg = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        N_mol = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+        N_p_match = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         p_match_coeffs = (double *) (calloc(N_p_match, sizeof(double)) );
         iarg += 4;
         if (iarg + N_p_match > narg)
           error->all(FLERR,"Illegal fix bocs command. Missing coeffs.");
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
-          p_match_coeffs[pmatchi] = force->numeric(FLERR,arg[iarg+pmatchi]);
+          p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
       } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
-        p_basis_type = 1;
+        p_basis_type = BASIS_LINEAR_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
       } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
-        p_basis_type = 2;
+        p_basis_type = BASIS_CUBIC_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
       }  else {
-        char errmsg[256];
-        snprintf(errmsg,256,"CG basis type %s is not recognized\nSupported "
-                 "basis types: analytic linear_spline cubic_spline",arg[iarg]);
+        std::string errmsg = fmt::format("CG basis type {} is not recognized\nSupported "
+                                         "basis types: analytic linear_spline cubic_spline",arg[iarg]);
         error->all(FLERR,errmsg);
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      mtchain = force->inumeric(FLERR,arg[iarg+1]);
+      mtchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       // used by FixNVTSllod to preserve non-default value
       mtchain_default_flag = 0;
       if (mtchain < 1) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      mpchain = force->inumeric(FLERR,arg[iarg+1]);
+      mpchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (mpchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
@@ -235,18 +239,17 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_tchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_tchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_pchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {
-      char errmsg[128];
-      snprintf(errmsg,128,"Illegal fix bocs command: unrecognized keyword %s"
-               ,arg[iarg]);
+      std::string errmsg = fmt::format("Illegal fix bocs command: unrecognized keyword {}",
+              arg[iarg]);
       error->all(FLERR,errmsg);
     }
   }
@@ -377,10 +380,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -471,6 +474,12 @@ FixBocs::~FixBocs()
     }
   }
   if (p_match_coeffs) free(p_match_coeffs);
+
+    // Free splines memory structure
+    if (splines != nullptr) {
+        memory->destroy(splines);
+        spline_length = 0;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -537,12 +546,12 @@ void FixBocs::init()
     {
       if (pressure)
       {
-        if (p_basis_type == 0)
+        if (p_basis_type == BASIS_ANALYTIC)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
-        else if ( p_basis_type == 1 || p_basis_type == 2 )
+        else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                                splines, spline_length);
@@ -615,7 +624,7 @@ void FixBocs::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -630,28 +639,42 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  FILE *fpi;
-  int N_columns = 2, n_entries = 0, i;
-  float f1, f2;
-  int test_sscanf;
-  double **data = (double **) calloc(N_columns,sizeof(double *));
-  char * line = (char *) calloc(200,sizeof(char));
-
+  std::string message;
+  double **data;
   bool badInput = false;
-  char badDataMsg[MAX_MESSAGE_LENGTH];
-  fpi = fopen(filename,"r");
-  if (fpi)
-  {
-    while (fgets(line,199,fpi)) { ++n_entries; }
-
-    for (i = 0; i < N_columns; ++i)
-    {
-      data[i] = (double *) calloc(n_entries,sizeof(double));
+  int numEntries = 0;
+  FILE *fpi = fopen(filename,"r");
+  if (fpi) {
+    // Old code read the input file twice. Now we simply
+    // read all the lines from the input file into a string vector,
+    // then work with the data in-memory rather than do a second pass
+    // through the file.
+    // NB: LAMMPS coding guidelines prefer cstdio so we are intentionally
+    // foregoing  reading with getline
+    if (comm->me == 0) {
+        error->message(FLERR, fmt::format("INFO: About to read data file: {}", filename));
     }
 
-    // Don't need to re-open the file to make a second pass through it
-    // simply rewind to beginning
-    rewind(fpi);
+    // Data file lines hold two floating point numbers.
+    // Line length we allocate should be long enough without being too long.
+    // 128 seems safe for a line we expect to be < 30 chars.
+    const int MAX_F_TABLE_LINE_LENGTH = 128;
+    char line[MAX_F_TABLE_LINE_LENGTH];
+    std::vector<std::string> inputLines;
+    while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) {
+      inputLines.push_back(std::string(line));
+    }
+    fclose(fpi);
+
+    numEntries = inputLines.size();
+    if (comm->me == 0) {
+      error->message(FLERR, fmt::format("INFO: Read {} lines from file", numEntries));
+    }
+
+
+    // Allocate memory for the two dimensional matrix
+    // that holds data from the input file.
+    memory->create(data, NUM_INPUT_DATA_COLUMNS, numEntries, "data");
 
     double stdVolumeInterval = 0.0;
     double currVolumeInterval = 0.0;
@@ -659,125 +682,157 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // The literature indicates getting this value right in the
     // general case can be pretty complicated. I don't think it
     // needs to be complicated here, though. At least based on the
-    // sample data I've seen where the volume values are fairly
-    // large.
+    // sample data I've seen where the volume values are fairly large.
     const double volumeIntervalTolerance = 0.001;
-    n_entries = 0;
-    while( fgets(line,199,fpi)) {
-      ++n_entries;
-      test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
+    int lineNum = 0;  // this value is only for  message
+    int numBadVolumeIntervals = 0; // count these for message
+    float f1, f2;
+    int test_sscanf;
+    for (int i = 0; i < inputLines.size(); ++i) {
+      lineNum++;  // count each line processed now so lineNum messages can be 1-based
+      test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
       {
-        data[0][n_entries-1] = (double) f1;
-        data[1][n_entries-1] = (double) f2;
-        if (n_entries == 2) {
-          stdVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+        //if (comm->me == 0) {
+        //    error->message(FLERR, fmt::format("INFO: f1 = {}, f2 = {}", f1, f2));
+        //}
+        data[VOLUME][i] = (double)f1;
+        data[PRESSURE_CORRECTION][i] = (double)f2;
+        if (i == 1)
+        {
+          // second entry is used to compute the validation interval used below
+          stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
+          //if (comm->me == 0) {
+          //    error->message(FLERR, fmt::format("INFO: standard volume interval computed: {}", stdVolumeInterval));
+          //}
         }
-        else if (n_entries > 2) {
-          currVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+        else if (i > 1)
+        {
+          // after second entry, all intervals are validated
+          currVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
+          //if (comm->me == 0) {
+          //    error->message(FLERR, fmt::format("INFO: current volume interval: {}", currVolumeInterval));
+          //}
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
-            snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
-                     "BAD VOLUME INTERVAL: spline analysis requires uniform"
-                     " volume distribution, found inconsistent volume"
-                     " differential, line %d of file %s\n\tline: %s",
-                     n_entries,filename,line);
-            error->message(FLERR,badDataMsg);
+            if (comm->me == 0) {
+                message = fmt::format("Bad volume interval. Spline analysis requires uniform"
+                                      " volume distribution, found inconsistent volume"
+                                      " differential, line {} of file {}\n\tline: {}",
+                                      lineNum, filename, inputLines.at(i));
+                error->warning(FLERR, message);
+            }
             badInput = true;
+            numBadVolumeIntervals++;
           }
+          // no concluding else is intentional: i = 0, first line, no interval to validate
         }
-        // no else -- first entry is simply ignored
       }
       else
       {
-        snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
-                 "BAD INPUT FORMAT: did not find 2 comma separated numeric"
-                 " values in line %d of file %s\n\tline: %s",
-                 n_entries,filename,line);
-        error->message(FLERR,badDataMsg);
+        if (comm->me == 0) {
+          message = fmt::format("Bad input format: did not find 2 comma separated numeric"
+                                " values in line {} of file {}\n\tline: {}",
+                                lineNum, filename, inputLines.at(i));
+          error->warning(FLERR, message);
+        }
         badInput = true;
       }
-    }
-    fclose(fpi);
-  }
-  else {
-    char errmsg[MAX_MESSAGE_LENGTH];
-    snprintf(errmsg,MAX_MESSAGE_LENGTH,"Unable to open file: %s\n",filename);
-    error->all(FLERR,errmsg);
-  }
-
-  if (badInput) {
-    char errmsg[MAX_MESSAGE_LENGTH];
-    snprintf(errmsg,MAX_MESSAGE_LENGTH,
-             "Bad volume / pressure-correction data: %s\nSee details above",filename);
-    error->all(FLERR,errmsg);
-  }
-
-  if (p_basis_type == 1)
-  {
-    splines = (double **) calloc(2,sizeof(double *));
-    splines[0] = (double *) calloc(n_entries,sizeof(double));
-    splines[1] = (double *) calloc(n_entries,sizeof(double));
-    int idxa, idxb;
-    for (idxa = 0; idxa < 2; ++idxa)
-    {
-      for (idxb = 0; idxb < n_entries; ++idxb)
+      if (badInput)
       {
-        splines[idxa][idxb] = data[idxa][idxb];
+        numBadVolumeIntervals++;
       }
     }
+
+    if (numBadVolumeIntervals > 0 && comm->me == 0) {
+      error->message(FLERR, fmt::format("INFO: total number bad volume intervals = {}", numBadVolumeIntervals));
+    }
   }
-  else if (p_basis_type == 2)
+  else {
+    error->all(FLERR,fmt::format("ERROR: Unable to open file: {}", filename));
+  }
+
+  if (badInput && comm->me == 0) {
+    error->warning(FLERR,fmt::format("Bad volume / pressure-correction data: {}\nSee details above", filename));
+  }
+
+  if (p_basis_type == BASIS_LINEAR_SPLINE)
   {
-    spline_length = n_entries;
-    build_cubic_splines(data);
-    n_entries -= 1;
+    spline_length = numEntries;
+    numEntries = build_linear_splines(data);
+  }
+  else if (p_basis_type == BASIS_CUBIC_SPLINE)
+  {
+    spline_length = numEntries;
+    numEntries = build_cubic_splines(data);
   }
   else
   {
-    char errmsg[MAX_MESSAGE_LENGTH];
-    snprintf(errmsg, MAX_MESSAGE_LENGTH,
-             "ERROR: invalid p_basis_type value of %d in read_F_table",
-             p_basis_type);
-    error->all(FLERR,errmsg);
+    error->all(FLERR,fmt::format("ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type));
   }
-  // cleanup
-  for (i = 0; i < N_columns; ++i) {
-    free(data[i]);
-  }
-  free(data);
-  return n_entries;
+
+  memory->destroy(data);
+  return numEntries;
 }
 
-void FixBocs::build_cubic_splines( double **data )
+int FixBocs::build_linear_splines(double **data) {
+  //if (comm->me == 0) {
+    //error->message(FLERR, fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length));
+  //}
+  splines = (double **) calloc(NUM_LINEAR_SPLINE_COLUMNS,sizeof(double *));
+  splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
+  splines[PRESSURE_CORRECTION] = (double *) calloc(spline_length,sizeof(double));
+
+  for (int i = 0; i < spline_length; ++i)
+  {
+    splines[VOLUME][i] = data[VOLUME][i];
+    splines[PRESSURE_CORRECTION][i] = data[PRESSURE_CORRECTION][i];
+  }
+
+  if (comm->me == 0) {
+    error->message(FLERR, fmt::format("INFO: leaving build_linear_splines, spline_length = {}", spline_length));
+  }
+
+  return spline_length;
+}
+
+int FixBocs::build_cubic_splines(double **data)
 {
-  double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
+  //if (comm->me == 0) {
+    //error->message(FLERR, fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length));
+  //}
   int n = spline_length;
-  double alpha_i;
-  a = (double *) calloc(n,sizeof(double));
-  b = (double *) calloc(n+1,sizeof(double));
-  d = (double *) calloc(n+1,sizeof(double));
-  h = (double *) calloc(n,sizeof(double));
-  alpha = (double *) calloc(n,sizeof(double));
-  c = (double *) calloc(n+1,sizeof(double));
-  l = (double *) calloc(n,sizeof(double));
-  mu = (double *) calloc(n,sizeof(double));
-  z = (double *) calloc(n,sizeof(double));
-  int idx;
+  double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
+  // 2020-07-17 ag:
+  // valgrind says that we read/write a[n] down in the
+  // for(int j=n-1; j>=0; j--) loop below
+  // and I agree.
+  // So the size of a must be n+1, not n as was found
+  // in the original code.
+  memory->create(a, n+1, "a");
+  memory->create(b, n+1, "b");
+  memory->create(c, n+1, "c");
+  memory->create(d, n+1, "d");
+
+  memory->create(h, n, "h");
+  memory->create(alpha, n, "alpha");
+  memory->create(l, n, "l");
+  memory->create(mu, n, "mu");
+  memory->create(z, n, "z");
+
   for (int i=0; i<n; i++)
   {
     a[i] = data[1][i];
     b[i] = 0.0;
     d[i] = 0.0;
-
     if (i<(n-1))
     {
       h[i] = (data[0][i+1] - data[0][i]);
     }
-
+    double alpha_i;
     if (i>1 && i<(n-1))
     {
       alpha_i = (3.0 / h[i]) * ( data[1][i+1] - data[1][i]) - (3.0 / h[i-1] )
-                                             * ( data[1][i] - data[1][i-1] );
+                                                              * ( data[1][i] - data[1][i-1] );
       alpha[i-1] = alpha_i;
     }
   }
@@ -795,8 +850,12 @@ void FixBocs::build_cubic_splines( double **data )
   mu[n-1] = 0.0;
   z[n-1] = 0.0;
 
-  c[n] = 0.0;
+  // 2020-07-17 ag: We've been using an uninitialized value for a[n]
+  // That seems like a bad idea. This may not be the right value
+  // but its a value.
+  a[n] = 0.0;
   b[n] = 0.0;
+  c[n] = 0.0;
   d[n] = 0.0;
 
   for(int j=n-1; j>=0; j--)
@@ -807,21 +866,35 @@ void FixBocs::build_cubic_splines( double **data )
 
     d[j] = (c[j+1]-c[j])/(3.0 * h[j]);
   }
-  splines = (double **) calloc(5,sizeof(double *));
 
-  for ( idx = 0; idx < 5; ++idx)
+  int numSplines = n - 1;
+  memory->create(splines, NUM_CUBIC_SPLINE_COLUMNS, numSplines, "splines");
+  for (int idx = 0; idx < numSplines; ++idx)
   {
-    splines[idx] = (double *) calloc(n-1,sizeof(double));
-  }
-  idx = 0;
-  for ( idx = 0; idx < n - 1; ++idx)
-  {
+    splines[0][idx] = data[0][idx];
     splines[1][idx] = a[idx];
     splines[2][idx] = b[idx];
     splines[3][idx] = c[idx];
     splines[4][idx] = d[idx];
-    splines[0][idx] = data[0][idx];
   }
+
+  memory->destroy(a);
+  memory->destroy(b);
+  memory->destroy(c);
+  memory->destroy(d);
+
+  memory->destroy(h);
+  memory->destroy(alpha);
+  memory->destroy(l);
+  memory->destroy(mu);
+  memory->destroy(z);
+
+  if (comm->me == 0) {
+    error->message(FLERR, fmt::format("INFO: leaving build_cubic_splines, numSplines = {}", numSplines));
+  }
+
+  // Tell the caller how many splines we created
+  return numSplines;
 }
 // END NJD MRD 2 functions
 
@@ -840,7 +913,7 @@ void FixBocs::setup(int /*vflag*/)
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strstr(style,"nphug") == NULL) {
+  if (tstat_flag && strstr(style,"nphug") == nullptr) {
     compute_temp_target();
   } else if (pstat_flag) {
 
@@ -1519,20 +1592,21 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == 0 )
+      if ( p_basis_type == BASIS_ANALYTIC )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == 1 || p_basis_type == 2  )
+      else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE  )
       {
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines,
-                                                                spline_length );
+        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
       }
     }
 
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+    {
+      error->all(FLERR, "Fix_modify pressure ID does not compute pressure");
+    }
     return 2;
   }
 
@@ -1845,7 +1919,7 @@ void *FixBocs::extract(const char *str, int &dim)
   } else if (pstat_flag && strcmp(str,"p_target") == 0) {
     return &p_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

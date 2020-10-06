@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "reader.h"
-#include <cstring>
+
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -35,7 +35,7 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 
 void Reader::open_file(const char *file)
 {
-  if (fp != NULL) close_file();
+  if (fp != nullptr) close_file();
 
   compressed = 0;
   const char *suffix = file + strlen(file) - 3;
@@ -55,7 +55,7 @@ void Reader::open_file(const char *file)
 #endif
   }
 
-  if (fp == NULL)
+  if (fp == nullptr)
     error->one(FLERR,fmt::format("Cannot open file {}: {}",
                                  file, utils::getsyserror()));
 }
@@ -67,10 +67,10 @@ void Reader::open_file(const char *file)
 
 void Reader::close_file()
 {
-  if (fp == NULL) return;
+  if (fp == nullptr) return;
   if (compressed) pclose(fp);
   else fclose(fp);
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------

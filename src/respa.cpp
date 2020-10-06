@@ -16,30 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "respa.h"
-#include <cstring>
-#include <string>
-#include "neighbor.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "fix.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "fix_respa.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
-#include "fix_respa.h"
-#include "timer.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
 #include "pair_hybrid.h"
-#include "fmt/format.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,19 +46,19 @@ using namespace LAMMPS_NS;
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   Integrate(lmp, narg, arg),
-  step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL),
-  newton(NULL), fix_respa(NULL)
+  step(nullptr), loop(nullptr), hybrid_level(nullptr), hybrid_compute(nullptr),
+  newton(nullptr), fix_respa(nullptr)
 {
   nhybrid_styles = 0;
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
-  nlevels = force->inumeric(FLERR,arg[0]);
+  nlevels = utils::inumeric(FLERR,arg[0],false,lmp);
   if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
 
   if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
   loop = new int[nlevels];
   for (int iarg = 1; iarg < nlevels; iarg++) {
-    loop[iarg-1] = force->inumeric(FLERR,arg[iarg]);
+    loop[iarg-1] = utils::inumeric(FLERR,arg[iarg],false,lmp);
     if (loop[iarg-1] <= 0) error->all(FLERR,"Illegal run_style respa command");
   }
   loop[nlevels-1] = 1;
@@ -81,43 +80,43 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_bond = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_bond = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_angle = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_angle = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_dihedral = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_dihedral = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"improper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_improper = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_improper = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_pair = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"inner") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_inner = force->inumeric(FLERR,arg[iarg+1]) - 1;
-      cutoff[0] = force->numeric(FLERR,arg[iarg+2]);
-      cutoff[1] = force->numeric(FLERR,arg[iarg+3]);
+      level_inner = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+      cutoff[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cutoff[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"middle") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_middle = force->inumeric(FLERR,arg[iarg+1]) - 1;
-      cutoff[2] = force->numeric(FLERR,arg[iarg+2]);
-      cutoff[3] = force->numeric(FLERR,arg[iarg+3]);
+      level_middle = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+      cutoff[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cutoff[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"outer") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_outer = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_outer = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_kspace = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      level_kspace = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"hybrid") == 0) {
       // the hybrid keyword requires a hybrid pair style
@@ -132,7 +131,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       hybrid_compute = new int[nhybrid_styles];
       for (int i=0; i < nhybrid_styles; ++i) {
         ++iarg;
-        hybrid_level[i] = force->inumeric(FLERR,arg[iarg])-1;
+        hybrid_level[i] = utils::inumeric(FLERR,arg[iarg],false,lmp)-1;
       }
       ++iarg;
     } else error->all(FLERR,"Illegal run_style respa command");

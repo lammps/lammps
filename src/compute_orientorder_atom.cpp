@@ -17,26 +17,25 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "fmt/format.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -50,8 +49,8 @@ using namespace std;
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL), cglist(NULL)
+  qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
+  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), cglist(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -85,7 +84,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
       } else {
-        nnn = force->numeric(FLERR,arg[iarg+1]);
+        nnn = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (nnn <= 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
       }
@@ -93,7 +92,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"degrees") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      nqlist = force->numeric(FLERR,arg[iarg+1]);
+      nqlist = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (nqlist <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       memory->destroy(qlist);
@@ -103,7 +102,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
       for (int il = 0; il < nqlist; il++) {
-        qlist[il] = force->numeric(FLERR,arg[iarg+il]);
+        qlist[il] = utils::numeric(FLERR,arg[iarg+il],false,lmp);
         if (qlist[il] < 0)
           error->all(FLERR,"Illegal compute orientorder/atom command");
         if (qlist[il] > qmax) qmax = qlist[il];
@@ -127,7 +126,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
       qlcompflag = 1;
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      qlcomp = force->numeric(FLERR,arg[iarg+1]);
+      qlcomp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iqlcomp = -1;
       for (int il = 0; il < nqlist; il++)
         if (qlcomp == qlist[il]) {
@@ -140,7 +139,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      double cutoff = force->numeric(FLERR,arg[iarg+1]);
+      double cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff <= 0.0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
@@ -148,7 +147,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
     } else if (strcmp(arg[iarg],"chunksize") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute orientorder/atom command");
-      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      chunksize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (chunksize <= 0)
         error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
@@ -187,7 +186,7 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 
 void ComputeOrientOrderAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute orientorder/atom requires a "
                "pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;

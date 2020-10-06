@@ -39,9 +39,9 @@
    ------------------------------------------------------------------------- */
 
 #include "pair_smtbq.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <algorithm>
 #include <vector>
@@ -101,50 +101,50 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   kmax = 0;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  intparams = NULL;
+  params = nullptr;
+  intparams = nullptr;
 
-  intype = NULL;
-  coultype = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  potqn = NULL;
-  dpotqn = NULL;
+  intype = nullptr;
+  coultype = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  potqn = nullptr;
+  dpotqn = nullptr;
   Vself = 0.0;
-  tabsmb = NULL;
-  tabsmr = NULL;
-  dtabsmb = NULL;
-  dtabsmr = NULL;
+  tabsmb = nullptr;
+  tabsmr = nullptr;
+  dtabsmb = nullptr;
+  dtabsmr = nullptr;
 
-  sbcov = NULL;
-  coord = NULL;
-  sbmet = NULL;
-  ecov = NULL;
+  sbcov = nullptr;
+  coord = nullptr;
+  sbmet = nullptr;
+  ecov = nullptr;
 
-  potmad = NULL;
-  potself = NULL;
-  potcov = NULL;
-  qf = NULL;
-  q1 = NULL;
-  q2 = NULL;
-  tab_comm = NULL;
+  potmad = nullptr;
+  potself = nullptr;
+  potcov = nullptr;
+  qf = nullptr;
+  q1 = nullptr;
+  q2 = nullptr;
+  tab_comm = nullptr;
 
-  nvsm = NULL;
-  vsm = NULL;
-  flag_QEq = NULL;
-  nQEqaall = NULL;
-  nQEqcall = NULL;
-  nQEqall = NULL;
+  nvsm = nullptr;
+  vsm = nullptr;
+  flag_QEq = nullptr;
+  nQEqaall = nullptr;
+  nQEqcall = nullptr;
+  nQEqall = nullptr;
   nteam = 0;
   cluster = 0;
 
   Nevery = 0.0;
   Neverypot = 0.0;
 
-  fct = NULL;
+  fct = nullptr;
 
   maxpage = 0;
 
@@ -277,7 +277,7 @@ void PairSMTBQ::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -286,7 +286,7 @@ void PairSMTBQ::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -392,9 +392,9 @@ void PairSMTBQ::read_file(char *file)
   char **words;
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   memory->sfree(intparams);
-  intparams = NULL;
+  intparams = nullptr;
   nparams = 0;
   maxparam = 0;
   maxintparam = 0;
@@ -410,8 +410,8 @@ void PairSMTBQ::read_file(char *file)
 
       // open file on all processors
   FILE *fp;
-  fp = force->open_potential(file);
-  if ( fp  == NULL ) {
+  fp = utils::open_potential(file,lmp,nullptr);
+  if ( fp  == nullptr ) {
     char str[128];
     snprintf(str,128,"Cannot open SMTBQ potential file %s",file);
     error->one(FLERR,str);
@@ -3562,12 +3562,12 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   const char *sep = "' ";
   char *mot;
   int count=0;
-  mot = NULL;
+  mot = nullptr;
 
 
   strncpy( test, s, MAXLINE-1 );
 
-  for( mot = strtok(test, sep); mot; mot = strtok(NULL, sep) ) {
+  for( mot = strtok(test, sep); mot; mot = strtok(nullptr, sep) ) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }

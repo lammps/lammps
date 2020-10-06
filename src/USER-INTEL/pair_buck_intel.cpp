@@ -15,20 +15,20 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_buck_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "group.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "math_const.h"
 #include "memory.h"
-#include "suffix.h"
-#include "force.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -449,8 +449,8 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_force_t * oc_force = c_force[0];
       c_energy_t * oc_energy = c_energy[0];
 
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL  &&
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr  &&
           _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: alloc_if(0) free_if(1)) \
@@ -473,8 +473,8 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_force_t * oc_force = c_force[0];
       c_energy_t * oc_energy = c_energy[0];
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL &&
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr &&
           cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \

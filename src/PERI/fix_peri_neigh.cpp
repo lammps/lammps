@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_peri_neigh.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
@@ -56,19 +56,19 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   // set maxpartner = 1 as placeholder
 
   maxpartner = 1;
-  npartner = NULL;
-  partner = NULL;
-  deviatorextention = NULL;
-  deviatorBackextention = NULL;
-  deviatorPlasticextension = NULL;
-  lambdaValue = NULL;
-  r0 = NULL;
-  vinter = NULL;
-  wvolume = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  deviatorextention = nullptr;
+  deviatorBackextention = nullptr;
+  deviatorPlasticextension = nullptr;
+  lambdaValue = nullptr;
+  r0 = nullptr;
+  vinter = nullptr;
+  wvolume = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // initialize npartner to 0 so atom migration is OK the 1st time
 
@@ -86,8 +86,8 @@ FixPeriNeigh::~FixPeriNeigh()
 {
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -228,13 +228,13 @@ void FixPeriNeigh::setup(int /*vflag*/)
   memory->destroy(r0);
   memory->destroy(npartner);
 
-  npartner = NULL;
-  partner = NULL;
-  deviatorextention = NULL;
-  deviatorBackextention = NULL;
-  deviatorPlasticextension = NULL;
-  lambdaValue = NULL;
-  r0 = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  deviatorextention = nullptr;
+  deviatorBackextention = nullptr;
+  deviatorPlasticextension = nullptr;
+  lambdaValue = nullptr;
+  r0 = nullptr;
   grow_arrays(atom->nmax);
 
   // create partner list and r0 values from neighbor list
@@ -301,9 +301,9 @@ void FixPeriNeigh::setup(int /*vflag*/)
   double **x0 = atom->x0;
   double half_lc = 0.5*(domain->lattice->xlattice);
   double vfrac_scale;
-  PairPeriLPS *pairlps = NULL;
-  PairPeriVES *pairves = NULL;
-  PairPeriEPS *paireps = NULL;
+  PairPeriLPS *pairlps = nullptr;
+  PairPeriVES *pairves = nullptr;
+  PairPeriEPS *paireps = nullptr;
   if (isLPS)
     pairlps = static_cast<PairPeriLPS*>(anypair);
   else if (isVES)

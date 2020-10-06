@@ -1,16 +1,12 @@
 .. index:: pair_style zbl
+.. index:: pair_style zbl/gpu
+.. index:: pair_style zbl/kk
+.. index:: pair_style zbl/omp
 
 pair_style zbl command
 ======================
 
-pair_style zbl/gpu command
-==========================
-
-pair_style zbl/kk command
-=========================
-
-pair_style zbl/omp command
-==========================
+Accelerator Variants: *zbl/gpu*, *zbl/kk*, *zbl/omp*
 
 Syntax
 """"""
@@ -89,7 +85,8 @@ be included in a pair_coeff command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs *i,j* and :math:`i \neq i`, the :math:`Z_i` and
 :math:`Z_j` coefficients
@@ -133,7 +130,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

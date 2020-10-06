@@ -75,7 +75,7 @@ if(GPU_API STREQUAL "CUDA")
   endif()
   # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
   if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_35,code=[sm_35,compute_35]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
   endif()
   # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
@@ -309,7 +309,7 @@ elseif(GPU_API STREQUAL "HIP")
     endif()
 
     add_custom_command(OUTPUT ${CUBIN_H_FILE}
-      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILES=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
       DEPENDS ${CUBIN_FILE}
       COMMENT "Generating ${CU_NAME}_cubin.h")
 

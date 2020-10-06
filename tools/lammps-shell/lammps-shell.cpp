@@ -25,6 +25,7 @@
 #include <io.h>
 #include <windows.h>
 #define isatty(x) _isatty(x)
+#define getcwd(buf, len) _getcwd(buf, len)
 #endif
 
 #if !defined(_WIN32)
@@ -460,6 +461,8 @@ static void init_commands()
     // store LAMMPS shell specific command names
     commands.push_back("help");
     commands.push_back("exit");
+    commands.push_back("pwd");
+    commands.push_back("cd");
     commands.push_back("history");
     commands.push_back("clear_history");
 
@@ -549,6 +552,16 @@ static int shell_cmd(const std::string &cmd)
     } else if (words[0] == "exit") {
         free(text);
         return shell_end();
+    } else if ((words[0] == "pwd") || ((words[0] == "cd") && (words.size() == 1))) {
+        if (getcwd(buf, buflen)) std::cout << buf << "\n";
+        free(text);
+        return 0;
+    } else if (words[0] == "cd") {
+        std::string shellcmd = "shell ";
+        shellcmd += text;
+        lammps_command(lmp, shellcmd.c_str());
+        free(text);
+        return 0;
     } else if (words[0] == "history") {
         free(text);
         HIST_ENTRY **list = history_list();

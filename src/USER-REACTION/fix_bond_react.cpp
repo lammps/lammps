@@ -2726,27 +2726,6 @@ void FixBondReact::update_everything()
       }
     }
 
-    //maybe add check that all 1-3 neighbors of a local atoms are at least ghosts -> unneeded --jg
-    //okay, here goes:
-    //for (int i = 0; i < update_num_mega; i++) {
-    //  rxnID = update_mega_glove[0][i];
-    //  twomol = atom->molecules[reacted_mol[rxnID]];
-    //  for (int j = 0; j < twomol->natoms; j++) {
-    //    int jj = equivalences[j][1][rxnID]-1;
-    //    int jlocal = atom->map(update_mega_glove[jj+1][i]);
-    //    if (jlocal < nlocal && jlocal >= 0) {
-    //      if (landlocked_atoms[j][rxnID] == 1) {
-    //        for (int k = 0; k < nspecial[jlocal][2]; k++) {
-    //          if (atom->map(special[jlocal][k]) < 0 && create_atoms[j][rxnID] == 0) {
-    //            //error->all(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away - most likely too many processors");
-    //            printf("local is %d other is %d on %d\n", update_mega_glove[jj+1][i],special[jlocal][k],me);
-    //          }
-    //        }
-    //      }
-    //    }
-    //  }
-    //}
-
     int insert_num;
     // very nice and easy to completely overwrite special bond info for landlocked atoms
     for (int i = 0; i < update_num_mega; i++) {

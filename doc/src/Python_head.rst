@@ -8,16 +8,17 @@ used together.
    :maxdepth: 1
 
    Python_overview
-   Python_run
-   Python_shlib
    Python_install
-   Python_mpi
-   Python_test
-   Python_library
-   Python_module
-   Python_pylammps
-   Python_examples
+   Python_run
+   Python_usage
    Python_call
+   Python_config
+   Python_neighbor
+   Python_module
+   Python_examples
+   Python_error
+   Python_ext
+   Python_trouble
 
 If you're not familiar with `Python <http://www.python.org>`_, it's a
 powerful scripting and programming language which can do most

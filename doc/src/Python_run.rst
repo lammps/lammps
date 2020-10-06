@@ -1,32 +1,152 @@
 Run LAMMPS from Python
 ======================
 
-The LAMMPS distribution includes a python directory with all you need
-to run LAMMPS from Python.  The python/lammps.py file wraps the LAMMPS
-library interface, with one wrapper function per LAMMPS library
-function.  This file makes it is possible to do the following either
-from a Python script, or interactively from a Python prompt: create
-one or more instances of LAMMPS, invoke LAMMPS commands or give it an
-input script, run LAMMPS incrementally, extract LAMMPS results, an
-modify internal LAMMPS variables.  From a Python script you can do
-this in serial or parallel.  Running Python interactively in parallel
-does not generally work, unless you have a version of Python that
-extends Python to enable multiple instances of Python to read what you
-type.
+Running LAMMPS and Python in serial:
+-------------------------------------
 
-To do all of this, you must first build LAMMPS as a shared library,
-then insure that your Python can find the python/lammps.py file and
-the shared library.
+To run a LAMMPS in serial, type these lines into Python
+interactively from the ``bench`` directory:
 
-Two advantages of using Python to run LAMMPS are how concise the
-language is, and that it can be run interactively, enabling rapid
-development and debugging.  If you use it to mostly invoke costly
-operations within LAMMPS, such as running a simulation for a
-reasonable number of timesteps, then the overhead cost of invoking
-LAMMPS through Python will be negligible.
+.. code-block:: python
 
-The Python wrapper for LAMMPS uses the "ctypes" package in Python,
-which auto-generates the interface code needed between Python and a
-set of C-style library functions.  Ctypes is part of standard Python
-for versions 2.5 and later.  You can check which version of Python you
-have by simply typing "python" at a shell prompt.
+   >>> from lammps import lammps
+   >>> lmp = lammps()
+   >>> lmp.file("in.lj")
+
+Or put the same lines in the file ``test.py`` and run it as
+
+.. code-block:: bash
+
+   $ python3 test.py
+
+Either way, you should see the results of running the ``in.lj`` benchmark
+on a single processor appear on the screen, the same as if you had
+typed something like:
+
+.. code-block:: bash
+
+   lmp_serial -in in.lj
+
+Running LAMMPS and Python in parallel with MPI (mpi4py)
+-------------------------------------------------------
+
+To run LAMMPS in parallel, assuming you have installed the
+`mpi4py <https://mpi4py.readthedocs.io>`_ package as discussed
+:ref:`python_install_mpi4py`, create a ``test.py`` file containing these lines:
+
+.. code-block:: python
+
+   from mpi4py import MPI
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
+   me = MPI.COMM_WORLD.Get_rank()
+   nprocs = MPI.COMM_WORLD.Get_size()
+   print("Proc %d out of %d procs has" % (me,nprocs),lmp)
+   MPI.Finalize()
+
+You can run the script in parallel as:
+
+.. code-block:: bash
+
+   $ mpirun -np 4 python3 test.py
+
+and you should see the same output as if you had typed
+
+.. code-block:: bash
+
+   $ mpirun -np 4 lmp_mpi -in in.lj
+
+Note that without the mpi4py specific lines from ``test.py``
+
+.. code-block::
+
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
+
+running the script with ``mpirun`` on :math:`P` processors would lead to
+:math:`P` independent simulations to run parallel, each with a single
+processor. Therefore, if you use the mpi4py lines and you see multiple LAMMPS
+single processor outputs. that means mpi4py isn't working correctly.
+
+Also note that once you import the mpi4py module, mpi4py initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the mpi4py documentation.  The last line of your Python
+script should be ``MPI.finalize()``, to insure MPI is shut down
+correctly.
+
+Running LAMMPS and Python in parallel with MPI (pypar)
+------------------------------------------------------
+
+To run LAMMPS in parallel, assuming you have installed the
+`PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
+in :ref:`python_install_mpi4py`, create a ``test.py`` file containing these lines:
+
+.. code-block:: python
+
+   import pypar
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
+   print("Proc %d out of %d procs has" % (pypar.rank(),pypar.size()), lmp)
+   pypar.finalize()
+
+You can run the script in parallel as:
+
+.. code-block:: bash
+
+   $ mpirun -np 4 python3 test.py
+
+and you should see the same output as if you had typed
+
+.. code-block:: bash
+
+   $ mpirun -np 4 lmp_mpi -in in.lj
+
+Note that if you leave out the 3 lines from ``test.py`` that specify PyPar
+commands you will instantiate and run LAMMPS independently on each of
+the :math:`P` processors specified in the ``mpirun`` command.  In this case you
+should get 4 sets of output, each showing that a LAMMPS run was made
+on a single processor, instead of one set of output showing that
+LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
+means that PyPar is not working correctly.
+
+Also note that once you import the PyPar module, PyPar initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the PyPar documentation.  The last line of your Python
+script should be ``pypar.finalize()``, to insure MPI is shut down
+correctly.
+
+Running Python scripts
+----------------------
+
+Note that any Python script (not just for LAMMPS) can be invoked in
+one of several ways:
+
+.. code-block:: bash
+
+   $ python script.py
+   $ python -i script.py
+   $ ./script.py
+
+The last command requires that the first line of the script be
+something like this:
+
+.. code-block:: bash
+
+   #!/usr/bin/python
+   #!/usr/bin/python -i
+
+where the path points to where you have Python installed, and that you
+have made the script file executable:
+
+.. code-block:: bash
+
+   $ chmod +x script.py
+
+Without the ``-i`` flag, Python will exit when the script finishes.
+With the ``-i`` flag, you will be left in the Python interpreter when
+the script finishes, so you can type subsequent commands.  As
+mentioned above, you can only run Python interactively when running
+Python on a single processor, not in parallel.

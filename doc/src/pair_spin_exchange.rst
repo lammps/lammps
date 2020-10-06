@@ -132,7 +132,7 @@ for the *spin/exchange/biquadratic* pair style.
 Note that :math:`R_c` is the radius cutoff of the considered exchange 
 interaction, and :math:`a`, :math:`b` and :math:`d` are the three coefficients 
 performing the parameterization of the function :math:`J(r_{ij})` defined 
-above (in the *biquadratic* ase, :math:`a_j`, :math:`b_j`, :math:`d_j` and 
+above (in the *biquadratic* style, :math:`a_j`, :math:`b_j`, :math:`d_j` and 
 :math:`a_k`, :math:`b_k`, :math:`d_k` are the coefficients of :math:`J(r_{ij})`
 and :math:`K(r_{ij})` respectively).
 

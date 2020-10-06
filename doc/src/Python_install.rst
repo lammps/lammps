@@ -61,23 +61,25 @@ this.
       it can be changed to a custom location defined by the
       ``CMAKE_INSTALL_PREFIX`` CMake variable.  This uses a folder
       called ``build`` to store files generated during compilation.
-      Make certain this folder is empty or does not exist if you do not
-      want to inherit any settings from a previous compilation attempt.
 
       .. code-block:: bash
 
+         # create build folder
+         mkdir build
+         cd build
+
          # configure LAMMPS compilation
-         cmake -B build -C cmake/presets/minimal.cmake \
-             -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on cmake
+         cmake -C cmake/presets/minimal.cmake -D BUILD_SHARED_LIBS=on \
+               -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on cmake
 
          # compile LAMMPS
-         cmake --build build
+         cmake --build .
 
          # install LAMMPS into $HOME/.local
-         cmake --install build
+         cmake --install .
 
 
-      This leads to an installation to  the following locations:
+      This leads to an installation to the following locations:
 
       +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
       | File                   | Location                                                  | Notes                                                       |
@@ -97,7 +99,7 @@ this.
       ``CMAKE_INSTALL_PREFIX`` to a system folder like ``/usr`` (or
       ``/usr/local``).  The installation step (**not** the
       configuration/compilation) needs to be done with superuser
-      privilege, e.g. by using ``sudo cmake --install build``.  The
+      privilege, e.g. by using ``sudo cmake --install .``.  The
       installation folders will then by changed to:
 
       +------------------------+---------------------------------------------------+-------------------------------------------------------------+

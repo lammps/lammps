@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cstring>
 #include <string>
+#include <iostream>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -905,6 +906,7 @@ double FixBoxRelax::compute_strain_energy()
   }
 
   double energy = 0.5*(d0+d1+d2)*pv2e;
+  std::cout << energy << "\n";
   return energy;
 }
 

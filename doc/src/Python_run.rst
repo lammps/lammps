@@ -76,48 +76,6 @@ described in the mpi4py documentation.  The last line of your Python
 script should be ``MPI.finalize()``, to insure MPI is shut down
 correctly.
 
-Running LAMMPS and Python in parallel with MPI (pypar)
-------------------------------------------------------
-
-To run LAMMPS in parallel, assuming you have installed the
-`PyPar <https://github.com/daleroberts/pypar>`_ package as discussed
-in :ref:`python_install_mpi4py`, create a ``test.py`` file containing these lines:
-
-.. code-block:: python
-
-   import pypar
-   from lammps import lammps
-   lmp = lammps()
-   lmp.file("in.lj")
-   print("Proc %d out of %d procs has" % (pypar.rank(),pypar.size()), lmp)
-   pypar.finalize()
-
-You can run the script in parallel as:
-
-.. code-block:: bash
-
-   $ mpirun -np 4 python3 test.py
-
-and you should see the same output as if you had typed
-
-.. code-block:: bash
-
-   $ mpirun -np 4 lmp_mpi -in in.lj
-
-Note that if you leave out the 3 lines from ``test.py`` that specify PyPar
-commands you will instantiate and run LAMMPS independently on each of
-the :math:`P` processors specified in the ``mpirun`` command.  In this case you
-should get 4 sets of output, each showing that a LAMMPS run was made
-on a single processor, instead of one set of output showing that
-LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
-means that PyPar is not working correctly.
-
-Also note that once you import the PyPar module, PyPar initializes MPI
-for you, and you can use MPI calls directly in your Python script, as
-described in the PyPar documentation.  The last line of your Python
-script should be ``pypar.finalize()``, to insure MPI is shut down
-correctly.
-
 Running Python scripts
 ----------------------
 

@@ -31,15 +31,15 @@ into a folder that the dynamic loader searches or into the same folder
 where the ``lammps.py`` file is.  There are multiple ways to achieve
 this.
 
-#. Install both files into a Python ``site-packages`` folder, either
-   system-wide or in the corresponding user-specific folder. This way no
-   additional environment variables need to be set, but the shared
-   library is otherwise not accessible.
-
 #. Do a full LAMMPS installation of libraries, executables, selected
    headers, documentation (if enabled), and supporting files (only
    available via CMake), which can also be either system-wide or into
    user specific folders.
+
+#. Install both files into a Python ``site-packages`` folder, either
+   system-wide or in the corresponding user-specific folder. This way no
+   additional environment variables need to be set, but the shared
+   library is otherwise not accessible.
 
 #. Do an installation into a virtual environment. This can either be
    an installation of the python module only or a full installation.
@@ -368,15 +368,16 @@ If you wish to run LAMMPS in parallel from Python, you need to extend
 your Python with an interface to MPI.  This also allows you to
 make MPI calls directly from Python in your script, if you desire.
 
-We have tested this with mpi4py and pypar:
+We have tested this with `MPI for Python <https://mpi4py.readthedocs.io/>`_
+(aka mpi4py) and you will find installation instruction for it below.
 
-* `MPI for Python <https://mpi4py.readthedocs.io/>`_
-* `pypar <https://github.com/daleroberts/pypar>`_
+.. note::
 
-We recommend the use of mpi4py as it is the more complete MPI interface,
-and as of version 2.0.0 mpi4py allows passing a custom MPI communicator
-to the LAMMPS constructor, which means one can easily run one or more
-LAMMPS instances on subsets of the total MPI ranks.
+   Older LAMMPS versions were also tested with `PyPar <https://github.com/daleroberts/pypar>`_
+   but we can no longer test it, since it does not work with the Python
+   (3.x) versions on our test servers. Since there have been no updates
+   to PyPar visible in its repository since November 2016 we have to assume
+   it is no longer maintained.
 
 Installation of mpi4py (version 3.0.3 as of Sep 2020) can be done as
 follows:
@@ -396,12 +397,6 @@ follows:
      # for use with MPICH
      sudo dnf install python3-mpi4py-openmpi
 
-- Via ``pip`` into a system folder (not recommended):
-
-  .. code-block:: bash
-
-     sudo dnf install mpi4py
-
 - Via ``pip`` into a virtual environment (see above):
 
   .. code-block:: bash
@@ -409,29 +404,34 @@ follows:
      $ source $HOME/myenv/activate
      (myenv)$ pip install mpi4py
 
+- Via ``pip`` into a system folder (not recommended):
+
+  .. code-block:: bash
+
+     sudo pip install mpi4py
+
 .. _mpi4py_install: https://mpi4py.readthedocs.io/en/stable/install.html
 
 For more detailed installation instructions and additional options,
 please see the `mpi4py installation <mpi4py_install>`_ page.
 
-.. note::
 
-   To use ``mpi4py`` and LAMMPS in parallel from Python, you must make
-   certain that both are using the same implementation and version of an
-   MPI library.  If you only have one MPI library installed on your
-   system, this is not an issue, but it can be if you have multiple MPI
-   installations (e.g. on an HPC cluster to be selected through
-   environment modules).  Your LAMMPS build is explicit about which MPI
-   it is using, since it is either detected during CMake configuration
-   or in the traditional make build system you specify the details in
-   your low-level ``src/MAKE/Makefile.foo`` file. The installation
-   process of ``mpi4py`` uses the ``mpicc`` command to find information
-   about the MPI it uses to build against.  And it tries to load
-   "libmpi.so" from the ``LD_LIBRARY_PATH``.  This may or may not find
-   the MPI library that LAMMPS is using.  If you have problems running
-   both mpi4py and LAMMPS together, this is an issue you may need to
-   address, e.g. by loading the module for different MPI installation so
-   that mpi4py finds the right one.
+To use ``mpi4py`` and LAMMPS in parallel from Python, you **must** make
+certain that **both** are using the **same** implementation and version
+of MPI library.  If you only have one MPI library installed on your
+system this is not an issue, but it can be if you have multiple MPI
+installations (e.g. on an HPC cluster to be selected through environment
+modules).  Your LAMMPS build is explicit about which MPI it is using,
+since it is either detected during CMake configuration or in the
+traditional make build system you specify the details in your low-level
+``src/MAKE/Makefile.foo`` file. The installation process of ``mpi4py``
+uses the ``mpicc`` command to find information about the MPI it uses to
+build against.  And it tries to load "libmpi.so" from the
+``LD_LIBRARY_PATH``.  This may or may not find the MPI library that
+LAMMPS is using.  If you have problems running both mpi4py and LAMMPS
+together, this is an issue you may need to address, e.g. by loading the
+module for different MPI installation so that mpi4py finds the right
+one.
 
 If you have successfully installed mpi4py, you should be able to run
 Python and type
@@ -465,3 +465,4 @@ and see one line of output for each processor you run on.
    Proc 1 out of 4 procs
    Proc 2 out of 4 procs
    Proc 3 out of 4 procs
+

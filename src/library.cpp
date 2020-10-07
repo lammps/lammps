@@ -4051,6 +4051,9 @@ int lammps_style_name(void *handle, const char *category, int idx,
 This function checks if the current LAMMPS instance a *category* ID of
 the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
 *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
+
+.. versionadded:: 6Oct2020
+
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -4116,6 +4119,9 @@ This function counts how many IDs in the provided *category*
 are defined in the current LAMMPS instance.
 Please see :cpp:func:`lammps_has_id` for a list of valid
 categories.
+
+.. versionadded:: 6Oct2020
+
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -4146,12 +4152,17 @@ int lammps_id_count(void *handle, const char *category) {
 
 /** Look up the name of an ID by index in the list of IDs of a given category.
  *
- * This function copies the name of the *category* ID with the index
- * *idx* into the provided C-style string buffer.  The length of the buffer
- * must be provided as *buf_size* argument.  If the name of the style
- * exceeds the length of the buffer, it will be truncated accordingly.
- * If the index is out of range, the function returns 0 and *buffer* is
- * set to an empty string, otherwise 1.
+\verbatim embed:rst
+This function copies the name of the *category* ID with the index
+*idx* into the provided C-style string buffer.  The length of the buffer
+must be provided as *buf_size* argument.  If the name of the style
+exceeds the length of the buffer, it will be truncated accordingly.
+If the index is out of range, the function returns 0 and *buffer* is
+set to an empty string, otherwise 1.
+
+.. versionadded:: 6Oct2020
+
+\endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param category category of IDs

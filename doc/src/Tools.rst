@@ -498,8 +498,15 @@ regular LAMMPS commands:
    help (or ?)    print a brief help message
    history        display the current command history list
    clear_history  wipe out the current command history list
+   pwd            print current working directory
+   cd <directory> change current working directory (same as pwd if no directory)
    \|<command>     execute <command> as a shell command and return to the command prompt
    exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
+
+Please note that some known shell operations are implemented in the
+LAMMPS :doc:`shell command <shell>` in a platform neutral fashion,
+while using the '\|' character will always pass the following text
+to the operating system's shell command.
 
 Compilation
 ===========

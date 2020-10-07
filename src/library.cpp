@@ -4614,7 +4614,7 @@ void lammps_force_timeout(void *handle)
 This function can be used to query if an error inside of LAMMPS
 has thrown a :ref:`C++ exception <exceptions>`.
 
-.. note:
+.. note::
 
    This function will always report "no error" when the LAMMPS library
    has been compiled without ``-DLAMMPS_EXCEPTIONS`` which turns fatal
@@ -4652,7 +4652,7 @@ a "2" indicates an abort that would happen only in a single MPI rank
 and thus may not be recoverable as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
 
-.. note:
+.. note::
 
    This function will do nothing when the LAMMPS library has been
    compiled without ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting

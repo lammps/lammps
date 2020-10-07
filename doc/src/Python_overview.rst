@@ -34,10 +34,10 @@ Below is an example output for Python version 3.8.5.
 .. code-block::
 
    $ python
-   Python 3.8.5 (default, Aug 12 2020, 00:00:00) 
+   Python 3.8.5 (default, Aug 12 2020, 00:00:00)
    [GCC 10.2.1 20200723 (Red Hat 10.2.1-1)] on linux
    Type "help", "copyright", "credits" or "license" for more information.
-   >>> 
+   >>>
 
 
 .. warning:: Python 2 support is deprecated

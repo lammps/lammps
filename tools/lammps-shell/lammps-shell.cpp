@@ -593,7 +593,9 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    std::cout << "LAMMPS Shell version 1.0\n";
+    lammps_get_os_info(buf,buflen);
+    std::cout << "LAMMPS Shell version 1.0  OS: " << buf;
+
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
                      "WARNING: The shell will terminate on errors.\n";

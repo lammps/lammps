@@ -4313,6 +4313,17 @@ int lammps_config_has_ffmpeg_support() {
 In case of errors LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
+
+When using the library interface and C++ exceptions are enabled,
+the library interface functions will "catch" them and the
+error status can then be checked by calling
+:cpp:func:`lammps_has_error` and the most recent error message
+can be retrieved via :cpp:func:`lammps_get_last_error_message`.
+This can allow to restart a calculation or delete and recreate
+the LAMMPS instance when C++ exceptions are enabled.  One application
+of using exceptions this way is the :ref:`lammps_shell`.  If C++
+exceptions are disabled and an error happens during a call to
+LAMMPS, the application will terminate.
 \endverbatim
  * \return 1 if yes, otherwise 0
  */

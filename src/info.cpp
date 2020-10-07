@@ -1240,7 +1240,7 @@ std::string Info::get_mpi_vendor() {
   #elif defined(MSMPI_VER)
   return "Microsoft MPI";
   #else
-  return "Unknown";
+  return "Unknown MPI implementation";
   #endif
 }
 
@@ -1251,7 +1251,8 @@ std::string Info::get_mpi_info(int &major, int &minor)
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version,&len);
 #else
-  static char version[] = "Undetected MPI implementation";
+  static char version[32];
+  strcpy(version,get_mpi_vendor());
   len = strlen(version);
 #endif
 

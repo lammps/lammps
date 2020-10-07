@@ -403,6 +403,8 @@ The file was provided by Alessandro Luigi Sellerio
 LAMMPS shell
 ------------
 
+.. versionadded:: 6Oct2020
+
 Overview
 ========
 
@@ -452,11 +454,11 @@ available in that executable.
 
 - When typing references to computes, fixes, or variables with a
   "c\_", "f\_", or "v\_" prefix, respectively, then the expansion will
-  to known compute/fix IDs and variable names. Variable name expansion
-  is also available for the ${name} variable syntax.
+  be to known compute/fix IDs and variable names. Variable name
+  expansion is also available for the ${name} variable syntax.
 
-- In all other cases, expansion will be performed on filenames.
-
+- In all other cases TAB expansion will complete to names of files
+  and directories.
 
 Command line editing and history
 ================================

@@ -732,7 +732,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
   int teamsize;
   if (execution_space == Host) teamsize = 1;
-  else teamsize = 128;
+  else teamsize = 64;//128
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);

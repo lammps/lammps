@@ -1122,8 +1122,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT powr_vdw, powgi_vdw, fn13, dfn13, exp1, exp2, etmp;
   F_FLOAT evdwl, fvdwl;
@@ -1297,8 +1297,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1660,11 +1660,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   if (d_resize_bo() || d_resize_hb())
     return;
 
-  auto v_dDeltap_self = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
-  auto a_dDeltap_self = v_dDeltap_self.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_dDeltap_self = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
+  const auto a_dDeltap_self = v_dDeltap_self.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  auto v_total_bo = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
-  auto a_total_bo = v_total_bo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_total_bo = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
+  const auto a_total_bo = v_total_bo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -2643,9 +2643,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion_preview<NEIG
         //if we got so far forces will be computed
         counter++;
         jj_min = jj < jj_min ? jj : jj_min;
-        jj_max = jj > jj_max ? jj : jj_max;
+        jj_max = jj >= jj_max ? (jj+1) : jj_max;
         kk_min = kk < kk_min ? kk : kk_min;
-        kk_max = kk > kk_max ? kk : kk_max;
+        kk_max = kk >= kk_max ? (kk+1) : kk_max;
       }
     }
   }
@@ -2667,11 +2667,11 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  const auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
   //auto a_Cdbo = dup_Cdbo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -2698,6 +2698,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   F_FLOAT p_tor4 = gp[25];
   F_FLOAT p_cot2 = gp[27];
 
+  const int jj_start = counters_jj_min[ii];
+  const int jj_stop = counters_jj_max[ii];
+  const int kk_start = counters_kk_min[ii];
+  const int kk_stop = counters_kk_max[ii];
+
   const int i = d_ilist[ii];
   const int itype = type(i);
   const tagint itag = tag(i);
@@ -2714,7 +2719,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   F_FLOAT CdDelta_i = 0.0;
 
   //LG for (int jj = j_start; jj < j_end; jj++) {
-  for (int jj = counters_jj_min[ii]; jj < counters_jj_max[ii]; jj++) {
+  for (int jj = jj_start; jj < jj_stop; jj++) {
 
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
@@ -2758,7 +2763,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
     F_FLOAT CdDelta_j = 0.0;
 
     //LG for (int kk = j_start; kk < j_end; kk++) {
-    for (int kk = counters_kk_min[ii]; kk < counters_kk_max[ii]; kk++) {
+    for (int kk = kk_start; kk < kk_stop; kk++) {
       int k = d_bo_list[kk];
       k &= NEIGHMASK;
       if (k == j) continue;

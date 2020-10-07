@@ -112,6 +112,7 @@ void  lammps_commands_string(void *handle, const char *str);
  * ----------------------------------------------------------------------- */
 
 int    lammps_version(void *handle);
+void   lammps_get_os_info(char *buffer, int buf_size);
 void   lammps_memory_usage(void *handle, double *meminfo);
 int    lammps_get_mpi_comm(void *handle);
 double lammps_get_natoms(void *handle);

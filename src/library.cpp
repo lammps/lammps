@@ -566,6 +566,33 @@ int lammps_version(void *handle)
   return lmp->num_ver;
 }
 
+/** Get operating system and architecture information
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_get_os_info` function can be used to retrieve
+detailed information about the hosting operating system and
+compiler/runtime.
+A suitable buffer for a C-style string has to be provided and its length.
+If the assembled text will be truncated to not overflow this buffer.
+
+.. versionadded:: 6Oct2020
+
+\endverbatim
+ *
+ * \param  buffer    string buffer to copy the information to
+ * \param  buf_size  size of the provided string buffer */
+
+void lammps_get_os_info(char *buffer, int buf_size)
+{
+  if (buf_size <=0) return;
+  buffer[0] = buffer[buf_size-1] = '\0';
+  std::string txt = Info::get_os_info() + "\n";
+  txt += Info::get_compiler_info();
+  txt += " with " + Info::get_openmp_info() + "\n";
+  strncpy(buffer, txt.c_str(), buf_size-1);
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** Get memory usage information
@@ -4346,15 +4373,15 @@ int lammps_config_has_exceptions() {
  * index. Thus, providing this request index ensures that the correct neighbor
  * list index is returned.
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param style    String used to search for pair style instance
- * \param exact    Flag to control whether style should match exactly or only
- *                 must be contained in pair style name
- * \param nsub     match nsub-th hybrid sub-style
- * \param request  request index that specifies which neighbor list should be
- *                 returned, in case there are multiple neighbor lists requests
- *                 for the found pair style
- * \return         return neighbor list index if found, otherwise -1
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  style    String used to search for pair style instance
+ * \param  exact    Flag to control whether style should match exactly or only
+ *                  must be contained in pair style name
+ * \param  nsub     match nsub-th hybrid sub-style
+ * \param  request  request index that specifies which neighbor list should be
+ *                  returned, in case there are multiple neighbor lists requests
+ *                  for the found pair style
+ * \return          return neighbor list index if found, otherwise -1
  */
 int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
@@ -4660,15 +4687,16 @@ the failing MPI ranks to send messages.
    :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param buffer   string buffer to copy the error message to
- * \param buf_size size of the provided string buffer
- * \return 1 when all ranks had the error, 2 on a single rank error.
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  buffer    string buffer to copy the error message to
+ * \param  buf_size  size of the provided string buffer
+ * \return           1 when all ranks had the error, 2 on a single rank error.
  */
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
   LAMMPS *lmp = (LAMMPS *) handle;
   Error *error = lmp->error;
+  buffer[0] = buffer[buf_size-1] = '\0';
 
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();

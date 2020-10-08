@@ -1,5 +1,5 @@
-Building the LAMMPS manual
-**************************
+Build the LAMMPS documentation
+==============================
 
 Depending on how you obtained LAMMPS and whether you have built the
 manual yourself, this directory has a number of sub-directories and
@@ -39,23 +39,45 @@ a. You can "fetch" the current HTML and PDF files from the LAMMPS web
    will not, unless you update your local repository).
 
 b. You can build the HTML or PDF files yourself, by typing ``make html``
-   or ``make pdf``.  This requires various tools and files.  Some of them
-   have to be installed (more on that below). For the rest the build
-   process will attempt to download and install them into a python
-   virtual environment and local folders.  This download is required
-   only once, unless you type ``make clean-all``.  After that, viewing and
-   processing of the documentation can be done without internet access.
+   or ``make pdf`` in the ``doc`` folder.  This requires various tools
+   and files.  Some of them have to be installed (see below).  For the
+   rest the build process will attempt to download and install them into
+   a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, aka unstable branch)
-is is available online at: `https://lammps.sandia.gov/doc/Manual.html <https://lammps.sandia.gov/doc/Manual.html>`_
-A version of the manual corresponding to the ongoing development
-(aka master branch) is available online at: `https://docs.lammps.org/ <https://docs.lammps.org/>`_
+A current version of the manual (latest patch release, aka unstable
+branch) is is available online at:
+`https://lammps.sandia.gov/doc/Manual.html
+<https://lammps.sandia.gov/doc/Manual.html>`_ A version of the manual
+corresponding to the ongoing development (aka master branch) is
+available online at: `https://docs.lammps.org/
+<https://docs.lammps.org/>`_
 
-----------
+Build using GNU make
+--------------------
 
-The generation of all documentation is managed by the Makefile in the
-doc directory. The following documentation related ``make`` commands are
-available:
+The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
+can be translated to different output format using the `Sphinx
+<sphinx_>`_ document generator tool.  It also incorporates programmer
+documentation extracted from the LAMMPS C++ sources through the `Doxygen
+<https://doxygen.nl>`_ program.  Currently the translation to HTML, PDF
+(via LaTeX), ePUB (for many e-book readers) and MOBI (for Amazon Kindle
+readers) are supported.  For that to work a Python 3 interpreter, the
+``doxygen`` tools and internet access to download additional files and
+tools are required.  This download is usually only required once or
+after the documentation folder is returned to a pristine state with
+``make clean-all``.
+
+.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
+.. _sphinx: https://www.sphinx-doc.org
+
+For the documentation build a python virtual environment is set up in
+the folder ``doc/docenv`` and various python packages are installed into
+that virtual environment via the ``pip`` tool.  For rendering embedded
+LaTeX code also the `MathJax <https://www.mathjax.org/>`_ and the
+`Polyfill <https://polyfill.io/>`_ JavaScript engines need to be downloaded.
+
+The actual translation is then done via ``make`` commands in the doc
+folder.  The following ``make`` commands are available:
 
 .. code-block:: bash
 
@@ -76,66 +98,79 @@ available:
 
 ----------
 
-Installing prerequisites for HTML build
-=======================================
+Build using CMake
+-----------------
+
+It is also possible to create the HTML version (and **only** the HTML
+version) of the manual within the :doc:`CMake build directory
+<Build_cmake>`.  The reason for this option is to include the
+installation of the HTML manual pages into the "install" step when
+installing LAMMPS after the CMake build via ``cmake --build . --target
+install``.  The documentation build is included in the default build
+target, but can also be requested independently with
+``cmake --build . --target doc``.
+
+.. code-block:: bash
+
+   -D BUILD_DOC=value       # yes or no (default)
+
+----------
+
+Prerequisites for HTML
+----------------------
 
 To run the HTML documentation build toolchain, python 3, git, doxygen,
 and virtualenv have to be installed locally.  Here are instructions for
 common setups:
 
-Ubuntu
-------
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: Ubuntu
 
-   sudo apt-get install python-virtualenv git doxygen
+      .. code-block:: bash
 
-Fedora (up to version 21) and Red Hat Enterprise Linux or CentOS (up to version 7.x)
-------------------------------------------------------------------------------------
+         sudo apt-get install python-virtualenv git doxygen
 
-.. code-block:: bash
+   .. tab:: RHEL or CentOS (Version 7.x)
 
-   sudo yum install python3-virtualenv git doxygen
+      .. code-block:: bash
 
-Fedora (since version 22)
--------------------------
+         sudo yum install python3-virtualenv git doxygen
 
-.. code-block:: bash
+   .. tab:: Fedora or RHEL/CentOS (8.x or later)
 
-   sudo dnf install python3-virtualenv git doxygen
+      .. code-block:: bash
 
-MacOS X
--------
+         sudo dnf install python3-virtualenv git doxygen
 
-Python 3
-^^^^^^^^
+   .. tab:: MacOS X
 
-Download the latest Python 3 MacOS X package from
-`https://www.python.org <https://www.python.org>`_
-and install it.  This will install both Python 3
-and pip3.
+      *Python 3*
 
-virtualenv
-^^^^^^^^^^
+      Download the latest Python 3 MacOS X package from
+      `https://www.python.org <https://www.python.org>`_ and install it.
+      This will install both Python 3 and pip3.
 
-Once Python 3 is installed, open a Terminal and type
+      *virtualenv*
 
-.. code-block:: bash
+      Once Python 3 is installed, open a Terminal and type
 
-   pip3 install virtualenv
+      .. code-block:: bash
 
-This will install virtualenv from the Python Package Index.
+         pip3 install virtualenv
 
-Installing prerequisites for PDF build
-======================================
+      This will install virtualenv from the Python Package Index.
+
+Prerequisites for PDF
+---------------------
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
 of LaTeX styles/packages are required.  To run the PDFLaTeX translation
 the ``latexmk`` script needs to be installed as well.
 
-Installing prerequisites for e-book reader builds
-=================================================
+Prerequisites for ePUB and MOBI
+-------------------------------
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with a few add-on LaTeX packages
@@ -152,12 +187,12 @@ files, so you could download and view the PDF version as an alternative.
 
 
 Instructions for Developers
-===========================
+---------------------------
 
 When adding new styles or options to the LAMMPS code, corresponding
 documentation is required and either existing files in the ``src``
-folder need to be updated or new files added. These files are written
-in `reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
+folder need to be updated or new files added. These files are written in
+`reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
 
 Before contributing any documentation, please check that both the HTML
 and the PDF format documentation can translate without errors. Please also

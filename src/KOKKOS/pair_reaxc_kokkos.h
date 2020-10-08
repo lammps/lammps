@@ -348,9 +348,9 @@ class PairReaxCKokkos : public PairReaxC {
   void Deallocate_Lookup_Tables();
   void LR_vdW_Coulomb( int i, int j, double r_ij, LR_data *lr );
 
-  int* counters;
+  int *counters;
   int *counters_jj_min, *counters_jj_max,*counters_kk_min,*counters_kk_max;
-  size_t counters_length;
+  int inum_store;
 
   typedef Kokkos::DualView<int*,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType> k_params_sing;

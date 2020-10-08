@@ -63,6 +63,12 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
   nmax = 0;
   maxbo = 1;
   maxhb = 1;
+  inum_store=-1;
+  counters = nullptr;
+  counters_jj_min = nullptr;
+  counters_jj_max = nullptr;
+  counters_kk_min = nullptr;
+  counters_kk_max = nullptr;
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
@@ -93,6 +99,29 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
       k_LR.h_view(i,j).d_CEclmb = decltype(k_LR.h_view(i,j).d_CEclmb)();
     }
   }
+
+  #ifdef HIP_OPT_TORSION_PREVIEW
+  if (counters != nullptr) {
+    hipHostFree(counters);
+    counters = nullptr;
+  }
+  if (counters_jj_min != nullptr) {
+    hipHostFree(counters_jj_min);
+    counters_jj_min = nullptr;
+  }
+  if (counters_jj_max != nullptr) {
+    hipHostFree(counters_jj_max);
+    counters_jj_max = nullptr;
+  }
+  if (counters_kk_min != nullptr) {
+    hipHostFree(counters_kk_min);
+    counters_kk_min = nullptr;
+  }
+  if (counters_kk_max != nullptr) {
+    hipHostFree(counters_kk_max);
+    counters_kk_max = nullptr;
+  }
+  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -916,50 +945,38 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev_all += ev;
   } else {
 
-      hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);
-      #if 1
-      hipHostMalloc((void**) &counters_jj_min,sizeof(int)*inum, hipHostMallocNonCoherent);
-      hipHostMalloc((void**) &counters_jj_max,sizeof(int)*inum, hipHostMallocNonCoherent);
-      hipHostMalloc((void**) &counters_kk_min,sizeof(int)*inum, hipHostMallocNonCoherent);
-      hipHostMalloc((void**) &counters_kk_max,sizeof(int)*inum, hipHostMallocNonCoherent);
-      #else
-      hipMalloc((void**) &counters_jj_min,sizeof(int)*inum);
-      hipMalloc((void**) &counters_jj_max,sizeof(int)*inum);
-      hipMalloc((void**) &counters_kk_min,sizeof(int)*inum);
-      hipMalloc((void**) &counters_kk_max,sizeof(int)*inum);
-      #endif
-
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this,ev);
-      else{
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion_preview<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
-        hipDeviceSynchronize();
-        int nnz = 0;
-        for (int i = 0; i < inum; ++i){
-          if (counters[i] > 0){
-            counters[nnz] = i;
-            nnz++;
-          }
-        }
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this);
-      }
-      ev_all += ev;
+    #ifdef HIP_OPT_TORSION_PREVIEW
+    if (inum > inum_store) {
+        inum_store = inum;
+        // realloc host arrays
+        hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);
+        hipHostMalloc((void**) &counters_jj_min,sizeof(int)*inum, hipHostMallocNonCoherent);
+        hipHostMalloc((void**) &counters_jj_max,sizeof(int)*inum, hipHostMallocNonCoherent);
+        hipHostMalloc((void**) &counters_kk_min,sizeof(int)*inum, hipHostMallocNonCoherent);
+        hipHostMalloc((void**) &counters_kk_max,sizeof(int)*inum, hipHostMallocNonCoherent);
+    }
+    if (evflag) {
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this,ev);
+    } else{
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion_preview<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
       hipDeviceSynchronize();
-
-
-      hipHostFree(counters);
-      #if 1
-      hipHostFree(counters_jj_min);
-      hipHostFree(counters_jj_max);
-      hipHostFree(counters_kk_min);
-      hipHostFree(counters_kk_max);
-      #else
-      hipFree(counters_jj_min);
-      hipFree(counters_jj_max);
-      hipFree(counters_kk_min);
-      hipFree(counters_kk_max);
-      #endif
-
+      int nnz = 0;
+      for (int i = 0; i < inum; ++i){
+        if (counters[i] > 0){
+          counters[nnz] = i;
+          nnz++;
+        }
+      }
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this);
+    }
+    #else
+    if (evflag) {
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this,ev);
+    } else{
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this);
+    }
+    #endif
+    ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
   pvector[9] = ev.ereax[7];

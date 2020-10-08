@@ -1410,6 +1410,7 @@ Izz
 Jacobsen
 Jadhav
 jagreat
+Jahn
 Jalalvand
 james
 Janssen
@@ -2715,6 +2716,7 @@ Rosenberger
 Rossky
 rosybrown
 rotationally
+Rotenberg
 Rovigatti
 royalblue
 rozero
@@ -2749,6 +2751,7 @@ safezone
 Safran
 Sagui
 Saidi
+Salanne
 Salles
 sandia
 Sandia
@@ -3112,6 +3115,7 @@ Tohoku
 tokenizer
 tokyo
 tol
+Toennies
 tomic
 toolchain
 topologies
@@ -3339,6 +3343,7 @@ vtp
 vtr
 vtu
 Vu
+Vuilleumier
 vv
 vx
 Vx

@@ -1,0 +1,80 @@
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.600 8.0 coul/tt 4 8.0
+pair_modify tail yes
+kspace_style pppm 1.0e-5
+
+read_data data.ethylene_glycol
+
+pair_coeff    1    1 lj/cut/coul/long     0.057289     3.500000  # CTO CTO ~
+pair_coeff    1    2 lj/cut/coul/long     0.091945     3.304542  # CTO OHG ~
+pair_coeff    1    3 lj/cut/coul/long     0.038625     2.958040  # CTO H1O ~
+pair_coeff    1    4 lj/cut/coul/long     0.000000     0.000000  # CTO HOG ~
+pair_coeff    2    2 lj/cut/coul/long     0.147565     3.120000  # OHG OHG ~
+pair_coeff    2    3 lj/cut/coul/long     0.061990     2.792848  # OHG H1O ~
+pair_coeff    2    4 lj/cut/coul/long     0.000000     0.000000  # OHG HOG ~
+pair_coeff    3    3 lj/cut/coul/long     0.026041     2.500000  # H1O H1O ~
+pair_coeff    3    4 lj/cut/coul/long     0.000000     0.000000  # H1O HOG ~
+pair_coeff    4    4 lj/cut/coul/long     0.000000     0.000000  # HOG HOG ~
+pair_coeff    *   5* lj/cut/coul/long     0.000000     0.000000 
+pair_coeff    1    1 thole   1.662
+pair_coeff    1    2 thole   1.561
+pair_coeff    1    5 thole   1.662
+pair_coeff    1    6 thole   1.561
+pair_coeff    2    2 thole   1.467
+pair_coeff    2    5 thole   1.561
+pair_coeff    2    6 thole   1.467
+pair_coeff    5    5 thole   1.662
+pair_coeff    5    6 thole   1.561
+pair_coeff    6    6 thole   1.467
+pair_coeff    2    4 coul/tt  4.5 1.0
+pair_coeff    4    6 coul/tt  4.5 1.0
+pair_coeff    1    4 coul/tt  4.5 1.0
+pair_coeff    4    5 coul/tt  4.5 1.0
+
+group ATOMS type 1 2 3 4
+group CORES type 1 2
+group DRUDES type 5 6
+
+fix DRUDE all drude C C N N D D
+
+fix SHAKE ATOMS shake 0.0001 20 0 b 3 4
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+variable TK equal 298.0
+variable TDK equal 1.0
+variable PBAR equal 1.0
+
+comm_modify vel yes
+velocity ATOMS create ${TK} 12345
+
+compute TATOM ATOMS temp
+compute TDRUDE all temp/drude
+
+fix DTDIR all drude/transform/direct
+fix TSTAT ATOMS npt temp ${TK} ${TK} 200 iso ${PBAR} ${PBAR} 1000
+fix_modify TSTAT temp TATOM press thermo_press
+fix TSTDR DRUDES nvt temp ${TDK} ${TDK} 50
+fix DTINV all drude/transform/inverse
+
+fix ICECUBE all momentum 1000 linear 1 1 1
+
+thermo_style custom step etotal ke pe ebond eangle evdwl ecoul elong &
+  press vol density c_TATOM c_TDRUDE[1] c_TDRUDE[2]
+thermo 50
+
+run 500
+

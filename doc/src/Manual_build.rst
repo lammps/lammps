@@ -32,8 +32,8 @@ and PDF files are not included.  Instead you need to create them, in one
 of two ways:
 
 a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type ``make fetch``.  This should download a html_www
-   directory and a Manual_www.pdf file.  Note that if new LAMMPS features
+   site.  Just type ``make fetch``.  This should download a ``html_www``
+   directory and a ``Manual_www.pdf`` file.  Note that if new LAMMPS features
    have been added more recently than the date of your LAMMPS version, the
    fetched documentation will include those changes (but your source code
    will not, unless you update your local repository).
@@ -54,15 +54,15 @@ A version of the manual corresponding to the ongoing development
 ----------
 
 The generation of all documentation is managed by the Makefile in the
-doc directory. The following documentation related make commands are
+doc directory. The following documentation related ``make`` commands are
 available:
 
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
    make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
-   make fetch         # fetch HTML doc pages and PDF file from web site
-                      #   as a tarball and unpack into html dir and PDF
+   make fetch         # fetch HTML pages and PDF files from LAMMPS web site
+                      #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
 

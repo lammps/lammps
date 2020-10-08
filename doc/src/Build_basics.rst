@@ -134,8 +134,8 @@ support included as well.  These are commands in the ``MPIIO``,
 ``SNAP``, ``USER-DIFFRACTION``, and ``USER-DPD`` packages.  In addition
 some packages support OpenMP threading indirectly through the libraries
 they interface to: e.g. ``LATTE``, ``KSPACE``, and ``USER-COLVARS``.
-See the :doc:`Packages details <Packages_details>` doc page for more
-info on these packages and the doc pages for their respective commands
+See the :doc:`Packages details <Packages_details>` page for more
+info on these packages and the pages for their respective commands
 for OpenMP threading info.
 
 For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
@@ -310,7 +310,7 @@ LAMMPS.
          required or recommended to enable required features and to
          achieve optimal performance.  You need to include these in the
          CCFLAGS and LINKFLAGS settings above.  For details, see the
-         individual package doc pages listed on the
+         documentation for the individual packages listed on the
          :doc:`Speed_packages` page.  Or examine these files in the
          src/MAKE/OPTIONS directory.  They correspond to each of the 5
          accelerator packages and their hardware variants:
@@ -341,7 +341,7 @@ will then process commands provided via a file or from the console
 input.  The LAMMPS library can also be called from another application
 or a scripting language.  See the :doc:`Howto couple <Howto_couple>` doc
 page for more info on coupling LAMMPS to other codes.  See the
-:doc:`Python <Python_head>` doc page for more info on wrapping and
+:doc:`Python <Python_head>` page for more info on wrapping and
 running LAMMPS from Python via its library interface.
 
 .. tabs::
@@ -472,13 +472,14 @@ Build the LAMMPS documentation
 ----------------------------------------
 
 The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
-can be translated to different output format using the `Sphinx <sphinx_>`_
-document generator tool.  Currently the translation to HTML and PDF (via
-LaTeX) are supported.  For that to work a Python 3 interpreter and
-internet access is required.  For the documentation build a python
-based virtual environment is set up in the folder doc/docenv and various
-python packages are installed into that virtual environment via the pip
-tool.  The actual translation is then done via make commands.
+can be translated to different output format using the `Sphinx
+<sphinx_>`_ document generator tool.  Currently the translation to HTML
+and PDF (via LaTeX) are supported.  For that to work a Python 3
+interpreter and internet access is required.  For the documentation
+build a python based virtual environment is set up in the folder
+``doc/docenv`` and various python packages are installed into that
+virtual environment via the ``pip`` tool.  The actual translation is
+then done via ``make`` commands.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 .. _sphinx: https://www.sphinx-doc.org
@@ -491,7 +492,7 @@ LAMMPS source distribution.
 
 .. code-block:: bash
 
-  make html          # create HTML doc pages in html directory
+  make html          # create HTML pages in html directory
   make pdf           # create Manual.pdf in this directory
   make fetch         # fetch HTML and PDF files from LAMMPS web site
   make clean         # remove all intermediate files

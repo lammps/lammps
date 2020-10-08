@@ -680,8 +680,11 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
 
   /* Coulomb calculations */
   dr3gamij_1 = ( r_ij * r_ij * r_ij + twbp->gamma );
+  #ifdef  HIP_OPT_USE_LESS_MATH
+  dr3gamij_3 = cbrt(dr3gamij_1);
+  #else
   dr3gamij_3 = pow( dr3gamij_1 , 0.33333333333333 );
-
+  #endif
   tmp = Tap / dr3gamij_3;
   lr->H = EV_to_KCALpMOL * tmp;
   lr->e_ele = C_ele * tmp;
@@ -1461,7 +1464,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     // Coulomb energy/force
     const F_FLOAT shld = paramstwbp(itype,jtype).gamma;
     const F_FLOAT denom1 = rij * rij * rij + shld;
+    #ifdef  HIP_OPT_USE_LESS_MATH
+    const F_FLOAT denom3 = cbrt(denom1);
+    #else
     const F_FLOAT denom3 = pow(denom1,0.3333333333333);
+    #endif
     const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
     const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
 

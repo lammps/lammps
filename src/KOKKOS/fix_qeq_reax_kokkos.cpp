@@ -697,7 +697,11 @@ double FixQEqReaxKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F_FLO
   taper = taper * r + d_tap[0];
 
   denom = r * r * r + shld;
+  #ifdef  HIP_OPT_USE_LESS_MATH
+  denom = cbrt(denom);
+  #else
   denom = pow(denom,0.3333333333333);
+  #endif
 
   return taper * EV_TO_KCAL_PER_MOL / denom;
 }

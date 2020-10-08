@@ -56,7 +56,7 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
 
   void force_clear(int, size_t);
 
-  void grow_reset();
+  void grow_pointers();
   // input lists to be checked
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,

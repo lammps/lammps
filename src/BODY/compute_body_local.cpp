@@ -123,7 +123,7 @@ void ComputeBodyLocal::compute_local()
   int ncount = compute_body(0);
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
-  ncount = compute_body(1);
+  compute_body(1);
 }
 
 /* ----------------------------------------------------------------------

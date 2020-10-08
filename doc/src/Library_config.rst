@@ -1,6 +1,26 @@
 Retrieving LAMMPS configuration information
 ===========================================
 
+This section documents the following functions:
+
+- :cpp:func:`lammps_config_has_mpi_support`
+- :cpp:func:`lammps_config_has_gzip_support`
+- :cpp:func:`lammps_config_has_png_support`
+- :cpp:func:`lammps_config_has_jpeg_support`
+- :cpp:func:`lammps_config_has_ffmpeg_support`
+- :cpp:func:`lammps_config_has_exceptions`
+- :cpp:func:`lammps_config_has_package`
+- :cpp:func:`lammps_config_package_count`
+- :cpp:func:`lammps_config_package_name`
+- :cpp:func:`lammps_has_style`
+- :cpp:func:`lammps_style_count`
+- :cpp:func:`lammps_style_name`
+- :cpp:func:`lammps_has_id`
+- :cpp:func:`lammps_id_count`
+- :cpp:func:`lammps_id_name`
+
+--------------------
+
 The following library functions can be used to query the LAMMPS library
 about compile time settings and included packages and styles.  This
 enables programs that use the library interface to run LAMMPS
@@ -105,5 +125,20 @@ a safer approach.
 -----------------------
 
 .. doxygenfunction:: lammps_style_name
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_has_id
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_id_count
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_id_name
    :project: progguide
 

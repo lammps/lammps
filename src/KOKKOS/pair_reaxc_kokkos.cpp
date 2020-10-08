@@ -781,14 +781,14 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else {
     if (neighflag == HALF) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,1>, Kokkos::LaunchBounds<128, 1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALF,0>, Kokkos::LaunchBounds<128, 1> >(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1>, Kokkos::LaunchBounds<128, 1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0>, Kokkos::LaunchBounds<128, 1> >(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -1177,6 +1177,173 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
 
   F_FLOAT fxtmp, fytmp, fztmp;
   fxtmp = fytmp = fztmp = 0.0;
+#ifdef HIP_OPT_PAIRREAXLJCOULOMB_BLOCKING
+
+
+  unsigned short int BLK_SZ=80;
+  unsigned short int nnz;
+  unsigned short int selected_jj[80];
+  int jj_current = 0;
+
+  while (jj_current < jnum) {
+        nnz=0;
+        while (nnz < BLK_SZ){
+          int jj = jj_current;
+          int j = d_neighbors(i,jj);
+          j &= NEIGHMASK;
+          const tagint jtag = tag(j);
+          bool FLAG_CONTINUE = false;
+          // skip half of the interactions
+          if (j >= nlocal) {
+             if (itag > jtag) {
+               if ((itag+jtag) % 2 == 0) FLAG_CONTINUE=true;
+             } else if (itag < jtag) {
+               if ((itag+jtag) % 2 == 1) FLAG_CONTINUE=true;
+             } else {
+               if (x(j,2) < ztmp) FLAG_CONTINUE=true;
+               else if (x(j,2) == ztmp && x(j,1)  < ytmp) FLAG_CONTINUE=true;
+               else if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) FLAG_CONTINUE=true;
+             }
+          }
+          if (FLAG_CONTINUE==false){
+            const X_FLOAT delx = x(j,0) - xtmp;
+            const X_FLOAT dely = x(j,1) - ytmp;
+            const X_FLOAT delz = x(j,2) - ztmp;
+            const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+            if (rsq > cut_nbsq) FLAG_CONTINUE=true;
+          }
+          if (FLAG_CONTINUE == false){
+              selected_jj[nnz] = jj_current;
+              nnz++;
+          }
+          jj_current++;
+          if (jj_current == jnum) break;
+        }
+
+        for (int jj_inner = 0; jj_inner < nnz; jj_inner++){
+           const int jj = selected_jj[jj_inner];
+           int j = d_neighbors(i,jj);
+           j &= NEIGHMASK;
+           const int jtype = type(j);
+           //const tagint jtag = tag(j);
+           const F_FLOAT qj = q(j);
+
+           const X_FLOAT delx = x(j,0) - xtmp;
+           const X_FLOAT dely = x(j,1) - ytmp;
+           const X_FLOAT delz = x(j,2) - ztmp;
+           const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+           //if (rsq > cut_nbsq) continue;
+           const F_FLOAT rij = sqrt(rsq);
+
+           // LJ energy/force
+           F_FLOAT Tap = d_tap[7] * rij + d_tap[6];
+           Tap = Tap * rij + d_tap[5];
+           Tap = Tap * rij + d_tap[4];
+           Tap = Tap * rij + d_tap[3];
+           Tap = Tap * rij + d_tap[2];
+           Tap = Tap * rij + d_tap[1];
+           Tap = Tap * rij + d_tap[0];
+
+           F_FLOAT dTap = 7*d_tap[7] * rij + 6*d_tap[6];
+           dTap = dTap * rij + 5*d_tap[5];
+           dTap = dTap * rij + 4*d_tap[4];
+           dTap = dTap * rij + 3*d_tap[3];
+           dTap = dTap * rij + 2*d_tap[2];
+           dTap += d_tap[1]/rij;
+
+           const F_FLOAT gamma_w = paramstwbp(itype,jtype).gamma_w;
+           const F_FLOAT alpha = paramstwbp(itype,jtype).alpha;
+           const F_FLOAT r_vdw = paramstwbp(itype,jtype).r_vdw;
+           const F_FLOAT epsilon = paramstwbp(itype,jtype).epsilon;
+
+
+           // shielding
+           if (vdwflag == 1 || vdwflag == 3) {
+             #ifdef HIP_OPT_USE_LESS_MATH
+             F_FLOAT tmp_var;
+             tmp_var = pow(rij,gp[28]-2.0);
+             powr_vdw = tmp_var*rij*rij;
+             powgi_vdw = pow(1.0/gamma_w,gp[28]);
+             dfn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]-1.0);
+             fn13  = dfn13*(powr_vdw+powgi_vdw);
+             dfn13 = dfn13*tmp_var;
+
+             exp2 = exp(0.5*alpha*(1.0-fn13/r_vdw));
+             exp1 = exp2*exp2;
+             #else
+             powr_vdw = pow(rij,gp[28]);
+             powgi_vdw = pow(1.0/gamma_w,gp[28]);
+
+             fn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]);
+
+             exp1 = exp(alpha*(1.0-fn13/r_vdw));
+             exp2 = exp(0.5*alpha*(1.0-fn13/r_vdw));
+
+             dfn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]-1.0)*pow(rij,gp[28]-2.0);
+             #endif
+
+             etmp = epsilon*(exp1-2.0*exp2);
+             evdwl = Tap*etmp;
+             fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*dfn13;
+           } else {
+             #ifdef HIP_OPT_USE_LESS_MATH
+             exp2 = exp(0.5*alpha*(1.0-rij/r_vdw));
+             exp1 = exp2*exp2;
+             #else
+             exp1 = exp(alpha*(1.0-rij/r_vdw));
+             exp2 = exp(0.5*alpha*(1.0-rij/r_vdw));
+             #endif
+             etmp = epsilon*(exp1-2.0*exp2);
+             evdwl = Tap*etmp;
+             fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
+           }
+           // inner wall
+           if (vdwflag == 2 || vdwflag == 3) {
+             const F_FLOAT ecore = paramstwbp(itype,jtype).ecore;
+             const F_FLOAT acore = paramstwbp(itype,jtype).acore;
+             const F_FLOAT rcore = paramstwbp(itype,jtype).rcore;
+             const F_FLOAT e_core = ecore*exp(acore*(1.0-(rij/rcore)));
+             const F_FLOAT de_core = -(acore/rcore)*e_core;
+             evdwl += Tap*e_core;
+             fvdwl += dTap*e_core+Tap*de_core/rij;
+
+             if (lgflag) {
+               const F_FLOAT lgre = paramstwbp(itype,jtype).lgre;
+               const F_FLOAT lgcij = paramstwbp(itype,jtype).lgcij;
+               const F_FLOAT rij5 = rsq*rsq*rij;
+               const F_FLOAT rij6 = rij5*rij;
+               const F_FLOAT re6 = lgre*lgre*lgre*lgre*lgre*lgre;
+               const F_FLOAT elg = -lgcij/(rij6+re6);
+               const F_FLOAT delg = -6.0*elg*rij5/(rij6+re6);
+               evdwl += Tap*elg;
+               fvdwl += dTap*elg+Tap*delg/rij;
+             }
+           }
+
+           // Coulomb energy/force
+           const F_FLOAT shld = paramstwbp(itype,jtype).gamma;
+           const F_FLOAT denom1 = rij * rij * rij + shld;
+           const F_FLOAT denom3 = pow(denom1,0.3333333333333);
+           const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
+           const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
+
+           const F_FLOAT ftotal = fvdwl + fcoul;
+           fxtmp += delx*ftotal;
+           a_f(j,0) -= delx*ftotal;
+           fytmp += dely*ftotal;
+           a_f(j,1) -= dely*ftotal;
+           fztmp += delz*ftotal;
+           a_f(j,2) -= delz*ftotal;
+
+           if (eflag) ev.evdwl += evdwl;
+           if (eflag) ev.ecoul += ecoul;
+
+           if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
+        }
+  }
+
+#else
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -1311,6 +1478,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
 
     if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
   }
+#endif
 
   a_f(i,0) += fxtmp;
   a_f(i,1) += fytmp;

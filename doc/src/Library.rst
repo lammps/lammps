@@ -76,6 +76,9 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
    an error inside LAMMPS, this will result in an abort of the entire
    program.  This is not always desirable.  Instead, LAMMPS can be
    compiled to instead :ref:`throw a C++ exception <exceptions>`.
+   These exceptions are caught by the library interface and the
+   error status :cpp:func:`can be queried <lammps_has_error>` and
+   the :cpp:func:`error message retrieved <lammps_get_last_error_message>`.
 
 .. warning::
 

@@ -1,22 +1,17 @@
-Retrieving or setting LAMMPS system properties
-==============================================
+System properties
+=================
 
 This section documents the following functions:
 
-- :cpp:func:`lammps_version`
-- :cpp:func:`lammps_get_os_info`
-- :cpp:func:`lammps_memory_usage`
-- :cpp:func:`lammps_get_mpi_comm`
 - :cpp:func:`lammps_get_natoms`
 - :cpp:func:`lammps_get_thermo`
 - :cpp:func:`lammps_extract_box`
 - :cpp:func:`lammps_reset_box`
+- :cpp:func:`lammps_memory_usage`
+- :cpp:func:`lammps_get_mpi_comm`
 - :cpp:func:`lammps_extract_setting`
 - :cpp:func:`lammps_extract_global_datatype`
 - :cpp:func:`lammps_extract_global`
-- :cpp:func:`lammps_extract_atom_datatype`
-- :cpp:func:`lammps_extract_atom`
-- :cpp:func:`lammps_create_atoms`
 
 --------------------
 
@@ -76,26 +71,6 @@ sub-domains and processors.
 
 -----------------------
 
-.. doxygenfunction:: lammps_version
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_get_os_info
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_memory_usage
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_get_mpi_comm
-   :project: progguide
-
------------------------
-
 .. doxygenfunction:: lammps_get_natoms
    :project: progguide
 
@@ -114,6 +89,16 @@ sub-domains and processors.
 .. doxygenfunction:: lammps_reset_box
    :project: progguide
 
+-----------------------
+
+.. doxygenfunction:: lammps_memory_usage
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_get_mpi_comm
+   :project: progguide
+
 -------------------
 
 .. doxygenfunction:: lammps_extract_setting
@@ -128,21 +113,4 @@ sub-domains and processors.
 
 .. doxygenfunction:: lammps_extract_global
    :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_extract_atom_datatype
-   :project: progguide
-
-
------------------------
-
-.. doxygenfunction:: lammps_extract_atom
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_create_atoms(void *handle, int n, int *id, int *type, double *x, double *v, int *image, int bexpand)
-   :project: progguide
-
 

@@ -1,8 +1,10 @@
-Retrieving LAMMPS configuration information
-===========================================
+Configuration information
+=========================
 
 This section documents the following functions:
 
+- :cpp:func:`lammps_version`
+- :cpp:func:`lammps_get_os_info`
 - :cpp:func:`lammps_config_has_mpi_support`
 - :cpp:func:`lammps_config_has_gzip_support`
 - :cpp:func:`lammps_config_has_png_support`
@@ -66,6 +68,16 @@ approach.
      lammps_close(handle);
      return 0;
    }
+
+-----------------------
+
+.. doxygenfunction:: lammps_version
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_get_os_info
+   :project: progguide
 
 -----------------------
 

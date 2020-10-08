@@ -1,5 +1,5 @@
-Library interface utility functions
-===================================
+Utility functions
+=================
 
 To simplify some tasks, the library interface contains these utility
 functions.  They do not directly call the LAMMPS library.

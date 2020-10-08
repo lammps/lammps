@@ -1,5 +1,5 @@
-Executing LAMMPS commands
-=========================
+Executing commands
+==================
 
 This section documents the following functions:
 

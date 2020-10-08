@@ -94,6 +94,7 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
    Library_create
    Library_execute
    Library_properties
+   Library_atoms
    Library_objects
    Library_scatter
    Library_neighbor

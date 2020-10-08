@@ -1,5 +1,5 @@
-Extending the Library interface
-===============================
+Extending the C API
+===================
 
 The functionality of the LAMMPS library interface has historically
 been motivated by the needs of its users.  Functions have been added

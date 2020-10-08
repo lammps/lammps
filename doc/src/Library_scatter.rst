@@ -1,5 +1,5 @@
-Per-atom scatter/gather operations
-==================================
+Scatter/gather operations
+=========================
 
 This section has functions which gather per-atom data from one or more
 processors into a contiguous global list ordered by atom ID.  The same

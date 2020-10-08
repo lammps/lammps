@@ -1,5 +1,5 @@
-Retrieving or setting properties of LAMMPS objects
-==================================================
+Compute, fixes, variables
+=========================
 
 This section documents accessing or modifying data stored by computes,
 fixes, or variables in LAMMPS using the following functions:

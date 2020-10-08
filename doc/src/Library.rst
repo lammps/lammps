@@ -2,7 +2,7 @@ LAMMPS Library Interfaces
 *************************
 
 As described on the :doc:`library interface to LAMMPS <Howto_library>`
-doc page, LAMMPS can be built as a library (static or shared), so that
+page, LAMMPS can be built as a library (static or shared), so that
 it can be called by another code, used in a :doc:`coupled manner
 <Howto_couple>` with other codes, or driven through a :doc:`Python
 script <Python_head>`.  Even the LAMMPS standalone executable is
@@ -72,13 +72,14 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
 .. admonition:: Errors versus exceptions
    :class: note
 
-   If any of the function calls in the LAMMPS library API trigger
-   an error inside LAMMPS, this will result in an abort of the entire
-   program.  This is not always desirable.  Instead, LAMMPS can be
-   compiled to instead :ref:`throw a C++ exception <exceptions>`.
-   These exceptions are caught by the library interface and the
-   error status :cpp:func:`can be queried <lammps_has_error>` and
-   the :cpp:func:`error message retrieved <lammps_get_last_error_message>`.
+   If the LAMMPS executable encounters an error condition, it will abort
+   after printing an error message. For a library interface this is
+   usually not desirable.  Thus LAMMPS can be compiled to to :ref:`throw
+   a C++ exception <exceptions>` instead.  If enabled, the library
+   functions will catch those exceptions and return.  The error status
+   :cpp:func:`can be queried <lammps_has_error>` and an :cpp:func:`error
+   message retrieved <lammps_get_last_error_message>`.  We thus
+   recommend enabling C++ exceptions when using the library interface,
 
 .. warning::
 

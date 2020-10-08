@@ -755,9 +755,14 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const int d_type2rhor_ij = d_type2rhor(itype,jtype);
       const F_FLOAT rhoip = (d_rhor_spline(d_type2rhor_ij,m,0)*p + d_rhor_spline(d_type2rhor_ij,m,1))*p +
                              d_rhor_spline(d_type2rhor_ij,m,2);
-      const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
+      int d_type2rhor_ji = d_type2rhor_ij;
+      F_FLOAT rhojp = rhoip;
+      if (itype != jtype) {
+        d_type2rhor_ji = d_type2rhor(jtype,itype);
+        rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
                              d_rhor_spline(d_type2rhor_ji,m,2);
+      }
+
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
       const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3);

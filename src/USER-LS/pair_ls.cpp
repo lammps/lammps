@@ -98,6 +98,7 @@ void PairLS::compute(int eflag, int vflag)
   int i,ii,n,inum_half,errorflag;
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
+  int *ilist,*jlist,*numneigh,**firstneigh;  
 
   ev_init(eflag,vflag);
 

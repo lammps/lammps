@@ -13,13 +13,11 @@
 
 #include <string.h>
 #include "npair_half_size_bytype_newton.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "my_page.h"
 #include "error.h"
-
 #include "nbin.h"
 #include "nstencil.h"
 

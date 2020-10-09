@@ -199,6 +199,10 @@ E: Use cutoff keyword to set cutoff in single mode
 
 Mode is single so cutoff/multi keyword cannot be used.
 
+E: Use cutoff/bytype in mode multi only
+
+Mode is single so cutoff/bytype keyword cannot be used.
+
 E: Cannot set cutoff/multi before simulation box is defined
 
 Self-explanatory.

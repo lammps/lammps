@@ -17,7 +17,6 @@
 #include "nbin.h"
 #include "memory.h"
 #include "atom.h"
-
 #include <math.h>
 
 using namespace LAMMPS_NS;
@@ -29,6 +28,8 @@ NStencilFullBytype3d::NStencilFullBytype3d(LAMMPS *lmp) :
 {
   maxstencil_type = NULL;
 }
+
+/* ---------------------------------------------------------------------- */
 
 NStencilFullBytype3d::~NStencilFullBytype3d() {
 
@@ -45,6 +46,8 @@ NStencilFullBytype3d::~NStencilFullBytype3d() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilFullBytype3d::copy_bin_info_bytype(int itype) {
 
   mbinx = nb->mbinx_type[itype];
@@ -57,6 +60,8 @@ void NStencilFullBytype3d::copy_bin_info_bytype(int itype) {
   bininvy = nb->bininvy_type[itype];
   bininvz = nb->bininvz_type[itype];
 }
+
+/* ---------------------------------------------------------------------- */
 
 int NStencilFullBytype3d::copy_neigh_info_bytype(int itype) {
 
@@ -78,6 +83,8 @@ int NStencilFullBytype3d::copy_neigh_info_bytype(int itype) {
   return ((2*sx+1) * (2*sy+1) * (2*sz+1));
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilFullBytype3d::create_setup()
 {
 
@@ -85,7 +92,6 @@ void NStencilFullBytype3d::create_setup()
   int maxtypes;
   int smax;
 
-  //printf("NStencilFullBytype3d::create_steup()\n");
   maxtypes = atom->ntypes;
 
   if (maxstencil_type == NULL) {
@@ -158,6 +164,8 @@ void NStencilFullBytype3d::create_setup()
   // }
 
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilFullBytype3d::create_newtoff(int itype, int jtype, double cutsq) {
 

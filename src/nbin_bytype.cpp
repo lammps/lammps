@@ -19,14 +19,12 @@
 #include "comm.h"
 #include "update.h"
 #include "error.h"
-
-#include <assert.h>
 #include "memory.h"
 
 using namespace LAMMPS_NS;
 
-#define SMALL 1.0e-6         // Duplicated from NBinStandard
-#define CUT2BIN_RATIO 100    // Duplicated from NBinStandard
+#define SMALL 1.0e-6
+#define CUT2BIN_RATIO 100
 
 /* ---------------------------------------------------------------------- */
 
@@ -238,7 +236,7 @@ void NBinBytype::setup_bins(int style)
     // test for too many global bins in any dimension due to huge global domain
 
     if (bbox[0]*binsizeinv > MAXSMALLINT || bbox[1]*binsizeinv > MAXSMALLINT ||
-	bbox[2]*binsizeinv > MAXSMALLINT)
+	    bbox[2]*binsizeinv > MAXSMALLINT)
       error->all(FLERR,"Domain too large for neighbor bins");
 
     // create actual bins
@@ -269,8 +267,8 @@ void NBinBytype::setup_bins(int style)
     bininvz_type[n] = 1.0 / binsizez_type[n];
 
     if (binsize_optimal*bininvx_type[n] > CUT2BIN_RATIO ||
-	binsize_optimal*bininvy_type[n] > CUT2BIN_RATIO ||
-	binsize_optimal*bininvz_type[n] > CUT2BIN_RATIO)
+	    binsize_optimal*bininvy_type[n] > CUT2BIN_RATIO ||
+	    binsize_optimal*bininvz_type[n] > CUT2BIN_RATIO)
       error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
 
     // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
@@ -352,8 +350,8 @@ void NBinBytype::bin_atoms()
     int bitmask = group->bitmask[includegroup];
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
-	n = type[i];
-	ibin = coord2bin(x[i], n);
+        n = type[i];
+        ibin = coord2bin(x[i], n);
         atom2bin_type[n][i] = ibin;
         bins_type[n][i] = binhead_type[n][ibin];
         binhead_type[n][ibin] = i;

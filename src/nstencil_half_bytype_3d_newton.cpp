@@ -17,7 +17,6 @@
 #include "nbin.h"
 #include "memory.h"
 #include "atom.h"
-
 #include <math.h>
 
 using namespace LAMMPS_NS;
@@ -29,6 +28,8 @@ NStencilHalfBytype3dNewton::NStencilHalfBytype3dNewton(LAMMPS *lmp) :
 {
   maxstencil_type = NULL;
 }
+
+/* ---------------------------------------------------------------------- */
 
 NStencilHalfBytype3dNewton::~NStencilHalfBytype3dNewton() {
 
@@ -43,6 +44,8 @@ NStencilHalfBytype3dNewton::~NStencilHalfBytype3dNewton() {
   memory->destroy(maxstencil_type);
 }
 
+/* ---------------------------------------------------------------------- */
+
 // KS To superclass
 void NStencilHalfBytype3dNewton::copy_bin_info_bytype(int itype) {
 
@@ -56,6 +59,8 @@ void NStencilHalfBytype3dNewton::copy_bin_info_bytype(int itype) {
   bininvy = nb->bininvy_type[itype];
   bininvz = nb->bininvz_type[itype];
 }
+
+/* ---------------------------------------------------------------------- */
 
 // KS To superclass?
 int NStencilHalfBytype3dNewton::copy_neigh_info_bytype(int itype) {
@@ -77,6 +82,8 @@ int NStencilHalfBytype3dNewton::copy_neigh_info_bytype(int itype) {
 
   return ((2*sx+1) * (2*sy+1) * (2*sz+1));
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilHalfBytype3dNewton::create_setup()
 {
@@ -153,6 +160,8 @@ void NStencilHalfBytype3dNewton::create_setup()
 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilHalfBytype3dNewton::create_newton(int itype, int jtype, double cutsq) {
 
   int i, j, k, ns;
@@ -168,6 +177,8 @@ void NStencilHalfBytype3dNewton::create_newton(int itype, int jtype, double cuts
 	  }
   nstencil_type[itype][jtype] = ns;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilHalfBytype3dNewton::create_newtoff(int itype, int jtype, double cutsq) {
 

@@ -17,7 +17,6 @@
 #include "nbin.h"
 #include "memory.h"
 #include "atom.h"
-
 #include <math.h>
 
 using namespace LAMMPS_NS;
@@ -43,6 +42,8 @@ NStencilHalfBytype2dNewton::~NStencilHalfBytype2dNewton() {
   memory->destroy(maxstencil_type);
 }
 
+/* ---------------------------------------------------------------------- */
+
 // KS To superclass
 void NStencilHalfBytype2dNewton::copy_bin_info_bytype(int itype) {
 
@@ -56,6 +57,8 @@ void NStencilHalfBytype2dNewton::copy_bin_info_bytype(int itype) {
   bininvy = nb->bininvy_type[itype];
   bininvz = nb->bininvz_type[itype];
 }
+
+/* ---------------------------------------------------------------------- */
 
 // KS To superclass?
 int NStencilHalfBytype2dNewton::copy_neigh_info_bytype(int itype) {
@@ -77,6 +80,8 @@ int NStencilHalfBytype2dNewton::copy_neigh_info_bytype(int itype) {
 
   return ((2*sx+1) * (2*sy+1) * (2*sz+1));
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilHalfBytype2dNewton::create_setup()
 {
@@ -153,6 +158,8 @@ void NStencilHalfBytype2dNewton::create_setup()
 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilHalfBytype2dNewton::create_newton(int itype, int jtype, double cutsq) {
 
   int i, j, ns;
@@ -167,6 +174,8 @@ void NStencilHalfBytype2dNewton::create_newton(int itype, int jtype, double cuts
       }
   nstencil_type[itype][jtype] = ns;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilHalfBytype2dNewton::create_newtoff(int itype, int jtype, double cutsq) {
 

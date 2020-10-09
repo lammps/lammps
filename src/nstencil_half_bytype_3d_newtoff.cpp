@@ -17,7 +17,6 @@
 #include "nbin.h"
 #include "memory.h"
 #include "atom.h"
-
 #include <math.h>
 
 using namespace LAMMPS_NS;
@@ -29,6 +28,8 @@ NStencilHalfBytype3dNewtoff::NStencilHalfBytype3dNewtoff(LAMMPS *lmp) :
 {
   maxstencil_type = NULL;
 }
+
+/* ---------------------------------------------------------------------- */
 
 NStencilHalfBytype3dNewtoff::~NStencilHalfBytype3dNewtoff() {
 
@@ -43,6 +44,8 @@ NStencilHalfBytype3dNewtoff::~NStencilHalfBytype3dNewtoff() {
   memory->destroy(maxstencil_type);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilHalfBytype3dNewtoff::copy_bin_info_bytype(int itype) {
 
   mbinx = nb->mbinx_type[itype];
@@ -55,6 +58,8 @@ void NStencilHalfBytype3dNewtoff::copy_bin_info_bytype(int itype) {
   bininvy = nb->bininvy_type[itype];
   bininvz = nb->bininvz_type[itype];
 }
+
+/* ---------------------------------------------------------------------- */
 
 int NStencilHalfBytype3dNewtoff::copy_neigh_info_bytype(int itype) {
 
@@ -76,6 +81,8 @@ int NStencilHalfBytype3dNewtoff::copy_neigh_info_bytype(int itype) {
   return ((2*sx+1) * (2*sy+1) * (2*sz+1));
 }
 
+/* ---------------------------------------------------------------------- */
+
 void NStencilHalfBytype3dNewtoff::create_setup()
 {
 
@@ -83,7 +90,6 @@ void NStencilHalfBytype3dNewtoff::create_setup()
   int maxtypes;
   int smax;
 
-  //printf("NStencilHalfBytype3dNewtoff::create_steup()\n");
   maxtypes = atom->ntypes;
 
   if (maxstencil_type == NULL) {
@@ -156,6 +162,8 @@ void NStencilHalfBytype3dNewtoff::create_setup()
   // }
 
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NStencilHalfBytype3dNewtoff::create_newtoff(int itype, int jtype, double cutsq) {
 

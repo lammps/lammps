@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bytype.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -20,7 +19,6 @@
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
-
 #include "nbin.h"
 #include "nstencil.h"
 
@@ -102,9 +100,9 @@ void NPairFullBytype::build(NeighList *list)
       for (k = 0; k < ns; k++) {
 	int js = this->nb->binhead_type[ktype][kbin + s[k]];
 	for (j = js; j >= 0; j = this->nb->bins_type[ktype][j]) {
-	  jtype = type[j];
 	  if (i == j) continue;
-
+	  
+      jtype = type[j];
 	  if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
 	  delx = xtmp - x[j][0];

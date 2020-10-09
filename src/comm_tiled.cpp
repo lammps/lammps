@@ -183,6 +183,12 @@ void CommTiled::setup()
       cutghostmulti[i][0] = MAX(cut,cuttype[i]);
       cutghostmulti[i][1] = MAX(cut,cuttype[i]);
       cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+      if (multi_bytype == 1) {
+        // Set the BYTYPE cutoff
+        cutghostmulti[i][0] = sqrt(neighbor->cutneighsq[i][i]);
+        cutghostmulti[i][1] = sqrt(neighbor->cutneighsq[i][i]);
+        cutghostmulti[i][2] = sqrt(neighbor->cutneighsq[i][i]);
+      }      
     }
   }
 

@@ -11,7 +11,7 @@ Syntax
    neighbor skin style
 
 * skin = extra distance beyond force cutoff (distance units)
-* style = *bin* or *nsq* or *multi*
+* style = *bin* or *nsq* or *multi* or *bytype*
 
 Examples
 """"""""
@@ -60,6 +60,14 @@ This imposes some extra setup overhead, but the searches themselves
 may be much faster for the short-cutoff cases.  See the :doc:`comm_modify mode multi <comm_modify>` command for a communication option
 that may also be beneficial for simulations of this kind.
 
+The *bytype* style is an extension of the *multi* style that was 
+presented by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`. 
+For style *bytype*, different bin lists are created for each different 
+type and separate bin sizes are generated. Whether *bytype* or *multi* 
+is faster may depend on the specifics of your system. See the 
+:doc:`comm_modify mode bytype <comm_modify>` command for a compatible 
+communication option.
+
 The :doc:`neigh_modify <neigh_modify>` command has additional options
 that control how often neighbor lists are built and which pairs are
 stored in the list.
@@ -86,3 +94,9 @@ Default
 | 0.001 bin for units = si, skin = 0.001 meters = 1.0 mm
 | 0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm
 |
+
+----------
+
+.. _bytype-Shire:
+
+**(Shire)** Shire, Hanley and Stratford, Comp Part Mech, (2020).

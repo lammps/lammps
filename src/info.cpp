@@ -1252,7 +1252,7 @@ std::string Info::get_mpi_info(int &major, int &minor)
   MPI_Get_library_version(version,&len);
 #else
   static char version[32];
-  strcpy(version,get_mpi_vendor());
+  strcpy(version,get_mpi_vendor().c_str());
   len = strlen(version);
 #endif
 

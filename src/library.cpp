@@ -578,7 +578,7 @@ compiler/runtime.
 A suitable buffer for a C-style string has to be provided and its length.
 If the assembled text will be truncated to not overflow this buffer.
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -4081,7 +4081,7 @@ This function checks if the current LAMMPS instance a *category* ID of
 the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
 *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -4149,7 +4149,7 @@ are defined in the current LAMMPS instance.
 Please see :cpp:func:`lammps_has_id` for a list of valid
 categories.
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -4189,7 +4189,7 @@ exceeds the length of the buffer, it will be truncated accordingly.
 If the index is out of range, the function returns 0 and *buffer* is
 set to an empty string, otherwise 1.
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 \endverbatim
  *

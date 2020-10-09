@@ -1,11 +1,12 @@
 Overview
 ========
 
-The LAMMPS distribution includes a python directory with all you need to
-run LAMMPS from Python.  The ``python/lammps.py`` contains :doc:`the
-"lammps" Python <Python_module>` that wraps the LAMMPS C-library
-interface.  This file makes it is possible to do the following either
-from a Python script, or interactively from a Python prompt:
+The LAMMPS distribution includes a ``python`` directory with the Python
+code needed to run LAMMPS from Python.  The ``python/lammps.py``
+contains :doc:`the "lammps" Python <Python_module>` that wraps the
+LAMMPS C-library interface.  This file makes it is possible to do the
+following either from a Python script, or interactively from a Python
+prompt:
 
 - create one or more instances of LAMMPS
 - invoke LAMMPS commands or read them from an input script
@@ -13,7 +14,7 @@ from a Python script, or interactively from a Python prompt:
 - extract LAMMPS results
 - and modify internal LAMMPS data structures.
 
-From a Python script you can do this in serial or parallel.  Running
+From a Python script you can do this in serial or in parallel.  Running
 Python interactively in parallel does not generally work, unless you
 have a version of Python that extends Python to enable multiple
 instances of Python to read what you type.

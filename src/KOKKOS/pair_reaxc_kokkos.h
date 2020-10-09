@@ -95,7 +95,6 @@ template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeAngular{};
 
 //LG sorting atoms for processing in PairReaxComputeTorsion
-template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeTorsion_preview{};
 
 template<int NEIGHFLAG, int EVFLAG>
@@ -223,10 +222,9 @@ class PairReaxCKokkos : public PairReaxC {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
+  
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxComputeTorsion_preview<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxComputeTorsion_preview, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

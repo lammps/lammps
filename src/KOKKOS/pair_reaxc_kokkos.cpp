@@ -936,48 +936,45 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   pvector[6] = ev.ereax[5];
   ev_all.evdwl += ev.ereax[3] + ev.ereax[4] + ev.ereax[5];
 
+  #ifdef HIP_OPT_TORSION_PREVIEW
+  if (inum > inum_store) {
+      inum_store = inum;
+      // realloc host arrays
+      hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);
+      hipHostMalloc((void**) &counters_jj_min,sizeof(int)*inum, hipHostMallocNonCoherent);
+      hipHostMalloc((void**) &counters_jj_max,sizeof(int)*inum, hipHostMallocNonCoherent);
+      hipHostMalloc((void**) &counters_kk_min,sizeof(int)*inum, hipHostMallocNonCoherent);
+      hipHostMalloc((void**) &counters_kk_max,sizeof(int)*inum, hipHostMallocNonCoherent);
+  }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion_preview, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
+  hipDeviceSynchronize();
+  int nnz = 0;
+  for (int i = 0; i < inum; ++i){
+    if (counters[i] > 0){
+      counters[nnz] = i;
+      nnz++;
+    }
+  }
+  #else // !HIP_OPT_TORSION_PREVIEW
+  int nnz = inum;
+  #endif
+
   // Torsion
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,1>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALF,0>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this);
     ev_all += ev;
   } else {
-
-    #ifdef HIP_OPT_TORSION_PREVIEW
-    if (inum > inum_store) {
-        inum_store = inum;
-        // realloc host arrays
-        hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);
-        hipHostMalloc((void**) &counters_jj_min,sizeof(int)*inum, hipHostMallocNonCoherent);
-        hipHostMalloc((void**) &counters_jj_max,sizeof(int)*inum, hipHostMallocNonCoherent);
-        hipHostMalloc((void**) &counters_kk_min,sizeof(int)*inum, hipHostMallocNonCoherent);
-        hipHostMalloc((void**) &counters_kk_max,sizeof(int)*inum, hipHostMallocNonCoherent);
-    }
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion_preview<HALFTHREAD,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
-    hipDeviceSynchronize();
-    int nnz = 0;
-    for (int i = 0; i < inum; ++i){
-      if (counters[i] > 0){
-        counters[nnz] = i;
-        nnz++;
-      }
-    }
     if (evflag) {
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this,ev);
     } else{
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<64, 1> >(0,nnz),*this);
     }
-    #else
-    if (evflag) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,1>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this,ev);
-    } else{
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion<HALFTHREAD,0>, Kokkos::LaunchBounds<64, 1> >(0,inum),*this);
-    }
-    #endif
     ev_all += ev;
   }
+
   pvector[8] = ev.ereax[6];
   pvector[9] = ev.ereax[7];
   ev_all.evdwl += ev.ereax[6] + ev.ereax[7];
@@ -2595,9 +2592,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
 
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion_preview<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion_preview, const int &ii) const {
 
   F_FLOAT  bo_ij, bo_ik, bo_jl;
   //F_FLOAT  fn10, f11_DiDj, dfn11, fn12;
@@ -2684,13 +2680,13 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>,
                                              #ifdef HIP_OPT_TORSION_PREVIEW
-                                             const int &_ii,
+                                             const int &iii,
                                              #else
                                              const int &ii,
                                              #endif
                                              EV_FLOAT_REAX& ev) const {
   #ifdef HIP_OPT_TORSION_PREVIEW
-  const int ii = counters[_ii];
+  const int ii = counters[iii];
   #endif
 
   const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);

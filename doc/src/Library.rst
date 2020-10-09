@@ -65,7 +65,7 @@ a problem when the communicator that would be passed is different from
 ``MPI_COMM_WORLD``.  Otherwise calling :cpp:func:`lammps_open_no_mpi`
 will work just as well.  To make :cpp:func:`lammps_open` available,
 you need to compile the code with ``-DLAMMPS_LIB_MPI`` or add the line
-``#define LAMMPS_LIB_MPI 1`` before ``#include "library.h"``.
+``#define LAMMPS_LIB_MPI`` before ``#include "library.h"``.
 
 Please note the ``mpi.h`` file must usually be the same (and thus the
 MPI library in use) for the LAMMPS code and library and the calling code.

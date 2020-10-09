@@ -32,8 +32,10 @@ Below is a short example using some of these functions.
 
 .. code-block:: C
 
+   /* define to make the otherwise hidden prototype for "lammps_open()" visible */
    #define LAMMPS_LIB_MPI
    #include "library.h"
+
    #include <mpi.h>
    #include <stdio.h>
 

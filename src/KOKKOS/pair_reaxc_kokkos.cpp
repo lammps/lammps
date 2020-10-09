@@ -2715,12 +2715,15 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   F_FLOAT p_tor4 = gp[25];
   F_FLOAT p_cot2 = gp[27];
 
+
+  const int i = d_ilist[ii];
+  #ifdef HIP_OPT_TORSION_PREVIEW
   const int jj_start = counters_jj_min[ii];
   const int jj_stop = counters_jj_max[ii];
   const int kk_start = counters_kk_min[ii];
   const int kk_stop = counters_kk_max[ii];
+  #endif
 
-  const int i = d_ilist[ii];
   const int itype = type(i);
   const tagint itag = tag(i);
   const X_FLOAT xtmp = x(i,0);
@@ -2735,8 +2738,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   for (int j = 0; j < 3; j++) fitmp[j] = 0.0;
   F_FLOAT CdDelta_i = 0.0;
 
-  //LG for (int jj = j_start; jj < j_end; jj++) {
-  for (int jj = jj_start; jj < jj_stop; jj++) {
+  #ifdef HIP_OPT_TORSION_PREVIEW
+  for (int jj = jj_start; jj < jj_stop; jj++)
+  #else
+  for (int jj = j_start; jj < j_end; jj++)
+  #endif
+  {
 
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
@@ -2779,8 +2786,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
     for (int k = 0; k < 3; k++) fjtmp[k] = 0.0;
     F_FLOAT CdDelta_j = 0.0;
 
-    //LG for (int kk = j_start; kk < j_end; kk++) {
-    for (int kk = kk_start; kk < kk_stop; kk++) {
+    #ifdef HIP_OPT_TORSION_PREVIEW
+    for (int kk = kk_start; kk < kk_stop; kk++)
+    #else
+    for (int kk = j_start; kk < j_end; kk++) {
+    #endif
       int k = d_bo_list[kk];
       k &= NEIGHMASK;
       if (k == j) continue;
@@ -3058,7 +3068,11 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
 
     EV_FLOAT_REAX ev;
+    #if HIP_OPT_TORSION_PREVIEW
     this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>(), counters[ii], ev);
+    #else
+    this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
+    #endif
 
 }
 

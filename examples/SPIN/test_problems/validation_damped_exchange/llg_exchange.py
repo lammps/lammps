@@ -65,6 +65,6 @@ for t in range (0,N):
   # calc. average magnetization
   Sm = (S1+S2)*0.5
   # calc. energy
-  en = -2.0*J0*(np.dot(S1,S2))
+  en = -J0*(np.dot(S1,S2))
   # print res. in ps for comparison with LAMMPS
   print(t*dt/1000.0,Sm[0],Sm[1],Sm[2],en)

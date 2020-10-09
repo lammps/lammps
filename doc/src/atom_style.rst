@@ -27,7 +27,7 @@ Syntax
            template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          *hybrid* args = list of one or more sub-styles, each with their args
 
-* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
+* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *spin/kk*
 
 Examples
 """"""""

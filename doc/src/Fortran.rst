@@ -24,7 +24,7 @@ of the source files: the lammps.f90 file needs to be compiled first,
 since it provides the ``LIBLAMMPS`` module that is imported by the
 Fortran code using the interface.
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 .. admonition:: Work in Progress
    :class: note

@@ -403,7 +403,7 @@ The file was provided by Alessandro Luigi Sellerio
 LAMMPS shell
 ------------
 
-.. versionadded:: 6Oct2020
+.. versionadded:: 9Oct2020
 
 Overview
 ========

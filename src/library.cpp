@@ -14,6 +14,7 @@
 // C style library interface to LAMMPS.
 // See the manual for detailed documentation.
 
+#define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
 
@@ -140,11 +141,12 @@ fails a null pointer is returned.
 
 .. note::
 
-   This function is not declared when the code linking to the LAMMPS
-   library interface is compiled with ``-DLAMMPS_LIB_NO_MPI``, or
-   contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
-   ``#include "library.h"``.  In that case, you must use the
-   :cpp:func:`lammps_open_no_mpi` function.
+   This function is **only** declared when the code using the LAMMPS
+   ``library.h`` include file is compiled with ``-DLAMMPS_LIB_MPI``,
+   or contains a ``#define LAMMPS_LIB_MPI 1`` statement before
+   ``#include "library.h"``.  Otherwise you can only use the
+   :cpp:func:`lammps_open_no_mpi` or :cpp:func:`lammps_open_fortran`
+   functions.
 
 *See also*
    :cpp:func:`lammps_open_no_mpi`, :cpp:func:`lammps_open_fortran`

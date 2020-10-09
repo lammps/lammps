@@ -348,8 +348,13 @@ class lammps(object):
     self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
+    self.lib.lammps_is_running.argtypes = [c_void_p]
+    self.lib.lammps_is_running.restype = c_int
+
+    self.lib.lammps_force_timeout.argtypes = [c_void_p]
+
     self.lib.lammps_has_error.argtypes = [c_void_p]
-    self.lib.lammps_has_error.restype = c_bool
+    self.lib.lammps_has_error.restype = c_int
 
     self.lib.lammps_get_last_error_message.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_get_last_error_message.restype = c_int
@@ -366,15 +371,23 @@ class lammps(object):
 
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
 
-    self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
-
     self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
 
     self.lib.lammps_style_count.argtypes = [c_void_p, c_char_p]
 
     self.lib.lammps_style_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
 
+    self.lib.lammps_has_id.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_id_count.argtypes = [c_void_p, c_char_p]
+
+    self.lib.lammps_id_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
+
     self.lib.lammps_version.argtypes = [c_void_p]
+
+    self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
 
     self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
 
@@ -550,6 +563,21 @@ class lammps(object):
     :rtype:  int
     """
     return self.lib.lammps_version(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  def get_os_info(self):
+    """Return a string with information about the OS and compiler runtime
+
+    This is a wrapper around the :cpp:func:`lammps_get_os_info` function of the C-library interface.
+
+    :return: OS info string
+    :rtype:  string
+    """
+
+    sb = create_string_buffer(512)
+    self.lib.lammps_get_os_info(sb,512)
+    return sb
 
   # -------------------------------------------------------------------------
 
@@ -1425,6 +1453,36 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   @property
+  def is_running(self):
+    """ Report whether being called from a function during a run or a minimization
+
+    Various LAMMPS commands must not be called during an ongoing
+    run or minimization.  This property allows to check for that.
+    This is a wrapper around the :cpp:func:`lammps_is_running`
+    function of the library interface.
+
+    :return: True when called during a run otherwise false
+    :rtype: bool
+    """
+    return self.lib.lammps_is_running(self.lmp) == 1
+
+  # -------------------------------------------------------------------------
+
+  @property
+  def force_timeout(self):
+    """ Trigger an immediate timeout, i.e. a "soft stop" of a run.
+
+    This function allows to cleanly stop an ongoing run or minimization
+    at the next loop iteration.
+    This is a wrapper around the :cpp:func:`lammps_force_timeout`
+    function of the library interface.
+
+    """
+    self.lib.lammps_force_timeout(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  @property
   def has_exceptions(self):
     """ Report whether the LAMMPS shared library was compiled with C++
     exceptions handling enabled
@@ -1559,6 +1617,49 @@ class lammps(object):
         self.lib.lammps_style_name(self.lmp, category.encode(), idx, sb, 100)
         self._available_styles[category].append(sb.value.decode())
     return self._available_styles[category]
+
+  # -------------------------------------------------------------------------
+
+  def has_id(self, category, name):
+    """Returns whether a given ID name is available in a given category
+
+    This is a wrapper around the function :cpp:func:`lammps_has_id`
+    of the library interface.
+
+    :param category: name of category
+    :type  category: string
+    :param name: name of the ID
+    :type  name: string
+
+    :return: true if ID is available in given category
+    :rtype:  bool
+    """
+    return self.lib.lammps_has_id(self.lmp, category.encode(), name.encode()) != 0
+
+  # -------------------------------------------------------------------------
+
+  def available_ids(self, category):
+    """Returns a list of IDs available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_id_count()`
+    and :cpp:func:`lammps_id_name()` of the library interface.
+
+    :param category: name of category
+    :type  category: string
+
+    :return: list of id names in given category
+    :rtype:  list
+    """
+    self._available_ids = {}
+
+    if category not in self._available_ids:
+      self._available_ids[category] = []
+      nstyles = self.lib.lammps_id_count(self.lmp, category.encode())
+      sb = create_string_buffer(100)
+      for idx in range(nstyles):
+        self.lib.lammps_id_name(self.lmp, category.encode(), idx, sb, 100)
+        self._available_ids[category].append(sb.value.decode())
+    return self._available_ids[category]
 
   # -------------------------------------------------------------------------
 

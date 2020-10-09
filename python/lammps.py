@@ -1461,6 +1461,8 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_is_running`
     function of the library interface.
 
+    .. versionadded:: 9Oct2020
+
     :return: True when called during a run otherwise false
     :rtype: bool
     """
@@ -1476,6 +1478,7 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_force_timeout`
     function of the library interface.
 
+    .. versionadded:: 9Oct2020
     """
     self.lib.lammps_force_timeout(self.lmp)
 
@@ -1625,6 +1628,8 @@ class lammps(object):
     This is a wrapper around the function :cpp:func:`lammps_has_id`
     of the library interface.
 
+    .. versionadded:: 9Oct2020
+
     :param category: name of category
     :type  category: string
     :param name: name of the ID
@@ -1642,6 +1647,8 @@ class lammps(object):
 
     This is a wrapper around the functions :cpp:func:`lammps_id_count()`
     and :cpp:func:`lammps_id_name()` of the library interface.
+
+    .. versionadded:: 9Oct2020
 
     :param category: name of category
     :type  category: string

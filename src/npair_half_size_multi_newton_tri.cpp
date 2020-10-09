@@ -45,7 +45,6 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
@@ -72,7 +71,9 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
     radi = radius[i];
 
 
-    // loop over all atoms in bins in stencil
+    // loop over all atoms in bins, including self, in stencil
+    // skip if i,j neighbor cutoff is less than bin distance
+    // bins below self are excluded from stencil
     // pairs for atoms j "below" i are excluded
     // below = lower z or (equal z and lower y) or (equal zy and lower x)
     //         (equal zyx and j <= i)

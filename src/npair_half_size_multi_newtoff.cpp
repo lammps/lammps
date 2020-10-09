@@ -11,9 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
 #include "npair_half_size_multi_newtoff.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -27,6 +25,7 @@ using namespace LAMMPS_NS;
 NPairHalfSizeMultiNewtoff::NPairHalfSizeMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   size particles
    binned neighbor list construction with partial Newton's 3rd law
    each owned atom i checks own bin and other bins in stencil
    multi-type stencil is itype dependent and is distance checked
@@ -46,7 +45,6 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
@@ -99,7 +97,7 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
         cutdistsq = (radsum+skin) * (radsum+skin);
 
         if (rsq <= cutdistsq) {
-          if (history && rsq < radsum*radsum) 
+          if (history && rsq < radsum*radsum)
             neighptr[n++] = j ^ mask_history;
           else
             neighptr[n++] = j;

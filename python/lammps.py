@@ -1468,7 +1468,6 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  @property
   def force_timeout(self):
     """ Trigger an immediate timeout, i.e. a "soft stop" of a run.
 
@@ -1650,16 +1649,16 @@ class lammps(object):
     :return: list of id names in given category
     :rtype:  list
     """
-    self._available_ids = {}
 
-    if category not in self._available_ids:
-      self._available_ids[category] = []
-      nstyles = self.lib.lammps_id_count(self.lmp, category.encode())
+    categories = ['compute','dump','fix','group','molecule','region','variable']
+    available_ids = []
+    if category in categories:
+      num = self.lib.lammps_id_count(self.lmp, category.encode())
       sb = create_string_buffer(100)
-      for idx in range(nstyles):
+      for idx in range(num):
         self.lib.lammps_id_name(self.lmp, category.encode(), idx, sb, 100)
-        self._available_ids[category].append(sb.value.decode())
-    return self._available_ids[category]
+        available_ids.append(sb.value.decode())
+    return available_ids
 
   # -------------------------------------------------------------------------
 

@@ -43,6 +43,7 @@ wild-card character.  The "\*" is replaced with the current timestep
 value.
 
 .. admonition:: Data in Coeff sections
+   :class: note
 
    The write_data command may not always write all coefficient settings
    to the corresponding Coeff sections of the data file.  This can have

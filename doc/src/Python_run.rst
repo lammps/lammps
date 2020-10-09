@@ -27,8 +27,8 @@ typed something like:
 
    lmp_serial -in in.lj
 
-Running LAMMPS and Python in parallel with MPI (mpi4py)
--------------------------------------------------------
+Running LAMMPS and Python in parallel with MPI
+----------------------------------------------
 
 To run LAMMPS in parallel, assuming you have installed the
 `mpi4py <https://mpi4py.readthedocs.io>`_ package as discussed

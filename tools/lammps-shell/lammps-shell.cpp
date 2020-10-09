@@ -463,6 +463,7 @@ static void init_commands()
     commands.push_back("exit");
     commands.push_back("pwd");
     commands.push_back("cd");
+    commands.push_back("mem");
     commands.push_back("history");
     commands.push_back("clear_history");
 
@@ -562,6 +563,13 @@ static int shell_cmd(const std::string &cmd)
         lammps_command(lmp, shellcmd.c_str());
         free(text);
         return 0;
+    } else if (words[0] == "mem") {
+        double meminfo[3];
+        lammps_memory_usage(lmp,meminfo);
+        std::cout << "Memory usage.  Current: " << meminfo[0] << " MByte, "
+                  << "Maximum : " << meminfo[2] << " MByte\n";
+        free(text);
+        return 0;
     } else if (words[0] == "history") {
         free(text);
         HIST_ENTRY **list = history_list();
@@ -585,7 +593,9 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    std::cout << "LAMMPS Shell version 1.0\n";
+    lammps_get_os_info(buf,buflen);
+    std::cout << "LAMMPS Shell version 1.0  OS: " << buf;
+
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
                      "WARNING: The shell will terminate on errors.\n";

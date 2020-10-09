@@ -403,6 +403,8 @@ The file was provided by Alessandro Luigi Sellerio
 LAMMPS shell
 ------------
 
+.. versionadded:: 9Oct2020
+
 Overview
 ========
 
@@ -452,11 +454,11 @@ available in that executable.
 
 - When typing references to computes, fixes, or variables with a
   "c\_", "f\_", or "v\_" prefix, respectively, then the expansion will
-  to known compute/fix IDs and variable names. Variable name expansion
-  is also available for the ${name} variable syntax.
+  be to known compute/fix IDs and variable names. Variable name
+  expansion is also available for the ${name} variable syntax.
 
-- In all other cases, expansion will be performed on filenames.
-
+- In all other cases TAB expansion will complete to names of files
+  and directories.
 
 Command line editing and history
 ================================
@@ -500,6 +502,7 @@ regular LAMMPS commands:
    clear_history  wipe out the current command history list
    pwd            print current working directory
    cd <directory> change current working directory (same as pwd if no directory)
+   mem            print current and maximum memory usage
    \|<command>     execute <command> as a shell command and return to the command prompt
    exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
 

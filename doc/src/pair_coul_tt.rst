@@ -118,7 +118,7 @@ none
 
 ----------
 
-.. _Thole1:
+.. _Thole3:
 
 **(Thole)** Chem Phys, 59, 341 (1981).
 

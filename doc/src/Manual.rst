@@ -19,10 +19,10 @@ all LAMMPS development is coordinated.
 
 ----------
 
-The content for this manual is part of the LAMMPS distribution.  You
-can build a local copy of the Manual as HTML pages or a PDF file, by
-following the steps on the :doc:`Manual build <Manual_build>` doc page.
-The manual is organized in two parts:
+The content for this manual is part of the LAMMPS distribution.  You can
+build a local copy of the Manual as HTML pages or a PDF file, by
+following the steps on the :doc:`Build_manual` page.  The manual is
+organized in two parts:
 1) the :ref:`User documentation <user_documentation>` for how to install
 and use LAMMPS and 2) the :ref:`Programmer documentation <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
@@ -30,8 +30,9 @@ programming languages and how to modify and extend LAMMPS.
 
 .. only:: html
 
-   Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
-   every LAMMPS command.
+   Once you are familiar with LAMMPS, you may want to bookmark
+   :doc:`this page <Commands_all>` since it gives quick access
+   the documentation for all LAMMPS commands.
 
 .. _lws: https://lammps.sandia.gov
 
@@ -59,7 +60,6 @@ User Documentation
    Examples
    Tools
    Errors
-   Manual_build
 
 Programmer Documentation
 ************************

@@ -13,10 +13,10 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::tagint;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;
-using ::LAMMPS_NS::tagint;
 
 class LibraryProperties : public ::testing::Test {
 protected:
@@ -240,20 +240,31 @@ TEST_F(LibraryProperties, global)
     lammps_command(lmp, "run 2 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    LAMMPS_NS::bigint *b_ptr;
+    int64_t *b_ptr;
     char *c_ptr;
     double *d_ptr;
     int *i_ptr;
 
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "UNKNOWN"), -1);
     EXPECT_EQ(lammps_extract_global(lmp, "UNKNOWN"), nullptr);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "units"), LAMMPS_STRING);
     c_ptr = (char *)lammps_extract_global(lmp, "units");
     EXPECT_THAT(c_ptr, StrEq("real"));
-    b_ptr = (LAMMPS_NS::bigint *)lammps_extract_global(lmp, "ntimestep");
+
+#if defined(LAMMPS_SMALLSMALL)
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT);
+    i_ptr = (int *)lammps_extract_global(lmp, "ntimestep");
+    EXPECT_EQ((*i_ptr), 2);
+#else
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
+    b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
+#endif
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
     d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
-    int dtype = lammps_extract_global_datatype(lmp, "dt");
-    EXPECT_EQ(dtype, LAMMPS_DOUBLE);
 };
 
 class AtomProperties : public ::testing::Test {

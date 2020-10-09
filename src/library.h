@@ -32,7 +32,7 @@
 
 /* To allow including the library interface without MPI */
 
-#if !defined(LAMMPS_LIB_NO_MPI)
+#if defined(LAMMPS_LIB_MPI)
 #include <mpi.h>
 #endif
 
@@ -87,7 +87,7 @@ extern "C" {
  * Library functions to create/destroy an instance of LAMMPS
  * ---------------------------------------------------------------------- */
 
-#if !defined(LAMMPS_LIB_NO_MPI)
+#if defined(LAMMPS_LIB_MPI)
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 #endif
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
@@ -112,6 +112,7 @@ void  lammps_commands_string(void *handle, const char *str);
  * ----------------------------------------------------------------------- */
 
 int    lammps_version(void *handle);
+void   lammps_get_os_info(char *buffer, int buf_size);
 void   lammps_memory_usage(void *handle, double *meminfo);
 int    lammps_get_mpi_comm(void *handle);
 double lammps_get_natoms(void *handle);

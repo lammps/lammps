@@ -65,7 +65,7 @@ DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+
 help:
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html          create HTML doc pages in html dir"
+	@echo "  html          create HTML pages in html dir"
 	@echo "  pdf           create Manual.pdf in this dir"
 	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"

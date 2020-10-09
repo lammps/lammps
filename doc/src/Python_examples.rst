@@ -1,6 +1,9 @@
 Example Python scripts that use LAMMPS
 ======================================
 
+The python/examples directory has Python scripts which show how Python
+can run LAMMPS, grab data, change it, and put it back into LAMMPS.
+
 These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of
 things that are possible when Python wraps LAMMPS.  If you create your

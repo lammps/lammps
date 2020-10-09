@@ -1,8 +1,8 @@
 Library interface utility functions
 ===================================
 
-To simplify some of the tasks, the library interface contains
-some utility functions that are not directly calling LAMMPS:
+To simplify some tasks, the library interface contains these utility
+functions.  They do not directly call the LAMMPS library.
 
 - :cpp:func:`lammps_encode_image_flags`
 - :cpp:func:`lammps_decode_image_flags`

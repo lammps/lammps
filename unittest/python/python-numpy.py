@@ -135,5 +135,48 @@ class PythonNumpy(unittest.TestCase):
         self.assertTrue((x[1] == (1.0, 1.0, 1.5)).all())
         self.assertEqual(len(v), 2)
 
+    def testNeighborList(self):
+        self.lmp.command("units lj")
+        self.lmp.command("atom_style atomic")
+        self.lmp.command("atom_modify map array")
+        self.lmp.command("boundary f f f")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        x = [
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.5
+        ]
+
+        types = [1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 2)
+
+        self.lmp.command("mass 1 1.0")
+        self.lmp.command("velocity all create 3.0 87287")
+        self.lmp.command("pair_style lj/cut 2.5")
+        self.lmp.command("pair_coeff 1 1 1.0 1.0 2.5")
+        self.lmp.command("neighbor 0.1 bin")
+        self.lmp.command("neigh_modify every 20 delay 0 check no")
+
+        self.lmp.command("run 0")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("lj/cut"), 0)
+        nlist = self.lmp.numpy.get_neighlist(0)
+        self.assertEqual(len(nlist), 2)
+        atom_i, neighbors_i = nlist[0]
+        atom_j, neighbors_j = nlist[1]
+
+        self.assertEqual(atom_i, 0)
+        self.assertEqual(atom_j, 1)
+
+        self.assertEqual(len(neighbors_i), 1)
+        self.assertEqual(len(neighbors_j), 0)
+
+        self.assertIn(1, neighbors_i)
+        self.assertNotIn(0, neighbors_j)
+
 if __name__ == "__main__":
     unittest.main()

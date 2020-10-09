@@ -84,7 +84,7 @@ information is available, then also a heuristic based on that bond length
 is computed. It is used as communication cutoff, if there is no pair
 style present and no *comm_modify cutoff* command used. Otherwise a
 warning is printed, if this bond based estimate is larger than the
-communication cutoff used.
+communication cutoff used. 
 
 The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
 communication mode *multi* instead. Since in this case the communication

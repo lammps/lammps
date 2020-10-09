@@ -18,15 +18,14 @@ From: fedora:32
                mingw32-cpp mingw32-gcc mingw32-gcc-gfortran mingw32-gcc-c++ \
                mingw64-cpp mingw64-gcc mingw64-gcc-gfortran mingw64-gcc-c++ \
                mingw32-libgomp mingw64-libgomp \
-               mingw32-winpthreads-static mingw64-winpthreads-static \
+               mingw32-winpthreads mingw64-winpthreads mingw32-winpthreads-static mingw64-winpthreads-static \
                mingw32-eigen3 mingw64-eigen3 \
-               mingw32-libjpeg-turbo-static mingw64-libjpeg-turbo-static \
-               mingw32-libpng-static mingw64-libpng-static \
-               mingw32-readline-static mingw64-readline-static \
-               mingw32-termcap-static mingw64-termcap-static \
-               mingw32-zlib-static mingw64-zlib-static \
-               mingw64-expat-static mingw32-expat-static \
-               mingw32-sqlite-static mingw64-sqlite-static \
+               mingw32-libjpeg-turbo mingw64-libjpeg-turbo mingw32-libjpeg-turbo-static mingw64-libjpeg-turbo-static \
+               mingw32-libpng mingw64-libpng mingw32-libpng-static mingw64-libpng-static \
+               mingw32-readline mingw64-readline mingw32-readline-static mingw64-readline-static \
+               mingw32-termcap mingw64-termcap mingw32-termcap-static mingw64-termcap-static \
+               mingw32-fftw mingw64-fftw mingw32-fftw-static mingw64-fftw-static \
+               mingw32-zlib mingw64-zlib mingw32-zlib-static mingw64-zlib-static \
                enchant python3-virtualenv doxygen latexmk \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \

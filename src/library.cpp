@@ -1161,6 +1161,8 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
+  if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;
+  if (strcmp(name,"subhi") == 0) return (void *) lmp->domain->subhi;
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];

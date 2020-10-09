@@ -337,8 +337,15 @@ more MPI calls may be made.
 
 void lammps_mpi_finalize()
 {
-  MPI_Barrier(MPI_COMM_WORLD);
-  MPI_Finalize();
+  int flag;
+  MPI_Initialized(&flag);
+  if (flag) {
+    MPI_Finalized(&flag);
+    if (!flag) {
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Finalize();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

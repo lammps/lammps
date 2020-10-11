@@ -666,7 +666,7 @@ int main(int argc, char **argv)
     std::string trimmed;
 
     lammps_get_os_info(buf, buflen);
-    std::cout << "LAMMPS Shell version 1.0  OS: " << buf;
+    std::cout << "LAMMPS Shell version 1.1  OS: " << buf;
 
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"

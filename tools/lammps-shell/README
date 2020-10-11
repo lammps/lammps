@@ -88,6 +88,10 @@ regular LAMMPS commands:
 - help (or ?)    print a brief help message
 - history        display the current command history list
 - clear_history  wipe out the current command history list
+- save_history <range> <file>
+                 write commands from the history to file.
+                 The range is given as <from>-<to>, where <from> and <to>
+                 may be empty. Example: save_history 100- in.recent
 - source <file>  read commands from file (same as "include")
 - pwd            print current working directory
 - cd <directory> change current working directory (same as pwd if no directory)

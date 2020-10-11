@@ -500,6 +500,10 @@ regular LAMMPS commands:
    help (or ?)    print a brief help message
    history        display the current command history list
    clear_history  wipe out the current command history list
+   save_history <range> <file>
+                  write commands from the history to file.
+                  The range is given as <from>-<to>, where <from> and <to>
+                  may be empty. Example: save_history 100- in.recent
    source <file>  read commands from file (same as "include")
    pwd            print current working directory
    cd <directory> change current working directory (same as pwd if no directory)
@@ -534,8 +538,8 @@ Readline customization
 The behavior of the readline functionality can be customized in the
 ``${HOME}/.inputrc`` file.  This can be used to alter the default
 settings or change the key-bindings.  The LAMMPS Shell sets the
-application name ``lammps-shell``, so customizations can be either
-global or specific for the LAMMPS shell by bracketing them between
+application name ``lammps-shell``, so settings can be either applied
+globally or only for the LAMMPS shell by bracketing them between
 ``$if lammps-shell`` and ``$endif`` like in the following example:
 
 .. code-block:: bash

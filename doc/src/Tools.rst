@@ -406,7 +406,7 @@ LAMMPS shell
 .. versionadded:: 9Oct2020
 
 Overview
-========
+^^^^^^^^
 
 The LAMMPS Shell, ``lammps-shell`` is a program that functions very
 similar to the regular LAMMPS executable but has several modifications
@@ -433,7 +433,7 @@ These enhancements makes the LAMMPS shell an attractive choice for
 interactive LAMMPS sessions in graphical user interfaces.
 
 TAB-expansion
-=============
+^^^^^^^^^^^^^
 
 When writing commands interactively at the shell prompt, you can hit
 the TAB key at any time to try and complete the text.  This completion
@@ -461,7 +461,7 @@ available in that executable.
   and directories.
 
 Command line editing and history
-================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When typing commands, command line editing similar to what BASH
 provides is available.  Thus it is possible to move around the
@@ -490,7 +490,7 @@ readline, please see the available documentation at:
 <http://www.gnu.org/s/readline/#Documentation>`_
 
 Additional commands
-===================
+^^^^^^^^^^^^^^^^^^^
 
 The following commands are added to the LAMMPS shell on top of the
 regular LAMMPS commands:
@@ -512,7 +512,7 @@ while using the '\|' character will always pass the following text
 to the operating system's shell command.
 
 Compilation
-===========
+^^^^^^^^^^^
 
 Compilation of the LAMMPS shell can be enabled by setting the CMake
 variable ``BUILD_LAMMPS_SHELL`` to "on" or using the makefile in the
@@ -522,7 +522,7 @@ customization depending on the features and settings used for
 compiling LAMMPS.
 
 Limitations
-===========
+^^^^^^^^^^^
 
 The LAMMPS shell was not designed for use with MPI parallelization
 via ``mpirun`` or ``mpiexec`` or ``srun``.

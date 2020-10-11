@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -145,6 +146,57 @@ static char *dupstring(const std::string &text)
     return copy;
 }
 
+static int save_history(std::string range, std::string file)
+{
+    int from = history_base;
+    int to   = from + history_length - 1;
+
+    if (!range.empty()) {
+        std::size_t found = range.find_first_of("-");
+
+        if (found == std::string::npos) { // only a single number
+            int num = strtol(range.c_str(), NULL, 10);
+            if ((num >= from) && (num <= to)) {
+                from = to = num;
+            } else
+                return 1;
+        } else {             // range of numbers
+            if (found > 0) { // get number before '-'
+                int num = strtol(range.substr(0, found).c_str(), NULL, 10);
+                if ((num >= from) && (num <= to)) {
+                    from = num;
+                } else
+                    return 1;
+            }
+
+            if (range.size() > found + 1) { // get number after '-'
+                int num = strtol(range.substr(found + 1).c_str(), NULL, 10);
+                if ((num >= from) && (num <= to)) {
+                    to = num;
+                } else
+                    return 1;
+            }
+        }
+        std::ofstream out(file, std::ios::out | std::ios::trunc);
+        if (out.fail()) {
+            std::cerr << "'" << utils::getsyserror() << "' error when "
+                      << "trying to open file '" << file << "' for writing.\n";
+            return 0;
+        }
+        out << "# saved LAMMPS Shell history\n";
+        for (int i = from; i <= to; ++i) {
+            HIST_ENTRY *item = history_get(i);
+            if (item == nullptr) {
+                out.close();
+                return 1;
+            }
+            out << item->line << "\n";
+        }
+        out.close();
+    }
+    return 0;
+}
+
 template <int STYLE> char *style_generator(const char *text, int state)
 {
     static int idx, num, len;
@@ -229,8 +281,7 @@ static char *cmd_generator(const char *text, int state)
     len = strlen(text);
 
     do {
-      if ((idx < commands.size())
-          && ((len == 0) || (commands[idx].substr(0, len) == text)))
+        if ((idx < commands.size()) && ((len == 0) || (commands[idx].substr(0, len) == text)))
             return dupstring(commands[idx++]);
         else
             ++idx;
@@ -572,7 +623,7 @@ static int shell_cmd(const std::string &cmd)
         return 0;
     } else if (words[0] == "mem") {
         double meminfo[3];
-        lammps_memory_usage(lmp,meminfo);
+        lammps_memory_usage(lmp, meminfo);
         std::cout << "Memory usage.  Current: " << meminfo[0] << " MByte, "
                   << "Maximum : " << meminfo[2] << " MByte\n";
         free(text);
@@ -588,6 +639,20 @@ static int shell_cmd(const std::string &cmd)
         free(text);
         clear_history();
         return 0;
+    } else if (words[0] == "save_history") {
+        free(text);
+        if (words.size() == 3) {
+            if (save_history(words[1], words[2]) != 0) {
+                int from = history_base;
+                int to   = from + history_length - 1;
+                std::cerr << "Range error: min = " << from << "  max = " << to << "\n";
+                return 1;
+            }
+        } else {
+            std::cerr << "Usage: save_history <range> <filename>\n";
+            return 1;
+        }
+        return 0;
     }
 
     lammps_command(lmp, text);
@@ -600,7 +665,7 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    lammps_get_os_info(buf,buflen);
+    lammps_get_os_info(buf, buflen);
     std::cout << "LAMMPS Shell version 1.0  OS: " << buf;
 
     if (!lammps_config_has_exceptions())

@@ -229,7 +229,8 @@ static char *cmd_generator(const char *text, int state)
     len = strlen(text);
 
     do {
-        if ((len == 0) || (commands[idx].substr(0, len) == text))
+      if ((idx < commands.size())
+          && ((len == 0) || (commands[idx].substr(0, len) == text)))
             return dupstring(commands[idx++]);
         else
             ++idx;

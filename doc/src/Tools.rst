@@ -527,6 +527,59 @@ Limitations
 The LAMMPS shell was not designed for use with MPI parallelization
 via ``mpirun`` or ``mpiexec`` or ``srun``.
 
+Customization
+^^^^^^^^^^^^^
+
+The behavior of the readline functionality can be customized in the
+``${HOME}/.inputrc`` file.  This can be used to alter the default
+settings or change the key-bindings.  The LAMMPS Shell sets the
+application name ``lammps-shell``, so customizations can be either
+global or specific for the LAMMPS shell by bracketing them between
+``$if lammps-shell`` and ``$endif`` like in the following example:
+
+.. code-block:: bash
+
+   $if lammps-shell
+   set expand-tilde on
+   $endif
+
+More details about this are in the `readline documentation <https://tiswww.cwru.edu/php/chet/readline/rluserman.html#SEC9>`_.
+
+
+LAMMPS Shell tips and tricks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tilde expansion
+"""""""""""""""
+
+Adding ``set expand-tilde on`` is recommended as this will change the
+filename expansion behavior to replace any text starting with "~" by the
+full path to the corresponding user's home directory.  While the
+expansion of filenames **will** happen on all arguments where the
+context is not known (e.g. ``~/compile/lamm<TAB>`` will expand to
+``~/compile/lammps/``), it will not replace the tilde by default.  But
+since LAMMPS does not do tilde expansion itself (unlike a shell), this
+will result in errors.  Instead the tilde-expression should be expanded
+into a valid path, where the plain
+"~/" stands for the current user's home directory and "~someuser/"
+stands for "/home/someuser" or whatever the full path to that user's
+home directory is.
+
+File extension association
+""""""""""""""""""""""""""
+
+Since the LAMMPS shell (unlike the regular LAMMPS executable) does not
+exit when an input file is passed on the command line with the "-in" or
+"-i" flag (the behavior is like for ``python -i <filename>``), it makes
+the LAMMPS shell suitable for associating it with input files based on
+their filename extension (e.g. ".lmp").  Since ``lammps-shell`` is a
+console application, you have to run it inside a terminal program with a
+command line like this:
+
+.. code-block:: bash
+
+   xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
+
 ----------
 
 .. _arc:

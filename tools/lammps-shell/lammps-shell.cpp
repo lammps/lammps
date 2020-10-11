@@ -464,8 +464,10 @@ static void init_commands()
     commands.push_back("pwd");
     commands.push_back("cd");
     commands.push_back("mem");
+    commands.push_back("source");
     commands.push_back("history");
     commands.push_back("clear_history");
+    commands.push_back("save_history");
 
     // set name so there can be specific entries in ~/.inputrc
     rl_readline_name               = "lammps-shell";
@@ -553,6 +555,10 @@ static int shell_cmd(const std::string &cmd)
     } else if (words[0] == "exit") {
         free(text);
         return shell_end();
+    } else if (words[0] == "source") {
+        lammps_file(lmp, words[1].c_str());
+        free(text);
+        return 0;
     } else if ((words[0] == "pwd") || ((words[0] == "cd") && (words.size() == 1))) {
         if (getcwd(buf, buflen)) std::cout << buf << "\n";
         free(text);

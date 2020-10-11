@@ -2596,6 +2596,7 @@ rdf
 RDideal
 rdx
 reacter
+Readline
 realTypeMap
 real_t
 README
@@ -2889,6 +2890,7 @@ Sodani
 Soderlind
 solvated
 solvation
+someuser
 Sorensen
 soundspeed
 sourceforge

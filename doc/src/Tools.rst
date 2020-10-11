@@ -500,6 +500,7 @@ regular LAMMPS commands:
    help (or ?)    print a brief help message
    history        display the current command history list
    clear_history  wipe out the current command history list
+   source <file>  read commands from file (same as "include")
    pwd            print current working directory
    cd <directory> change current working directory (same as pwd if no directory)
    mem            print current and maximum memory usage
@@ -527,8 +528,8 @@ Limitations
 The LAMMPS shell was not designed for use with MPI parallelization
 via ``mpirun`` or ``mpiexec`` or ``srun``.
 
-Customization
-^^^^^^^^^^^^^
+Readline customization
+^^^^^^^^^^^^^^^^^^^^^^
 
 The behavior of the readline functionality can be customized in the
 ``${HOME}/.inputrc`` file.  This can be used to alter the default
@@ -540,7 +541,10 @@ global or specific for the LAMMPS shell by bracketing them between
 .. code-block:: bash
 
    $if lammps-shell
-   set expand-tilde on
+   # disable "beep" or "screen flash"
+   set bell-style none
+   # bind the "Insert" key to toggle overwrite mode
+   "\e[2~": overwrite-mode
    $endif
 
 More details about this are in the `readline documentation <https://tiswww.cwru.edu/php/chet/readline/rluserman.html#SEC9>`_.
@@ -549,21 +553,21 @@ More details about this are in the `readline documentation <https://tiswww.cwru.
 LAMMPS Shell tips and tricks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Tilde expansion
-"""""""""""""""
+Enable tilde expansion
+""""""""""""""""""""""
 
-Adding ``set expand-tilde on`` is recommended as this will change the
-filename expansion behavior to replace any text starting with "~" by the
-full path to the corresponding user's home directory.  While the
-expansion of filenames **will** happen on all arguments where the
-context is not known (e.g. ``~/compile/lamm<TAB>`` will expand to
-``~/compile/lammps/``), it will not replace the tilde by default.  But
-since LAMMPS does not do tilde expansion itself (unlike a shell), this
-will result in errors.  Instead the tilde-expression should be expanded
-into a valid path, where the plain
-"~/" stands for the current user's home directory and "~someuser/"
-stands for "/home/someuser" or whatever the full path to that user's
-home directory is.
+Adding ``set expand-tilde on`` to ``${HOME}/.inputrc`` is recommended as
+this will change the filename expansion behavior to replace any text
+starting with "~" by the full path to the corresponding user's home
+directory.  While the expansion of filenames **will** happen on all
+arguments where the context is not known (e.g. ``~/compile/lamm<TAB>``
+will expand to ``~/compile/lammps/``), it will not replace the tilde by
+default.  But since LAMMPS does not do tilde expansion itself (unlike a
+shell), this will result in errors.  Instead the tilde-expression should
+be expanded into a valid path, where the plain "~/" stands for the
+current user's home directory and "~someuser/" stands for
+"/home/someuser" or whatever the full path to that user's home directory
+is.
 
 File extension association
 """"""""""""""""""""""""""

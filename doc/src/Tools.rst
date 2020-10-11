@@ -588,6 +588,20 @@ command line like this:
 
    xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
 
+
+Use history create input file
+"""""""""""""""""""""""""""""
+
+When experimenting with commands to interactively to figure out a
+suitable choice of settings or simply the correct syntax, you may want
+to record part of your commands to a file for later use.  This can be
+done with the ``save_history`` commands, which allows to selectively
+write a section of the command history to a file (Example:
+``save_history 25-30 in.run``).  This file can be further edited
+(Example: ``|vim in.run``) and then the file read back in and tried out
+(Example: ``source in.run``).  If the input also creates a system box,
+you first need to use the :doc:`clear` command.
+
 ----------
 
 .. _arc:

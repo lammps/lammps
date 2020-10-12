@@ -867,8 +867,17 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 
 This function will retrieve or compute global properties. In contrast to
 :cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
-following keywords are currently supported.  If a keyword is not
-recognized, the function returns -1.
+following tables list the currently supported keyword.  If a keyword is
+not recognized, the function returns -1.
+
+* :ref:`Integer sizes <extract_integer_sizes>`
+* :ref:`System status <extract_system_status>`
+* :ref:`System sizes <extract_system_sizes>`
+* :ref:`Atom style flags <extract_atom_flags>`
+
+.. _extract_integer_sizes:
+
+**Integer sizes**
 
 .. list-table::
    :header-rows: 1
@@ -885,6 +894,17 @@ recognized, the function returns -1.
    * - imageint
      - size of the ``imageint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
+
+.. _extract_system_status:
+
+**System status**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - dimension
      - Number of dimensions: 2 or 3. See :doc:`dimension`.
    * - box_exist
@@ -893,6 +913,17 @@ recognized, the function returns -1.
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
+
+.. _extract_system_sizes:
+
+**System sizes**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - nlocal
      - number of "owned" atoms of the current MPI rank.
    * - nghost
@@ -903,6 +934,25 @@ recognized, the function returns -1.
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
    * - ntypes
      - number of atom types
+   * - nbondtypes
+     - number of bond types
+   * - nangletypes
+     - number of angle types
+   * - ndihedraltypes
+     - number of dihedral types
+   * - nimpropertypes
+     - number of improper types
+
+.. _extract_atom_flags:
+
+**Atom style flags**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - molecule_flag
      - 1 if the atom style includes molecular topology data. See :doc:`atom_style`.
    * - q_flag
@@ -939,6 +989,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"nall") == 0) return lmp->atom->nlocal+lmp->atom->nghost;
   if (strcmp(keyword,"nmax") == 0) return lmp->atom->nmax;
   if (strcmp(keyword,"ntypes") == 0) return lmp->atom->ntypes;
+  if (strcmp(keyword,"nbondtypes") == 0) return lmp->atom->nbondtypes;
+  if (strcmp(keyword,"nangletypes") == 0) return lmp->atom->nangletypes;
+  if (strcmp(keyword,"ndihedraltypes") == 0) return lmp->atom->ndihedraltypes;
+  if (strcmp(keyword,"nimpropertypes") == 0) return lmp->atom->nimpropertypes;
 
   if (strcmp(keyword,"molecule_flag") == 0) return lmp->atom->molecule_flag;
   if (strcmp(keyword,"q_flag") == 0) return lmp->atom->q_flag;
@@ -976,11 +1030,24 @@ Please also see :cpp:func:`lammps_extract_setting`,
    settings derived from such settings.  Where possible a reference to
    such a command or a relevant section of the manual is given below.
 
-This table lists the supported names, their data types, length of the
-data area, and a short description.  The ``bigint`` type may be defined
-to be either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>` and can be queried through calling
+The following tables list the supported names, their data types, length
+of the data area, and a short description.  The data type can also be
+queried through calling :cpp:func:`lammps_extract_global_datatype`.
+The ``bigint`` type may be defined to be either an ``int`` or an
+``int64_t``.  This is set at :ref:`compile time <size>` of the LAMMPS
+library and can be queried through calling
 :cpp:func:`lammps_extract_setting`.
+The function :cpp:func:`lammps_extract_global_datatype` will directly
+report the "native" data type.  The following tables are provided:
+
+* :ref:`Timestep settings <extract_timestep_settings>`
+* :ref:`Simulation box settings <extract_box_settings>`
+* :ref:`System property settings <extract_system_settings>`
+* :ref:`Unit settings <extract_unit_settings>`
+
+.. _extract_timestep_settings:
+
+**Timestep settings**
 
 .. list-table::
    :header-rows: 1
@@ -990,10 +1057,6 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
      - Type
      - Length
      - Description
-   * - units
-     - char \*
-     - 1
-     - string with the current unit style. See :doc:`units`.
    * - dt
      - double
      - 1
@@ -1002,6 +1065,27 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
      - bigint
      - 1
      - current time step number. See :doc:`reset_timestep`.
+   * - atime
+     - double
+     - 1
+     - accumulated simulation time in time units.
+   * - atimestep
+     - bigint
+     - 1
+     - the number of the timestep when "atime" was last updated.
+
+.. _extract_box_settings:
+
+**Simulation box settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
    * - boxlo
      - double
      - 3
@@ -1056,10 +1140,23 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
      - double
      - 1
      - triclinic tilt factor. See :doc:`Howto_triclinic`.
-   * - natoms
-     - bigint
+
+.. _extract_system_settings:
+
+**System property settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - ntypes
+     - int
      - 1
-     - total number of atoms in the simulation.
+     - number of atom types
    * - nbonds
      - bigint
      - 1
@@ -1076,6 +1173,10 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
      - bigint
      - 1
      - total number of impropers in the simulation.
+   * - natoms
+     - bigint
+     - 1
+     - total number of atoms in the simulation.
    * - nlocal
      - int
      - 1
@@ -1088,22 +1189,27 @@ to be either an ``int`` or an ``int64_t``.  This is selected at
      - int
      - 1
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
-   * - ntypes
-     - int
-     - 1
-     - number of atom types
    * - q_flag
      - int
      - 1
-     - 1 if the atom style includes point charges. See :doc:`atom_style`.
-   * - atime
-     - double
+     - **deprecated**. Use :cpp:func:`lammps_extract_setting` instead.
+
+.. _extract_unit_settings:
+
+**Unit settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - units
+     - char \*
      - 1
-     - accumulated simulation time in time units.
-   * - atimestep
-     - bigint
-     - 1
-     - the number of the timestep when "atime" was last updated.
+     - string with the current unit style. See :doc:`units`.
    * - boltz
      - double
      - 1
@@ -1195,6 +1301,12 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
+  // update->atime can be referenced as a pointer
+  // thermo "timer" data cannot be, since it is computed on request
+  // lammps_get_thermo() can access all thermo keywords by value
+  if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
+  if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
+
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
@@ -1208,7 +1320,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
+  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"nbonds") == 0) return (void *) &lmp->atom->nbonds;
   if (strcmp(name,"nangles") == 0) return (void *) &lmp->atom->nangles;
   if (strcmp(name,"ndihedrals") == 0) return (void *) &lmp->atom->ndihedrals;
@@ -1216,16 +1330,8 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
-  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
-
-  // update->atime can be referenced as a pointer
-  // thermo "timer" data cannot be, since it is computed on request
-  // lammps_get_thermo() can access all thermo keywords by value
-
-  if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
-  if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
 
   // global constants defined by units
 
@@ -1308,9 +1414,11 @@ to then decide how to cast the (void*) pointer and access the data.
 
 int lammps_extract_global_datatype(void *, const char *name)
 {
-  if (strcmp(name,"units") == 0) return LAMMPS_STRING;
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
+
   if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxxlo") == 0) return LAMMPS_DOUBLE;
@@ -1324,6 +1432,7 @@ int lammps_extract_global_datatype(void *, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nangles") == 0) return LAMMPS_BIGINT;
@@ -1336,15 +1445,7 @@ int lammps_extract_global_datatype(void *, const char *name)
 
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
-  // update->atime can be referenced as a pointer
-  // thermo "timer" data cannot be, since it is computed on request
-  // lammps_get_thermo() can access all thermo keywords by value
-
-  if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
-
-  // global constants defined by units
-
+  if (strcmp(name,"units") == 0) return LAMMPS_STRING;
   if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;

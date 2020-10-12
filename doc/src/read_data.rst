@@ -345,10 +345,11 @@ Similarly, the z dimension should be periodic if xz or yz is non-zero.
 LAMMPS does not require this periodicity, but you may lose atoms if
 this is not the case.
 
-Also note that if your simulation will tilt the box, e.g. via the :doc:`fix deform <fix_deform>` command, the simulation box must be setup to
-be triclinic, even if the tilt factors are initially 0.0.  You can
-also change an orthogonal box to a triclinic box or vice versa by
-using the :doc:`change box <change_box>` command with its *ortho* and
+Also note that if your simulation will tilt the box, e.g. via the
+:doc:`fix deform <fix_deform>` command, the simulation box must be setup
+to be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by using
+the :doc:`change box <change_box>` command with its *ortho* and
 *triclinic* options.
 
 For 2d simulations, the *zlo zhi* values should be set to bound the z
@@ -364,24 +365,41 @@ periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.
 
+If the system is non-periodic (in a dimension), then an image flag has
+no meaning (in that dimension) and can lead to unexpected results for
+computations that internally use unwrapped coordinates (like the center of mass).
+Thus those will be be reset to zero on reading and LAMMPS will print a
+warning, if that happens.  If those atoms with non-zero image flags are
+involved in bonded interactions, this simple reset can lead to errors.
+In those cases it is usually best to write out the unwrapped coordinates
+(e.g. with :doc:`write_dump all custom unwrapped.lammpstrj id xu yu zu <write_dump>`)
+as that preserves the relative proximity of the positions for bonded atoms,
+and then post-process the data by moving entire molecules and also then
+adjust the box geometry as needed without affecting the positions.
+When you have non-zero image flags, changing the box also translates
+atoms, and if a molecule staddles (periodic) box boundaries and thus
+the image flags can be different for atoms in the same molecule, that
+can move bonded atoms far apart.
+
 .. note::
 
-   If the system is non-periodic (in a dimension), then all atoms
-   in the data file must have coordinates (in that dimension) that are
-   "greater than or equal to" the lo value and "less than or equal to"
-   the hi value.  If the non-periodic dimension is of style "fixed" (see
-   the :doc:`boundary <boundary>` command), then the atom coords must be
+   If the system is non-periodic (in a dimension), then all atoms in the
+   data file must have coordinates (in that dimension) that are "greater
+   than or equal to" the lo value and "less than or equal to" the hi
+   value.  If the non-periodic dimension is of style "fixed" (see the
+   :doc:`boundary <boundary>` command), then the atom coords must be
    strictly "less than" the hi value, due to the way LAMMPS assign atoms
    to processors.  Note that you should not make the lo/hi values
    radically smaller/larger than the extent of the atoms.  For example,
    if your atoms extend from 0 to 50, you should not specify the box
-   bounds as -10000 and 10000.  This is because LAMMPS uses the specified
-   box size to layout the 3d grid of processors.  A huge (mostly empty)
-   box will be sub-optimal for performance when using "fixed" boundary
+   bounds as -10000 and 10000 unless you also use the :doc:`processor
+   command <processor>`.  This is because LAMMPS uses the specified box
+   size to layout the 3d grid of processors.  A huge (mostly empty) box
+   will be sub-optimal for performance when using "fixed" boundary
    conditions (see the :doc:`boundary <boundary>` command).  When using
    "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
-   command), a huge (mostly empty) box may cause a parallel simulation to
-   lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
+   command), a huge (mostly empty) box may cause a parallel simulation
+   to lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
    read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only

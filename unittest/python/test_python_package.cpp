@@ -20,14 +20,19 @@
 #include <cstring>
 #include <vector>
 
+// location of '*.py' files required by tests
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::Eq;
-
+using ::testing::StrEq;
+using ::testing::MatchesRegex;
 
 class PythonPackageTest : public ::testing::Test {
 protected:
@@ -52,6 +57,7 @@ protected:
         lmp->input->one("pair_style zero 2.0");
         lmp->input->one("pair_coeff * *");
         lmp->input->one("mass * 1.0");
+        lmp->input->one("variable input_dir index " + INPUT_FOLDER);
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
@@ -65,8 +71,52 @@ protected:
 
 TEST_F(PythonPackageTest, python_invoke)
 {
+    // execute python function from file
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("python printnum file ${input_dir}/func.py");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("python printnum invoke");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
+
+    // execute another python function from same file
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("python printtxt exists");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("python printtxt invoke");
+    output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output, MatchesRegex("python.*sometext.*"));
+
+    // execute python function that uses the LAMMPS python module
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable idx equal 2.25");
+    lmp->input->one("python getidxvar input 1 SELF format p exists");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("python getidxvar invoke");
+    output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
 }
-    
+
+    TEST_F(PythonPackageTest, python_variable)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable sq python square");
+    lmp->input->one("variable val index 1.5");
+    lmp->input->one("python square input 1 v_val return v_sq format ff file ${input_dir}/func.py");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("print \"${sq}\"");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

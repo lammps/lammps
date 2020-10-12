@@ -3,6 +3,10 @@ add_executable(test_atom_styles test_atom_styles.cpp)
 target_link_libraries(test_atom_styles PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME AtomStyles COMMAND test_atom_styles WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(test_image_flags test_image_flags.cpp)
+target_link_libraries(test_image_flags PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME ImageFlags COMMAND test_image_flags WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(test_pair_unit_convert test_pair_unit_convert.cpp)
 target_link_libraries(test_pair_unit_convert PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME PairUnitConvert COMMAND test_pair_unit_convert WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

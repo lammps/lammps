@@ -11,6 +11,7 @@ endif()
 
 project(lammps CXX)
 set(SOVERSION 0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)

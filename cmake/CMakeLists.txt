@@ -696,6 +696,14 @@ include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
 
+get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
+include(FeatureSummary)
+feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
+message(STATUS "<<< Build configuration >>>
+   Operating System: ${CMAKE_SYSTEM_NAME}
+   Build type:       ${CMAKE_BUILD_TYPE}
+   Install path:     ${CMAKE_INSTALL_PREFIX}
+   Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
 ###############################################################################
 # Print package summary
 ###############################################################################
@@ -708,15 +716,7 @@ endforeach()
 list(SORT ENABLED_PACKAGES)
 message(STATUS "Enabled packages: ${ENABLED_PACKAGES}")
 
-get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
-include(FeatureSummary)
-feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
-message(STATUS "<<< Build configuration >>>
-   Operating System: ${CMAKE_SYSTEM_NAME}
-   Build type:       ${CMAKE_BUILD_TYPE}
-   Install path:     ${CMAKE_INSTALL_PREFIX}
-   Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
--- <<< Compilers and Flags: >>>
+message(STATUS "<<< Compilers and Flags: >>>
 -- C++ Compiler:     ${CMAKE_CXX_COMPILER}
       Type:          ${CMAKE_CXX_COMPILER_ID}
       Version:       ${CMAKE_CXX_COMPILER_VERSION}
@@ -817,4 +817,10 @@ if(BUILD_TOOLS)
 endif()
 if(BUILD_LAMMPS_SHELL)
   message(STATUS "<<< Building LAMMPS Shell >>>")
+endif()
+if(ENABLE_TESTING)
+  message(STATUS "<<< Building Unit Tests >>>")
+  if(ENABLE_COVERAGE)
+    message(STATUS "Collecting code coverage data")
+  endif()
 endif()

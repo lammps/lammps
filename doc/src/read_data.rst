@@ -377,7 +377,7 @@ as that preserves the relative proximity of the positions for bonded atoms,
 and then post-process the data by moving entire molecules and also then
 adjust the box geometry as needed without affecting the positions.
 When you have non-zero image flags, changing the box also translates
-atoms, and if a molecule staddles (periodic) box boundaries and thus
+atoms, and if a molecule straddles (periodic) box boundaries and thus
 the image flags can be different for atoms in the same molecule, that
 can move bonded atoms far apart.
 
@@ -392,8 +392,8 @@ can move bonded atoms far apart.
    to processors.  Note that you should not make the lo/hi values
    radically smaller/larger than the extent of the atoms.  For example,
    if your atoms extend from 0 to 50, you should not specify the box
-   bounds as -10000 and 10000 unless you also use the :doc:`processor
-   command <processor>`.  This is because LAMMPS uses the specified box
+   bounds as -10000 and 10000 unless you also use the :doc:`processors
+   command <processors>`.  This is because LAMMPS uses the specified box
    size to layout the 3d grid of processors.  A huge (mostly empty) box
    will be sub-optimal for performance when using "fixed" boundary
    conditions (see the :doc:`boundary <boundary>` command).  When using

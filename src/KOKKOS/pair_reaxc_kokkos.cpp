@@ -938,6 +938,13 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   #ifdef HIP_OPT_TORSION_PREVIEW
   if (inum > inum_store) {
+      if (counters != nullptr) {
+        hipHostFree(counters);
+        hipHostFree(counters_jj_min);
+        hipHostFree(counters_jj_max);
+        hipHostFree(counters_kk_min);
+        hipHostFree(counters_kk_max);
+      }
       inum_store = inum;
       // realloc host arrays
       hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);

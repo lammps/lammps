@@ -84,11 +84,14 @@ Additional commands
 The followind commands are added to the LAMMPS shell on top of the
 regular LAMMPS commands:
 
-- help (or ?)   print a brief help message
-- history       display the current command history list
-- clear_history wipe out the current command history list
-- |<command>    execute <command> as a shell command and return to the command prompt
-- exit          exit the LAMMPS shell cleanly (unlike the "quit" command)
+- help (or ?)    print a brief help message
+- history        display the current command history list
+- clear_history  wipe out the current command history list
+- pwd            print current working directory
+- cd <directory> change current working directory (same as pwd if no directory)
+- mem            print current and maximum memory usage
+- |<command>     execute <command> as a shell command and return to the command prompt
+- exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
 
 Compilation
 ===========

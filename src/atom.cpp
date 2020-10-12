@@ -1106,6 +1106,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   // remap atom into simulation box
   // if atom is in my sub-domain, unpack its values
 
+  int flagx = 0, flagy = 0, flagz = 0;
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
@@ -1118,15 +1119,16 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         error->all(FLERR,"Incorrect atom format in data file");
     }
 
-    int imx = 0;
-    int imy = 0;
-    int imz = 0;
+    int imx = 0, imy = 0, imz = 0;
     if (imageflag) {
       imx = utils::inumeric(FLERR,values[iptr],false,lmp);
       imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
       imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+      if ((!domain->xperiodic) && (imx != 0)) flagx = 1;
+      if ((!domain->yperiodic) && (imy != 0)) flagy = 1;
+      if ((!domain->zperiodic) && (imz != 0)) flagz = 1;
     }
     imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
@@ -1161,6 +1163,19 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     }
 
     buf = next + 1;
+  }
+
+  // warn if reading data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (flagx)
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for non-periodic boundary");
+    if (flagy)
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for non-periodic boundary");
+    if (flagz)
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for non-periodic boundary");
   }
 
   delete [] values;

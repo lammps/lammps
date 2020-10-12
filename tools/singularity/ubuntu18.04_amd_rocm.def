@@ -57,6 +57,7 @@ From: ubuntu:18.04
         libopenblas-dev \
         libnuma-dev \
         libpng-dev \
+        libreadline-dev \
         libproj-dev \
         libvtk6-dev \
         libyaml-dev \

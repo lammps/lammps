@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
+#define LAMMPS_LIB_MPI
 #include "library.h"        /* this is a LAMMPS include file */
 
 int main(int narg, char **arg)

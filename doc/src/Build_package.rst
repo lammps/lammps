@@ -7,7 +7,7 @@ rigid-body constraints are in packages.  In the src directory, each
 package is a sub-directory with the package name in capital letters.
 
 An overview of packages is given on the :doc:`Packages <Packages>` doc
-page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` doc page.
+page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` page.
 
 When building LAMMPS, you can choose to include or exclude each
 package.  In general there is no need to include a package if you
@@ -25,7 +25,7 @@ when building that executable.
 For the majority of packages, if you follow the single step below to
 include it, you can then build LAMMPS exactly the same as you would
 without any packages installed.  A few packages may require additional
-steps, as explained on the :doc:`Build extras <Build_extras>` doc page.
+steps, as explained on the :doc:`Build extras <Build_extras>` page.
 
 These links take you to the extra instructions for those select
 packages:

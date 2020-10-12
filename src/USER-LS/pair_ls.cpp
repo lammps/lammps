@@ -95,10 +95,24 @@ PairLS::~PairLS()
 
 void PairLS::compute(int eflag, int vflag)
 {
-  int i,ii,n,inum_half,errorflag;
-  int *ilist_half,*numneigh_half,**firstneigh_half;
-  int *numneigh_full,**firstneigh_full;
+  // int i,ii,n,inum_half,errorflag;
+  // int *ilist_half,*numneigh_half,**firstneigh_half;
+  // int *numneigh_full,**firstneigh_full;
+  double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;  
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;  
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
 
   ev_init(eflag,vflag);
 

@@ -1,5 +1,11 @@
 include(GTest)
 
+if(BUILD_MPI)
+  function(add_mpi_test name binary nproc)
+    add_test(NAME ${name} COMMAND ${MPIEXEC_EXECUTABLE} -np ${nproc} ${binary})
+  endfunction()
+endif()
+
 add_subdirectory(utils)
 add_subdirectory(formats)
 add_subdirectory(commands)

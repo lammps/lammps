@@ -1,3 +1,13 @@
+# Test calling Python from LAMMPS (and importing the LAMMPS module
+# inside those functions). This can do an "anonymous" import of symbols
+# from the executable, so the shared library is not needed. The
+# availability of the PYTHON package is tested for inside the tester.
+
+add_executable(test_python_package test_python_package.cpp)
+target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH}")
+
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
   message(STATUS "Skipping Tests for the LAMMPS Python Module: must enable BUILD_SHARED_LIBS")

@@ -699,11 +699,14 @@ include(CodingStandard)
 ###############################################################################
 # Print package summary
 ###############################################################################
+set(ENABLED_PACKAGES "")
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
-    message(STATUS "Building package: ${PKG}")
+    list(APPEND ENABLED_PACKAGES ${PKG})
   endif()
 endforeach()
+list(SORT ENABLED_PACKAGES)
+message(STATUS "Enabled packages: ${ENABLED_PACKAGES}")
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)

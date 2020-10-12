@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 using ::testing::Eq;
 
 
-class PairImageFlagsTest : public ::testing::Test {
+class ImageFlagsTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
 
@@ -67,7 +67,7 @@ protected:
     }
 };
 
-TEST_F(PairImageFlagsTest, change_box)
+TEST_F(ImageFlagsTest, change_box)
 {
     auto image = lmp->atom->image;
     int imx = (image[0] & IMGMASK) - IMGMAX;
@@ -150,7 +150,7 @@ TEST_F(PairImageFlagsTest, change_box)
     ASSERT_EQ(imz,0);
 }
 
-TEST_F(PairImageFlagsTest, read_data)
+TEST_F(ImageFlagsTest, read_data)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");

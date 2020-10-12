@@ -21,7 +21,7 @@ pair_coeff	* * exchange 3.1 11.254 0.0 1.0
 variable        Temperature equal 0.0 
 variable        RUN equal 30000
 
-fix             1 all nve/spin lattice no
+fix             1 all nve/spin lattice frozen
 fix             2 all langevin/spin ${Temperature} 0.01 12345
 
 compute		out_mag    all spin
@@ -35,6 +35,9 @@ variable	emag      equal c_out_mag[5]
 
 thermo_style    custom step time v_magx v_magy v_magz v_emag pe etotal
 thermo          10
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 10 dump.data type x y z c_outsp[1] c_outsp[2] c_outsp[3] fx fy fz
 
 timestep	0.0001
 

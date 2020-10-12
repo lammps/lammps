@@ -917,6 +917,17 @@ void ReadData::header(int firstpass)
   int n;
   char *ptr;
 
+  // initialize type counts by the "extra" numbers so they get counted
+  // in case the corresponding "types" line is missing and thus the extra
+  // value will not be processed.
+  if (addflag == NONE) {
+    atom->ntypes = extra_atom_types;
+    atom->nbondtypes = extra_bond_types;
+    atom->nangletypes = extra_angle_types;
+    atom->ndihedraltypes = extra_dihedral_types;
+    atom->nimpropertypes = extra_improper_types;
+  }
+
   // customize for new sections
 
   const char *section_keywords[NSECTIONS] =

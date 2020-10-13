@@ -11,6 +11,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+#include <iostream>
+#include <iomanip>
 
 #ifdef PAIR_CLASS
 
@@ -222,7 +224,7 @@ class PairReaxCKokkos : public PairReaxC {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion_preview, const int&) const;
 

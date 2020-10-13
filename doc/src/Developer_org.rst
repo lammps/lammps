@@ -1,5 +1,5 @@
 LAMMPS source files
-===================
+-------------------
 
 The source files of the LAMMPS code are found in two
 directories of the distribution: ``src`` and ``lib``.
@@ -47,7 +47,7 @@ A small number of C++ classes and utility functions are implemented with
 only a ``.h`` file. Examples are the Pointer class or the MathVec functions.
 
 LAMMPS class topology
-=====================
+---------------------
 
 Though LAMMPS has a lot of source files and classes, its class topology
 is relative flat, as outlined in the :ref:`class-topology` figure.  Each

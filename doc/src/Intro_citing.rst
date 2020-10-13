@@ -1,5 +1,5 @@
 Citing LAMMPS
-=============
+-------------
 
 Core Algorithms
 ^^^^^^^^^^^^^^^

@@ -1,6 +1,6 @@
 
 LAMMPS utility functions
-========================
+------------------------
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common
@@ -173,7 +173,7 @@ Customized standard functions
 ---------------------------
 
 Communication buffer coding with *ubuf*
-=========================================
+---------------------------------------
 
 LAMMPS uses communication buffers where it collects data from various
 class instances and then exchanges the data with neighboring sub-domains.
@@ -194,7 +194,7 @@ the communication buffers.
 ---------------------------
 
 Tokenizer classes
-=================
+-----------------
 
 The purpose of the tokenizer classes is to simplify the recurring task
 of breaking lines of text down into words and/or numbers.
@@ -308,7 +308,7 @@ This code example should produce the following output:
 ----------
 
 File reader classes
-====================
+-------------------
 
 The purpose of the file reader classes is to simplify the recurring task
 of reading and parsing files. They can use the
@@ -382,7 +382,7 @@ A file that would be parsed by the reader code fragment looks like this:
 ----------
 
 Memory pool classes
-===================
+-------------------
 
 The memory pool classes are used for cases where otherwise many
 small memory allocations would be needed and where the data would
@@ -446,7 +446,7 @@ its size is registered later with :cpp:func:`vgot()
 ----------
 
 Eigensolver functions
-=====================
+---------------------
 
 The ``MathEigen`` sub-namespace of the ``LAMMPS_NS`` namespace contains
 functions and classes for eigensolvers. Currently only the

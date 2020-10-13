@@ -1,5 +1,5 @@
 Applying patches
-================
+----------------
 
 It is easy to stay current with the most recent LAMMPS patch releases
 if you use git to track the LAMMPS development.  Instructions for

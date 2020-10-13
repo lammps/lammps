@@ -427,6 +427,9 @@ void FixCACBoxRelax::init()
 
   compute_press_target();
   if (deviatoric_flag) compute_sigma();
+
+  //Set virial flag
+  atom->CAC_virial=1;
 }
 
 /* ----------------------------------------------------------------------
@@ -650,7 +653,6 @@ void FixCACBoxRelax::remap()
   // rescale simulation box from linesearch starting point
   // scale atom coords for all atoms or only for fix group atoms
 
-  double ****nodal_positions = atom->nodal_positions; 
   double *x;
   double *min_x = atom->min_x;
   int *npoly = atom->poly_count;

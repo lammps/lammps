@@ -519,7 +519,8 @@ qi++;
 memory->destroy(quadrature_abcissae);
 }
 
-///////////////////////////////////////////
+/* ---------------------------------------------------------------------- */
+
 double NPairCAC::shape_function(double s, double t, double w, int flag, int index) {
   double shape_function = 0;
   if (flag == 2) {
@@ -647,7 +648,7 @@ return shape_function;
 
 }
 
-//--------------------------------------------------------------------
+/* ---------------------------------------------------------------------- */
 
 void NPairCAC::quad_list_build(int iii, double s, double t, double w) {
 
@@ -912,9 +913,11 @@ void NPairCAC::quad_list_build(int iii, double s, double t, double w) {
       inner_quad_lists_counts[pqi]+inner_quad_lists_counts[pqi];
 }
 
-//contribute force density from neighboring elements of surface quadrature point
-//------------------------------------------------------------------------
-//this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL!!.
+/* ------------------------------------------------------------------------------
+   contribute force density from neighboring elements of surface quadrature point
+   this method is designed for 8 node parallelpiped elements; IT IS NOT GENERAL.
+--------------------------------------------------------------------------------- */
+
 void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_neigh_initial, int outer_neigh_initial, int add_neigh_initial){
   int i,j,jj,jnum,sign1,sign2,flag, check_flag;
   double delx,dely,delz;
@@ -1646,7 +1649,7 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
   }
 }
 
-////////////////////////////////////////////////////////
+/* ---------------------------------------------------------------------- */
 
 void NPairCAC::compute_surface_depths(double &scalex, double &scaley, double &scalez,
   int &countx, int &county, int &countz, int eindex, int etype) {
@@ -1730,7 +1733,7 @@ void NPairCAC::compute_surface_depths(double &scalex, double &scaley, double &sc
 
 }
 
-/////////////////////////////////
+/* ---------------------------------------------------------------------- */
 
 void NPairCAC::quadrature_init(int quadrature_rank){
 
@@ -1765,7 +1768,9 @@ void NPairCAC::quadrature_init(int quadrature_rank){
 
 }
 
-//compute and store quad points for the element referred to by element_index
+/* --------------------------------------------------------------------------
+   compute and store quad points for the element referred to by element_index
+----------------------------------------------------------------------------- */
 
 int NPairCAC::compute_quad_points(int element_index){
 
@@ -2336,7 +2341,6 @@ int NPairCAC::compute_quad_points(int element_index){
             if(qi==quadrature_point_max)
               grow_quad_data(); 
           
-
         }
       }
     }
@@ -2513,7 +2517,6 @@ int NPairCAC::compute_quad_points(int element_index){
             if(qi==quadrature_point_max)
               grow_quad_data(); 
           
-
         }
       }
     }
@@ -2539,6 +2542,7 @@ int NPairCAC::compute_quad_points(int element_index){
 
   return neigh_quad_counter;
 }
+
 
 //decide if an element is close enough to an element or atom to add as a neighbor
 
@@ -2600,7 +2604,10 @@ int NPairCAC::CAC_decide_element2element(int origin_element_index, int neighbor_
   return found_flag;
 }
 
-//decide if an atom or quadrature point is close enough to an element to consider for nonlocal quadrature calculation
+/* ----------------------------------------------------------------------
+   decide if an atom or quadrature point is close enough to an element to
+   consider for nonlocal quadrature calculation.
+------------------------------------------------------------------------- */
 
 int NPairCAC::CAC_decide_quad2element(double *current_quad_point, int neighbor_element_index) {
   int found_flag = 0;

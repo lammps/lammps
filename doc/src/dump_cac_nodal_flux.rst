@@ -36,7 +36,7 @@ just the quadrature points nearest to element nodes in the case of the *nodal* o
 of the latter option is that the interpolated flux represents surface defects, or free surfaces,
 more accurately whilst neglecting an accurate interpolation of the element interior.
 The nodal fluxes are defined as the equivalent nodal fluxes in the case of the *quadrature* option.
-The boxes used to compute fluxes are specifed using the *sizex*, *sizey*, *sizez*, *dx*, *dy*, and *dz*
+The boxes used to compute fluxes are specified using the *sizex*, *sizey*, *sizez*, *dx*, *dy*, and *dz*
 arguments to represent the box dimensions and box center displacement from the atom in all three dimension.
 If the three offsets are omitted they default to 0, the box is centered around the atom or quadrature point.
 Currently, all three offsets must be supplied, even if some are 0, if defining offsets, otherwise an

@@ -28,7 +28,7 @@ and larger elements; this can improve model stability. "Smaller" in this context
 to elements on the other side of a numerical interface having at least 50% more undeformed volume
 than elements on the former side. When this setting is on, elements
 at numerical interfaces will ignore the use of the *one* keyword that can be optionally set
-for a CAC :doc:`pair_style <pair>`.
+for a CAC :doc:`pair_style <pair_style>`.
 
 Restrictions
 """"""""""""

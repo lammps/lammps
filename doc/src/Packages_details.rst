@@ -1271,8 +1271,8 @@ The Journal of Chemical Physics 130, 134706, (2009).
 * :doc:`dump cac/nodal/virial <dump_cac_nodal_virial>`
 * :doc:`dump cac/kinetic/energy <dump_cac_kinetic>`
 * :doc:`dump cac/xyz <dump_cac_xyz>`
-* :doc:`dump cac/xyz <dump_cac_atom>`
-* :doc:`dump cac/xyz <dump_cac_flux>`
+* :doc:`dump cac/atom <dump_cac_atom>`
+* :doc:`dump cac/atom/flux <dump_cac_atom_flux>`
 
 Example inputs are in the examples/USER/CAC folder.
 

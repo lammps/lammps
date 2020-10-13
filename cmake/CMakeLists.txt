@@ -707,7 +707,7 @@ message(STATUS "<<< Build configuration >>>
 ###############################################################################
 # Print package summary
 ###############################################################################
-set(ENABLED_PACKAGES "")
+set(ENABLED_PACKAGES)
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     list(APPEND ENABLED_PACKAGES ${PKG})

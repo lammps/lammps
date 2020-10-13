@@ -33,7 +33,7 @@ Commands
    dump
    dump_adios
    dump_cac_atom
-   dump_cac_flux
+   dump_cac_atom_flux
    dump_cac_initial_nodes
    dump_cac_kinetic
    dump_cac_nodal_positions
@@ -54,6 +54,7 @@ Commands
    echo
    fix
    fix_modify
+   full_quad_interface
    group
    group2ndx
    hyper
@@ -62,6 +63,7 @@ Commands
    improper_style
    include
    info
+   interface_quadrature
    jump
    kim_commands
    kspace_modify

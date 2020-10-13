@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
+#include "info.h"
 #include "input.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -37,6 +38,7 @@ using ::testing::MatchesRegex;
 class PythonPackageTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
+    Info   *info;
 
     void SetUp() override
     {
@@ -47,6 +49,7 @@ protected:
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         if (!verbose) ::testing::internal::GetCapturedStdout();
         ASSERT_NE(lmp, nullptr);
+        info = new Info(lmp);
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp->input->one("units real");
         lmp->input->one("dimension 3");
@@ -71,6 +74,7 @@ protected:
 
 TEST_F(PythonPackageTest, python_invoke)
 {
+    if (!info->has_style("command","python")) GTEST_SKIP();
     // execute python function from file
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("python printnum file ${input_dir}/func.py");
@@ -105,6 +109,7 @@ TEST_F(PythonPackageTest, python_invoke)
 
     TEST_F(PythonPackageTest, python_variable)
 {
+    if (!info->has_style("command","python")) GTEST_SKIP();
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("variable sq python square");
     lmp->input->one("variable val index 1.5");

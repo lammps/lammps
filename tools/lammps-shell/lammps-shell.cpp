@@ -531,16 +531,18 @@ static void init_commands()
     rl_readline_name               = "lammps-shell";
     rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&(";
 
-    // attempt completions only if we are connected to a tty,
+    // attempt completions only if we are connected to a tty or are running tests.
     // otherwise any tabs in redirected input will cause havoc.
-    if (isatty(fileno(stdin))) {
+    const char *test_mode = getenv("LAMMPS_SHELL_TESTING");
+    if (test_mode) std::cout << "*TESTING* using LAMMPS Shell in test mode *TESTING*\n";
+    if (isatty(fileno(stdin)) || test_mode) {
         rl_attempted_completion_function = cmd_completion;
     } else {
         rl_bind_key('\t', rl_insert);
     }
 
-    // read old history
-    read_history(".lammps_history");
+    // read saved history, but not in test mode.
+    if (!test_mode) read_history(".lammps_history");
 
 #if !defined(_WIN32)
     signal(SIGINT, ctrl_c_handler);

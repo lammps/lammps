@@ -33,14 +33,20 @@
 #include <signal.h>
 #endif
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 #include <readline/history.h>
 #include <readline/readline.h>
 
 using namespace LAMMPS_NS;
 
-const int buflen = 512;
+char *omp_threads = nullptr;
+const int buflen  = 512;
 char buf[buflen];
 void *lmp = nullptr;
+
 enum {
     ATOM_STYLE,
     INTEGRATE_STYLE,
@@ -671,6 +677,17 @@ int main(int argc, char **argv)
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
                      "WARNING: The shell will terminate on errors.\n";
+
+#if defined(_OPENMP)
+    int nthreads = omp_get_max_threads();
+#else
+    int nthreads = 1;
+#endif
+    // avoid OMP_NUM_THREADS warning and change the default behavior
+    // to use the maximum number of threads available since this is
+    // not intended to be run with MPI.
+    omp_threads = dupstring(std::string("OMP_NUM_THREADS=" + std::to_string(nthreads)));
+    putenv(omp_threads);
 
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;

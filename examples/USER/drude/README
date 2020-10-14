@@ -14,3 +14,6 @@ use of the `extra/special/per/atom` keyword
 * `swm4-ndp` -- 4-site rigid water model in NpT ensemble (no Thole
 damping)
 
+* `ethylene_glycol` -- simulation in NpT ensemble with Thole 
+and Tang-Toennies damping and with Nosé-Hoover thermostat
+

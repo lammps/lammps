@@ -27,6 +27,7 @@ GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
 .. admonition:: NVIDIA CUDA support
+   :class: note
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
    software version 9.0 or later must be installed on your system. See
@@ -34,6 +35,7 @@ produce an executable compatible with a specific hardware.
    how to check and do this.
 
 .. admonition:: CUDA and MPI library compatibility
+   :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
    CUDA-aware. This is not always the case, especially when using
@@ -46,6 +48,7 @@ produce an executable compatible with a specific hardware.
    cuda/aware off <package>` in the input file.
 
 .. admonition:: AMD GPU support
+   :class: note
 
    To build with Kokkos the HIPCC compiler from the AMD ROCm software
    version 3.5 or later is required.  Supporting this Kokkos mode in

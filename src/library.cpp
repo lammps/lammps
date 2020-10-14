@@ -14,6 +14,7 @@
 // C style library interface to LAMMPS.
 // See the manual for detailed documentation.
 
+#define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
 
@@ -22,6 +23,7 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "dump.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_external.h"
@@ -31,10 +33,13 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "region.h"
 #include "output.h"
 #include "thermo.h"
+#include "timer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -136,11 +141,12 @@ fails a null pointer is returned.
 
 .. note::
 
-   This function is not declared when the code linking to the LAMMPS
-   library interface is compiled with ``-DLAMMPS_LIB_NO_MPI``, or
-   contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
-   ``#include "library.h"``.  In that case, you must use the
-   :cpp:func:`lammps_open_no_mpi` function.
+   This function is **only** declared when the code using the LAMMPS
+   ``library.h`` include file is compiled with ``-DLAMMPS_LIB_MPI``,
+   or contains a ``#define LAMMPS_LIB_MPI 1`` statement before
+   ``#include "library.h"``.  Otherwise you can only use the
+   :cpp:func:`lammps_open_no_mpi` or :cpp:func:`lammps_open_fortran`
+   functions.
 
 *See also*
    :cpp:func:`lammps_open_no_mpi`, :cpp:func:`lammps_open_fortran`
@@ -168,7 +174,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   }
   catch(LAMMPSException &e) {
     fmt::print(stderr, "LAMMPS Exception: {}", e.message);
-    *ptr = nullptr;
+    if (ptr) *ptr = nullptr;
   }
 #else
   lmp = new LAMMPS(argc, argv, comm);
@@ -331,8 +337,15 @@ more MPI calls may be made.
 
 void lammps_mpi_finalize()
 {
-  MPI_Barrier(MPI_COMM_WORLD);
-  MPI_Finalize();
+  int flag;
+  MPI_Initialized(&flag);
+  if (flag) {
+    MPI_Finalized(&flag);
+    if (!flag) {
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Finalize();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -560,6 +573,33 @@ int lammps_version(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->num_ver;
+}
+
+/** Get operating system and architecture information
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_get_os_info` function can be used to retrieve
+detailed information about the hosting operating system and
+compiler/runtime.
+A suitable buffer for a C-style string has to be provided and its length.
+If the assembled text will be truncated to not overflow this buffer.
+
+.. versionadded:: 9Oct2020
+
+\endverbatim
+ *
+ * \param  buffer    string buffer to copy the information to
+ * \param  buf_size  size of the provided string buffer */
+
+void lammps_get_os_info(char *buffer, int buf_size)
+{
+  if (buf_size <=0) return;
+  buffer[0] = buffer[buf_size-1] = '\0';
+  std::string txt = Info::get_os_info() + "\n";
+  txt += Info::get_compiler_info();
+  txt += " with " + Info::get_openmp_info() + "\n";
+  strncpy(buffer, txt.c_str(), buf_size-1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1266,10 +1306,8 @@ to then decide how to cast the (void*) pointer and access the data.
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
 
-int lammps_extract_global_datatype(void *handle, const char *name)
+int lammps_extract_global_datatype(void *, const char *name)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
-
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
@@ -2959,7 +2997,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
 
   BEGIN_CAPTURE
   {
-    int i,j,offset,fcid,ltype;
+    int i,offset,fcid,ltype;
 
     // error if tags are not defined or not consecutive
     int flag = 0;
@@ -3216,8 +3254,6 @@ void lammps_gather_subset(void *ptr, char *name,
         lmp->error->warning(FLERR,"Library error in lammps_gather_subset");
       return;
     }
-
-    int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
 
@@ -4013,18 +4049,17 @@ int lammps_style_count(void *handle, const char *category) {
 
 /** Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
  *
-\verbatim embed:rst
-This function copies the name of the package with the index *idx* into the
-provided C-style string buffer.  The length of the buffer must be provided
-as *buf_size* argument.  If the name of the package exceeds the length of the
-buffer, it will be truncated accordingly.  If the index is out of range,
-the function returns 0 and *buffer* is set to an empty string, otherwise 1.
-Please see :cpp:func:`lammps_has_style` for a list of valid categories.
-\endverbatim
+ *
+ * This function copies the name of the *category* style with the index
+ * *idx* into the provided C-style string buffer.  The length of the buffer
+ * must be provided as *buf_size* argument.  If the name of the style
+ * exceeds the length of the buffer, it will be truncated accordingly.
+ * If the index is out of range, the function returns 0 and *buffer* is
+ * set to an empty string, otherwise 1.
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param category category of styles
- * \param idx      index of the package in the list of included packages (0 <= idx < style count)
+ * \param idx      index of the style in the list of *category* styles (0 <= idx < style count)
  * \param buffer   string buffer to copy the name of the style to
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
@@ -4040,6 +4075,178 @@ int lammps_style_name(void *handle, const char *category, int idx,
     return 1;
   }
 
+  buffer[0] = '\0';
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Check if a specific ID exists in the current LAMMPS instance
+ *
+\verbatim embed:rst
+This function checks if the current LAMMPS instance a *category* ID of
+the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
+*fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
+
+.. versionadded:: 9Oct2020
+
+\endverbatim
+ *
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  category  category of the id
+ * \param  name      name of the id
+ * \return           1 if included, 0 if not.
+ */
+int lammps_has_id(void *handle, const char *category, const char *name) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(category,"compute") == 0) {
+    int ncompute = lmp->modify->ncompute;
+    Compute **compute = lmp->modify->compute;
+    for (int i=0; i < ncompute; ++i) {
+      if (strcmp(name,compute[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"dump") == 0) {
+    int ndump = lmp->output->ndump;
+    Dump **dump = lmp->output->dump;
+    for (int i=0; i < ndump; ++i) {
+      if (strcmp(name,dump[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"fix") == 0) {
+    int nfix = lmp->modify->nfix;
+    Fix **fix = lmp->modify->fix;
+    for (int i=0; i < nfix; ++i) {
+      if (strcmp(name,fix[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"group") == 0) {
+    int ngroup = lmp->group->ngroup;
+    char **groups = lmp->group->names;
+    for (int i=0; i < ngroup; ++i) {
+      if (strcmp(groups[i],name) == 0) return 1;
+    }
+  } else if (strcmp(category,"molecule") == 0) {
+    int nmolecule = lmp->atom->nmolecule;
+    Molecule **molecule = lmp->atom->molecules;
+    for (int i=0; i < nmolecule; ++i) {
+      if (strcmp(name,molecule[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"region") == 0) {
+    int nregion = lmp->domain->nregion;
+    Region **region = lmp->domain->regions;
+    for (int i=0; i < nregion; ++i) {
+      if (strcmp(name,region[i]->id) == 0) return 1;
+    }
+  } else if (strcmp(category,"variable") == 0) {
+    int nvariable = lmp->input->variable->nvar;
+    char **varnames = lmp->input->variable->names;
+    for (int i=0; i < nvariable; ++i) {
+      if (strcmp(name,varnames[i]) == 0) return 1;
+    }
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Count the number of IDs of a category.
+ *
+\verbatim embed:rst
+This function counts how many IDs in the provided *category*
+are defined in the current LAMMPS instance.
+Please see :cpp:func:`lammps_has_id` for a list of valid
+categories.
+
+.. versionadded:: 9Oct2020
+
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of IDs
+ * \return number of IDs in category
+ */
+int lammps_id_count(void *handle, const char *category) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  if (strcmp(category,"compute") == 0) {
+    return lmp->modify->ncompute;
+  } else if (strcmp(category,"dump") == 0) {
+    return lmp->output->ndump;
+  } else if (strcmp(category,"fix") == 0) {
+    return lmp->modify->nfix;
+  } else if (strcmp(category,"group") == 0) {
+    return lmp->group->ngroup;
+  } else if (strcmp(category,"molecule") == 0) {
+    return lmp->atom->nmolecule;
+  } else if (strcmp(category,"region") == 0) {
+    return lmp->domain->nregion;
+  } else if (strcmp(category,"variable") == 0) {
+    return lmp->input->variable->nvar;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Look up the name of an ID by index in the list of IDs of a given category.
+ *
+\verbatim embed:rst
+This function copies the name of the *category* ID with the index
+*idx* into the provided C-style string buffer.  The length of the buffer
+must be provided as *buf_size* argument.  If the name of the style
+exceeds the length of the buffer, it will be truncated accordingly.
+If the index is out of range, the function returns 0 and *buffer* is
+set to an empty string, otherwise 1.
+
+.. versionadded:: 9Oct2020
+
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of IDs
+ * \param idx      index of the ID in the list of *category* styles (0 <= idx < count)
+ * \param buffer   string buffer to copy the name of the style to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_id_name(void *handle, const char *category, int idx,
+                      char *buffer, int buf_size) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  if (strcmp(category,"compute") == 0) {
+    if ((idx >=0) && (idx < lmp->modify->ncompute)) {
+      strncpy(buffer, lmp->modify->compute[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"dump") == 0) {
+    if ((idx >=0) && (idx < lmp->output->ndump)) {
+      strncpy(buffer, lmp->output->dump[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"fix") == 0) {
+    if ((idx >=0) && (idx < lmp->modify->nfix)) {
+      strncpy(buffer, lmp->modify->fix[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"group") == 0) {
+    if ((idx >=0) && (idx < lmp->group->ngroup)) {
+      strncpy(buffer, lmp->group->names[idx], buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"molecule") == 0) {
+    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+      strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"region") == 0) {
+    if ((idx >=0) && (idx < lmp->domain->nregion)) {
+      strncpy(buffer, lmp->domain->regions[idx]->id, buf_size);
+      return 1;
+    }
+  } else if (strcmp(category,"variable") == 0) {
+    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+      strncpy(buffer, lmp->input->variable->names[idx], buf_size);
+      return 1;
+    }
+  }
   buffer[0] = '\0';
   return 0;
 }
@@ -4142,6 +4349,17 @@ int lammps_config_has_ffmpeg_support() {
 In case of errors LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
+
+When using the library interface and C++ exceptions are enabled,
+the library interface functions will "catch" them and the
+error status can then be checked by calling
+:cpp:func:`lammps_has_error` and the most recent error message
+can be retrieved via :cpp:func:`lammps_get_last_error_message`.
+This can allow to restart a calculation or delete and recreate
+the LAMMPS instance when C++ exceptions are enabled.  One application
+of using exceptions this way is the :ref:`lammps_shell`.  If C++
+exceptions are disabled and an error happens during a call to
+LAMMPS, the application will terminate.
 \endverbatim
  * \return 1 if yes, otherwise 0
  */
@@ -4164,15 +4382,15 @@ int lammps_config_has_exceptions() {
  * index. Thus, providing this request index ensures that the correct neighbor
  * list index is returned.
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param style    String used to search for pair style instance
- * \param exact    Flag to control whether style should match exactly or only
- *                 must be contained in pair style name
- * \param nsub     match nsub-th hybrid sub-style
- * \param request  request index that specifies which neighbor list should be
- *                 returned, in case there are multiple neighbor lists requests
- *                 for the found pair style
- * \return         return neighbor list index if found, otherwise -1
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  style    String used to search for pair style instance
+ * \param  exact    Flag to control whether style should match exactly or only
+ *                  must be contained in pair style name
+ * \param  nsub     match nsub-th hybrid sub-style
+ * \param  request  request index that specifies which neighbor list should be
+ *                  returned, in case there are multiple neighbor lists requests
+ *                  for the found pair style
+ * \return          return neighbor list index if found, otherwise -1
  */
 int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, int request) {
   LAMMPS *  lmp = (LAMMPS *) handle;
@@ -4252,7 +4470,7 @@ int lammps_find_compute_neighlist(void* handle, char * id, int request) {
     }
   }
 
-  if (compute == nullptr) {
+  if (compute != nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList * list = lmp->neighbor->lists[i];
@@ -4395,6 +4613,33 @@ void lammps_decode_image_flags(imageint image, int *flags)
   flags[2] = (image >> IMG2BITS) - IMGMAX;
 }
 
+/** Check if LAMMPS is currently inside a run or minimization
+ *
+ * This function can be used from signal handlers or multi-threaded
+ * applications to determine if the LAMMPS instance is currently active.
+ *
+ * \param  handle pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return        0 if idle or >0 if active */
+
+int lammps_is_running(void *handle)
+{
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  return lmp->update->whichflag;
+}
+
+/** Force a timeout to cleanly stop an ongoing run
+ *
+ * This function can be used from signal handlers or multi-threaded
+ * applications to cleanly terminate an ongoing run.
+ *
+ * \param  handle pointer to a previously created LAMMPS instance cast to ``void *`` */
+
+void lammps_force_timeout(void *handle)
+{
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  return lmp->timer->force_timeout();
+}
+
 // ----------------------------------------------------------------------
 // Library functions for error handling with exceptions enabled
 // ----------------------------------------------------------------------
@@ -4405,7 +4650,7 @@ void lammps_decode_image_flags(imageint image, int *flags)
 This function can be used to query if an error inside of LAMMPS
 has thrown a :ref:`C++ exception <exceptions>`.
 
-.. note:
+.. note::
 
    This function will always report "no error" when the LAMMPS library
    has been compiled without ``-DLAMMPS_EXCEPTIONS`` which turns fatal
@@ -4443,7 +4688,7 @@ a "2" indicates an abort that would happen only in a single MPI rank
 and thus may not be recoverable as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
 
-.. note:
+.. note::
 
    This function will do nothing when the LAMMPS library has been
    compiled without ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
@@ -4451,15 +4696,16 @@ the failing MPI ranks to send messages.
    :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param buffer   string buffer to copy the error message to
- * \param buf_size size of the provided string buffer
- * \return 1 when all ranks had the error, 1 on a single rank error.
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  buffer    string buffer to copy the error message to
+ * \param  buf_size  size of the provided string buffer
+ * \return           1 when all ranks had the error, 2 on a single rank error.
  */
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
   LAMMPS *lmp = (LAMMPS *) handle;
   Error *error = lmp->error;
+  buffer[0] = buffer[buf_size-1] = '\0';
 
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();

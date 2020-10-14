@@ -5,7 +5,7 @@ LAMMPS is designed to be used as a C++ class library where one can set
 up and drive a simulation through creating a class instance and then
 calling some abstract operations or commands on that class or its member
 class instances.  These are interfaced to the :doc:`C library API
-<pg_library>`, which providing an additional level of abstraction
+<Library>`, which providing an additional level of abstraction
 simplification for common operations. The C API is also the basis for
 calling LAMMPS from Python or Fortran.
 
@@ -33,6 +33,6 @@ some selected examples for derived classes of specific models.
    :caption: Individual Base Classes
    :name: lammpsbase
 
-   pg_lammps
-   pg_atom
-   pg_input
+   Classes_lammps
+   Classes_atom
+   Classes_input

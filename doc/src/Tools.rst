@@ -92,6 +92,7 @@ Miscellaneous tools
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
+   * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`singularity <singularity_tool>`
    * :ref:`vim <vim>`
 
@@ -397,10 +398,141 @@ The file was provided by Alessandro Luigi Sellerio
 
 ----------
 
+.. _lammps_shell:
+
+LAMMPS shell
+------------
+
+.. versionadded:: 9Oct2020
+
+Overview
+========
+
+The LAMMPS Shell, ``lammps-shell`` is a program that functions very
+similar to the regular LAMMPS executable but has several modifications
+and additions that make it more powerful for interactive sessions,
+i.e. where you type LAMMPS commands from the prompt instead of reading
+them from a file.
+
+- It uses the readline and history libraries to provide command line
+  editing and context aware TAB-expansion (details on that below).
+
+- When processing an input file with the '-in' or '-i' flag from the
+  command line, it does not exit at the end of that input file but
+  stops at a prompt, so that additional commands can be issued
+
+- Errors will not abort the shell but return to the prompt.
+
+- It has additional commands aimed at interactive use (details below).
+
+- Interrupting a calculation with CTRL-C will not terminate the
+  session but rather enforce a timeout to cleanly stop an ongoing
+  run (more info on timeouts is in the timer command documentation).
+
+These enhancements makes the LAMMPS shell an attractive choice for
+interactive LAMMPS sessions in graphical user interfaces.
+
+TAB-expansion
+=============
+
+When writing commands interactively at the shell prompt, you can hit
+the TAB key at any time to try and complete the text.  This completion
+is context aware and will expand any first word only to commands
+available in that executable.
+
+- For style commands it will expand to available styles of the
+  corresponding category (e.g. pair styles after a
+  :doc:`pair_style <pair_style>` command).
+
+- For :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`dump <dump>`
+  it will also expand only to already defined groups for the group-ID
+  keyword.
+
+- For commands like :doc:`compute_modify <compute_modify>`,
+  :doc:`fix_modify <fix_modify>`, or :doc:`dump_modify <dump_modify>`
+  it will expand to known compute/fix/dump IDs only.
+
+- When typing references to computes, fixes, or variables with a
+  "c\_", "f\_", or "v\_" prefix, respectively, then the expansion will
+  be to known compute/fix IDs and variable names. Variable name
+  expansion is also available for the ${name} variable syntax.
+
+- In all other cases TAB expansion will complete to names of files
+  and directories.
+
+Command line editing and history
+================================
+
+When typing commands, command line editing similar to what BASH
+provides is available.  Thus it is possible to move around the
+currently line and perform various cut and insert and edit operations.
+Previous commands can be retrieved by scrolling up (and down)
+or searching (e.g. with CTRL-r).
+
+Also history expansion through using the exclamation mark '!'
+can be performed.  Examples: '!!' will be replaced with the previous
+command, '!-2' will repeat the command before that, '!30' will be
+replaced with event number 30 in the command history list, and
+'!run' with the last command line that started with "run".  Adding
+a ":p" to such a history expansion will result that the expansion is
+printed and added to the history list, but NOT executed.
+On exit the LAMMPS shell will write the history list to a file
+".lammps_history" in the current working directory.  If such a
+file exists when the LAMMPS shell is launched it will be read to
+populate the history list.
+
+This is realized via the readline library and can thus be customized
+with an ``.inputrc`` file in the home directory.  For application
+specific customization, the LAMMPS shell uses the name "lammps-shell".
+For more information about using and customizing an application using
+readline, please see the available documentation at:
+`http://www.gnu.org/s/readline/#Documentation
+<http://www.gnu.org/s/readline/#Documentation>`_
+
+Additional commands
+===================
+
+The following commands are added to the LAMMPS shell on top of the
+regular LAMMPS commands:
+
+.. parsed-literal::
+
+   help (or ?)    print a brief help message
+   history        display the current command history list
+   clear_history  wipe out the current command history list
+   pwd            print current working directory
+   cd <directory> change current working directory (same as pwd if no directory)
+   mem            print current and maximum memory usage
+   \|<command>     execute <command> as a shell command and return to the command prompt
+   exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
+
+Please note that some known shell operations are implemented in the
+LAMMPS :doc:`shell command <shell>` in a platform neutral fashion,
+while using the '\|' character will always pass the following text
+to the operating system's shell command.
+
+Compilation
+===========
+
+Compilation of the LAMMPS shell can be enabled by setting the CMake
+variable ``BUILD_LAMMPS_SHELL`` to "on" or using the makefile in the
+``tools/lammps-shell`` folder to compile after building LAMMPS using
+the conventional make procedure.  The makefile will likely need
+customization depending on the features and settings used for
+compiling LAMMPS.
+
+Limitations
+===========
+
+The LAMMPS shell was not designed for use with MPI parallelization
+via ``mpirun`` or ``mpiexec`` or ``srun``.
+
+----------
+
 .. _arc:
 
 lmp2arc tool
-----------------------
+------------
 
 The lmp2arc sub-directory contains a tool for converting LAMMPS output
 files to the format for Accelrys' Insight MD code (formerly
@@ -663,6 +795,7 @@ The singularity sub-directory contains container definitions files
 that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
+For more details please see the README.md file in that folder.
 
 ----------
 

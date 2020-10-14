@@ -24,14 +24,23 @@ of the source files: the lammps.f90 file needs to be compiled first,
 since it provides the ``LIBLAMMPS`` module that is imported by the
 Fortran code using the interface.
 
-.. versionadded:: 30Sep2020
+.. versionadded:: 9Oct2020
 
 .. admonition:: Work in Progress
+   :class: note
 
    This Fortran module is work in progress and only the documented
    functionality is currently available. The final implementation should
    cover the entire range of functionality available in the C and
    Python library interfaces.
+
+.. note::
+
+   A contributed (and complete!) Fortran interface that is more
+   closely resembling the C-library interface is available
+   in the ``examples/COUPLE/fortran2`` folder.  Please see the
+   ``README`` file in that folder for more information about that
+   Fortran interface and how to contact its author and maintainer.
 
 ----------
 

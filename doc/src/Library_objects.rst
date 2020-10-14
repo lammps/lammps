@@ -1,8 +1,13 @@
-Retrieving or setting properties of LAMMPS objects
-==================================================
+Compute, fixes, variables
+=========================
 
-This section documents accessing or modifying data from objects like
-computes, fixes, or variables in LAMMPS.
+This section documents accessing or modifying data stored by computes,
+fixes, or variables in LAMMPS using the following functions:
+
+- :cpp:func:`lammps_extract_compute`
+- :cpp:func:`lammps_extract_fix`
+- :cpp:func:`lammps_extract_variable`
+- :cpp:func:`lammps_set_variable`
 
 -----------------------
 

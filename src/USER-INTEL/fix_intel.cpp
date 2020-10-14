@@ -160,9 +160,9 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // if using LRT mode, create the integrate style
   if (_lrt) {
-    char *str;
-    str = (char *) "verlet/lrt/intel";
-    update->create_integrate(1,&str,0);
+    char *cmd[1];
+    cmd[0] = (char *) "verlet/lrt/intel";
+    update->create_integrate(1,cmd,0);
   }
 
   // error check

@@ -52,7 +52,7 @@ enum{NO,YES};
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg), thetastr(nullptr), phistr(nullptr), cxstr(nullptr),
   cystr(nullptr), czstr(nullptr), upxstr(nullptr), upystr(nullptr), upzstr(nullptr),
-  zoomstr(nullptr), perspstr(nullptr), diamtype(nullptr), diamelement(nullptr),
+  zoomstr(nullptr), diamtype(nullptr), diamelement(nullptr),
   bdiamtype(nullptr), colortype(nullptr), colorelement(nullptr), bcolortype(nullptr),
   avec_line(nullptr), avec_tri(nullptr), avec_body(nullptr), fixptr(nullptr), image(nullptr),
   chooseghost(nullptr), bufcopy(nullptr)
@@ -133,7 +133,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   upxstr = upystr = upzstr = nullptr;
   zoomstr = nullptr;
-  perspstr = nullptr;
   boxflag = YES;
   boxdiam = 0.02;
   axesflag = NO;
@@ -305,20 +304,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"persp") == 0) {
-      error->all(FLERR,"Dump image persp option is not yet supported");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        perspstr = new char[n];
-        strcpy(perspstr,&arg[iarg+1][2]);
-      } else {
-        double persp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-        if (persp < 0.0) error->all(FLERR,"Illegal dump image command");
-        image->persp = persp;
-      }
-      iarg += 2;
-
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (strcmp(arg[iarg+1],"yes") == 0) boxflag = YES;
@@ -449,7 +434,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   viewflag = STATIC;
   if (thetastr || phistr || cflag == DYNAMIC ||
-      upxstr || upystr || upzstr || zoomstr || perspstr) viewflag = DYNAMIC;
+      upxstr || upystr || upzstr || zoomstr) viewflag = DYNAMIC;
 
   box_bounds();
   if (cflag == STATIC) box_center();
@@ -552,13 +537,6 @@ void DumpImage::init_style()
       error->all(FLERR,"Variable name for dump image zoom does not exist");
     if (!input->variable->equalstyle(zoomvar))
       error->all(FLERR,"Variable for dump image zoom is invalid style");
-  }
-  if (perspstr) {
-    perspvar = input->variable->find(perspstr);
-    if (perspvar < 0)
-      error->all(FLERR,"Variable name for dump image persp does not exist");
-    if (!input->variable->equalstyle(perspvar))
-      error->all(FLERR,"Variable for dump image persp is invalid style");
   }
 
   // set up type -> element mapping
@@ -719,12 +697,10 @@ void DumpImage::view_params()
   if (upystr) image->up[1] = input->variable->compute_equal(upyvar);
   if (upzstr) image->up[2] = input->variable->compute_equal(upzvar);
 
-  // zoom and perspective
+  // zoom
 
   if (zoomstr) image->zoom = input->variable->compute_equal(zoomvar);
   if (image->zoom <= 0.0) error->all(FLERR,"Invalid dump image zoom value");
-  if (perspstr) image->persp = input->variable->compute_equal(perspvar);
-  if (image->persp < 0.0) error->all(FLERR,"Invalid dump image persp value");
 
   // remainder of view setup is internal to Image class
 

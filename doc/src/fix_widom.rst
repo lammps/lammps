@@ -86,11 +86,6 @@ molecule file.  See the :doc:`molecule <molecule>` command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
 
-If you wish to insert molecules via the *mol* keyword, that will have
-their bonds or angles constrained via SHAKE, use the *shake* keyword,
-specifying as its value the ID of a separate :doc:`fix shake
-<fix_shake>` command which also appears in your input script.
-
 Note that fix widom does not use configurational bias MC or any other
 kind of sampling of intramolecular degrees of freedom.  Inserted
 molecules can have different orientations, but they will all have the

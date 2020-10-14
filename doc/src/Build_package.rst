@@ -158,6 +158,7 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
     cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
     cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake  # change settings to use the GNU compilers by default
     cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
@@ -166,9 +167,11 @@ one of them as a starting point and customize it to your needs.
 .. note::
 
    Running cmake this way manipulates the CMake settings cache in your
-   current build directory. You can combine multiple presets and options
+   current build directory.  You can combine multiple presets and options
    in a single cmake run, or change settings incrementally by running
-   cmake with new flags.
+   cmake with new flags.  If you use a present for selecting a set of
+   compilers, it will reset all settings from previous CMake runs.
+
 
 Example
 """""""
@@ -187,7 +190,7 @@ Example
 
    # to reset the package selection from above to the default of no packages
    # but leaving all other settings untouched. You can run:
-   cmake -C ../cmake/presets/no_all.cmake .
+   cmake -C ../cmake/presets/all_off.cmake .
 
 ----------
 

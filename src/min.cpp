@@ -70,6 +70,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   halfstepback_flag = 1;
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
+  alpha_final = 0.0;
 
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;

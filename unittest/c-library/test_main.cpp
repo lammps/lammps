@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "test_main.h"
+#include "pointers.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

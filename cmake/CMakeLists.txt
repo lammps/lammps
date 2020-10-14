@@ -584,7 +584,7 @@ endif()
 
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
-target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps>)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps)
 foreach(_HEADER ${LAMMPS_CXX_HEADERS})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_SOURCE_DIR}/${_HEADER} ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} DEPENDS ${LAMMPS_SOURCE_DIR}/${_HEADER})
@@ -696,15 +696,6 @@ include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
 
-###############################################################################
-# Print package summary
-###############################################################################
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
-  if(PKG_${PKG})
-    message(STATUS "Building package: ${PKG}")
-  endif()
-endforeach()
-
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
@@ -712,8 +703,24 @@ message(STATUS "<<< Build configuration >>>
    Operating System: ${CMAKE_SYSTEM_NAME}
    Build type:       ${CMAKE_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
-   Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}
--- <<< Compilers and Flags: >>>
+   Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
+###############################################################################
+# Print package summary
+###############################################################################
+set(ENABLED_PACKAGES)
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+  if(PKG_${PKG})
+    list(APPEND ENABLED_PACKAGES ${PKG})
+  endif()
+endforeach()
+if(ENABLED_PACKAGES)
+  list(SORT ENABLED_PACKAGES)
+else()
+  set(ENABLED_PACKAGES "<None>")
+endif()
+message(STATUS "Enabled packages: ${ENABLED_PACKAGES}")
+
+message(STATUS "<<< Compilers and Flags: >>>
 -- C++ Compiler:     ${CMAKE_CXX_COMPILER}
       Type:          ${CMAKE_CXX_COMPILER_ID}
       Version:       ${CMAKE_CXX_COMPILER_VERSION}
@@ -814,4 +821,10 @@ if(BUILD_TOOLS)
 endif()
 if(BUILD_LAMMPS_SHELL)
   message(STATUS "<<< Building LAMMPS Shell >>>")
+endif()
+if(ENABLE_TESTING)
+  message(STATUS "<<< Building Unit Tests >>>")
+  if(ENABLE_COVERAGE)
+    message(STATUS "Collecting code coverage data")
+  endif()
 endif()

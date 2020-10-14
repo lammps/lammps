@@ -1,3 +1,4 @@
+######################################
 LAMMPS version |version| Documentation
 ######################################
 
@@ -12,10 +13,11 @@ funding for LAMMPS has come from the US Department of Energy (DOE).
 LAMMPS is an open-source code, distributed freely under the terms of
 the GNU Public License (GPL).
 
-The `LAMMPS website <lws_>`_ has a variety of information about the code.
-It includes links to an on-line version of this manual, a `mailing list <https://lammps.sandia.gov/mail.html>`_ where users can post
-questions, and a `GitHub site <https://github.com/lammps/lammps>`_ where
-all LAMMPS development is coordinated.
+The `LAMMPS website <lws_>`_ has a variety of information about the
+code.  It includes links to an on-line version of this manual, a
+`mailing list <https://lammps.sandia.gov/mail.html>`_ where users can
+post questions, and a `GitHub site <https://github.com/lammps/lammps>`_
+where all LAMMPS development is coordinated.
 
 ----------
 
@@ -23,8 +25,8 @@ The content for this manual is part of the LAMMPS distribution.  You can
 build a local copy of the Manual as HTML pages or a PDF file, by
 following the steps on the :doc:`Build_manual` page.  The manual is
 organized in two parts:
-1) the :ref:`User documentation <user_documentation>` for how to install
-and use LAMMPS and 2) the :ref:`Programmer documentation <programmer_documentation>`
+1) the :ref:`User's Guide <user_documentation>` for how to install
+and use LAMMPS and 2) the :ref:`Programmer's Guide <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
 programming languages and how to modify and extend LAMMPS.
 
@@ -38,14 +40,16 @@ programming languages and how to modify and extend LAMMPS.
 
 ----------
 
-User Documentation
-******************
+
+************
+User's Guide
+************
 
 .. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: User Documentation
+   :caption: User's Guide
    :name: userdoc
    :includehidden:
 
@@ -61,14 +65,16 @@ User Documentation
    Tools
    Errors
 
-Programmer Documentation
-************************
+
+******************
+Programmer's Guide
+******************
 
 .. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: Programmer Documentation
+   :caption: Programmer's Guide
    :name: progdoc
    :includehidden:
 
@@ -93,6 +99,7 @@ Programmer Documentation
    fix_modify_atc_commands
    Bibliography
 
+******************
 Indices and tables
 ******************
 

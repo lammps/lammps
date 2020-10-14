@@ -1,5 +1,5 @@
 Writing LAMMPS styles
-=====================
+---------------------
 
 The :doc:`Modify` section of the manual gives an overview of how LAMMPS can
 be extended by writing new classes that derive from existing

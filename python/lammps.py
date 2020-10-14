@@ -1114,7 +1114,7 @@ class lammps(object):
     after the data is copied to a Python variable or list.
     The variable must be either an equal-style (or equivalent)
     variable or an atom-style variable. The variable type has to
-    provided as ``vartype`` parameter which may be two constants:
+    provided as ``vartype`` parameter which may be one of two constants:
     ``LMP_VAR_EQUAL`` or ``LMP_VAR_STRING``; it defaults to
     equal-style variables.
     The group parameter is only used for atom-style variables and
@@ -1135,7 +1135,8 @@ class lammps(object):
     if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      result = ptr[0]
+      if ptr: result = ptr[0]
+      else: return None
       self.lib.lammps_free(ptr)
       return result
     elif vartype == LMP_VAR_ATOM:
@@ -1143,8 +1144,10 @@ class lammps(object):
       result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      for i in range(nlocal): result[i] = ptr[i]
-      self.lib.lammps_free(ptr)
+      if ptr:
+        for i in range(nlocal): result[i] = ptr[i]
+        self.lib.lammps_free(ptr)
+      else: return None
       return result
     return None
 

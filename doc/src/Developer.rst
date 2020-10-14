@@ -1,5 +1,5 @@
-LAMMPS Developer Guide
-**********************
+Information for Developers
+==========================
 
 This section describes the internal structure and basic algorithms
 of the LAMMPS code. This is a work in progress and additional

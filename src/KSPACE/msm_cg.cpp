@@ -26,7 +26,6 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "utils.h"
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;

@@ -54,8 +54,6 @@ void NPairHalfSizeMultiNewtoffOmp::build(NeighList *list)
   int *neighptr,*s;
   double *cutsq,*distsq;
 
-  // loop over each atom, storing neighbors
-
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;

@@ -13,7 +13,7 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(half/size/bin/newton/omp,
+NPairStyle(half/size/multi/newton/omp,
            NPairHalfSizeMultiNewtonOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_NEWTON | NP_OMP | NP_ORTHO)
 

@@ -1,16 +1,16 @@
 /***************************************************************************
-                                 dpd_ext.cpp
+                              dpd_stat_ext.cpp
                              -------------------
-                            Trung Dac Nguyen (ORNL)
+                        Trung Dac Nguyen (Northwestern)
 
-  Functions for LAMMPS access to dpd acceleration routines.
+  Functions for LAMMPS access to dpd/tstat acceleration routines.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Jan 15, 2014
-    email                : nguyentd@ornl.gov
+    begin                : Sep 18, 2020
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #include <iostream>
@@ -22,29 +22,29 @@
 using namespace std;
 using namespace LAMMPS_AL;
 
-static DPD<PRECISION,ACC_PRECISION> DPDMF;
+static DPD<PRECISION,ACC_PRECISION> DPDTMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
+int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
                  double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen) {
-  DPDMF.clear();
-  gpu_mode=DPDMF.device->gpu_mode();
-  double gpu_split=DPDMF.device->particle_split();
-  int first_gpu=DPDMF.device->first_device();
-  int last_gpu=DPDMF.device->last_device();
-  int world_me=DPDMF.device->world_me();
-  int gpu_rank=DPDMF.device->gpu_rank();
-  int procs_per_gpu=DPDMF.device->procs_per_gpu();
+  DPDTMF.clear();
+  gpu_mode=DPDTMF.device->gpu_mode();
+  double gpu_split=DPDTMF.device->particle_split();
+  int first_gpu=DPDTMF.device->first_device();
+  int last_gpu=DPDTMF.device->last_device();
+  int world_me=DPDTMF.device->world_me();
+  int gpu_rank=DPDTMF.device->gpu_rank();
+  int procs_per_gpu=DPDTMF.device->procs_per_gpu();
 
-  DPDMF.device->init_message(screen,"dpd",first_gpu,last_gpu);
+  DPDTMF.device->init_message(screen,"dpd/tstat",first_gpu,last_gpu);
 
   bool message=false;
-  if (DPDMF.device->replica_me()==0 && screen)
+  if (DPDTMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -54,11 +54,11 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut, special_lj, false, inum, nall, 300,
+    init_ok=DPDTMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
+                       host_cut, special_lj, true, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen);
 
-  DPDMF.device->world_barrier();
+  DPDTMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
@@ -72,11 +72,11 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                         host_cut, special_lj, false, inum, nall, 300,
+      init_ok=DPDTMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
+                         host_cut, special_lj, true, inum, nall, 300,
                          maxspecial, cell_size, gpu_split, screen);
 
-    DPDMF.device->gpu_barrier();
+    DPDTMF.device->gpu_barrier();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -84,15 +84,15 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
     fprintf(screen,"\n");
 
   if (init_ok==0)
-    DPDMF.estimate_gpu_overhead();
+    DPDTMF.estimate_gpu_overhead();
   return init_ok;
 }
 
-void dpd_gpu_clear() {
-  DPDMF.clear();
+void dpd_tstat_gpu_clear() {
+  DPDTMF.clear();
 }
 
-int ** dpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
+int ** dpd_tstat_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
@@ -101,13 +101,13 @@ int ** dpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd) {
-  return DPDMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+  return DPDTMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
                        host_v, dtinvsqrt, seed, timestep, boxlo, prd);
 }
 
-void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
+void dpd_tstat_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -115,19 +115,19 @@ void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_v, const double dtinvsqrt,
                      const int seed, const int timestep,
                      const int nlocal, double *boxlo, double *prd) {
-  DPDMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
+  DPDTMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
                 firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
                 tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
 }
 
-void dpd_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
+void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
                           double **host_sigma, double **host_cut)
 {
-   DPDMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut);
+   DPDTMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut);
 }
 
-double dpd_gpu_bytes() {
-  return DPDMF.host_memory_usage();
+double dpd_tstat_gpu_bytes() {
+  return DPDTMF.host_memory_usage();
 }
 
 

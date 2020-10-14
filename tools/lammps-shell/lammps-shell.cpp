@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -32,14 +33,20 @@
 #include <signal.h>
 #endif
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 #include <readline/history.h>
 #include <readline/readline.h>
 
 using namespace LAMMPS_NS;
 
-const int buflen = 512;
+char *omp_threads = nullptr;
+const int buflen  = 512;
 char buf[buflen];
 void *lmp = nullptr;
+
 enum {
     ATOM_STYLE,
     INTEGRATE_STYLE,
@@ -145,6 +152,57 @@ static char *dupstring(const std::string &text)
     return copy;
 }
 
+static int save_history(std::string range, std::string file)
+{
+    int from = history_base;
+    int to   = from + history_length - 1;
+
+    if (!range.empty()) {
+        std::size_t found = range.find_first_of("-");
+
+        if (found == std::string::npos) { // only a single number
+            int num = strtol(range.c_str(), NULL, 10);
+            if ((num >= from) && (num <= to)) {
+                from = to = num;
+            } else
+                return 1;
+        } else {             // range of numbers
+            if (found > 0) { // get number before '-'
+                int num = strtol(range.substr(0, found).c_str(), NULL, 10);
+                if ((num >= from) && (num <= to)) {
+                    from = num;
+                } else
+                    return 1;
+            }
+
+            if (range.size() > found + 1) { // get number after '-'
+                int num = strtol(range.substr(found + 1).c_str(), NULL, 10);
+                if ((num >= from) && (num <= to)) {
+                    to = num;
+                } else
+                    return 1;
+            }
+        }
+        std::ofstream out(file, std::ios::out | std::ios::trunc);
+        if (out.fail()) {
+            std::cerr << "'" << utils::getsyserror() << "' error when "
+                      << "trying to open file '" << file << "' for writing.\n";
+            return 0;
+        }
+        out << "# saved LAMMPS Shell history\n";
+        for (int i = from; i <= to; ++i) {
+            HIST_ENTRY *item = history_get(i);
+            if (item == nullptr) {
+                out.close();
+                return 1;
+            }
+            out << item->line << "\n";
+        }
+        out.close();
+    }
+    return 0;
+}
+
 template <int STYLE> char *style_generator(const char *text, int state)
 {
     static int idx, num, len;
@@ -229,7 +287,7 @@ static char *cmd_generator(const char *text, int state)
     len = strlen(text);
 
     do {
-        if ((len == 0) || (commands[idx].substr(0, len) == text))
+        if ((idx < commands.size()) && ((len == 0) || (commands[idx].substr(0, len) == text)))
             return dupstring(commands[idx++]);
         else
             ++idx;
@@ -464,23 +522,27 @@ static void init_commands()
     commands.push_back("pwd");
     commands.push_back("cd");
     commands.push_back("mem");
+    commands.push_back("source");
     commands.push_back("history");
     commands.push_back("clear_history");
+    commands.push_back("save_history");
 
     // set name so there can be specific entries in ~/.inputrc
     rl_readline_name               = "lammps-shell";
     rl_basic_word_break_characters = " \t\n\"\\'`@><=;|&(";
 
-    // attempt completions only if we are connected to a tty,
+    // attempt completions only if we are connected to a tty or are running tests.
     // otherwise any tabs in redirected input will cause havoc.
-    if (isatty(fileno(stdin))) {
+    const char *test_mode = getenv("LAMMPS_SHELL_TESTING");
+    if (test_mode) std::cout << "*TESTING* using LAMMPS Shell in test mode *TESTING*\n";
+    if (isatty(fileno(stdin)) || test_mode) {
         rl_attempted_completion_function = cmd_completion;
     } else {
         rl_bind_key('\t', rl_insert);
     }
 
-    // read old history
-    read_history(".lammps_history");
+    // read saved history, but not in test mode.
+    if (!test_mode) read_history(".lammps_history");
 
 #if !defined(_WIN32)
     signal(SIGINT, ctrl_c_handler);
@@ -553,6 +615,10 @@ static int shell_cmd(const std::string &cmd)
     } else if (words[0] == "exit") {
         free(text);
         return shell_end();
+    } else if (words[0] == "source") {
+        lammps_file(lmp, words[1].c_str());
+        free(text);
+        return 0;
     } else if ((words[0] == "pwd") || ((words[0] == "cd") && (words.size() == 1))) {
         if (getcwd(buf, buflen)) std::cout << buf << "\n";
         free(text);
@@ -565,7 +631,7 @@ static int shell_cmd(const std::string &cmd)
         return 0;
     } else if (words[0] == "mem") {
         double meminfo[3];
-        lammps_memory_usage(lmp,meminfo);
+        lammps_memory_usage(lmp, meminfo);
         std::cout << "Memory usage.  Current: " << meminfo[0] << " MByte, "
                   << "Maximum : " << meminfo[2] << " MByte\n";
         free(text);
@@ -581,6 +647,20 @@ static int shell_cmd(const std::string &cmd)
         free(text);
         clear_history();
         return 0;
+    } else if (words[0] == "save_history") {
+        free(text);
+        if (words.size() == 3) {
+            if (save_history(words[1], words[2]) != 0) {
+                int from = history_base;
+                int to   = from + history_length - 1;
+                std::cerr << "Range error: min = " << from << "  max = " << to << "\n";
+                return 1;
+            }
+        } else {
+            std::cerr << "Usage: save_history <range> <filename>\n";
+            return 1;
+        }
+        return 0;
     }
 
     lammps_command(lmp, text);
@@ -593,12 +673,23 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    lammps_get_os_info(buf,buflen);
-    std::cout << "LAMMPS Shell version 1.0  OS: " << buf;
+    lammps_get_os_info(buf, buflen);
+    std::cout << "LAMMPS Shell version 1.1  OS: " << buf;
 
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
                      "WARNING: The shell will terminate on errors.\n";
+
+#if defined(_OPENMP)
+    int nthreads = omp_get_max_threads();
+#else
+    int nthreads = 1;
+#endif
+    // avoid OMP_NUM_THREADS warning and change the default behavior
+    // to use the maximum number of threads available since this is
+    // not intended to be run with MPI.
+    omp_threads = dupstring(std::string("OMP_NUM_THREADS=" + std::to_string(nthreads)));
+    putenv(omp_threads);
 
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;

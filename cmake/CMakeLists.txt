@@ -713,7 +713,11 @@ foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
     list(APPEND ENABLED_PACKAGES ${PKG})
   endif()
 endforeach()
-list(SORT ENABLED_PACKAGES)
+if(ENABLED_PACKAGES)
+  list(SORT ENABLED_PACKAGES)
+else()
+  set(ENABLED_PACKAGES "<None>")
+endif()
 message(STATUS "Enabled packages: ${ENABLED_PACKAGES}")
 
 message(STATUS "<<< Compilers and Flags: >>>

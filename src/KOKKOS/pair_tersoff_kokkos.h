@@ -87,6 +87,11 @@ class PairTersoffKokkos : public PairTersoff {
   KOKKOS_INLINE_FUNCTION
   double ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
+  #ifdef HIP_OPT_MERGE_FC_K_DFC
+  KOKKOS_INLINE_FUNCTION
+  void ters_fc_k_and_ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r, double &result1, double &result2) const;
+  #endif
+
   KOKKOS_INLINE_FUNCTION
   double ters_fa_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
@@ -98,6 +103,11 @@ class PairTersoffKokkos : public PairTersoff {
 
   KOKKOS_INLINE_FUNCTION
   double ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo) const;
+
+  #ifdef HIP_OPT_MERGE_BIJ_DBIJ
+  KOKKOS_INLINE_FUNCTION
+  void ters_bij_k_and_ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo, double &result1, double &result2) const;
+  #endif
 
   KOKKOS_INLINE_FUNCTION
   double bondorder(const int &i, const int &j, const int &k,

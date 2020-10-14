@@ -379,8 +379,15 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
     if (rsq > cutsq) continue;
 
     const F_FLOAT r = sqrt(rsq);
+
+
+    #ifdef HIP_OPT_MERGE_FC_K_DFC
+    F_FLOAT tmp_fce, tmp_fcd;
+    ters_fc_k_and_ters_dfc(itype,jtype,jtype,r,tmp_fce,tmp_fcd);
+    #else
     const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,r);
     const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,r);
+    #endif
     const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * r);
     const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp *
                           (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1) / r;
@@ -437,10 +444,16 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
 
     const F_FLOAT fa = ters_fa_k(itype,jtype,jtype,rij);
     const F_FLOAT dfa = ters_dfa(itype,jtype,jtype,rij);
+#ifdef HIP_OPT_MERGE_BIJ_DBIJ
+   F_FLOAT bij, prefactor;
+   ters_bij_k_and_ters_dbij(itype,jtype,jtype,bo_ij, bij, prefactor);
+   const F_FLOAT fatt = -0.5*bij * dfa / rij;
+   prefactor = 0.5*fa * prefactor;
+#else
     const F_FLOAT bij = ters_bij_k(itype,jtype,jtype,bo_ij);
     const F_FLOAT fatt = -0.5*bij * dfa / rij;
     const F_FLOAT prefactor = 0.5*fa * ters_dbij(itype,jtype,jtype,bo_ij);
-
+#endif
     f_x += delx1*fatt;
     f_y += dely1*fatt;
     f_z += delz1*fatt;
@@ -503,12 +516,18 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
       if ((itag+jtag) % 2 == 1) CONTINUE_FLAG=true;
     } else {
       if (x(j,2)  < ztmp) CONTINUE_FLAG=true;
-      if (x(j,2) == ztmp && x(j,1)  < ytmp) CONTINUE_FLAG=true;
-      if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) CONTINUE_FLAG=true;
+      else if (x(j,2) == ztmp && x(j,1)  < ytmp) CONTINUE_FLAG=true;
+      else if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) CONTINUE_FLAG=true;
     }
     if (CONTINUE_FLAG != true){
+       #ifdef HIP_OPT_MERGE_FC_K_DFC
+       F_FLOAT tmp_fce, tmp_fcd;
+       ters_fc_k_and_ters_dfc(itype,jtype,jtype,rij,tmp_fce,tmp_fcd);
+       #else
        const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,rij);
        const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,rij);
+       #endif
+
        const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * rij);
        const F_FLOAT frep = -paramskk(itype,jtype,jtype).biga * tmp_exp *
                           (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1) / rij;
@@ -869,6 +888,41 @@ double PairTersoffKokkos<DeviceType>::ters_dfc(const int &i, const int &j,
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef HIP_OPT_MERGE_FC_K_DFC
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const int &i, const int &j,
+                const int &k, const F_FLOAT &r, double& result1, double& result2) const
+{
+  const F_FLOAT ters_R = paramskk(i,j,k).bigr;
+  const F_FLOAT ters_D = paramskk(i,j,k).bigd;
+
+  if (r < ters_R-ters_D){
+     result1 = 1.0;
+     result2 = 0.0;
+     return;
+  }
+  if (r > ters_R+ters_D){
+     result1 = 0.0;
+     result2 = 0.0;
+     return;
+  }
+  const F_FLOAT arg = MY_PI2*(r - ters_R)/ters_D;
+
+  //double sn, cn;
+  //sincos(arg, &sn, &cn);
+
+  result1 =  0.5*(1.0 - sin(arg));
+  result2 = -(MY_PI4/ters_D) * cos(arg);
+  return;
+}
+#endif
+
+/* ---------------------------------------------------------------------- */
+
+
+
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::bondorder(const int &i, const int &j, const int &k,
@@ -970,7 +1024,7 @@ double PairTersoffKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
   if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5/sqrt(tmp*tmp);//*pow(tmp,-1.5);
   if (tmp > paramskk(i,j,k).c2)
-    return paramskk(i,j,k).beta * (-0.5/sqrt(tmp*tmp) * //*pow(tmp,-1.5) *
+    return paramskk(i,j,k).beta * (-0.5/sqrt(tmp*tmp) * //*pow(tmp,-1.5) * //LG why ro compute sqrt(tmp^2) ?
            (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
            pow(tmp,-paramskk(i,j,k).powern)));
   if (tmp < paramskk(i,j,k).c4) return 0.0;
@@ -982,6 +1036,53 @@ double PairTersoffKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
 }
 
 /* ---------------------------------------------------------------------- */
+
+#ifdef HIP_OPT_MERGE_BIJ_DBIJ
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const int &j,
+                const int &k, const F_FLOAT &bo, double& result1, double& result2) const
+{
+  const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
+  if (tmp > paramskk(i,j,k).c1){
+      result1 =  1.0/sqrt(tmp);
+      result2 = paramskk(i,j,k).beta * -0.5/fabs(tmp);//LG replacing 0.5/sqrt(tmp*tmp) by 0.5/fabs(tmp)
+      return;
+  }
+
+  auto prm_ijk_pn = paramskk(i,j,k).powern;
+
+  if (tmp > paramskk(i,j,k).c2){
+    auto tmp_pow_neg_prm_ijk_pn =  pow(tmp,-prm_ijk_pn);
+    result1 =  (1.0 - tmp_pow_neg_prm_ijk_pn / (2.0*prm_ijk_pn))/sqrt(tmp);
+    result2 =  paramskk(i,j,k).beta * (-0.5/fabs(tmp) *
+           (1.0 - 0.5*(1.0 +  1.0/(2.0*prm_ijk_pn)) *
+           tmp_pow_neg_prm_ijk_pn));
+    return;
+  }
+
+  if (tmp < paramskk(i,j,k).c4) {
+    result1 = 1.0;
+    result2 = 0.0;
+    return;
+  }
+  if (tmp < paramskk(i,j,k).c3){
+    auto tmp_pow_prm_ijk_pn_less_one =  pow(tmp,prm_ijk_pn-1.0);
+    result1 =  1.0 - tmp_pow_prm_ijk_pn_less_one*tmp/(2.0*prm_ijk_pn);
+    result2 = -0.5*paramskk(i,j,k).beta * tmp_pow_prm_ijk_pn_less_one;
+    return;
+  }
+
+  const F_FLOAT tmp_n = pow(tmp,paramskk(i,j,k).powern);
+  result1 = pow(1.0 + tmp_n, -1.0/(2.0*prm_ijk_pn));
+  result2 =  -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*prm_ijk_pn)))*tmp_n / bo;
+}
+#endif
+
+
+
+
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION

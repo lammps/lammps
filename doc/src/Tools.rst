@@ -406,7 +406,7 @@ LAMMPS shell
 .. versionadded:: 9Oct2020
 
 Overview
-========
+^^^^^^^^
 
 The LAMMPS Shell, ``lammps-shell`` is a program that functions very
 similar to the regular LAMMPS executable but has several modifications
@@ -433,7 +433,7 @@ These enhancements makes the LAMMPS shell an attractive choice for
 interactive LAMMPS sessions in graphical user interfaces.
 
 TAB-expansion
-=============
+^^^^^^^^^^^^^
 
 When writing commands interactively at the shell prompt, you can hit
 the TAB key at any time to try and complete the text.  This completion
@@ -461,7 +461,7 @@ available in that executable.
   and directories.
 
 Command line editing and history
-================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When typing commands, command line editing similar to what BASH
 provides is available.  Thus it is possible to move around the
@@ -490,7 +490,7 @@ readline, please see the available documentation at:
 <http://www.gnu.org/s/readline/#Documentation>`_
 
 Additional commands
-===================
+^^^^^^^^^^^^^^^^^^^
 
 The following commands are added to the LAMMPS shell on top of the
 regular LAMMPS commands:
@@ -500,6 +500,11 @@ regular LAMMPS commands:
    help (or ?)    print a brief help message
    history        display the current command history list
    clear_history  wipe out the current command history list
+   save_history <range> <file>
+                  write commands from the history to file.
+                  The range is given as <from>-<to>, where <from> and <to>
+                  may be empty. Example: save_history 100- in.recent
+   source <file>  read commands from file (same as "include")
    pwd            print current working directory
    cd <directory> change current working directory (same as pwd if no directory)
    mem            print current and maximum memory usage
@@ -512,7 +517,7 @@ while using the '\|' character will always pass the following text
 to the operating system's shell command.
 
 Compilation
-===========
+^^^^^^^^^^^
 
 Compilation of the LAMMPS shell can be enabled by setting the CMake
 variable ``BUILD_LAMMPS_SHELL`` to "on" or using the makefile in the
@@ -522,10 +527,80 @@ customization depending on the features and settings used for
 compiling LAMMPS.
 
 Limitations
-===========
+^^^^^^^^^^^
 
 The LAMMPS shell was not designed for use with MPI parallelization
 via ``mpirun`` or ``mpiexec`` or ``srun``.
+
+Readline customization
+^^^^^^^^^^^^^^^^^^^^^^
+
+The behavior of the readline functionality can be customized in the
+``${HOME}/.inputrc`` file.  This can be used to alter the default
+settings or change the key-bindings.  The LAMMPS Shell sets the
+application name ``lammps-shell``, so settings can be either applied
+globally or only for the LAMMPS shell by bracketing them between
+``$if lammps-shell`` and ``$endif`` like in the following example:
+
+.. code-block:: bash
+
+   $if lammps-shell
+   # disable "beep" or "screen flash"
+   set bell-style none
+   # bind the "Insert" key to toggle overwrite mode
+   "\e[2~": overwrite-mode
+   $endif
+
+More details about this are in the `readline documentation <https://tiswww.cwru.edu/php/chet/readline/rluserman.html#SEC9>`_.
+
+
+LAMMPS Shell tips and tricks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enable tilde expansion
+""""""""""""""""""""""
+
+Adding ``set expand-tilde on`` to ``${HOME}/.inputrc`` is recommended as
+this will change the filename expansion behavior to replace any text
+starting with "~" by the full path to the corresponding user's home
+directory.  While the expansion of filenames **will** happen on all
+arguments where the context is not known (e.g. ``~/compile/lamm<TAB>``
+will expand to ``~/compile/lammps/``), it will not replace the tilde by
+default.  But since LAMMPS does not do tilde expansion itself (unlike a
+shell), this will result in errors.  Instead the tilde-expression should
+be expanded into a valid path, where the plain "~/" stands for the
+current user's home directory and "~someuser/" stands for
+"/home/someuser" or whatever the full path to that user's home directory
+is.
+
+File extension association
+""""""""""""""""""""""""""
+
+Since the LAMMPS shell (unlike the regular LAMMPS executable) does not
+exit when an input file is passed on the command line with the "-in" or
+"-i" flag (the behavior is like for ``python -i <filename>``), it makes
+the LAMMPS shell suitable for associating it with input files based on
+their filename extension (e.g. ".lmp").  Since ``lammps-shell`` is a
+console application, you have to run it inside a terminal program with a
+command line like this:
+
+.. code-block:: bash
+
+   xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
+
+
+Use history create input file
+"""""""""""""""""""""""""""""
+
+When experimenting with commands to interactively to figure out a
+suitable choice of settings or simply the correct syntax, you may want
+to record part of your commands to a file for later use.  This can be
+done with the ``save_history`` commands, which allows to selectively
+write a section of the command history to a file (Example:
+``save_history 25-30 in.run``).  This file can be further edited
+(Example: ``|vim in.run``) and then the file read back in and tried out
+(Example: ``source in.run``).  If the input also creates a system box,
+you first need to use the :doc:`clear` command.
 
 ----------
 

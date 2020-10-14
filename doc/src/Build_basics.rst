@@ -299,10 +299,11 @@ LAMMPS.
 
          then you have either an unsupported (old) compiler or you have
          to turn on C++11 mode.  The latter applies to GCC 4.8.x shipped
-         with RHEL 7.x and CentOS 7.x.  For those compilers, you need to
-         add the ``-std=c++11`` flag.  Otherwise, you would have to
-         install a newer compiler that supports C++11; either as a
-         binary package or through compiling from source.
+         with RHEL 7.x and CentOS 7.x or GCC 5.4.x shipped with Ubuntu16.04.
+         For those compilers, you need to add the ``-std=c++11`` flag.
+         If there is no compiler that supports this flag (or equivalent),
+         you would have to install a newer compiler that supports C++11;
+         either as a binary package or through compiling from source.
 
          If you build LAMMPS with any :doc:`Speed_packages` included,
          there may be specific compiler or linker flags that are either

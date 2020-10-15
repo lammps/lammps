@@ -2152,7 +2152,7 @@ class Variable(object):
 
 class AtomList(object):
   """
-  A dynamic list of atoms that returns either an :py:class:`Atom` or 
+  A dynamic list of atoms that returns either an :py:class:`Atom` or
   :py:class:`Atom2D` instance for each atom. Instances are only allocated
   when accessed.
 

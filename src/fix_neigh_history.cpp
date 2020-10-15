@@ -40,6 +40,8 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
 
   restart_peratom = 1;
+  restart_global = 1;
+  
   create_attribute = 1;
   maxexchange_dynamic = 1;
 
@@ -841,6 +843,23 @@ int FixNeighHistory::unpack_exchange(int nlocal, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   Use write_restart to invoke pre_exchange
+------------------------------------------------------------------------- */
+
+void FixNeighHistory::write_restart(FILE *fp)
+{
+  // Call pre-exchange to copy updated history in page file
+  // back into per-atom arrays prior to packing restart data
+
+  pre_exchange();
+  if (comm->me == 0) {
+    int size = 0;
+    fwrite(&size,sizeof(int),1,fp);
+  }  
+}
+
+
+/* ----------------------------------------------------------------------
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
@@ -851,7 +870,7 @@ int FixNeighHistory::pack_restart(int i, double *buf)
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
-    m += dnum;
+    m += dnum;    
   }
   // pack buf[0] this way because other fixes unpack it
   buf[0] = m;

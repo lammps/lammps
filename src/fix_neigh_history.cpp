@@ -870,7 +870,7 @@ int FixNeighHistory::pack_restart(int i, double *buf)
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
-    m += dnum;    
+    m += dnum;
   }
   // pack buf[0] this way because other fixes unpack it
   buf[0] = m;

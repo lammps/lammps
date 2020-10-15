@@ -1,7 +1,8 @@
 // LAMMPS Class topology
 digraph lammps {
-    rankdir="LR"
-    La [shape=circle label="LAMMPS"]
+    overlap=false
+    splines=true
+    La [shape=circle label="LAMMPS" pos="0,0"]
     At [shape=box label="Atom" color=blue]
     Ci [shape=box label="CiteMe"]
     Co [shape=box label="Comm" color=blue]
@@ -17,6 +18,7 @@ digraph lammps {
     Up [shape=box label="Update" color=blue]
     Un [shape=box label="Universe" color=blue]
     Ti [shape=box label="Timer" color=blue]
+    Lt [label="Lattice"]
     Rg [label="Region" color=red]
     Rb [shape=box label="RegionBlock"]
     Rs [shape=box label="RegionSphere"]
@@ -59,6 +61,11 @@ digraph lammps {
     Fh [shape=box label="FixNH"]
     Fp [shape=box label="FixNPT"]
     Ft [shape=box label="FixNVT"]
+    Ce [shape=box label="ComputeTemp"]
+    Ca [shape=box label="ComputeTempAtom"]
+    Cr [shape=box label="ComputeReduce"]
+    Cg [shape=box label="ComputeReduceRegion"]
+    Ck [shape=box label="ComputeTempKokkos"]
     Da [shape=box label="DumpAtom"]
     Dc [shape=box label="DumpCustom"]
     Dg [shape=box label="DumpCFG"]
@@ -67,10 +74,12 @@ digraph lammps {
     Pt [shape=box label="PPPMTIP4P"]
     Vs [shape=box label="VerletSplit"]
     Ro [shape=box label="RespaOMP"]
+    Mc [shape=box label="MinCG"]
+    Mf [shape=box label="MinFire"]
     La -> {At Ci Co Do Er Fo Gr In Me Mo Ne Ou Ti Up Un} [penwidth=2]
-    Do -> {Rg} [penwidth=2]
-    Co -> {Cb Ct} [style=dashed penwidth=2]
+    Do -> {Lt Rg} [penwidth=2]
     Rg -> {Rb Rs} [style=dashed penwidth=2]
+    Co -> {Cb Ct} [style=dashed penwidth=2]
     In -> Va [penwidth=2]
     Mo -> {Fi Cp} [penwidth=2]
     Fo -> {Pa Bo An Di Im Ks} [penwidth=2]
@@ -91,7 +100,11 @@ digraph lammps {
     Bh -> Bp [style=dashed penwidth=2]
     Fi -> {Fa Fn Fh} [style=dashed penwidth=2]
     Fh -> {Fp Ft} [style=dashed penwidth=2]
+    Cp -> {Ce Ca Cr} [style=dashed penwidth=2]
+    Ce -> Ck [style=dashed penwidth=2]
+    Cr -> Cg [style=dashed penwidth=2]
     Ve -> Vs [style=dashed penwidth=2]
     Rr -> Ro [style=dashed penwidth=2]
+    Mi -> {Mc Mf} [style=dashed penwidth=2]
 }
 

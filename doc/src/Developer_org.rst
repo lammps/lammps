@@ -78,7 +78,7 @@ in the figure for demonstration purposes.
    the core is the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class, which
    holds pointers to class instances with specific purposes.  Those may
    hold instances of other classes, sometimes directly, or only
-   temporarily, sometimes as derived classes or derived classes or
+   temporarily, sometimes as derived classes or derived classes of
    derived classes, which may also hold instances of other classes.
 
 The :cpp:class:`LAMMPS_NS::LAMMPS` class is the topmost class and

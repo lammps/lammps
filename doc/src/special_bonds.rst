@@ -242,7 +242,7 @@ Restrictions
 
 If the neighbor list cutoff (i.e. the largest cutoff of any pair style)
 is larger than the simulation cell for a periodic dimension, then the
-detetmination of which pairs of non-bonded interactions need to be
+determination of which pairs of non-bonded interactions need to be
 excluded, may be incorrect.  LAMMPS will print a warning message if this
 is the case.  A workaround for this would be to use the
 :doc:`replicate command <replicate>` to enlarge the system along that

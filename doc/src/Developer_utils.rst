@@ -1,6 +1,6 @@
 
-LAMMPS utility functions
-------------------------
+Utility functions
+-----------------
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common

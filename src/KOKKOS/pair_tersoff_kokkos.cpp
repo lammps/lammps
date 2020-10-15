@@ -975,6 +975,27 @@ double PairTersoffKokkos<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef HIP_OPT_MERGE_GIJK_DGIJK
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::
+        ters_gijk_and_ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos, double& result1, double& result2) const
+{
+  const F_FLOAT ters_c = paramskk(i,j,k).c * paramskk(i,j,k).c;
+  const F_FLOAT ters_d = paramskk(i,j,k).d * paramskk(i,j,k).d;
+  const F_FLOAT hcth = paramskk(i,j,k).h - cos;
+
+  const F_FLOAT numerator = -2.0 * ters_c * hcth;
+  const F_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
+
+  result1 = paramskk(i,j,k).gamma*(1.0 + ters_c/ters_d - ters_c*denominator);
+  result2 = paramskk(i,j,k).gamma * numerator * denominator * denominator;
+}
+#endif
+/* ---------------------------------------------------------------------- */
+
+
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
@@ -1112,8 +1133,15 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   F_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
   F_FLOAT dcosfi[3],dcosfj[3],dcosfk[3];
 
+  #ifdef HIP_OPT_MERGE_FC_K_DFC
+  ters_fc_k_and_ters_dfc(i,j,k,rik,fc,dfc);
+  #else
   fc = ters_fc_k(i,j,k,rik);
   dfc = ters_dfc(i,j,k,rik);
+  #endif
+
+
+
   const F_FLOAT param = paramskk(i,j,k).lam3 * (rij-rik);
   if (int(paramskk(i,j,k).powerm) == 3) tmp = param*param*param;//pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
   else tmp = param;
@@ -1127,8 +1155,14 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
+
+  //LG consider merging
+  #ifdef HIP_OPT_MERGE_GIJK_DGIJK
+  ters_gijk_and_ters_dgijk(i,j,k,cos,gijk,dgijk);
+  #else
   gijk = ters_gijk(i,j,k,cos);
   dgijk = ters_dgijk(i,j,k,cos);
+  #endif
 
   // from PairTersoff::costheta_d
   vec3_scaleadd(-cos,rij_hat,rik_hat,dcosfj);

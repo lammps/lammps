@@ -120,6 +120,13 @@ class PairTersoffKokkos : public PairTersoff {
   KOKKOS_INLINE_FUNCTION
   double ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const;
 
+  #ifdef HIP_OPT_MERGE_GIJK_DGIJK
+  KOKKOS_INLINE_FUNCTION
+  void ters_gijk_and_ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos, double& gijk, double& dgijk) const;
+  #endif
+
+
+
   KOKKOS_INLINE_FUNCTION
   void ters_dthb(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,

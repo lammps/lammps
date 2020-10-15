@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
+#include "neighbor.h"
 #include "output.h"
 #include "region.h"
 #include "thermo.h"
@@ -841,6 +842,15 @@ void Domain::box_too_small_check()
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
+
+  // exclusions can be wrong if the neighbor list cutoff is larger than the box
+  if ((xperiodic && (neighbor->cutneighmax > xprd))
+       || (yperiodic && (neighbor->cutneighmax > yprd))
+       || (zperiodic && (dimension != 2) && (neighbor->cutneighmax > zprd))) {
+    if (comm->me == 0)
+      error->warning(FLERR,"Neighbor list cutoff too large for periodic box. "
+                     "Special bond exclusions may be incorrect.");
+  }
 
   // maxbondall = longest current bond length
   // if periodic box dim is tiny (less than 2 * bond-length),

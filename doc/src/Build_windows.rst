@@ -99,5 +99,6 @@ Native Visual C++ support
 
 Support for the Visual C++ compilers is currently not available. The
 CMake build system is capable of creating suitable a Visual Studio
-style build environment, but the LAMMPS code itself is not fully ported
-to support Visual C++. Volunteers to take on this task are welcome.
+style build environment, but the LAMMPS source code itself is not
+ported to fully support Visual C++. Volunteers to take on this task
+are welcome.

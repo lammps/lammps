@@ -1,6 +1,6 @@
 
-LAMMPS utility functions
-------------------------
+Utility functions
+-----------------
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common
@@ -168,27 +168,6 @@ Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: merge_sort
-   :project: progguide
-
----------------------------
-
-Communication buffer coding with *ubuf*
----------------------------------------
-
-LAMMPS uses communication buffers where it collects data from various
-class instances and then exchanges the data with neighboring sub-domains.
-For simplicity those buffers are defined as ``double`` buffers and
-used for doubles and integer numbers. This presents a unique problem
-when 64-bit integers are used.  While the storage needed for a ``double``
-is also 64-bit, it cannot be used by a simple assignment.  To get around
-that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
-union.  It is used in the various "pack" and "unpack" functions in the
-LAMMPS classes to store and retrieve integers that may be 64-bit from
-the communication buffers.
-
----------------------------
-
-.. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide
 
 ---------------------------
@@ -480,5 +459,26 @@ Tohoku University (under MIT license)
    :project: progguide
 
 .. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+   :project: progguide
+
+---------------------------
+
+Communication buffer coding with *ubuf*
+---------------------------------------
+
+LAMMPS uses communication buffers where it collects data from various
+class instances and then exchanges the data with neighboring sub-domains.
+For simplicity those buffers are defined as ``double`` buffers and
+used for doubles and integer numbers. This presents a unique problem
+when 64-bit integers are used.  While the storage needed for a ``double``
+is also 64-bit, it cannot be used by a simple assignment.  To get around
+that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
+union.  It is used in the various "pack" and "unpack" functions in the
+LAMMPS classes to store and retrieve integers that may be 64-bit from
+the communication buffers.
+
+---------------------------
+
+.. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide
 

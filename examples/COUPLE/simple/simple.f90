@@ -116,12 +116,11 @@ PROGRAM f_driver
      natoms = NINT(lmp%get_natoms())
      ALLOCATE(x(3*natoms))
 
-     ! these calls are commented out, b/c libfwrapper.c
-     ! needs to be updated to use gather_atoms and scatter_atoms
+     ! these calls are commented out, because they are not interfaced yet
 
-     !CALL lammps_gather_atoms(ptr,'x',1,3,x)
+     !CALL lmp%gather_atoms('x',1,3,x)
      !x(1) = x(1) + epsilon
-     !CALL lammps_scatter_atoms(ptr,'x',1,3,x)
+     !CALL lmp%scatter_atoms('x',1,3,x)
 
      DEALLOCATE(x)
 

@@ -2152,8 +2152,9 @@ class Variable(object):
 
 class AtomList(object):
   """
-  A dynamic list of atoms that returns either an Atom or Atom2D instance for
-  each atom. Instances are only allocated when accessed.
+  A dynamic list of atoms that returns either an :py:class:`Atom` or
+  :py:class:`Atom2D` instance for each atom. Instances are only allocated
+  when accessed.
 
   :ivar natoms: total number of atoms
   :ivar dimensions: number of dimensions in system
@@ -2198,31 +2199,61 @@ class Atom(object):
 
   @property
   def id(self):
+    """
+    Return the atom ID
+
+    :type: int
+    """
     return int(self._pylmp.eval("id[%d]" % self.index))
 
   @property
   def type(self):
+    """
+    Return the atom type
+
+    :type: int
+    """
     return int(self._pylmp.eval("type[%d]" % self.index))
 
   @property
   def mol(self):
+    """
+    Return the atom molecule index
+
+    :type: int
+    """
     return self._pylmp.eval("mol[%d]" % self.index)
 
   @property
   def mass(self):
+    """
+    Return the atom mass
+
+    :type: float
+    """
     return self._pylmp.eval("mass[%d]" % self.index)
 
   @property
   def position(self):
+    """
+    :getter: Return position of atom
+    :setter: Set position of atom
+    :type: tuple (float, float, float)
+    """
     return (self._pylmp.eval("x[%d]" % self.index),
             self._pylmp.eval("y[%d]" % self.index),
             self._pylmp.eval("z[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self._pylmp.set("atom", self.index, "x", value[0])
-     self._pylmp.set("atom", self.index, "y", value[1])
-     self._pylmp.set("atom", self.index, "z", value[2])
+    """
+    :getter: Return velocity of atom
+    :setter: Set velocity of atom
+    :type: tuple (float, float, float)
+    """
+    self._pylmp.set("atom", self.index, "x", value[0])
+    self._pylmp.set("atom", self.index, "y", value[1])
+    self._pylmp.set("atom", self.index, "z", value[2])
 
   @property
   def velocity(self):
@@ -2238,12 +2269,22 @@ class Atom(object):
 
   @property
   def force(self):
+    """
+    Return the total force acting on the atom
+
+    :type: tuple (float, float, float)
+    """
     return (self._pylmp.eval("fx[%d]" % self.index),
             self._pylmp.eval("fy[%d]" % self.index),
             self._pylmp.eval("fz[%d]" % self.index))
 
   @property
   def charge(self):
+    """
+    Return the atom charge
+
+    :type: float
+    """
     return self._pylmp.eval("q[%d]" % self.index)
 
 # -------------------------------------------------------------------------
@@ -2252,6 +2293,9 @@ class Atom2D(Atom):
   """
   A wrapper class then represents a single 2D atom inside of LAMMPS
 
+  Inherits all properties from the :py:class:`Atom` class, but returns 2D versions
+  of position, velocity, and force.
+
   It provides access to properties of the atom and allows you to change some of them.
   """
   def __init__(self, pylammps_instance, index):
@@ -2259,6 +2303,11 @@ class Atom2D(Atom):
 
   @property
   def position(self):
+    """
+    :getter: Return position of atom
+    :setter: Set position of atom
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("x[%d]" % self.index),
             self._pylmp.eval("y[%d]" % self.index))
 
@@ -2269,6 +2318,11 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
+    """
+    :getter: Return velocity of atom
+    :setter: Set velocity of atom
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("vx[%d]" % self.index),
             self._pylmp.eval("vy[%d]" % self.index))
 
@@ -2279,6 +2333,11 @@ class Atom2D(Atom):
 
   @property
   def force(self):
+    """
+    Return the total force acting on the atom
+
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("fx[%d]" % self.index),
             self._pylmp.eval("fy[%d]" % self.index))
 

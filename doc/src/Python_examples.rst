@@ -1,10 +1,10 @@
-Example Python scripts that use LAMMPS
-======================================
+Example Python scripts
+======================
 
-The python/examples directory has Python scripts which show how Python
+The ``python/examples`` directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 
-These are the Python scripts included as demos in the python/examples
+These are the Python scripts included as demos in the ``python/examples``
 directory of the LAMMPS distribution, to illustrate the kinds of
 things that are possible when Python wraps LAMMPS.  If you create your
 own scripts, send them to us and we can include them in the LAMMPS
@@ -32,7 +32,7 @@ distribution.
 
 ----------
 
-For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
+For the ``viz_tool.py`` and ``vizplotgui_tool.py`` commands, replace "tool"
 with "gl" or "atomeye" or "pymol" or "vmd", depending on what
 visualization package you have installed.
 

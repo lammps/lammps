@@ -25,8 +25,8 @@ The content for this manual is part of the LAMMPS distribution.  You can
 build a local copy of the Manual as HTML pages or a PDF file, by
 following the steps on the :doc:`Build_manual` page.  The manual is
 organized in two parts:
-1) the :ref:`User's Guide <user_documentation>` for how to install
-and use LAMMPS and 2) the :ref:`Programmer's Guide <programmer_documentation>`
+1) the :ref:`User Guide <user_documentation>` for how to install
+and use LAMMPS and 2) the :ref:`Programmer Guide <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
 programming languages and how to modify and extend LAMMPS.
 
@@ -42,14 +42,14 @@ programming languages and how to modify and extend LAMMPS.
 
 
 ************
-User's Guide
+User Guide
 ************
 
 .. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: User's Guide
+   :caption: User Guide
    :name: userdoc
    :includehidden:
 
@@ -67,14 +67,14 @@ User's Guide
 
 
 ******************
-Programmer's Guide
+Programmer Guide
 ******************
 
 .. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: Programmer's Guide
+   :caption: Programmer Guide
    :name: progdoc
    :includehidden:
 

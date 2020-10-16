@@ -1,5 +1,5 @@
-Retrieving LAMMPS configuration information
-*******************************************
+Configuration information
+=========================
 
 The following methods can be used to query the LAMMPS library
 about compile time settings and included packages and styles.

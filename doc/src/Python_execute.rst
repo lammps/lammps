@@ -57,34 +57,45 @@ it is possible to "compute" what the next LAMMPS command should be.
 
          region box block 0 10 0 5 -0.5 0.5
 
-      can be executed using with the lammps AI with the following Python code if *L* is an
+      can be executed using with the lammps API with the following Python code if ``lmp`` is an
       instance of :py:class:`lammps <lammps.lammps>`:
 
       .. code-block:: Python
 
-         L.command("region box block 0 10 0 5 -0.5 0.5")
+         from lammps import lammps
+
+         lmp = lammps()
+         lmp.command("region box block 0 10 0 5 -0.5 0.5")
 
       With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts.
-      These parts are then passed to a member function with the name of the command.
-      For the ``region`` command that means the :code:`region()` method can be called.
+      These parts are then passed to a member function with the name of the :doc:`command <Commands_all>`.
+      For the :doc:`region <region>` command that means the :code:`region()` method can be called.
       The arguments of the command can be passed as one string, or
       individually.
 
       .. code-block:: Python
 
+         from lammps import PyLammps
+
+         L = PyLammps()
+
+         # pass command parameters as one string
+         L.region("box block 0 10 0 5 -0.5 0.5")
+
+         # OR pass them individually
          L.region("box block", 0, 10, 0, 5, -0.5, 0.5)
 
-      In this example all parameters except the first are Python floating-point literals. The
-      PyLammps interface takes the entire parameter list and transparently
-      merges it to a single command string.
+      In the latter example, all parameters except the first are Python floating-point literals. The
+      member function takes the entire parameter list and transparently merges it to a single command
+      string.
 
       The benefit of this approach is avoiding redundant command calls and easier
-      parameterization. In the original interface parameterization this needed to be done
-      manually by creating formatted strings.
+      parameterization. In the lammps API parameterization needed to be done
+      manually by creating formatted command strings.
 
       .. code-block:: Python
 
-         L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
+         lmp.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
 
       In contrast, methods of PyLammps accept parameters directly and will convert
       them automatically to a final command string.

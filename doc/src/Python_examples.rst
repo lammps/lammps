@@ -10,30 +10,26 @@ things that are possible when Python wraps LAMMPS.  If you create your
 own scripts, send them to us and we can include them in the LAMMPS
 distribution.
 
-+----------------------------------------------------------------+--------------------------------------------------+
-| trivial.py                                                     | read/run a LAMMPS input script through Python    |
-+----------------------------------------------------------------+--------------------------------------------------+
-| demo.py                                                        | invoke various LAMMPS library interface routines |
-+----------------------------------------------------------------+--------------------------------------------------+
-| simple.py                                                      | run in parallel                                  |
-+----------------------------------------------------------------+--------------------------------------------------+
-| similar to examples/COUPLE/simple/simple.cpp                   | split.py                                         |
-+----------------------------------------------------------------+--------------------------------------------------+
-| same as simple.py but running in parallel on a subset of procs | gui.py                                           |
-+----------------------------------------------------------------+--------------------------------------------------+
-| GUI go/stop/temperature-slider to control LAMMPS               | plot.py                                          |
-+----------------------------------------------------------------+--------------------------------------------------+
-| real-time temperature plot with GnuPlot via Pizza.py           | viz_tool.py                                      |
-+----------------------------------------------------------------+--------------------------------------------------+
-| real-time viz via some viz package                             | vizplotgui_tool.py                               |
-+----------------------------------------------------------------+--------------------------------------------------+
-| combination of viz_tool.py and plot.py and gui.py              |                                                  |
-+----------------------------------------------------------------+--------------------------------------------------+
++------------------------+--------------------------------------------------------------------+
+| ``trivial.py``         | read/run a LAMMPS input script through Python                      |
++------------------------+--------------------------------------------------------------------+
+| ``demo.py``            | invoke various LAMMPS library interface routines                   |
++------------------------+--------------------------------------------------------------------+
+| ``simple.py``          | run in parallel, similar to ``examples/COUPLE/simple/simple.cpp``  |
++------------------------+--------------------------------------------------------------------+
+| ``split.py``           | same as ``simple.py`` but running in parallel on a subset of procs |
++------------------------+--------------------------------------------------------------------+
+| ``gui.py``             | GUI go/stop/temperature-slider to control LAMMPS                   |
++------------------------+--------------------------------------------------------------------+
+| ``plot.py``            | real-time temperature plot with GnuPlot via Pizza.py               | 
++------------------------+--------------------------------------------------------------------+
+| ``viz_TOOL.py``        | real-time viz via some viz package                                 |
++------------------------+--------------------------------------------------------------------+
+| ``vizplotgui_TOOL.py`` | combination of ``viz_TOOL.py`` and ``plot.py`` and ``gui.py``      |
++------------------------+--------------------------------------------------------------------+
 
-----------
-
-For the ``viz_tool.py`` and ``vizplotgui_tool.py`` commands, replace "tool"
-with "gl" or "atomeye" or "pymol" or "vmd", depending on what
+For the ``viz_TOOL.py`` and ``vizplotgui_TOOL.py`` commands, replace ``TOOL``
+with ``gl`` or ``atomeye`` or ``pymol`` or ``vmd``, depending on what
 visualization package you have installed.
 
 Note that for GL, you need to be able to run the Pizza.py GL tool,
@@ -45,7 +41,7 @@ which is included in the pizza sub-directory.  See the Pizza.py doc pages for mo
 
 Note that for AtomEye, you need version 3, and there is a line in the
 scripts that specifies the path and name of the executable.  See the
-AtomEye webpages for more details:
+AtomEye web pages for more details:
 
 * `http://li.mit.edu/Archive/Graphics/A/ <atomeye_>`_
 * `http://li.mit.edu/Archive/Graphics/A3/A3.html <atomeye3_>`_
@@ -59,7 +55,7 @@ capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
-from a Python script.  See the PyMol webpages for more details:
+from a Python script.  See the PyMol web pages for more details:
 
  * `https://www.pymol.org <pymolhome_>`_
  * `https://github.com/schrodinger/pymol-open-source <pymolopen_>`_

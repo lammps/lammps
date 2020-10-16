@@ -25,8 +25,9 @@
 #endif
 #include <io.h>
 #include <windows.h>
-#define isatty(x) _isatty(x)
+#define chdir(x) _chdir(x)
 #define getcwd(buf, len) _getcwd(buf, len)
+#define isatty(x) _isatty(x)
 #endif
 
 #if !defined(_WIN32)
@@ -672,6 +673,20 @@ int main(int argc, char **argv)
 {
     char *line;
     std::string trimmed;
+
+    // if current working directory is the "system folder"
+    // switch to the user's documents directory.
+    if (getcwd(buf, buflen)) {
+        if (strstr(buf, "System32")) {
+            char *drive = getenv("HOMEDRIVE");
+            char *path  = getenv("HOMEPATH");
+            buf[0]      = '\0';
+            if (drive) strcat(buf, drive);
+            if (path) strcat(buf, path);
+            strcat(buf, "\\Documents");
+            chdir(buf);
+        }
+    }
 
     lammps_get_os_info(buf, buflen);
     std::cout << "LAMMPS Shell version 1.1  OS: " << buf;

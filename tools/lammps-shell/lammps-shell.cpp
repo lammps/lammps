@@ -561,8 +561,9 @@ static int help_cmd()
                  "- Use the '!' character for bash-like history epansion. (Example: '!run)\n\n"
                  "A history of the session will be written to the a file '.lammps_history'\n"
                  "in the current working directory and - if present - this file will be\n"
-                 "read at the beginning of the next session of the LAMMPS shell.\n\n";
-    return 0;
+                 "read at the beginning of the next session of the LAMMPS shell.\n\n"
+                 "Additional information is at https://packages.lammps.org/lammps-shell.html\n\n";
+        return 0;
 }
 
 static int shell_end()
@@ -674,19 +675,28 @@ int main(int argc, char **argv)
     char *line;
     std::string trimmed;
 
-    // if current working directory is the "system folder"
-    // switch to the user's documents directory.
+#if defined(_WIN32)
+    // Special hack for Windows: if the current working directory is
+    // the "system folder" (because that is where cmd.exe lives)
+    // switch to the user's documents directory. Avoid buffer overflow
+    // and skip this step if the path is too long for our buffer.
     if (getcwd(buf, buflen)) {
-        if (strstr(buf, "System32")) {
+      if ((strstr(buf, "System32") || strstr(buf, "system32")) {
             char *drive = getenv("HOMEDRIVE");
             char *path  = getenv("HOMEPATH");
             buf[0]      = '\0';
-            if (drive) strcat(buf, drive);
-            if (path) strcat(buf, path);
-            strcat(buf, "\\Documents");
-            chdir(buf);
+            int len     = strlen("\\Documents");
+            if (drive) len += strlen(drive);
+            if (path) len += strlen(path);
+            if (len < buflen) {
+                if (drive) strcat(buf, drive);
+                if (path) strcat(buf, path);
+                strcat(buf, "\\Documents");
+                chdir(buf);
+            }
         }
     }
+#endif
 
     lammps_get_os_info(buf, buflen);
     std::cout << "LAMMPS Shell version 1.1  OS: " << buf;

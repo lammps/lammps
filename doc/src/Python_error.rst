@@ -1,4 +1,4 @@
-LAMMPS error handling in Python
+Handling LAMMPS errors
 *******************************
 
 Compiling the shared library with :ref:`C++ exception support <exceptions>` provides a better error

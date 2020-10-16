@@ -10,14 +10,6 @@ together.
    Python_overview
    Python_install
    Python_run
-   Python_create
-   Python_execute
-   Python_properties
-   Python_atoms
-   Python_objects
-   Python_scatter
-   Python_neighbor
-   Python_config
    Python_module
    Python_ext
    Python_call

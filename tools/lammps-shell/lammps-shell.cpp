@@ -681,7 +681,7 @@ int main(int argc, char **argv)
     // switch to the user's documents directory. Avoid buffer overflow
     // and skip this step if the path is too long for our buffer.
     if (getcwd(buf, buflen)) {
-      if ((strstr(buf, "System32") || strstr(buf, "system32")) {
+      if ((strstr(buf, "System32") || strstr(buf, "system32"))) {
             char *drive = getenv("HOMEDRIVE");
             char *path  = getenv("HOMEPATH");
             buf[0]      = '\0';

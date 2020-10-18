@@ -379,6 +379,14 @@ foreach(PKG_WITH_INCL KSPACE PYTHON VORONOI USER-COLVARS USER-MOLFILE USER-NETCD
   endif()
 endforeach()
 
+# optionally enable building script wrappers using swig
+option(WITH_SWIG "Build scripting language wrappers with SWIG" OFF)
+if(WITH_SWIG)
+  get_filename_component(LAMMPS_SWIG_DIR ${LAMMPS_SOURCE_DIR}/../swig ABSOLUTE)
+  get_filename_component(LAMMPS_SWIG_BIN ${CMAKE_BINARY_DIR}/swig ABSOLUTE)
+  add_subdirectory(${LAMMPS_SWIG_DIR} ${LAMMPS_SWIG_BIN})
+endif()
+
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine specific optimization flags (compilation only)")
 separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})

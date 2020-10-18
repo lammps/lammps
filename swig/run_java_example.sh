@@ -16,10 +16,8 @@ public class example {
     javalammps.lammps_command(lmp, "create_box 1 box");
     javalammps.lammps_command(lmp, "create_atoms 1 box");
 
-    System.out.print("LAMMPS version ");
-    System.out.println(ver);
-    System.out.print("Number of created atoms: ");
-    System.out.println(javalammps.lammps_get_natoms(lmp));
+    System.out.println("LAMMPS version " + ver);
+    System.out.println("Number of created atoms: " + javalammps.lammps_get_natoms(lmp));
     javalammps.lammps_close(lmp);
   }
 }

@@ -23,6 +23,11 @@ option(BUILD_SWIG_PYTHON "Build Python wrapper with SWIG" OFF)
 option(BUILD_SWIG_RUBY "Build Ruby wrapper with SWIG" OFF)
 option(BUILD_SWIG_TCL "Build Tcl wrapper with SWIG" OFF)
 
+add_custom_target(clean-all
+  COMMAND ${CMAKE_COMMAND} --build . --target clean
+  COMMAND ${CMAKE_COMMAND} -E remove example.* *.class *.java *.pm log.lammps
+  COMMAND ${CMAKE_COMMAND} -E remove_directory __pycache__)
+
 if(BUILD_SWIG_JAVA)
   set_property(SOURCE lammps.i PROPERTY SWIG_MODULE_NAME javalammps)
   swig_add_library(javalammps TYPE MODULE LANGUAGE java SOURCES lammps.i)

@@ -1,5 +1,41 @@
 %{
-/* extern void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr); */
+
+enum _LMP_DATATYPE_CONST {
+  LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
+  LAMMPS_INT_2D  = 1,      /*!< two-dimensional 32-bit integer array */
+  LAMMPS_DOUBLE = 2,       /*!< 64-bit double (array) */
+  LAMMPS_DOUBLE_2D = 3,    /*!< two-dimensional 64-bit double array */
+  LAMMPS_INT64 = 4,        /*!< 64-bit integer (array) */
+  LAMMPS_INT64_2D = 5,     /*!< two-dimensional 64-bit integer array */
+  LAMMPS_STRING = 6        /*!< C-String */
+};
+
+/** Style constants for extracting data from computes and fixes.
+ *
+ * Must be kept in sync with the equivalent constants in lammps.py */
+
+enum _LMP_STYLE_CONST {
+  LMP_STYLE_GLOBAL=0,           /*!< return global data */
+  LMP_STYLE_ATOM  =1,           /*!< return per-atom data */
+  LMP_STYLE_LOCAL =2            /*!< return local data */
+};
+
+/** Type and size constants for extracting data from computes and fixes.
+ *
+ * Must be kept in sync with the equivalent constants in lammps.py */
+
+enum _LMP_TYPE_CONST {
+  LMP_TYPE_SCALAR=0,            /*!< return scalar */
+  LMP_TYPE_VECTOR=1,            /*!< return vector */
+  LMP_TYPE_ARRAY =2,            /*!< return array */
+  LMP_SIZE_VECTOR=3,            /*!< return length of vector */
+  LMP_SIZE_ROWS  =4,            /*!< return number of rows */
+  LMP_SIZE_COLS  =5             /*!< return number of columns */
+};
+
+/*
+ extern void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
+*/
 extern void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
 extern void *lammps_open_fortran(int argc, char **argv, int f_comm);
 extern void  lammps_close(void *handle);
@@ -26,7 +62,9 @@ extern void  *lammps_extract_global(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 extern int lammps_extract_global_datatype(void *handle, const char *name);
 extern int lammps_extract_atom_datatype(void *handle, const char *name);
-/* extern int    lammps_create_atoms(void *handle, int n, int *id, int *type,
+extern int    lammps_create_atoms(void *handle, int n, int *id, int *type,
+                           double *x, double *v, int *image, int bexpand);
+/*
  extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
 extern void *lammps_extract_compute(void *handle, char *id, int, int);
 extern void *lammps_extract_fix(void *handle, char *, int, int, int, int);
@@ -106,8 +144,9 @@ extern void  *lammps_extract_global(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 extern int lammps_extract_global_datatype(void *handle, const char *name);
 extern int lammps_extract_atom_datatype(void *handle, const char *name);
-/*
 extern int    lammps_create_atoms(void *handle, int n, int *id, int *type,
+                           double *x, double *v, int *image, int bexpand);
+/*
 extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
 extern void *lammps_extract_compute(void *handle, char *id, int, int);
 extern void *lammps_extract_fix(void *handle, char *, int, int, int, int);

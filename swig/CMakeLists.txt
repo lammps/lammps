@@ -1,6 +1,6 @@
-# CMake configuration for generating script language interfaces with swig
+# CMake configuration for generating script language interfaces with SWIG
 
-# set minimum CMake version required and switch to new policies
+# set minimum CMake version required and switch to new policies for SWIG
 cmake_minimum_required(VERSION 3.14)
 if(POLICY CMP0078)
   cmake_policy(SET CMP0078 NEW)
@@ -8,6 +8,10 @@ endif()
 if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
+
+# some of the find_package() scripts trigger developer warnings
+# even though they are bundled with CMake; Suppress them
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
 
 if(NOT BUILD_SHARED_LIBS)
   error(FATAL_ERROR "Option BUILD_SHARED_LIBS must be enabled to use SWIG wrappers")

@@ -14,6 +14,7 @@ pllammps::lammps_command(\$lmp, "create_atoms 1 box");
 
 print("LAMMPS version ",\$ver,"\n");
 print("Number of created atoms: ", pllammps::lammps_get_natoms(\$lmp), "\n");
+print("Current size of timestep: ", pllammps::doublep_value(pllammps::void_to_double(pllammps::lammps_extract_global(\$lmp,"dt"))), "\n");
 pllammps::lammps_close(\$lmp)
 EOF
 

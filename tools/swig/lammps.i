@@ -1,5 +1,14 @@
-%{
+%include "cpointer.i"
+%include "carrays.i"
+%include "cdata.i"
 
+%array_functions(char, charp);
+%pointer_functions(int, intp);
+%pointer_functions(double, doublep);
+%pointer_cast(void *, int *, void_to_int);
+%pointer_cast(void *, double *, void_to_double);
+
+%{
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D  = 1,      /*!< two-dimensional 32-bit integer array */

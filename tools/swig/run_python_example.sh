@@ -13,6 +13,7 @@ lammps_command(lmp, "create_atoms 1 box")
 
 print("LAMMPS version ",ver)
 print("Number of created atoms: %g" % lammps_get_natoms(lmp))
+print("Current size of timestep: %g" % doublep_value(void_to_double(lammps_extract_global(lmp,'dt'))))
 lammps_close(lmp)
 EOF
 

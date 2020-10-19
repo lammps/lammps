@@ -678,7 +678,8 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
 
                 } // end loop over jj neighbors of i
 
-                if (shepardWeight != 0.0) {
+                // avoid division by zero and overflow
+                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)){
                         hourglass_error[i] /= shepardWeight;
                 }
 
@@ -974,7 +975,7 @@ void PairTlsph::settings(int narg, char **arg) {
                         printf("... will update reference configuration if ratio pairwise distance / smoothing length  exceeds %g\n",
                                         update_threshold);
                 } else if (update_method == UPDATE_NONE) {
-                        printf("... will never update reference configuration");
+                        printf("... will never update reference configuration\n");
                 }
                 printf(
                                 ">>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========\n");

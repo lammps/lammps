@@ -150,5 +150,5 @@ thermo_modify   lost ignore
 ####################################################################################################
 # RUN SIMULATION
 ####################################################################################################
-fix             balance_fix all balance 1000 0.9 rcb # load balancing for MPI
-run             40000
+fix             balance_fix all balance 500 0.9 rcb # load balancing for MPI
+run             10000

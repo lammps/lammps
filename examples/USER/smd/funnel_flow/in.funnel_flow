@@ -123,5 +123,5 @@ thermo_style    custom step dt f_dtfix pe ke v_etot
 # RUN SIMULATION
 ####################################################################################################
 balance          1.1 rcb
-fix              balance_fix all balance 1000 1.1 rcb
-run              20000
+fix              balance_fix all balance 200 1.1 rcb
+run              5000

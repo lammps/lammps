@@ -2,11 +2,18 @@
 %include "carrays.i"
 %include "cdata.i"
 
-%array_functions(char, charp);
-%pointer_functions(int, intp);
-%pointer_functions(double, doublep);
-%pointer_cast(void *, int *, void_to_int);
-%pointer_cast(void *, double *, void_to_double);
+%array_functions(char, char_p);
+
+%pointer_functions(int,    int_p);
+%pointer_functions(int,    int64_p);
+%pointer_functions(double, double_p);
+
+%pointer_cast(void *, int *,     void_p_to_int_p);
+%pointer_cast(void *, int **,    void_p_to_int2d_p);
+%pointer_cast(void *, int *,     void_p_to_int64_p);
+%pointer_cast(void *, int **,    void_p_to_int64_2d_p);
+%pointer_cast(void *, double *,  void_p_to_double_p);
+%pointer_cast(void *, double **, void_p_to_double_2d_p);
 
 %{
 enum _LMP_DATATYPE_CONST {

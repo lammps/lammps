@@ -14,7 +14,7 @@ lualammps.lammps_command(lmp, "create_atoms 1 box")
 
 print("LAMMPS version ", ver)
 print("Number of created atoms: ", lualammps.lammps_get_natoms(lmp))
-print("Current size of timestep: ", lualammps.doublep_value(lualammps.void_to_double(lualammps.lammps_extract_global(lmp,"dt"))))
+print("Current size of timestep: ", lualammps.double_p_value(lualammps.void_p_to_double_p(lualammps.lammps_extract_global(lmp,"dt"))))
 lualammps.lammps_close(lmp)
 EOF
 

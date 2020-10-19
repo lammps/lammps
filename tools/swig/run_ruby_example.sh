@@ -14,6 +14,7 @@ Rubylammps.lammps_command(lmp, "create_atoms 1 box")
 
 print("LAMMPS version ", ver, "\n")
 print("Number of created atoms: ", Rubylammps.lammps_get_natoms(lmp), "\n")
+print("Current size of timestep: ", Rubylammps.double_p_value(Rubylammps.void_p_to_double_p(Rubylammps.lammps_extract_global(lmp,"dt"))), "\n")
 Rubylammps.lammps_close(lmp)
 EOF
 

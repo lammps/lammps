@@ -12,7 +12,7 @@ lammps_command \$lmp "region box block -5 5 -5 5 -5 5"
 lammps_command \$lmp "create_box 1 box"
 lammps_command \$lmp "create_atoms 1 box"
 
-set dt [doublep_value [void_to_double [lammps_extract_global \$lmp dt]]]
+set dt [double_p_value [void_p_to_double_p [lammps_extract_global \$lmp dt]]]
 puts "LAMMPS version \$ver"
 puts [format "Number of created atoms: %g" [lammps_get_natoms \$lmp]]
 puts "Current size of timestep: \$dt"

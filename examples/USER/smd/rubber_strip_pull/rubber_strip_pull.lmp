@@ -1,11 +1,10 @@
 ####################################################################################################
 #
-# TLSPH example:  elongate a 2d strip of a linear elastic material py pulling its ends apart  
+# TLSPH example:  elongate a 2d strip of a linear elastic material py pulling its ends apart
 #
 # unit system: GPa / mm / ms
 #
 ####################################################################################################
-
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -62,8 +61,8 @@ group           top region top
 group           bot region bot
 variable        vel_up equal ${vel0}*(1.0-exp(-0.01*time))
 variable        vel_down equal -v_vel_up
-fix             veltop_fix top smd/setvelocity 0 v_vel_up 0
-fix             velbot_fix bot smd/setvelocity 0 v_vel_down 0
+fix             veltop_fix top smd/setvel 0 v_vel_up 0
+fix             velbot_fix bot smd/setvel 0 v_vel_down 0
 
 ####################################################################################################
 # INTERACTION PHYSICS / MATERIAL MODEL
@@ -87,9 +86,9 @@ compute         S all smd/tlsph/stress # Cauchy stress tensor
 compute         E all smd/tlsph/strain # Green-Lagrange strain tensor
 compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
 dump            dump_id all custom 10 dump.LAMMPS id type x y z vx vy vz &
-                        c_S[1] c_S[2] c_S[4] c_nn &
-                        c_E[1] c_E[2] c_E[4] &
-                        vx vy vz
+                c_S[1] c_S[2] c_S[4] c_nn &
+                c_E[1] c_E[2] c_E[4] &
+                vx vy vz
 dump_modify     dump_id first yes
 
 ####################################################################################################

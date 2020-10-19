@@ -1,7 +1,7 @@
 
 ####################################################################################################
 #
-# TLSPH example: Two rubber rings impact each other.  
+# TLSPH example: Two rubber rings impact each other.
 #
 # unit system: GPa / mm / ms
 #
@@ -10,7 +10,7 @@
 ####################################################################################################
 # MATERIAL PARAMETERS
 ####################################################################################################
-variable        rho equal 1 # initial mass density 
+variable        rho equal 1 # initial mass density
 variable        E equal 1.0 # Young's modulus
 variable        nu equal 0.3 # Poisson ratio
 variable        sigma_yield equal 0.051 # plastic yield stress
@@ -24,10 +24,10 @@ variable        cp equal 1.0 # heat capacity of material -- not used here
 # INITIALIZE LAMMPS
 ####################################################################################################
 dimension       3
-units		si
+units           si
 boundary        sm sm sm # simulation box boundaries
 atom_style      smd
-atom_modify	map array
+atom_modify     map array
 comm_modify     vel yes
 neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
 newton          off
@@ -57,7 +57,7 @@ set             group all smd/contact/radius 1.0
 # DEFINE INITIAL VELOCITY BOUNDARY CONDITIONS
 ####################################################################################################
 variable        vel equal 100.0 # initial velocity
-velocity        left set  ${vel} 0 0 sum no units box 
+velocity        left set  ${vel} 0 0 sum no units box
 velocity        right set -${vel} 0 0 sum no units box
 
 ####################################################################################################
@@ -68,11 +68,11 @@ velocity        right set -${vel} 0 0 sum no units box
 pair_style      hybrid/overlay smd/tlsph smd/hertz 1.0 # activate Total-Lagrangian SPH
 pair_coeff      1 1 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
                 *STRENGTH_LINEAR &
-		*EOS_LINEAR &
+                *EOS_LINEAR &
                 *END
 pair_coeff      2 2 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0 &
-		*EOS_LINEAR &
+                *EOS_LINEAR &
                 *END
 pair_coeff      1 1 smd/hertz ${contact_stiffness}
 pair_coeff      2 2 smd/hertz ${contact_stiffness}

@@ -35,7 +35,7 @@ variable        Cp equal 1.0 # heat capacity -- not used here
 ####################################################################################################
 # INITIALIZE LAMMPS
 ####################################################################################################
-units		si
+units           si
 dimension       2
 boundary        sm sm p
 atom_style      smd
@@ -53,7 +53,7 @@ variable        l0 equal 0.05 # initial particle lattice spacing
 region          box block 0 6 0 8 -0.01 0.01 units box
 create_box      3 box
 region          water block 0.25 1 0.25 4 EDGE EDGE units box
-region          container block 0.15 5.85 0.15 8 -0.01 0.01 units box side out # container 
+region          container block 0.15 5.85 0.15 8 -0.01 0.01 units box side out # container
 lattice         sq ${l0}
 create_atoms    1 region water
 group           water type 1
@@ -102,11 +102,11 @@ fix             gfix all gravity -9.81 vector 0 1 0 # add gravity
 pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION &
                                smd/tlsph smd/hertz ${contact_scale}
 pair_coeff      1 1 smd/ulsph *COMMON ${rho_water} ${c0} ${q1} ${Cp} 0 &
-		*EOS_TAIT 7.0 &
-	        *END
+                *EOS_TAIT 7.0 &
+                *END
 pair_coeff      2 2 smd/tlsph *COMMON ${rho_obj} ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp} &
                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter} &
-		*EOS_LINEAR &
+                *EOS_LINEAR &
                 *END
 pair_coeff      3 3 none
 pair_coeff      1 2 smd/hertz ${contact_stiffness}
@@ -118,7 +118,7 @@ pair_coeff      2 2 smd/hertz ${contact_stiffness}
 # TIME INTEGRATION
 ####################################################################################################
 fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
-fix             integration_fix_water water smd/integrate_ulsph adjust_radius 1.01 10 15     
+fix             integration_fix_water water smd/integrate_ulsph adjust_radius 1.01 10 15
 fix             integration_fix_solids solids smd/integrate_tlsph
 
 ####################################################################################################
@@ -152,5 +152,3 @@ thermo_modify   lost ignore
 ####################################################################################################
 fix             balance_fix all balance 1000 0.9 rcb # load balancing for MPI
 run             40000
-
-

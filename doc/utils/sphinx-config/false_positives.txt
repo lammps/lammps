@@ -1713,6 +1713,7 @@ lsfftw
 ltbbmalloc
 lubricateU
 lucy
+Lua
 Luding
 Lussetti
 Lustig
@@ -3035,6 +3036,7 @@ taubi
 tb
 tchain
 Tchain
+Tcl
 Tcom
 tcsh
 tdamp

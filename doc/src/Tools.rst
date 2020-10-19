@@ -94,6 +94,7 @@ Miscellaneous tools
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`singularity <singularity_tool>`
+   * :ref:`SWIG <swig>`
    * :ref:`vim <vim>`
 
 ----------
@@ -871,6 +872,117 @@ that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
 For more details please see the README.md file in that folder.
+
+----------
+
+.. _swig:
+
+SWIG wrapper generation tool
+----------------------------------------
+
+The `SWIG tool <http://swig.org>`_ provides an automated way to build
+wrappers around a :doc:`C language library interface <Library>` so that
+the compiled language code can be called from a scripted programming
+language or similar like: C#/Mono, Lua, Java, JavaScript, Perl, Python,
+R, Ruby, Tcl, and more.
+
+What is included
+^^^^^^^^^^^^^^^^
+
+We provide here an "interface file", ``lammps.i`` file that has the
+content of the ``library.h`` adapted so SWIG can process it.  That will
+create wrappers for all the functions that are present in the LAMMPS C
+library interface. Please note that not all kinds of C functions will
+work natively in script languages.  Some additional support functions to
+provide storage as compatible pointers, access data returned from a
+pointer or convert pointers from a void type to some other are
+required. Some suitable definitions are included.  In the case of
+Python, a :doc:`ctypes based lammps module <Python_module>` already
+exists, that is object oriented while SWIG will generate a 1:1
+translation of the functions in the interface file.
+
+Building the wrapper
+^^^^^^^^^^^^^^^^^^^^
+
+When using CMake, the build steps for building a wrapper
+module are integrated for the languages: Java, Lua,
+Perl5, Python, Ruby, and Tcl.  These require that the
+LAMMPS library is build as a shared library and all
+necessary development headers and libraries are present.
+
+.. code-block:: bash
+
+   -D WITH_SWIG=on         # to enable building any SWIG wrapper
+   -D BUILD_SWIG_JAVA=on   # to enable building the Java wrapper
+   -D BUILD_SWIG_LUA=on    # to enable building the Lua wrapper
+   -D BUILD_SWIG_PERL5=on  # to enable building the Perl 5.x wrapper
+   -D BUILD_SWIG_PYTHON=on # to enable building the Python wrapper
+   -D BUILD_SWIG_RUBY=on   # to enable building the Ruby wrapper
+   -D BUILD_SWIG_TCL=on    # to enable building the Tcl wrapper
+
+
+Manual building allows a little more flexibility. E.g.
+with Tcl one can build and use a dynamically loaded object with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllammps lammps.i
+   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+               lammps_wrap.c -L ../src/ -llammps
+   $ tclsh
+
+Or one can build a new extended Tcl shell command with the wrapped
+functions included with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllammps lammps.i
+   $ gcc -o tcllammps tclmain.c lammps_wrap.c -Xlinker -export-dynamic \
+            -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
+            $(pkgconf --libs tcl)
+
+With the file ``tclmain.c`` containing:
+
+.. code-block:: c
+
+   #include <tcl.h>
+   int AppInit(Tcl_Interp *interp) {
+        if (Tcl_Init(interp) == TCL_ERROR) return TCL_ERROR;
+        Tcl_SetVar(interp,"tcl_rcFileName","~/.wishrc",TCL_GLOBAL_ONLY);
+        return TCL_OK;
+   }
+
+   int main(int argc, char *argv[]) {
+       Tcl_Main(argc, argv, AppInit);
+       return 0;
+   }
+
+
+Utility functions
+^^^^^^^^^^^^^^^^^
+
+Definitions for several utility functions required to manage and access
+data passed or returned as pointers are included.
+   
+Usage example Tcl
+^^^^^^^^^^^^^^^^^
+   
+.. code-block:: tcl
+
+   % load ./tcllammps.so
+   % set lmp [lammps_open_no_mpi 0 NULL NULL]
+   % lammps_command $lmp "units real"
+   % lammps_command $lmp "lattice fcc 2.5"
+   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   % lammps_command $lmp "create_box 1 box"
+   % lammps_command $lmp "create_atoms 1 box"
+   %
+   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   % puts "LAMMPS version $ver"
+   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   % puts "Current size of timestep: $dt"
+   % puts "LAMMPS version: [lammps_version $lmp]"
+   % lammps_close $lmp
 
 ----------
 

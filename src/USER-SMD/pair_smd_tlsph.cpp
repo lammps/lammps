@@ -180,11 +180,11 @@ void PairTlsph::PreCompute() {
                         h = 2.0 * radius[i];
                         r0 = 0.0;
                         spiky_kernel_and_derivative(h, r0, domain->dimension, wf, wfd);
-                        shepardWeight = wf * voli;
 
                         jnum = npartner[i];
                         irad = radius[i];
                         voli = vfrac[i];
+                        shepardWeight = wf * voli;
 
                         // initialize Eigen data structures from LAMMPS data structures
                         for (idim = 0; idim < 3; idim++) {

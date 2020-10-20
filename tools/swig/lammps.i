@@ -1,12 +1,15 @@
 %include "cpointer.i"
 %include "carrays.i"
 %include "cdata.i"
-
-%array_functions(char, char_p);
+%include "cstring.i"
 
 %pointer_functions(int,    int_p);
 %pointer_functions(int,    int64_p);
 %pointer_functions(double, double_p);
+
+%array_functions(char, char_1d);
+%array_functions(int, int_1d);
+%array_functions(double, double_1d);
 
 %pointer_cast(void *, int *,     void_p_to_int_p);
 %pointer_cast(void *, int **,    void_p_to_int2d_p);
@@ -15,7 +18,10 @@
 %pointer_cast(void *, double *,  void_p_to_double_p);
 %pointer_cast(void *, double **, void_p_to_double_2d_p);
 
+%cstring_output_maxsize(char *buffer, int buf_size);
+
 %{
+
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D  = 1,      /*!< two-dimensional 32-bit integer array */
@@ -107,10 +113,10 @@ extern int lammps_config_has_ffmpeg_support();
 extern int lammps_config_has_exceptions();
 extern int lammps_has_style(void *, const char *, const char *);
 extern int lammps_style_count(void *, const char *);
-extern int lammps_style_name(void *, const char *, int, char *, int);
+extern int lammps_style_name(void *, const char *, int, char *buffer, int buf_size);
 extern int lammps_has_id(void *, const char *, const char *);
 extern int lammps_id_count(void *, const char *);
-extern int lammps_id_name(void *, const char *, int, char *, int);
+extern int lammps_id_name(void *, const char *, int, char *buffer, int buf_size);
 extern int lammps_find_pair_neighlist(void*, char *, int, int, int);
 extern int lammps_find_fix_neighlist(void*, char *, int);
 extern int lammps_find_compute_neighlist(void*, char *, int);
@@ -132,7 +138,6 @@ extern void lammps_force_timeout(void *handle);
 extern int lammps_has_error(void *handle);
 extern int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 %}
-
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
@@ -223,10 +228,10 @@ extern int lammps_config_has_ffmpeg_support();
 extern int lammps_config_has_exceptions();
 extern int lammps_has_style(void *, const char *, const char *);
 extern int lammps_style_count(void *, const char *);
-extern int lammps_style_name(void *, const char *, int, char *, int);
+extern int lammps_style_name(void *, const char *, int, char *buffer, int buf_size);
 extern int lammps_has_id(void *, const char *, const char *);
 extern int lammps_id_count(void *, const char *);
-extern int lammps_id_name(void *, const char *, int, char *, int);
+extern int lammps_id_name(void *, const char *, int, char *buffer, int buf_size);
 extern int lammps_find_pair_neighlist(void*, char *, int, int, int);
 extern int lammps_find_fix_neighlist(void*, char *, int);
 extern int lammps_find_compute_neighlist(void*, char *, int);

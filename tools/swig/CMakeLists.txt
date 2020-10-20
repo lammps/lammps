@@ -8,13 +8,14 @@ endif()
 if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
+enable_language(C)
 
 # some of the find_package() scripts trigger developer warnings
 # even though they are bundled with CMake; Suppress them
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
 
 if(NOT BUILD_SHARED_LIBS)
-  error(FATAL_ERROR "Option BUILD_SHARED_LIBS must be enabled to use SWIG wrappers")
+  message(FATAL_ERROR "Option BUILD_SHARED_LIBS must be enabled to use SWIG wrappers")
 endif()
 
 find_package(SWIG REQUIRED)

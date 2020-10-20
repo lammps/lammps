@@ -181,6 +181,7 @@ void PairPACE::compute(int eflag, int vflag) {
 
         for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
+            const int jtype = type[j];
             j &= NEIGHMASK;
             delx = x[j][0] - xtmp;
             dely = x[j][1] - ytmp;
@@ -208,7 +209,7 @@ void PairPACE::compute(int eflag, int vflag) {
         // tally energy contribution
         if (eflag) {
             // evdwl = energy of atom I
-            evdwl = scale[itype][jtype]*ace->e_atom;
+            evdwl = scale[1][1]*ace->e_atom;
             ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }

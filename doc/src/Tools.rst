@@ -94,7 +94,7 @@ Miscellaneous tools
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`singularity <singularity_tool>`
-   * :ref:`SWIG <swig>`
+   * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
 ----------
@@ -560,6 +560,8 @@ More details about this are in the `readline documentation <https://tiswww.cwru.
 LAMMPS Shell tips and tricks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Below are some suggestions for how to use and customize the LAMMPS shell.
+
 Enable tilde expansion
 """"""""""""""""""""""
 
@@ -592,8 +594,8 @@ command line like this:
    xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
 
 
-Use history create input file
-"""""""""""""""""""""""""""""
+Use history to create an input file
+"""""""""""""""""""""""""""""""""""
 
 When experimenting with commands to interactively to figure out a
 suitable choice of settings or simply the correct syntax, you may want
@@ -879,29 +881,35 @@ For more details please see the README.md file in that folder.
 
 .. _swig:
 
-SWIG wrapper generation tool
-----------------------------------------
+SWIG interface
+--------------
 
-The `SWIG tool <http://swig.org>`_ provides an automated way to build
-wrappers around a :doc:`C language library interface <Library>` so that
-the compiled language code can be called from a scripted programming
-language or similar like: C#/Mono, Lua, Java, JavaScript, Perl, Python,
-R, Ruby, Tcl, and more.
+The `SWIG tool <http://swig.org>`_ offers a mostly automated way to
+incorporate compiled code modules into scripting languages.  It
+processes the function prototypes in C and generates wrappers for a wide
+variety of scripting languages from it.  Thus it can also be applied to
+the :doc:`C language library interface <Library>` of LAMMPS so that
+build a wrapper that allows to call LAMMPS from programming languages
+like: C#/Mono, Lua, Java, JavaScript, Perl, Python, R, Ruby, Tcl, and
+more.
 
 What is included
 ^^^^^^^^^^^^^^^^
 
-We provide here an "interface file", ``lammps.i`` file that has the
-content of the ``library.h`` adapted so SWIG can process it.  That will
+We provide here an "interface file", ``lammps.i``, that has the content
+of the ``library.h`` file adapted so SWIG can process it.  That will
 create wrappers for all the functions that are present in the LAMMPS C
-library interface. Please note that not all kinds of C functions will
-work natively in script languages.  Some additional support functions to
-provide storage as compatible pointers, access data returned from a
-pointer or convert pointers from a void type to some other are
-required. Some suitable definitions are included.  In the case of
-Python, a :doc:`ctypes based lammps module <Python_module>` already
-exists, that is object oriented while SWIG will generate a 1:1
-translation of the functions in the interface file.
+library interface.  Please note that not all kinds of C functions can be
+automatically translated, so you would have to add custom functions to
+be able to utilize those where the automatic translation does not work.
+A few functions for converting pointers and accessing arrays are
+predefined.  We provide the file here on an "as is" basis to help people
+getting started, but not as a fully tested and supported feature of the
+LAMMPS distribution.  Any contributions to complete this are, of course,
+welcome.  Please also note, that for the case of creating a Python wrapper,
+a fully supported :doc:`Ctypes based lammps module <Python_module>`
+already exists.  That module is designed to be object oriented while
+SWIG will generate a 1:1 translation of the functions in the interface file.
 
 Building the wrapper
 ^^^^^^^^^^^^^^^^^^^^
@@ -959,16 +967,27 @@ With the file ``tclmain.c`` containing:
        return 0;
    }
 
-
 Utility functions
 ^^^^^^^^^^^^^^^^^
 
 Definitions for several utility functions required to manage and access
-data passed or returned as pointers are included.
+data passed or returned as pointers are included in the ``lammps.i``
+file.  So most of the functionality of the library interface should be
+accessible.  What works and what does not depends a bit on the
+individual language for which the wrappers are built and how well SWIG
+supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
+has very detailed instructions and recommendations.
    
-Usage example Tcl
-^^^^^^^^^^^^^^^^^
-   
+Usage examples
+^^^^^^^^^^^^^^
+
+The ``tools/swig`` folder has multiple shell scripts, ``run_<name>_example.sh``
+that will create a small example script and demonstrates how to load
+the wrapper and run LAMMPS through it in the corresponding programming
+language.
+
+For illustration purposes below is a part of the Tcl example script.
+
 .. code-block:: tcl
 
    % load ./tcllammps.so

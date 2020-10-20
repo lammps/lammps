@@ -681,7 +681,7 @@ int main(int argc, char **argv)
     // switch to the user's documents directory. Avoid buffer overflow
     // and skip this step if the path is too long for our buffer.
     if (getcwd(buf, buflen)) {
-      if ((strstr(buf, "System32") || strstr(buf, "system32")) {
+      if ((strstr(buf, "System32") || strstr(buf, "system32"))) {
             char *drive = getenv("HOMEDRIVE");
             char *path  = getenv("HOMEPATH");
             buf[0]      = '\0';
@@ -716,6 +716,16 @@ int main(int argc, char **argv)
     omp_threads = dupstring(std::string("OMP_NUM_THREADS=" + std::to_string(nthreads)));
     putenv(omp_threads);
 
+    // handle the special case where the first argument is not a flag but a file
+    // this happens for example when using file type associations on Windows.
+    // in this case we save the pointer and remove it from argv.
+    char *input_file = nullptr;
+    if ((argc > 1) && (argv[1][0] != '-')) {
+        --argc;
+        input_file = argv[1];
+        for (int i = 1; i < argc; ++i) argv[i] = argv[i+1];
+    }
+
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
     if (lmp == nullptr) return 1;
 
@@ -723,9 +733,13 @@ int main(int argc, char **argv)
     init_commands();
 
     // pre-load an input file that was provided on the command line
-    for (int i = 0; i < argc; ++i) {
-        if ((strcmp(argv[i], "-in") == 0) || (strcmp(argv[i], "-i") == 0)) {
-            lammps_file(lmp, argv[i + 1]);
+    if (input_file) {
+        lammps_file(lmp, input_file);
+    } else {
+        for (int i = 0; i < argc; ++i) {
+            if ((strcmp(argv[i], "-in") == 0) || (strcmp(argv[i], "-i") == 0)) {
+                lammps_file(lmp, argv[i + 1]);
+            }
         }
     }
 

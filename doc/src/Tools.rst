@@ -428,10 +428,12 @@ them from a file.
 
 - Interrupting a calculation with CTRL-C will not terminate the
   session but rather enforce a timeout to cleanly stop an ongoing
-  run (more info on timeouts is in the timer command documentation).
+  run (more info on timeouts is in the :doc:`timer command <timer>`
+  documentation).
 
-These enhancements makes the LAMMPS shell an attractive choice for
-interactive LAMMPS sessions in graphical user interfaces.
+These enhancements make the LAMMPS shell an attractive choice for
+interactive LAMMPS sessions in graphical desktop environments
+(e.g. Gnome, KDE, Cinnamon, XFCE, Windows).
 
 TAB-expansion
 ^^^^^^^^^^^^^

@@ -1,50 +1,35 @@
 SWIG generated script library wrappers
 
-The "swig" tool and library ( http://swig.org )
-offers an automated way to incorporate compiled code
-modules into scripting languages.  It processes the
-function prototypes in C and generates wrappers for
-a variety of scripting languages from it.
+The SWIG tool ( http://swig.org ) offers an automated way to incorporate
+compiled code modules into scripting languages.  It processes the
+function prototypes in C and generates wrappers for a wide variety of
+scripting languages from it.
 
-We provide here an "interface file", "lammps.i" file
-that has the content of the "library.h" adapted so SWIG
-can process it.  Please note that not all kinds of C
-interfaces can be automatically translated, so you
-would have to add custom functions.  In the case of
-python, a ctypes based lammps module already exists,
-that is object oriented while SWIG will generate a 1:1
+We provide here an "interface file", "lammps.i", that has the content of
+the "library.h" adapted so SWIG can process it.  Please note that not
+all kinds of C functions can be automatically translated, so you would
+have to add custom functions to be able to utilize them.  A few functions
+for converting pointers and accessing arrays are predefined.  We provide
+the files here on an "as is" basis to help people getting started, but
+not as a fully tested and supported feature of the distribution.  Any
+contributions to complete this are, of course, welcome.
+
+In the case of Python, a fully supported and complete wrapper already
+exists in the "lammps" module in the "python" folder.  This wrapper is
+based on Ctypes and is object oriented while SWIG will generate a 1:1
 translation of the functions in the interface file.
 
-When using CMake, the build steps for building a wrapper
-module are integrated for the languages: java, lua,
-perl5, python, ruby, and tcl.  These require that the
-LAMMPS library is build as a shared library and all
-necessary development headers and libraries are present.
+When using the CMake build system, steps for building wrapper modules
+are integrated for the languages: Java, Lua, Perl5, Python, Ruby, and
+Tcl and can be selected during the configuration step.  These require
+that the LAMMPS library is build as a shared library and all necessary
+development headers and libraries of the selected script languages are
+present.  To demonstrate the resulting wrappers, several example shell
+scripts (run_*_example.sh) are provided that contain commands to create
+an example script file and to demonstrate the use of the wrapped library
+functions in the respective programming language.
 
-Manual building allows a little more flexibility. E.g.
-with Tcl one can build and use a dynamically loaded object with:
+For details on how to build and adjust wrappers for individual
+languages please refer to the SWIG documentation at http://swig.org/doc.html
 
-$ swig -tcl -module tcllammps lammps.i
-$ gcc -fPIC -shared $(pkgconfig --cflags tcl) -o tcllammps.so lammps_wrap.c -L ../src/ -llammps
-$ tclsh
-% load ./tcllammps.so
-% set lmp [lammps_open_no_mpi 0 NULL NULL]
-% puts "LAMMPS version: [lammps_version $lmp]
-% lammps_close $lmp
-
-Equivalently with Python the manual steps are:
-
-$ swig -python -module pylammps lammps.i
-$ gcc -fPIC -shared $(pkgconfig --cflags python) -o _pylammps.so lammps_wrap.c -L ../src/ -llammps
-$ python
-% from pylammps import *
-
-
-
-You may need to set or extend the LD_LIBRARY_PATH environment
-variable to include the folder where the LAMMPS shared library
-file is located, if it is not found automatically.
-
-
-For details on how to build the wrappers for other
-individual http://swig.org/doc.html
+This functionality has been tested on Fedora 32 with SWIG 4.0.1.

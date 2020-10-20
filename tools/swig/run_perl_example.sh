@@ -53,7 +53,7 @@ print "Current size of timestep: ", pllammps::double_p_value(pllammps::void_p_to
 pllammps::lammps_close(\$lmp)
 EOF
 
-PERL5LIB=$PWD:${PERL5LIB-PWD}
+PERL5LIB=${PWD}:${PERL5LIB-${PWD}}
 
 export PERL5LIB
 

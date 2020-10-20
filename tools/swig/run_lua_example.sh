@@ -18,7 +18,7 @@ print("LAMMPS includes ", npair_styles, " pair styles")
 -- this also does not work (see above)
 -- for i = 0, 10, 1 do
 --    res = lualammps.lammps_style_name(lmp, 'pair', i, 128)
---    print("Pair style ",i, ': ', res[1])   
+--    print("Pair style ",i, ': ', res[1])
 -- end
 
 lualammps.lammps_command(lmp, "units real")

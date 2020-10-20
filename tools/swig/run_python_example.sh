@@ -50,8 +50,8 @@ print("Current size of timestep: %g" % double_p_value(void_p_to_double_p(lammps_
 lammps_close(lmp)
 EOF
 
-PYTHONPATH=$PWD:${PYTHON_PATH-PWD}
+PYTHONPATH=${PWD}:${PYTHONPATH-${PWD}}
 
-export PYTHON_PATH
+export PYTHONPATH
 
 python example.py

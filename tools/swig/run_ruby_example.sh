@@ -53,5 +53,5 @@ print('Current size of timestep: ', Rubylammps.double_p_value(Rubylammps.void_p_
 Rubylammps.lammps_close(lmp)
 EOF
 
-export RUBYLIB=$PWD:${RUBYLIB-${PWD}}
+export RUBYLIB=${PWD}:${RUBYLIB-${PWD}}
 ruby example.rb

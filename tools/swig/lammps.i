@@ -3,6 +3,10 @@
 %include "cdata.i"
 %include "cstring.i"
 
+#ifdef SWIGTCL
+%include "tclsh.i"
+#endif
+
 %pointer_functions(int,    int_p);
 %pointer_functions(int,    int64_p);
 %pointer_functions(double, double_p);

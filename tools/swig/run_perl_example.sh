@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f pllammps.so ]
+then \
+    echo "Need to compile 'pllammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.pl <<EOF
 use pllammps;
 

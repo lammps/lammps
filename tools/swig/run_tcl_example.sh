@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f tcllammps.so ]
+then \
+    echo "Need to compile 'tcllammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.tcl <<EOF
 load ./tcllammps.so
 

@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f lualammps.so ]
+then \
+    echo "Need to compile 'lualammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.lua <<EOF
 require("lualammps")
 

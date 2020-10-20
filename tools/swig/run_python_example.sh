@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f _pylammps.so ]
+then \
+    echo "Need to compile '_pylammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.py <<EOF
 from pylammps import *
 

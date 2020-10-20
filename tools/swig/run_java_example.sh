@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f libjavalammps.so ]
+then \
+    echo "Need to compile 'libjavalammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.java <<EOF
 public class example {
   static {

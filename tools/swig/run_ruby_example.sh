@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f rubylammps.so ]
+then \
+    echo "Need to compile 'rubylammps.so' first for this script to work"
+    exit 1
+fi
+
 cat > example.rb <<EOF
 require 'rubylammps'
 

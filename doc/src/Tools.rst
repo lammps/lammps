@@ -977,7 +977,7 @@ accessible.  What works and what does not depends a bit on the
 individual language for which the wrappers are built and how well SWIG
 supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
 has very detailed instructions and recommendations.
-   
+
 Usage examples
 ^^^^^^^^^^^^^^
 

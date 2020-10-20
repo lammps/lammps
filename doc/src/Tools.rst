@@ -982,7 +982,7 @@ Usage examples
 ^^^^^^^^^^^^^^
 
 The ``tools/swig`` folder has multiple shell scripts, ``run_<name>_example.sh``
-that will create a small example script and demonstrates how to load
+that will create a small example script and demonstrate how to load
 the wrapper and run LAMMPS through it in the corresponding programming
 language.
 

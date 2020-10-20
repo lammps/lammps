@@ -27,10 +27,16 @@ option(BUILD_SWIG_PYTHON "Build Python wrapper with SWIG" OFF)
 option(BUILD_SWIG_RUBY "Build Ruby wrapper with SWIG" OFF)
 option(BUILD_SWIG_TCL "Build Tcl wrapper with SWIG" OFF)
 
-add_custom_target(clean-all
-  COMMAND ${CMAKE_COMMAND} --build . --target clean
-  COMMAND ${CMAKE_COMMAND} -E remove example.* *.class *.java *.pm log.lammps
-  COMMAND ${CMAKE_COMMAND} -E remove_directory __pycache__)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+        pllammps.pm __pycache__ log.lammps
+        example.class example.java example.lua example.pl example.py example.rb example.tcl example.tcllmp
+        javalammps.class javalammpsJNI.class javalammps.java javalammpsJNI.java
+        _LMP_DATATYPE_CONST.class _LMP_STYLE_CONST.class _LMP_TYPE_CONST.class
+        _LMP_DATATYPE_CONST.java _LMP_STYLE_CONST.java _LMP_TYPE_CONST.java
+        SWIGTYPE_p_double.class SWIGTYPE_p_int.class SWIGTYPE_p_p_char.class SWIGTYPE_p_p_double.class
+        SWIGTYPE_p_p_int.class SWIGTYPE_p_p_void.class SWIGTYPE_p_void.class
+        SWIGTYPE_p_double.java SWIGTYPE_p_int.java SWIGTYPE_p_p_char.java SWIGTYPE_p_p_double.java
+        SWIGTYPE_p_p_int.java SWIGTYPE_p_p_void.java SWIGTYPE_p_void.java)
 
 if(BUILD_SWIG_JAVA)
   set_property(SOURCE lammps.i PROPERTY SWIG_MODULE_NAME javalammps)

@@ -326,19 +326,19 @@ void PairEAMKokkos<DeviceType>::file2array()
   int i,j;
   int n = atom->ntypes;
 
-  DAT::tdual_int_1d k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
-  DAT::tdual_int_2d k_type2rhor = DAT::tdual_int_2d("pair:type2rhor",n+1,n+1);
-  DAT::tdual_int_2d k_type2z2r = DAT::tdual_int_2d("pair:type2z2r",n+1,n+1);
+  auto k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
+  auto k_type2rhor = DAT::tdual_int_2d_dl("pair:type2rhor",n+1,n+1);
+  auto k_type2z2r = DAT::tdual_int_2d_dl("pair:type2z2r",n+1,n+1);
 
-  HAT::t_int_1d h_type2frho =  k_type2frho.h_view;
-  HAT::t_int_2d h_type2rhor = k_type2rhor.h_view;
-  HAT::t_int_2d h_type2z2r = k_type2z2r.h_view;
+  auto h_type2frho =  k_type2frho.h_view;
+  auto h_type2rhor = k_type2rhor.h_view;
+  auto h_type2z2r = k_type2z2r.h_view;
 
   for (i = 1; i <= n; i++) {
     h_type2frho[i] = type2frho[i];
     for (j = 1; j <= n; j++) {
       h_type2rhor(i,j) = type2rhor[i][j];
-      h_type2z2r(i,j)= type2z2r[i][j];
+      h_type2z2r(i,j) = type2z2r[i][j];
     }
   }
   k_type2frho.template modify<LMPHostType>();

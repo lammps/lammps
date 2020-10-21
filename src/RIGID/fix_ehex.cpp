@@ -16,7 +16,7 @@
 
    This source file implements the asymmetric version of the enhanced heat
    exchange (eHEX/a) algorithm. The paper is available for download on
-   arXiv: http://arxiv.org/pdf/1507.07081.pdf.
+   arXiv: https://arxiv.org/pdf/1507.07081.pdf.
 
    This file is based on fix_heat.cpp written by Paul Crozier (SNL)
    which implements the heat exchange (HEX) algorithm.

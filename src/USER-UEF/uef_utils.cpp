@@ -15,11 +15,11 @@
 
    This class contains functions to calculate the evolution of the periodic
    simulation box under elongational flow as described by Matthew Dobson
-   in the arXiv preprint at http://arxiv.org/abs/1408.7078
+   in the arXiv preprint at https://arxiv.org/abs/1408.7078
 
    Additionally, there are methods to do a lattice reduction to further
    reduce the simulation box using the method of Igor Semaev at
-   http://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
+   https://link.springer.com/chapter/10.1007%2F3-540-44670-2_13
 */
 
 #include <cmath>

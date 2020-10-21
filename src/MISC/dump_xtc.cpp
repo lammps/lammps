@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
                          open-source XDR routines from
-                           Frans van Hoesel (http://md.chem.rug.nl/hoesel)
+                           Frans van Hoesel (https://www.rug.nl/staff/f.h.j.van.hoesel/)
                            are included in this file
                          Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support

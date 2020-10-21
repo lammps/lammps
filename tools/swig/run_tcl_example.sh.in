@@ -58,7 +58,7 @@ puts "Current size of timestep: \$dt"
 lammps_close \$lmp
 EOF
 
-tclsh example.tcl
+@TCL_TCLSH@ example.tcl
 
 # now try again with static extended shell
 echo '====================================================================='

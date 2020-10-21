@@ -931,8 +931,9 @@ necessary development headers and libraries are present.
    -D BUILD_SWIG_TCL=on    # to enable building the Tcl wrapper
 
 
-Manual building allows a little more flexibility. E.g.
-with Tcl one can build and use a dynamically loaded object with:
+Manual building allows a little more flexibility. E.g. one can choose
+the name of the module and build and use a dynamically loaded object
+for Tcl with:
 
 .. code-block:: bash
 
@@ -941,31 +942,19 @@ with Tcl one can build and use a dynamically loaded object with:
                lammps_wrap.c -L ../src/ -llammps
    $ tclsh
 
-Or one can build a new extended Tcl shell command with the wrapped
+Or one can build an extended Tcl shell command with the wrapped
 functions included with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllammps lammps.i
-   $ gcc -o tcllammps tclmain.c lammps_wrap.c -Xlinker -export-dynamic \
+   $ swig -tcl -module tcllmps lammps_shell.i
+   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
             -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
-            $(pkgconf --libs tcl)
+            $(pkgconf --libs tcl) -L ../src -llammps
 
-With the file ``tclmain.c`` containing:
-
-.. code-block:: c
-
-   #include <tcl.h>
-   int AppInit(Tcl_Interp *interp) {
-        if (Tcl_Init(interp) == TCL_ERROR) return TCL_ERROR;
-        Tcl_SetVar(interp,"tcl_rcFileName","~/.wishrc",TCL_GLOBAL_ONLY);
-        return TCL_OK;
-   }
-
-   int main(int argc, char *argv[]) {
-       Tcl_Main(argc, argv, AppInit);
-       return 0;
-   }
+In both cases it is assumed that the LAMMPS library was compiled
+as a shared library in the ``src`` folder. Otherwise the last
+part of the commands needs to be adjusted.
 
 Utility functions
 ^^^^^^^^^^^^^^^^^

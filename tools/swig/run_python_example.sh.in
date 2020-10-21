@@ -60,4 +60,4 @@ PYTHONPATH=${PWD}:${PYTHONPATH-${PWD}}
 
 export PYTHONPATH
 
-python example.py
+@Python3_EXECUTABLE@ example.py

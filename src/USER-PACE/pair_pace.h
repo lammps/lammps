@@ -34,6 +34,8 @@ namespace LAMMPS_NS {
 
         double init_one(int, int);
 
+        void *extract(const char *, int &);
+
         // virtual double memory_usage();
 
     protected:
@@ -57,6 +59,7 @@ namespace LAMMPS_NS {
         int *map;                     // mapping from atom types to elements
         int *jlist_local;
         int *type_local;
+        double **scale;
     };
 
 }

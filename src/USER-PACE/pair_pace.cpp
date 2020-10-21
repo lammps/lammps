@@ -82,6 +82,7 @@ PairPACE::~PairPACE() {
         memory->destroy(setflag);
         memory->destroy(cutsq);
         memory->destroy(map);
+        memory->destroy(scale);
     }
 }
 
@@ -180,14 +181,15 @@ void PairPACE::compute(int eflag, int vflag) {
 
         for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
+            const int jtype = type[j];
             j &= NEIGHMASK;
             delx = x[j][0] - xtmp;
             dely = x[j][1] - ytmp;
             delz = x[j][2] - ztmp;
 
-            fij[0] = ace->neighbours_forces(jj, 0);
-            fij[1] = ace->neighbours_forces(jj, 1);
-            fij[2] = ace->neighbours_forces(jj, 2);
+            fij[0] = scale[itype][jtype]*ace->neighbours_forces(jj, 0);
+            fij[1] = scale[itype][jtype]*ace->neighbours_forces(jj, 1);
+            fij[2] = scale[itype][jtype]*ace->neighbours_forces(jj, 2);
 
 
             f[i][0] += fij[0];
@@ -207,7 +209,7 @@ void PairPACE::compute(int eflag, int vflag) {
         // tally energy contribution
         if (eflag) {
             // evdwl = energy of atom I
-            evdwl = ace->e_atom;
+            evdwl = scale[1][1]*ace->e_atom;
             ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }
@@ -227,6 +229,7 @@ void PairPACE::allocate() {
     memory->create(setflag, n + 1, n + 1, "pair:setflag");
     memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
     memory->create(map, n + 1, "pair:map");
+    memory->create(scale, n + 1, n + 1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -338,6 +341,7 @@ void PairPACE::coeff(int narg, char **arg) {
     for (int i = 1; i <= n; i++) {
         for (int j = i; j <= n; j++) {
             setflag[i][j] = 1;
+            scale[i][j] = 1.0;
         }
     }
 
@@ -379,7 +383,17 @@ void PairPACE::init_style() {
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
     //cutoff from the basis set's radial functions settings
+    scale[j][i] = scale[i][j];
     return basis_set->radial_functions->cut(map[i], map[j]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+    extract method for extracting value of scale variable
+ ---------------------------------------------------------------------- */
+void *PairPACE::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  return NULL;
+}
+

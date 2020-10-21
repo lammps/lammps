@@ -57,7 +57,7 @@ static const char cite_filter_corotate[] =
   " Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},\n"
   " ISSN = {0021-9991},\n"
   " Keywords = {Mollified impulse method},\n"
-  " Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
+  " Url = {https://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

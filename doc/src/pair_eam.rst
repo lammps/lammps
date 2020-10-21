@@ -345,9 +345,9 @@ given by
    \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
 
-where :math:`\rho_{\alpha\beta}` refers to the density contributed 
+where :math:`\rho_{\alpha\beta}` refers to the density contributed
 by a neighbor atom J of element :math:`\beta` at the site of atom I
-of element :math:`\alpha`. 
+of element :math:`\alpha`.
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the elements of both atoms I and J,
 so that different elements can contribute differently to the total
@@ -408,7 +408,7 @@ each with the following format:
 
 The units of these quantities in line 1 are the same as for *setfl*
 files.  Note that the rho(r) arrays in Finnis/Sinclair can be
-asymmetric (:math:`\rho_{\alpha\beta} (r) \neq \rho_{\beta\alpha} (r)` ) 
+asymmetric (:math:`\rho_{\alpha\beta} (r) \neq \rho_{\beta\alpha} (r)` )
 so there are Nelements\^2 of them listed in the file.
 
 Following the Nelements sections, Nr values for each pair potential

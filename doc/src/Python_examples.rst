@@ -21,7 +21,7 @@ distribution.
 +------------------------+--------------------------------------------------------------------+
 | ``gui.py``             | GUI go/stop/temperature-slider to control LAMMPS                   |
 +------------------------+--------------------------------------------------------------------+
-| ``plot.py``            | real-time temperature plot with GnuPlot via Pizza.py               | 
+| ``plot.py``            | real-time temperature plot with GnuPlot via Pizza.py               |
 +------------------------+--------------------------------------------------------------------+
 | ``viz_TOOL.py``        | real-time viz via some viz package                                 |
 +------------------------+--------------------------------------------------------------------+

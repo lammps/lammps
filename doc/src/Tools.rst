@@ -94,6 +94,7 @@ Miscellaneous tools
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`singularity <singularity_tool>`
+   * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
 ----------
@@ -559,6 +560,8 @@ More details about this are in the `readline documentation <https://tiswww.cwru.
 LAMMPS Shell tips and tricks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Below are some suggestions for how to use and customize the LAMMPS shell.
+
 Enable tilde expansion
 """"""""""""""""""""""
 
@@ -591,8 +594,8 @@ command line like this:
    xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
 
 
-Use history create input file
-"""""""""""""""""""""""""""""
+Use history to create an input file
+"""""""""""""""""""""""""""""""""""
 
 When experimenting with commands to interactively to figure out a
 suitable choice of settings or simply the correct syntax, you may want
@@ -873,6 +876,123 @@ that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
 For more details please see the README.md file in that folder.
+
+----------
+
+.. _swig:
+
+SWIG interface
+--------------
+
+The `SWIG tool <http://swig.org>`_ offers a mostly automated way to
+incorporate compiled code modules into scripting languages.  It
+processes the function prototypes in C and generates wrappers for a wide
+variety of scripting languages from it.  Thus it can also be applied to
+the :doc:`C language library interface <Library>` of LAMMPS so that
+build a wrapper that allows to call LAMMPS from programming languages
+like: C#/Mono, Lua, Java, JavaScript, Perl, Python, R, Ruby, Tcl, and
+more.
+
+What is included
+^^^^^^^^^^^^^^^^
+
+We provide here an "interface file", ``lammps.i``, that has the content
+of the ``library.h`` file adapted so SWIG can process it.  That will
+create wrappers for all the functions that are present in the LAMMPS C
+library interface.  Please note that not all kinds of C functions can be
+automatically translated, so you would have to add custom functions to
+be able to utilize those where the automatic translation does not work.
+A few functions for converting pointers and accessing arrays are
+predefined.  We provide the file here on an "as is" basis to help people
+getting started, but not as a fully tested and supported feature of the
+LAMMPS distribution.  Any contributions to complete this are, of course,
+welcome.  Please also note, that for the case of creating a Python wrapper,
+a fully supported :doc:`Ctypes based lammps module <Python_module>`
+already exists.  That module is designed to be object oriented while
+SWIG will generate a 1:1 translation of the functions in the interface file.
+
+Building the wrapper
+^^^^^^^^^^^^^^^^^^^^
+
+When using CMake, the build steps for building a wrapper
+module are integrated for the languages: Java, Lua,
+Perl5, Python, Ruby, and Tcl.  These require that the
+LAMMPS library is build as a shared library and all
+necessary development headers and libraries are present.
+
+.. code-block:: bash
+
+   -D WITH_SWIG=on         # to enable building any SWIG wrapper
+   -D BUILD_SWIG_JAVA=on   # to enable building the Java wrapper
+   -D BUILD_SWIG_LUA=on    # to enable building the Lua wrapper
+   -D BUILD_SWIG_PERL5=on  # to enable building the Perl 5.x wrapper
+   -D BUILD_SWIG_PYTHON=on # to enable building the Python wrapper
+   -D BUILD_SWIG_RUBY=on   # to enable building the Ruby wrapper
+   -D BUILD_SWIG_TCL=on    # to enable building the Tcl wrapper
+
+
+Manual building allows a little more flexibility. E.g. one can choose
+the name of the module and build and use a dynamically loaded object
+for Tcl with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllammps lammps.i
+   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+               lammps_wrap.c -L ../src/ -llammps
+   $ tclsh
+
+Or one can build an extended Tcl shell command with the wrapped
+functions included with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllmps lammps_shell.i
+   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
+            -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
+            $(pkgconf --libs tcl) -L ../src -llammps
+
+In both cases it is assumed that the LAMMPS library was compiled
+as a shared library in the ``src`` folder. Otherwise the last
+part of the commands needs to be adjusted.
+
+Utility functions
+^^^^^^^^^^^^^^^^^
+
+Definitions for several utility functions required to manage and access
+data passed or returned as pointers are included in the ``lammps.i``
+file.  So most of the functionality of the library interface should be
+accessible.  What works and what does not depends a bit on the
+individual language for which the wrappers are built and how well SWIG
+supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
+has very detailed instructions and recommendations.
+
+Usage examples
+^^^^^^^^^^^^^^
+
+The ``tools/swig`` folder has multiple shell scripts, ``run_<name>_example.sh``
+that will create a small example script and demonstrate how to load
+the wrapper and run LAMMPS through it in the corresponding programming
+language.
+
+For illustration purposes below is a part of the Tcl example script.
+
+.. code-block:: tcl
+
+   % load ./tcllammps.so
+   % set lmp [lammps_open_no_mpi 0 NULL NULL]
+   % lammps_command $lmp "units real"
+   % lammps_command $lmp "lattice fcc 2.5"
+   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   % lammps_command $lmp "create_box 1 box"
+   % lammps_command $lmp "create_atoms 1 box"
+   %
+   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   % puts "LAMMPS version $ver"
+   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   % puts "Current size of timestep: $dt"
+   % puts "LAMMPS version: [lammps_version $lmp]"
+   % lammps_close $lmp
 
 ----------
 

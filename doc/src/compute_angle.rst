@@ -24,8 +24,8 @@ Description
 """""""""""
 
 Define a computation that extracts the angle energy calculated by each
-of the angle sub-styles used in the  "angle_style
-hybrid" angle_hybrid.html command.  These values are made accessible
+of the angle sub-styles used in the doc:`angle_style hybrid <angle_hybrid>`
+command.  These values are made accessible
 for output or further processing by other commands.  The group
 specified for this command is ignored.
 

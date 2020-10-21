@@ -13,6 +13,12 @@ what functionality is available and give some examples how to use it.
    :maxdepth: 1
 
    Python_launch
+
+------
+
+.. toctree::
+   :maxdepth: 1
+
    Python_create
    Python_execute
    Python_properties

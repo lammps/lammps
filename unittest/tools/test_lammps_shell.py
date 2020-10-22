@@ -5,6 +5,7 @@ import os, re, subprocess, unittest
 os.putenv('LAMMPS_SHELL_TESTING','1')
 
 shell_prompt_re = r"([^>]*LAMMPS Shell> ([a-z0-9_]+) *([a-z0-9_\.]+)?.*\n)+"
+cmd_group_re = r"([^>]*LAMMPS Shell> ([a-z0-9_]+) +([a-z0-9]+) +([a-z0-9]+)? *([a-z/0-9]+)?.*\n)+"
 
 #
 class LammpsShell(unittest.TestCase):
@@ -28,10 +29,61 @@ class LammpsShell(unittest.TestCase):
 
         return outs.decode('UTF-8')
 
-    def testExpandClear(self):
+    def testExpandClearHistory(self):
         """Test expansion of a shell specific command"""
-        matches = re.findall(shell_prompt_re, self.InputRunner(b'cle\t\n'), re.MULTILINE)
-        self.assertEqual(matches[0][1],"clear")
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'clear_his\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"clear_history")
+
+    def testExpandDimension(self):
+        """Test expansion of a LAMMPS command"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'dimens\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"dimension")
+
+    def testExpandPairStyle(self):
+        """Test expansion of a pair style"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'pair_st\t zer\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"pair_style")
+        self.assertEqual(matches[0][2],"zero")
+
+    def testExpandBondStyle(self):
+        """Test expansion of a bond style"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'bond_st\t zer\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"bond_style")
+        self.assertEqual(matches[0][2],"zero")
+
+    def testExpandAngleStyle(self):
+        """Test expansion of a angle style"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'angle_st\t zer\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"angle_style")
+        self.assertEqual(matches[0][2],"zero")
+
+    def testExpandDihedralStyle(self):
+        """Test expansion of a dihedral style"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'dihedral_st\t zer\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"dihedral_style")
+        self.assertEqual(matches[0][2],"zero")
+
+    def testExpandImproperStyle(self):
+        """Test expansion of a improper style"""
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'improper_st\t zer\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"improper_style")
+        self.assertEqual(matches[0][2],"zero")
+
+    def testExpandComputeGroup(self):
+        """Test expansion of a group-ID and a compute command"""
+        matches = re.findall(cmd_group_re, self.InputRunner(b'compute test al\tcentro/at\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"compute")
+        self.assertEqual(matches[0][2],"test")
+        self.assertEqual(matches[0][3],"all")
+        self.assertEqual(matches[0][4],"centro/atom")
+
+    def testExpandFixGroup(self):
+        """Test expansion of a group-ID and a fix command"""
+        matches = re.findall(cmd_group_re, self.InputRunner(b'fix test al\tcontroll\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"fix")
+        self.assertEqual(matches[0][2],"test")
+        self.assertEqual(matches[0][3],"all")
+        self.assertEqual(matches[0][4],"controller")
 
     def testExpandSource(self):
         """Test expansion of a shell command and a file name"""

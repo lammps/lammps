@@ -9,39 +9,93 @@
 //F = sign(x)*(  ( ( 1 - exp(-w*x**2) )*abs(x) )^m +  m*exp(-w*x**2)*abs(x) )
 // !! no prefactor wpre
 // d exp(-w*x**2)/dx = -2*w*x*exp(-w*x**2) *
-void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
-    DOUBLE_TYPE w = 10.0;
-    DOUBLE_TYPE eps = 1e-15;
+//void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
+//    DOUBLE_TYPE w = 10.0;
+//    DOUBLE_TYPE eps = 1e-15;
+//
+//    if (abs(x) > eps) {
+//        DOUBLE_TYPE g, a, omg, y1, y2, delta = 1e-20;
+//        DOUBLE_TYPE wx2 = w * x * x;
+//        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
+//        if (wx2 > 30.0)
+//            g = 0;
+//        else
+//            g = exp(-wx2);
+//
+//        omg = 1. - g;
+//        a = abs(x);
+//        y1 = pow(omg * a, m); //+delta
+//        y2 = m * g * a;
+//        F = sign_factor * (y1 + y2);
+//
+//        DOUBLE_TYPE dg, da, dy, dy1, dy2;
+//        dg = -2.0 * w * x * g;
+//        da = sign_factor;
+//        if (abs(y1) < eps) dy = 0.;
+//        else
+//            dy = m * y1 / (omg * a); // + delta
+//
+//        dy1 = dy * (-dg * a + omg * da);
+//        dy2 = m * (dg * a + g * da);
+//        DF = sign_factor * (dy1 + dy2);
+//
+//    } else {
+//        F = m * x;
+//        DF = m;
+//    }
+//}
 
-    if (abs(x) > eps) {
-        DOUBLE_TYPE g, a, omg, y1, y2, delta = 1e-20;
-        DOUBLE_TYPE wx2 = w * x * x;
-        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
-        if (wx2 > 30.0)
-            g = 0;
-        else
-            g = exp(-wx2);
+////embedding function
+////case nemb = 1 only implementation
+////F = sign(x)*(  ( 1 - exp(-(w*x)^3) )*abs(x)^m + ((1/w)^(m-1))*exp(-(w*x)^3)*abs(x) )
+//// !! no prefactor wpre
+//void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
+//    DOUBLE_TYPE w = 1.e6;
+//    DOUBLE_TYPE eps = 1e-10;
+//
+//    DOUBLE_TYPE lambda = pow(1.0 / w, m - 1.0);
+//    if (abs(x) > eps) {
+//        DOUBLE_TYPE g;
+//        DOUBLE_TYPE a = abs(x);
+//        DOUBLE_TYPE am = pow(a, m);
+//        DOUBLE_TYPE w3x3 = pow(w * a, 3);
+//        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
+//        if (w3x3 > 30.0)
+//            g = 0.0;
+//        else
+//            g = exp(-w3x3);
+//
+//        DOUBLE_TYPE omg = 1.0 - g;
+//        F = sign_factor * (omg * am + lambda * g * a);
+//        DOUBLE_TYPE dg = -3.0 * w * w * w * a * a * g;
+//        DF = m * pow(a, m - 1.0) * omg - am * dg + lambda * dg * a + lambda * g;
+//    } else {
+//        F = lambda * x;
+//        DF = lambda;
+//    }
+//}
 
-        omg = 1. - g;
-        a = abs(x);
-        y1 = pow(omg * a, m); //+delta
-        y2 = m * g * a;
-        F = sign_factor * (y1 + y2);
 
-        DOUBLE_TYPE dg, da, dy, dy1, dy2;
-        dg = -2.0 * w * x * g;
-        da = sign_factor;
-        if (abs(y1) < eps) dy = 0.;
-        else
-            dy = m * y1 / (omg * a); // + delta
+//Scaled-shifted embedding function
+//F = sign(x)*(  ( 1 - exp(-(w*x)^3) )*abs(x)^m + ((1/w)^(m-1))*exp(-(w*x)^3)*abs(x) )
+// !! no prefactor wpre
+void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
+    DOUBLE_TYPE w = 1.e6;
+    DOUBLE_TYPE eps = 1e-10;
+    DOUBLE_TYPE a, xoff, yoff, nx, exprho;
 
-        dy1 = dy * (-dg * a + omg * da);
-        dy2 = m * (dg * a + g * da);
-        DF = sign_factor * (dy1 + dy2);
-
+    if (abs(mexp - 1.0) < eps) {
+        F = rho;
+        DF = 1;
     } else {
-        F = m * x;
-        DF = m;
+        a = abs(rho);
+        exprho = exp(-a);
+        nx = 1. / mexp;
+        xoff = pow(nx, (nx / (1.0 - nx))) * exprho;
+        yoff = pow(nx, (1 / (1.0 - nx))) * exprho;
+        DOUBLE_TYPE sign_factor = (signbit(rho) ? -1 : 1);
+        F = sign_factor * (pow(xoff + a, mexp) - yoff);
+        DF = yoff + mexp * (-xoff + 1.0) * pow(xoff + a, mexp - 1.);
     }
 }
 
@@ -63,11 +117,13 @@ void ACEAbstractBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut
 
 void ACEAbstractBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value,
                                                     Array1D<DOUBLE_TYPE> &derivatives, DENSITY_TYPE ndensity) {
-    DOUBLE_TYPE F, DF = 0;
+    DOUBLE_TYPE F, DF = 0, wpre, mexp;
     for (int p = 0; p < ndensity; p++) {
-        Fexp(rhos(p), FS_parameters.at(p * ndensity + 1), F, DF);
-        value += F * FS_parameters.at(p * ndensity + 0); // * weight
-        derivatives(p) = DF * FS_parameters.at(p * ndensity + 0);// * weight
+        wpre = FS_parameters.at(p * ndensity + 0);
+        mexp = FS_parameters.at(p * ndensity + 1);
+        Fexp(rhos(p), mexp, F, DF);
+        value += F * wpre; // * weight (wpre)
+        derivatives(p) = DF * wpre;// * weight (wpre)
     }
 }
 

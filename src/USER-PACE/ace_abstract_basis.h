@@ -134,6 +134,6 @@ public:
     virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
 
-void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF);
+void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF);
 
 #endif //ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H

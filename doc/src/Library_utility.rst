@@ -9,10 +9,17 @@ functions.  They do not directly call the LAMMPS library.
 - :cpp:func:`lammps_set_fix_external_callback`
 - :cpp:func:`lammps_fix_external_set_energy_global`
 - :cpp:func:`lammps_fix_external_set_virial_global`
+- :cpp:func:`lammps_free`
 - :cpp:func:`lammps_is_running`
 - :cpp:func:`lammps_force_timeout`
 - :cpp:func:`lammps_has_error`
 - :cpp:func:`lammps_get_last_error_message`
+
+The :cpp:func:`lammps_free` function is a clean-up function to free
+memory that the library had allocated previously via other function
+calls.  Look for notes in the descriptions of the individual commands
+where such memory buffers were allocated that require the use of
+:cpp:func:`lammps_free`.
 
 -----------------------
 
@@ -37,6 +44,11 @@ functions.  They do not directly call the LAMMPS library.
 -----------------------
 
 .. doxygenfunction:: lammps_fix_external_set_virial_global
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_free
    :project: progguide
 
 -----------------------

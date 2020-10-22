@@ -161,9 +161,9 @@ void BondGaussian::coeff(int narg, char **arg)
   int n = utils::inumeric(FLERR,arg[2],false,lmp);
   if (narg != 3*n + 3)
     error->all(FLERR,"Incorrect args for bond coefficients");
- 
+
   if (!allocated) allocate();
- 
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     bond_temperature[i] = bond_temp_one;
@@ -241,7 +241,7 @@ void BondGaussian::read_restart(FILE *fp)
     MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(r0[i],nterms[i],MPI_DOUBLE,0,world);
-  } 
+  }
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }

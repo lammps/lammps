@@ -102,23 +102,43 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 
   #ifdef HIP_OPT_TORSION_PREVIEW
   if (counters != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+    cudaFreeHost(counters);
+#else
     hipHostFree(counters);
+#endif
     counters = nullptr;
   }
   if (counters_jj_min != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+    cudaFreeHost(counters_jj_min);
+#else
     hipHostFree(counters_jj_min);
+#endif
     counters_jj_min = nullptr;
   }
   if (counters_jj_max != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+    cudaFreeHost(counters_jj_max);
+#else
     hipHostFree(counters_jj_max);
+#endif
     counters_jj_max = nullptr;
   }
   if (counters_kk_min != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+    cudaFreeHost(counters_kk_min);
+#else
     hipHostFree(counters_kk_min);
+#endif
     counters_kk_min = nullptr;
   }
   if (counters_kk_max != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+    cudaFreeHost(counters_kk_max);
+#else
     hipHostFree(counters_kk_max);
+#endif
     counters_kk_max = nullptr;
   }
   #endif
@@ -942,22 +962,42 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   #ifdef HIP_OPT_TORSION_PREVIEW
   if (inum > inum_store) {
       if (counters != nullptr) {
+#ifdef KOKKOS_ENABLE_CUDA
+	cudaFreeHost(counters);
+        cudaFreeHost(counters_jj_min);
+        cudaFreeHost(counters_jj_max);
+        cudaFreeHost(counters_kk_min);
+        cudaFreeHost(counters_kk_max);
+#else
         hipHostFree(counters);
         hipHostFree(counters_jj_min);
         hipHostFree(counters_jj_max);
         hipHostFree(counters_kk_min);
         hipHostFree(counters_kk_max);
+#endif
       }
       inum_store = inum;
       // realloc host arrays
+#ifdef KOKKOS_ENABLE_CUDA
+      cudaMallocHost((void**) &counters,sizeof(int)*inum);
+      cudaMallocHost((void**) &counters_jj_min,sizeof(int)*inum);
+      cudaMallocHost((void**) &counters_jj_max,sizeof(int)*inum);
+      cudaMallocHost((void**) &counters_kk_min,sizeof(int)*inum);
+      cudaMallocHost((void**) &counters_kk_max,sizeof(int)*inum);
+#else
       hipHostMalloc((void**) &counters,sizeof(int)*inum, hipHostMallocNonCoherent);
       hipHostMalloc((void**) &counters_jj_min,sizeof(int)*inum, hipHostMallocNonCoherent);
       hipHostMalloc((void**) &counters_jj_max,sizeof(int)*inum, hipHostMallocNonCoherent);
       hipHostMalloc((void**) &counters_kk_min,sizeof(int)*inum, hipHostMallocNonCoherent);
       hipHostMalloc((void**) &counters_kk_max,sizeof(int)*inum, hipHostMallocNonCoherent);
+#endif
   }
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTorsion_preview, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
+#ifdef KOKKOS_ENABLE_CUDA
+  cudaDeviceSynchronize();
+#else
   hipDeviceSynchronize();
+#endif
   int nnz = 0;
   for (int i = 0; i < inum; ++i){
     if (counters[i] > 0){

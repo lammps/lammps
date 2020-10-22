@@ -353,11 +353,7 @@ void MinKokkos::setup_minimal(int flag)
 
 void MinKokkos::run(int n)
 {
-  if (nextra_global)
-    error->all(FLERR,"Cannot yet use extra global DOFs (e.g. fix box/relax) "
-     "with Kokkos minimize");
-
-  if (nextra_global || nextra_atom)
+  if (nextra_atom)
     error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. USER-AWPMD and USER-EFF packages) "
      "with Kokkos minimize");
 

@@ -71,7 +71,7 @@ class LammpsShell(unittest.TestCase):
 
     def testExpandComputeGroup(self):
         """Test expansion of a group-ID and a compute command"""
-        matches = re.findall(cmd_group_re, self.InputRunner(b'compu\t test al\tcentro/at\t\n'), re.MULTILINE)
+        matches = re.findall(cmd_group_re, self.InputRunner(b'compute test al\tcentro/at\t\n'), re.MULTILINE)
         self.assertEqual(matches[0][1],"compute")
         self.assertEqual(matches[0][2],"test")
         self.assertEqual(matches[0][3],"all")

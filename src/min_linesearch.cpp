@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
                         added forcezero ls
    Sources: Numerical Recipes frprmn routine
             "Conjugate Gradient Method Without the Agonizing Pain" by
-            JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
+            JR Shewchuk, https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 ------------------------------------------------------------------------- */
 
 #include "min_linesearch.h"

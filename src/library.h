@@ -147,17 +147,17 @@ int   lammps_set_variable(void *, char *, char *);
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
-void lammps_gather(void *, char *, int, int, void *);
-void lammps_gather_concat(void *, char *, int, int, void *);
-void lammps_gather_subset(void *, char *, int, int, int, int *, void *);
-void lammps_scatter(void *, char *, int, int, void *);
-void lammps_scatter_subset(void *, char *, int, int, int, int *, void *);
+void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
+void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data);
+void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 
-void lammps_gather_atoms(void *, char *, int, int, void *);
-void lammps_gather_atoms_concat(void *, char *, int, int, void *);
-void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
-void lammps_scatter_atoms(void *, char *, int, int, void *);
-void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+void lammps_gather(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
+void lammps_scatter(void *handle, char *name, int type, int count, void *data);
+void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 
 #if !defined(LAMMPS_BIGBIG)
 int    lammps_create_atoms(void *handle, int n, int *id, int *type,

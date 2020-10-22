@@ -171,11 +171,11 @@ int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
  * Library functions for accessing neighbor lists
  * ---------------------------------------------------------------------- */
 
-int lammps_find_pair_neighlist(void*, char *, int, int, int);
-int lammps_find_fix_neighlist(void*, char *, int);
-int lammps_find_compute_neighlist(void*, char *, int);
-int lammps_neighlist_num_elements(void*, int);
-void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
+int lammps_find_pair_neighlist(void *handle, char *style, int exact, int nsub, int request);
+int lammps_find_fix_neighlist(void *handle, char *id, int request);
+int lammps_find_compute_neighlist(void *handle, char *id, int request);
+int lammps_neighlist_num_elements(void *handle, int idx);
+void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom, int *numneigh, int **neighbors);
 
 /* ----------------------------------------------------------------------
  * Library functions for retrieving configuration information

@@ -541,13 +541,11 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -632,13 +630,11 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -710,7 +706,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT fxtmp = 0.0;
@@ -718,7 +713,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
   F_FLOAT fztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);

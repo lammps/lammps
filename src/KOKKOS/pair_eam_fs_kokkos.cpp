@@ -328,13 +328,13 @@ void PairEAMFSKokkos<DeviceType>::file2array()
   int i,j;
   int n = atom->ntypes;
 
-  DAT::tdual_int_1d k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
-  DAT::tdual_int_2d k_type2rhor = DAT::tdual_int_2d("pair:type2rhor",n+1,n+1);
-  DAT::tdual_int_2d k_type2z2r = DAT::tdual_int_2d("pair:type2z2r",n+1,n+1);
+  auto k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
+  auto k_type2rhor = DAT::tdual_int_2d_dl("pair:type2rhor",n+1,n+1);
+  auto k_type2z2r = DAT::tdual_int_2d_dl("pair:type2z2r",n+1,n+1);
 
-  HAT::t_int_1d h_type2frho =  k_type2frho.h_view;
-  HAT::t_int_2d h_type2rhor = k_type2rhor.h_view;
-  HAT::t_int_2d h_type2z2r = k_type2z2r.h_view;
+  auto h_type2frho =  k_type2frho.h_view;
+  auto h_type2rhor = k_type2rhor.h_view;
+  auto h_type2z2r = k_type2z2r.h_view;
 
   for (i = 1; i <= n; i++) {
     h_type2frho[i] = type2frho[i];
@@ -543,13 +543,11 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTO
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -636,13 +634,11 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelAB<EFLAG>, const 
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -714,7 +710,6 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT fxtmp = 0.0;
@@ -722,7 +717,6 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
   F_FLOAT fztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -1012,8 +1006,6 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
         file->elements[i] = new char[n];
         strcpy(file->elements[i], word.c_str());
       }
-
-      //
 
       values = reader.next_values(5);
       file->nrho = values.next_int();

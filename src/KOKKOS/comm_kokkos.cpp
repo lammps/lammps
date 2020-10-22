@@ -75,6 +75,11 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   max_buf_pair = 0;
   k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",1);
   k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",1);
+
+  max_buf_fix = 0;
+  k_buf_send_fix = DAT::tdual_xfloat_1d("comm:k_buf_send_fix",1);
+  k_buf_recv_fix = DAT::tdual_xfloat_1d("comm:k_recv_send_fix",1);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -356,9 +361,78 @@ void CommKokkos::reverse_comm_device()
 
 void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
-  k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_fix(fix,size);
+  if (fix->execution_space == Device && fix->forward_comm_device) {
+    k_sendlist.sync<LMPDeviceType>();
+    forward_comm_fix_device<LMPDeviceType>(fix,size);
+  } else {
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::forward_comm_fix(fix,size);
+  }
 }
+
+template<class DeviceType>
+void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
+{
+  int iswap,n,nsize;
+  MPI_Request request;
+
+  if (size) nsize = size;
+  else nsize = fix->comm_forward;
+  KokkosBase* fixKKBase = dynamic_cast<KokkosBase*>(fix);
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+    int n = MAX(max_buf_fix,nsize*sendnum[iswap]);
+    n = MAX(n,nsize*recvnum[iswap]);
+    if (n > max_buf_fix)
+      grow_buf_fix(n);
+  }
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = fixKKBase->pack_forward_comm_fix_kokkos(sendnum[iswap],k_sendlist,
+                                      iswap,k_buf_send_fix,pbc_flag[iswap],pbc[iswap]);
+    DeviceType().fence();
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      double* buf_send_fix;
+      double* buf_recv_fix;
+      if (lmp->kokkos->gpu_aware_flag) {
+        buf_send_fix = k_buf_send_fix.view<DeviceType>().data();
+        buf_recv_fix = k_buf_recv_fix.view<DeviceType>().data();
+      } else {
+        k_buf_send_fix.modify<DeviceType>();
+        k_buf_send_fix.sync<LMPHostType>();
+        buf_send_fix = k_buf_send_fix.h_view.data();
+        buf_recv_fix = k_buf_recv_fix.h_view.data();
+      }
+
+      if (recvnum[iswap]) {
+        MPI_Irecv(buf_recv_fix,nsize*recvnum[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+      }
+      if (sendnum[iswap])
+        MPI_Send(buf_send_fix,n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+      if (!lmp->kokkos->gpu_aware_flag) {
+        k_buf_recv_fix.modify<LMPHostType>();
+        k_buf_recv_fix.sync<DeviceType>();
+      }
+    } else k_buf_recv_fix = k_buf_send_fix;
+
+    // unpack buffer
+
+    fixKKBase->unpack_forward_comm_fix_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_fix);
+    DeviceType().fence();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
 
 void CommKokkos::reverse_comm_fix(Fix *fix, int size)
 {
@@ -456,6 +530,12 @@ void CommKokkos::grow_buf_pair(int n) {
   k_buf_recv_pair.resize(max_buf_pair);
 }
 
+void CommKokkos::grow_buf_fix(int n) {
+  max_buf_fix = n * BUFFACTOR;
+  k_buf_send_fix.resize(max_buf_fix);
+  k_buf_recv_fix.resize(max_buf_fix);
+}
+
 void CommKokkos::reverse_comm_pair(Pair *pair)
 {
   k_sendlist.sync<LMPHostType>();
@@ -491,8 +571,8 @@ void CommKokkos::exchange()
     if(!exchange_comm_classic) {
       static int print = 1;
       if(print && comm->me==0) {
-        error->warning(FLERR,"Fixes cannot yet send data in Kokkos communication, "
-                      "switching to classic communication");
+        error->warning(FLERR,"Fixes cannot yet send exchange data in Kokkos communication, "
+                      "switching to classic exchange/border communication");
       }
       print = 0;
       exchange_comm_classic = true;
@@ -742,7 +822,7 @@ void CommKokkos::borders()
          (ghost_velocity && ((AtomVecKokkos*)atom->avec)->no_border_vel_flag)) {
       if (print && comm->me==0) {
         error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
-                      "switching to classic communication");
+                      "switching to classic exchange/border communication");
       }
       print = 0;
       exchange_comm_classic = true;

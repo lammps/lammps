@@ -240,6 +240,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
 FixShake::~FixShake()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);

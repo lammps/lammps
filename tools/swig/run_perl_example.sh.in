@@ -63,4 +63,4 @@ PERL5LIB=${PWD}:${PERL5LIB-${PWD}}
 
 export PERL5LIB
 
-perl example.pl
+@PERL_EXECUTABLE@ example.pl

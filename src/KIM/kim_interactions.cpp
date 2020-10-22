@@ -185,6 +185,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel,i,&sim_lines,&sim_field);
       if (0 == strcmp(sim_field,"model-defn")) {
+	if (domain->periodicity[0]&&domain->periodicity[1]&&domain->periodicity[2]) input->one("variable kim_periodic equal 1");
+	else if (domain->periodicity[0]&&domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 2");
+	else input->one("variable kim_periodic equal 0");
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
@@ -248,6 +251,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   int nocomment;
   auto words = utils::split_words(input_line);
 
+  char *species1, *species2, *the_rest;
   std::string key = words[1];
   std::string filename = words[2];
   std::vector<std::string> species(words.begin()+3,words.end());
@@ -276,17 +280,21 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    ptr = line;
     nocomment = line[0] != '#';
 
     if(nocomment) {
       words = utils::split_words(line);
       if (key == "pair") {
+	ptr=line;
+	species1 = strtok(ptr," \t");
+	species2 = strtok(NULL," \t");
+	the_rest = strtok(NULL,"\n");
+
         for (int ia = 0; ia < atom->ntypes; ++ia) {
           for (int ib = ia; ib < atom->ntypes; ++ib)
             if (((species[ia] == words[0]) && (species[ib] == words[1]))
                 || ((species[ib] == words[0]) && (species[ia] == words[1])))
-              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,words[2]));
+              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,the_rest));
         }
       } else if (key == "charge") {
         for (int ia = 0; ia < atom->ntypes; ++ia)

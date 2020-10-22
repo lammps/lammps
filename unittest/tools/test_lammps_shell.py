@@ -30,8 +30,8 @@ class LammpsShell(unittest.TestCase):
 
     def testExpandClear(self):
         """Test expansion of a shell specific command"""
-        matches = re.findall(shell_prompt_re, self.InputRunner(b'cle\t\n'), re.MULTILINE)
-        self.assertEqual(matches[0][1],"clear")
+        matches = re.findall(shell_prompt_re, self.InputRunner(b'clear_his\t\n'), re.MULTILINE)
+        self.assertEqual(matches[0][1],"clear_history")
 
     def testExpandSource(self):
         """Test expansion of a shell command and a file name"""

@@ -3280,10 +3280,10 @@ void lammps_gather_subset(void *handle, char *name,
       MPI_Allreduce(copy,data,count*ndata,MPI_DOUBLE,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
     }
+#endif
   }
   END_CAPTURE
 }
-#endif
 
 /* ----------------------------------------------------------------------
   Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)

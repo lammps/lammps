@@ -79,9 +79,9 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *aoff*\ , *doff*\ , *ioff* keywords add the
-specified offset values to the atom types, bond types, angle types,
-dihedral types, and/or improper types as they are read from the
+The *offset*\ , *toff*\ , *boff*\ , *aoff*\ , *doff*\ , *ioff* keywords
+add the specified offset values to the atom types, bond types, angle
+types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
 1,2,3, then each created molecule will have atom types 3,4,5.  For the
 *offset* keyword, all five offset values must be specified, but

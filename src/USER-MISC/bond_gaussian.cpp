@@ -89,12 +89,12 @@ void BondGaussian::compute(int eflag, int vflag)
     sum_g_i = 0.0;
     sum_numerator = 0.0;
     for (int i = 0; i < nterms[type]; i++) {
-      dr = r - this->r0[type][i];
-      prefactor = (this->alpha[type][i]/(this->width[type][i]*sqrt(MY_PI2)));
-      exponent = -2*dr*dr/(this->width[type][i]*this->width[type][i]);
+      dr = r - r0[type][i];
+      prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));
+      exponent = -2*dr*dr/(width[type][i]*width[type][i]);
       g_i = prefactor*exp(exponent);
       sum_g_i += g_i;
-      sum_numerator += g_i*dr/(this->width[type][i]*this->width[type][i]);
+      sum_numerator += g_i*dr/(width[type][i]*width[type][i]);
     }
 
     // force & energy
@@ -272,14 +272,15 @@ double BondGaussian::single(int type, double rsq, int /*i*/, int /*j*/,
   double sum_g_i = 0.0;
   double sum_numerator = 0.0;
     for (int i = 0; i < nterms[type]; i++) {
-      double dr = r - this->r0[type][i];
-      double prefactor = (this->alpha[type][i]/(this->width[type][i]*sqrt(MY_PI2)));
-      double exponent = -2*dr*dr/(this->width[type][i]*this->width[type][i]);
+      double dr = r - r0[type][i];
+      double prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));
+      double exponent = -2*dr*dr/(width[type][i]*width[type][i]);
       double g_i = prefactor*exp(exponent);
       sum_g_i += g_i;
-      sum_numerator += g_i*dr/(this->width[type][i]*this->width[type][i]);
+      sum_numerator += g_i*dr/(width[type][i]*width[type][i]);
     }
 
+  if (sum_g_i < SMALL) sum_g_i = SMALL;
   if (r > 0.0) fforce = -4.0*(force->boltz*bond_temperature[type])*(sum_numerator/sum_g_i)/r;
 
   return -(force->boltz*bond_temperature[type])*log(sum_g_i);

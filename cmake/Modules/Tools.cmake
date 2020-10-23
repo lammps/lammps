@@ -41,6 +41,8 @@ if(BUILD_LAMMPS_SHELL)
   endif()
   target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
   install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(DIRECTORY icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/)
+  install(FILES lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
 endif()
 
 

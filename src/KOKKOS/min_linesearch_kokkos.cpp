@@ -51,6 +51,7 @@ MinLineSearchKokkos::MinLineSearchKokkos(LAMMPS *lmp) : MinKokkos(lmp)
 {
   searchflag = 1;
   atomKK = (AtomKokkos *) atom;
+  gextra = hextra = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

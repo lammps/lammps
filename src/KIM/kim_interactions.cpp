@@ -251,7 +251,6 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   int nocomment;
   auto words = utils::split_words(input_line);
 
-  char *species1, *species2, *the_rest;
   std::string key = words[1];
   std::string filename = words[2];
   std::vector<std::string> species(words.begin()+3,words.end());
@@ -285,16 +284,11 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     if(nocomment) {
       words = utils::split_words(line);
       if (key == "pair") {
-	ptr=line;
-	species1 = strtok(ptr," \t");
-	species2 = strtok(NULL," \t");
-	the_rest = strtok(NULL,"\n");
-
-        for (int ia = 0; ia < atom->ntypes; ++ia) {
+	for (int ia = 0; ia < atom->ntypes; ++ia) {
           for (int ib = ia; ib < atom->ntypes; ++ib)
             if (((species[ia] == words[0]) && (species[ib] == words[1]))
                 || ((species[ib] == words[0]) && (species[ia] == words[1])))
-              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,the_rest));
+	      input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,fmt::join(words.begin()+2,words.end()," ")));
         }
       } else if (key == "charge") {
         for (int ia = 0; ia < atom->ntypes; ++ia)

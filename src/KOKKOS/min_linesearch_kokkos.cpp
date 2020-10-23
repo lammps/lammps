@@ -61,6 +61,7 @@ MinLineSearchKokkos::~MinLineSearchKokkos()
   delete [] gextra;
   delete [] hextra;
 }
+
 /* ---------------------------------------------------------------------- */
 
 void MinLineSearchKokkos::init()

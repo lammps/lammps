@@ -457,7 +457,7 @@ void DynamicalMatrix::dynmat_clear(double **dynmat)
 void DynamicalMatrix::convert_units(const char *style)
 {
     // physical constants from:
-    // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+    // https://physics.nist.gov/cuu/Constants/Table/allascii.txt
     // using thermochemical calorie = 4.184 J
 
     if (strcmp(style,"lj") == 0) {

@@ -1,0 +1,200 @@
+LAMMPS (24 Aug 2020)
+  using 1 OpenMP thread(s) per MPI task
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.600 8.0 coul/tt 4 8.0
+pair_modify tail yes
+kspace_style pppm 1.0e-5
+
+read_data data.ethylene_glycol
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (35.000000 35.000000 35.000000)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2800 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  9 = max dihedrals/atom
+  reading bonds ...
+  2600 bonds
+  reading angles ...
+  2800 angles
+  reading dihedrals ...
+  3000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0.0      0.0      0.5     
+  special bond factors coul:  0.0      0.0      0.5     
+     5 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    10 = max # of 1-4 neighbors
+    13 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.010 seconds
+
+pair_coeff    1    1 lj/cut/coul/long     0.057289     3.500000  # CTO CTO ~
+pair_coeff    1    2 lj/cut/coul/long     0.091945     3.304542  # CTO OHG ~
+pair_coeff    1    3 lj/cut/coul/long     0.038625     2.958040  # CTO H1O ~
+pair_coeff    1    4 lj/cut/coul/long     0.000000     0.000000  # CTO HOG ~
+pair_coeff    2    2 lj/cut/coul/long     0.147565     3.120000  # OHG OHG ~
+pair_coeff    2    3 lj/cut/coul/long     0.061990     2.792848  # OHG H1O ~
+pair_coeff    2    4 lj/cut/coul/long     0.000000     0.000000  # OHG HOG ~
+pair_coeff    3    3 lj/cut/coul/long     0.026041     2.500000  # H1O H1O ~
+pair_coeff    3    4 lj/cut/coul/long     0.000000     0.000000  # H1O HOG ~
+pair_coeff    4    4 lj/cut/coul/long     0.000000     0.000000  # HOG HOG ~
+pair_coeff    *   5* lj/cut/coul/long     0.000000     0.000000
+pair_coeff    1    1 thole   1.662
+pair_coeff    1    2 thole   1.561
+pair_coeff    1    5 thole   1.662
+pair_coeff    1    6 thole   1.561
+pair_coeff    2    2 thole   1.467
+pair_coeff    2    5 thole   1.561
+pair_coeff    2    6 thole   1.467
+pair_coeff    5    5 thole   1.662
+pair_coeff    5    6 thole   1.561
+pair_coeff    6    6 thole   1.467
+pair_coeff    2    4 coul/tt  4.5 1.0
+pair_coeff    4    6 coul/tt  4.5 1.0
+pair_coeff    1    4 coul/tt  4.5 1.0
+pair_coeff    4    5 coul/tt  4.5 1.0
+
+group ATOMS type 1 2 3 4
+2000 atoms in group ATOMS
+group CORES type 1 2
+800 atoms in group CORES
+group DRUDES type 5 6
+800 atoms in group DRUDES
+
+fix DRUDE all drude C C N N D D
+
+fix SHAKE ATOMS shake 0.0001 20 0 b 3 4
+     400 = # of size 2 clusters
+     400 = # of size 3 clusters
+       0 = # of size 4 clusters
+       0 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+variable TK equal 298.0
+variable TDK equal 1.0
+variable PBAR equal 1.0
+
+comm_modify vel yes
+velocity ATOMS create ${TK} 12345
+velocity ATOMS create 298 12345
+
+compute TATOM ATOMS temp
+compute TDRUDE all temp/drude
+
+fix DTDIR all drude/transform/direct
+fix TSTAT ATOMS npt temp ${TK} ${TK} 200 iso ${PBAR} ${PBAR} 1000
+fix TSTAT ATOMS npt temp 298 ${TK} 200 iso ${PBAR} ${PBAR} 1000
+fix TSTAT ATOMS npt temp 298 298 200 iso ${PBAR} ${PBAR} 1000
+fix TSTAT ATOMS npt temp 298 298 200 iso 1 ${PBAR} 1000
+fix TSTAT ATOMS npt temp 298 298 200 iso 1 1 1000
+fix_modify TSTAT temp TATOM press thermo_press
+WARNING: Temperature for fix modify is not for group all (src/fix_nh.cpp:1428)
+fix TSTDR DRUDES nvt temp ${TDK} ${TDK} 50
+fix TSTDR DRUDES nvt temp 1 ${TDK} 50
+fix TSTDR DRUDES nvt temp 1 1 50
+fix DTINV all drude/transform/inverse
+
+fix ICECUBE all momentum 1000 linear 1 1 1
+
+thermo_style custom step etotal ke pe ebond eangle evdwl ecoul elong   press vol density c_TATOM c_TDRUDE[1] c_TDRUDE[2]
+thermo 50
+
+run 500
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:328)
+  G vector (1/distance) = 0.41206781
+  grid = 54 54 54
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0040479865
+  estimated relative force accuracy = 1.2190391e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 81648 40824
+Rebuild special list taking Drude particles into account
+Old max number of 1-2 to 1-4 neighbors: 13
+New max number of 1-2 to 1-4 neighbors: 13 (+0)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 7 7 7
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair thole, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair coul/tt, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 21.28 | 21.36 | 21.43 Mbytes
+Step TotEng KinEng PotEng E_bond E_angle E_vdwl E_coul E_long Press Volume Density c_TATOM c_TDRUDE[1] c_TDRUDE[2] 
+       0    2707.9246     1420.362    1287.5627    1474.8647    30.734202   -461.31379    540022.21   -539778.93   -9408.4231        42875   0.48077588          298    294.34401    6.9394757 
+      50    1418.4665     1249.502    168.96445    309.99547    480.01554   -495.04808    539716.53   -540017.02    3344.2849    42776.949   0.48187789    252.07241    255.56807    12.841403 
+     100     1391.631    1287.2692    104.36189    333.86638    427.43215   -456.38003    539638.17   -540023.61   -3962.1786    42668.283   0.48310512    265.74272    268.23371    3.3477454 
+     150     1404.786    1334.1949     70.59104    285.69317    480.49154    -340.6907    539518.01   -540045.75   -2082.9181    42395.713   0.48621109    274.19439     278.9463    1.6008224 
+     200    1425.8201    1378.4982     47.32185    460.35819    459.34089   -415.44783    539411.67    -540044.6    6205.8014    42117.045   0.48942811    284.32247    288.46225    1.1474763 
+     250    1451.5312    1408.0791     43.45212     376.3631    598.22557   -302.55737    539235.03    -540053.8   -3523.5218    41843.302   0.49263001    290.29734    294.90584   0.66500219 
+     300    1460.3316    1532.4498   -72.118238    394.63949     561.1946   -334.56112    539192.83   -540050.12    4984.7226    41569.486   0.49587493    316.03906    320.88617   0.85911374 
+     350     1465.322    1564.1496   -98.827597    418.43029    585.96947   -296.62447    539077.24   -540036.78    740.63702    41386.895   0.49806264    322.55705    327.69192   0.54088385 
+     400    1446.0613    1528.7739   -82.712576    414.46626    582.41806   -279.89551    539064.81   -540045.35   -1758.0964    41241.935   0.49981326    314.95192    320.11185   0.86625313 
+     450    1411.6627    1569.3001   -157.63739    380.53709    668.13885   -290.80678    538968.36   -540032.62    3122.8773    41154.153   0.50087936    323.37686    328.45689     1.170821 
+     500    1366.0164    1653.6078   -287.59139    433.23854    598.39638   -281.95272    538837.43   -540025.77   -2921.1108    41080.827   0.50177339    340.52802    346.03257    1.3738053 
+Loop time of 8.54338 on 4 procs for 500 steps with 2800 atoms
+
+Performance: 5.057 ns/day, 4.746 hours/ns, 58.525 timesteps/s
+96.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1432     | 1.2405     | 1.3019     |   5.3 | 14.52
+Bond    | 0.085337   | 0.091544   | 0.097553   |   1.4 |  1.07
+Kspace  | 4.3889     | 4.4519     | 4.5415     |   2.6 | 52.11
+Neigh   | 0.098468   | 0.098565   | 0.098639   |   0.0 |  1.15
+Comm    | 0.090891   | 0.096061   | 0.102      |   1.3 |  1.12
+Output  | 0.00051045 | 0.00081128 | 0.0016632  |   0.0 |  0.01
+Modify  | 2.549      | 2.5525     | 2.5554     |   0.1 | 29.88
+Other   |            | 0.01154    |            |       |  0.14
+
+Nlocal:        700.000 ave         721 max         665 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:        4229.75 ave        4342 max        4122 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:       111742.0 ave      117831 max      101992 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+
+Total # of neighbors = 446967
+Ave neighs/atom = 159.63107
+Ave special neighs/atom = 11.714286
+Neighbor list builds = 28
+Dangerous builds = 0
+
+Total wall time: 0:00:08

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -391,7 +391,7 @@ void Info::command(int narg, char **arg)
     if (atom->molecular > 0) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
-      fmt::print(out,"Bonds    =  {:12},  types = {:8},  style = {}\n",
+      fmt::print(out,"Bonds     = {:12},  types = {:8},  style = {}\n",
                  atom->nbonds, atom->nbondtypes, msg);
 
       msg = force->angle_style ? force->angle_style : "none";
@@ -1240,7 +1240,7 @@ std::string Info::get_mpi_vendor() {
   #elif defined(MSMPI_VER)
   return "Microsoft MPI";
   #else
-  return "Unknown";
+  return "Unknown MPI implementation";
   #endif
 }
 
@@ -1251,7 +1251,8 @@ std::string Info::get_mpi_info(int &major, int &minor)
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version,&len);
 #else
-  static char version[] = "Undetected MPI implementation";
+  static char version[32];
+  strcpy(version,get_mpi_vendor().c_str());
   len = strlen(version);
 #endif
 

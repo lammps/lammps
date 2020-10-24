@@ -1,5 +1,5 @@
 Download an executable for Windows
-==================================
+----------------------------------
 
 Pre-compiled Windows installers which install LAMMPS executables on a
 Windows system can be downloaded from this site:

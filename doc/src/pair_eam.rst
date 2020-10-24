@@ -345,8 +345,11 @@ given by
    \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
 
+where :math:`\rho_{\alpha\beta}` refers to the density contributed
+by a neighbor atom J of element :math:`\beta` at the site of atom I
+of element :math:`\alpha`.
 This has the same form as the EAM formula above, except that rho is
-now a functional specific to the atomic types of both atoms I and J,
+now a functional specific to the elements of both atoms I and J,
 so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
@@ -393,20 +396,20 @@ have an ".eam.fs" suffix.  They are formatted as follows:
 
 The 5-line header section is identical to an EAM *setfl* file.
 
-Following the header are Nelements sections, one for each element I,
+Following the header are Nelements sections, one for each element :math:`\beta`,
 each with the following format:
 
 * line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
 * embedding function F(rho) (Nrho values)
-* density function rho(r) for element I at element 1 (Nr values)
-* density function rho(r) for element I at element 2
+* density function :math:`\rho_{1\beta} (r)` for element :math:`\beta` at element 1 (Nr values)
+* density function :math:`\rho_{2\beta} (r)` for element :math:`\beta` at element 2
 * ...
-* density function rho(r) for element I at element Nelement
+* density function :math:`\rho_{N_{elem}\beta} (r)` for element :math:`\beta` at element :math:`N_{elem}`
 
 The units of these quantities in line 1 are the same as for *setfl*
 files.  Note that the rho(r) arrays in Finnis/Sinclair can be
-asymmetric (i,j != j,i) so there are Nelements\^2 of them listed in the
-file.
+asymmetric (:math:`\rho_{\alpha\beta} (r) \neq \rho_{\beta\alpha} (r)` )
+so there are Nelements\^2 of them listed in the file.
 
 Following the Nelements sections, Nr values for each pair potential
 phi(r) array are listed in the same manner (r\*phi, units of

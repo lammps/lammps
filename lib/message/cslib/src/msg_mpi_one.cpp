@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of

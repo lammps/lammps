@@ -1,0 +1,27 @@
+// LAMMPS -> Python
+digraph api {
+    rankdir="LR";
+    edge [constraint=false];
+    input [shape=box label="LAMMPS\nInput Script" height=1.5];
+    subgraph cluster0 {
+      style=filled;
+      color="#e5e5e5";
+      rank=same;
+      capi [shape=box style=filled height=1 color="#666666" fontcolor=white label="LAMMPS\nC Library API"];
+      instance [shape=box style=filled height=1 color="#3465a4" fontcolor=white label="LAMMPS\ninstance\n\n0x01abcdef"];
+      capi -> instance [dir=both];
+      label="LAMMPS Shared Library\nor LAMMPS Executable";
+    }
+    python [shape=box style=filled color="#4e9a06" fontcolor=white label="Python\nScript" height=1.5];
+    subgraph cluster1 {
+      style=filled;
+      color="#e5e5e5";
+      lammps [shape=box style=filled height=1 color="#729fcf" label="lammps\n\nptr: 0x01abcdef"];
+      label="LAMMPS Python Module";
+    }
+    input -> instance [constraint=true];
+    instance -> python [dir=both constraint=true];
+    python:e -> lammps:w [dir=both constraint=true];
+    lammps:s -> capi:e [dir=both label=ctypes constraint=true];
+}
+

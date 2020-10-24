@@ -18,7 +18,7 @@ in addition to
 
           $ make yes-name
 
-as described on the :doc:`Build_package <Build_package>` doc page.
+as described on the :doc:`Build_package <Build_package>` page.
 
 For a CMake build there may be additional optional or required
 variables to set.  For a build with make, a provided library under the

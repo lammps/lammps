@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -453,7 +453,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a triangle
    v0,v1,v2 = 3 vertices of triangle
-   from http://en.wikipedia.org/wiki/Inertia_tensor_of_triangle
+   from https://en.wikipedia.org/wiki/List_of_moments_of_inertia
    inertia tensor = a/24 (v0^2 + v1^2 + v2^2 + (v0+v1+v2)^2) I - a Vt S V
    a = 2*area of tri = |(v1-v0) x (v2-v0)|
    I = 3x3 identity matrix

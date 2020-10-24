@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -4902,7 +4902,7 @@ double Variable::evaluate_boolean(char *str)
       // set I to end of string
 
       int istart = i++;
-      while (isalnum(str[i]) || str[i] == '_') i++;
+      while (isalnum(str[i]) || (str[i] == '_') || (str[i] == '/')) i++;
 
       int n = i - istart + 1;
       argstack[nargstack].str = new char[n];

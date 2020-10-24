@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
-                 double *special_lj, bool tstat_only, const int inum,
+                 double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 void dpd_gpu_clear();
@@ -309,7 +309,7 @@ void PairDPDGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
-                             cut, force->special_lj, false, atom->nlocal,
+                             cut, force->special_lj, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);

@@ -205,11 +205,11 @@ the following table:
 +-------+----------------------------------------------------+----------------+
 |     4 | Force :math:`f_z` exerted on the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     5 | :math:`\Delta x` between wall surface and particle | distance units |
+|     5 | :math:`x`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     6 | :math:`\Delta y` between wall surface and particle | distance units |
+|     6 | :math:`y`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     7 | :math:`\Delta z` between wall surface and particle | distance units |
+|     7 | :math:`z`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
 |     8 | Radius :math:`r` of atom                           | distance units |
 +-------+----------------------------------------------------+----------------+

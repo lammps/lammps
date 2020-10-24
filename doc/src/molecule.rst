@@ -484,9 +484,7 @@ of SHAKE clusters.
 Restrictions
 """"""""""""
 
-This command must come after the simulation box is define by a
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
-:doc:`create_box <create_box>` command.
+None
 
 Related commands
 """"""""""""""""

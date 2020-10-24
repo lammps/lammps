@@ -291,6 +291,13 @@ namespace LAMMPS_NS {
 
     std::string path_basename(const std::string &path);
 
+    /** Return the directory part of a path. Return "." if empty
+     *
+     * \param path file path
+     * \return directory name */
+
+    std::string path_dirname(const std::string &path);
+
     /** Join two pathname segments
      *
      * This uses the forward slash '/' character unless LAMMPS is compiled

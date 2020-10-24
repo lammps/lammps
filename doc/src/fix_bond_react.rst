@@ -174,10 +174,12 @@ integer.
 Three physical conditions must be met for a reaction to occur. First,
 a bonding atom pair must be identified within the reaction distance
 cutoffs. Second, the topology surrounding the bonding atom pair must
-match the topology of the pre-reaction template. Finally, any reaction
-constraints listed in the map file (see below) must be satisfied. If
-all of these conditions are met, the reaction site is eligible to be
-modified to match the post-reaction template.
+match the topology of the pre-reaction template. Only atom types and
+bond connectivity are used to identify a valid reaction site (not bond
+types, etc.). Finally, any reaction constraints listed in the map file
+(see below) must be satisfied. If all of these conditions are met, the
+reaction site is eligible to be modified to match the post-reaction
+template.
 
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type

@@ -236,8 +236,16 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
   } else { // GPU, use teams
     Kokkos::deep_copy(d_mfill_offset,0);
 
-    int vector_length = 32;
+#ifdef KOKKOS_ENABLE_CUDA
     int atoms_per_team = 4;
+    int vector_length = 32;//LG changed 32 to 64
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+    int atoms_per_team = 64;
+    int vector_length = 8;//LG changed 32 to 64
+#endif
+
+
     int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
 
     Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
@@ -805,11 +813,12 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
       if (need_dup)
         Kokkos::Experimental::contribute(d_o, dup_o);
     } else {
-#ifndef HIP_OPT_SPMV
-      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
-#else
+
+#ifdef HIP_OPT_SPMV
       int teamsize = 1024/64;
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> ((inum+teamsize-1)/teamsize, teamsize, 64), *this);
+#else
+      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
 #endif
     }
 
@@ -952,8 +961,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 #ifndef HIP_OPT_SPMV
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
 #else
-      int teamsize = 1024/64; //LG need to use Kokkos functionality to get max warp size
-      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> ((inum+teamsize-1)/teamsize, teamsize, 64), *this);
+      int vector_length=64;
+      int teamsize = 1024/vector_length; //LG need to use Kokkos functionality to get max warp size
+      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> ((inum+teamsize-1)/teamsize, teamsize, vector_length), *this);
 #endif
     }
 

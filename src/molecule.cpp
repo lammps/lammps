@@ -683,14 +683,15 @@ void Molecule::coords(char *line)
       ValueTokenizer values(line);
       if (values.count() != 4) error->one(FLERR,"Invalid Coords section in molecule file");
 
-      values.next_int();
-      x[i][0] = values.next_double();
-      x[i][1] = values.next_double();
-      x[i][2] = values.next_double();
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Coords section in molecule file");
+      x[iatom][0] = values.next_double();
+      x[iatom][1] = values.next_double();
+      x[iatom][2] = values.next_double();
 
-      x[i][0] *= sizescale;
-      x[i][1] *= sizescale;
-      x[i][2] *= sizescale;
+      x[iatom][0] *= sizescale;
+      x[iatom][1] *= sizescale;
+      x[iatom][2] *= sizescale;
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Coords section in molecule file\n"
@@ -718,9 +719,10 @@ void Molecule::types(char *line)
       ValueTokenizer values(line);
       if (values.count() != 2) error->one(FLERR,"Invalid Types section in molecule file");
 
-      values.next_int();
-      type[i] = values.next_int();
-      type[i] += toffset;
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Types section in molecule file");
+      type[iatom] = values.next_int();
+      type[iatom] += toffset;
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Types section in molecule file\n"
@@ -748,9 +750,10 @@ void Molecule::molecules(char *line)
       ValueTokenizer values(line);
       if (values.count() != 2) error->one(FLERR,"Invalid Molecules section in molecule file");
 
-      values.next_int();
-      molecule[i] = values.next_int();
-      // molecule[i] += moffset; // placeholder for possible molecule offset
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Molecules section in molecule file");
+      molecule[iatom] = values.next_int();
+      // molecule[iatom] += moffset; // placeholder for possible molecule offset
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Molecules section in molecule file\n"
@@ -808,8 +811,9 @@ void Molecule::charges(char *line)
       ValueTokenizer values(line);
       if ((int)values.count() != 2) error->one(FLERR,"Invalid Charges section in molecule file");
 
-      values.next_int();
-      q[i] = values.next_double();
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Charges section in molecule file");
+      q[iatom] = values.next_double();
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Charges section in molecule file\n"
@@ -831,11 +835,12 @@ void Molecule::diameters(char *line)
       ValueTokenizer values(line);
       if (values.count() != 2) error->one(FLERR,"Invalid Diameters section in molecule file");
 
-      values.next_int();
-      radius[i] = values.next_double();
-      radius[i] *= sizescale;
-      radius[i] *= 0.5;
-      maxradius = MAX(maxradius,radius[i]);
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
+      radius[iatom] = values.next_double();
+      radius[iatom] *= sizescale;
+      radius[iatom] *= 0.5;
+      maxradius = MAX(maxradius,radius[iatom]);
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Diameters section in molecule file\n"
@@ -860,9 +865,10 @@ void Molecule::masses(char *line)
       ValueTokenizer values(line);
       if (values.count() != 2) error->one(FLERR,"Invalid Masses section in molecule file");
 
-      values.next_int();
-      rmass[i] = values.next_double();
-      rmass[i] *= sizescale*sizescale*sizescale;
+      int iatom = values.next_int() - 1;
+      if (iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
+      rmass[iatom] = values.next_double();
+      rmass[iatom] *= sizescale*sizescale*sizescale;
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Masses section in molecule file\n"

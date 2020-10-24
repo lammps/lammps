@@ -28,7 +28,7 @@ The *gaussian* bond style uses the potential:
    E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-(r-r_{i})^2}{w_i^2})\right) \right)
 
 This analytical form is a suitable potential for obtaining
-mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano0> 
+mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano0>
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in

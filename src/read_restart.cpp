@@ -472,19 +472,33 @@ void ReadRestart::command(int narg, char **arg)
   if (natoms != atom->natoms)
     error->all(FLERR,"Did not assign all restart atoms correctly");
 
-  if (me == 0) {
-    if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
-    }
-    if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
-    }
-    if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
-    }
-    if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
-    }
+  if ((atom->molecular == Atom::TEMPLATE) && (me == 0)) {
+    std::string mesg;
+
+    if (atom->nbonds)
+      mesg += fmt::format("  {} template bonds\n",atom->nbonds);
+    if (atom->nangles)
+      mesg += fmt::format("  {} template angles\n",atom->nangles);
+    if (atom->ndihedrals)
+      mesg += fmt::format("  {} template dihedrals\n",atom->ndihedrals);
+    if (atom->nimpropers)
+      mesg += fmt::format("  {} template impropers\n",atom->nimpropers);
+
+    utils::logmesg(lmp,mesg);
+  }
+
+  if ((atom->molecular == Atom::MOLECULAR) && (me == 0)) {
+    std::string mesg;
+    if (atom->nbonds)
+      mesg += fmt::format("  {} bonds\n",atom->nbonds);
+    if (atom->nangles)
+      mesg += fmt::format("  {} angles\n",atom->nangles);
+    if (atom->ndihedrals)
+      mesg += fmt::format("  {} dihedrals\n",atom->ndihedrals);
+    if (atom->nimpropers)
+      mesg += fmt::format("  {} impropers\n",atom->nimpropers);
+
+    utils::logmesg(lmp,mesg);
   }
 
   // check that atom IDs are valid

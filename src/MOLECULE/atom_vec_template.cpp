@@ -44,7 +44,7 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "molecule molindex molatom";
   fields_create = (char *) "molecule molindex molatom";
   fields_data_atom = (char *) "id molecule molindex molatom type x";
-  fields_data_vel = (char *) "";
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

@@ -329,8 +329,8 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (i >= nlocal) return;
@@ -442,8 +442,14 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
 
     // attractive: pairwise potential and force
 
+#ifdef HIP_OPT_MERGE_FA_K_FA
+ F_FLOAT fa, dfa;
+ ters_fa_k_and_ters_dfa(itype,jtype,jtype,rij,fa,dfa);
+#else
     const F_FLOAT fa = ters_fa_k(itype,jtype,jtype,rij);
     const F_FLOAT dfa = ters_dfa(itype,jtype,jtype,rij);
+#endif
+
 #ifdef HIP_OPT_MERGE_BIJ_DBIJ
    F_FLOAT bij, prefactor;
    ters_bij_k_and_ters_dbij(itype,jtype,jtype,bo_ij, bij, prefactor);
@@ -995,7 +1001,6 @@ void PairTersoffKokkos<DeviceType>::
 /* ---------------------------------------------------------------------- */
 
 
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
@@ -1019,6 +1024,28 @@ double PairTersoffKokkos<DeviceType>::ters_dfa(const int &i, const int &j,
 }
 
 /* ---------------------------------------------------------------------- */
+
+
+#ifdef HIP_OPT_MERGE_FA_K_FA
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const int &i, const int &j,
+                const int &k, const F_FLOAT &r, double& result1, double& result2) const
+{
+  if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd){
+     result1 = 0.0;
+     result2 = 0.0;
+  }
+  else{
+    double tmp1 = paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r);
+    F_FLOAT fc_k, dfc;
+    ters_fc_k_and_ters_dfc(i,j,k,r,fc_k,dfc);
+    result1 =  -tmp1 * fc_k;
+    result2 =  tmp1 *  (paramskk(i,j,k).lam2 * fc_k - dfc);
+  }
+}
+#endif
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1140,8 +1167,6 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   dfc = ters_dfc(i,j,k,rik);
   #endif
 
-
-
   const F_FLOAT param = paramskk(i,j,k).lam3 * (rij-rik);
   if (int(paramskk(i,j,k).powerm) == 3) tmp = param*param*param;//pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
   else tmp = param;
@@ -1155,8 +1180,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
-
-  //LG consider merging
+  
   #ifdef HIP_OPT_MERGE_GIJK_DGIJK
   ters_gijk_and_ters_dgijk(i,j,k,cos,gijk,dgijk);
   #else

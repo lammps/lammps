@@ -109,7 +109,7 @@ static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
 
-static const char *mapstyles[] = { "none", "array", "hash" };
+static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
 static const char *commstyles[] = { "brick", "tiled" };
 static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };

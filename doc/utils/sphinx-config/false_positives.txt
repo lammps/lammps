@@ -2455,6 +2455,7 @@ polydispersity
 polyelectrolyte
 polyhedra
 polymorphism
+Polym
 popen
 Popov
 popstore
@@ -2787,6 +2788,7 @@ Schulten
 Schunk
 Schuring
 Schwen
+Sci
 screenshot
 screenshots
 Scripps

@@ -1124,6 +1124,7 @@ Goldfarb
 Gonzalez-Melchor
 googlemail
 Gordan
+Goudeau
 GPa
 gpu
 gpuID
@@ -1882,6 +1883,7 @@ mie
 Mie
 Mij
 Mikami
+Milano
 Militzer
 Minary
 mincap
@@ -2004,6 +2006,7 @@ muVT
 mux
 muy
 muz
+Müller-Plathe
 mv
 mV
 Mvapich

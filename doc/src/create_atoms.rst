@@ -30,9 +30,11 @@ Syntax
 
   .. parsed-literal::
 
-       *mol* value = template-ID seed
+       *mol* value = template-ID seed [*index* molindex]
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          seed = random # seed (positive integer)
+         *index* = keyword to select molecule by index from template (optional)
+         molindex = 1-based index of the selected molecule in template (optional)
        *basis* values = M itype
          M = which basis atom
          itype = atom type (1-N) to assign to this basis atom
@@ -64,6 +66,8 @@ Examples
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
+   create_atoms 0 box mol h2o 7840593
+   create_atoms 0 box mol twomols 40593 index 2
 
 Description
 """""""""""
@@ -170,7 +174,10 @@ keyword is used.  It specifies a *template-ID* previously defined
 using the :doc:`molecule <molecule>` command, which reads a file that
 defines the molecule.  The coordinates, atom types, charges, etc, as
 well as any bond/angle/etc and special neighbor information for the
-molecule can be specified in the molecule file.  See the
+molecule can be specified in the molecule file.  If the template
+contains multiple molecules, the *index* keyword can be used to
+select which molecule is inserted. The first molecule has index 1
+and is the default, if the *index* keyword is omitted.  See the
 :doc:`molecule <molecule>` command for details.  The only settings
 required to be in this file are the coordinates and types of atoms in
 the molecule.

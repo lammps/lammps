@@ -618,7 +618,7 @@ of analysis.
    * - tdpd
      - atom-ID atom-type x y z cc1 cc2 ... ccNspecies
    * - template
-     - atom-ID molecule-ID template-index template-atom atom-type x y z
+     - atom-ID atom-type x y z molecule-ID template-index template-atom
    * - tri
      - atom-ID molecule-ID atom-type triangleflag density x y z
    * - wavepacket
@@ -654,7 +654,7 @@ The per-atom values have these meanings and units, listed alphabetically:
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
 * spx,spy,spz = components of magnetic spin of atom (unit vector)
 * template-atom = which atom within a template molecule the atom is
-* template-index = which molecule within the molecule template the atom is part of
+* template-index = which molecule within the molecule template (0-based) the atom is part of
 * theta = internal temperature of a DPD particle
 * triangleflag = 1 for triangular particles, 0 for point or spherical particles
 * volume = volume of Peridynamic particle (distance\^3 units)

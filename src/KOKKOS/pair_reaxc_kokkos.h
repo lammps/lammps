@@ -103,6 +103,9 @@ template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeTorsion{};
 
 template<int NEIGHFLAG, int EVFLAG>
+struct PairReaxComputeTorsion_with_BLOCKING{};
+
+template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeHydrogen{};
 
 struct PairReaxFindBondZero{};
@@ -225,12 +228,20 @@ class PairReaxCKokkos : public PairReaxC {
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxComputeTorsion_with_BLOCKING<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion_preview, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxComputeTorsion_with_BLOCKING<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

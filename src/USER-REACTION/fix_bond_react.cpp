@@ -1390,13 +1390,6 @@ void FixBondReact::superimpose_algorithm()
     }
   }
 
-  // abort here, for processes that have no reactions
-  // only MPI in get_everything is for create_atoms, which are always in global_megasize
-  if (local_num_mega == 0 && global_megasize == 0) {
-    unlimit_bond();
-    return;
-  }
-
   // this updates topology next step
   next_reneighbor = update->ntimestep;
 
@@ -2687,7 +2680,6 @@ void FixBondReact::update_everything()
       }
     }
     delete [] iskip;
-    if (update_num_mega == 0) continue;
 
     // we can insert atoms here, now that reactions are finalized
     // can't do it any earlier, due to skipped reactions (max_rxn)

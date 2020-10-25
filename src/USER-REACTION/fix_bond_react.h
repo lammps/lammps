@@ -169,7 +169,7 @@ class FixBondReact : public Fix {
   void ring_check();
   int check_constraints();
   void get_IDcoords(int, int, double *);
-  double get_temperature();
+  double get_temperature(tagint **, int, int);
   int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
   void open(char *);

@@ -1886,7 +1886,7 @@ int FixBondReact::check_constraints()
         }
         if (ANDgate != 1) return 0;
       } else if (constraints[i][1] == ARRHENIUS) {
-        t = get_temperature();
+        t = get_temperature(glove,0,1);
         prrhob = constraints[i][3]*pow(t,constraints[i][4])*
           exp(-constraints[i][5]/(force->boltz*t));
         if (prrhob < rrhandom[(int) constraints[i][2]]->uniform()) return 0;
@@ -2007,7 +2007,7 @@ void FixBondReact::get_IDcoords(int mode, int myID, double *center)
 compute local temperature: average over all atoms in reaction template
 ------------------------------------------------------------------------- */
 
-double FixBondReact::get_temperature()
+double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
 {
   int i,ilocal;
   double adof = domain->dimension;
@@ -2021,13 +2021,13 @@ double FixBondReact::get_temperature()
 
   if (rmass) {
     for (i = 0; i < onemol->natoms; i++) {
-      ilocal = atom->map(glove[i][1]);
+      ilocal = atom->map(myglove[i+row_offset][col]);
       t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
             v[ilocal][2]*v[ilocal][2]) * rmass[ilocal];
     }
   } else {
     for (i = 0; i < onemol->natoms; i++) {
-      ilocal = atom->map(glove[i][1]);
+      ilocal = atom->map(myglove[i+row_offset][col]);
       t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
             v[ilocal][2]*v[ilocal][2]) * mass[type[ilocal]];
     }

@@ -525,9 +525,24 @@ TEST(Utils, path_basename)
 {
 #if defined(_WIN32)
     ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
+    ASSERT_THAT(utils::path_basename("folder\\"), Eq(""));
+    ASSERT_THAT(utils::path_basename("c:/parent/folder/filename"), Eq("filename"));
 #else
     ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
+    ASSERT_THAT(utils::path_basename("/parent/folder/"), Eq(""));
 #endif
+}
+
+TEST(Utils, path_dirname)
+{
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_dirname("c:/parent/folder/filename"), Eq("c:/parent/folder"));
+    ASSERT_THAT(utils::path_dirname("c:\\parent\\folder\\filename"), Eq("c:\\parent\\folder"));
+    ASSERT_THAT(utils::path_dirname("c:filename"), Eq("."));
+#else
+    ASSERT_THAT(utils::path_dirname("/parent/folder/filename"), Eq("/parent/folder"));
+#endif
+    ASSERT_THAT(utils::path_dirname("filename"), Eq("."));
 }
 
 TEST(Utils, getsyserror)

@@ -618,7 +618,7 @@ of analysis.
    * - tdpd
      - atom-ID atom-type x y z cc1 cc2 ... ccNspecies
    * - template
-     - atom-ID atom-type x y z molecule-ID template-index template-atom
+     - atom-ID atom-type molecule-ID template-index template-atom x y z
    * - tri
      - atom-ID molecule-ID atom-type triangleflag density x y z
    * - wavepacket
@@ -654,7 +654,7 @@ The per-atom values have these meanings and units, listed alphabetically:
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
 * spx,spy,spz = components of magnetic spin of atom (unit vector)
 * template-atom = which atom within a template molecule the atom is
-* template-index = which molecule within the molecule template (0-based) the atom is part of
+* template-index = which molecule within the molecule template the atom is part of
 * theta = internal temperature of a DPD particle
 * triangleflag = 1 for triangular particles, 0 for point or spherical particles
 * volume = volume of Peridynamic particle (distance\^3 units)
@@ -695,9 +695,9 @@ triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
 The *template-index* and *template-atom* are only defined used by
 :doc:`atom_style template <atom_style>`.  In this case the
 :doc:`molecule <molecule>` command is used to define a molecule template
-which contains one or more molecules.  If an atom belongs to one of
-those molecules, its *template-index* and *template-atom* are both set
-to positive integers; if not the values are both 0.  The
+which contains one or more molecules (as separate files).  If an atom
+belongs to one of those molecules, its *template-index* and *template-atom*
+are both set to positive integers; if not the values are both 0.  The
 *template-index* is which molecule (1 to Nmols) the atom belongs to.
 The *template-atom* is which atom (1 to Natoms) within the molecule
 the atom is.

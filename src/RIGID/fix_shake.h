@@ -43,7 +43,7 @@ class FixShake : public Fix {
   virtual void copy_arrays(int, int, int);
   virtual void set_arrays(int);
   virtual void update_arrays(int, int);
-  void set_molecule(int, tagint, int, double *, double *, double *);
+  virtual void set_molecule(int, tagint, int, double *, double *, double *);
 
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(int, double *);

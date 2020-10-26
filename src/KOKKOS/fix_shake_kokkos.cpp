@@ -297,6 +297,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     atomKK->sync(Host,X_MASK);
     k_shake_flag.sync_host();
     k_shake_atom.sync_host();
+    k_shake_type.sync_host();
     stats();
   }
 
@@ -1408,6 +1409,29 @@ void FixShakeKokkos<DeviceType>::update_arrays(int i, int atom_offset)
 
   k_shake_flag.modify_host();
   k_shake_atom.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   initialize a molecule inserted by another fix, e.g. deposit or pour
+   called when molecule is created
+   nlocalprev = # of atoms on this proc before molecule inserted
+   tagprev = atom ID previous to new atoms in the molecule
+   xgeom,vcm,quat ignored
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
+                            double * xgeom, double * vcm, double * quat)
+{
+  atomKK->sync(Host,TAG_MASK);
+  k_shake_flag.sync_host();
+  k_shake_atom.sync_host();
+  k_shake_type.sync_host();
+
+  FixShake::set_molecule(nlocalprev,tagprev,imol,xgeom,vcm,quat);
+
+  k_shake_atom.modify_host();
+  k_shake_type.modify_host();
 }
 
 /* ----------------------------------------------------------------------

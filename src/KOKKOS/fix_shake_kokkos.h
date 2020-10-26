@@ -56,6 +56,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   void copy_arrays(int, int, int);
   void set_arrays(int);
   void update_arrays(int, int);
+  void set_molecule(int, tagint, int, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);

@@ -129,7 +129,6 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
-  molset = 0;
   varflag = 0;
   vstr = xstr = ystr = zstr = nullptr;
   quatone[0] = quatone[1] = quatone[2] = 0.0;
@@ -157,26 +156,15 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      char *molname = arg[iarg+1];
-      int imol = atom->find_molecule(molname);
+      int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1) error->all(FLERR,"Molecule template ID for "
                                  "create_atoms does not exist");
-      molseed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (narg > iarg+3) {
-        if (strcmp(arg[iarg+3],"index") == 0) {
-          if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
-          molset = utils::inumeric(FLERR,arg[iarg+4],false,lmp) - 1;
-          if ((molset < 0) || ((molset+1) > atom->molecules[imol]->nset))
-            error->all(FLERR,"Illegal create_atoms command");
-        }
-        iarg += 2;
-      }
       if (atom->molecules[imol]->nset > 1 && me == 0)
-        utils::logmesg(lmp, fmt::format("Using molecule {} of {} in molecule "
-                                        "template {}\n", molset+1,
-                                        atom->molecules[imol]->nset, molname));
+        error->warning(FLERR,"Molecule template for "
+                       "create_atoms has multiple molecules");
       mode = MOLECULE;
-      onemol = atom->molecules[imol+molset];
+      onemol = atom->molecules[imol];
+      molseed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
@@ -524,7 +512,7 @@ void CreateAtoms::command(int narg, char **arg)
           }
         }
         if (molecular == Atom::TEMPLATE) {
-          atom->molindex[ilocal] = molset;
+          atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
         } else if (molecular != Atom::ATOMIC) {
           if (onemol->bondflag)

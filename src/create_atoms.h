@@ -31,7 +31,7 @@ class CreateAtoms : protected Pointers {
 
  private:
   int me,nprocs;
-  int ntype,style,mode,nregion,nbasis,nrandom,seed,molset;
+  int ntype,style,mode,nregion,nbasis,nrandom,seed;
   int remapflag;
   int subsetflag;
   bigint nsubset;

@@ -366,7 +366,9 @@ deleted). Or, the *modify_create* keyword can be used to specify which
 post-reaction atoms are used for this fit. The *fragmentID* value must
 be the name of a molecule fragment defined in the post-reaction
 :doc:`molecule <molecule>` template, and only atoms in this fragment
-are used for the fit.
+are used for the fit. The velocity of each created atom is initialized
+in a random direction with a magnitude calculated from the
+instantaneous temperature of the reaction site.
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be

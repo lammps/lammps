@@ -194,19 +194,26 @@ be a function of the reaction conversion using the following commands:
    fix myrxn all bond/react react myrxn1 all 1 0 v_rmax mol1 mol2 map_file.txt
    variable rmax equal 3+f_myrxn[1]/100 # arbitrary function of reaction count
 
-It is possible that multiple bonding atom pairs are identified: if the
-bonding atoms in the pre-reacted template are  1-2 neighbors, i.e.
-directly bonded, the farthest bonding atom partner is set as its
-bonding partner; otherwise, the closest potential partner is chosen.
-Then, if both an atom I and atom J have each other as their bonding
-partners, these two atoms are identified as the bonding atom pair of
-the reaction site. Once this unique bonding atom pair is identified
-for each reaction, there could two or more reactions that involve a
-given atom on the same timestep. If this is the case, only one such
-reaction is permitted to occur. This reaction is chosen randomly from
-all potential reactions. This capability allows e.g. for different
-reaction pathways to proceed from identical reaction sites with
-user-specified probabilities.
+The following criteria are used if multiple candidate bonding atom
+pairs are identified within the cutoff distance: 1) If the bonding
+atoms in the pre-reaction template are not 1-2 neighbors (i.e. not
+directly bonded) the closest potential partner is chosen. 2)
+Otherwise, if the bonding atoms in the pre-reaction template are 1-2
+neighbors (i.e. directly bonded) the farthest potential partner is
+chosen. 3) Then, if both an atom I and atom J have each other as their
+bonding partners, these two atoms are identified as the bonding atom
+pair of the reaction site. Note that it can be helpful to select
+unique atom types for the bonding atoms: if a bonding atom pair is
+identified, as described in the previous steps, but does not
+correspond to the same pair specified in the pre-reaction template, an
+otherwise eligible reaction could be prevented from occurring. Once
+this unique bonding atom pair is identified for each reaction, there
+could be two or more reactions that involve the same atom on the same
+timestep. If this is the case, only one such reaction is permitted to
+occur. This reaction is chosen randomly from all potential reactions
+involving the overlapping atom. This capability allows e.g. for
+different reaction pathways to proceed from identical reaction sites
+with user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its

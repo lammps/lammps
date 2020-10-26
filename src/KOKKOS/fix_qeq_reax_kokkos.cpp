@@ -260,7 +260,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
   FixQEqReaxKokkosMatVecFunctor<DeviceType> matvec_functor(this);
   Kokkos::parallel_for(inum,matvec_functor);
 
-  // comm->forward_comm_fix(this); //Dist_vector( s );
+// comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 2;
   k_s.template modify<DeviceType>();
   comm->forward_comm_fix(this);
@@ -372,9 +372,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
     k_d = DAT::tdual_ffloat_1d("qeq/kk:d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
-
-    d_q = atomKK->k_q.template view<DeviceType>();
-    h_d = atomKK->k_q.h_view;
   }
 
   // init_storage
@@ -783,11 +780,13 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   int loop;
   for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
-    // comm->forward_comm_fix(this); //Dist_vector( d );
+
+// comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
     k_d.template modify<DeviceType>();
     comm->forward_comm_fix(this);
     k_d.template sync<DeviceType>();
+
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -891,8 +890,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       Kokkos::Experimental::contribute(d_o, dup_o);
   } else {
     #ifdef HIP_OPT_SPMV
-    int teamsize = 1024/64;//LG need to use some Kokkos function to get WARP_SIZE (max vector size)
-    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> ((inum+teamsize-1)/teamsize, teamsize, 64), *this);
+    int vector_length = 64;
+    int teamsize = 1024/vector_length;//LG need to use some Kokkos function to get WARP_SIZE (max vector size)
+    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> ((inum+teamsize-1)/teamsize, teamsize, vector_length), *this);
     #else
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
     #endif
@@ -925,11 +925,12 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   int loop;
   for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
-    // comm->forward_comm_fix(this); //Dist_vector( d );
+   // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
     k_d.template modify<DeviceType>();
     comm->forward_comm_fix(this);
     k_d.template sync<DeviceType>();
+
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -1478,42 +1479,6 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *bu
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixQEqReaxKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                           int iswap_in, DAT::tdual_xfloat_1d &buf,
-                                                           int /*pbc_flag*/, int * /*pbc*/)
-{
-  d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
-  v_buf = buf.view<DeviceType>();
-  if (pack_flag == 1)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQPackFwdComm<1>>(0,n),*this);
-  else if (pack_flag == 2)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQPackFwdComm<2>>(0,n),*this);
-  else if (pack_flag == 3)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQPackFwdComm<3>>(0,n),*this);
-  else if (pack_flag == 4)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQPackFwdComm<4>>(0,n),*this);
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int PACKFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEQPackFwdComm<PACKFLAG>, const int &i) const {
-  int j = d_sendlist(iswap, i);
-  if (PACKFLAG == 1)
-    v_buf[i] = d_d[j];
-  else if( PACKFLAG == 2 )
-    v_buf[i] = d_s[j];
-  else if( PACKFLAG == 3 )
-    v_buf[i] = d_t[j];
-  else if( PACKFLAG == 4 )
-    v_buf[i] = d_q[j];
-}
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -1543,37 +1508,6 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
-{
-  first = first_in;
-  v_buf = buf.view<DeviceType>();
-
-  if (pack_flag == 1)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQUnpackFwdComm<1>>(0,n),*this);
-  else if (pack_flag == 2)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQUnpackFwdComm<2>>(0,n),*this);
-  else if (pack_flag == 3)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQUnpackFwdComm<3>>(0,n),*this);
-  else if (pack_flag == 4)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEQUnpackFwdComm<4>>(0,n),*this);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int PACKFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEQUnpackFwdComm<PACKFLAG>, const int &i) const {
-  if (PACKFLAG == 1)
-    d_d[i + first] = v_buf[i];
-  else if( PACKFLAG == 2 )
-    d_s[i + first] = v_buf[i];
-  else if( PACKFLAG == 3 )
-    d_t[i + first] = v_buf[i];
-  else if( PACKFLAG == 4 )
-    d_q[i + first] = v_buf[i];
-}
 
 /* ---------------------------------------------------------------------- */
 

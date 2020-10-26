@@ -83,10 +83,6 @@ class CommKokkos : public CommBrick {
   void grow_buf_pair(int);
   void grow_buf_fix(int);
 
-  int max_buf_fix;
-  DAT::tdual_xfloat_1d k_buf_send_fix;
-  DAT::tdual_xfloat_1d k_buf_recv_fix;
-  void grow_buf_fix(int);
 
   void grow_send(int, int);
   void grow_recv(int);
@@ -95,10 +91,6 @@ class CommKokkos : public CommBrick {
   void grow_list(int, int);
   void grow_swap(int);
   void copy_swap_info();
-  template <class DeviceType>
-  void forward_comm_device_fix_or_pair(KokkosBase *, int,
-                                       DAT::tdual_xfloat_1d &,
-                                       DAT::tdual_xfloat_1d &);
 };
 
 }

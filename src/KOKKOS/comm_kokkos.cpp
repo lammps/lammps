@@ -368,7 +368,7 @@ void CommKokkos::forward_comm_fix(Fix *fix, int size)
     CommBrick::forward_comm_fix(fix,size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_fix_device<LMPDeviceType>(fix);
+    forward_comm_fix_device<LMPDeviceType>(fix, size);
   }
 }
 
@@ -476,44 +476,51 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 
   MPI_Request request;
 
-  int iswap, n;
+  int nsize = pair->comm_forward;
+  KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+    int n = MAX(max_buf_pair,nsize*sendnum[iswap]);
+    n = MAX(n,nsize*recvnum[iswap]);
+    if (n > max_buf_pair)
+      grow_buf_pair(n);
+  }
+
   for (iswap = 0; iswap < nswap; iswap++) {
 
     // pack buffer
 
-    n = KKBase->pack_forward_comm_kokkos(sendnum[iswap], k_sendlist, iswap,
-                                         k_buf_send_fop, pbc_flag[iswap],
-                                         pbc[iswap]);
+    n = pairKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
+                                       iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
     DeviceType().fence();
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      double *buf_send;
-      double *buf_recv;
+      double* buf_send_pair;
+      double* buf_recv_pair;
       if (lmp->kokkos->gpu_aware_flag) {
-        buf_send = k_buf_send_fop.view<DeviceType>().data();
-        buf_recv = k_buf_recv_fop.view<DeviceType>().data();
+        buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
+        buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
       } else {
-        k_buf_send_fop.modify<DeviceType>();
-        k_buf_send_fop.sync<LMPHostType>();
-        buf_send = k_buf_send_fop.h_view.data();
-        buf_recv = k_buf_recv_fop.h_view.data();
+        k_buf_send_pair.modify<DeviceType>();
+        k_buf_send_pair.sync<LMPHostType>();
+        buf_send_pair = k_buf_send_pair.h_view.data();
+        buf_recv_pair = k_buf_recv_pair.h_view.data();
       }
 
       if (recvnum[iswap]) {
-        MPI_Irecv(buf_recv, nsize * recvnum[iswap], MPI_DOUBLE, recvproc[iswap],
-                  0, world, &request);
+        MPI_Irecv(buf_recv_pair,nsize*recvnum[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
       }
       if (sendnum[iswap])
-        MPI_Send(buf_send, n, MPI_DOUBLE, sendproc[iswap], 0, world);
-      if (recvnum[iswap])
-        MPI_Wait(&request, MPI_STATUS_IGNORE);
+        MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (!lmp->kokkos->gpu_aware_flag) {
-        k_buf_recv_fop.modify<LMPHostType>();
-        k_buf_recv_fop.sync<DeviceType>();
+        k_buf_recv_pair.modify<LMPHostType>();
+        k_buf_recv_pair.sync<DeviceType>();
       }
       k_buf_tmp = k_buf_recv_pair;
     } else k_buf_tmp = k_buf_send_pair;
@@ -521,43 +528,11 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     // unpack buffer
 
     pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
+
     DeviceType().fence();
   }
 }
 
-template <class DeviceType>
-void CommKokkos::forward_comm_pair_device(Pair *pair) {
-  int nsize = pair->comm_forward;
-  KokkosBase *pairKKBase = dynamic_cast<KokkosBase *>(pair);
-
-  int iswap;
-  for (iswap = 0; iswap < nswap; iswap++) {
-    int n = MAX(max_buf_pair, nsize * sendnum[iswap]);
-    n = MAX(n, nsize * recvnum[iswap]);
-    if (n > max_buf_pair)
-      grow_buf_pair(n);
-  }
-
-  forward_comm_device_fix_or_pair<DeviceType>(pairKKBase, nsize,
-                                              k_buf_send_pair, k_buf_recv_pair);
-}
-
-template <class DeviceType> void CommKokkos::forward_comm_fix_device(Fix *fix) {
-
-  int nsize = fix->comm_forward;
-  KokkosBase *fixKKBase = dynamic_cast<KokkosBase *>(fix);
-
-  int iswap;
-  for (iswap = 0; iswap < nswap; iswap++) {
-    int n = MAX(max_buf_fix, nsize * sendnum[iswap]);
-    n = MAX(n, nsize * recvnum[iswap]);
-    if (n > max_buf_fix)
-      grow_buf_fix(n);
-  }
-
-  forward_comm_device_fix_or_pair<DeviceType>(fixKKBase, nsize, k_buf_send_fix,
-                                              k_buf_recv_fix);
-}
 
 void CommKokkos::grow_buf_pair(int n) {
   max_buf_pair = n * BUFFACTOR;

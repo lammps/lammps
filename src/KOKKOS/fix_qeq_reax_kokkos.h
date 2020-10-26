@@ -39,7 +39,8 @@ struct TagFixQEqReaxPackForwardComm {};
 struct TagFixQEqReaxUnpackForwardComm {};
 
 template<class DeviceType>
-class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
+
+class FixQEqReaxKokkos : public FixQEqReax {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -103,14 +104,6 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagZeroQGhosts, const int&) const;
-
-  template<int PACKFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixQEQPackFwdComm<PACKFLAG>, const int&) const;
-
-  template<int PACKFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixQEQUnpackFwdComm<PACKFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void vecsum2_item(int) const;
@@ -192,8 +185,6 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
   typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
-  typename AT::t_float_1d d_q;
-  HAT::t_float_1d h_q;
 
   typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist, d_numneigh;

@@ -113,14 +113,35 @@ void AtomVecTemplate::create_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
+   modify values for AtomVec::pack_data() to pack
+------------------------------------------------------------------------- */
+
+void AtomVecTemplate::pack_data_pre(int ilocal)
+{
+  molindex[ilocal]++;
+  molatom[ilocal]++;
+}
+
+/* ----------------------------------------------------------------------
+   unmodify values packed by AtomVec::pack_data()
+------------------------------------------------------------------------- */
+
+void AtomVecTemplate::pack_data_post(int ilocal)
+{
+  molindex[ilocal]--;
+  molatom[ilocal]--;
+}
+
+
+/* ----------------------------------------------------------------------
    modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecTemplate::data_atom_post(int ilocal)
 {
-  int molindex_one = molindex[ilocal];
-  int molatom_one = molatom[ilocal];
+  int molindex_one = --molindex[ilocal];
+  int molatom_one = --molatom[ilocal];
 
   if (molindex_one < 0 || molindex_one >= nset)
     error->one(FLERR,"Invalid template index in Atoms section of data file");

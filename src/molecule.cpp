@@ -1471,6 +1471,11 @@ void Molecule::shakeatom_read(char *line)
           nwant = 5;
           break;
 
+        case 0:
+          values.next_int();
+          nwant = 1;
+          break;
+
         default:
           error->one(FLERR,"Invalid shake atom in molecule file");
       }
@@ -1535,6 +1540,11 @@ void Molecule::shaketype_read(char *line)
           shake_type[i][1] = values.next_int();
           shake_type[i][2] = values.next_int();
           nwant = 4;
+          break;
+
+        case 0:
+          values.next_int();
+          nwant = 1;
           break;
 
         default:

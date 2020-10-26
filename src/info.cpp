@@ -348,18 +348,20 @@ void Info::command(int narg, char **arg)
                commstyles[comm->style], commlayout[comm->layout],
                comm->ghost_velocity ? "yes" : "no");
 
-    if (comm->mode == 0)
-      fmt::print(out,"Communication mode = single\n"
-                 "Communication cutoff = {}\n",
-                 comm->get_comm_cutoff());
+    if (domain->box_exist) {
+      if (comm->mode == 0)
+        fmt::print(out,"Communication mode = single\n"
+                   "Communication cutoff = {}\n",
+                   comm->get_comm_cutoff());
 
-    if (comm->mode == 1) {
-      fputs("Communication mode = multi\n",out);
-      double cut;
-      for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
-        cut = neighbor->cuttype[i];
-        if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-        fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+      if (comm->mode == 1) {
+        fputs("Communication mode = multi\n",out);
+        double cut;
+        for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
+          cut = neighbor->cuttype[i];
+          if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+          fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+        }
       }
     }
     fmt::print(out,"Nprocs = {},   Nthreads = {}\n",comm->nprocs,comm->nthreads);

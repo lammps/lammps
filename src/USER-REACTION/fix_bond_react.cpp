@@ -3188,6 +3188,8 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   imageint imageflag;
   double coord[3],lamda[3],rotmat[3][3],vnew[3];
   double *newcoord;
+  double **v = atom->v;
+  double t;
 
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
@@ -3233,7 +3235,13 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
   int ifit = atom->map(my_mega_glove[ibonding[rxnID]+1][iupdate]); // use this local ID to find fitting proc
   Superpose3D<double, double **> superposer(n2superpose);
+  int root = 0;
   if (ifit >= 0 && ifit < atom->nlocal) {
+    root = me;
+
+    // get 'temperatere' averaged over site, used for created atoms' vels
+    t = get_temperature(my_mega_glove,1,iupdate);
+
     double **xfrozen; // coordinates for the "frozen" target molecule
     double **xmobile; // coordinates for the "mobile" molecule
     memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
@@ -3267,20 +3275,15 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     memory->destroy(xfrozen);
     memory->destroy(xmobile);
   }
-
-  // choose random velocity for new particle
-  // used for every atom in molecule
-  //currently insert with zero velocities
-  //vnew[0] = vxlo + random->uniform() * (vxhi-vxlo);
-  //vnew[1] = vylo + random->uniform() * (vyhi-vylo);
-  //vnew[2] = vzlo + random->uniform() * (vzhi-vzlo);
+  MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
+  MPI_Bcast(&t,1,MPI_DOUBLE,root,world);
 
   // check if new atoms are in my sub-box or above it if I am highest proc
   // if so, add atom to my list via create_atom()
   // initialize additional info about the atoms
   // set group mask to "all" plus fix group
   int preID; // new equivalences index
-  int root = 0;
+  root = 0;
   int add_count = 0;
   for (int m = 0; m < twomol->natoms; m++) {
     if (create_atoms[m][rxnID] == 1) {
@@ -3349,9 +3352,18 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflag;
-        atom->v[n][0] = 0.01;//vnew[0];
-        atom->v[n][1] = 0.01;//vnew[1];
-        atom->v[n][2] = 0.01;//vnew[2];
+
+        // guess a somewhat reasonable initial velocity based on reaction site
+        // further control is possible using bond_react_MASTER_group
+        // compute |velocity| corresponding to a given temperature t, using specific atom's mass
+        double vtnorm = sqrt(t / (force->mvv2e / (dimension * force->boltz)) / atom->mass[twomol->type[m]]);
+        v[n][0] = random[rxnID]->uniform();
+        v[n][1] = random[rxnID]->uniform();
+        v[n][2] = random[rxnID]->uniform();
+        double vnorm = sqrt(v[n][0]*v[n][0] + v[n][1]*v[n][1] + v[n][2]*v[n][2]);
+        v[n][0] = v[n][0]/vnorm*vtnorm;
+        v[n][1] = v[n][1]/vnorm*vtnorm;
+        v[n][2] = v[n][2]/vnorm*vtnorm;
         modify->create_attribute(n);
 
         // initialize group statuses

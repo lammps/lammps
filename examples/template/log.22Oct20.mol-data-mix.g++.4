@@ -48,8 +48,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      2 = max # of 1-3 neighbors
      4 = max # of 1-4 neighbors
      5 = max # of special neighbors
-  special bonds CPU = 0.010 seconds
-  read_data CPU = 0.041 seconds
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.039 seconds
 
 thermo 100
 
@@ -91,21 +91,21 @@ Step Temp E_pair E_mol TotEng Press
     1800    297.26645   -5023.9459    1740.9512    147.07837     11357.02 
     1900    293.16007   -5023.8887    1754.1333    112.93534    7969.1102 
     2000    307.66497   -5046.5928    1803.9999    307.46576    11249.704 
-Loop time of 4.64055 on 4 procs for 2000 steps with 3872 atoms
+Loop time of 4.33662 on 4 procs for 2000 steps with 3872 atoms
 
-Performance: 37.237 ns/day, 0.645 hours/ns, 430.983 timesteps/s
-96.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 39.847 ns/day, 0.602 hours/ns, 461.188 timesteps/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.5991     | 3.7143     | 4.0014     |   8.7 | 80.04
-Bond    | 0.14736    | 0.15557    | 0.16949    |   2.1 |  3.35
-Neigh   | 0.19097    | 0.191      | 0.19101    |   0.0 |  4.12
-Comm    | 0.22193    | 0.52405    | 0.64844    |  24.3 | 11.29
-Output  | 0.00034875 | 0.00062747 | 0.001461   |   0.0 |  0.01
-Modify  | 0.024692   | 0.026943   | 0.028768   |   1.0 |  0.58
-Other   |            | 0.02802    |            |       |  0.60
+Pair    | 3.6239     | 3.6669     | 3.7143     |   1.8 | 84.56
+Bond    | 0.14954    | 0.15355    | 0.15614    |   0.7 |  3.54
+Neigh   | 0.17931    | 0.17933    | 0.17934    |   0.0 |  4.14
+Comm    | 0.23604    | 0.28181    | 0.32663    |   6.5 |  6.50
+Output  | 0.00034802 | 0.00069388 | 0.0017292  |   0.0 |  0.02
+Modify  | 0.029915   | 0.036141   | 0.039601   |   1.9 |  0.83
+Other   |            | 0.01821    |            |       |  0.42
 
 Nlocal:        968.000 ave         979 max         948 min
 Histogram: 1 0 0 0 0 0 0 1 1 1

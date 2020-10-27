@@ -38,4 +38,5 @@ velocity all create 100.0 6234235
 fix 1 all nvt temp 100.0 300.0 1.0
 # dump 1 all custom 100 cychex-methane.lammpstrj id xu yu zu
 run 2500
-write_data template-mix.data
+#write_data template-mix.data
+#write_restart template-mix.restart

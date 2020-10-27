@@ -1,0 +1,105 @@
+LAMMPS (22 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# demo for atom style template simulating a cyclohexane methane mixture
+# part 2: continuing from data file
+
+units real
+boundary p p p
+molecule cychex cyclohexane.mol
+Read molecule template cychex:
+  1 molecules
+  6 atoms with max type 1
+  6 bonds with max type 1
+  6 angles with max type 1
+  6 dihedrals with max type 1
+  0 impropers with max type 0
+atom_style template cychex
+
+pair_style lj/cut 12.0
+pair_modify mix geometric tail yes
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+
+read_data template-mix.data
+Reading data file ...
+  orthogonal box = (-24.000000 -24.000000 -24.000000) to (24.000000 24.000000 24.000000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3872 atoms
+  reading velocities ...
+  3872 velocities
+  3072 template bonds
+  3072 template angles
+  3072 template dihedrals
+  read_data CPU = 0.016 seconds
+
+thermo 100
+
+fix 1 all nvt temp 300.0 300.0 1.0
+# dump 1 all custom 100 custom template-mix.lammpstrj id xu yu zu
+run 2000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.879 | 6.879 | 6.879 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    302.37248    -4957.687    1700.6563    231.95939    10617.134 
+     100    305.85975   -4885.1313    1589.9657    234.06312    9178.0262 
+     200    296.72843   -4951.5636     1681.209    153.51039    10767.695 
+     300    308.16536   -4956.3355    1604.2261    203.72314    9266.9134 
+     400    297.43236   -4959.7758    1596.8717    69.083277    10221.765 
+     500    304.09059   -5004.7041    1531.3818    35.492587    9778.2126 
+     600    301.19423   -4974.2139    1694.3778    195.55858    9597.0895 
+     700    297.83153    -4993.867    1671.6871    114.41347    10360.771 
+     800    301.50873   -5038.4606    1671.0584    111.62133    8730.9918 
+     900    298.13466    -5056.328    1719.8923    103.65538    10561.792 
+    1000    297.16177   -4951.3098     1655.784    133.33949    8784.2239 
+    1100    303.33432   -4972.3579    1696.3014    224.03195     10764.88 
+    1200    307.51509   -4909.5175    1773.9263    412.73795     9220.984 
+    1300    305.02405    -4974.013    1714.5967    260.16943    10357.602 
+    1400     293.6948   -4998.3679    1683.6803    74.173172    9499.7569 
+    1500    300.79313   -4978.7126    1719.2548    211.30869    9602.7975 
+    1600    302.62922   -4924.5134     1709.726    277.16506    10649.017 
+    1700    301.27221   -4935.4932    1744.1182     284.9194    9169.4275 
+    1800    296.72398   -5019.7387    1712.9372     117.0122    10540.894 
+    1900    301.63962   -4971.0508    1757.1132    266.59621    8983.2539 
+    2000    304.05902   -5013.5663    1752.1581    247.04237     10422.56 
+Loop time of 15.3127 on 1 procs for 2000 steps with 3872 atoms
+
+Performance: 11.285 ns/day, 2.127 hours/ns, 130.610 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.831     | 13.831     | 13.831     |   0.0 | 90.32
+Bond    | 0.58974    | 0.58974    | 0.58974    |   0.0 |  3.85
+Neigh   | 0.69463    | 0.69463    | 0.69463    |   0.0 |  4.54
+Comm    | 0.082146   | 0.082146   | 0.082146   |   0.0 |  0.54
+Output  | 0.00053225 | 0.00053225 | 0.00053225 |   0.0 |  0.00
+Modify  | 0.077863   | 0.077863   | 0.077863   |   0.0 |  0.51
+Other   |            | 0.03663    |            |       |  0.24
+
+Nlocal:        3872.00 ave        3872 max        3872 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        11716.0 ave       11716 max       11716 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:       769907.0 ave      769907 max      769907 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 769907
+Ave neighs/atom = 198.83962
+Ave special neighs/atom = 3.9669421
+Neighbor list builds = 35
+Dangerous builds = 0
+Total wall time: 0:00:15

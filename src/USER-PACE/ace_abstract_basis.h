@@ -30,6 +30,8 @@ public:
     DOUBLE_TYPE cutoffmax = 0;  ///< maximum value of cutoff distance among all species in basis set
     DOUBLE_TYPE deltaSplineBins = 0;  ///< Spline interpolation density
 
+    string npoti = "FinnisSinclair"; ///< FS and embedding function combination
+
     string *elements_name = nullptr; ///< Array of elements name for mapping from index (0..nelements-1) to element symbol (string)
 
     AbstractRadialBasis *radial_functions = nullptr; ///< object to work with radial functions
@@ -134,6 +136,8 @@ public:
     virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
 
-void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF);
+void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF);
+
+void FexpShiftedScaled(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF);
 
 #endif //ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H

@@ -258,6 +258,8 @@ void ACECTildeBasisSet::save(const string &filename) {
 
     fprintf(fptr, "lmax=%d\n\n", lmax);
 
+    fprintf(fptr, "embedding-function: %s\n", npoti.c_str());
+
     fprintf(fptr, "%ld FS parameters: ", FS_parameters.size());
     for (int i = 0; i < FS_parameters.size(); ++i) {
         fprintf(fptr, " %f", FS_parameters.at(i));
@@ -270,9 +272,9 @@ void ACECTildeBasisSet::save(const string &filename) {
         fprintf(fptr, "%.18f %.18f\n", rho_core_cutoffs(mu_i), drho_core_cutoffs(mu_i));
 
     // save E0 values 
-    fprintf(fptr, "E0:"); 
+    fprintf(fptr, "E0:");
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
-        fprintf(fptr, " %.18f", E0vals(mu_i)); 
+        fprintf(fptr, " %.18f", E0vals(mu_i));
     fprintf(fptr, "\n");
 
 
@@ -513,6 +515,19 @@ void ACECTildeBasisSet::load(const string filename) {
     lmax = stoi_err(buffer, filename, "lmax", "lmax=[number]");
     spherical_harmonics.init(lmax);
 
+
+    // reading "embedding-function:"
+    bool is_embedding_function_specified = false;
+    res = fscanf(fptr, " embedding-function: %s", buffer);
+    if (res == 0) {
+        //throw_error(filename, "E0", " E0: E0-species1 E0-species2 ...");
+        this->npoti = "FinnisSinclair"; // default values
+        //printf("Warning! No embedding-function is specified, embedding-function: FinnisSinclair would be assumed\n");
+        is_embedding_function_specified = false;
+    } else {
+        this->npoti = buffer;
+        is_embedding_function_specified = true;
+    }
     int parameters_size;
     res = fscanf(fptr, "%s FS parameters:", buffer);
     if (res != 1)
@@ -524,6 +539,17 @@ void ACECTildeBasisSet::load(const string filename) {
         if (res != 1)
             throw_error(filename, "FS parameter", "[number] FS parameters: [par1] [par2] ...");
         FS_parameters[i] = stod_err(buffer, filename, "FS parameter", "[number] FS parameters: [par1] [par2] ...");
+    }
+
+    if (!is_embedding_function_specified) {
+        // assuming non-linear potential, and embedding function type is important
+        for (int j = 1; j < parameters_size; j += 2)
+            if (FS_parameters[j] != 1.0) { //if not ensure linearity of embedding function parameters
+                printf("ERROR! Your potential is non-linear\n");
+                printf("Please specify 'embedding-function: FinnisSinclair' or 'embedding-function: FinnisSinclairShiftedScaled' before 'FS parameters size' line\n");
+                throw_error(filename, "embedding-function", "FinnisSinclair or FinnisSinclairShiftedScaled");
+            }
+        printf("Notice! No embedding-function is specified, but potential has linear embedding, default embedding-function: FinnisSinclair would be assumed\n");
     }
 
     //hard-core energy cutoff repulsion

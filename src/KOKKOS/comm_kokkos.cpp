@@ -375,6 +375,7 @@ void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
 {
   int iswap,n,nsize;
   MPI_Request request;
+  DAT::tdual_xfloat_1d k_buf_tmp;
 
   if (size) nsize = size;
   else nsize = fix->comm_forward;
@@ -423,11 +424,12 @@ void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
         k_buf_recv_fix.modify<LMPHostType>();
         k_buf_recv_fix.sync<DeviceType>();
       }
-    } else k_buf_recv_fix = k_buf_send_fix;
+      k_buf_tmp = k_buf_recv_fix;
+    } else k_buf_tmp = k_buf_send_fix;
 
     // unpack buffer
 
-    fixKKBase->unpack_forward_comm_fix_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_fix);
+    fixKKBase->unpack_forward_comm_fix_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
     DeviceType().fence();
   }
 }
@@ -468,6 +470,7 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
 {
   int iswap,n;
   MPI_Request request;
+  DAT::tdual_xfloat_1d k_buf_tmp;
 
   int nsize = pair->comm_forward;
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
@@ -515,11 +518,12 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
         k_buf_recv_pair.modify<LMPHostType>();
         k_buf_recv_pair.sync<DeviceType>();
       }
-    } else k_buf_recv_pair = k_buf_send_pair;
+      k_buf_tmp = k_buf_recv_pair;
+    } else k_buf_tmp = k_buf_send_pair;
 
     // unpack buffer
 
-    pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+    pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
     DeviceType().fence();
   }
 }

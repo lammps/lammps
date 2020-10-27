@@ -2,7 +2,7 @@ nelements=1
 elements: Al
 
 lmax=4
-
+embedding-function: FinnisSinclairShiftedScaled
 4 FS parameters:  1.000000 1.000000 1.000000 0.500000
 core energy-cutoff parameters: 10000.000000000000000000 250.000000000000000000
 

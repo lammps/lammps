@@ -838,6 +838,7 @@ void CommKokkos::borders()
     else borders_device<LMPDeviceType>();
   } else {
     atomKK->sync(Host,ALL_MASK);
+    k_sendlist.sync<LMPHostType>();
     CommBrick::borders();
     k_sendlist.modify<LMPHostType>();
     atomKK->modified(Host,ALL_MASK);

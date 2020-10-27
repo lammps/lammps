@@ -251,23 +251,24 @@ FixShake::~FixShake()
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    else if (shake_flag[i] == 1) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 2) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-    } else if (shake_flag[i] == 3) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 4) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+  if (shake_flag)
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i] == 0) continue;
+      else if (shake_flag[i] == 1) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 2) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      } else if (shake_flag[i] == 3) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 4) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+      }
     }
-  }
 
   // delete locally stored arrays
 

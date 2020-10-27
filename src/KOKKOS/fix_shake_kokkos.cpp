@@ -103,6 +103,10 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   h_error_flag = Kokkos::subview(h_scalars,0);
   h_nlist = Kokkos::subview(h_scalars,1);
+
+  memory->destroy(shake_flag_tmp);
+  memory->destroy(shake_atom_tmp);
+  memory->destroy(shake_type_tmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,6 +116,27 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
 {
   if (copymode) return;
 
+  k_shake_flag.sync_host();
+  k_shake_atom.sync_host();
+
+  for (int i = 0; i < nlocal; i++) {
+    if (shake_flag[i] == 0) continue;
+    else if (shake_flag[i] == 1) {
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
+    } else if (shake_flag[i] == 2) {
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+    } else if (shake_flag[i] == 3) {
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+    } else if (shake_flag[i] == 4) {
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+    }
+  }
+
   memoryKK->destroy_kokkos(k_shake_flag,shake_flag);
   memoryKK->destroy_kokkos(k_shake_atom,shake_atom);
   memoryKK->destroy_kokkos(k_shake_type,shake_type);
@@ -119,10 +144,6 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
   memoryKK->destroy_kokkos(k_list,list);
 
   memoryKK->destroy_kokkos(k_vatom,vatom);
-
-  shake_flag = shake_flag_tmp;
-  shake_atom = shake_atom_tmp;
-  shake_type = shake_type_tmp;
 }
 
 /* ----------------------------------------------------------------------

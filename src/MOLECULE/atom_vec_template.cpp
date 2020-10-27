@@ -137,8 +137,8 @@ void AtomVecTemplate::data_atom_post(int ilocal)
   int molindex_one = --molindex[ilocal];
   int molatom_one = --molatom[ilocal];
 
-  if (molindex_one < 0 || molindex_one >= nset)
+  if ((molindex_one < -1) || (molindex_one >= nset))
     error->one(FLERR,"Invalid template index in Atoms section of data file");
-  if (molatom_one < 0 || molatom_one >= onemols[molindex_one]->natoms)
+  if ((molatom_one < -1) || ((molindex_one >= 0) && (molatom_one >= onemols[molindex_one]->natoms)))
     error->one(FLERR,"Invalid template atom in Atoms section of data file");
 }

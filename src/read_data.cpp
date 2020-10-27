@@ -796,10 +796,12 @@ void ReadData::command(int narg, char **arg)
     for (int i = 0; i < nlocal; i++) {
       imol = molindex[i];
       iatom = molatom[i];
-      nbonds += onemols[imol]->num_bond[iatom];
-      nangles += onemols[imol]->num_angle[iatom];
-      ndihedrals += onemols[imol]->num_dihedral[iatom];
-      nimpropers += onemols[imol]->num_improper[iatom];
+      if (imol >=0) {
+        nbonds += onemols[imol]->num_bond[iatom];
+        nangles += onemols[imol]->num_angle[iatom];
+        ndihedrals += onemols[imol]->num_dihedral[iatom];
+        nimpropers += onemols[imol]->num_improper[iatom];
+      }
     }
 
     MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);

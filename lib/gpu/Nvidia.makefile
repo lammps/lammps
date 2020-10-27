@@ -69,7 +69,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
-       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
+       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o $(OBJ_DIR)/lal_dpd_tstat_ext.o \
        $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
        $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
        $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
@@ -731,6 +731,15 @@ $(OBJ_DIR)/dpd.cubin: lal_dpd.cu lal_precision.h lal_preprocessor.h
 $(OBJ_DIR)/dpd_cubin.h: $(OBJ_DIR)/dpd.cubin $(OBJ_DIR)/dpd.cubin
 	$(BIN2C) -c -n dpd $(OBJ_DIR)/dpd.cubin > $(OBJ_DIR)/dpd_cubin.h
 
+$(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp $(OBJ_DIR)/dpd_cubin.h $(OBJ_DIR)/lal_base_dpd.o
+	$(CUDR) -o $@ -c lal_dpd.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
+	$(CUDR) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_tstat_ext.o: $(ALL_H) lal_dpd.h lal_dpd_tstat_ext.cpp lal_base_dpd.h
+	$(CUDR) -o $@ -c lal_dpd_tstat_ext.cpp -I$(OBJ_DIR)
+
 $(OBJ_DIR)/ufm.cubin: lal_ufm.cu lal_precision.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_ufm.cu
 
@@ -742,12 +751,6 @@ $(OBJ_DIR)/lal_ufm.o: $(ALL_H) lal_ufm.h lal_ufm.cpp $(OBJ_DIR)/ufm_cubin.h $(OB
 
 $(OBJ_DIR)/lal_ufm_ext.o: $(ALL_H) lal_ufm.h lal_ufm_ext.cpp lal_base_atomic.h
 	$(CUDR) -o $@ -c lal_ufm_ext.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp $(OBJ_DIR)/dpd_cubin.h $(OBJ_DIR)/lal_base_dpd.o
-	$(CUDR) -o $@ -c lal_dpd.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
-	$(CUDR) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/tersoff.cubin: lal_tersoff.cu lal_precision.h lal_tersoff_extra.h lal_preprocessor.h
 	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_tersoff.cu

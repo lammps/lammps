@@ -32,6 +32,6 @@ concurrently), grab data from LAMMPS, change it, and send it back into
 LAMMPS.
 
 A detailed documentation of the available APIs and examples of how to
-use them can be found in the :doc:`Programmer Documentation
-<Library>` section of this manual.
+use them can be found in the :ref:`Programmer Guide <programmer_documentation>`
+section of this manual.
 

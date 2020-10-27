@@ -1,5 +1,5 @@
 Download source and documentation as a tarball
-==============================================
+----------------------------------------------
 
 You can download a current LAMMPS tarball from the `download page <download_>`_
 of the `LAMMPS website <lws_>`_.

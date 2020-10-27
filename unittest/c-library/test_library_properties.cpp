@@ -198,6 +198,13 @@ TEST_F(LibraryProperties, setting)
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
@@ -217,10 +224,22 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "nghost"), 518);
         EXPECT_EQ(lammps_extract_setting(lmp, "nall"), 547);
         EXPECT_EQ(lammps_extract_setting(lmp, "nmax"), 16384);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 4);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 2);
+
         EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "radius_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ellipsoid_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "omega_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "torque_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "angmom_flag"), 0);
         if (!verbose) ::testing::internal::CaptureStdout();
         lammps_command(lmp, "change_box all triclinic");
         lammps_command(lmp, "fix rmass all property/atom rmass ghost yes");

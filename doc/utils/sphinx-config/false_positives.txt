@@ -1714,6 +1714,7 @@ lsfftw
 ltbbmalloc
 lubricateU
 lucy
+Lua
 Luding
 Lussetti
 Lustig
@@ -2075,6 +2076,7 @@ ncorr
 ncount
 nd
 ndihedrals
+ndihedraltypes
 Ndihedraltype
 Ndirango
 ndof
@@ -2122,6 +2124,7 @@ Nicklas
 Niklasson
 Nikolskiy
 nimpropers
+nimpropertypes
 Nimpropertype
 Ninteger
 Nissila
@@ -2597,6 +2600,7 @@ rdf
 RDideal
 rdx
 reacter
+Readline
 realTypeMap
 real_t
 README
@@ -2890,6 +2894,7 @@ Sodani
 Soderlind
 solvated
 solvation
+someuser
 Sorensen
 soundspeed
 sourceforge
@@ -3032,6 +3037,7 @@ taubi
 tb
 tchain
 Tchain
+Tcl
 Tcom
 tcsh
 tdamp

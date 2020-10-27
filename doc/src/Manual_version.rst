@@ -1,5 +1,5 @@
 What does a LAMMPS version mean
-===============================
+-------------------------------
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2014. LAMMPS is updated continuously.  Whenever we fix a bug or add a

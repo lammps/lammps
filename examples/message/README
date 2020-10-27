@@ -11,9 +11,8 @@ LAMMPS as the server, e.g. a quantum code computing quantum forces, so
 that ab initio MD could be performed.  See an example of the latter in
 examples/COUPLE/lammps_vasp.
 
-See the doc pages for the "MESSAGE package"
-(Package_details.html#PKG-MESSAGE) and "Howto client/server"
-(Howto_client_server.html) for more details on how client/server
+See the MESSAGE package documentation Build_extras.html#message
+and Build_extras.html#message for more details on how client/server
 coupling works in LAMMPS.
 
 --------------
@@ -30,7 +29,7 @@ You can also run the in.message scripts with an NPT integrator
 instead of NVE, if you comment/uncomment the correct lines.
 
 The client and server script define a "mode" variable
-which can be set to file, zmq, mpi/one, or mpi/two, 
+which can be set to file, zmq, mpi/one, or mpi/two,
 as illustrated below.
 
 --------------
@@ -38,8 +37,8 @@ as illustrated below.
 To run this problem in the traditional way (no client/server coupling)
 do one of these:
 
-% lmp_serial < in.message
-% mpirun -np 4 lmp_mpi < in.message
+% lmp_serial -in in.message
+% mpirun -np 4 lmp_mpi -in in.message
 
 Or run with in.message.tilt.
 
@@ -87,14 +86,14 @@ runs listed below.
 
 File or ZMQ or mpi/two modes of messaging:
 
-% mpirun -np 1 lmp_mpi -v mode file -log log.client < in.message.client & 
-% mpirun -np 2 lmp_mpi -v mode file -log log.server < in.message.server
+% mpirun -np 1 lmp_mpi -v mode file -log log.client -in in.message.client & 
+% mpirun -np 2 lmp_mpi -v mode file -log log.server -in in.message.server
 
-% mpirun -np 4 lmp_mpi -v mode zmq -log log.client < in.message.client & 
-% mpirun -np 1 lmp_mpi -v mode zmq -log log.server < in.message.server
+% mpirun -np 4 lmp_mpi -v mode zmq -log log.client -in in.message.client & 
+% mpirun -np 1 lmp_mpi -v mode zmq -log log.server -in in.message.server
 
-% mpirun -np 2 lmp_mpi -v mode mpitwo -log log.client < in.message.client & 
-% mpirun -np 4 lmp_mpi -v mode mpitwo -log log.server < in.message.server
+% mpirun -np 2 lmp_mpi -v mode mpitwo -log log.client -in in.message.client & 
+% mpirun -np 4 lmp_mpi -v mode mpitwo -log log.server -in in.message.server
 
 Or run with in.message.tilt.client/server.
 Don't run the tilt files with the "file" mode; they run too slow.

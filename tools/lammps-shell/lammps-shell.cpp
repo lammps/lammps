@@ -563,7 +563,7 @@ static int help_cmd()
                  "in the current working directory and - if present - this file will be\n"
                  "read at the beginning of the next session of the LAMMPS shell.\n\n"
                  "Additional information is at https://packages.lammps.org/lammps-shell.html\n\n";
-        return 0;
+    return 0;
 }
 
 static int shell_end()
@@ -681,7 +681,7 @@ int main(int argc, char **argv)
     // switch to the user's documents directory. Avoid buffer overflow
     // and skip this step if the path is too long for our buffer.
     if (getcwd(buf, buflen)) {
-      if ((strstr(buf, "System32") || strstr(buf, "system32"))) {
+        if ((strstr(buf, "System32") || strstr(buf, "system32"))) {
             char *drive = getenv("HOMEDRIVE");
             char *path  = getenv("HOMEPATH");
             buf[0]      = '\0';
@@ -719,11 +719,14 @@ int main(int argc, char **argv)
     // handle the special case where the first argument is not a flag but a file
     // this happens for example when using file type associations on Windows.
     // in this case we save the pointer and remove it from argv.
-    char *input_file = nullptr;
+    // we also get the directory name and switch to that folder
+    std::string input_file;
     if ((argc > 1) && (argv[1][0] != '-')) {
         --argc;
-        input_file = argv[1];
-        for (int i = 1; i < argc; ++i) argv[i] = argv[i+1];
+        input_file = utils::path_basename(argv[1]);
+        chdir(utils::path_dirname(input_file).c_str());
+        for (int i = 1; i < argc; ++i)
+            argv[i] = argv[i + 1];
     }
 
     lmp = lammps_open_no_mpi(argc, argv, nullptr);
@@ -733,8 +736,8 @@ int main(int argc, char **argv)
     init_commands();
 
     // pre-load an input file that was provided on the command line
-    if (input_file) {
-        lammps_file(lmp, input_file);
+    if (!input_file.empty()) {
+        lammps_file(lmp, input_file.c_str());
     } else {
         for (int i = 0; i < argc; ++i) {
             if ((strcmp(argv[i], "-in") == 0) || (strcmp(argv[i], "-i") == 0)) {

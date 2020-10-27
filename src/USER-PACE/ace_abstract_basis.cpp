@@ -49,38 +49,37 @@
 ////case nemb = 1 only implementation
 ////F = sign(x)*(  ( 1 - exp(-(w*x)^3) )*abs(x)^m + ((1/w)^(m-1))*exp(-(w*x)^3)*abs(x) )
 //// !! no prefactor wpre
-//void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
-//    DOUBLE_TYPE w = 1.e6;
-//    DOUBLE_TYPE eps = 1e-10;
-//
-//    DOUBLE_TYPE lambda = pow(1.0 / w, m - 1.0);
-//    if (abs(x) > eps) {
-//        DOUBLE_TYPE g;
-//        DOUBLE_TYPE a = abs(x);
-//        DOUBLE_TYPE am = pow(a, m);
-//        DOUBLE_TYPE w3x3 = pow(w * a, 3);
-//        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
-//        if (w3x3 > 30.0)
-//            g = 0.0;
-//        else
-//            g = exp(-w3x3);
-//
-//        DOUBLE_TYPE omg = 1.0 - g;
-//        F = sign_factor * (omg * am + lambda * g * a);
-//        DOUBLE_TYPE dg = -3.0 * w * w * w * a * a * g;
-//        DF = m * pow(a, m - 1.0) * omg - am * dg + lambda * dg * a + lambda * g;
-//    } else {
-//        F = lambda * x;
-//        DF = lambda;
-//    }
-//}
+void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
+    DOUBLE_TYPE w = 1.e6;
+    DOUBLE_TYPE eps = 1e-10;
+
+    DOUBLE_TYPE lambda = pow(1.0 / w, m - 1.0);
+    if (abs(x) > eps) {
+        DOUBLE_TYPE g;
+        DOUBLE_TYPE a = abs(x);
+        DOUBLE_TYPE am = pow(a, m);
+        DOUBLE_TYPE w3x3 = pow(w * a, 3);
+        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
+        if (w3x3 > 30.0)
+            g = 0.0;
+        else
+            g = exp(-w3x3);
+
+        DOUBLE_TYPE omg = 1.0 - g;
+        F = sign_factor * (omg * am + lambda * g * a);
+        DOUBLE_TYPE dg = -3.0 * w * w * w * a * a * g;
+        DF = m * pow(a, m - 1.0) * omg - am * dg + lambda * dg * a + lambda * g;
+    } else {
+        F = lambda * x;
+        DF = lambda;
+    }
+}
 
 
 //Scaled-shifted embedding function
 //F = sign(x)*(  ( 1 - exp(-(w*x)^3) )*abs(x)^m + ((1/w)^(m-1))*exp(-(w*x)^3)*abs(x) )
 // !! no prefactor wpre
-void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
-    DOUBLE_TYPE w = 1.e6;
+void FexpShiftedScaled(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
     DOUBLE_TYPE eps = 1e-10;
     DOUBLE_TYPE a, xoff, yoff, nx, exprho;
 
@@ -121,7 +120,10 @@ void ACEAbstractBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, 
     for (int p = 0; p < ndensity; p++) {
         wpre = FS_parameters.at(p * ndensity + 0);
         mexp = FS_parameters.at(p * ndensity + 1);
-        Fexp(rhos(p), mexp, F, DF);
+        if (this->npoti == "FinnisSinclair")
+            Fexp(rhos(p), mexp, F, DF);
+        else if (this->npoti == "FinnisSinclairShiftedScaled")
+            FexpShiftedScaled(rhos(p), mexp, F, DF);
         value += F * wpre; // * weight (wpre)
         derivatives(p) = DF * wpre;// * weight (wpre)
     }
@@ -159,6 +161,7 @@ ACEAbstractBasisSet::~ACEAbstractBasisSet() {
 void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
     deltaSplineBins = src.deltaSplineBins;
     FS_parameters = src.FS_parameters;
+    npoti = src.npoti;
 
     nelements = src.nelements;
     rankmax = src.rankmax;

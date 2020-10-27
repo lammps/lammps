@@ -284,11 +284,11 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     if(nocomment) {
       words = utils::split_words(line);
       if (key == "pair") {
-	for (int ia = 0; ia < atom->ntypes; ++ia) {
+        for (int ia = 0; ia < atom->ntypes; ++ia) {
           for (int ib = ia; ib < atom->ntypes; ++ib)
             if (((species[ia] == words[0]) && (species[ib] == words[1]))
                 || ((species[ib] == words[0]) && (species[ia] == words[1])))
-	      input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,fmt::join(words.begin()+2,words.end()," ")));
+              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,fmt::join(words.begin()+2,words.end()," ")));
         }
       } else if (key == "charge") {
         for (int ia = 0; ia < atom->ntypes; ++ia)

@@ -321,8 +321,21 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     d_vatom = k_vatom.template view<KKDeviceType>();
   }
 
-  need_dup = lmp->kokkos->need_dup<DeviceType>();
+
   neighflag = lmp->kokkos->neighflag;
+
+  // FULL neighlist still needs atomics in fix shake
+
+  if (neighflag == FULL) {
+    if (lmp->kokkos->nthreads > 1 || lmp->kokkos->ngpus > 0)
+      neighflag = HALFTHREAD;
+    else
+      neighflag = HALF;
+  }
+
+  need_dup = 0;
+  if (neighflag != HALF)
+    need_dup = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
 
   // allocate duplicated memory
 
@@ -344,10 +357,10 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   if (neighflag == HALF) {
    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixShakePostForce<1,1> >(0,nlist),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixShakePostForce<HALF,1> >(0,nlist),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakePostForce<HALF,0> >(0,nlist),*this);
-  } else if (neighflag == HALFTHREAD) {
+  } else {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixShakePostForce<HALFTHREAD,1> >(0,nlist),*this,ev);
     else

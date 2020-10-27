@@ -528,7 +528,6 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
     // unpack buffer
 
     pairKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
-
     DeviceType().fence();
   }
 }

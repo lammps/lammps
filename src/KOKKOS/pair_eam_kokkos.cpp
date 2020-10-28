@@ -180,7 +180,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // compute kernel AB
 
     if (eflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<1>,Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<1>,Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<0>,Kokkos::LaunchBounds<1024, 1> >(0,inum),*this);
   }
@@ -201,21 +201,21 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (evflag) {
     if (neighflag == HALF) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,1>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,1>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this,ev);
       }
     }
   } else {
@@ -227,7 +227,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,0>, Kokkos::LaunchBounds<256, 1> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,0>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this);
       } else {
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,0>, Kokkos::LaunchBounds<1024, 1> >(0,inum),*this);
       }
@@ -638,17 +638,20 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
   // loop over neighbors of my atoms
 
 
-#ifdef KOKKOS_ENABLE_HIP
-#ifdef __HIP_DEVICE_COMPILE__
-   __shared__ F_FLOAT A[500][7];
+#if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
+   __shared__ F_FLOAT  A[500][7];
+   const int m_max = d_rhor_spline.extent_int(1);
+   const int d_rhor_spline_cached = m_max > 500 ? 0 : 1;
 
-   for (int i = threadIdx.y; i < 500*7; i+=blockDim.y){
-      int j = i%7;
-      int m = i/7;
-          A[m][j] = d_rhor_spline(0,m,j);
-   }
+   if (d_rhor_spline_cached){
+     for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
+        int j = i%7;
+        int m = i/7;
+	if ( d_rhor_spline(0,m,j) < -55.65 ) printf("A: m=%d, j=%d, i = %d\n",m,j,i);
+        A[m][j] = d_rhor_spline(0,m,j);
+     }
     __syncthreads();
-#endif
+   }
 #endif
 
 
@@ -678,18 +681,18 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
       p -= m;
       p = MIN(p,1.0);
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-     #ifdef __HIP_DEVICE_COMPILE__
-       if (d_type2rhor_ji == 0){
+      #if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
+       if (d_type2rhor_ji == 0 && d_rhor_spline_cached == 1){
          rhotmp += ( (A[m][3]*p + A[m][4])*p +
                       A[m][5] )*p + A[m][6];
       }
       else
         rhotmp += ( (d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
                       d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
-     #else
+      #else
          rhotmp += ( (d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
                       d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
-     #endif
+      #endif
     }
 
   }
@@ -736,17 +739,23 @@ void PairEAMKokkos<DeviceType>::operator()(g<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, cons
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
 
-#ifdef KOKKOS_ENABLE_HIP
-#ifdef __HIP_DEVICE_COMPILE__
-   __shared__ F_FLOAT A[500][7]; //LG assuming second dimension of d_z2r_spline is 500;
-                                 //need to recode to "nr+1"
-   for (int i = threadIdx.y; i < 500*7; i+=blockDim.y){
+//#ifdef KOKKOS_ENABLE_HIP
+//#ifdef __HIP_DEVICE_COMPILE__
+#if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
+
+   __shared__ F_FLOAT  A[500][7]; //LG assuming second dimension of d_z2r_spline is 500 or less;
+                                 //if more then shared memory is not used
+
+   const int m_max = d_z2r_spline.extent_int(1);
+   const int d_z2r_spline_cached = m_max > 500 ? 0 : 1;
+
+   for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
       int j = i%7;
       int m = i/7;
-          A[m][j] = d_z2r_spline(0,m,j);
+      if ( d_z2r_spline(0,m,j) < -99955.65 ) printf("C: m=%d, j=%d, i = %d\n",m,j,i);
+      A[m][j] = d_z2r_spline(0,m,j);
    }
     __syncthreads();
-#endif
 #endif
 
 
@@ -805,11 +814,12 @@ void PairEAMKokkos<DeviceType>::operator()(g<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, cons
 
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
-      #ifdef __HIP_DEVICE_COMPILE__
-      const auto z2r_spline_3 = (0 == d_type2z2r_ij) ? A[m][3] : d_z2r_spline(d_type2z2r_ij,m,3);
-      const auto z2r_spline_4 = (0 == d_type2z2r_ij) ? A[m][4] : d_z2r_spline(d_type2z2r_ij,m,4);
-      const auto z2r_spline_5 = (0 == d_type2z2r_ij) ? A[m][5] : d_z2r_spline(d_type2z2r_ij,m,5);
-      const auto z2r_spline_6 = (0 == d_type2z2r_ij) ? A[m][6] : d_z2r_spline(d_type2z2r_ij,m,6);
+      #if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
+      const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij)
+      const auto z2r_spline_3 = (have_cache) ? A[m][3] : d_z2r_spline(d_type2z2r_ij,m,3);
+      const auto z2r_spline_4 = (have_cache) ? A[m][4] : d_z2r_spline(d_type2z2r_ij,m,4);
+      const auto z2r_spline_5 = (have_cache) ? A[m][5] : d_z2r_spline(d_type2z2r_ij,m,5);
+      const auto z2r_spline_6 = (have_cache) ? A[m][6] : d_z2r_spline(d_type2z2r_ij,m,6);
       #else
       const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3);
       const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);

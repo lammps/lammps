@@ -52,11 +52,6 @@
   {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
   <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
 
-  {# for improved browser compatibility #}
-  <!--[if lte IE 11]>
-    <script src="{{ pathto('_static/polyfill.js', 1) }}"></script>
-  <![endif]-->
-
   {%- if not embedded %}
   {# XXX Sphinx 1.8.0 made this an external js-file, quick fix until we refactor the template to inherert more blocks directly from sphinx #}
     {% if sphinx_version >= "1.8.0" %}

@@ -875,6 +875,11 @@ void FixRigidSmall::apply_langevin_thermostat()
     // convert langevin torques from body frame back to space frame
 
     MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);
+
+    // enforce 2d motion
+
+    if (domain->dimension == 2)
+      langextra[ibody][2] = langextra[ibody][3] = langextra[ibody][4] = 0.0;
   }
 }
 

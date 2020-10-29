@@ -11,35 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NSTENCIL_CLASS
+#ifdef NPAIR_CLASS
 
-NStencilStyle(half/bytype/3d/newton,
-              NStencilHalfBytype3dNewton,
-              NS_HALF | NS_BYTYPE | NS_3D | NS_NEWTON | NS_ORTHO)
+NPairStyle(half/size/bytype/newton/tri,
+           NPairHalfSizeBytypeNewtonTri,
+           NP_HALF | NP_SIZE | NP_BYTYPE | NP_NEWTON | NP_TRI)
 
 #else
 
-#ifndef LMP_NSTENCIL_HALF_BYTYPE_3D_NEWTON_H
-#define LMP_NSTENCIL_HALF_BYTYPE_3D_NEWTON_H
+#ifndef LMP_NPAIR_HALF_SIZE_BYTYPE_NEWTON_TRI_H
+#define LMP_NPAIR_HALF_SIZE_BYTYPE_NEWTON_TRI_H
 
-#include "nstencil.h"
+#include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfBytype3dNewton : public NStencil {
+class NPairHalfSizeBytypeNewtonTri : public NPair {
  public:
-  NStencilHalfBytype3dNewton(class LAMMPS *);
-  ~NStencilHalfBytype3dNewton();
-  void create_setup();
-  void create();
-
- private:
-  int ** maxstencil_type;
-
-  void copy_bin_info_bytype(int);
-  int  copy_neigh_info_bytype(int);
-  void create_newton(int, int, double);
-  void create_newtoff(int, int, double);
+  NPairHalfSizeBytypeNewtonTri(class LAMMPS *);
+  ~NPairHalfSizeBytypeNewtonTri() {}
+  void build(class NeighList *);
 };
 
 }
@@ -48,5 +39,9 @@ class NStencilHalfBytype3dNewton : public NStencil {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
 
 */

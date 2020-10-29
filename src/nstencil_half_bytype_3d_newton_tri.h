@@ -15,7 +15,7 @@
 
 NStencilStyle(half/bytype/3d/newton,
               NStencilHalfBytype3dNewton,
-              NS_HALF | NS_BYTYPE | NS_3D | NS_NEWTON | NS_ORTHO)
+              NS_HALF | NS_BYTYPE | NS_3D | NS_NEWTON | NS_TRI)
 
 #else
 

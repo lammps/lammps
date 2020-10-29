@@ -4518,7 +4518,7 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 16);
-    
+
     ASSERT_EQ(lmp->atom->nlocal, 16);
     ASSERT_EQ(lmp->atom->nghost, 0);
     ASSERT_NE(lmp->atom->nmax, -1);

@@ -122,18 +122,19 @@ void MEAM::alloyparams()
         // j-j)
       } else if (j > i) {
         if (iszero(Ec_meam[i][j])) {
-          if (lattce_meam[i][j] == L12)
-            Ec_meam[i][j] =
-              (3 * Ec_meam[i][i] + Ec_meam[j][j]) / 4.0 - delta_meam[i][j];
-          else if (lattce_meam[i][j] == C11) {
-            if (lattce_meam[i][i] == DIA)
-              Ec_meam[i][j] =
-                (2 * Ec_meam[i][i] + Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
-            else
-              Ec_meam[i][j] =
-                (Ec_meam[i][i] + 2 * Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
-          } else
-            Ec_meam[i][j] = (Ec_meam[i][i] + Ec_meam[j][j]) / 2.0 - delta_meam[i][j];
+          switch (lattce_meam[i][j]) {
+            case L12:
+              Ec_meam[i][j] = (3 * Ec_meam[i][i] + Ec_meam[j][j]) / 4.0 - delta_meam[i][j];
+              break;
+            case C11:
+              if (lattce_meam[i][i] == DIA)
+                Ec_meam[i][j] = (2 * Ec_meam[i][i] + Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
+              else
+                Ec_meam[i][j] = (Ec_meam[i][i] + 2 * Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
+              break;
+            default:
+              Ec_meam[i][j] = (Ec_meam[i][i] + Ec_meam[j][j]) / 2.0 - delta_meam[i][j];
+          }
         }
         if (iszero(alpha_meam[i][j]))
           alpha_meam[i][j] = (alpha_meam[i][i] + alpha_meam[j][j]) / 2.0;
@@ -181,6 +182,7 @@ void MEAM::compute_pair_meam()
   double arat, rarat, scrn, scrn2;
   double phiaa, phibb /*unused:,phitmp*/;
   double C, s111, s112, s221, S11, S22;
+  lattice_t lattaa, lattbb, lattab;
 
   // check for previously allocated arrays and free them
   if (phir != nullptr)
@@ -225,45 +227,42 @@ void MEAM::compute_pair_meam()
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
         if (nn2_meam[a][b] == 1) {
-          Z1 = get_Zij(lattce_meam[a][b]);
-          Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[a][a][b],
+          lattaa = lattce_meam[a][a];
+          lattbb = lattce_meam[b][b];
+          lattab = lattce_meam[a][b];
+
+          Z1 = get_Zij(lattab);
+          Z2 = get_Zij2(lattab, Cmin_meam[a][a][b],
                      Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
 
           //     The B1, B2,  and L12 cases with NN2 have a trick to them; we need to
           //     compute the contributions from second nearest neighbors, like a-a
           //     pairs, but need to include NN2 contributions to those pairs as
           //     well.
-          if (lattce_meam[a][b] == B1 || lattce_meam[a][b] == B2 ||
-              lattce_meam[a][b] == L12 || lattce_meam[a][b] == DIA) {
+          if (lattab == B1 || lattab == B2 || lattab == L12 || lattab == DIA) {
             rarat = r * arat;
 
             //               phi_aa
             phiaa = phi_meam(rarat, a, a);
-            Z1 = get_Zij(lattce_meam[a][a]);
-            Z2 = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
-                     Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
+            Z1 = get_Zij(lattaa);
+            Z2 = get_Zij2(lattaa, Cmin_meam[a][a][a], Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
             phiaa+= phi_meam_series(scrn, Z1, Z2, a, a, rarat, arat);
 
             //               phi_bb
             phibb = phi_meam(rarat, b, b);
-            Z1 = get_Zij(lattce_meam[b][b]);
-            Z2 = get_Zij2(lattce_meam[b][b], Cmin_meam[b][b][b],
-                     Cmax_meam[b][b][b], stheta_meam[b][b], arat, scrn);
+            Z1 = get_Zij(lattbb);
+            Z2 = get_Zij2(lattbb, Cmin_meam[b][b][b], Cmax_meam[b][b][b], stheta_meam[b][b], arat, scrn);
             phibb+= phi_meam_series(scrn, Z1, Z2, b, b, rarat, arat);
 
-            if (lattce_meam[a][b] == B1 || lattce_meam[a][b] == B2 ||
-                lattce_meam[a][b] == DIA) {
+            if (lattab == B1 || lattab == B2 || lattab == DIA) {
               //     Add contributions to the B1 or B2 potential
-              Z1 = get_Zij(lattce_meam[a][b]);
-              Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[a][a][b],
-                       Cmax_meam[a][a][b], stheta_meam[a][b],  arat, scrn);
-              phir[nv2][j] = phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
-              Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[b][b][a],
-                       Cmax_meam[b][b][a], stheta_meam[a][b], arat, scrn2);
+              Z1 = get_Zij(lattab);
+              Z2 = get_Zij2(lattab, Cmin_meam[a][a][b], Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
+              phir[nv2][j] -= Z2 * scrn / (2 * Z1) * phiaa;
+              Z2 = get_Zij2(lattab, Cmin_meam[b][b][a], Cmax_meam[b][b][a], stheta_meam[a][b], arat, scrn2);
+              phir[nv2][j] -= Z2 * scrn2 / (2 * Z1) * phibb;
 
-              phir[nv2][j] = phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
-
-            } else if (lattce_meam[a][b] == L12) {
+            } else if (lattab == L12) {
               //     The L12 case has one last trick; we have to be careful to
               //     compute
               //     the correct screening between 2nd-neighbor pairs.  1-1
@@ -493,32 +492,32 @@ double MEAM::phi_meam(double r, int a, int b)
              attrac_meam[a][b], erose_form);
 
   // calculate the pair energy
-  if (lattce_meam[a][b] == C11) {
-    latta = lattce_meam[a][a];
-    if (latta == DIA) {
+  switch (lattce_meam[a][b]) {
+    case C11:
+      latta = lattce_meam[a][a];
+      if (latta == DIA) {
+        phiaa = phi_meam(r, a, a);
+        phi_m = (3 * Eu - F2 - 2 * F1 - 5 * phiaa) / Z12;
+      } else {
+        phibb = phi_meam(r, b, b);
+        phi_m = (3 * Eu - F1 - 2 * F2 - 5 * phibb) / Z12;
+      }
+      break;
+    case L12:
       phiaa = phi_meam(r, a, a);
-      phi_m = (3 * Eu - F2 - 2 * F1 - 5 * phiaa) / Z12;
-    } else {
-      phibb = phi_meam(r, b, b);
-      phi_m = (3 * Eu - F1 - 2 * F2 - 5 * phibb) / Z12;
-    }
-  } else if (lattce_meam[a][b] == L12) {
-    phiaa = phi_meam(r, a, a);
-    //       account for second neighbor a-a potential here...
-    Z1nn = get_Zij(lattce_meam[a][a]);
-    Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
-             Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
+      //       account for second neighbor a-a potential here...
+      Z1nn = get_Zij(lattce_meam[a][a]);
+      Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
+               Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
 
-
-    phiaa += phi_meam_series(scrn, Z1nn, Z2nn, a, a, r, arat);
-    phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
-
-  } else if (lattce_meam[a][b] == CH4) {
-    phi_m = (5 * Eu - F1 - 4*F2)/4;
-
-
-  } else if (lattce_meam[a][b] == ZIG) {
-      if (a==b) {
+      phiaa += phi_meam_series(scrn, Z1nn, Z2nn, a, a, r, arat);
+      phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
+      break;
+    case CH4:
+      phi_m = (5 * Eu - F1 - 4*F2)/4;
+      break;
+    case ZIG:
+      if (a==b){
         phi_m = (2 * Eu - F1 - F2) / Z12;
       } else{
         Z1 = get_Zij(lattce_meam[a][b]);
@@ -531,21 +530,21 @@ double MEAM::phi_meam(double r, int a, int b)
         phibb = phi_meam(2.0*stheta_meam[a][b]*r, b, b);
         phi_m = (2.0*Eu - F1 - F2 + phiaa*b11s + phibb*b22s) / Z12;
       }
-
-  } else if (lattce_meam[a][b] == TRI) {
-      if (a==b) {
+      break;
+    case TRI:
+      if (a==b){
         phi_m = (3.0*Eu - 2.0*F1 - F2) / Z12;
-     } else {
+      } else {
         Z1 = get_Zij(lattce_meam[a][b]);
         Z2 = get_Zij2_b2nn(lattce_meam[a][b], Cmin_meam[a][a][b], Cmax_meam[a][a][b], scrn);
         b11s = -Z2/Z1*scrn;
         phiaa = phi_meam(2.0*stheta_meam[a][b]*r, a, a);
         phi_m = (3.0*Eu - 2.0*F1 - F2 + phiaa*b11s) / Z12;
       }
-
-  } else {
-    // potential is computed from Rose function and embedding energy
-    phi_m = (2 * Eu - F1 - F2) / Z12;
+      break;
+    default:
+      // potential is computed from Rose function and embedding energy
+      phi_m = (2 * Eu - F1 - F2) / Z12;
   }
 
   // if r = 0, just return 0

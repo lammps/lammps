@@ -38,6 +38,11 @@ void MEAM::meam_checkindex(int num, int lim, int nidx, int *idx /*idx(3)*/, int 
       return;
     }
   }
+
+  if (STRICT_IJ_ORDER && (num >= 2) && (idx[0] > idx[1])) {
+    *ierr = 4;
+    return;
+  }
 }
 
 //     The "which" argument corresponds to the index of the "keyword" array

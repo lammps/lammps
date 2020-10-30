@@ -18,6 +18,9 @@
 #include <string>
 
 constexpr int MAXELT = 8;
+// This should really be true for sanity reasons (see MEAM::alloyparams),
+// but breaks too many potential files - including our tests. So disable for now.
+constexpr bool STRICT_IJ_ORDER = false;
 
 namespace LAMMPS_NS {
 class Memory;

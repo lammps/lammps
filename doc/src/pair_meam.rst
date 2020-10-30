@@ -223,6 +223,9 @@ selected starting from 1. Thus for the example given before
 
 an index of 1 would refer to Si and an index of 2 to C.
 
+Make sure to specify only I<=J pairs, as the symmetric other pair is filled
+in automatically.
+
 The recognized keywords for the parameter file are as follows:
 
 .. parsed-literal::

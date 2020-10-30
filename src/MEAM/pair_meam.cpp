@@ -620,9 +620,12 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     int errorflag = 0;
     meam_inst->meam_setup_param(which, value, nindex, index, &errorflag);
     if (errorflag) {
-      const char *descr[] = {"has an unknown error", "is out of range (please report a bug)",
-                             "expected more indices", "has out of range element index"};
-      if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
+      const char *descr[] = { "has an unknown error",
+              "is out of range (please report a bug)",
+              "expected more indices",
+              "has out of range element index",
+              "has invalid order (I>J)"};
+      if ((errorflag < 0) || (errorflag > 4)) errorflag = 0;
       error->all(FLERR, uidx, "Error in MEAM parameter file {}:{}: keyword {} {}", userfile, lineno,
                  keyword, descr[errorflag]);
     }

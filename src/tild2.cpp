@@ -42,11 +42,9 @@ using namespace std;
 #define SMALL 0.00001
 #define OFFSET 16384
 #define MAXORDER   7
-#define MAXPARAM   3 // Update as new potentials are introduced
-#define MAX_GROUP 32
 
-enum{REVERSE_RHO, REVERSE_RHO_NONE};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM, FORWARD_NONE};
+enum{REVERSE_RHO_NONE};
+enum{FORWARD_NONE};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -60,10 +58,12 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM, FORWARD_NONE};
 /* ------------------------------------------------------------ */
 
 TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
-  vg(NULL), factors(NULL), fkx(NULL), fky(NULL), fkz(NULL), 
-  work1(NULL), work2(NULL), rho1d(NULL),  rho_coeff(NULL), drho_coeff(NULL), 
-  density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL), density_B_fft(NULL), 
-  fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),  part2grid(NULL), boxlo(NULL)
+  factors(NULL), fkx(NULL), fky(NULL), fkz(NULL), vg(NULL),
+  work1(NULL), work2(NULL), rho1d(NULL), rho_coeff(NULL), drho_coeff(NULL), 
+  gradWtypex(NULL), gradWtypey(NULL), gradWtypez(NULL), density_brick_types(NULL),
+  fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),  
+  part2grid(NULL), boxlo(NULL)
+  //gradWtype(NULL)
  {
   if (comm->me == 0) {
     if (screen) fprintf(screen, "TILD construction...\n");
@@ -80,11 +80,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   tildflag = 1;
   triclinic = domain->triclinic;
   triclinic_support = 0;
-  nfactors = 3;
-  factors = new int[nfactors];
-  factors[0] = 2;
-  factors[1] = 3;
-  factors[2] = 5;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -93,11 +88,37 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
+
+  nfactors = 3;
+  factors = new int[nfactors];
+  factors[0] = 2;
+  factors[1] = 3;
+  factors[2] = 5;
+
+  fkx = fky = fkz = NULL;
+  fkx2 = fky2 = fkz2 = NULL;
+
+  vg = NULL;
+  vg_hat = NULL;
+
+  work1 = work2 = NULL;
+  rho1d = rho_coeff = drho_coeff = NULL;
+
+  fft1 = fft2 = NULL;
+  remap = NULL;
+  cg = NULL;
+  cg_peratom = NULL;
+  part2grid = NULL;
+  specified_all_group = 0;
+
   density_brick_types = NULL;
   avg_density_brick_types = NULL;
   density_fft_types = NULL;
   density_hat_fft_types = NULL;
-  gradWtype = NULL;
+  //gradWtype = NULL;
+  gradWtypex = NULL;
+  gradWtypey = NULL;
+  gradWtypez = NULL;
   potent = NULL;
   potent_hat = NULL;
   grad_potent = NULL;
@@ -113,22 +134,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   ktmpi = ktmpj = NULL;
   ktmp2i = ktmp2j = NULL;
   tmp = NULL;
-  work1 = work2 = NULL;
-  vg = NULL;
-  vg_hat = NULL;
-  fkx = fky = fkz = NULL;
-  fkx2 = fky2 = fkz2 = NULL;
-
-  density_A_brick = density_B_brick = NULL;
-  density_A_fft = density_B_fft = NULL;
-
-  rho1d = rho_coeff = drho_coeff = NULL;
-
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  cg = NULL;
-  cg_peratom = NULL;
-  specified_all_group = 0;
 
   rho0 = 0.0;
   nmax = 0;
@@ -145,15 +150,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   set_rho0 = 1.0;
   subtract_rho0 = 0;
   norm_flag = 1;
-  part2grid = NULL;
 
-/*
-  for (int i =0; i < MAX_GROUP; i++){
-    for (int j = 0; j < MAX_GROUP; j++) {
-        group_with_potential[i][j] = -1;
-    }
-  }
-*/
   int ntypes = atom->ntypes;
   memory->create(potent_type_map,nstyles+1,ntypes+1,ntypes+1,"tild:potent_type_map");  
 
@@ -186,7 +183,6 @@ TILD::~TILD(){
 
   delete [] factors;
   deallocate();
-  deallocate_groups();
   deallocate_peratom();
   memory->destroy(part2grid);
   part2grid = NULL;
@@ -235,10 +231,13 @@ void TILD::init()
 
   // free all arrays previously allocated
   deallocate();
-  deallocate_groups();
-  deallocate_peratom();
+  if (peratom_allocate_flag) deallocate_peratom();
 
   set_grid();
+
+  //allocate();
+  //cg->ghost_notify();
+  //cg->setup();
 
   setup_grid();
 
@@ -421,15 +420,13 @@ void TILD::vir_func_init() {
         }
 
       }
-/*
-      std::string fname = "vg_"+std::to_string(itype)+"-"+std::to_string(jtype)+"_lammps.txt";
+      std::string fname = "vg_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
       std::ofstream file(fname);
       n = 0;
       for (int j = 0; j <  nfft; j++) {
         file << j <<'\t'<< vg[loc][0][j]  <<'\t'<< vg[loc][1][j]  <<'\t'<< vg[loc][2][j]  <<'\t'<< vg[loc][3][j]  <<'\t'<< vg[loc][4][j] <<'\t'<< vg[loc][5][j] <<'\t'<< vg_hat[loc][0][n]  <<'\t'<< vg_hat[loc][1][n]  <<'\t'<< vg_hat[loc][2][n]  <<'\t'<< vg_hat[loc][3][n]  <<'\t'<< vg_hat[loc][4][n] <<'\t'<< vg_hat[loc][5][n] <<'\t'<< vg_hat[loc][0][n+1]  <<'\t'<< vg_hat[loc][1][n+1]  <<'\t'<< vg_hat[loc][2][n+1]  <<'\t'<< vg_hat[loc][3][n+1]  <<'\t'<< vg_hat[loc][4][n+1] <<'\t'<< vg_hat[loc][5][n+1] << endl;
         n += 2;
       }
-*/
       loc++;
     }
   }
@@ -441,7 +438,6 @@ void TILD::setup_grid()
 
   deallocate();
   deallocate_peratom();
-  if (group_allocate_flag) deallocate_groups();
 
   // reset portion of global grid that each proc owns
 
@@ -457,22 +453,25 @@ void TILD::setup_grid()
                     shift, shiftone, order);
 
 
+  int ngrid_max,nfft_both_max;
+  MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
   // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
 
-  // pre-compute volume-dependent coeffs
-  compute_rho_coeff(rho_coeff, drho_coeff, order);
-
-  rho0 = calculate_rho0();
-
   cg->ghost_notify();
   if (overlap_allowed == 0 && cg->ghost_overlap())
     error->all(FLERR,"PPPM grid stencil extends "
                "beyond nearest neighbor processor");
   cg->setup();
+
+  // pre-compute volume-dependent coeffs
+  compute_rho_coeff(rho_coeff, drho_coeff, order);
+
+  rho0 = calculate_rho0();
 
   setup();
 }
@@ -498,15 +497,13 @@ void TILD::precompute_density_hat_fft() {
       density_hat_fft_types[ktype][k] = work1[k];
     }
 
-/*
-    std::string fname = "rho_"+std::to_string(ktype)+"_lammps.txt";
+    std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(ktype)+".txt";
     std::ofstream rhof(fname);
     n = 0;
     for (int k = 0; k < nfft; k++){
       rhof << k << '\t' << density_fft_types[ktype][k] << '\t' << density_hat_fft_types[ktype][n] << '\t' << density_hat_fft_types[ktype][n+1] << endl;
       n += 2;
     }
-*/
   }
 }
 
@@ -523,7 +520,6 @@ void TILD::compute(int eflag, int vflag){
   }
 
   // convert atoms from box to lamda coords
-
   
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
@@ -531,15 +527,13 @@ void TILD::compute(int eflag, int vflag){
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
-      cg_peratom->ghost_notify();
-      cg_peratom->setup();
+    cg_peratom->ghost_notify();
+    cg_peratom->setup();
     peratom_allocate_flag = 1;
   }
 
-  if (triclinic == 0) boxlo = domain->boxlo;
-  else {
-    boxlo = domain->boxlo_lamda;
-    domain->x2lamda(atom->nlocal);
+  if (atom->natoms != natoms_original) {
+    natoms_original = atom->natoms;
   }
   // extend size of per-atom arrays if necessary
 
@@ -572,33 +566,48 @@ void TILD::compute(int eflag, int vflag){
   }
   if ( ave_grid_flag == 1 ) ave_grid();
 
-/*
   if (eflag_global){
     double energy_all;
-    double volume = domain->xprd * domain->yprd * domain->zprd;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
-    energy = energy_all * volume;
+    //double volume = domain->xprd * domain->yprd * domain->zprd;
+    energy = energy_all; // * volume;
 
   }
 
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    for (i = 0; i < 6; i++) virial[i] = volume * virial_all[i]; // DOUBLE CHECK THIS CALCULATION
-  }
-*/
-  if (atom->natoms != natoms_original) {
-    natoms_original = atom->natoms;
+    //double volume = domain->xprd * domain->yprd * domain->zprd;
+    for (int i = 0; i < 6; i++) virial[i] = virial_all[i]; // * volume; // DOUBLE CHECK THIS CALCULATION
   }
   if (triclinic) domain->lamda2x(atom->nlocal);
   return;
 }
 
 
-double TILD::memory_usage(){
-  return 0;
+
+/* ----------------------------------------------------------------------
+   memory usage of local arrays
+------------------------------------------------------------------------- */
+
+double TILD::memory_usage()
+{
+  double bytes = nmax *3 * sizeof(double); // positions
+  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
+  bytes += 4 * nbrick * sizeof(FFT_SCALAR); // work1 ?
+  
+  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
+  bytes += atom->ntypes * 6 * nfft_both * sizeof(double); 
+  bytes += atom->ntypes * nfft_both * sizeof(double); 
+  bytes += atom->ntypes * nfft_both*5 * sizeof(FFT_SCALAR);
+
+  if (cg) bytes += cg->memory_usage();
+
+  return bytes;
 }
+
+
 
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
@@ -607,7 +616,7 @@ double TILD::memory_usage(){
 void TILD::allocate()
 {
 
-  int Dim = domain->dimension;
+  //int Dim = domain->dimension;
   int (*procneigh)[2] = comm->procneigh;
   
   int ntypes = atom->ntypes;
@@ -627,9 +636,20 @@ void TILD::allocate()
   memory->create4d_offset(avg_density_brick_types,ntypes+1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:avg_density_brick_types");
+/*
   memory->create5d_offset(gradWtype,ntypes+1, 0, Dim-1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWtype");
+*/
+  memory->create4d_offset(gradWtypex,ntypes+1, 
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWtypex");
+  memory->create4d_offset(gradWtypey,ntypes+1, 
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWtypey");
+  memory->create4d_offset(gradWtypez,ntypes+1, 
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:gradWtypez");
 
   memory->create(work1,2*nfft_both,"tild:work1");
   memory->create(work2,2*nfft_both,"tild:work2");
@@ -648,7 +668,6 @@ void TILD::allocate()
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"tild:potent_hat");
   memory->create(grad_potent,ntypecross+1,domain->dimension,nfft_both,"tild:grad_potent");
   memory->create(grad_potent_hat,ntypecross+1, domain->dimension,2*nfft_both,"tild:grad_potent_hat");
-  // for (int ind = 0; ind < MAX_GROUP; ind++) assigned_pot[ind] = -1;
 
   // determine if a type has a density function description
 
@@ -723,6 +742,7 @@ void TILD::allocate()
 void TILD::deallocate()
 {
   memory->destroy(setflag);
+  setflag = NULL;
 
   //memory->destroy(potent_type_map);
 
@@ -730,6 +750,9 @@ void TILD::deallocate()
   memory->destroy4d_offset(avg_density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
   memory->destroy(density_hat_fft_types);
+  density_brick_types = NULL;
+  avg_density_brick_types = NULL;
+  density_fft_types = density_hat_fft_types = NULL;
   memory->destroy(ktmp);
   memory->destroy(ktmpi);
   memory->destroy(ktmpj);
@@ -737,6 +760,7 @@ void TILD::deallocate()
   memory->destroy(ktmp2i);
   memory->destroy(ktmp2j);
   memory->destroy(tmp);
+  tmp = ktmp = ktmpi = ktmpj = ktmp2 = ktmp2i = ktmp2j = tmp = NULL;
 
   memory->destroy(vg);
   memory->destroy(vg_hat);
@@ -744,13 +768,22 @@ void TILD::deallocate()
   memory->destroy(potent_hat);
   memory->destroy(grad_potent);
   memory->destroy(grad_potent_hat);
+  vg_hat = vg = NULL;
+  potent_hat = potent = NULL;
+  grad_potent_hat = grad_potent = NULL;
 
-  memory->destroy5d_offset(gradWtype, 0,
-                          nzlo_out,nylo_out,
-                          nxlo_out);
+  //memory->destroy5d_offset(gradWtype, 0, nzlo_out,nylo_out, nxlo_out);
+  memory->destroy4d_offset(gradWtypex, nzlo_out,nylo_out, nxlo_out);
+  memory->destroy4d_offset(gradWtypey, nzlo_out,nylo_out, nxlo_out);
+  memory->destroy4d_offset(gradWtypez, nzlo_out,nylo_out, nxlo_out);
 
+  //gradWtype = NULL;
+  gradWtypex = NULL;
+  gradWtypey = NULL;
+  gradWtypez = NULL;
   memory->destroy(work1);
   memory->destroy(work2);
+  work1 = work2 = NULL;
 
   if (triclinic == 0) {
     memory->destroy1d_offset(fkx,nxlo_fft);
@@ -772,6 +805,7 @@ void TILD::deallocate()
   memory->destroy2d_offset(rho1d,-order_allocated/2);
   memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
   memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
+  rho1d = rho_coeff = drho_coeff = NULL;
 
   delete fft1;
   delete fft2;
@@ -780,7 +814,6 @@ void TILD::deallocate()
   fft1 = fft2 = NULL;
   remap = NULL;
   cg = NULL;
-  //memory->destroy(assigned_pot);
 }
 
 /* ----------------------------------------------------------------------
@@ -928,6 +961,7 @@ void TILD::init_cross_potentials(){
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own
 
+// Should this be here APS?
   int Dim = domain->dimension;
   int npey_fft,npez_fft;
   if (nz_pppm >= nprocs) {
@@ -938,6 +972,7 @@ void TILD::init_cross_potentials(){
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
 
+// Should this be here APS?
   nxlo_fft = 0;
   nxhi_fft = nx_pppm - 1;
   nylo_fft = me_y*ny_pppm/npey_fft;
@@ -1000,7 +1035,6 @@ void TILD::init_cross_potentials(){
       } 
       // Computational Convolution
       else {
-
         // calculate 1st and 2nd potentials to convolv
         //fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
         if (mix_flag == 1) {
@@ -1034,11 +1068,11 @@ void TILD::init_cross_potentials(){
       }
 
       get_k_alias(potent_hat[loc], grad_potent_hat[loc]);
-      for (int i=0; i < Dim; i ++){
+      for (int i=0; i < Dim; i++){
         for (int j = 0; j < 2*nfft; j++) {
           work1[j] = grad_potent_hat[loc][i][j];
         }
-        fft2->compute(work1, work2, -1);
+        fft1->compute(work1, work2, -1);
         n = 0;
         for (int j = 0; j < nfft; j++) {
           grad_potent[loc][i][j] = -work2[n]; // still not sure about minus sign ..
@@ -1047,11 +1081,10 @@ void TILD::init_cross_potentials(){
       } 
 
       // output
-/*
-      std::string fnameU = "U_lammps_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradU = "gradU_lammps_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradUhat = "gradUhat_lammps_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradUhatI = "gradUhatimag_lammps_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
+      std::string fnameU = "U_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
+      std::string fnamegradU = "gradU_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
+      std::string fnamegradUhat = "gradUhat_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
+      std::string fnamegradUhatI = "gradUhatimag_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
       ofstream fileU(fnameU);
       ofstream filegradU(fnamegradU);
       ofstream filegradUhat(fnamegradUhat);
@@ -1069,7 +1102,6 @@ void TILD::init_cross_potentials(){
       filegradU.close();
       filegradUhat.close();
       filegradUhatI.close();
-*/
       loc++;
     }
   }
@@ -1472,14 +1504,20 @@ int TILD::modify_param(int narg, char** arg)
 void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
-  int Dim = domain->dimension;
+  //int Dim = domain->dimension;
 
   if (flag == FORWARD_NONE){
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
-      for (int j = 0; j < Dim; j++) {
-        FFT_SCALAR *src = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
-        for (int i = 0; i < nlist; i++)
-          buf[n++] = src[list[i]];
+      //for (int j = 0; j < Dim; j++) {
+        //FFT_SCALAR *src = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *srcx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *srcy = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *srcz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
+        for (int i = 0; i < nlist; i++) {
+          //buf[n++] = src[list[i]];
+          buf[n++] = srcx[list[i]];
+          buf[n++] = srcy[list[i]];
+          buf[n++] = srcz[list[i]];
       }
     }
   }
@@ -1488,14 +1526,20 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
-  int Dim = domain->dimension;
+  //int Dim = domain->dimension;
 
   if (flag == FORWARD_NONE){
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
-      for (int j = 0; j < Dim; j++) {
-        FFT_SCALAR *dest = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
-        for (int i = 0; i < nlist; i++)
-          dest[list[i]] = buf[n++];
+      //for (int j = 0; j < Dim; j++) {
+        //FFT_SCALAR *dest = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *destx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *desty = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *destz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
+        for (int i = 0; i < nlist; i++) {
+          //dest[list[i]] = buf[n++];
+          destx[list[i]] = buf[n++];
+          desty[list[i]] = buf[n++];
+          destz[list[i]] = buf[n++];
       }
     }
   }
@@ -1722,34 +1766,6 @@ void TILD::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
 
 }
 
-/* ----------------------------------------------------------------------
- allocate group-group memory that depends on # of K-vectors and order
- ------------------------------------------------------------------------- */
-void TILD::allocate_groups()
-{
-  group_allocate_flag = 1;
-
-  memory->create3d_offset(density_A_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"pppm:density_A_brick");
-  memory->create3d_offset(density_B_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"pppm:density_B_brick");
-  memory->create(density_A_fft,nfft_both,"pppm:density_A_fft");
-  memory->create(density_B_fft,nfft_both,"pppm:density_B_fft");
-}
-
-/* ----------------------------------------------------------------------
- deallocate group-group memory that depends on # of K-vectors and order
- ------------------------------------------------------------------------- */
-void TILD::deallocate_groups()
-{
-  group_allocate_flag = 0;
-
-  memory->destroy3d_offset(density_A_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy3d_offset(density_B_brick,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy(density_A_fft);
-  memory->destroy(density_B_fft);
-}
-
 void TILD::make_rho()
 {
   int nx,ny,nz,mx,my,mz;
@@ -1813,6 +1829,7 @@ void TILD::brick2fft()
   //   but this works optimally on only double values, not complex values
 
   for (int k = 0; k <= ntypes; k++) {
+    //std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(k)+".txt";
     int n = 0;
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
@@ -1821,9 +1838,18 @@ void TILD::brick2fft()
           //rhof<<n-1<<'\t'<<density_fft_types[k][n-1] <<std::endl;
         }
   }
+/*
+    std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(1)+".txt";
+    std::ofstream rhof(fname);
+    for (iz = nzlo_in; iz <= nzhi_in; iz++)
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          rhof<< density_brick_types[1][iz][iy][ix] << '\t' << density_brick_types[2][iz][iy][ix] <<std::endl;
+    rhof.close();
+*/
 
   for (int k = 0; k <= ntypes; k++) {
-    remap->perform(density_fft_types[k],density_fft_types[k],work1);
+    remap->perform(density_fft_types[k],density_fft_types[k],work1); // is this right?
   }
 }
 
@@ -1858,12 +1884,20 @@ void TILD::accumulate_gradient() {
   int n = 0;
   int ntypes = atom->ntypes;
   
-  precompute_density_hat_fft(); // calculate rho_hat for each type
+  precompute_density_hat_fft(); // calculate rho_hat for each type APS?
 
-  for ( int ktype = 1; ktype <= ntypes; ktype++)
-    for (int i = 0; i < Dim; i++)
-      memset(&(gradWtype[ktype][i][nzlo_out][nylo_out][nxlo_out]), 0,
+//this may be it
+  for ( int ktype = 1; ktype <= ntypes; ktype++) {
+    //for (int i = 0; i < Dim; i++)
+      //memset(&(gradWtype[ktype][i][nzlo_out][nylo_out][nxlo_out]), 0,
+      //       ngrid * sizeof(FFT_SCALAR));
+      memset(&(gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out]), 0,
              ngrid * sizeof(FFT_SCALAR));
+      memset(&(gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out]), 0,
+             ngrid * sizeof(FFT_SCALAR));
+      memset(&(gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out]), 0,
+             ngrid * sizeof(FFT_SCALAR));
+  }
 
   //typedef std::tuple<int, int, double, int, int> tup_iidii;
 
@@ -1903,16 +1937,29 @@ void TILD::accumulate_gradient() {
           if (diff_type) complex_multiply(grad_potent_hat[loc][i], density_hat_fft_types[jtype], ktmp2j, n);
           n += 2;
         }
-        fft1->compute(ktmp2i, ktmpi, -1);
-        if (diff_type) fft1->compute(ktmp2j, ktmpj, -1);
+
+        fft2->compute(ktmp2i, ktmpi, -1);
+        if (diff_type) fft2->compute(ktmp2j, ktmpj, -1);
 
         n = 0;
         int j = 0;
         for (int k = nzlo_in; k <= nzhi_in; k++)  {
           for (int m = nylo_in; m <= nyhi_in; m++) {
             for (int o = nxlo_in; o <= nxhi_in; o++) {
+/*
               gradWtype[jtype][i][k][m][o] += ktmpi[n] * tmp_chi;
               if (diff_type) gradWtype[itype][i][k][m][o] += ktmpj[n] * tmp_chi;
+*/
+              if ( i == 0 ) {
+                gradWtypex[jtype][k][m][o] += ktmpi[n] * tmp_chi;
+                if (diff_type) gradWtypex[itype][k][m][o] += ktmpj[n] * tmp_chi;
+              } else if ( i == 1 ) {
+                gradWtypey[jtype][k][m][o] += ktmpi[n] * tmp_chi;
+                if (diff_type) gradWtypey[itype][k][m][o] += ktmpj[n] * tmp_chi;
+              } else {
+                gradWtypez[jtype][k][m][o] += ktmpi[n] * tmp_chi;
+                if (diff_type) gradWtypez[itype][k][m][o] += ktmpj[n] * tmp_chi;
+              }
               n += 2;
               j++;
             }
@@ -1922,17 +1969,16 @@ void TILD::accumulate_gradient() {
       loc++;
     }
   }
-/*
   for (int itype = 1; itype <= ntypes; itype++) {
-    std::string fname = "gradw_"+std::to_string(itype)+"_lammps.txt";
+    std::string fname = "gradw_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+".txt";
     std::ofstream gradtype(fname);
     n = 0;
     for (int k = nzlo_in; k <= nzhi_in; k++)
       for (int m = nylo_in; m <= nyhi_in; m++)
         for (int o = nxlo_in; o <= nxhi_in; o++)
-          gradtype << n++ <<'\t'<< gradWtype[itype][0][k][m][o] <<'\t'<< gradWtype[itype][1][k][m][o] <<'\t'<<  gradWtype[itype][2][k][m][o]<< endl;
+          gradtype << n++ <<'\t'<< gradWtypex[itype][k][m][o] <<'\t'<< gradWtypey[itype][k][m][o] <<'\t'<<  gradWtypez[itype][k][m][o]<< endl;
+          //gradtype << n++ <<'\t'<< gradWtype[itype][0][k][m][o] <<'\t'<< gradWtype[itype][1][k][m][o] <<'\t'<<  gradWtype[itype][2][k][m][o]<< endl;
   }
-*/
 }
 
 void TILD::fieldforce_param(){
@@ -1952,7 +1998,10 @@ void TILD::fieldforce_param(){
   int nlocal = atom->nlocal;
 
   // Convert field to force per particle
-  //ofstream delvolinv_forces("delv_forces_lammps.txt");
+  std::string fname = "forces_lammps_"+std::to_string(comm->me)+".txt";
+  ofstream delvolinv_forces(fname);
+  std::string fname2 = "posgrid_"+std::to_string(comm->me)+".txt";
+  ofstream posgrid(fname2);
   // ofstream grid_vol_forces("gridvol_forces_lammps.txt");
   // ofstream both_forces("delv_gridvol_forces_lammps.txt");
   int *type = atom->type;
@@ -1981,9 +2030,14 @@ void TILD::fieldforce_param(){
           mx = l+nx;
           x0 = y0*rho1d[0][l];
           // gradWpotential 0 to 1 ?????
+/*
           ekx += x0 * gradWtype[temp_type][0][mz][my][mx];
           eky += x0 * gradWtype[temp_type][1][mz][my][mx];
           ekz += x0 * gradWtype[temp_type][2][mz][my][mx];
+*/
+          ekx += x0 * gradWtypex[temp_type][mz][my][mx];
+          eky += x0 * gradWtypey[temp_type][mz][my][mx];
+          ekz += x0 * gradWtypez[temp_type][mz][my][mx];
         }
       }
     }
@@ -1997,7 +2051,8 @@ void TILD::fieldforce_param(){
     // f[i][1] += grid_vol * eky;
     // f[i][2] += grid_vol * ekz;
     //delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
-    //delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
+    delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
+    //posgrid << x[i][0] <<'\t'<< x[i][1] <<'\t'<<  x[i][2] << '\t'<< rho1d[0][0] << '\t'<< rho1d[1][0] << '\t'<< rho1d[2][0] << endl;
     // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
     // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;
     // grid_vol_forces<<i<<'\t'<< "2 " <<'\t'<<  grid_vol*ekz << endl;
@@ -2008,6 +2063,7 @@ void TILD::fieldforce_param(){
     // forces<< "Z " <<'\t'<< delvolinv*ekz << std::endl;
   }
 //delvolinv_forces.close();
+//posgrid.close();
 }
 
 /* ----------------------------------------------------------------------
@@ -2162,11 +2218,14 @@ double TILD::calculate_rho0(){
     }
   }
 
-  if (screen) {
-    fprintf(screen, "Found %d particles without a TILD potential.\n", particles_not_tild);
-  }
-  if (logfile) {
-    fprintf(logfile, "Found %d particles without a TILD potential.\n", particles_not_tild);
+
+  if (comm->me == 0) {
+    if (screen) {
+      fprintf(screen, "Found %d particles without a TILD potential.\n", particles_not_tild);
+    }
+    if (logfile) {
+      fprintf(logfile, "Found %d particles without a TILD potential.\n", particles_not_tild);
+    }
   }
 
   for ( int itype = 1; itype <= ntypes; itype++) {
@@ -2184,8 +2243,10 @@ double TILD::calculate_rho0(){
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
   rho0 = lmass_all / vole;
-  if (logfile) {
-    fprintf(logfile, "User set rho0 = %f; actual rho0 = %f for TILD potential.\n", set_rho0, rho0);
+  if (comm->me == 0) {
+    if (logfile) {
+      fprintf(logfile, "User set rho0 = %f; actual rho0 = %f for TILD potential.\n", set_rho0, rho0);
+    }
   }
   return rho0;
 }

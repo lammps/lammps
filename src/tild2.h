@@ -34,53 +34,63 @@ class TILD : public KSpace{
   virtual void setup();
   virtual void settings(int, char **);
   virtual void compute(int, int);
-  void precompute_density_hat_fft();
   double memory_usage();
-  class FFT3d *fft1,*fft2;
-  class Remap *remap;
-  class GridComm *cg;
-  class GridComm *cg_peratom;
-  int *groupbits;
   void setup_grid();
-  // virtual int timing_1d(int, double &);
-  // virtual int timing_3d(int, double &);
-
-  void field_groups(int);
-  void field_gradient(FFT_SCALAR*, FFT_SCALAR**, int);
-  // void get_k_alias(int, double *);
 
  protected:
   // For future kspace_hybrid
   int nstyles;                  // # of sub-styles For future kspace_hybrid
   int **setflag;                 // 0/1 = whether each i,j has been set
 
+  int nfactors;
+  int *factors;
+
+  double *fkx,*fky,*fkz;
+  double *fkx2, *fky2, *fkz2;
+
+  FFT_SCALAR ***vg;
+  FFT_SCALAR ***vg_hat;
+
+  FFT_SCALAR *work1,*work2;
+
+  FFT_SCALAR **rho1d,**rho_coeff,**drho_coeff;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
+  FFT_SCALAR ****gradWtypex, ****gradWtypey, ****gradWtypez;
+  //FFT_SCALAR *****gradWtype;
+
+  FFT_SCALAR ****density_brick_types;
+  FFT_SCALAR ****avg_density_brick_types;
+  FFT_SCALAR *kappa_density;
+  FFT_SCALAR **density_fft_types;
+  FFT_SCALAR **density_hat_fft_types;
+  FFT_SCALAR *ktmp;
+  FFT_SCALAR *ktmpi;
+  FFT_SCALAR *ktmpj;
+  FFT_SCALAR *ktmp2;
+  FFT_SCALAR *ktmp2i;
+  FFT_SCALAR *ktmp2j;
+  FFT_SCALAR *tmp;
+
   int **potent_map;
-  FFT_SCALAR *****gradWtype;
-  int kxmax,kymax,kzmax;
-  int kcount,kmax,kmax3d,kmax_created;
-  double gsqmx,volume;
+  //int kxmax,kymax,kzmax;
+  //int kcount,kmax,kmax3d,kmax_created;
+  double volume;
+  //double gsqmx,volume;
   int nmax;
+
+  void precompute_density_hat_fft();
   void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
   double **potent_param;
   int npot, *pot_map;
   int ***potent_type_map;
   double rho0, set_rho0;
 
-  double unitk[3];
-  int *kxvecs,*kyvecs,*kzvecs;
-  int kxmax_orig,kymax_orig,kzmax_orig;
-  double *ug;
-  int dim;
-  double **eg;
-  double ***vg;
-  FFT_SCALAR ***vg_hat;
-  //double **eg,**vg;
-  double **ek;
-  double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
-  double ***cs,***sn;
-  int *assigned_pot, *potent_to_compressed;
-  int **group_with_potential;
+  //double unitk[3];
+  //int *kxvecs,*kyvecs,*kzvecs;
+  //int kxmax_orig,kymax_orig,kzmax_orig;
+  //int dim;
+  //double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
+  //double ***cs,***sn;
   int factorable(int);
   double **chi;
   double **a2;
@@ -95,16 +105,11 @@ class TILD : public KSpace{
   // group-group interactions
 
   int group_allocate_flag;
-  double *sfacrl_A,*sfacim_A,*sfacrl_A_all,*sfacim_A_all;
-  double *sfacrl_B,*sfacim_B,*sfacrl_B_all,*sfacim_B_all;
 
   double rms(int, double, bigint, double);
   // virtual void eik_dot_r();
-  void coeffs();
   virtual void allocate();
   void deallocate();
-  void slabcorr();
-  void init_gauss();
   void init_potential(FFT_SCALAR*, const int, const double*);
   void init_potential_ft(FFT_SCALAR*, const int, const double*);
   void calc_work(FFT_SCALAR*, const int, const int);
@@ -114,12 +119,7 @@ class TILD : public KSpace{
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
 
-
-
- protected:
   int me,nprocs;
-  int nfactors;
-  int *factors;
   double cutoff;
   double kappa;
   double delxinv,delyinv,delzinv,delvolinv;
@@ -142,35 +142,25 @@ class TILD : public KSpace{
   char *ave_grid_filename = new char[50];
   FILE *otp ;
 
-  double *fkx,*fky,*fkz;
-  double *fkx2, *fky2, *fkz2;
-  FFT_SCALAR *work1,*work2;
-
-  FFT_SCALAR **rho1d,**rho_coeff,**drho_coeff;
 
   // group-group interactions
 
-  FFT_SCALAR ***density_A_brick,***density_B_brick;
-  FFT_SCALAR *density_A_fft,*density_B_fft;
+  //FFT_SCALAR ***density_A_brick,***density_B_brick;
+  //FFT_SCALAR *density_A_fft,*density_B_fft;
+
+  class FFT3d *fft1,*fft2;
+  class Remap *remap;
+  class GridComm *cg;
+  class GridComm *cg_peratom;
 
   int **part2grid;             // storage for particle -> grid mapping
 
   double *boxlo;
-                               // TIP4P settings
-  int typeH,typeO;             // atom types of TIP4P water H and O atoms
-  double qdist;                // distance from O site to negative charge
-  double alpha;                // geometric factor
 
-  void set_grid_global();
   void set_grid();
-  void adjust_gewald();
-  double newton_raphson_f();
-  double derivf();
-  double final_accuracy();
 
   virtual void allocate_peratom();
   virtual void deallocate_peratom();
-  double estimate_ik_error(double, double, bigint);
 
   virtual void particle_map(double, double, double,
                              double, int **, int, int,
@@ -199,12 +189,11 @@ class TILD : public KSpace{
   // triclinic
 
   int triclinic;               // domain settings, orthog or triclinic
-  void setup_triclinic();
 
   // group-group interactions
 
-  virtual void allocate_groups();
-  virtual void deallocate_groups();
+  // virtual void allocate_groups();
+  // virtual void deallocate_groups();
   // virtual void make_rho_groups(int, int, int);
   // virtual void poisson_groups(int);
   // virtual void slabcorr_groups(int,int,int);
@@ -219,7 +208,6 @@ class TILD : public KSpace{
                           int&, int&, int&,
                           double&, double&, int&);
   void accumulate_gradient();
-  void force_field_grad();
   void vir_func_init();
   void write_grid_data(char *, const int);
   void pack_grid_data(double **);
@@ -228,19 +216,6 @@ class TILD : public KSpace{
   void multiply_ave_grid_data(const double);
   bigint nextvalid();
   void ave_grid();
-
-  FFT_SCALAR ****density_brick_types;
-  FFT_SCALAR ****avg_density_brick_types;
-  FFT_SCALAR *kappa_density;
-  FFT_SCALAR **density_fft_types;
-  FFT_SCALAR **density_hat_fft_types;
-  FFT_SCALAR *ktmp;
-  FFT_SCALAR *ktmpi;
-  FFT_SCALAR *ktmpj;
-  FFT_SCALAR *ktmp2;
-  FFT_SCALAR *ktmp2i;
-  FFT_SCALAR *ktmp2j;
-  FFT_SCALAR *tmp;
 
 };
 

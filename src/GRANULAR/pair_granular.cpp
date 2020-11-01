@@ -1102,15 +1102,8 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
-    delete [] fixarg;
+    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
+                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
     int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;

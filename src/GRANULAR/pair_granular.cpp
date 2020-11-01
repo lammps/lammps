@@ -1536,6 +1536,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   jlist = list->firstneigh[i];
 
   if (use_history) {
+    if (fix_history == nullptr)
+      error->one(FLERR,"Pair::single() computation needs history");
     allhistory = fix_history->firstvalue[i];
     for (int jj = 0; jj < jnum; jj++) {
       neighprev++;

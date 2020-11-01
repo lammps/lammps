@@ -1398,6 +1398,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   int *jlist;
   double *history,*allhistory;
 
+  int nall = atom->nlocal + atom->nghost;
+  if ((i >= nall) || (j >= nall))
+    error->all(FLERR,"Not enough atoms for pair granular single function");
+
   double *radius = atom->radius;
   radi = radius[i];
   radj = radius[j];
@@ -1529,8 +1533,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   jlist = list->firstneigh[i];
 
   if (use_history) {
-    if (fix_history == nullptr)
-      error->one(FLERR,"Pair::single() computation needs history");
+    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
+      error->one(FLERR,"Pair granular single computation needs history");
     allhistory = fix_history->firstvalue[i];
     for (int jj = 0; jj < jnum; jj++) {
       neighprev++;

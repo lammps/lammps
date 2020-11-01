@@ -1402,7 +1402,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   radi = radius[i];
   radj = radius[j];
   radsum = radi + radj;
-  Reff = radi*radj/radsum;
+  Reff = (radsum > 0.0) ? radi*radj/radsum : 0.0;
 
   bool touchflag;
   E = normal_coeffs[itype][jtype][0];

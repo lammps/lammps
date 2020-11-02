@@ -311,6 +311,7 @@ PairMESONTTPM::PairMESONTTPM(LAMMPS *lmp) : Pair(lmp) {
   eatom_s = nullptr;
   eatom_b = nullptr;
   eatom_t = nullptr;
+  nmax = 0;
   instance_count++;
   if(instance_count > 1) error->all(FLERR,
    "only a single instance of mesont/tpm pair style can be created");
@@ -336,7 +337,17 @@ PairMESONTTPM::~PairMESONTTPM()
 /* ---------------------------------------------------------------------- */
 
 void PairMESONTTPM::compute(int eflag, int vflag){
+  // set per atom values and accumulators
+  // reallocate per-atom arrays if necessary
   ev_init(eflag,vflag);
+  if (atom->nmax > nmax) {
+    memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
+    memory->destroy(eatom_b);
+    memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");
+    memory->destroy(eatom_t);
+    memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
+    nmax = atom->nmax;
+  }
   //total number of atoms in the node and ghost shell
   int nall = list->inum + list->gnum;
   int ntot = atom->nlocal + atom->nghost;
@@ -508,64 +519,58 @@ void PairMESONTTPM::compute(int eflag, int vflag){
     error->all(FLERR, err.str().c_str());
   }
 
-  // set per atom values and accumulators
-  // reallocate per-atom arrays if necessary
-  if (eatom_s == nullptr)
-   memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
-  if (eatom_b == nullptr)
-   memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");
-  if (eatom_t == nullptr)
-   memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
-  if (atom->nmax > maxeatom) {
-    maxeatom = atom->nmax;
-    memory->destroy(eatom);
-    memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
-    memory->destroy(eatom_s);
-    memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
-    memory->destroy(eatom_b);
-    memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");
-    memory->destroy(eatom_t);
-    memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
-  }
-
-  if (atom->nmax > maxvatom) {
-    maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
-  }
-
-  // zero accumulators
-  eng_vdwl = 0.0; energy_s = 0.0;
-  energy_b = 0.0; energy_t = 0.0;
-  for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  for (int i = 0; i < ntot; i++){
-    eatom[i] = 0.0; eatom_s[i] = 0.0;
-    eatom_b[i] = 0.0; eatom_t[i] = 0.0;
-  }
-  for (int i = 0; i < ntot; i++)
-    for (int j = 0; j < 6; j++) vatom[i][j] = 0.0;
-
   //convert from sorted representation
   for (int i = 0; i < nall; i++){
-    int idx = ntlist.get_idx(i);
-    for (int j = 0; j < 3; j++) f[idx][j] += f_sort[3*i+j];
-    eatom_s[idx] = u_ts_sort[i];
-    eatom_b[idx] = u_tb_sort[i];
-    eatom_t[idx] = u_tt_sort[i];
-    eatom[idx] = u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
-    energy_s += u_ts_sort[i];
-    energy_b += u_tb_sort[i];
-    energy_t += u_tt_sort[i];
-    vatom[idx][0] = s_sort[9*i+0]; //xx
-    vatom[idx][1] = s_sort[9*i+4]; //yy
-    vatom[idx][2] = s_sort[9*i+8]; //zz
-    vatom[idx][3] = s_sort[9*i+1]; //xy
-    vatom[idx][4] = s_sort[9*i+2]; //xz
-    vatom[idx][5] = s_sort[9*i+5]; //yz
-    for (int j = 0; j < 6; j++) virial[j] += vatom[idx][j];
-    buckling[idx] = b_sort[i];
+      int idx = ntlist.get_idx(i);
+      for (int j = 0; j < 3; j++) f[idx][j] += f_sort[3*i+j];
+      buckling[idx] = b_sort[i];
   }
-  eng_vdwl = energy_s + energy_b + energy_t;
+  if(eflag){
+    eng_vdwl = 0.0; energy_s = 0.0;
+    energy_b = 0.0; energy_t = 0.0;
+    for (int i = 0; i < ntot; i++){
+      eatom[i] = 0.0; eatom_s[i] = 0.0;
+      eatom_b[i] = 0.0; eatom_t[i] = 0.0;
+    }
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      eatom_s[idx] = u_ts_sort[i];
+      eatom_b[idx] = u_tb_sort[i];
+      eatom_t[idx] = u_tt_sort[i];
+      eatom[idx] = u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
+      energy_s += u_ts_sort[i];
+      energy_b += u_tb_sort[i];
+      energy_t += u_tt_sort[i];
+    }
+    eng_vdwl = energy_s + energy_b + energy_t;
+  }
+  if(vflag){
+    for (int i = 0; i < 6; i++) virial[i] = 0.0;
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      virial[0] += s_sort[9*i+0]; //xx
+      virial[1] += s_sort[9*i+4]; //yy
+      virial[2] += s_sort[9*i+8]; //zz
+      virial[3] += s_sort[9*i+1]; //xy
+      virial[4] += s_sort[9*i+2]; //xz
+      virial[5] += s_sort[9*i+5]; //yz
+    }
+  }
+  int vflag_atom = vflag & 4;
+  if(vflag_atom){
+    for (int i = 0; i < ntot; i++)
+      for (int j = 0; j < 6; j++) vatom[i][j] = 0.0;
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      vatom[idx][0] = s_sort[9*i+0]; //xx
+      vatom[idx][1] = s_sort[9*i+4]; //yy
+      vatom[idx][2] = s_sort[9*i+8]; //zz
+      vatom[idx][3] = s_sort[9*i+1]; //xy
+      vatom[idx][4] = s_sort[9*i+2]; //xz
+      vatom[idx][5] = s_sort[9*i+5]; //yz
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------

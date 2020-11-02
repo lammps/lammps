@@ -54,7 +54,6 @@ class PairMESONTTPM : public Pair {
   double cut_global;
   double **cut;
   static int instance_count;
-  int nmax;
 
   virtual void allocate();
   virtual void *extract(const char *, int &);

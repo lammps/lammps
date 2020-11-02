@@ -261,11 +261,19 @@ const uint64_t basic_data<T>::powers_of_10_64[] = {
     10000000000000000000ULL};
 
 template <typename T>
-const uint32_t basic_data<T>::zero_or_powers_of_10_32[] = {0, 0,
+const uint32_t basic_data<T>::zero_or_powers_of_10_32[] = {0,
                                                            FMT_POWERS_OF_10(1)};
-
 template <typename T>
 const uint64_t basic_data<T>::zero_or_powers_of_10_64[] = {
+    0, FMT_POWERS_OF_10(1), FMT_POWERS_OF_10(1000000000ULL),
+    10000000000000000000ULL};
+
+template <typename T>
+const uint32_t basic_data<T>::zero_or_powers_of_10_32_new[] = {
+    0, 0, FMT_POWERS_OF_10(1)};
+
+template <typename T>
+const uint64_t basic_data<T>::zero_or_powers_of_10_64_new[] = {
     0, 0, FMT_POWERS_OF_10(1), FMT_POWERS_OF_10(1000000000ULL),
     10000000000000000000ULL};
 
@@ -1756,7 +1764,7 @@ inline bool divisible_by_power_of_2(uint64_t x, int exp) FMT_NOEXCEPT {
 #ifdef FMT_BUILTIN_CTZLL
   return FMT_BUILTIN_CTZLL(x) >= exp;
 #else
-  return exp < num_bits<uint64_t>()) && x == ((x >> exp) << exp);
+  return exp < num_bits<uint64_t>() && x == ((x >> exp) << exp);
 #endif
 }
 
@@ -1901,7 +1909,7 @@ template <> struct cache_accessor<double> {
     uint64_t pow5 = data::powers_of_5_64[offset];
     uint128_wrapper recovered_cache = umul128(base_cache.high(), pow5);
     uint128_wrapper middle_low =
-        umul128(base_cache.low() - (kb < 0 ? 1 : 0), pow5);
+        umul128(base_cache.low() - (kb < 0 ? 1u : 0u), pow5);
 
     recovered_cache += middle_low.high();
 

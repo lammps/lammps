@@ -341,6 +341,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   // reallocate per-atom arrays if necessary
   ev_init(eflag,vflag);
   if (atom->nmax > nmax) {
+    memory->destroy(eatom_s);
     memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
     memory->destroy(eatom_b);
     memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");

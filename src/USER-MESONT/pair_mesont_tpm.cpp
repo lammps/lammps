@@ -49,7 +49,7 @@ private:
 
 class MESONTList {
 public:
-  MESONTList(const Atom* atom, const NeighList* nblist, double rc2);
+  MESONTList(const Atom* atom, const NeighList* nblist);
   ~MESONTList() {};
   //list of segments
   const std::vector<array2003<int,2> >& get_segments() const;
@@ -165,12 +165,13 @@ void vector_union(std::vector<T>& v1, std::vector<T>& v2,
   }
 }
 
-MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 */){
+MESONTList::MESONTList(const Atom* atom, const NeighList* nblist){
   if (atom == nullptr || nblist == nullptr) return;
   //number of local atoms at the node
   int nlocal = atom->nlocal;
-  //total number of atoms in the node and ghost shell
+  //total number of atoms in the node and ghost shell treated as NTs
   int nall = nblist->inum + nblist->gnum;
+  //total number of atoms in the node and ghost shell
   int ntot = atom->nlocal + atom->nghost;
   tagint* const g_id = atom->tag;
   tagint** const bonds = atom->bond_nt;
@@ -340,7 +341,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   // set per atom values and accumulators
   // reallocate per-atom arrays if necessary
   ev_init(eflag,vflag);
-  if (atom->nmax > nmax) {
+  if (atom->nmax > nmax && eflag_atom) {
     memory->destroy(eatom_s);
     memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
     memory->destroy(eatom_b);
@@ -349,8 +350,9 @@ void PairMESONTTPM::compute(int eflag, int vflag){
     memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
     nmax = atom->nmax;
   }
-  //total number of atoms in the node and ghost shell
+  //total number of atoms in the node and ghost shell treated as NTs
   int nall = list->inum + list->gnum;
+  //total number of atoms in the node and ghost shell
   int ntot = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   if(!newton_pair)
@@ -381,7 +383,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   }
 
   //generate bonds and chain nblist
-  MESONTList ntlist(atom, list, cut_global*cut_global);
+  MESONTList ntlist(atom, list);
 
   //reorder data to make it contiguous within tubes
   //and compatible with Fortran functions
@@ -526,9 +528,18 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       for (int j = 0; j < 3; j++) f[idx][j] += f_sort[3*i+j];
       buckling[idx] = b_sort[i];
   }
-  if(eflag){
+  if(eflag_global){
     eng_vdwl = 0.0; energy_s = 0.0;
     energy_b = 0.0; energy_t = 0.0;
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      energy_s += u_ts_sort[i];
+      energy_b += u_tb_sort[i];
+      energy_t += u_tt_sort[i];
+    }
+    eng_vdwl = energy_s + energy_b + energy_t;
+  }
+  if(eflag_atom){
     for (int i = 0; i < ntot; i++){
       eatom[i] = 0.0; eatom_s[i] = 0.0;
       eatom_b[i] = 0.0; eatom_t[i] = 0.0;
@@ -539,13 +550,9 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       eatom_b[idx] = u_tb_sort[i];
       eatom_t[idx] = u_tt_sort[i];
       eatom[idx] = u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
-      energy_s += u_ts_sort[i];
-      energy_b += u_tb_sort[i];
-      energy_t += u_tt_sort[i];
     }
-    eng_vdwl = energy_s + energy_b + energy_t;
   }
-  if(vflag){
+  if(vflag_global){
     for (int i = 0; i < 6; i++) virial[i] = 0.0;
     for (int i = 0; i < nall; i++){
       int idx = ntlist.get_idx(i);
@@ -557,7 +564,6 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       virial[5] += s_sort[9*i+5]; //yz
     }
   }
-  int vflag_atom = vflag & 4;
   if(vflag_atom){
     for (int i = 0; i < ntot; i++)
       for (int j = 0; j < 6; j++) vatom[i][j] = 0.0;

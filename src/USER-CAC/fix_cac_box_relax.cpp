@@ -436,170 +436,170 @@ void FixCACBoxRelax::init()
    compute energy and force due to extra degrees of freedom
 ------------------------------------------------------------------------- */
 
-    double FixCACBoxRelax::min_energy(double *fextra)
-    {
-      double eng,scale,scalex,scaley,scalez,scalevol;
+double FixCACBoxRelax::min_energy(double *fextra)
+{
+  double eng,scale,scalex,scaley,scalez,scalevol;
 
-      temperature->compute_scalar();
-      if (pstyle == ISO) pressure->compute_scalar();
-      else {
-        temperature->compute_vector();
-        pressure->compute_vector();
-      }
-      couple();
+  temperature->compute_scalar();
+  if (pstyle == ISO) pressure->compute_scalar();
+  else {
+    temperature->compute_vector();
+    pressure->compute_vector();
+  }
+  couple();
 
-      // trigger virial computation on every iteration of minimizer
+  // trigger virial computation on every iteration of minimizer
 
-      pressure->addstep(update->ntimestep+1);
+  pressure->addstep(update->ntimestep+1);
 
-      // compute energy, forces for each extra degree of freedom
-      // returned eng = PV must be in units of energy
-      // returned fextra must likewise be in units of energy
+  // compute energy, forces for each extra degree of freedom
+  // returned eng = PV must be in units of energy
+  // returned fextra must likewise be in units of energy
 
-      if (pstyle == ISO) {
-        scale = domain->xprd/xprdinit;
-        if (dimension == 3) {
-          eng = pv2e * p_target[0] * (scale*scale*scale-1.0)*vol0;
-          fextra[0] = pv2e * (p_current[0] - p_target[0])*3.0*scale*scale*vol0;
-        } else {
-          eng = pv2e * p_target[0] * (scale*scale-1.0)*vol0;
-          fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*vol0;
-        }
-
-      } else {
-        fextra[0] = fextra[1] = fextra[2] = 0.0;
-        scalex = scaley = scalez = 1.0;
-        if (p_flag[0]) scalex = domain->xprd/xprdinit;
-        if (p_flag[1]) scaley = domain->yprd/yprdinit;
-        if (p_flag[2]) scalez = domain->zprd/zprdinit;
-        scalevol = scalex*scaley*scalez;
-        eng = pv2e * p_hydro * (scalevol-1.0)*vol0;
-        if (p_flag[0])
-          fextra[0] = pv2e * (p_current[0] - p_hydro)*scaley*scalez*vol0;
-        if (p_flag[1])
-          fextra[1] = pv2e * (p_current[1] - p_hydro)*scalex*scalez*vol0;
-        if (p_flag[2])
-          fextra[2] = pv2e * (p_current[2] - p_hydro)*scalex*scaley*vol0;
-
-        if (pstyle == TRICLINIC) {
-          fextra[3] = fextra[4] = fextra[5] = 0.0;
-          if (p_flag[3])
-            fextra[3] = pv2e*p_current[3]*scaley*yprdinit*scalex*xprdinit*yprdinit;
-          if (p_flag[4])
-            fextra[4] = pv2e*p_current[4]*scalex*xprdinit*scaley*yprdinit*xprdinit;
-          if (p_flag[5])
-            fextra[5] = pv2e*p_current[5]*scalex*xprdinit*scalez*zprdinit*xprdinit;
-        }
-
-        if (deviatoric_flag) {
-          compute_deviatoric();
-          if (p_flag[0]) fextra[0] -= fdev[0]*xprdinit;
-          if (p_flag[1]) fextra[1] -= fdev[1]*yprdinit;
-          if (p_flag[2]) fextra[2] -= fdev[2]*zprdinit;
-          if (pstyle == TRICLINIC) {
-            if (p_flag[3]) fextra[3] -= fdev[3]*yprdinit;
-            if (p_flag[4]) fextra[4] -= fdev[4]*xprdinit;
-            if (p_flag[5]) fextra[5] -= fdev[5]*xprdinit;
-          }
-
-          eng += compute_strain_energy();
-        }
-      }
-      return eng;
+  if (pstyle == ISO) {
+    scale = domain->xprd/xprdinit;
+    if (dimension == 3) {
+      eng = pv2e * p_target[0] * (scale*scale*scale-1.0)*vol0;
+      fextra[0] = pv2e * (p_current[0] - p_target[0])*3.0*scale*scale*vol0;
+    } else {
+      eng = pv2e * p_target[0] * (scale*scale-1.0)*vol0;
+      fextra[0] = pv2e * (p_current[0] - p_target[0])*2.0*scale*vol0;
     }
 
-    /* ----------------------------------------------------------------------
-       store extra dof values for minimization linesearch starting point
-       boxlo0,boxhi0 = box dimensions
-       box values are pushed onto a LIFO stack so nested calls can be made
-       values are popped by calling min_step(0.0)
-    ------------------------------------------------------------------------- */
+  } else {
+    fextra[0] = fextra[1] = fextra[2] = 0.0;
+    scalex = scaley = scalez = 1.0;
+    if (p_flag[0]) scalex = domain->xprd/xprdinit;
+    if (p_flag[1]) scaley = domain->yprd/yprdinit;
+    if (p_flag[2]) scalez = domain->zprd/zprdinit;
+    scalevol = scalex*scaley*scalez;
+    eng = pv2e * p_hydro * (scalevol-1.0)*vol0;
+    if (p_flag[0])
+      fextra[0] = pv2e * (p_current[0] - p_hydro)*scaley*scalez*vol0;
+    if (p_flag[1])
+      fextra[1] = pv2e * (p_current[1] - p_hydro)*scalex*scalez*vol0;
+    if (p_flag[2])
+      fextra[2] = pv2e * (p_current[2] - p_hydro)*scalex*scaley*vol0;
 
-    void FixCACBoxRelax::min_store()
-    {
-      for (int i = 0; i < 3; i++) {
-        boxlo0[current_lifo][i] = domain->boxlo[i];
-        boxhi0[current_lifo][i] = domain->boxhi[i];
-      }
+    if (pstyle == TRICLINIC) {
+      fextra[3] = fextra[4] = fextra[5] = 0.0;
+      if (p_flag[3])
+        fextra[3] = pv2e*p_current[3]*scaley*yprdinit*scalex*xprdinit*yprdinit;
+      if (p_flag[4])
+        fextra[4] = pv2e*p_current[4]*scalex*xprdinit*scaley*yprdinit*xprdinit;
+      if (p_flag[5])
+        fextra[5] = pv2e*p_current[5]*scalex*xprdinit*scalez*zprdinit*xprdinit;
+    }
+
+    if (deviatoric_flag) {
+      compute_deviatoric();
+      if (p_flag[0]) fextra[0] -= fdev[0]*xprdinit;
+      if (p_flag[1]) fextra[1] -= fdev[1]*yprdinit;
+      if (p_flag[2]) fextra[2] -= fdev[2]*zprdinit;
       if (pstyle == TRICLINIC) {
-        boxtilt0[current_lifo][0] = domain->yz;
-        boxtilt0[current_lifo][1] = domain->xz;
-        boxtilt0[current_lifo][2] = domain->xy;
+        if (p_flag[3]) fextra[3] -= fdev[3]*yprdinit;
+        if (p_flag[4]) fextra[4] -= fdev[4]*xprdinit;
+        if (p_flag[5]) fextra[5] -= fdev[5]*xprdinit;
       }
+
+      eng += compute_strain_energy();
     }
+  }
+  return eng;
+}
 
-    /* ----------------------------------------------------------------------
-       clear the LIFO stack for min_store
-    ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+    store extra dof values for minimization linesearch starting point
+    boxlo0,boxhi0 = box dimensions
+    box values are pushed onto a LIFO stack so nested calls can be made
+    values are popped by calling min_step(0.0)
+------------------------------------------------------------------------- */
 
-    void FixCACBoxRelax::min_clearstore()
-    {
-      current_lifo = 0;
+void FixCACBoxRelax::min_store()
+{
+  for (int i = 0; i < 3; i++) {
+    boxlo0[current_lifo][i] = domain->boxlo[i];
+    boxhi0[current_lifo][i] = domain->boxhi[i];
+  }
+  if (pstyle == TRICLINIC) {
+    boxtilt0[current_lifo][0] = domain->yz;
+    boxtilt0[current_lifo][1] = domain->xz;
+    boxtilt0[current_lifo][2] = domain->xy;
+  }
+}
+
+/* ----------------------------------------------------------------------
+    clear the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixCACBoxRelax::min_clearstore()
+{
+  current_lifo = 0;
+}
+
+/* ----------------------------------------------------------------------
+    push the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixCACBoxRelax::min_pushstore()
+{
+  if (current_lifo >= MAX_LIFO_DEPTH) {
+    error->all(FLERR,"Attempt to push beyond stack limit in fix cac/box/relax");
+    return;
+  }
+  current_lifo++;
+}
+
+
+/* ----------------------------------------------------------------------
+    pop the LIFO stack for min_store
+------------------------------------------------------------------------- */
+
+void FixCACBoxRelax::min_popstore()
+{
+  if (current_lifo <= 0) {
+    error->all(FLERR,"Attempt to pop empty stack in fix cac/box/relax");
+    return;
+  }
+  current_lifo--;
+}
+
+/* ----------------------------------------------------------------------
+    check if time to reset reference state. If so, do so.
+------------------------------------------------------------------------- */
+
+int FixCACBoxRelax::min_reset_ref()
+{
+  int itmp = 0;
+
+  // if nreset_h0 > 0, reset reference box
+  // every nreset_h0 timesteps
+  // only needed for deviatoric external stress
+
+  if (deviatoric_flag && nreset_h0 > 0) {
+    int delta = update->ntimestep - update->beginstep;
+    if (delta % nreset_h0 == 0) {
+      compute_sigma();
+      itmp = 1;
     }
+  }
+  return itmp;
+}
 
-    /* ----------------------------------------------------------------------
-       push the LIFO stack for min_store
-    ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+    change the box dimensions by fraction ds = alpha*hextra
+------------------------------------------------------------------------- */
 
-    void FixCACBoxRelax::min_pushstore()
-    {
-      if (current_lifo >= MAX_LIFO_DEPTH) {
-        error->all(FLERR,"Attempt to push beyond stack limit in fix cac/box/relax");
-        return;
-      }
-      current_lifo++;
-    }
-
-
-    /* ----------------------------------------------------------------------
-       pop the LIFO stack for min_store
-    ------------------------------------------------------------------------- */
-
-    void FixCACBoxRelax::min_popstore()
-    {
-      if (current_lifo <= 0) {
-        error->all(FLERR,"Attempt to pop empty stack in fix cac/box/relax");
-        return;
-      }
-      current_lifo--;
-    }
-
-    /* ----------------------------------------------------------------------
-       check if time to reset reference state. If so, do so.
-    ------------------------------------------------------------------------- */
-
-    int FixCACBoxRelax::min_reset_ref()
-    {
-      int itmp = 0;
-
-      // if nreset_h0 > 0, reset reference box
-      // every nreset_h0 timesteps
-      // only needed for deviatoric external stress
-
-      if (deviatoric_flag && nreset_h0 > 0) {
-        int delta = update->ntimestep - update->beginstep;
-        if (delta % nreset_h0 == 0) {
-          compute_sigma();
-          itmp = 1;
-        }
-      }
-      return itmp;
-    }
-
-    /* ----------------------------------------------------------------------
-       change the box dimensions by fraction ds = alpha*hextra
-    ------------------------------------------------------------------------- */
-
-    void FixCACBoxRelax::min_step(double alpha, double *hextra)
-    {
-      if (pstyle == ISO) {
-        ds[0] = ds[1] = ds[2] = alpha*hextra[0];
-      } else {
-        ds[0] = ds[1] = ds[2] = 0.0;
-        if (p_flag[0]) ds[0] = alpha*hextra[0];
-        if (p_flag[1]) ds[1] = alpha*hextra[1];
-        if (p_flag[2]) ds[2] = alpha*hextra[2];
-        if (pstyle == TRICLINIC) {
+void FixCACBoxRelax::min_step(double alpha, double *hextra)
+{
+  if (pstyle == ISO) {
+    ds[0] = ds[1] = ds[2] = alpha*hextra[0];
+  } else {
+    ds[0] = ds[1] = ds[2] = 0.0;
+    if (p_flag[0]) ds[0] = alpha*hextra[0];
+    if (p_flag[1]) ds[1] = alpha*hextra[1];
+    if (p_flag[2]) ds[2] = alpha*hextra[2];
+    if (pstyle == TRICLINIC) {
       ds[3] = ds[4] = ds[5] = 0.0;
       if (p_flag[3]) ds[3] = alpha*hextra[3];
       if (p_flag[4]) ds[4] = alpha*hextra[4];
@@ -660,7 +660,7 @@ void FixCACBoxRelax::remap()
   int *element_type = atom->element_type;
   int *mask = atom->mask;
   int dense_count_x=0;
-  n = atom->nlocal + atom->nghost;
+  n = atom->nlocal;
 
   // convert pertinent atoms and rigid bodies to lamda coords
 

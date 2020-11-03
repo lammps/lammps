@@ -40,9 +40,14 @@ Thumbs.db
 .clang-format
 
 #cmake
+/cmake/out*
+/lib/*/out*
 /build*
 /CMakeCache.txt
 /CMakeFiles/
 /Makefile
 /cmake_install.cmake
 /lmp
+/unittest/out*
+/examples/*/*/out
+/.vs*

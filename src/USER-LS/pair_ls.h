@@ -2,10 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -20,40 +22,94 @@ PairStyle(ls,PairLS)
 
 #include "pair.h"
 
-
 namespace LAMMPS_NS {
 
-class PairLS : public Pair { // PairLS inherits all methods and member variables from the class Pair. The use of public means that the public methods and members of Pair are also public in PairLS.
+
+class PairLS : public Pair {
  public:
+  friend class FixSemiGrandCanonicalMC;   // Alex Stukowski option
+
+  // public variables so USER-ATC package can access them
+
+  double cutmax;
+
+  // potentials as array data
+
+  int nrho,nr;
+  int nfrho,nrhor,nz2r;
+  double **frho,**rhor,**z2r;
+  int *type2frho,**type2rhor,**type2z2r;
+
+  // potentials in spline form used for force computation
+
+  double dr,rdr,drho,rdrho,rhomax;
+  double ***rhor_spline,***frho_spline,***z2r_spline;
+
   PairLS(class LAMMPS *);
-  ~PairLS();
-  void compute(int, int);                                               // necessary
-  void settings(int, char **);                                          // necessary
-  void coeff(int, char **);                                             // necessary
+  virtual ~PairLS();
+  virtual void compute(int, int);
+  void settings(int, char **);
+  virtual void coeff(int, char **);
   void init_style();
-  void init_list(int, class NeighList *);
   double init_one(int, int);
+  double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
+  void swap_ls(double *, double **);
 
- private:
-  class MEAM *meam_inst;
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  double *mass;                 // mass of each element
+ protected:
+  int nmax;                   // allocated size of per-atom arrays
+  double cutforcesq;
+  double **scale;
+  bigint embedstep;           // timestep, the embedding term was computed
 
-  int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
-  double **scale;               // scaling factor for adapt
+  // per-atom arrays
 
-  void allocate();
-  void read_files(const std::string &, const std::string &);
-  void neigh_strip(int, int *, int *, int **);
+  double *rho,*fp;
+  int *numforce;
+
+  // potentials as file data
+
+  int *map;                   // which element each atom type maps to
+
+  struct Funcfl {
+    char *file;
+    int nrho,nr;
+    double drho,dr,cut,mass;
+    double *frho,*rhor,*zr;
+  };
+  Funcfl *funcfl;
+  int nfuncfl;
+
+  struct Setfl {
+    char **elements;
+    int nelements,nrho,nr;
+    double drho,dr,cut;
+    double *mass;
+    double **frho,**rhor,***z2r;
+  };
+  Setfl *setfl;
+
+  struct Fs {
+    char **elements;
+    int nelements,nrho,nr;
+    double drho,dr,cut;
+    double *mass;
+    double **frho,***rhor,***z2r;
+  };
+  Fs *fs;
+
+  virtual void allocate();
+  virtual void array2spline();
+  void interpolate(int, double, double *, double **);
+
+  virtual void read_file(char *);
+  virtual void file2array();
 };
 
 }
@@ -62,35 +118,24 @@ class PairLS : public Pair { // PairLS inherits all methods and member variables
 #endif
 
 /* ERROR/WARNING messages:
-E: MEAM library error %d
-A call to the MEAM Fortran library returned an error.
+
 E: Illegal ... command
+
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
 E: Incorrect args for pair coefficients
+
 Self-explanatory.  Check the input script or data file.
-E: Pair style MEAM requires newton pair on
-See the newton command.  This is a restriction to use the MEAM
-potential.
-E: Cannot open MEAM potential file %s
-The specified MEAM potential file cannot be opened.  Check that the
+
+E: Cannot open LS potential file %s
+
+The specified LS potential file cannot be opened.  Check that the
 path and name are correct.
-E: Incorrect format in MEAM library file
-Incorrect number of words per line in the potential file.
-E: Too many elements extracted from MEAM library.
-Increase 'maxelt' in meam.h and recompile.
-E: Unrecognized lattice type in MEAM library/parameter file
-The lattice type in an entry of the MEAM library/parameter file is not
-valid.
-E: Unsupported parameter in MEAM library file: ...
-Self-explanatory.
-E: Mismatched parameter in MEAM library file: z!=lat
-The coordination number and lattice do not match, check that consistent values are given.
-E: Did not find all elements in MEAM library file
-Some requested elements were not found in the MEAM file. Check spelling etc.
-E: Keyword %s in MEAM parameter file not recognized
-Self-explanatory.
-E: Error in MEAM parameter file: keyword %s (further information)
-Self-explanatory. Check the parameter file.
+
+E: Invalid LS potential file
+
+UNDOCUMENTED
+
 */

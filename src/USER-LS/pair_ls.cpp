@@ -1,11 +1,54 @@
+// /* ----------------------------------------------------------------------
+//    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+//    http://lammps.sandia.gov, Sandia National Laboratories
+//    Steve Plimpton, sjplimp@sandia.gov
+//    Copyright (2003) Sandia Corporation.  Under the terms of Contract
+//    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+//    certain rights in this software.  This software is distributed under
+//    the GNU General Public License.
+//    See the README file in the top-level LAMMPS directory.
+// ------------------------------------------------------------------------- */
+
+// /* ----------------------------------------------------------------------
+//    Contributing authors: Alexey Lipnitskiy (BSU), Daniil Poletaev (BSU) 
+// ------------------------------------------------------------------------- */
+
+// #include "pair_ls.h"
+
+
+// #include <cstring>
+
+// #include "atom.h"
+// #include "force.h"
+// #include "comm.h"
+// #include "neighbor.h"
+// #include "neigh_list.h"
+// #include "neigh_request.h"
+// #include "memory.h"
+// #include "error.h"
+
+
+
+// using namespace LAMMPS_NS;
+
+// // Fortran function
+// // extern void e_force_(double e_sum, double pressure, double sxx, double syy, double szz, double e_at, double f_at, double px_at, double py_at, double pz_at,
+// //   double r_at, int i_sort_at, int n_at, double sizex, double sizey, double sizez);
+// extern void e_force_(double *e_sum, double *pressure, double *sxx, double *syy, double *szz, double *e_at, double *f_at[], double *px_at, double *py_at, double pz_at,
+//   double *r_at[], int *i_sort_at, int *n_at, double *sizex, double *sizey, double *sizez);
+
+// /////////////////////////////////////////////////////////
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,95 +58,157 @@
 
 #include "pair_ls.h"
 
+#include <cmath>
 
 #include <cstring>
-
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
-
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
-// Fortran function
-// extern void e_force_(double e_sum, double pressure, double sxx, double syy, double szz, double e_at, double f_at, double px_at, double py_at, double pz_at,
-//   double r_at, int i_sort_at, int n_at, double sizex, double sizey, double sizez);
-extern void e_force_(double *e_sum, double *pressure, double *sxx, double *syy, double *szz, double *e_at, double *f_at[], double *px_at, double *py_at, double pz_at,
-  double *r_at[], int *i_sort_at, int *n_at, double *sizex, double *sizey, double *sizez);
-
 #define MAXLINE 1024
-
-static const int nkeywords = 22;
-static const char *keywords[] = {
-  "Ec","alpha","rho0","delta","lattce",
-  "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-  "augt1","gsmooth_factor","re","ialloy",
-  "mixture_ref_t","erose_form","zbl",
-  "emb_lin_neg","bkgd_dyn", "theta"};
 
 /* ---------------------------------------------------------------------- */
 
 PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 {
-  single_enable = 0;
   restartinfo = 0;
-  one_coeff = 1;
   manybody_flag = 1;
+  embedstep = -1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  allocated = 0;
+  nmax = 0;
+  rho = nullptr;
+  fp = nullptr;
+  numforce = nullptr;
+  map = nullptr;
+  type2frho = nullptr;
 
-  nelements = 0;
-  elements = nullptr;
-  mass = nullptr;
-  meam_inst = new MEAM(memory);
+  nfuncfl = 0;
+  funcfl = nullptr;
+
+  setfl = nullptr;
+  fs = nullptr;
+
+  frho = nullptr;
+  rhor = nullptr;
+  z2r = nullptr;
   scale = nullptr;
+
+  frho_spline = nullptr;
+  rhor_spline = nullptr;
+  z2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
-  comm_forward = 38;
-  comm_reverse = 30;
+  comm_forward = 1;
+  comm_reverse = 1;
 }
 
 /* ----------------------------------------------------------------------
-   free all arrays
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
 PairLS::~PairLS()
 {
-  delete ls_inst;
+  if (copymode) return;
 
-  for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
-  delete [] mass;
+  memory->destroy(rho);
+  memory->destroy(fp);
+  memory->destroy(numforce);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(scale);
     delete [] map;
+    delete [] type2frho;
+    map = nullptr;
+    type2frho = nullptr;
+    memory->destroy(type2rhor);
+    memory->destroy(type2z2r);
+    memory->destroy(scale);
   }
+
+  if (funcfl) {
+    for (int i = 0; i < nfuncfl; i++) {
+      delete [] funcfl[i].file;
+      memory->destroy(funcfl[i].frho);
+      memory->destroy(funcfl[i].rhor);
+      memory->destroy(funcfl[i].zr);
+    }
+    memory->sfree(funcfl);
+    funcfl = nullptr;
+  }
+
+  if (setfl) {
+    for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
+    delete [] setfl->elements;
+    memory->destroy(setfl->mass);
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
+    memory->destroy(setfl->z2r);
+    delete setfl;
+    setfl = nullptr;
+  }
+
+  if (fs) {
+    for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
+    delete [] fs->elements;
+    memory->destroy(fs->mass);
+    memory->destroy(fs->frho);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
+    delete fs;
+    fs = nullptr;
+  }
+
+  memory->destroy(frho);
+  memory->destroy(rhor);
+  memory->destroy(z2r);
+
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairLS::compute(int eflag, int vflag)
 {
-  // int i,ii,n,inum_half,errorflag;
-  // int *ilist_half,*numneigh_half,**firstneigh_half;
-  // int *numneigh_full,**firstneigh_full;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
   double *coeff;
-  int *ilist,*jlist,*numneigh,**firstneigh;  
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  evdwl = 0.0;
+  ev_init(eflag,vflag);
+
+  // grow energy and fp arrays if necessary
+  // need to be atom->nmax in length
+
+  if (atom->nmax > nmax) {
+    memory->destroy(rho);
+    memory->destroy(fp);
+    memory->destroy(numforce);
+    nmax = atom->nmax;
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
+  }
 
   double **x = atom->x;
   double **f = atom->f;
-  int *type = atom->type;  
+  int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
@@ -113,16 +218,162 @@ void PairLS::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // zero out density
 
-  ev_init(eflag,vflag);
+  if (newton_pair) {
+    for (i = 0; i < nall; i++) rho[i] = 0.0;
+  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
 
-  // here should be the C++ code or fortran subroutine e_force call
-  //  call e_force(e_sum,pressure,sxx,syy,szz,        output quantities
-  //   :    e_at,f_at,px_at,py_at,pz_at,              output quantities    
-  //   :    r_at,i_sort_at,n_at,sizex,sizey,sizez)    input quantities
+  // rho = density at each atom
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cutforcesq) {
+        jtype = type[j];
+        p = sqrt(rsq)*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        if (newton_pair || j < nlocal) {
+          coeff = rhor_spline[type2rhor[itype][jtype]][m];
+          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        }
+      }
+    }
+  }
+
+  // communicate and sum densities
+
+  if (newton_pair) comm->reverse_comm_pair(this);
+
+  // fp = derivative of embedding energy at each atom
+  // phi = embedding energy at each atom
+  // if rho > rhomax (e.g. due to close approach of two atoms),
+  //   will exceed table, so add linear term to conserve energy
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    p = rho[i]*rdrho + 1.0;
+    m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    coeff = frho_spline[type2frho[type[i]]][m];
+    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (eflag) {
+      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      phi *= scale[type[i]][type[i]];
+      if (eflag_global) eng_vdwl += phi;
+      if (eflag_atom) eatom[i] += phi;
+    }
+  }
+
+  // communicate derivative of embedding function
+
+  comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
+
+  // compute forces on each atom
+  // loop over neighbors of my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    numforce[i] = 0;
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cutforcesq) {
+        ++numforce[i];
+        jtype = type[j];
+        r = sqrt(rsq);
+        p = r*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+
+        // rhoip = derivative of (density at atom j due to atom i)
+        // rhojp = derivative of (density at atom i due to atom j)
+        // phi = pair potential energy
+        // phip = phi'
+        // z2 = phi * r
+        // z2p = (phi * r)' = (phi' r) + phi
+        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
+        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
+        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+        // scale factor can be applied by thermodynamic integration
+
+        coeff = rhor_spline[type2rhor[itype][jtype]][m];
+        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = z2r_spline[type2z2r[itype][jtype]][m];
+        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+
+        recip = 1.0/r;
+        phi = z2*recip;
+        phip = z2p*recip - phi*recip;
+        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+        fpair = -scale[itype][jtype]*psip*recip;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) evdwl = scale[itype][jtype]*phi;
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
+      }
+    }
+  }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   allocate all arrays
+------------------------------------------------------------------------- */
 
 void PairLS::allocate()
 {
@@ -130,10 +381,19 @@ void PairLS::allocate()
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(scale,n+1,n+1,"pair:scale");
 
   map = new int[n+1];
+  for (int i = 1; i <= n; i++) map[i] = -1;
+
+  type2frho = new int[n+1];
+  memory->create(type2rhor,n+1,n+1,"pair:type2rhor");
+  memory->create(type2z2r,n+1,n+1,"pair:type2z2r");
+  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -142,115 +402,53 @@ void PairLS::allocate()
 
 void PairLS::settings(int narg, char **/*arg*/)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
+   read DYNAMO funcfl file
 ------------------------------------------------------------------------- */
 
 void PairLS::coeff(int narg, char **arg)
 {
-  int m,n;
-
   if (!allocated) allocate();
 
-  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
+  // parse pair of atom types
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  int ilo,ihi,jlo,jhi;
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  // check for presence of first meam file
+  // read funcfl file if hasn't already been read
+  // store filename in Funcfl data struct
 
-  std::string lib_file = utils::get_potential_file_path(arg[2]);
-  if (lib_file.empty())
-    error->all(FLERR,fmt::format("Cannot open MEAM library file {}",lib_file));
+  int ifuncfl;
+  for (ifuncfl = 0; ifuncfl < nfuncfl; ifuncfl++)
+    if (strcmp(arg[2],funcfl[ifuncfl].file) == 0) break;
 
-  // find meam parameter file in arguments:
-  // first word that is a file or "NULL" after the MEAM library file
-  // we need to extract at least one element, so start from index 4
-
-  int paridx=-1;
-  std::string par_file;
-  for (int i = 4; i < narg; ++i) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      par_file = "NULL";
-      paridx = i;
-      break;
-    }
-    par_file = utils::get_potential_file_path(arg[i]);
-    if (!par_file.empty()) {
-      paridx=i;
-      break;
-    }
-  }
-  if (paridx < 0) error->all(FLERR,"No MEAM parameter file in pair coefficients");
-  if ((narg - paridx - 1) != atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // MEAM element names between 2 filenames
-  // nelements = # of MEAM elements
-  // elements = list of unique element names
-
-  if (nelements) {
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-    delete [] mass;
+  if (ifuncfl == nfuncfl) {
+    nfuncfl++;
+    funcfl = (Funcfl *)
+      memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
+    read_file(arg[2]);
+    int n = strlen(arg[2]) + 1;
+    funcfl[ifuncfl].file = new char[n];
+    strcpy(funcfl[ifuncfl].file,arg[2]);
   }
 
-  nelements = paridx - 3;
-  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
-  if (nelements > maxelt)
-    error->all(FLERR,fmt::format("Too many elements extracted from MEAM "
-                                 "library (current limit: {}). Increase "
-                                 "'maxelt' in meam.h and recompile.", maxelt));
-  elements = new char*[nelements];
-  mass = new double[nelements];
-
-  for (int i = 0; i < nelements; i++) {
-    n = strlen(arg[i+3]) + 1;
-    elements[i] = new char[n];
-    strcpy(elements[i],arg[i+3]);
-  }
-
-  // read MEAM library and parameter files
-  // pass all parameters to MEAM package
-  // tell MEAM package that setup is done
-
-  read_files(lib_file,par_file);
-  meam_inst->meam_setup_done(&cutmax);
-
-  // read args that map atom types to MEAM elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-
-  for (int i = 4 + nelements; i < narg; i++) {
-    m = i - (4+nelements) + 1;
-    int j;
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    if (j < nelements) map[m] = j;
-    else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-  // set mass for i,i in atom class
+  // set setflag and map only for i,i type pairs
+  // set mass of atom type if i = j
 
   int count = 0;
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) {
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        if (i == j) atom->set_mass(FLERR,i,mass[map[i]]);
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      if (i == j) {
+        setflag[i][i] = 1;
+        map[i] = ifuncfl;
+        atom->set_mass(FLERR,i,funcfl[ifuncfl].mass);
         count++;
       }
       scale[i][j] = 1.0;
@@ -266,28 +464,13 @@ void PairLS::coeff(int narg, char **arg)
 
 void PairLS::init_style()
 {
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MEAM requires newton pair on");
+  // convert read-in file(s) to arrays and spline them
 
-  // need full and half neighbor list
+  file2array();
+  array2spline();
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-}
-
-/* ----------------------------------------------------------------------
-   neighbor callback to inform pair style of neighbor list to use
-   half or full
-------------------------------------------------------------------------- */
-
-void PairLS::init_list(int id, NeighList *ptr)
-{
-  if (id == 1) listfull = ptr;
-  else if (id == 2) listhalf = ptr;
+  neighbor->request(this,instance_me);
+  embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -296,342 +479,434 @@ void PairLS::init_list(int id, NeighList *ptr)
 
 double PairLS::init_one(int i, int j)
 {
+  // single global cutoff = max of cut from all files read in
+  // for funcfl could be multiple files
+  // for setfl or fs, just one file
+
   if (setflag[i][j] == 0) scale[i][j] = 1.0;
   scale[j][i] = scale[i][j];
+
+  if (funcfl) {
+    cutmax = 0.0;
+    for (int m = 0; m < nfuncfl; m++)
+      cutmax = MAX(cutmax,funcfl[m].cut);
+  } else if (setfl) cutmax = setfl->cut;
+  else if (fs) cutmax = fs->cut;
+
+  cutforcesq = cutmax*cutmax;
+
   return cutmax;
+}
+
+/* ----------------------------------------------------------------------
+   read potential values from a DYNAMO single element funcfl file
+------------------------------------------------------------------------- */
+
+void PairLS::read_file(char *filename)
+{
+  Funcfl *file = &funcfl[nfuncfl-1];
+
+  // read potential file
+  if(comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    try {
+      reader.skip_line();
+
+      ValueTokenizer values = reader.next_values(2);
+      values.next_int(); // ignore
+      file->mass = values.next_double();
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->frho, (file->nrho+1), "pair:frho");
+      memory->create(file->rhor, (file->nr+1), "pair:rhor");
+      memory->create(file->zr, (file->nr+1), "pair:zr");
+
+      reader.next_dvector(&file->frho[1], file->nrho);
+      reader.next_dvector(&file->zr[1], file->nr);
+      reader.next_dvector(&file->rhor[1], file->nr);
+
+      if (unit_convert) {
+        const double sqrt_conv = sqrt(conversion_factor);
+        for (int i = 1; i <= file->nrho; ++i)
+          file->frho[i] *= conversion_factor;
+        for (int j = 1; j <= file->nr; ++j)
+          file->zr[j] *= sqrt_conv;
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    }
+  }
+
+  MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  if(comm->me != 0) {
+    memory->create(file->frho, (file->nrho+1), "pair:frho");
+    memory->create(file->rhor, (file->nr+1), "pair:rhor");
+    memory->create(file->zr, (file->nr+1), "pair:zr");
+  }
+
+  MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
+}
+
+/* ----------------------------------------------------------------------
+   convert read-in funcfl potential(s) to standard array format
+   interpolate all file values to a single grid and cutoff
+------------------------------------------------------------------------- */
+
+void PairLS::file2array()
+{
+  int i,j,k,m,n;
+  int ntypes = atom->ntypes;
+  double sixth = 1.0/6.0;
+
+  // determine max function params from all active funcfl files
+  // active means some element is pointing at it via map
+
+  int active;
+  double rmax;
+  dr = drho = rmax = rhomax = 0.0;
+
+  for (int i = 0; i < nfuncfl; i++) {
+    active = 0;
+    for (j = 1; j <= ntypes; j++)
+      if (map[j] == i) active = 1;
+    if (active == 0) continue;
+    Funcfl *file = &funcfl[i];
+    dr = MAX(dr,file->dr);
+    drho = MAX(drho,file->drho);
+    rmax = MAX(rmax,(file->nr-1) * file->dr);
+    rhomax = MAX(rhomax,(file->nrho-1) * file->drho);
+  }
+
+  // set nr,nrho from cutoff and spacings
+  // 0.5 is for round-off in divide
+
+  nr = static_cast<int> (rmax/dr + 0.5);
+  nrho = static_cast<int> (rhomax/drho + 0.5);
+
+  // ------------------------------------------------------------------
+  // setup frho arrays
+  // ------------------------------------------------------------------
+
+  // allocate frho arrays
+  // nfrho = # of funcfl files + 1 for zero array
+
+  nfrho = nfuncfl + 1;
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
+
+  // interpolate each file's frho to a single grid and cutoff
+
+  double r,p,cof1,cof2,cof3,cof4;
+
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *file = &funcfl[i];
+    for (m = 1; m <= nrho; m++) {
+      r = (m-1)*drho;
+      p = r/file->drho + 1.0;
+      k = static_cast<int> (p);
+      k = MIN(k,file->nrho-2);
+      k = MAX(k,2);
+      p -= k;
+      p = MIN(p,2.0);
+      cof1 = -sixth*p*(p-1.0)*(p-2.0);
+      cof2 = 0.5*(p*p-1.0)*(p-2.0);
+      cof3 = -0.5*p*(p+1.0)*(p-2.0);
+      cof4 = sixth*p*(p*p-1.0);
+      frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] +
+        cof3*file->frho[k+1] + cof4*file->frho[k+2];
+    }
+    n++;
+  }
+
+  // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
+  // this is necessary b/c fp is still computed for non-EAM atoms
+
+  for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
+
+  // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
+  // if atom type doesn't point to file (non-EAM atom in pair hybrid)
+  // then map it to last frho array of zeroes
+
+  for (i = 1; i <= ntypes; i++)
+    if (map[i] >= 0) type2frho[i] = map[i];
+    else type2frho[i] = nfrho-1;
+
+  // ------------------------------------------------------------------
+  // setup rhor arrays
+  // ------------------------------------------------------------------
+
+  // allocate rhor arrays
+  // nrhor = # of funcfl files
+
+  nrhor = nfuncfl;
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
+
+  // interpolate each file's rhor to a single grid and cutoff
+
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *file = &funcfl[i];
+    for (m = 1; m <= nr; m++) {
+      r = (m-1)*dr;
+      p = r/file->dr + 1.0;
+      k = static_cast<int> (p);
+      k = MIN(k,file->nr-2);
+      k = MAX(k,2);
+      p -= k;
+      p = MIN(p,2.0);
+      cof1 = -sixth*p*(p-1.0)*(p-2.0);
+      cof2 = 0.5*(p*p-1.0)*(p-2.0);
+      cof3 = -0.5*p*(p+1.0)*(p-2.0);
+      cof4 = sixth*p*(p*p-1.0);
+      rhor[n][m] = cof1*file->rhor[k-1] + cof2*file->rhor[k] +
+        cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
+    }
+    n++;
+  }
+
+  // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
+  // for funcfl files, I,J mapping only depends on I
+  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
+
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++)
+      type2rhor[i][j] = map[i];
+
+  // ------------------------------------------------------------------
+  // setup z2r arrays
+  // ------------------------------------------------------------------
+
+  // allocate z2r arrays
+  // nz2r = N*(N+1)/2 where N = # of funcfl files
+
+  nz2r = nfuncfl*(nfuncfl+1)/2;
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
+
+  // create a z2r array for each file against other files, only for I >= J
+  // interpolate zri and zrj to a single grid and cutoff
+  // final z2r includes unit conversion of 27.2 eV/Hartree and 0.529 Ang/Bohr
+
+  double zri,zrj;
+
+  n = 0;
+  for (i = 0; i < nfuncfl; i++) {
+    Funcfl *ifile = &funcfl[i];
+    for (j = 0; j <= i; j++) {
+      Funcfl *jfile = &funcfl[j];
+
+      for (m = 1; m <= nr; m++) {
+        r = (m-1)*dr;
+
+        p = r/ifile->dr + 1.0;
+        k = static_cast<int> (p);
+        k = MIN(k,ifile->nr-2);
+        k = MAX(k,2);
+        p -= k;
+        p = MIN(p,2.0);
+        cof1 = -sixth*p*(p-1.0)*(p-2.0);
+        cof2 = 0.5*(p*p-1.0)*(p-2.0);
+        cof3 = -0.5*p*(p+1.0)*(p-2.0);
+        cof4 = sixth*p*(p*p-1.0);
+        zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
+          cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
+
+        p = r/jfile->dr + 1.0;
+        k = static_cast<int> (p);
+        k = MIN(k,jfile->nr-2);
+        k = MAX(k,2);
+        p -= k;
+        p = MIN(p,2.0);
+        cof1 = -sixth*p*(p-1.0)*(p-2.0);
+        cof2 = 0.5*(p*p-1.0)*(p-2.0);
+        cof3 = -0.5*p*(p+1.0)*(p-2.0);
+        cof4 = sixth*p*(p*p-1.0);
+        zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
+          cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
+
+        z2r[n][m] = 27.2*0.529 * zri*zrj;
+      }
+      n++;
+    }
+  }
+
+  // type2z2r[i][j] = which z2r array (0 to nz2r-1) each type pair maps to
+  // set of z2r arrays only fill lower triangular Nelement matrix
+  // value = n = sum over rows of lower-triangular matrix until reach irow,icol
+  // swap indices when irow < icol to stay lower triangular
+  // if map = -1 (non-EAM atom in pair hybrid):
+  //   type2z2r is not used by non-opt
+  //   but set type2z2r to 0 since accessed by opt
+
+  int irow,icol;
+  for (i = 1; i <= ntypes; i++) {
+    for (j = 1; j <= ntypes; j++) {
+      irow = map[i];
+      icol = map[j];
+      if (irow == -1 || icol == -1) {
+        type2z2r[i][j] = 0;
+        continue;
+      }
+      if (irow < icol) {
+        irow = map[j];
+        icol = map[i];
+      }
+      n = 0;
+      for (m = 0; m < irow; m++) n += m + 1;
+      n += icol;
+      type2z2r[i][j] = n;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLS::read_files(const std::string &globalfile,
-                           const std::string &userfile)
+void PairLS::array2spline()
 {
-  // open global meamf file on proc 0
+  rdr = 1.0/dr;
+  rdrho = 1.0/drho;
 
-  FILE *fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(globalfile,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
-                                   globalfile));
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
+
+  memory->create(frho_spline,nfrho,nrho+1,7,"pair:frho");
+  memory->create(rhor_spline,nrhor,nr+1,7,"pair:rhor");
+  memory->create(z2r_spline,nz2r,nr+1,7,"pair:z2r");
+
+  for (int i = 0; i < nfrho; i++)
+    interpolate(nrho,drho,frho[i],frho_spline[i]);
+
+  for (int i = 0; i < nrhor; i++)
+    interpolate(nr,dr,rhor[i],rhor_spline[i]);
+
+  for (int i = 0; i < nz2r; i++)
+    interpolate(nr,dr,z2r[i],z2r_spline[i]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLS::interpolate(int n, double delta, double *f, double **spline)
+{
+  for (int m = 1; m <= n; m++) spline[m][6] = f[m];
+
+  spline[1][5] = spline[2][6] - spline[1][6];
+  spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
+  spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
+  spline[n][5] = spline[n][6] - spline[n-1][6];
+
+  for (int m = 3; m <= n-2; m++)
+    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) +
+                    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
+
+  for (int m = 1; m <= n-1; m++) {
+    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) -
+      2.0*spline[m][5] - spline[m+1][5];
+    spline[m][3] = spline[m][5] + spline[m+1][5] -
+      2.0*(spline[m+1][6]-spline[m][6]);
   }
 
-  // allocate parameter arrays
+  spline[n][4] = 0.0;
+  spline[n][3] = 0.0;
 
-  int params_per_line = 19;
+  for (int m = 1; m <= n; m++) {
+    spline[m][2] = spline[m][5]/delta;
+    spline[m][1] = 2.0*spline[m][4]/delta;
+    spline[m][0] = 3.0*spline[m][3]/delta;
+  }
+}
 
-  lattice_t *lat = new lattice_t[nelements];
-  int *ielement = new int[nelements];
-  int *ibar = new int[nelements];
-  double *z = new double[nelements];
-  double *atwt = new double[nelements];
-  double *alpha = new double[nelements];
-  double *b0 = new double[nelements];
-  double *b1 = new double[nelements];
-  double *b2 = new double[nelements];
-  double *b3 = new double[nelements];
-  double *alat = new double[nelements];
-  double *esub = new double[nelements];
-  double *asub = new double[nelements];
-  double *t0 = new double[nelements];
-  double *t1 = new double[nelements];
-  double *t2 = new double[nelements];
-  double *t3 = new double[nelements];
-  double *rozero = new double[nelements];
+/* ---------------------------------------------------------------------- */
 
-  bool *found = new bool[nelements];
-  for (int i = 0; i < nelements; i++) found[i] = false;
+double PairLS::single(int i, int j, int itype, int jtype,
+                       double rsq, double /*factor_coul*/, double /*factor_lj*/,
+                       double &fforce)
+{
+  int m;
+  double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
+  double *coeff;
 
-  // read each set of params from global MEAM file
-  // one set of params can span multiple lines
-  // store params if element name is in element list
-  // if element name appears multiple times, only store 1st entry
+  if (!numforce)
+    error->all(FLERR,"EAM embedding data required for this calculation is missing");
 
-  if (comm->me == 0) {
-    int nset = 0;
-    char **words = new char*[params_per_line+1];
-    char line[MAXLINE];
-    while (1) {
-      char *ptr;
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        fclose(fp);
-        break;
-      }
-
-      // strip comment, skip line if blank
-
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      int nwords = utils::count_words(line);
-      if (nwords == 0) continue;
-
-      // concatenate additional lines until have params_per_line words
-
-      while (nwords < params_per_line) {
-        int n = strlen(line);
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          fclose(fp);
-          break;
-        }
-        if ((ptr = strchr(line,'#'))) *ptr = '\0';
-        nwords = utils::count_words(line);
-      }
-
-      if (nwords != params_per_line)
-        error->one(FLERR,"Incorrect format in MEAM library file");
-
-      // words = ptrs to all words in line
-      // strip single and double quotes from words
-
-      nwords = 0;
-      words[nwords++] = strtok(line,"' \t\n\r\f");
-      while ((words[nwords++] = strtok(nullptr,"' \t\n\r\f"))) continue;
-
-      // skip if element name isn't in element list
-
-      int index;
-      for (index = 0; index < nelements; index++)
-        if (strcmp(words[0],elements[index]) == 0) break;
-      if (index == nelements) continue;
-
-      // skip if element already appeared (technically error in library file, but always ignored)
-
-      if (found[index] == true) continue;
-      found[index] = true;
-
-      // map lat string to an integer
-
-      if (!MEAM::str_to_lat(words[1], true, lat[index]))
-        error->one(FLERR,fmt::format("Unrecognized lattice type in MEAM "
-                                     "library file: {}", words[1]));
-
-      // store parameters
-
-      z[index] = atof(words[2]);
-      ielement[index] = atoi(words[3]);
-      atwt[index] = atof(words[4]);
-      alpha[index] = atof(words[5]);
-      b0[index] = atof(words[6]);
-      b1[index] = atof(words[7]);
-      b2[index] = atof(words[8]);
-      b3[index] = atof(words[9]);
-      alat[index] = atof(words[10]);
-      esub[index] = atof(words[11]);
-      asub[index] = atof(words[12]);
-      t0[index] = atof(words[13]);
-      t1[index] = atof(words[14]);
-      t2[index] = atof(words[15]);
-      t3[index] = atof(words[16]);
-      rozero[index] = atof(words[17]);
-      ibar[index] = atoi(words[18]);
-
-      if (!isone(t0[index]))
-        error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");
-
-      // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
-      if (z[index] != MEAM::get_Zij(lat[index]))
-        error->one(FLERR,"Mismatched parameter in MEAM library file: z!=lat");
-
-      nset++;
-    }
-
-    // error if didn't find all elements in file
-
-    if (nset != nelements) {
-      char str[128] = "Did not find all elements in MEAM library file, missing:";
-      for (int i = 0; i < nelements; i++)
-        if (!found[i]) {
-          strcat(str," ");
-          strcat(str,elements[i]);
-        }
-      error->one(FLERR,str);
-    }
-
-    delete [] words;
+  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
+    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    embedstep = update->ntimestep;
   }
 
-  // distribute complete parameter sets
-  MPI_Bcast(lat, nelements, MPI_INT, 0, world);
-  MPI_Bcast(ielement, nelements, MPI_INT, 0, world);
-  MPI_Bcast(ibar, nelements, MPI_INT, 0, world);
-  MPI_Bcast(z, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(atwt, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(alpha, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b0, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b1, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b2, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b3, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(alat, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(esub, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(asub, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t0, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t1, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t2, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t3, nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(rozero, nelements, MPI_DOUBLE, 0, world);
+  if (numforce[i] > 0) {
+    p = rho[i]*rdrho + 1.0;
+    m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    coeff = frho_spline[type2frho[itype]][m];
+    phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    phi *= 1.0/static_cast<double>(numforce[i]);
+  } else phi = 0.0;
 
-  // pass element parameters to MEAM package
+  r = sqrt(rsq);
+  p = r*rdr + 1.0;
+  m = static_cast<int> (p);
+  m = MIN(m,nr-1);
+  p -= m;
+  p = MIN(p,1.0);
 
-  meam_inst->meam_setup_global(nelements,lat,ielement,atwt,alpha,b0,b1,b2,b3,
-                       alat,esub,asub,t0,t1,t2,t3,rozero,ibar);
+  coeff = rhor_spline[type2rhor[itype][jtype]][m];
+  rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+  coeff = rhor_spline[type2rhor[jtype][itype]][m];
+  rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+  coeff = z2r_spline[type2z2r[itype][jtype]][m];
+  z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+  z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
-  // set element masses
+  recip = 1.0/r;
+  phi += z2*recip;
+  phip = z2p*recip - phi*recip;
+  psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+  fforce = -psip*recip;
 
-  for (int i = 0; i < nelements; i++) mass[i] = atwt[i];
-
-  // clean-up memory
-
-  delete [] lat;
-  delete [] ielement;
-  delete [] ibar;
-  delete [] z;
-  delete [] atwt;
-  delete [] alpha;
-  delete [] b0;
-  delete [] b1;
-  delete [] b2;
-  delete [] b3;
-  delete [] alat;
-  delete [] esub;
-  delete [] asub;
-  delete [] t0;
-  delete [] t1;
-  delete [] t2;
-  delete [] t3;
-  delete [] rozero;
-  delete [] found;
-
-  // done if user param file is "NULL"
-
-  if (userfile == "NULL") return;
-
-  // open user param file on proc 0
-
-  if (comm->me == 0) {
-    fp = utils::open_potential(userfile,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
-                                   userfile));
-  }
-
-  // read settings
-  // pass them one at a time to MEAM package
-  // match strings to list of corresponding ints
-
-  int maxparams = 6;
-  char **params = new char*[maxparams];
-  while (1) {
-    int which;
-    int nindex, index[3];
-    double value;
-    char line[MAXLINE];
-    int nline;
-    char *ptr;
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        fclose(fp);
-        nline = -1;
-      } else nline = strlen(line) + 1;
-    }
-    MPI_Bcast(&nline,1,MPI_INT,0,world);
-    if (nline<0) break;
-    MPI_Bcast(line,nline,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (utils::count_words(line) == 0) continue;
-
-    // params = ptrs to all fields in line
-
-    int nparams = 0;
-    params[nparams++] = strtok(line,"=(), '\t\n\r\f");
-    while (nparams < maxparams &&
-           (params[nparams++] = strtok(nullptr,"=(), '\t\n\r\f")))
-      continue;
-    nparams--;
-
-    for (which = 0; which < nkeywords; which++)
-      if (strcmp(params[0],keywords[which]) == 0) break;
-    if (which == nkeywords)
-      error->all(FLERR,fmt::format("Keyword {} in MEAM parameter file not "
-                                   "recognized", params[0]));
-
-    nindex = nparams - 2;
-    for (int i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
-
-    // map lattce_meam value to an integer
-
-    if (which == 4) {
-      lattice_t latt;
-      if (!MEAM::str_to_lat(params[nparams-1], false, latt))
-        error->all(FLERR, fmt::format("Unrecognized lattice type in MEAM "
-                                      "parameter file: {}", params[nparams-1]));
-      value = latt;
-    }
-    else value = atof(params[nparams-1]);
-
-    // pass single setting to MEAM package
-
-    int errorflag = 0;
-    meam_inst->meam_setup_param(which,value,nindex,index,&errorflag);
-    if (errorflag) {
-      const char *descr[] = { "has an unknown error",
-              "is out of range (please report a bug)",
-              "expected more indices",
-              "has out of range element index"};
-      char str[256];
-      if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
-      snprintf(str,256,"Error in MEAM parameter file: keyword %s %s",params[0],descr[errorflag]);
-      error->all(FLERR,str);
-    }
-  }
-  delete [] params;
+  return phi;
 }
 
 /* ---------------------------------------------------------------------- */
 
 int PairLS::pack_forward_comm(int n, int *list, double *buf,
-                                int /*pbc_flag*/, int * /*pbc*/)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,k,m;
+  int i,j,m;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = meam_inst->rho0[j];
-    buf[m++] = meam_inst->rho1[j];
-    buf[m++] = meam_inst->rho2[j];
-    buf[m++] = meam_inst->rho3[j];
-    buf[m++] = meam_inst->frhop[j];
-    buf[m++] = meam_inst->gamma[j];
-    buf[m++] = meam_inst->dgamma1[j];
-    buf[m++] = meam_inst->dgamma2[j];
-    buf[m++] = meam_inst->dgamma3[j];
-    buf[m++] = meam_inst->arho2b[j];
-    buf[m++] = meam_inst->arho1[j][0];
-    buf[m++] = meam_inst->arho1[j][1];
-    buf[m++] = meam_inst->arho1[j][2];
-    buf[m++] = meam_inst->arho2[j][0];
-    buf[m++] = meam_inst->arho2[j][1];
-    buf[m++] = meam_inst->arho2[j][2];
-    buf[m++] = meam_inst->arho2[j][3];
-    buf[m++] = meam_inst->arho2[j][4];
-    buf[m++] = meam_inst->arho2[j][5];
-    for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3[j][k];
-    buf[m++] = meam_inst->arho3b[j][0];
-    buf[m++] = meam_inst->arho3b[j][1];
-    buf[m++] = meam_inst->arho3b[j][2];
-    buf[m++] = meam_inst->t_ave[j][0];
-    buf[m++] = meam_inst->t_ave[j][1];
-    buf[m++] = meam_inst->t_ave[j][2];
-    buf[m++] = meam_inst->tsq_ave[j][0];
-    buf[m++] = meam_inst->tsq_ave[j][1];
-    buf[m++] = meam_inst->tsq_ave[j][2];
+    buf[m++] = fp[j];
   }
-
   return m;
 }
 
@@ -639,75 +914,22 @@ int PairLS::pack_forward_comm(int n, int *list, double *buf,
 
 void PairLS::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,k,m,last;
+  int i,m,last;
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    meam_inst->rho0[i] = buf[m++];
-    meam_inst->rho1[i] = buf[m++];
-    meam_inst->rho2[i] = buf[m++];
-    meam_inst->rho3[i] = buf[m++];
-    meam_inst->frhop[i] = buf[m++];
-    meam_inst->gamma[i] = buf[m++];
-    meam_inst->dgamma1[i] = buf[m++];
-    meam_inst->dgamma2[i] = buf[m++];
-    meam_inst->dgamma3[i] = buf[m++];
-    meam_inst->arho2b[i] = buf[m++];
-    meam_inst->arho1[i][0] = buf[m++];
-    meam_inst->arho1[i][1] = buf[m++];
-    meam_inst->arho1[i][2] = buf[m++];
-    meam_inst->arho2[i][0] = buf[m++];
-    meam_inst->arho2[i][1] = buf[m++];
-    meam_inst->arho2[i][2] = buf[m++];
-    meam_inst->arho2[i][3] = buf[m++];
-    meam_inst->arho2[i][4] = buf[m++];
-    meam_inst->arho2[i][5] = buf[m++];
-    for (k = 0; k < 10; k++) meam_inst->arho3[i][k] = buf[m++];
-    meam_inst->arho3b[i][0] = buf[m++];
-    meam_inst->arho3b[i][1] = buf[m++];
-    meam_inst->arho3b[i][2] = buf[m++];
-    meam_inst->t_ave[i][0] = buf[m++];
-    meam_inst->t_ave[i][1] = buf[m++];
-    meam_inst->t_ave[i][2] = buf[m++];
-    meam_inst->tsq_ave[i][0] = buf[m++];
-    meam_inst->tsq_ave[i][1] = buf[m++];
-    meam_inst->tsq_ave[i][2] = buf[m++];
-  }
+  for (i = first; i < last; i++) fp[i] = buf[m++];
 }
 
 /* ---------------------------------------------------------------------- */
 
 int PairLS::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,m,last;
+  int i,m,last;
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    buf[m++] = meam_inst->rho0[i];
-    buf[m++] = meam_inst->arho2b[i];
-    buf[m++] = meam_inst->arho1[i][0];
-    buf[m++] = meam_inst->arho1[i][1];
-    buf[m++] = meam_inst->arho1[i][2];
-    buf[m++] = meam_inst->arho2[i][0];
-    buf[m++] = meam_inst->arho2[i][1];
-    buf[m++] = meam_inst->arho2[i][2];
-    buf[m++] = meam_inst->arho2[i][3];
-    buf[m++] = meam_inst->arho2[i][4];
-    buf[m++] = meam_inst->arho2[i][5];
-    for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3[i][k];
-    buf[m++] = meam_inst->arho3b[i][0];
-    buf[m++] = meam_inst->arho3b[i][1];
-    buf[m++] = meam_inst->arho3b[i][2];
-    buf[m++] = meam_inst->t_ave[i][0];
-    buf[m++] = meam_inst->t_ave[i][1];
-    buf[m++] = meam_inst->t_ave[i][2];
-    buf[m++] = meam_inst->tsq_ave[i][0];
-    buf[m++] = meam_inst->tsq_ave[i][1];
-    buf[m++] = meam_inst->tsq_ave[i][2];
-  }
-
+  for (i = first; i < last; i++) buf[m++] = rho[i];
   return m;
 }
 
@@ -715,32 +937,12 @@ int PairLS::pack_reverse_comm(int n, int first, double *buf)
 
 void PairLS::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,k,m;
+  int i,j,m;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    meam_inst->rho0[j] += buf[m++];
-    meam_inst->arho2b[j] += buf[m++];
-    meam_inst->arho1[j][0] += buf[m++];
-    meam_inst->arho1[j][1] += buf[m++];
-    meam_inst->arho1[j][2] += buf[m++];
-    meam_inst->arho2[j][0] += buf[m++];
-    meam_inst->arho2[j][1] += buf[m++];
-    meam_inst->arho2[j][2] += buf[m++];
-    meam_inst->arho2[j][3] += buf[m++];
-    meam_inst->arho2[j][4] += buf[m++];
-    meam_inst->arho2[j][5] += buf[m++];
-    for (k = 0; k < 10; k++) meam_inst->arho3[j][k] += buf[m++];
-    meam_inst->arho3b[j][0] += buf[m++];
-    meam_inst->arho3b[j][1] += buf[m++];
-    meam_inst->arho3b[j][2] += buf[m++];
-    meam_inst->t_ave[j][0] += buf[m++];
-    meam_inst->t_ave[j][1] += buf[m++];
-    meam_inst->t_ave[j][2] += buf[m++];
-    meam_inst->tsq_ave[j][0] += buf[m++];
-    meam_inst->tsq_ave[j][1] += buf[m++];
-    meam_inst->tsq_ave[j][2] += buf[m++];
+    rho[j] += buf[m++];
   }
 }
 
@@ -750,31 +952,24 @@ void PairLS::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairLS::memory_usage()
 {
-  double bytes = 11 * meam_inst->nmax * sizeof(double);
-  bytes += (3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
-  bytes += 3 * meam_inst->maxneigh * sizeof(double);
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
 
 /* ----------------------------------------------------------------------
-   strip special bond flags from neighbor list entries
-   are not used with MEAM
-   need to do here so Fortran lib doesn't see them
-   done once per reneighbor so that neigh_f2c and neigh_c2f don't see them
+   swap fp array with one passed in by caller
 ------------------------------------------------------------------------- */
 
-void PairLS::neigh_strip(int inum, int *ilist,
-                           int *numneigh, int **firstneigh)
+void PairLS::swap_eam(double *fp_caller, double **fp_caller_hold)
 {
-  int i,j,ii,jnum;
-  int *jlist;
+  double *tmp = fp;
+  fp = fp_caller;
+  *fp_caller_hold = tmp;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
-  }
+  // skip warning about out-of-sync timestep, since we already warn in the caller
+  embedstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

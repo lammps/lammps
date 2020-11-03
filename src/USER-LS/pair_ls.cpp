@@ -508,7 +508,7 @@ void PairLS::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "ls", unit_convert_flag);
 
     // transparently convert units for supported conversions
 
@@ -530,7 +530,7 @@ void PairLS::read_file(char *filename)
       file->cut  = values.next_double();
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-        error->one(FLERR,"Invalid EAM potential file");
+        error->one(FLERR,"Invalid LS potential file");
 
       memory->create(file->frho, (file->nrho+1), "pair:frho");
       memory->create(file->rhor, (file->nr+1), "pair:rhor");
@@ -642,13 +642,13 @@ void PairLS::file2array()
     n++;
   }
 
-  // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
-  // this is necessary b/c fp is still computed for non-EAM atoms
+  // add extra frho of zeroes for non-LS types to point to (pair hybrid)
+  // this is necessary b/c fp is still computed for non-LS atoms
 
   for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
 
   // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
-  // if atom type doesn't point to file (non-EAM atom in pair hybrid)
+  // if atom type doesn't point to file (non-LS atom in pair hybrid)
   // then map it to last frho array of zeroes
 
   for (i = 1; i <= ntypes; i++)
@@ -691,7 +691,7 @@ void PairLS::file2array()
 
   // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
   // for funcfl files, I,J mapping only depends on I
-  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
+  // OK if map = -1 (non-LS atom in pair hybrid) b/c type2rhor not used
 
   for (i = 1; i <= ntypes; i++)
     for (j = 1; j <= ntypes; j++)
@@ -759,7 +759,7 @@ void PairLS::file2array()
   // set of z2r arrays only fill lower triangular Nelement matrix
   // value = n = sum over rows of lower-triangular matrix until reach irow,icol
   // swap indices when irow < icol to stay lower triangular
-  // if map = -1 (non-EAM atom in pair hybrid):
+  // if map = -1 (non-LS atom in pair hybrid):
   //   type2z2r is not used by non-opt
   //   but set type2z2r to 0 since accessed by opt
 
@@ -852,10 +852,10 @@ double PairLS::single(int i, int j, int itype, int jtype,
   double *coeff;
 
   if (!numforce)
-    error->all(FLERR,"EAM embedding data required for this calculation is missing");
+    error->all(FLERR,"LS embedding data required for this calculation is missing");
 
   if ((comm->me == 0) && (embedstep != update->ntimestep)) {
-    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    error->warning(FLERR,"LS embedding data not computed for this time step ");
     embedstep = update->ntimestep;
   }
 
@@ -962,7 +962,7 @@ double PairLS::memory_usage()
    swap fp array with one passed in by caller
 ------------------------------------------------------------------------- */
 
-void PairLS::swap_eam(double *fp_caller, double **fp_caller_hold)
+void PairLS::swap_ls(double *fp_caller, double **fp_caller_hold)
 {
   double *tmp = fp;
   fp = fp_caller;

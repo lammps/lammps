@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
+ 2
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -29,6 +29,7 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
+#include <array>
 
 #include <fstream>
 #include <sstream>
@@ -36,28 +37,17 @@
 
 using namespace LAMMPS_NS;
 
-//since LAMMPS is compiled with C++ 2003, define a substitution for std::array
-template<typename T, int N>
-class array2003{
-public:
-  T& operator[] (int idx) { return data[idx];};
-  const T& operator[] (int idx) const{ return data[idx];};
-private:
-  T data[N];
-};
-
-
 class MESONTList {
 public:
   MESONTList(const Atom* atom, const NeighList* nblist);
   ~MESONTList() {};
   //list of segments
-  const std::vector<array2003<int,2> >& get_segments() const;
+  const std::vector<std::array<int,2>>& get_segments() const;
   //list of triplets
-  const std::vector<array2003<int,3> >& get_triplets() const;
+  const std::vector<std::array<int,3>>& get_triplets() const;
   //list of neighbor chains [start,end] for segments
   //(use idx() to get real indexes)
-  const std::vector<std::vector<array2003<int,2> > >& get_nbs() const;
+  const std::vector<std::vector<std::array<int,2>>>& get_nbs() const;
   //convert idx from sorted representation to real idx
   int get_idx(int idx) const;
   //return list of indexes for conversion from sorted representation
@@ -69,22 +59,22 @@ public:
   //check if the node is the end of the tube
   bool is_end(int idx) const;
 
-  array2003<int, 2> get_segment(int idx) const;
-  array2003<int, 3> get_triplet(int idx) const;
+  std::array<int,2> get_segment(int idx) const;
+  std::array<int,3> get_triplet(int idx) const;
 
   static const int cnt_end = -1;
   static const int domain_end = -2;
   static const int not_cnt = -3;
 private:
-  std::vector<array2003<int, 2> > chain_list, segments;
-  std::vector<array2003<int, 3> > triplets;
-  std::vector<std::vector<array2003<int, 2> > > nb_chains;
+  std::vector<std::array<int,2>> chain_list, segments;
+  std::vector<std::array<int,3>> triplets;
+  std::vector<std::vector<std::array<int,2>>> nb_chains;
   std::vector<int> index_list, index_list_b;
 };
 
 //=============================================================================
 
-inline const std::vector<std::vector<array2003<int, 2> > > &
+inline const std::vector<std::vector<std::array<int,2>>> &
  MESONTList::get_nbs() const {
   return nb_chains;
 }
@@ -106,25 +96,25 @@ inline const std::vector<int>& MESONTList::get_idxb_list() const {
   return index_list_b;
 };
 
-inline const std::vector<array2003<int, 2> > & MESONTList::get_segments()
+inline const std::vector<std::array<int,2>> & MESONTList::get_segments()
  const {
   return segments;
 }
 
-inline const std::vector<array2003<int, 3> > & MESONTList::get_triplets()
+inline const std::vector<std::array<int,3>> & MESONTList::get_triplets()
  const {
   return triplets;
 }
 
-inline array2003<int, 2> MESONTList::get_segment(int idx) const {
-  array2003<int, 2> result;
+inline std::array<int,2> MESONTList::get_segment(int idx) const {
+  std::array<int,2> result;
   result[0] = chain_list[idx][0];
   result[1] = idx;
   return result;
 }
 
-inline array2003<int, 3> MESONTList::get_triplet(int idx) const {
-  array2003<int, 3> result;
+inline std::array<int,3> MESONTList::get_triplet(int idx) const {
+  std::array<int,3> result;
   result[0] = chain_list[idx][0];
   result[1] = idx;
   result[2] = chain_list[idx][1];
@@ -179,9 +169,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
   int* ilist = nblist->ilist;
 
   //convert bonds to local id representation
-  array2003<int, 2> tmp_arr;
-  tmp_arr[0] = not_cnt; tmp_arr[1] = not_cnt;
-  chain_list.resize(ntot, tmp_arr);
+  chain_list.resize(ntot, {not_cnt,not_cnt});
   for (int ii = 0; ii < nall; ii++) {
     int i = ilist[ii];
     chain_list[i][0] = domain_end;
@@ -224,17 +212,11 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
   for (int i = 0; i < nlocal; i++) {
     if (chain_list[i][0] == not_cnt) continue;
     if (chain_list[i][0] != cnt_end && chain_list[i][0] != domain_end &&
-     g_id[i] < g_id[chain_list[i][0]]) {
-      array2003<int, 2> tmp_c;
-      tmp_c[0] = i; tmp_c[1] = chain_list[i][0];
-      segments.push_back(tmp_c);
-    }
+     g_id[i] < g_id[chain_list[i][0]])
+      segments.push_back({i,chain_list[i][0]});
     if (chain_list[i][1] != cnt_end && chain_list[i][1] != domain_end &&
-     g_id[i] < g_id[chain_list[i][1]]) {
-      array2003<int, 2> tmp_c;
-       tmp_c[0] = i; tmp_c[1] = chain_list[i][1];
-       segments.push_back(tmp_c);
-    }
+     g_id[i] < g_id[chain_list[i][1]])
+      segments.push_back({i,chain_list[i][1]});
   }
   int nbonds = segments.size();
 
@@ -275,7 +257,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
         int idx_next = chain_list[index_list[nb_list[j]]][1];
         if ((j == nnb - 1) || (nb_list[j] + 1 != nb_list[j+1]) ||
          (idx_next == cnt_end) || (idx_next == domain_end)) {
-          array2003<int, 2> chain;
+          std::array<int,2> chain;
           chain[0] = idx_s;
           chain[1] = nb_list[j];
           //make sure that segments having at least one node
@@ -399,7 +381,7 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
   //bending potential
   int n_triplets = ntlist.get_triplets().size();
   for (int i = 0; i < n_triplets; i++) {
-    const array2003<int,3>& t = ntlist.get_triplets()[i];
+    const std::array<int,3>& t = ntlist.get_triplets()[i];
     //idx of nodes of a triplet in sorted representation
     int idx_s0 = ntlist.get_idxb(t[0]);
     int idx_s1 = ntlist.get_idxb(t[1]);
@@ -443,7 +425,7 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
   double Rmax = 0.0;
   Lmax = 0.0;
   for (int i = 0; i < n_segments; i++) {
-    const array2003<int,2>& s = ntlist.get_segments()[i];
+    const std::array<int,2>& s = ntlist.get_segments()[i];
     //idx of a segment end 1 in sorted representation
     int idx_s0 = ntlist.get_idxb(s[0]);
     //idx of a segment end 2 in sorted representation
@@ -472,7 +454,7 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
 
     for (int nc = 0; nc < (int)ntlist.get_nbs()[i].size(); nc++) {
       //id of the beginning and end of the chain in the sorted representation
-      const array2003<int,2>& chain = ntlist.get_nbs()[i][nc];
+      const std::array<int,2>& chain = ntlist.get_nbs()[i][nc];
       int N = chain[1] - chain[0] + 1;  //number of elements in the chain
       int end1 = ntlist.get_idx(chain[0]);  //chain ends (real representation)
       int end2 = ntlist.get_idx(chain[1]);

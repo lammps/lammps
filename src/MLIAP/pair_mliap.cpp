@@ -78,6 +78,8 @@ void PairMLIAP::compute(int eflag, int vflag)
 
   model->compute_gradients(data);
 
+  e_tally(data);
+
   // calculate force contributions beta_i*dB_i/dR_j
 
   descriptor->compute_forces(data);
@@ -220,13 +222,17 @@ void PairMLIAP::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   add energy of atom i to global and per-atom energy
+   add energies to eng_vdwl and per-atom energy
 ------------------------------------------------------------------------- */
 
-void PairMLIAP::e_tally(int i, double ei)
+void PairMLIAP::e_tally(MLIAPData* data)
 {
-  if (eflag_global) eng_vdwl += ei;
-  if (eflag_atom) eatom[i] += ei;
+  if (eflag_global) eng_vdwl += data->energy;
+  if (eflag_atom) 
+    for (int ii = 0; ii < data->natoms; ii++) {
+      const int i = data->iatoms[ii];
+      eatom[i] += data->eatoms[ii];
+    }
 }
 
 /* ----------------------------------------------------------------------

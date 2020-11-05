@@ -93,9 +93,9 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
 void *lammps_open_fortran(int argc, char **argv, int f_comm);
 void  lammps_close(void *handle);
+
 void  lammps_mpi_init();
 void  lammps_mpi_finalize();
-void  lammps_free(void *ptr);
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -111,33 +111,28 @@ void  lammps_commands_string(void *handle, const char *str);
  * Library functions to extract info from LAMMPS or set data in LAMMPS
  * ----------------------------------------------------------------------- */
 
-int    lammps_version(void *handle);
-void   lammps_get_os_info(char *buffer, int buf_size);
-void   lammps_memory_usage(void *handle, double *meminfo);
-int    lammps_get_mpi_comm(void *handle);
 double lammps_get_natoms(void *handle);
 double lammps_get_thermo(void *handle, const char *keyword);
 
-void   lammps_extract_box(void *handle, double *boxlo, double *boxhi,
-                          double *xy, double *yz, double *xz,
-                          int *pflags, int *boxflag);
-void   lammps_reset_box(void *handle, double *boxlo, double *boxhi,
-                        double xy, double yz, double xz);
+void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
+                        double *xy, double *yz, double *xz,
+                        int *pflags, int *boxflag);
+void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz);
 
-int    lammps_extract_setting(void *handle, const char *keyword);
-void  *lammps_extract_global(void *handle, const char *name);
-void  *lammps_extract_atom(void *handle, const char *name);
+void lammps_memory_usage(void *handle, double *meminfo);
+int  lammps_get_mpi_comm(void *handle);
 
-int lammps_extract_global_datatype(void *handle, const char *name);
+int   lammps_extract_setting(void *handle, const char *keyword);
+int   lammps_extract_global_datatype(void *handle, const char *name);
+void *lammps_extract_global(void *handle, const char *name);
+
+/* ----------------------------------------------------------------------
+ * Library functions to read or modify per-atom data in LAMMPS
+ * ---------------------------------------------------------------------- */
+
 int lammps_extract_atom_datatype(void *handle, const char *name);
-
-#if !defined(LAMMPS_BIGBIG)
-int    lammps_create_atoms(void *handle, int n, int *id, int *type,
-                           double *x, double *v, int *image, int bexpand);
-#else
-int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
-                           double *x, double *v, int64_t* image, int bexpand);
-#endif
+void  *lammps_extract_atom(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------
  * Library functions to access data from computes, fixes, variables in LAMMPS
@@ -152,33 +147,53 @@ int   lammps_set_variable(void *, char *, char *);
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
+void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
+void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data);
+void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 
-void lammps_gather(void *, char *, int, int, void *);
-void lammps_gather_concat(void *, char *, int, int, void *);
-void lammps_gather_subset(void *, char *, int, int, int, int *, void *);
-void lammps_scatter(void *, char *, int, int, void *);
-void lammps_scatter_subset(void *, char *, int, int, int, int *, void *);
+void lammps_gather(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
+void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
+void lammps_scatter(void *handle, char *name, int type, int count, void *data);
+void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 
+#if !defined(LAMMPS_BIGBIG)
+int    lammps_create_atoms(void *handle, int n, int *id, int *type,
+                           double *x, double *v, int *image, int bexpand);
+#else
+int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
+                           double *x, double *v, int64_t* image, int bexpand);
+#endif
 
-void lammps_gather_atoms(void *, char *, int, int, void *);
-void lammps_gather_atoms_concat(void *, char *, int, int, void *);
-void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
-void lammps_scatter_atoms(void *, char *, int, int, void *);
-void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+/* ----------------------------------------------------------------------
+ * Library functions for accessing neighbor lists
+ * ---------------------------------------------------------------------- */
+
+int lammps_find_pair_neighlist(void *handle, char *style, int exact, int nsub, int request);
+int lammps_find_fix_neighlist(void *handle, char *id, int request);
+int lammps_find_compute_neighlist(void *handle, char *id, int request);
+int lammps_neighlist_num_elements(void *handle, int idx);
+void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom, int *numneigh, int **neighbors);
 
 /* ----------------------------------------------------------------------
  * Library functions for retrieving configuration information
  * ---------------------------------------------------------------------- */
 
+int  lammps_version(void *handle);
+void lammps_get_os_info(char *buffer, int buf_size);
+
 int lammps_config_has_mpi_support();
-int lammps_config_has_package(const char *);
-int lammps_config_package_count();
-int lammps_config_package_name(int, char *, int);
 int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
+
+int lammps_config_has_package(const char *);
+int lammps_config_package_count();
+int lammps_config_package_name(int, char *, int);
 
 int lammps_has_style(void *, const char *, const char *);
 int lammps_style_count(void *, const char *);
@@ -187,16 +202,6 @@ int lammps_style_name(void *, const char *, int, char *, int);
 int lammps_has_id(void *, const char *, const char *);
 int lammps_id_count(void *, const char *);
 int lammps_id_name(void *, const char *, int, char *, int);
-
-/* ----------------------------------------------------------------------
- * Library functions for accessing neighbor lists
- * ---------------------------------------------------------------------- */
-
-int lammps_find_pair_neighlist(void*, char *, int, int, int);
-int lammps_find_fix_neighlist(void*, char *, int);
-int lammps_find_compute_neighlist(void*, char *, int);
-int lammps_neighlist_num_elements(void*, int);
-void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
 /* ----------------------------------------------------------------------
  * Utility functions
@@ -223,7 +228,9 @@ void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 void lammps_fix_external_set_energy_global(void *, char *, double);
 void lammps_fix_external_set_virial_global(void *, char *, double *);
 
-int lammps_is_running(void *handle);
+void lammps_free(void *ptr);
+
+int  lammps_is_running(void *handle);
 void lammps_force_timeout(void *handle);
 
 int lammps_has_error(void *handle);

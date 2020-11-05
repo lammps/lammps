@@ -34,13 +34,24 @@ if(BUILD_LAMMPS_SHELL)
   if(NOT LAMMPS_EXCEPTIONS)
     message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
   endif()
-  add_executable(lammps-shell ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.cpp)
+
+  # include resource compiler to embed icons into the executable on Windows
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    enable_language(RC)
+    set(ICON_RC_FILE ${LAMMPS_TOOLS_DIR}/lammps-shell/lmpicons.rc)
+  endif()
+
+  add_executable(lammps-shell ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.cpp ${ICON_RC_FILE})
+  target_include_directories(lammps-shell PRIVATE ${LAMMPS_TOOLS_DIR}/lammps-shell)
+
   # workaround for broken readline pkg-config file on FreeBSD
   if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     target_include_directories(lammps-shell PRIVATE /usr/local/include)
   endif()
   target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
   install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(DIRECTORY ${LAMMPS_TOOLS_DIR}/lammps-shell/icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/)
+  install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
 endif()
 
 

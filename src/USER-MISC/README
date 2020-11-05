@@ -6,7 +6,7 @@ More information about each feature can be found by reading its doc
 page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
 input script commands is as follows:
 
-doc/Section_commands.html, subsection 3.5
+doc/Commands_all.html
 
 User-contributed features are listed at the bottom of the fix,
 compute, pair, etc sections.

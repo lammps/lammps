@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,7 +36,7 @@ static const char cite_fix_rhok[] =
   "title = {Direct calculation of the solid-liquid Gibbs free energy difference in a single equilibrium simulation},\n"
   "volume = {139},\n"
   "number = {10},\n"
-  "url = {http://aip.scitation.org/doi/10.1063/1.4818747},\n"
+  "url = {https://aip.scitation.org/doi/10.1063/1.4818747},\n"
   "doi = {10.1063/1.4818747},\n"
   "urldate = {2017-10-03},\n"
   "journal = {J. Chem. Phys.},\n"

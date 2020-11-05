@@ -41,14 +41,14 @@ Below is an example output for Python version 3.8.5.
    >>>
 
 
-.. warning:: Python 2 support is deprecated
+.. warning::
 
-   While the LAMMPS Python module was originally developed to support
-   both, Python 2 and 3, any new code is only tested with Python 3.
-   Please note that Python 2 is no longer maintained as of `January 1,
-   2020 <https://www.python.org/doc/sunset-python-2/>`_.  Therefore, we
-   highly recommend using Python version 3.6 or later.  Compatibility to
-   Python 2 will be removed eventually.
+   The options described in this section of the manual for using Python with
+   LAMMPS currently support either Python 2 or 3.  Specifically version 2.7 or
+   later and 3.6 or later.  Since the Python community no longer maintains Python
+   2 (see `this notice <https://www.python.org/doc/sunset-python-2/>`_), we
+   recommend use of Python 3 with LAMMPS.  While Python 2 code should continue to
+   work, that is not something we can guarantee long-term.
 
 ---------
 

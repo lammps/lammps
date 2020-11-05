@@ -73,8 +73,8 @@ after the documentation folder is returned to a pristine state with
 For the documentation build a python virtual environment is set up in
 the folder ``doc/docenv`` and various python packages are installed into
 that virtual environment via the ``pip`` tool.  For rendering embedded
-LaTeX code also the `MathJax <https://www.mathjax.org/>`_ and the
-`Polyfill <https://polyfill.io/>`_ JavaScript engines need to be downloaded.
+LaTeX code also the `MathJax <https://www.mathjax.org/>`_ JavaScript
+engine needs to be downloaded.
 
 The actual translation is then done via ``make`` commands in the doc
 folder.  The following ``make`` commands are available:

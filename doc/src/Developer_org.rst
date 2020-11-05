@@ -1,5 +1,5 @@
-LAMMPS source files
-===================
+Source files
+------------
 
 The source files of the LAMMPS code are found in two
 directories of the distribution: ``src`` and ``lib``.
@@ -46,8 +46,8 @@ class.  They are discussed in the next section.
 A small number of C++ classes and utility functions are implemented with
 only a ``.h`` file. Examples are the Pointer class or the MathVec functions.
 
-LAMMPS class topology
-=====================
+Class topology
+--------------
 
 Though LAMMPS has a lot of source files and classes, its class topology
 is relative flat, as outlined in the :ref:`class-topology` figure.  Each
@@ -78,7 +78,7 @@ in the figure for demonstration purposes.
    the core is the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class, which
    holds pointers to class instances with specific purposes.  Those may
    hold instances of other classes, sometimes directly, or only
-   temporarily, sometimes as derived classes or derived classes or
+   temporarily, sometimes as derived classes or derived classes of
    derived classes, which may also hold instances of other classes.
 
 The :cpp:class:`LAMMPS_NS::LAMMPS` class is the topmost class and

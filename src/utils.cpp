@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -770,6 +770,22 @@ std::string utils::path_basename(const std::string &path) {
   }
 
   return path.substr(start);
+}
+
+/* ----------------------------------------------------------------------
+   Return only the leading part of a path, return just the directory
+------------------------------------------------------------------------- */
+
+std::string utils::path_dirname(const std::string &path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of("/\\");
+#else
+  size_t start = path.find_last_of("/");
+#endif
+
+  if (start == std::string::npos) return ".";
+
+  return path.substr(0,start);
 }
 
 /* ----------------------------------------------------------------------

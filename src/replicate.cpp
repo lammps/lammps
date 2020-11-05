@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,6 +42,9 @@ void Replicate::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Replicate command before simulation box is defined");
   if (narg < 3 || narg > 4) error->all(FLERR,"Illegal replicate command");
+
+  if (atom->molecular == Atom::TEMPLATE)
+    error->all(FLERR,"Cannot use replicate command with atom style template");
 
   int me = comm->me;
   int nprocs = comm->nprocs;

@@ -1,5 +1,5 @@
-Calling Python from a LAMMPS input script
-*****************************************
+Calling Python from LAMMPS
+**************************
 
 LAMMPS has several commands which can be used to invoke Python
 code directly from an input script:

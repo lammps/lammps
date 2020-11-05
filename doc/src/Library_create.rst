@@ -9,7 +9,6 @@ This section documents the following functions:
 - :cpp:func:`lammps_close`
 - :cpp:func:`lammps_mpi_init`
 - :cpp:func:`lammps_mpi_finalize`
-- :cpp:func:`lammps_free`
 
 --------------------
 
@@ -75,11 +74,6 @@ that may only be called once.  See :cpp:func:`lammps_mpi_finalize` for
 an alternative to invoking ``MPI_Finalize()`` explicitly from the
 calling program.
 
-The :cpp:func:`lammps_free` function is a clean-up
-function to free memory that the library allocated previously
-via other function calls.  See below for notes in the descriptions
-of the individual commands where such memory buffers were allocated.
-
 -----------------------
 
 .. doxygenfunction:: lammps_open
@@ -108,9 +102,4 @@ of the individual commands where such memory buffers were allocated.
 -----------------------
 
 .. doxygenfunction:: lammps_mpi_finalize
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_free
    :project: progguide

@@ -1,5 +1,5 @@
-Accessing LAMMPS Neighbor lists
-*******************************
+Neighbor list access
+====================
 
 **Methods:**
 

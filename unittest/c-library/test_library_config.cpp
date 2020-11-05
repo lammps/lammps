@@ -105,7 +105,7 @@ TEST_F(LibraryConfig, style_count)
     EXPECT_GT(lammps_style_count(lmp, "dihedral"), 1);
     EXPECT_GT(lammps_style_count(lmp, "improper"), 1);
     EXPECT_GT(lammps_style_count(lmp, "pair"), 1);
-    EXPECT_GT(lammps_style_count(lmp, "kspace"), 1);
+    EXPECT_GE(lammps_style_count(lmp, "kspace"), 0);
     EXPECT_GT(lammps_style_count(lmp, "compute"), 1);
     EXPECT_GT(lammps_style_count(lmp, "fix"), 1);
     EXPECT_GT(lammps_style_count(lmp, "region"), 1);

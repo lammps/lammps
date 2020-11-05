@@ -1,5 +1,5 @@
 Download an executable for Mac
-==============================
+------------------------------
 
 LAMMPS can be downloaded, built, and configured for OS X on a Mac with
 `Homebrew <homebrew_>`_.  (Alternatively, see the install instructions for

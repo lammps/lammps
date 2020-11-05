@@ -1,16 +1,12 @@
 .. index:: angle_style charmm
+.. index:: angle_style charmm/intel
+.. index:: angle_style charmm/kk
+.. index:: angle_style charmm/omp
 
 angle_style charmm command
 ==========================
 
-angle_style charmm/intel command
-================================
-
-angle_style charmm/kk command
-=============================
-
-angle_style charmm/omp command
-==============================
+Accelerator Variants: *charmm/intel*, *charmm/kk*, *charmm/omp*
 
 Syntax
 """"""
@@ -37,7 +33,7 @@ The *charmm* angle style uses the potential
    E = K (\theta - \theta_0)^2 + K_{ub} (r - r_{ub})^2
 
 with an additional Urey_Bradley term based on the distance :math:`r` between
-the 1st and 3rd atoms in the angle.  :math:`K`, :math:`\theta_0`,
+the first and third atoms in the angle.  :math:`K`, :math:`\theta_0`,
 :math:`K_{ub}`, and :math:`R_{ub}` are coefficients defined for each angle
 type.
 
@@ -49,13 +45,14 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 * :math:`K_{ub}` (energy/distance\^2)
 * :math:`r_{ub}` (distance)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of :math:`K` are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
 ----------
 
@@ -91,7 +88,10 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

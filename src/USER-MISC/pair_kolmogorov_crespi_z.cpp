@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_kolmogorov_crespi_z.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -32,6 +32,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -47,11 +48,11 @@ PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
 
   // initialize element to parameter maps
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  map = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -202,7 +203,7 @@ void PairKolmogorovCrespiZ::settings(int narg, char **arg)
   if (strcmp(force->pair_style,"hybrid/overlay")!=0)
     error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -227,11 +228,11 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -240,7 +241,7 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -307,15 +308,15 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
   int params_per_line = 11;
   char **words = new char*[params_per_line+1];
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
-    if (fp == NULL) {
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open KC potential file %s",filename);
       error->one(FLERR,str);
@@ -332,7 +333,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -345,7 +346,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -354,7 +355,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -364,7 +365,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -374,7 +375,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line
@@ -393,6 +394,11 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;

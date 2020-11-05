@@ -381,7 +381,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are defined.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -391,7 +391,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    the atoms are too far apart to make a valid bond.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
@@ -401,12 +401,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are too far apart to make a valid bond.
 
 *Bond atoms %d %d missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atoms missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -502,10 +502,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: Unknown section in map file*
    Please ensure reaction map files are properly formatted.
 
-*Bond/react: Atom affected by reaction too close to template edge*
+*Bond/react: Atom/Bond type affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
    reaction is too close to an 'edge' atom defined in the map
-   file. This could cause incorrect assignment of bonds, angle, etc.
+   file.  This could cause incorrect assignment of bonds, angle, etc.
    Generally, this means you must include more atoms in your templates,
    such that there are at least two atoms between each atom involved in
    the reaction and an edge atom.
@@ -1374,7 +1374,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    template does not qualify.
 
 *Cannot use fix box/relax on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1388,7 +1388,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    also keyword tri or xy, this is wrong.
 
 *Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension*
-   When specifying scaling on a tilt factor component, the 2nd of the two
+   When specifying scaling on a tilt factor component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1429,7 +1429,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This would be changing the same box dimension twice.
 
 *Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1447,13 +1447,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix pour rigid and not molecule*
    Self-explanatory.
@@ -1902,6 +1902,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
+
+*Compute for fix pafi does not calculate a local array*
+   Self-explanatory.
+
+*Compute for fix pafi must have 9 fields per atom*
+   Self-explanatory.
 
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.
@@ -2783,7 +2789,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    if this helps.
 
 *Did not find all elements in MEAM library file*
-   The requested elements were not found in the MEAM file.
+   Some requested elements were not found in the MEAM file. Check spelling etc.
 
 *Did not find fix shake partner info*
    Could not find bond partners implied by fix shake command.  This error
@@ -2999,9 +3005,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dump image line requires atom style line*
    Self-explanatory.
 
-*Dump image persp option is not yet supported*
-   Self-explanatory.
-
 *Dump image requires one snapshot per file*
    Use a "\*" in the filename.
 
@@ -3134,6 +3137,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Epsilon or sigma reference not set by pair style in ewald/n*
    The pair style is not providing the needed epsilon or sigma values.
+
+*Error in MEAM parameter file: keyword %s (further information)*
+   Self-explanatory. Check the parameter file.
 
 *Error in vdw spline: inner radius > outer radius*
    A pre-tabulated spline is invalid.  Likely a problem with the
@@ -4611,7 +4617,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Incorrect format in COMB3 potential file*
    Incorrect number of words per line in the potential file.
 
-*Incorrect format in MEAM potential file*
+*Incorrect format in MEAM library file*
    Incorrect number of words per line in the potential file.
 
 *Incorrect format in SNAP coefficient file*
@@ -5098,9 +5104,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid dump image filename*
    The file produced by dump image cannot be binary and must
    be for a single processor.
-
-*Invalid dump image persp value*
-   Persp value must be >= 0.0.
 
 *Invalid dump image theta value*
    Theta must be between 0.0 and 180.0 inclusive.
@@ -5669,6 +5672,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    A fix is referenced incorrectly or a fix that produces per-atom
    values is used in an equal-style variable formula.
 
+*Mismatched parameter in MEAM library file: z!=lat*
+   The coordination number and lattice do not match, check that consistent values are given.
+
 *Mismatched variable in variable formula*
    A variable is referenced incorrectly or an atom-style variable that
    produces per-atom values is used in an equal-style variable
@@ -5696,6 +5702,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule file has dihedrals but no ndihedrals setting*
    Self-explanatory.
 
+*Molecule file has fragments but no nfragments setting*
+   Self-explanatory.
+
 *Molecule file has impropers but no nimpropers setting*
    Self-explanatory.
 
@@ -5703,6 +5712,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Molecule file has no Body Integers section*
+   Self-explanatory.
+
+*Molecule file has no Fragments section*
    Self-explanatory.
 
 *Molecule file has special flags but no bonds*
@@ -5844,6 +5856,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must have more than one processor partition to temper*
    Cannot use the temper command with only one processor partition.  Use
    the -partition command-line option.
+
+*Must not have multiple fixes change box parameter ...*
+   Self-explanatory.
 
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
@@ -7183,7 +7198,7 @@ keyword to allow for additional bonds to be formed
    does not exist.
 
 *Replacing a fix, but new style != old style*
-   A fix ID can be used a 2nd time, but only if the style matches the
+   A fix ID can be used a second time, but only if the style matches the
    previous fix.  In this case it is assumed you with to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
@@ -7764,6 +7779,9 @@ keyword to allow for additional bonds to be formed
 *Too many atoms to dump sort*
    Cannot sort when running with more than 2\^31 atoms.
 
+*Too many elements extracted from MEAM library.*
+   Increase 'maxelt' in meam.h and recompile.
+
 *Too many exponent bits for lookup table*
    Table size specified via pair_modify command does not work with your
    machine's floating point representation.
@@ -7997,11 +8015,11 @@ keyword to allow for additional bonds to be formed
 *Unknown unit_style*
    Self-explanatory. Check the input script or data file.
 
-*Unrecognized lattice type in MEAM file 1*
+*Unrecognized lattice type in MEAM library file*
    The lattice type in an entry of the MEAM library file is not
    valid.
 
-*Unrecognized lattice type in MEAM file 2*
+*Unrecognized lattice type in MEAM parameter file*
    The lattice type in an entry of the MEAM parameter file is not
    valid.
 
@@ -8016,6 +8034,9 @@ keyword to allow for additional bonds to be formed
 
 *Unsupported order in kspace_style pppm/disp, pair_style %s*
    Only pair styles with 1/r and 1/r\^6 dependence are currently supported.
+
+*Unsupported parameter in MEAM library file*
+   Self-explanatory.
 
 *Use cutoff keyword to set cutoff in single mode*
    Mode is single so cutoff/multi keyword cannot be used.
@@ -8087,9 +8108,6 @@ keyword to allow for additional bonds to be formed
    Only equal-style variables can be used.
 
 *Variable for dump image center is invalid style*
-   Must be an equal-style variable.
-
-*Variable for dump image persp is invalid style*
    Must be an equal-style variable.
 
 *Variable for dump image phi is invalid style*
@@ -8230,9 +8248,6 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Variable name for dump image center does not exist*
-   Self-explanatory.
-
-*Variable name for dump image persp does not exist*
    Self-explanatory.
 
 *Variable name for dump image phi does not exist*

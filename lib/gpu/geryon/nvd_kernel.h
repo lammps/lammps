@@ -41,7 +41,7 @@ class UCL_Program {
  public:
   inline UCL_Program(UCL_Device &device) { _cq=device.cq(); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) {
+                     const char *flags="", std::string *log=nullptr) {
     _cq=device.cq();
     init(device);
     load_string(program,flags,log);
@@ -58,7 +58,7 @@ class UCL_Program {
 
   /// Load a program from a file and compile with flags
   inline int load(const char *filename, const char *flags="",
-                  std::string *log=NULL) {
+                  std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -77,7 +77,7 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=NULL) {
+                         std::string *log=nullptr) {
     if (std::string(flags)=="BINARY")
       return load_binary((const char *)program);
     const unsigned int num_opts=2;
@@ -95,7 +95,7 @@ class UCL_Program {
     CUresult err=cuModuleLoadDataEx(&_module,program,num_opts,
                                     options,(void **)values);
 
-    if (log!=NULL)
+    if (log!=nullptr)
       *log=std::string(clog);
 
     if (err != CUDA_SUCCESS) {
@@ -361,7 +361,7 @@ class UCL_Kernel {
     #if CUDA_VERSION >= 4000
     CU_SAFE_CALL(cuLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
-                                _block_size[2],0,_cq,_kernel_args,NULL));
+                                _block_size[2],0,_cq,_kernel_args,nullptr));
     #else
     CU_SAFE_CALL(cuParamSetSize(_kernel,_param_size));
     CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],_cq));

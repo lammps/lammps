@@ -119,7 +119,7 @@ non-polarized ions (ions without an attached satellite particle).  The
 groups, one for the core atoms, another for the shell atoms.
 Non-polarized ions which might also be included in the treated system
 should not be included into either of these groups, they are taken
-into account by the *group-ID* (2nd argument) of the compute.  The
+into account by the *group-ID* (second argument) of the compute.  The
 groups can be defined using the :doc:`group *type*\ <group>` command.
 Note that to perform thermostatting using this definition of
 temperature, the :doc:`fix modify temp <fix_modify>` command should be

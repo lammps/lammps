@@ -46,7 +46,6 @@ class PPPMDipoleSpin : public PPPMDipole {
   void fieldforce_ik_spin();
   void fieldforce_peratom_spin();
   void spsum_spsq();
-
 };
 
 }

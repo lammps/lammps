@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_eam_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -108,9 +108,20 @@ void PairEAMGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
+                                   atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
@@ -134,7 +145,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }

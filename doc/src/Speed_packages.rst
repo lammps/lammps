@@ -20,7 +20,7 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`KOKKOS Package <Speed_kokkos>`    | for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading |
+| :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-OMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+
@@ -40,13 +40,13 @@ standard or user packages:
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Many-core CPUs | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| NVIDIA GPUs    | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Intel Phi      | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| NVIDIA/AMD GPUs | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| Intel Phi/AVX   | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 Which package is fastest for your hardware may depend on the size
 problem you are running and what commands (accelerated and
@@ -153,8 +153,8 @@ size and number of compute nodes, on different hardware platforms.
 Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.
 
-* Styles with a "gpu" suffix are part of the GPU package, and can be run
-  on NVIDIA GPUs.  The speed-up on a GPU depends on a variety of
+* Styles with a "gpu" suffix are part of the GPU package and can be run
+  on NVIDIA or AMD GPUs.  The speed-up on a GPU depends on a variety of
   factors, discussed in the accelerator sections.
 * Styles with an "intel" suffix are part of the USER-INTEL
   package. These styles support vectorized single and mixed precision
@@ -164,8 +164,8 @@ are in the individual accelerator sections.
   co-processors.  This can result in additional speedup over 2x depending
   on the hardware configuration.
 * Styles with a "kk" suffix are part of the KOKKOS package, and can be
-  run using OpenMP on multicore CPUs, on an NVIDIA GPU, or on an Intel
-  Xeon Phi in "native" mode.  The speed-up depends on a variety of
+  run using OpenMP on multicore CPUs, on an NVIDIA or AMD GPU, or on an
+  Intel Xeon Phi in "native" mode.  The speed-up depends on a variety of
   factors, as discussed on the KOKKOS accelerator page.
 * Styles with an "omp" suffix are part of the USER-OMP package and allow
   a pair-style to be run in multi-threaded mode using OpenMP.  This can

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_srp.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "domain.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "neighbor.h"
-#include "atom_vec.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -54,13 +55,13 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // initial allocation of atom-based array
   // register with Atom class
-  array = NULL;
+  array = nullptr;
   grow_arrays(atom->nmax);
 
   // extends pack_exchange()
-  atom->add_callback(0);
-  atom->add_callback(1); // restart
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART); // restart
+  atom->add_callback(Atom::BORDER);
 
   // initialize to illegal values so we capture
   btype = -1;
@@ -77,9 +78,9 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixSRP::~FixSRP()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,2);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::BORDER);
   memory->destroy(array);
 }
 
@@ -99,7 +100,7 @@ int FixSRP::setmask()
 
 void FixSRP::init()
 {
-  if (force->pair_match("hybrid",1) == NULL && force->pair_match("hybrid/overlay",1) == NULL)
+  if (force->pair_match("hybrid",1) == nullptr && force->pair_match("hybrid/overlay",1) == nullptr)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   int has_rigid = 0;
@@ -112,19 +113,21 @@ void FixSRP::init()
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR,"Illegal bond particle type");
 
-  // fix SRP should be the first fix running at the PRE_EXCHANGE step.
-  // Otherwise it might conflict with, e.g. fix deform
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // because this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
 
-  if (modify->n_pre_exchange > 1) {
-    char *first = modify->fix[modify->list_pre_exchange[0]]->id;
-    if ((comm->me == 0) && (strcmp(id,first) != 0))
-      error->warning(FLERR,"Internal fix for pair srp defined too late."
-                     " May lead to incorrect behavior.");
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix SRP comes after a fix which "
+                 "migrates atoms in pre_exchange");
   }
 
   // setup neigh exclusions for diff atom types
   // bond particles do not interact with other types
   // type bptype only interacts with itself
+
   char* arg1[4];
   arg1[0] = (char *) "exclude";
   arg1[1] = (char *) "type";
@@ -290,7 +293,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
 
   // assign tags for new atoms, update map
   atom->tag_extend();
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -511,7 +514,7 @@ void FixSRP::post_run()
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -552,6 +555,7 @@ void FixSRP::post_run()
 int FixSRP::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3;
   buf[m++] = array[i][0];
   buf[m++] = array[i][1];
@@ -566,10 +570,12 @@ void FixSRP::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
-// skip to Nth set of extra values
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
   int m = 0;
   for (int i = 0; i < nth; i++){
-    m += extra[nlocal][m];
+    m += static_cast<int> (extra[nlocal][m]);
   }
 
   m++;
@@ -636,11 +642,11 @@ void FixSRP::restart(char *buf)
 int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   if (strcmp(arg[0],"bptype") == 0) {
-    bptype = force->inumeric(FLERR,arg[1]);
+    bptype = utils::inumeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

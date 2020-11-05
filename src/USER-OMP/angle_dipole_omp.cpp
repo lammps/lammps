@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "angle_dipole_omp.h"
 #include <cmath>
 #include "atom.h"
@@ -22,7 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -51,7 +52,7 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
   const int inum = neighbor->nanglelist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -34,9 +35,9 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(valuepartner);
-  npartner = NULL;
-  partner = NULL;
-  valuepartner = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  valuepartner = nullptr;
 
   maxpartner = 8;
   grow_arrays(atom->nmax);
@@ -69,6 +70,17 @@ void FixNeighHistoryKokkos<DeviceType>::init()
 {
   if (atomKK->tag_enable == 0)
     error->all(FLERR,"Neighbor history requires atoms have IDs");
+
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // b/c this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix neigh_history comes after a fix which "
+                 "migrates atoms in pre_exchange");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -272,7 +284,7 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_npartner.template sync<LMPHostType>();
   k_partner.template sync<LMPHostType>();
@@ -331,7 +343,7 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixNeighHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNeighHistoryKokkos<LMPHostType>;
 #endif
 }

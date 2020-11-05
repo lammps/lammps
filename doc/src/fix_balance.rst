@@ -154,28 +154,27 @@ of processors.  It operates by changing the cutting planes (or lines)
 between processors in 3d (or 2d), to adjust the volume (area in 2d)
 assigned to each processor, as in the following 2d diagram where
 processor sub-domains are shown and atoms are colored by the processor
-that owns them.  The leftmost diagram is the default partitioning of
-the simulation box across processors (one sub-box for each of 16
-processors); the middle diagram is after a "grid" method has been
-applied.
+that owns them.
 
-.. |bal_uni| image:: JPG/balance_uniform_small.jpg
-   :target: JPG/balance_uniform.jpg
-   :width: 31%
-.. |bal_non| image:: JPG/balance_nonuniform_small.jpg
-   :target: JPG/balance_nonuniform.jpg
-   :width: 31%
-.. |bal_rcb| image:: JPG/balance_rcb_small.jpg
-   :target: JPG/balance_rcb.jpg
-   :width: 31%
+.. |balance1| image:: img/balance_uniform.jpg
+   :width: 32%
 
-|bal_uni|  |bal_non|  |bal_rcb|
+.. |balance2| image:: img/balance_nonuniform.jpg
+   :width: 32%
 
-The *rcb* style is a "tiling" method which does not produce a logical
-3d grid of processors.  Rather it tiles the simulation domain with
-rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles (or weight) in each
-sub-box, as in the rightmost diagram above.
+.. |balance3| image:: img/balance_rcb.jpg
+   :width: 32%
+
+|balance1|  |balance2|  |balance3|
+
+The leftmost diagram is the default partitioning of the simulation box
+across processors (one sub-box for each of 16 processors); the middle
+diagram is after a "grid" method has been applied. The *rcb* style is a
+"tiling" method which does not produce a logical 3d grid of processors.
+Rather it tiles the simulation domain with rectangular sub-boxes of
+varying size and shape in an irregular fashion so as to have equal
+numbers of particles (or weight) in each sub-box, as in the rightmost
+diagram above.
 
 The "grid" methods can be used with either of the
 :doc:`comm_style <comm_style>` command options, *brick* or *tiled*\ .  The
@@ -362,7 +361,8 @@ each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -405,4 +405,7 @@ Related commands
 
 .. _pizza: https://pizza.sandia.gov
 
-**Default:** none
+Default
+"""""""
+
+none

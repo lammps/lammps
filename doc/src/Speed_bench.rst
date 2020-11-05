@@ -38,7 +38,7 @@ of these 5 problems on 1 or 4 cores of Linux desktop.  The bench/FERMI
 and bench/KEPLER directories have input files and scripts and instructions
 for running the same (or similar) problems using OpenMP or GPU or Xeon
 Phi acceleration options.  See the README files in those directories and the
-:doc:`Speed packages <Speed_packages>` doc pages for instructions on how
+:doc:`Accelerator packages <Speed_packages>` pages for instructions on how
 to build LAMMPS and run on that kind of hardware.
 
 The bench/POTENTIALS directory has input files which correspond to the

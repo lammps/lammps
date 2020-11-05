@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "region_plane.h"
-#include <cmath>
+
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -25,12 +26,12 @@ RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-8,&arg[8]);
 
-  xp = xscale*force->numeric(FLERR,arg[2]);
-  yp = yscale*force->numeric(FLERR,arg[3]);
-  zp = zscale*force->numeric(FLERR,arg[4]);
-  normal[0] = xscale*force->numeric(FLERR,arg[5]);
-  normal[1] = yscale*force->numeric(FLERR,arg[6]);
-  normal[2] = zscale*force->numeric(FLERR,arg[7]);
+  xp = xscale*utils::numeric(FLERR,arg[2],false,lmp);
+  yp = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+  zp = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+  normal[0] = xscale*utils::numeric(FLERR,arg[5],false,lmp);
+  normal[1] = yscale*utils::numeric(FLERR,arg[6],false,lmp);
+  normal[2] = zscale*utils::numeric(FLERR,arg[7],false,lmp);
 
   // enforce unit normal
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,19 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect_stochastic.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +38,7 @@ enum{NONE,DIFFUSIVE,MAXWELL,CCL};
 
 FixWallReflectStochastic::
 FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
-  FixWallReflect(lmp, narg, arg), random(NULL)
+  FixWallReflect(lmp, narg, arg), random(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
@@ -70,7 +68,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
 
-  seedfix = force->inumeric(FLERR,arg[4]);
+  seedfix = utils::inumeric(FLERR,arg[4],false,lmp);
   if (seedfix <= 0) error->all(FLERR,"Random seed must be a positive number");
 
   int iarg = 5;
@@ -103,13 +101,13 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         else coord0[nwall] = domain->boxhi[dim];
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
-      walltemp[nwall]= force->numeric(FLERR,arg[iarg+2]);
+      walltemp[nwall]= utils::numeric(FLERR,arg[iarg+2],false,lmp);
 
       for (int dir = 0; dir < 3; dir++) {
-        wallvel[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+3]);
+        wallvel[nwall][dir]= utils::numeric(FLERR,arg[iarg+dir+3],false,lmp);
         int dim = wallwhich[nwall] / 2;
         if ((wallvel[nwall][dir] !=0) & (dir == dim))
           error->all(FLERR,"The wall velocity must be tangential");
@@ -119,9 +117,9 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         // CCL = one for each dimension
 
         if (rstyle == CCL)
-          wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+dir+6]);
+          wallaccom[nwall][dir]= utils::numeric(FLERR,arg[iarg+dir+6],false,lmp);
         else if (rstyle == MAXWELL)
-          wallaccom[nwall][dir]= force->numeric(FLERR,arg[iarg+6]);
+          wallaccom[nwall][dir]= utils::numeric(FLERR,arg[iarg+6],false,lmp);
       }
 
       nwall++;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -88,7 +88,7 @@ void FixLbViscous::init()
 
 void FixLbViscous::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet") != NULL)
+  if (strstr(update->integrate_style,"verlet") != nullptr)
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

@@ -29,7 +29,7 @@ namespace user_manifold {
    private:
     void init_domains();
 
-    thyla_part *get_thyla_part( const double *x, int *err_flag, std::size_t *idx = NULL );
+    thyla_part *get_thyla_part( const double *x, int *err_flag, std::size_t *idx = nullptr );
     int is_in_domain( thyla_part *p, const double *x );
     void check_overlap();
     std::vector<thyla_part*> parts;

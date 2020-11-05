@@ -19,7 +19,7 @@ Syntax
          max = maximum distance for line search to move (distance units)
        *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
          backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use
-       *norm* value = *two* or *max*
+       *norm* value = *two* or *inf* or *max*
          two = Euclidean two-norm (length of 3N vector)
          inf = max force component across all 3-vectors
          max = max force norm across all 3-vectors
@@ -87,8 +87,7 @@ The choice of a norm can be modified for the min styles *cg*\ , *sd*\
 the 2-norm (Euclidean length) of the global force vector:
 
 .. math::
-
-   || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
+    || \vec{F} ||_{2} = \sqrt{\vec{F}_1^2+ \cdots + \vec{F}_N^2}
 
 The *max* norm computes the length of the 3-vector force
 for each atom  (2-norm), and takes the maximum value of those across

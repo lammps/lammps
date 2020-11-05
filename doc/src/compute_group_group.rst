@@ -64,7 +64,7 @@ If the *kspace* keyword is set to *yes*\ , which is not the default, and
 if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
-atoms in the 2nd group.  Likewise, the interaction force calculated by
+atoms in the second group.  Likewise, the interaction force calculated by
 this compute will include the force on the compute group atoms due to
 long-range Coulombic interactions with atoms in the specified group2.
 
@@ -128,7 +128,8 @@ group-group calculations are performed.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the energy) and a global
 vector of length 3 (force), which can be accessed by indices 1-3.
@@ -154,7 +155,11 @@ system and not valid if particles have been moved since.
 Not all :doc:`Kspace styles <kspace_style>` support the calculation of
 group/group interactions. The regular *ewald* and *pppm* styles do.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  index(NULL), pack_choice(NULL)
+  index(nullptr), pack_choice(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/atom command");
 
@@ -375,7 +375,13 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom floating point "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
+    }
 
+    else if (strcmp(arg[iarg],"buckling") == 0) {
+      if (!atom->mesont_flag)
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_buckling;
     // check if atom style recognizes keyword
 
     } else {
@@ -435,7 +441,7 @@ void ComputePropertyAtom::compute_peratom()
     (this->*pack_choice[0])(0);
   } else {
     if (nmax) buf = &array_atom[0][0];
-    else buf = NULL;
+    else buf = nullptr;
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }
@@ -1268,7 +1274,7 @@ void ComputePropertyAtom::pack_shapex(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[0];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1285,7 +1291,7 @@ void ComputePropertyAtom::pack_shapey(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[1];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1302,7 +1308,7 @@ void ComputePropertyAtom::pack_shapez(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[2];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[2];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1768,6 +1774,21 @@ void ComputePropertyAtom::pack_corner3z(int n)
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][2] + c[2];
     } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_buckling(int n)
+{
+  int *buckling = atom->buckling;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = static_cast<double>(buckling[i]);
+    else buf[n] = 0.0;
     n += nvalues;
   }
 }

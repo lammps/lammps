@@ -13,14 +13,22 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * restrain = style name of this fix command
 * one or more keyword/arg pairs may be appended
-* keyword = *bond* or *angle* or *dihedral*
+* keyword = *bond* or *lbound* or *angle* or *dihedral*
 
   .. parsed-literal::
 
-       *bond* args = atom1 atom2 Kstart Kstop r0
+       *bond* args = atom1 atom2 Kstart Kstop r0start (r0stop)
          atom1,atom2 = IDs of 2 atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-         r0 = equilibrium bond distance (distance units)
+         r0start = equilibrium bond distance at start of run (distance units)
+         r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
+           specified it is assumed to be equal to r0start
+       *lbound* args = atom1 atom2 Kstart Kstop r0start (r0stop)
+         atom1,atom2 = IDs of 2 atoms in bond
+         Kstart,Kstop = restraint coefficients at start/end of run (energy units)
+         r0start = equilibrium bond distance at start of run (distance units)
+         r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
+           specified it is assumed to be equal to r0start
        *angle* args = atom1 atom2 atom3 Kstart Kstop theta0
          atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
@@ -38,6 +46,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
+   fix holdem all restrain lbound 45 48 2000.0 2000.0 2.75
    fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0
    fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5 0.0 2000.0 -120.0 dihedral 1 2 3 6 0.0 2000.0 0.0
@@ -141,6 +150,29 @@ is included in :math:`K`.
 
 ----------
 
+The *lbound* keyword applies a lower bound bond restraint to the specified atoms
+using the same functional form used by the :doc:`bond_style harmonic <bond_harmonic>` command if the distance between
+the atoms is smaller than the equilibrium bond distance and 0 otherwise. The potential associated with
+the restraint is
+
+.. math::
+
+   E = K (r - r_0)^2 ,if\;r < r_0
+
+.. math::
+
+   E = 0 \qquad\quad\quad ,if\;r \ge r_0
+
+with the following coefficients:
+
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
+
+:math:`K` and :math:`r_0` are specified with the fix.  Note that the usual 1/2 factor
+is included in :math:`K`.
+
+----------
+
 The *angle* keyword applies an angle restraint to the specified atoms
 using the same functional form used by the :doc:`angle_style harmonic <angle_harmonic>` command.  The potential associated with
 the restraint is
@@ -151,11 +183,13 @@ the restraint is
 
 with the following coefficients:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 
-:math:`K` and :math:`\theta_0` are specified with the fix.  Note that the usual 1/2
-factor is included in :math:`K`.
+:math:`K` and :math:`\theta_0` are specified with the fix.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.  Note that the usual 1/2 factor is included in :math:`K`.
 
 ----------
 
@@ -182,7 +216,8 @@ current dihedral angle :math:`\phi` is equal to :math:`\phi_0`.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -220,6 +255,13 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

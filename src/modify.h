@@ -15,10 +15,13 @@
 #define LMP_MODIFY_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+
+  class Compute;
+  class Fix;
 
 class Modify : protected Pointers {
   friend class Info;
@@ -27,7 +30,6 @@ class Modify : protected Pointers {
   friend class RespaOMP;
 
  public:
-  int nfix,maxfix;
   int n_initial_integrate,n_post_integrate,n_pre_exchange;
   int n_pre_neighbor,n_post_neighbor;
   int n_pre_force,n_pre_reverse,n_post_force;
@@ -41,11 +43,12 @@ class Modify : protected Pointers {
   int nfix_restart_global;   // stored fix global info from restart file
   int nfix_restart_peratom;  // stored fix peratom info from restart file
 
-  class Fix **fix;           // list of fixes
+  int nfix,maxfix;
+  Fix **fix;                 // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 
-  int ncompute,maxcompute;   // list of computes
-  class Compute **compute;
+  int ncompute,maxcompute;
+  Compute **compute;         // list of computes
 
   Modify(class LAMMPS *);
   virtual ~Modify();
@@ -96,10 +99,12 @@ class Modify : protected Pointers {
   virtual int min_reset_ref();
 
   void add_fix(int, char **, int trysuffix=1);
+  void add_fix(const std::string &, int trysuffix=1);
+  void replace_fix(const char *, int, char **, int trysuffix=1);
   void modify_fix(int, char **);
-  void delete_fix(const char *);
+  void delete_fix(const std::string &);
   void delete_fix(int);
-  int find_fix(const char *);
+  int find_fix(const std::string &);
   int find_fix_by_style(const char *);
   int check_package(const char *);
   int check_rigid_group_overlap(int);
@@ -107,9 +112,10 @@ class Modify : protected Pointers {
   int check_rigid_list_overlap(int *);
 
   void add_compute(int, char **, int trysuffix=1);
+  void add_compute(const std::string &, int trysuffix=1);
   void modify_compute(int, char **);
-  void delete_compute(const char *);
-  int find_compute(const char *);
+  void delete_compute(const std::string &);
+  int find_compute(const std::string &);
 
   void clearstep_compute();
   void addstep_compute(bigint);
@@ -119,7 +125,7 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate(int);
 
-  bigint memory_usage();
+  double memory_usage();
 
  protected:
 

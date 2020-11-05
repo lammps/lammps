@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +15,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna_fene.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -221,7 +221,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
       error->warning(FLERR,str,0);
-      if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
+      rlogarg = 0.1;
     }
 
     fbond = -k[type]*rr0/rlogarg/Deltasq/r;
@@ -302,11 +302,11 @@ void BondOxdnaFene::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double Delta_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double Delta_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
 
@@ -328,29 +328,8 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 
 void BondOxdnaFene::init_style()
 {
-  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
-     the ss excluded volume interaction between nearest neighbors   */
-
-  force->special_lj[1] = 0.0;
-  force->special_lj[2] = 1.0;
-  force->special_lj[3] = 1.0;
-  force->special_coul[1] = 1.0;
-  force->special_coul[2] = 1.0;
-  force->special_coul[3] = 1.0;
-
-  fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                 " Special bond factors lj:   %-10g %-10g %-10g\n"
-                 " Special bond factors coul: %-10g %-10g %-10g\n",
-                 force->special_lj[1],force->special_lj[2],force->special_lj[3],
-                 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
-
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
-      force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-  {
-    if (comm->me == 0)
-      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna/fene");
-  }
-
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    error->all(FLERR,"Must use 'special_bonds lj 0 1 1' with bond style oxdna/fene, oxdna2/fene or oxrna2/fene");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -380,9 +359,9 @@ void BondOxdnaFene::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&Delta[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -421,7 +400,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
     error->warning(FLERR,str,0);
-    if (rlogarg <= -8.0) error->one(FLERR,"Bad FENE bond");
+    rlogarg = 0.1;
   }
 
   double eng = -0.5 * k[type]*log(rlogarg);

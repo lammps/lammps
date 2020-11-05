@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -40,8 +40,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), numdiff_forces(NULL),
-  temp_x(NULL), temp_f(NULL)
+  Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr),
+  temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 
@@ -50,26 +50,21 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 3;
   respa_level_support = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  delta = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  delta = utils::numeric(FLERR,arg[4],false,lmp);
   if (nevery <= 0 || delta <= 0.0)
     error->all(FLERR,"Illegal fix numdiff command");
 
-  int n = strlen(id) + 6;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
+  std::string cmd = id + std::string("_pe");
+  id_pe = new char[cmd.size()+1];
+  strcpy(id_pe,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  cmd += " all pe";
+  modify->add_compute(cmd);
 
   maxatom = 0;
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
@@ -343,7 +338,7 @@ void FixNumDiff::reallocate()
 
 double FixNumDiff::memory_usage()
 {
-  bigint bytes = 0.0;
+  double bytes = 0.0;
   bytes += 3 * maxatom*3 * sizeof(double);
   return bytes;
 }

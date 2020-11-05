@@ -140,7 +140,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
     KOKKOS_INLINE_FUNCTION
     params_qeq(){chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
-    params_qeq(int i){chi=0;eta=0;gamma=0;};
+    params_qeq(int /*i*/){chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };
 
@@ -151,8 +151,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double memory_usage();
 
  private:
-  int inum;
-  int allocated_flag;
+  int inum,ignum;
+  int allocated_flag, last_allocate;
   int need_dup;
 
   typename AT::t_int_scalar d_mfill_offset;
@@ -200,8 +200,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
 
   void init_shielding_k();
   void init_hist();
@@ -267,8 +267,7 @@ struct FixQEqReaxKokkosComputeHFunctor {
 
   FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
                                   int _atoms_per_team, int _vector_length)
-      : c(*c_ptr), atoms_per_team(_atoms_per_team),
-        vector_length(_vector_length) {
+    : atoms_per_team(_atoms_per_team), vector_length(_vector_length), c(*c_ptr)  {
     c.cleanup_copy();
   };
 
@@ -283,7 +282,7 @@ struct FixQEqReaxKokkosComputeHFunctor {
     c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
   }
 
-  size_t team_shmem_size(int team_size) const {
+  size_t team_shmem_size(int /*team_size*/) const {
     size_t shmem_size =
         Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
             atoms_per_team) + // s_ilist

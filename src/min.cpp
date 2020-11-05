@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,35 +16,36 @@
                         improved CG and backtrack ls, added quadratic ls
    Sources: Numerical Recipes frprmn routine
             "Conjugate Gradient Method Without the Agonizing Pain" by
-            JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
+            JR Shewchuk, https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 ------------------------------------------------------------------------- */
 
 #include "min.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_minimize.h"
-#include "compute.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_minimize.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "thermo.h"
-#include "timer.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -69,18 +70,19 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   halfstepback_flag = 1;
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
+  alpha_final = 0.0;
 
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nextra_global = 0;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   external_force_clear = 0;
 
@@ -112,18 +114,13 @@ Min::~Min()
 void Min::init()
 {
   if (lmp->kokkos && !kokkosable)
-    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
-     "with Kokkos minimize");
+    error->all(FLERR,"Must use a Kokkos-enabled min style "
+               "(e.g. min_style cg/kk) with Kokkos minimize");
 
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  char **fixarg = new char*[3];
-  fixarg[0] = (char *) "MINIMIZE";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "MINIMIZE";
-  modify->add_fix(3,fixarg);
-  delete [] fixarg;
+  modify->add_fix("MINIMIZE all MINIMIZE");
   fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
   // clear out extra global and per-atom dof
@@ -132,7 +129,7 @@ void Min::init()
 
   nextra_global = 0;
   delete [] fextra;
-  fextra = NULL;
+  fextra = nullptr;
 
   nextra_atom = 0;
   memory->sfree(xextra_atom);
@@ -141,10 +138,10 @@ void Min::init()
   memory->destroy(extra_nlen);
   memory->destroy(extra_max);
   memory->sfree(requestor);
-  xextra_atom = fextra_atom = NULL;
-  extra_peratom = extra_nlen = NULL;
-  extra_max = NULL;
-  requestor = NULL;
+  xextra_atom = fextra_atom = nullptr;
+  extra_peratom = extra_nlen = nullptr;
+  extra_max = nullptr;
+  requestor = nullptr;
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
@@ -209,12 +206,11 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up %s style minimization ...\n",
-            update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n",
+               update->minimize_style);
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
-              update->ntimestep);
+      fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
+      fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -249,7 +245,7 @@ void Min::setup(int flag)
 
   bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
-    ndofme += extra_peratom[m]*atom->nlocal;
+    ndofme += extra_peratom[m]*static_cast<bigint>(atom->nlocal);
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
   ndoftotal += nextra_global;
 
@@ -341,7 +337,7 @@ void Min::setup(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -422,7 +418,7 @@ void Min::setup_minimal(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -477,7 +473,7 @@ void Min::cleanup()
 
   efinal = ecurrent;
   fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
+  fnorminf_final = sqrt(fnorm_inf());
 
   // reset reneighboring criteria
 
@@ -676,35 +672,35 @@ void Min::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dmax = force->numeric(FLERR,arg[iarg+1]);
+      dmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      delaystep = force->numeric(FLERR,arg[iarg+1]);
+      delaystep = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtgrow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtgrow = force->numeric(FLERR,arg[iarg+1]);
+      dtgrow = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtshrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      dtshrink = force->numeric(FLERR,arg[iarg+1]);
+      dtshrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alpha0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alpha0 = force->numeric(FLERR,arg[iarg+1]);
+      alpha0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"alphashrink") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      alphashrink = force->numeric(FLERR,arg[iarg+1]);
+      alphashrink = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmax = force->numeric(FLERR,arg[iarg+1]);
+      tmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tmin") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      tmin = force->numeric(FLERR,arg[iarg+1]);
+      tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"halfstepback") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -720,7 +716,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      max_vdotf_negatif = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -765,8 +761,8 @@ void Min::ev_setup()
   delete [] vlist_global;
   delete [] vlist_atom;
   delete [] cvlist_atom;
-  elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = cvlist_atom = NULL;
+  elist_global = elist_atom = nullptr;
+  vlist_global = vlist_atom = cvlist_atom = nullptr;
 
   nelist_global = nelist_atom = 0;
   nvlist_global = nvlist_atom = ncvlist_atom = 0;
@@ -902,13 +898,13 @@ double Min::fnorm_inf()
 
   double local_norm_inf = 0.0;
   for (i = 0; i < nvec; i++)
-    local_norm_inf = MAX(fabs(fvec[i]),local_norm_inf);
+    local_norm_inf = MAX(fvec[i]*fvec[i],local_norm_inf);
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
       n = extra_nlen[m];
       for (i = 0; i < n; i++)
-        local_norm_inf = MAX(fabs(fatom[i]),local_norm_inf);
+        local_norm_inf = MAX(fatom[i]*fatom[i],local_norm_inf);
     }
   }
 
@@ -917,7 +913,7 @@ double Min::fnorm_inf()
 
   if (nextra_global)
     for (i = 0; i < nextra_global; i++)
-      norm_inf = MAX(fabs(fextra[i]),norm_inf);
+      norm_inf = MAX(fextra[i]*fextra[i],norm_inf);
 
   return norm_inf;
 }

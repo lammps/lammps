@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_brownian_poly.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -358,7 +358,7 @@ void PairBrownianPoly::init_style()
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL) {
+    else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with pair brownian");

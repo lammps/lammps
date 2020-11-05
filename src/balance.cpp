@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,29 +16,29 @@
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
-//#define BALANCE_DEBUG 1
+// #define BALANCE_DEBUG 1
 
 #include "balance.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "rcb.h"
-#include "irregular.h"
 #include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix_store.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
-#include "imbalance_time.h"
 #include "imbalance_neigh.h"
 #include "imbalance_store.h"
+#include "imbalance_time.h"
 #include "imbalance_var.h"
+#include "irregular.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "rcb.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -52,17 +52,17 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_xsplit = user_ysplit = user_zsplit = NULL;
+  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = NULL;
+  proccost = allproccost = nullptr;
 
-  rcb = NULL;
+  rcb = nullptr;
 
   nimbalance = 0;
-  imbalances = NULL;
-  fixstore = NULL;
+  imbalances = nullptr;
+  fixstore = nullptr;
 
-  fp = NULL;
+  fp = nullptr;
   firststep = 1;
 }
 
@@ -97,7 +97,7 @@ Balance::~Balance()
   // check nfix in case all fixes have already been deleted
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = NULL;
+  fixstore = nullptr;
 
   if (fp) fclose(fp);
 }
@@ -111,13 +111,13 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 
   if (narg < 2) error->all(FLERR,"Illegal balance command");
 
-  thresh = force->numeric(FLERR,arg[0]);
+  thresh = utils::numeric(FLERR,arg[0],false,lmp);
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
@@ -143,7 +143,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[0]; i++)
-          user_xsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_xsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
@@ -163,7 +163,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[1]; i++)
-          user_ysplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_ysplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
@@ -183,7 +183,7 @@ void Balance::command(int narg, char **arg)
         user_zsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[2]; i++)
-          user_zsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_zsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_zsplit[procgrid[2]] = 1.0;
       }
 
@@ -193,9 +193,9 @@ void Balance::command(int narg, char **arg)
       style = SHIFT;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
-      nitermax = force->inumeric(FLERR,arg[iarg+2]);
+      nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      stopthresh = force->numeric(FLERR,arg[iarg+3]);
+      stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 
@@ -246,7 +246,7 @@ void Balance::command(int narg, char **arg)
   // process remaining optional args
 
   options(iarg,narg,arg);
-  if (wtflag) weight_storage(NULL);
+  if (wtflag) weight_storage(nullptr);
 
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
@@ -263,7 +263,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (atom->map_style) atom->map_set();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -366,12 +366,10 @@ void Balance::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms) {
-    char str[128];
-    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(FLERR,str);
-  }
+  if (natoms != atom->natoms)
+    error->all(FLERR,fmt::format("Lost atoms via balance: "
+                                 "original {}  current {}",
+                                 atom->natoms,natoms).c_str());
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -382,60 +380,29 @@ void Balance::command(int narg, char **arg)
 
   // stats output
 
-  double stop_time = MPI_Wtime();
-
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(screen,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(screen);
-      fprintf(screen,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(screen,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-    if (logfile) {
-      fprintf(logfile,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(logfile,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(logfile);
-      fprintf(logfile,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-  }
+    std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
+                                   MPI_Wtime()-start_time);
+    mesg += fmt::format("  iteration count = {}\n",niter);
+    for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
+    mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
+                        "  initial/final imbalance factor  = {:.8} {:.8}\n",
+                        maxinit,maxfinal,imbinit,imbfinal);
 
-  if (style != BISECTION) {
-    if (me == 0) {
-      if (screen) {
-        fprintf(screen,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(screen," %g",comm->xsplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(screen," %g",comm->ysplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(screen," %g",comm->zsplit[i]);
-        fprintf(screen,"\n");
-      }
-      if (logfile) {
-        fprintf(logfile,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(logfile," %g",comm->xsplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(logfile," %g",comm->ysplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(logfile," %g",comm->zsplit[i]);
-        fprintf(logfile,"\n");
-      }
+    if (style != BISECTION) {
+      mesg += "  x cuts:";
+      for (int i = 0; i <= comm->procgrid[0]; i++)
+        mesg += fmt::format(" {:.8}",comm->xsplit[i]);
+      mesg += "\n  y cuts:";
+      for (int i = 0; i <= comm->procgrid[1]; i++)
+        mesg += fmt::format(" {:.8}",comm->ysplit[i]);
+      mesg += "\n  z cuts:";
+      for (int i = 0; i <= comm->procgrid[2]; i++)
+        mesg += fmt::format(" {:.8}",comm->zsplit[i]);
+      mesg += "\n";
     }
+
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -458,7 +425,7 @@ void Balance::options(int iarg, int narg, char **arg)
   oldrcb = 0;
   outflag = 0;
   int outarg = 0;
-  fp = NULL;
+  fp = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -506,7 +473,9 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open (fix) balance output file");
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror()));
   }
 }
 
@@ -518,32 +487,21 @@ void Balance::options(int iarg, int narg, char **arg)
 
 void Balance::weight_storage(char *prefix)
 {
-  char *fixargs[6];
+  std::string cmd = "";
 
-  if (prefix) {
-    int n = strlen(prefix) + 32;
-    fixargs[0] = new char[n];
-    strcpy(fixargs[0],prefix);
-    strcat(fixargs[0],"IMBALANCE_WEIGHTS");
-  } else fixargs[0] = (char *) "IMBALANCE_WEIGHTS";
+  if (prefix) cmd = prefix;
+  cmd += "IMBALANCE_WEIGHTS";
 
-  fixargs[1] = (char *) "all";
-  fixargs[2] = (char *) "STORE";
-  fixargs[3] = (char *) "peratom";
-  fixargs[4] = (char *) "0";
-  fixargs[5] = (char *) "1";
-
-  int ifix = modify->find_fix(fixargs[0]);
+  int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
-    modify->add_fix(6,fixargs);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration
 
   fixstore->disable = 1;
-
-  if (prefix) delete [] fixargs[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -609,15 +567,24 @@ int *Balance::bisection(int sortflag)
 {
   if (!rcb) rcb = new RCB(lmp);
 
-  // NOTE: this logic is specific to orthogonal boxes, not triclinic
-
   int dim = domain->dimension;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *prd = domain->prd;
+  int triclinic = domain->triclinic;
+
+  double *boxlo,*boxhi,*prd;
+
+  if (triclinic == 0) {
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    prd = domain->prd;
+  } else {
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    prd = domain->prd_lamda;
+  }
 
   // shrink-wrap simulation box around atoms for input to RCB
   // leads to better-shaped sub-boxes when atoms are far from box boundaries
+  // if triclinic, do this in lamda coords
 
   double shrink[6],shrinkall[6];
 
@@ -626,6 +593,9 @@ int *Balance::bisection(int sortflag)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
+
+  if (triclinic) domain->x2lamda(nlocal);
+
   for (int i = 0; i < nlocal; i++) {
     shrink[0] = MIN(shrink[0],x[i][0]);
     shrink[1] = MIN(shrink[1],x[i][1]);
@@ -661,20 +631,23 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // if triclinic, RCB operates on lamda coords
   // NOTE: (3/2017) can remove undocumented "old" option at some point
-  //       ditto in rcb.cpp
+  //       ditto in rcb.cpp, or make it an option
 
   if (oldrcb) {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   } else {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   }
+
+  if (triclinic) domain->lamda2x(nlocal);
 
   rcb->invert(sortflag);
 
@@ -1191,8 +1164,7 @@ void Balance::dumpout(bigint tstep)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
   else fprintf(fp,"%d\n",8*nprocs);
@@ -1267,8 +1239,7 @@ void Balance::dumpout(bigint tstep)
 
   // write out one square/cube per processor for 2d/3d
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nprocs);
@@ -1302,7 +1273,7 @@ void Balance::dumpout(bigint tstep)
 void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim = NULL;
+  const char *dim = nullptr;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;
@@ -1313,13 +1284,13 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
   fprintf(stderr,"  Count:");
-  for (i = 0; i < np; i++) fprintf(stderr," " BIGINT_FORMAT,count[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",count[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,sum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Target:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,target[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",target[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
@@ -1332,20 +1303,16 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Low-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,losum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",losum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi:");
   for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,hisum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",hisum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Delta:");
   for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);
   fprintf(stderr,"\n");
-
-  bigint max = 0;
-  for (i = 0; i < np; i++) max = MAX(max,count[i]);
-  fprintf(stderr,"  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }
 #endif

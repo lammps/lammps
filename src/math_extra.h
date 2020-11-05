@@ -85,7 +85,6 @@ namespace MathExtra {
 
   void write3(const double mat[3][3]);
   int mldivide3(const double mat[3][3], const double *vec, double *ans);
-  int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
   void rotate(double matrix[3][3], int i, int j, int k, int l,
               double s, double tau);
   void richardson(double *q, double *m, double *w, double *moments, double dtq);
@@ -169,10 +168,13 @@ inline void MathExtra::zero3(double *v)
 
 inline void MathExtra::norm3(double *v)
 {
-  double scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  v[0] *= scale;
-  v[1] *= scale;
-  v[2] *= scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    const double scale = 1.0/sqrt(val);
+    v[0] *= scale;
+    v[1] *= scale;
+    v[2] *= scale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -181,10 +183,13 @@ inline void MathExtra::norm3(double *v)
 
 inline void MathExtra::normalize3(const double *v, double *ans)
 {
-  double scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  ans[0] = v[0]*scale;
-  ans[1] = v[1]*scale;
-  ans[2] = v[2]*scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    double scale = 1.0/sqrt(val);
+    ans[0] = v[0]*scale;
+    ans[1] = v[1]*scale;
+    ans[2] = v[2]*scale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -194,10 +199,13 @@ inline void MathExtra::normalize3(const double *v, double *ans)
 inline void MathExtra::snormalize3(const double length, const double *v,
                                    double *ans)
 {
-  double scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  ans[0] = v[0]*scale;
-  ans[1] = v[1]*scale;
-  ans[2] = v[2]*scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    double scale = length/sqrt(val);
+    ans[0] = v[0]*scale;
+    ans[1] = v[1]*scale;
+    ans[2] = v[2]*scale;
+  }
 }
 
 /* ----------------------------------------------------------------------

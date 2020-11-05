@@ -1,0 +1,150 @@
+LAMMPS (19 Mar 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# bfo in a 3d periodic box
+
+units 		metal
+dimension 	3
+boundary 	p p f
+atom_style 	spin
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	sc 3.96
+Lattice spacing in x,y,z = 3.96 3.96 3.96
+region 		box block 0.0 34.0 0.0 34.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (134.64 134.64 19.8)
+  2 by 2 by 1 MPI processor grid
+create_atoms 	1 box
+Created 5780 atoms
+  create_atoms CPU = 0.00117207 secs
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 1.0
+set 		group all spin/random 11 2.50
+  5780 settings made for spin/random
+
+pair_style 	hybrid/overlay spin/exchange 6.0 spin/magelec 4.5 spin/dmi 4.5
+pair_coeff 	* * spin/exchange exchange 6.0 -0.01575 0.0 1.965
+#pair_coeff 	* * spin/magelec magelec 4.5 0.000109 1.0 1.0 1.0
+pair_coeff 	* * spin/magelec magelec 4.5 0.00109 1.0 1.0 1.0
+pair_coeff 	* * spin/dmi dmi 4.5 0.00005 1.0 1.0 1.0
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+#fix 		1 all precession/spin zeeman 0.001 0.0 0.0 1.0 anisotropy 0.01 1.0 0.0 0.0
+fix 		1 all precession/spin anisotropy 0.0000033 0.0 0.0 1.0
+fix_modify	1 energy yes
+
+timestep	0.0001
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo          50
+thermo_style    custom step time v_magnorm v_emag v_tmag temp etotal
+thermo_modify   format float %20.15g
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 50 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+
+min_style	spin
+min_modify 	alpha_damp 1.0 discrete_factor 10.0
+minimize        1.0e-10 0.0 1000 100
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (../min.cpp:190)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:88)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:88)
+WARNING: Using spin pair style without nve/spin or neb/spin (../pair_spin.cpp:88)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.1
+  ghost atom cutoff = 6.1
+  binsize = 3.05, bins = 45 45 7
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair spin/magelec, perpetual, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair spin/dmi, perpetual, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 7.788 | 7.788 | 7.788 Mbytes
+Step Time v_magnorm v_emag v_tmag Temp TotEng 
+       0                    0   0.0100717228668283  -0.0819172086358889     14831.3069413956                    0  -0.0819172086358937 
+      50                0.005 0.000106105812337003    -64.1537237421014    0.104264818055985                    0    -64.1537237421015 
+     100                 0.01 7.95347901119157e-06    -65.7246948990355   0.0221943604064966                    0    -65.7246948990356 
+     150                0.015 5.63006161138918e-07    -66.1482265152097   0.0085472877724348                    0    -66.1482265152095 
+     200                 0.02 5.07390677383159e-07    -66.3114288519023  0.00361380451198709                    0    -66.3114288519024 
+     250                0.025 3.28458336892466e-07    -66.3872059963513  0.00187753161968492                    0    -66.3872059963514 
+     300                 0.03 1.93294839202718e-07    -66.4306418630421  0.00121374398924599                    0    -66.4306418630421 
+     350                0.035  1.1387215743759e-07     -66.461568509568  0.00095473687170151                    0    -66.4615685095675 
+     400                 0.04 6.42075545625297e-08    -66.4876195742954 0.000854064736183607                    0    -66.4876195742956 
+     450                0.045 3.44210513402635e-08    -66.5117616436528 0.000812909459005008                    0    -66.5117616436531 
+     500                 0.05 1.80394981487191e-08    -66.5350359881262 0.000789742875305131                    0    -66.5350359881262 
+     550                0.055 9.54697157097866e-09    -66.5577061696951 0.000769860218895372                    0    -66.5577061696951 
+     600                 0.06 5.22455110708009e-09    -66.5798382239529 0.000752941158466282                    0    -66.5798382239528 
+     650                0.065 2.95172977729162e-09     -66.601598097806 0.000745065216626281                    0    -66.6015980978062 
+     700                 0.07 1.67275674393186e-09    -66.6233484071645 0.000752898926000615                    0    -66.6233484071643 
+     750                0.075 9.17127001716818e-10    -66.6456135037772 0.000780491405791264                    0    -66.6456135037769 
+     800                 0.08 4.72669535990986e-10    -66.6689812966981 0.000827942834401387                    0     -66.668981296698 
+     850                0.085 2.25696738737671e-10    -66.6939726229253 0.000890246383931887                    0    -66.6939726229253 
+     900                 0.09 1.00307170296094e-10    -66.7208685437728 0.000955403731484673                    0    -66.7208685437728 
+     950                0.095 4.19867626693269e-11    -66.7494848991562  0.00100352240545389                    0    -66.7494848991562 
+    1000                  0.1 1.64283481770759e-11    -66.7789899523816  0.00101162410316333                    0    -66.7789899523818 
+Loop time of 2.42884 on 4 procs for 1000 steps with 5780 atoms
+
+99.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+      -0.0819172086359      -66.778399627     -66.7789899524
+  Force two-norm initial, final = 0 0
+  Force max component initial, final = 0 0
+  Final line search alpha, max atom move = 0 0
+  Iterations, force evaluations = 1000 1000
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.1221     | 2.164      | 2.2349     |   2.9 | 89.10
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.065814   | 0.13626    | 0.17868    |  11.7 |  5.61
+Output  | 0.090046   | 0.090083   | 0.090171   |   0.0 |  3.71
+Modify  | 0.0081615  | 0.0083774  | 0.008673   |   0.2 |  0.34
+Other   |            | 0.03009    |            |       |  1.24
+
+Nlocal:    1445 ave 1445 max 1445 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    555 ave 555 max 555 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  23120 ave 23120 max 23120 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 92480
+Ave neighs/atom = 16
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:02

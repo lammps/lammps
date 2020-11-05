@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,7 +55,7 @@ PairCoulLongKokkos<DeviceType>::PairCoulLongKokkos(LAMMPS *lmp):PairCoulLong(lmp
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
   cut_coulsq = 0.0;
 
 }
@@ -71,9 +71,9 @@ PairCoulLongKokkos<DeviceType>::~PairCoulLongKokkos()
     k_cutsq = DAT::tdual_ffloat_2d();
     k_cut_coulsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
   }
 }
 
@@ -82,10 +82,10 @@ PairCoulLongKokkos<DeviceType>::~PairCoulLongKokkos()
 template<class DeviceType>
 void PairCoulLongKokkos<DeviceType>::cleanup_copy() {
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +109,7 @@ void PairCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -187,8 +187,9 @@ template<class DeviceType>
 template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairCoulLongKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
   if(Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
@@ -225,8 +226,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairCoulLongKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
   if(Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
@@ -416,10 +418,10 @@ void PairCoulLongKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -464,7 +466,7 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairCoulLongKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairCoulLongKokkos<LMPHostType>;
 #endif
 }

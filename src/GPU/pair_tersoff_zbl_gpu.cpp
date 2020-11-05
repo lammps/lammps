@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_tersoff_zbl_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -81,7 +81,7 @@ PairTersoffZBLGPU::PairTersoffZBLGPU(LAMMPS *lmp) : PairTersoffZBL(lmp),
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -108,10 +108,21 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = tersoff_zbl_gpu_compute_n(neighbor->ago, inum, nall,
-                                  atom->x, atom->type, domain->sublo,
-                                  domain->subhi, atom->tag, atom->nspecial,
+                                  atom->x, atom->type, sublo,
+                                  subhi, atom->tag, atom->nspecial,
                                   atom->special, eflag, vflag, eflag_atom,
                                   vflag_atom, host_start,
                                   &ilist, &numneigh, cpu_time, success);
@@ -158,11 +169,11 @@ void PairTersoffZBLGPU::init_style()
   double *c1, *c2, *c3, *c4;
   double *c, *d, *h, *gamma;
   double *beta, *powern, *Z_i, *Z_j, *ZBLcut, *ZBLexpscale, *_cutsq;
-  lam1 = lam2 = lam3 = powermint = NULL;
-  biga = bigb = bigr = bigd = NULL;
-  c1 = c2 = c3 = c4 = NULL;
-  c = d = h = gamma = NULL;
-  beta = powern = Z_i = Z_j = ZBLcut = ZBLexpscale = _cutsq = NULL;
+  lam1 = lam2 = lam3 = powermint = nullptr;
+  biga = bigb = bigr = bigd = nullptr;
+  c1 = c2 = c3 = c4 = nullptr;
+  c = d = h = gamma = nullptr;
+  beta = powern = Z_i = Z_j = ZBLcut = ZBLexpscale = _cutsq = nullptr;
 
   memory->create(lam1,nparams,"pair:lam1");
   memory->create(lam2,nparams,"pair:lam2");

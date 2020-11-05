@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +41,7 @@ PairLJCutKokkos<DeviceType>::PairLJCutKokkos(LAMMPS *lmp) : PairLJCut(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,9 +54,9 @@ PairLJCutKokkos<DeviceType>::~PairLJCutKokkos()
     memoryKK->destroy_kokkos(k_vatom,vatom);
     k_cutsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
   }
 }
 
@@ -66,9 +66,9 @@ template<class DeviceType>
 void PairLJCutKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +93,7 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -230,10 +230,10 @@ void PairLJCutKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -241,9 +241,6 @@ void PairLJCutKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
@@ -281,7 +278,7 @@ double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJCutKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJCutKokkos<LMPHostType>;
 #endif
 }

@@ -32,8 +32,8 @@ namespace ATC {
                                                          string matParamFile,
                                                          ExtrinsicModelType extrinsicModel)
     : ATC_Coupling(groupName,perAtomArray,thisFix),
-      nodalAtomicKineticTemperature_(NULL),
-      nodalAtomicConfigurationalTemperature_(NULL),
+      nodalAtomicKineticTemperature_(nullptr),
+      nodalAtomicConfigurationalTemperature_(nullptr),
       refPE_(0)
   {
     // Allocate PhysicsModel 
@@ -190,7 +190,7 @@ namespace ATC {
     FieldManager fieldManager(this);
     PerAtomQuantity<double> * fluctuatingAtomicVelocity = fieldManager.per_atom_quantity("AtomicFluctuatingVelocity"); // also creates ProlongedVelocity
     AtomicEnergyForTemperature * atomicTwiceKineticEnergy = new TwiceKineticEnergy(this,fluctuatingAtomicVelocity);
-    AtomicEnergyForTemperature * atomEnergyForTemperature = NULL;
+    AtomicEnergyForTemperature * atomEnergyForTemperature = nullptr;
 
     // Appropriate per-atom quantity based on desired temperature definition
     if (temperatureDef_==KINETIC) {

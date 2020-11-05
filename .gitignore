@@ -9,6 +9,7 @@
 *.d
 *.x
 *.exe
+*.sif
 *.dll
 *.pyc
 __pycache__
@@ -36,6 +37,7 @@ vgcore.*
 ehthumbs.db
 Thumbs.db
 .clang-format
+.lammps_history
 
 #cmake
 /build*

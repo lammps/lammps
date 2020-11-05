@@ -25,7 +25,7 @@ manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg
 
 manifold_thylakoid::~manifold_thylakoid()
 {
-  for( std::size_t i = 0; i < parts.size(); ++i ){
+  for(std::size_t i = 0; i < parts.size(); ++i) {
     delete parts[i];
   }
 }
@@ -60,7 +60,7 @@ void manifold_thylakoid::checkup()
   if (comm->me == 0 ) {
     fprintf(screen,"This is checkup of thylakoid %p\n", this);
     fprintf(screen,"I have %ld parts. They are:\n", parts.size());
-    for( int i = 0; i < parts.size(); ++i ){
+    for( int i = 0; i < (int)parts.size(); ++i ){
       fprintf(screen, "[%f, %f] x [%f, %f] x [%f, %f]\n",
               parts[i]->xlo, parts[i]->xhi,
               parts[i]->ylo, parts[i]->yhi,
@@ -123,14 +123,14 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
   for( std::size_t i = 0; i < parts.size(); ++i ){
     thyla_part *p = parts[i];
     if (is_in_domain(p,x)) {
-      if (idx != NULL) *idx = i;
+      if (idx != nullptr) *idx = i;
       return p;
     }
   }
   char msg[2048];
   sprintf(msg,"Could not find thyla_part for x = (%f,%f,%f)", x[0],x[1],x[2]);
   error->one(FLERR,msg);
-  return NULL;
+  return nullptr;
 }
 
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "pair_born_coul_wolf_omp.h"
 #include <cmath>
 #include "atom.h"
@@ -19,7 +20,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "math_const.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -45,7 +46,7 @@ void PairBornCoulWolfOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -53,7 +54,7 @@ void PairBornCoulWolfOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {

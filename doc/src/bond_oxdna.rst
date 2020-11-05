@@ -1,4 +1,6 @@
 .. index:: bond_style oxdna/fene
+.. index:: bond_style oxdna2/fene
+.. index:: bond_style oxrna2/fene
 
 bond_style oxdna/fene command
 =============================
@@ -32,7 +34,7 @@ Examples
    bond_coeff * 2.0 0.25 0.7564
 
    bond_style oxrna2/fene
-   bond_coeff \* 2.0 0.25 0.76107
+   bond_coeff * 2.0 0.25 0.76107
 
 Description
 """""""""""
@@ -108,7 +110,9 @@ Related commands
 :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

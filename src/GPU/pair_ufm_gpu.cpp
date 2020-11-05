@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +20,7 @@
 #include "pair_ufm_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -43,13 +43,13 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
-                 double **host_uf2, double **host_uf3, double **host_uf4,
+                 double **host_uf2, double **host_uf3,
                  double **offset, double *special_lj, const int nlocal,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 
 int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                   double **host_uf2, double **host_uf3, double **host_uf4,
+                   double **host_uf2, double **host_uf3,
                    double **offset);
 
 void ufml_gpu_clear();
@@ -98,10 +98,21 @@ void PairUFMGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = ufml_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
+                                   atom->x, atom->type, sublo,
+                                   subhi, atom->tag, atom->nspecial,
                                    atom->special, eflag, vflag, eflag_atom,
                                    vflag_atom, host_start,
                                    &ilist, &numneigh, cpu_time, success);
@@ -130,7 +141,7 @@ void PairUFMGPU::compute(int eflag, int vflag)
 
 void PairUFMGPU::init_style()
 {
-//  cut_respa = NULL;
+//  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with ufm/gpu pair style");
@@ -155,7 +166,7 @@ void PairUFMGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4,
+  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3,
                              offset, force->special_lj, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen);
@@ -174,7 +185,7 @@ void PairUFMGPU::reinit()
 {
   Pair::reinit();
 
-  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4, offset);
+  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, offset);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_lj_cut_dipole_long_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -110,9 +110,20 @@ void PairLJCutDipoleLongGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = dplj_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
+                                   atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
@@ -174,13 +185,13 @@ void PairLJCutDipoleLongGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,NULL);
+  if (ncoultablebits) init_tables(cut_coul,nullptr);
 
   int maxspecial=0;
   if (atom->molecular)

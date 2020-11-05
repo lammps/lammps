@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,18 +12,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_comb_omp.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "group.h"
-#include "force.h"
 #include "memory.h"
 #include "my_page.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include "omp_compat.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 using namespace LAMMPS_NS;
 
 #define MAXNEIGH 24
@@ -52,7 +55,7 @@ void PairCombOMP::compute(int eflag, int vflag)
   Short_neigh_thr();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -60,7 +63,7 @@ void PairCombOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -411,7 +414,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
   // loop over full neighbor list of my atoms
 #if defined(_OPENMP)
-#pragma omp parallel for private(ii) default(none) shared(potal,fac11e)
+#pragma omp parallel for private(ii) LMP_DEFAULT_NONE LMP_SHARED(potal,fac11e)
 #endif
   for (ii = 0; ii < inum; ii ++) {
     double fqi,fqj,fqij,fqji,fqjj,delr1[3];
@@ -564,7 +567,7 @@ void PairCombOMP::Short_neigh_thr()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int nj,*neighptrj;

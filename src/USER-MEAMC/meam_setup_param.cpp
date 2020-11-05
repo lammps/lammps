@@ -1,5 +1,22 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #include "meam.h"
+
+#include "math_const.h"
 #include <algorithm>
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -49,6 +66,12 @@ MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr
 //     20 = bkgd_dyn
 //     21 = theta
 
+//     The returned errorflag has the following meanings:
+
+//     0 = no error
+//     1 = "which" out of range / invalid keyword
+//     2 = not enough indices given
+//     3 = an element index is out of range
 
 void
 MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag)

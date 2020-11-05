@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +36,7 @@ enum{NOBIAS,BIAS};
 
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_temp(NULL), stress(NULL)
+  id_temp(nullptr), stress(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute stress/atom command");
 
@@ -49,7 +49,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   // store temperature ID used by stress computation
   // insure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
@@ -170,7 +170,7 @@ void ComputeStressAtom::compute_peratom()
 
   // add in per-atom contributions from each force
 
-  if (pairflag && force->pair) {
+  if (pairflag && force->pair && force->pair->compute_flag) {
     double **vatom = force->pair->vatom;
     for (i = 0; i < npair; i++)
       for (j = 0; j < 6; j++)
@@ -205,7 +205,7 @@ void ComputeStressAtom::compute_peratom()
         stress[i][j] += vatom[i][j];
   }
 
-  if (kspaceflag && force->kspace) {
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double **vatom = force->kspace->vatom;
     for (i = 0; i < nkspace; i++)
       for (j = 0; j < 6; j++)
@@ -213,7 +213,7 @@ void ComputeStressAtom::compute_peratom()
   }
 
   // add in per-atom contributions from relevant fixes
-  // skip if vatom = NULL
+  // skip if vatom = nullptr
   // possible during setup phase if fix has not initialized its vatom yet
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input

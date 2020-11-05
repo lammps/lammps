@@ -1,6 +1,6 @@
 
 #include "compute_momentum.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "error.h"
 #include "update.h"

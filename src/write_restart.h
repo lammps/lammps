@@ -29,7 +29,7 @@ class WriteRestart : protected Pointers {
   WriteRestart(class LAMMPS *);
   void command(int, char **);
   void multiproc_options(int, int, int, char **);
-  void write(char *);
+  void write(std::string);
 
  private:
   int me,nprocs;

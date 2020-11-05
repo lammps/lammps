@@ -35,7 +35,8 @@ of inertia for a sphere and w is the particle's angular velocity.
    spheres, not disks, meaning their moment of inertia will be the same
    as in 3d.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
@@ -60,4 +61,7 @@ Related commands
 
 :doc:`compute erotate/asphere <compute_erotate_asphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

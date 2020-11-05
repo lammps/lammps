@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,21 +18,23 @@
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
-#include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
 #include "suffix.h"
+
+#include <cstdlib>
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -63,10 +65,10 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 
   order = 7; //sets default stencil size to 7
 
-  perthread_density = NULL;
-  particle_ekx = particle_eky = particle_ekz = NULL;
+  perthread_density = nullptr;
+  particle_ekx = particle_eky = particle_ekz = nullptr;
 
-  rho_lookup = drho_lookup = NULL;
+  rho_lookup = drho_lookup = nullptr;
   rho_points = 0;
 
   _use_table = _use_lrt = 0;
@@ -163,11 +165,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom->ghost_notify();
-    cg_peratom->setup();
-  }
+  if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
@@ -231,7 +229,8 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg->reverse_comm(this,REVERSE_RHO);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -245,16 +244,22 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  if (differentiation_flag == 1) cg->forward_comm(this,FORWARD_AD);
-  else cg->forward_comm(this,FORWARD_IK);
+  if (differentiation_flag == 1)
+    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  else
+    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
+      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
+      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 }
 
@@ -372,7 +377,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) reduction(+:flag) if(!_use_lrt)
   #endif
   {
@@ -446,7 +451,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -549,7 +554,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   // reduce all the perthread_densities into global_density
   if (nthr > 1) {
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(nthr, global_density) if(!_use_lrt)
     #endif
     {
@@ -598,7 +603,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -749,7 +754,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {

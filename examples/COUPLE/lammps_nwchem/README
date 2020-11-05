@@ -1,7 +1,7 @@
 Sample LAMMPS MD wrapper on NWChem via client/server coupling
 
-See the MESSAGE package (doc/Section_messages.html#MESSAGE) and
-Section_howto.html#howto10 for more details on how client/server
+See the MESSAGE package documentation Build_extras.html#message
+and Build_extras.html#message for more details on how client/server
 coupling works in LAMMPS.
 
 In this dir, the nwchem_wrap.py is a wrapper on the NWChem electronic
@@ -182,16 +182,16 @@ background.
 
 File mode of messaging:
 
-% mpirun -np 1 lmp_mpi -v mode file < in.client.W
+% mpirun -np 1 lmp_mpi -v mode file -in in.client.W
 % python nwchem_wrap.py file pw w.nw
 
-% mpirun -np 2 lmp_mpi -v mode file < in.client.h2o
+% mpirun -np 2 lmp_mpi -v mode file -in in.client.h2o
 % python nwchem_wrap.py file ao h2o.nw
 
 ZMQ mode of messaging:
 
-% mpirun -np 1 lmp_mpi -v mode zmq < in.client.W
+% mpirun -np 1 lmp_mpi -v mode zmq -in in.client.W
 % python nwchem_wrap.py zmq pw w.nw
 
-% mpirun -np 2 lmp_mpi -v mode zmq < in.client.h2o
+% mpirun -np 2 lmp_mpi -v mode zmq -in in.client.h2o
 % python nwchem_wrap.py zmq ao h2o.nw

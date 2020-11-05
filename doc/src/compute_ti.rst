@@ -76,7 +76,7 @@ with respect to *lambda*\ .
 
 To perform this calculation, you provide one or more atom types as
 *atype*\ .  *Atype* can be specified in one of two ways.  An explicit
-numeric values can be used, as in the 1st example above.  Or a
+numeric values can be used, as in the first example above.  Or a
 wildcard asterisk can be used in place of or in conjunction with the
 *atype* argument to select multiple atom types.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of atom types, then
@@ -113,7 +113,8 @@ du/dl can be found in the paper by :ref:`Eike <Eike>`.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from
@@ -135,7 +136,10 @@ Related commands
 
 :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

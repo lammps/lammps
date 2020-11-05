@@ -58,7 +58,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
-       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
+       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o $(OBJ_DIR)/lal_dpd_tstat_ext.o \
        $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
        $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
        $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
@@ -533,6 +533,9 @@ $(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp  $(OBJ_DIR)/dpd_cl.h $(OBJ_
 
 $(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
 	$(OCL) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_tstat_ext.o: $(ALL_H) lal_dpd.h lal_dpd_tstat_ext.cpp lal_base_dpd.h
+	$(OCL) -o $@ -c lal_dpd_tstat_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/tersoff_cl.h: lal_tersoff.cu lal_tersoff_extra.h $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh tersoff $(PRE1_H) lal_tersoff_extra.h lal_tersoff.cu $(OBJ_DIR)/tersoff_cl.h;

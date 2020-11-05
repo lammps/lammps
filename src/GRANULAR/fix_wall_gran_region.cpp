@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,9 +39,9 @@ enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL),
-  ncontact(NULL),
-  walls(NULL), history_many(NULL), c2r(NULL)
+  FixWallGran(lmp, narg, arg), region(nullptr), region_style(nullptr),
+  ncontact(nullptr),
+  walls(nullptr), history_many(nullptr), c2r(nullptr)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -61,11 +61,11 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   // do not register with Atom class, since parent class did that
 
   memory->destroy(history_one);
-  history_one = NULL;
+  history_one = nullptr;
 
-  ncontact = NULL;
-  walls = NULL;
-  history_many = NULL;
+  ncontact = nullptr;
+  walls = nullptr;
+  history_many = nullptr;
   grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
@@ -178,6 +178,10 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
@@ -246,7 +250,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
         // store contact info
         if (peratom_flag) {
-          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][0] = 1.0;
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
           array_atom[i][6] = x[i][2] - dz;
@@ -258,7 +262,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         if (peratom_flag)
           contact = array_atom[i];
         else
-          contact = NULL;
+          contact = nullptr;
 
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
@@ -475,6 +479,7 @@ int FixWallGranRegion::pack_restart(int i, double *buf)
     for (m = 0; m < size_history; m++)
       buf[n++] = history_many[i][iwall][m];
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
   return n;
 }
@@ -492,6 +497,7 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

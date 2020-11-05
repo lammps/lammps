@@ -1,4 +1,5 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csld
 
 fix temp/csvr command
 =====================
@@ -59,7 +60,7 @@ The desired temperature at each timestep is a ramped value during the
 run from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in
 time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
+of (roughly) 100 time units (tau or fs or ps - see the
 :doc:`units <units>` command).
 
 *Tstart* can be specified as an equal-style :doc:`variable <variable>`.
@@ -125,7 +126,16 @@ thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+These fixes write the cumulative global energy change and the
+random number generator states to :doc:`binary restart files <restart>`.
+See the :doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file,
+so that the selected fix continues in an uninterrupted fashion.  The
+random number generator state can only be restored when the number
+of processors remains unchanged from what is recorded in the restart file.
 
 No information about these fixes are written to :doc:`binary restart files <restart>`.
 
@@ -166,7 +176,10 @@ Related commands
 :doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix temp/berendsen <fix_temp_berendsen>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

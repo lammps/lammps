@@ -164,7 +164,7 @@ namespace ATC {
         chargeRegulator_(chargeRegulator),
         lammpsInterface_(LammpsInterface::instance()),
         rC_(0), rCsq_(0),
-        targetValue_(NULL), 
+        targetValue_(nullptr), 
         targetPhi_(p.value), 
         surface_(p.faceset),
         atomGroupBit_(p.groupBit), 

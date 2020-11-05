@@ -277,7 +277,7 @@ namespace ATC {
     data * return_quantity(std::map<std::string,data * > & list, const std::string & tag)
     {
       typename std::map<std::string,data * >::iterator it = list.find(tag);
-      if (it==list.end()) return NULL;
+      if (it==list.end()) return nullptr;
       return it->second;
     }
 
@@ -310,7 +310,7 @@ namespace ATC {
     {
       typename std::map<std::string,data * >::iterator it = list.find(tag);
       if (it!=list.end()) return it->second;
-      return NULL;
+      return nullptr;
     }
 
     /** helper function to force the reset of all data in a list */

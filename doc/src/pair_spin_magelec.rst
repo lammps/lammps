@@ -1,7 +1,7 @@
 .. index:: pair_style spin/magelec
 
 pair_style spin/magelec command
-================================
+===============================
 
 Syntax
 """"""
@@ -18,7 +18,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style spin/magelec 4.5
-   pair_coeff \* \* magelec 4.5 0.00109 1.0 1.0 1.0
+   pair_coeff * * magelec 4.5 0.00109 1.0 1.0 1.0
 
 Description
 """""""""""
@@ -68,7 +68,10 @@ Related commands
 :doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style spin/exchange <pair_spin_exchange>`, :doc:`pair_eam <pair_eam>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

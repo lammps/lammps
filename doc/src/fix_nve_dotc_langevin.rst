@@ -94,7 +94,7 @@ corresponds to T = 300 K.
 The *damp* parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 0.03
 means to relax the temperature in a timespan of (roughly) 0.03 time
-units tau (see the :doc:`units <units>` command).
+units :math:`\tau` (see the :doc:`units <units>` command).
 The damp factor can be thought of as inversely related to the
 viscosity of the solvent, i.e. a small relaxation time implies a
 high-viscosity solvent and vice versa.  See the discussion about gamma
@@ -138,7 +138,10 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/dot <fix_nve_dot>`, :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -31,7 +31,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style cosine/squared 3.0
-   pair_coeff \* \* 1.0 1.3
+   pair_coeff * * 1.0 1.3
    pair_coeff 1 3 1.0 1.3 2.0
    pair_coeff 1 3 1.0 1.3 wca
    pair_coeff 1 3 1.0 1.3 2.0 wca
@@ -46,7 +46,7 @@ Style *cosine/squared* computes a potential of the form
    E =
    \begin{cases}
    -\epsilon& \quad r < \sigma \\
-   -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)&\quad \sigma \leq r < r_c \\
+   -\epsilon\cos\left(\frac{\pi\left(r - \sigma\right)}{2\left(r_c - \sigma\right)}\right)^2&\quad \sigma \leq r < r_c \\
    0& \quad r \geq r_c
    \end{cases}
 
@@ -54,7 +54,7 @@ between two point particles, where (:math:`\sigma, -\epsilon`) is the
 location of the (rightmost) minimum of the potential, as explained in
 the syntax section above.
 
-This potential was first used in (Cooke)_#CKD for a coarse-grained lipid
+This potential was first used in :ref:`(Cooke) <CKD>` for a coarse-grained lipid
 membrane model.  It is generally very useful as a non-specific
 interaction potential because it is fully adjustable in depth and width
 while joining the minimum at (sigma, -epsilon) and zero at (cutoff, 0)
@@ -63,7 +63,7 @@ energy calculations etc. This evidently requires *cutoff* to be larger
 than *sigma*\ .
 
 If the *wca* option is used then a Weeks-Chandler-Andersen potential
-(Weeks)_#WCA is added to the above specified cosine-squared potential,
+:ref:`(Weeks) <WCA>` is added to the above specified cosine-squared potential,
 specifically the following:
 
 .. math::
@@ -88,7 +88,8 @@ in the graphs below:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing is not supported for this style.
 
@@ -106,7 +107,7 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *cosine/squared* style is part of the "USER-MISC" package. It is only
+The *cosine/squared* style is part of the USER-MISC package. It is only
 enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
@@ -115,7 +116,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style lj/cut <pair_lj>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _CKD:
 

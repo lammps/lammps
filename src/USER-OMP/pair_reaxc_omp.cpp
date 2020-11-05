@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_reaxc_omp.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"
@@ -48,7 +48,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "timer.h"
+
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -92,7 +92,7 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
   system->pair_ptr = this;
   system->omp_active = 1;
 
-  num_nbrs_offset = NULL;
+  num_nbrs_offset = nullptr;
 
 #ifdef OMP_TIMING
   for (int i=0;i<LASTTIMINGINDEX;i++) {
@@ -368,7 +368,7 @@ void PairReaxCOMP::init_style( )
   for( int i = 0; i < LIST_N; ++i )
     lists[i].allocated = 0;
 
-  if (fix_reax == NULL) {
+  if (fix_reax == nullptr) {
     char **fixarg = new char*[3];
     fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
@@ -508,7 +508,7 @@ int PairReaxCOMP::estimate_reax_lists()
     num_nbrs += numneigh[i];
   }
 
-  int new_estimate = MAX (num_nbrs, mincap*MIN_NBRS);
+  int new_estimate = MAX(num_nbrs, mincap*REAX_MIN_NBRS);
 
   return new_estimate;
 }

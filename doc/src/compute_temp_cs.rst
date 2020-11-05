@@ -49,7 +49,7 @@ respective group IDs, which can be defined using the
 must be the same and there should be one bond defined between a pair
 of atoms in the two groups.  Non-polarized ions which might also be
 included in the treated system should not be included into either of
-these groups, they are taken into account by the *group-ID* (2nd
+these groups, they are taken into account by the *group-ID* (second
 argument) of the compute.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
@@ -84,7 +84,8 @@ The internal energy of core/shell pairs can be calculated by the
 defined as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` doc page doc page for more discussion
 on how to do this.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -109,7 +110,10 @@ Related commands
 
 :doc:`compute temp <compute_temp>`, :doc:`compute temp/chunk <compute_temp_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

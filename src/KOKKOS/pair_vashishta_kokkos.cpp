@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "math_const.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -60,8 +61,8 @@ PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -86,7 +87,7 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -116,20 +117,20 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short_2body.extent(1) != max_neighs) ||
-     (d_neighbors_short_2body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_2body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_2body.extent(0) != ignum)) {
     d_neighbors_short_2body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_2body",ignum,max_neighs);
   }
-  if (d_numneigh_short_2body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_2body.extent(0)!=ignum) {
     d_numneigh_short_2body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_2body",ignum);
   }
 
-  if ((d_neighbors_short_3body.extent(1) != max_neighs) ||
-     (d_neighbors_short_3body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_3body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_3body.extent(0) != ignum)) {
     d_neighbors_short_3body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_3body",ignum,max_neighs);
   }
 
-  if (d_numneigh_short_3body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_3body.extent(0)!=ignum) {
     d_numneigh_short_3body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_3body",ignum);
   }
 
@@ -234,7 +235,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
 
   // The f array is atomic
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
   F_FLOAT evdwl = 0.0;
@@ -372,7 +373,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
   const int i = d_ilist[ii];
 
-  const tagint itag = tag[i];
   const int itype = d_map[type[i]];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -389,7 +389,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short_2body(i,jj);
     j &= NEIGHMASK;
-    const tagint jtag = tag[j];
 
     const int jtype = d_map[type[j]];
 
@@ -585,10 +584,10 @@ void PairVashishtaKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   // always request a full neighbor list
 
@@ -780,8 +779,8 @@ void PairVashishtaKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const
 
   // The eatom and vatom arrays are atomic for half/thread neighbor list
 
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
 
   if (eflag_atom) {
@@ -856,8 +855,8 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, cons
 
 // The eatom and vatom arrays are atomic for half/thread neighbor list
 
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   if (eflag_atom) {
     epairthird = THIRD * (evdwl + ecoul);
@@ -911,7 +910,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
+void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const int &i,
           const F_FLOAT &evdwl, const F_FLOAT &ecoul,
                      F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
 {
@@ -942,7 +941,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 
 namespace LAMMPS_NS {
 template class PairVashishtaKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairVashishtaKokkos<LMPHostType>;
 #endif
 }

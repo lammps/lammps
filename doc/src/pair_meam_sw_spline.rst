@@ -75,9 +75,11 @@ If your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potential, you would use the following pair_coeff
 command:
 
-pair_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+.. code-block:: LAMMPS
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
+
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
 in the potential file. If a mapping value is specified as NULL, the
 mapping is not performed. This can be used when a *meam/sw/spline*
@@ -96,7 +98,8 @@ in the examples/USER/misc/meam_sw_spline directory.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The pair style does not support multiple element types or mixing.
 It has been designed for pure elements only.
@@ -131,7 +134,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`,
 :doc:`pair_style meam/spline <pair_meam_spline>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

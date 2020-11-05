@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://lammps.sandia.gov/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,20 +22,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin_dipole_cut.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "fix.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
-#include "error.h"
-#include "update.h"
-#include "utils.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -64,6 +61,7 @@ PairSpinDipoleCut::~PairSpinDipoleCut()
     memory->destroy(setflag);
     memory->destroy(cut_spin_long);
     memory->destroy(cutsq);
+    memory->destroy(emag);
   }
 }
 
@@ -75,7 +73,7 @@ void PairSpinDipoleCut::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
 
-  cut_spin_long_global = force->numeric(FLERR,arg[0]);
+  cut_spin_long_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -104,10 +102,10 @@ void PairSpinDipoleCut::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args in pair_style command");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double spin_long_cut_one = force->numeric(FLERR,arg[2]);
+  double spin_long_cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -156,7 +154,7 @@ void *PairSpinDipoleCut::extract(const char *str, int &dim)
     dim = 0;
     return (void *) &mix_flag;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,6 +183,13 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+
   // computation of the exchange interaction
   // loop over atoms and their neighbors
 
@@ -199,6 +204,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
     spi[3] = sp[i][3];
+    emag[i] = 0.0;
     itype = type[i];
 
     for (jj = 0; jj < jnum; jj++) {
@@ -243,16 +249,11 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
-        f[j][2] -= fi[2];
-      }
-
       if (eflag) {
         if (rsq <= local_cut2) {
           evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
           evdwl *= 0.5*hbar;
+          emag[i] += evdwl;
         }
       } else evdwl = 0.0;
 
@@ -378,7 +379,7 @@ void PairSpinDipoleCut::compute_dipolar(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleCut::compute_dipolar_mech(int /* i */, int /* j */, double eij[3],
-    double fi[3], double spi[3], double spj[3], double r2inv)
+    double fi[3], double spi[4], double spj[4], double r2inv)
 {
   double sisj,sieij,sjeij;
   double gigjri4,bij,pre;
@@ -447,11 +448,11 @@ void PairSpinDipoleCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
@@ -476,8 +477,8 @@ void PairSpinDipoleCut::write_restart_settings(FILE *fp)
 void PairSpinDipoleCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

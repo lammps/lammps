@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "modify.h"
 #include "force.h"
 #include "pair.h"
 #include "memory.h"
@@ -33,8 +34,8 @@ enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(NULL), npartner(NULL), partner(NULL), valuepartner(NULL),
-  ipage_atom(NULL), dpage_atom(NULL), ipage_neigh(NULL), dpage_neigh(NULL)
+  pair(nullptr), npartner(nullptr), partner(nullptr), valuepartner(nullptr),
+  ipage_atom(nullptr), dpage_atom(nullptr), ipage_neigh(nullptr), dpage_neigh(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix NEIGH_HISTORY command");
 
@@ -44,7 +45,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   newton_pair = force->newton_pair;
 
-  dnum = force->inumeric(FLERR,arg[3]);
+  dnum = utils::inumeric(FLERR,arg[3],false,lmp);
   dnumbytes = dnum * sizeof(double);
 
   zeroes = new double[dnum];
@@ -62,23 +63,23 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   // register with atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   pgsize = oneatom = 0;
 
   // other per-atom vectors
 
-  firstflag = NULL;
-  firstvalue = NULL;
+  firstflag = nullptr;
+  firstvalue = nullptr;
   maxatom = 0;
 
   // per-atom and per-neighbor data structs
 
-  ipage_atom = NULL;
-  dpage_atom = NULL;
-  ipage_neigh = NULL;
-  dpage_neigh = NULL;
+  ipage_atom = nullptr;
+  dpage_atom = nullptr;
+  ipage_neigh = nullptr;
+  dpage_neigh = nullptr;
 
   // initialize npartner to 0 so neighbor list creation is OK the 1st time
 
@@ -98,8 +99,8 @@ FixNeighHistory::~FixNeighHistory()
 
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -119,13 +120,13 @@ FixNeighHistory::~FixNeighHistory()
 
   // to better detect use-after-delete errors
 
-  firstflag = NULL;
-  firstvalue = NULL;
+  firstflag = nullptr;
+  firstvalue = nullptr;
 
-  pair = NULL;
-  npartner = NULL;
-  partner = NULL;
-  valuepartner = NULL;
+  pair = nullptr;
+  npartner = nullptr;
+  partner = nullptr;
+  valuepartner = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,6 +148,19 @@ void FixNeighHistory::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Neighbor history requires atoms have IDs");
 
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // because this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix neigh_history comes after a fix which "
+                 "migrates atoms in pre_exchange");
+  }
+
+  // setup data struct
+
   allocate_pages();
 }
 
@@ -158,7 +172,7 @@ void FixNeighHistory::init()
 void FixNeighHistory::allocate_pages()
 {
   int create = 0;
-  if (ipage_atom == NULL) create = 1;
+  if (ipage_atom == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -201,7 +215,7 @@ void FixNeighHistory::setup_post_neighbor()
    called during run before atom exchanges, including for restart files
    called at end of run via post_run()
    do not call during setup of run (setup_pre_exchange)
-     b/c there is no guarantee of a current NDS (even on continued run)
+     because there is no guarantee of a current NDS (even on continued run)
    if run command does a 2nd run with pre = no, then no neigh list
      will be built, but old neigh list will still have the info
    onesided and newton on and newton off versions
@@ -228,7 +242,7 @@ void FixNeighHistory::pre_exchange_onesided()
   double *allvalues,*onevalues;
 
   // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
-  // b/c previous neigh list was built with nlocal_neigh
+  // because previous neigh list was built with nlocal_neigh
   // nlocal can be larger if other fixes added atoms at this pre_exchange()
 
   // clear two paged data structures
@@ -265,7 +279,7 @@ void FixNeighHistory::pre_exchange_onesided()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL)
+    if (partner[i] == nullptr || valuepartner[i] == nullptr)
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
   }
 
@@ -321,7 +335,7 @@ void FixNeighHistory::pre_exchange_newton()
 
   // NOTE: all operations until very end are with
   //   nlocal_neigh  <= current nlocal and nall_neigh
-  // b/c previous neigh list was built with nlocal_neigh & nghost_neigh
+  // because previous neigh list was built with nlocal_neigh & nghost_neigh
   // nlocal can be larger if other fixes added atoms at this pre_exchange()
 
   // clear two paged data structures
@@ -369,7 +383,7 @@ void FixNeighHistory::pre_exchange_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL) {
+    if (partner[i] == nullptr || valuepartner[i] == nullptr) {
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
     }
   }
@@ -378,7 +392,7 @@ void FixNeighHistory::pre_exchange_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL) {
+    if (partner[i] == nullptr || valuepartner[i] == nullptr) {
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
     }
   }
@@ -416,7 +430,7 @@ void FixNeighHistory::pre_exchange_newton()
 
   // perform reverse comm to augment
   // owned atom partner/valuepartner with ghost info
-  // use variable variant b/c size of packed data can be arbitrarily large
+  // use variable variant because size of packed data can be arbitrarily large
   //   if many touching neighbors for large particle
 
   commflag = PERPARTNER;
@@ -449,7 +463,7 @@ void FixNeighHistory::pre_exchange_no_newton()
   double *allvalues,*onevalues,*jvalues;
 
   // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
-  // b/c previous neigh list was built with nlocal_neigh
+  // because previous neigh list was built with nlocal_neigh
   // nlocal can be larger if other fixes added atoms at this pre_exchange()
 
   // clear two paged data structures
@@ -492,7 +506,7 @@ void FixNeighHistory::pre_exchange_no_newton()
     n = npartner[i];
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum*n);
-    if (partner[i] == NULL || valuepartner[i] == NULL)
+    if (partner[i] == nullptr || valuepartner[i] == nullptr)
       error->one(FLERR,"Neighbor history overflow, boost neigh_modify one");
   }
 
@@ -694,10 +708,10 @@ void FixNeighHistory::grow_arrays(int nmax)
 void FixNeighHistory::copy_arrays(int i, int j, int /*delflag*/)
 {
   // just copy pointers for partner and valuepartner
-  // b/c can't overwrite chunk allocation inside ipage_atom,dpage_atom
+  // because can't overwrite chunk allocation inside ipage_atom,dpage_atom
   // incoming atoms in unpack_exchange just grab new chunks
   // so are orphaning chunks for migrating atoms
-  // OK, b/c will reset ipage_atom,dpage_atom on next reneighboring
+  // OK, because will reset ipage_atom,dpage_atom on next reneighboring
 
   npartner[j] = npartner[i];
   partner[j] = partner[i];
@@ -839,6 +853,7 @@ int FixNeighHistory::pack_restart(int i, double *buf)
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
     m += dnum;
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = m;
   return m;
 }
@@ -849,11 +864,12 @@ int FixNeighHistory::pack_restart(int i, double *buf)
 
 void FixNeighHistory::unpack_restart(int nlocal, int nth)
 {
-  // ipage_atom = NULL if being called from granular pair style init()
+  // ipage_atom = nullptr if being called from granular pair style init()
 
-  if (ipage_atom == NULL) allocate_pages();
+  if (ipage_atom == nullptr) allocate_pages();
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   double **extra = atom->extra;
 

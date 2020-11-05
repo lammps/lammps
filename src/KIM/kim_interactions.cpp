@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
                          Ellad B. Tadmor (UMN)
+                         Ronald Miller   (Carleton U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -56,29 +57,26 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_interactions.h"
-#include <cstring>
-#include <string>
-#include <sstream>
-#include "error.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_store_kim.h"
+#include "input.h"
 #include "modify.h"
 #include "update.h"
-#include "universe.h"
-#include "input.h"
-#include "variable.h"
-#include "fix_store_kim.h"
+
+#include <cstring>
+#include <vector>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
 
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 using namespace LAMMPS_NS;
+
+#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -94,43 +92,23 @@ void KimInteractions::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInteractions::kim_interactions_log_delimiter(
-    std::string const begin_end) const
-{
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim_interactions ==================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim_interactions ====================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void KimInteractions::do_setup(int narg, char **arg)
 {
   bool fixed_types;
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
-  }
-  else if (narg != atom->ntypes) {
+  } else if (narg != atom->ntypes) {
     error->all(FLERR,"Illegal kim_interactions command");
-  }
-  else {
+  } else {
     fixed_types = false;
   }
 
-  char *model_name = NULL;
-  KIM_SimulatorModel *simulatorModel(NULL);
+  char *model_name = nullptr;
+  KIM_SimulatorModel *simulatorModel(nullptr);
 
   // check if we had a kim_init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
-  // validate model name if not given as NULL.
+  // validate model name if not given as null pointer.
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
@@ -140,7 +118,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   } else error->all(FLERR,"Must use 'kim_init' before 'kim_interactions'");
 
   // Begin output to log file
-  kim_interactions_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim_interactions ==================================\n");
 
   if (simulatorModel) {
 
@@ -149,10 +127,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       std::string atom_type_sym_list;
       std::string atom_type_num_list;
 
-      for (int i = 0; i < narg; i++)
-      {
+      for (int i = 0; i < narg; i++) {
         atom_type_sym_list += delimiter + arg[i];
-        atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
+        atom_type_num_list += delimiter + std::to_string(species_to_atomic_no(arg[i]));
         delimiter = " ";
       }
 
@@ -162,10 +139,6 @@ void KimInteractions::do_setup(int narg, char **arg)
           simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
 
-      int len = strlen(atom_type_sym_list.c_str())+1;
-      char *strbuf = new char[len];
-      char *strword;
-
       // validate species selection
 
       int sim_num_species;
@@ -173,28 +146,21 @@ void KimInteractions::do_setup(int narg, char **arg)
       char const *sim_species;
       KIM_SimulatorModel_GetNumberOfSupportedSpecies(
           simulatorModel,&sim_num_species);
-      strcpy(strbuf,atom_type_sym_list.c_str());
-      strword = strtok(strbuf," \t");
-      while (strword) {
+
+      for (auto atom_type_sym : utils::split_words(atom_type_sym_list)) {
         species_is_supported = false;
-        if (strcmp(strword,"NULL") == 0) continue;
+        if (atom_type_sym == "NULL") continue;
         for (int i=0; i < sim_num_species; ++i) {
           KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
-          if (strcmp(sim_species,strword) == 0)
-            species_is_supported = true;
+          if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
-          std::string msg("Species '");
-          msg += strword;
-          msg += "' is not supported by this KIM Simulator Model";
-          error->all(FLERR,msg.c_str());
+          std::string msg = "Species '";
+          msg += atom_type_sym + "' is not supported by this KIM Simulator Model";
+          error->all(FLERR,msg);
         }
-        strword = strtok(NULL," \t");
       }
-      delete[] strbuf;
-    }
-    else
-    {
+    } else {
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
     }
 
@@ -217,13 +183,31 @@ void KimInteractions::do_setup(int narg, char **arg)
     int sim_model_idx=-1;
     for (int i=0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
-          simulatorModel,i,&sim_lines,&sim_field);
+        simulatorModel,i,&sim_lines,&sim_field);
       if (0 == strcmp(sim_field,"model-defn")) {
+	if (domain->periodicity[0]&&domain->periodicity[1]&&domain->periodicity[2]) input->one("variable kim_periodic equal 1");
+	else if (domain->periodicity[0]&&domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 2");
+	else input->one("variable kim_periodic equal 0");
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
-              simulatorModel,sim_model_idx,j,&sim_value);
-          input->one(sim_value);
+            simulatorModel,sim_model_idx,j,&sim_value);
+          if (utils::strmatch(sim_value,"^KIM_SET_TYPE_PARAMETERS")) {
+            // Notes regarding the KIM_SET_TYPE_PARAMETERS command
+            //  * This is an INTERNAL command.
+            //  * It is intended for use only by KIM Simulator Models.
+            //  * It is not possible to use this command outside of the context
+            //    of the kim_interactions command and KIM Simulator Models.
+            //  * The command performs a transformation from symbolic
+            //    string-based atom types to lammps numeric atom types for
+            //    the pair_coeff and charge settings.
+            //  * The command is not documented fully as it is expected to be
+            //    temporary.  Eventually it should be replaced by a more
+            //    comprehensive symbolic types support in lammps.
+            KIM_SET_TYPE_PARAMETERS(sim_value);
+          } else {
+            input->one(sim_value);
+          }
         }
       }
     }
@@ -252,18 +236,75 @@ void KimInteractions::do_setup(int narg, char **arg)
       cmd2 += " ";
     }
 
-    input->one(cmd1.c_str());
-    input->one(cmd2.c_str());
+    input->one(cmd1);
+    input->one(cmd2);
   }
 
   // End output to log file
-  kim_interactions_log_delimiter("end");
-
+  input->write_echo("#=== END kim_interactions ====================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
-int KimInteractions::species_to_atomic_no(std::string const species) const
+void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const
+{
+  int nocomment;
+  auto words = utils::split_words(input_line);
+
+  std::string key = words[1];
+  std::string filename = words[2];
+  std::vector<std::string> species(words.begin()+3,words.end());
+  if ((int)species.size() != atom->ntypes)
+    error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
+
+  FILE *fp;
+  fp = fopen(filename.c_str(),"r");
+  if (fp == nullptr) {
+    error->one(FLERR,"Parameter file not found");
+  }
+
+  char line[MAXLINE],*ptr;
+  int n, eof = 0;
+
+  while (1) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fp);
+      } else n = strlen(line) + 1;
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+    nocomment = line[0] != '#';
+
+    if(nocomment) {
+      words = utils::split_words(line);
+      if (key == "pair") {
+        for (int ia = 0; ia < atom->ntypes; ++ia) {
+          for (int ib = ia; ib < atom->ntypes; ++ib)
+            if (((species[ia] == words[0]) && (species[ib] == words[1]))
+                || ((species[ib] == words[0]) && (species[ia] == words[1])))
+              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,fmt::join(words.begin()+2,words.end()," ")));
+        }
+      } else if (key == "charge") {
+        for (int ia = 0; ia < atom->ntypes; ++ia)
+          if (species[ia] == words[0])
+            input->one(fmt::format("set type {} charge {}",ia+1,words[1]));
+      } else {
+        error->one(FLERR,"Unrecognized KEY for KIM_SET_TYPE_PARAMETERS command");
+      }
+    }
+  }
+  fclose(fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int KimInteractions::species_to_atomic_no(const std::string &species) const
 {
   if (species == "H") return 1;
   else if (species == "He") return 2;

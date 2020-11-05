@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,10 +33,10 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  cvatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
+  setflag = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;

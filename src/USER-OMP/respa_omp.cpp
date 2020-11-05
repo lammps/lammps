@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +16,24 @@
 ------------------------------------------------------------------------- */
 
 #include "respa_omp.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
-#include "error.h"
-#include "timer.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "update.h"
 
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -146,7 +147,7 @@ void RespaOMP::setup(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -241,7 +242,7 @@ void RespaOMP::setup_minimal(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -394,7 +395,7 @@ void RespaOMP::recurse(int ilevel)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)

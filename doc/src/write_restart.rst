@@ -58,10 +58,21 @@ file via the MPI-IO library, which is part of the MPI standard for
 versions 2.0 and above.  Using MPI-IO requires two steps.  First,
 build LAMMPS with its MPIIO package installed, e.g.
 
-.. code-block:: bash
+.. tabs::
 
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         cmake . -DPKG_MPIIO=on  # enables the MPIIO package in the build folder
+         cmake --build .         # recompiles LAMMPS with the package code included
+
+   .. tab:: Traditional make
+
+      .. code-block:: bash
+
+         make yes-mpiio    # installs the MPIIO package
+         make mpi          # build LAMMPS for your platform
 
 Second, use a restart filename which contains ".mpiio".  Note that it
 does not have to end in ".mpiio", just contain those characters.
@@ -103,7 +114,7 @@ be written, by processors 0,25,50,75.  Each will collect information
 from itself and the next 24 processors and write it to a restart file.
 
 For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every 4th
+file for every Np processors.  For example, if Np = 4, every fourth
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a restart file.
 
@@ -126,4 +137,7 @@ Related commands
 :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
 :doc:`write_data <write_data>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +20,7 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   comm_x_only = comm_f_only = 0;
   size_forward = 7;
@@ -75,9 +75,9 @@ void AtomVecDPDKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
 
 
   memoryKK->grow_kokkos(atomKK->k_rho,atomKK->rho,nmax,"atom:rho");
@@ -93,7 +93,7 @@ void AtomVecDPDKokkos::grow(int n)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 }
 
@@ -101,7 +101,7 @@ void AtomVecDPDKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecDPDKokkos::grow_reset()
+void AtomVecDPDKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -1830,9 +1830,9 @@ int AtomVecDPDKokkos::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecDPDKokkos::memory_usage()
+double AtomVecDPDKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);

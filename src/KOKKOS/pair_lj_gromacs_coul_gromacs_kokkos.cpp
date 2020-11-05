@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,7 +46,7 @@ PairLJGromacsCoulGromacsKokkos<DeviceType>::PairLJGromacsCoulGromacsKokkos(LAMMP
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
   cut_ljsq = 0.0;
   cut_coulsq = 0.0;
 
@@ -66,9 +66,9 @@ PairLJGromacsCoulGromacsKokkos<DeviceType>::~PairLJGromacsCoulGromacsKokkos()
     memory->sfree(cutsq);
     //memory->sfree(cut_ljsq);
     //memory->sfree(cut_coulsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
+    cutsq = nullptr;
     cut_ljsq = 0.0;
     cut_coulsq = 0.0;
   }
@@ -80,11 +80,11 @@ template<class DeviceType>
 void PairLJGromacsCoulGromacsKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
+  cutsq = nullptr;
   cut_ljsq = 0.0;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +108,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -186,7 +186,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
@@ -213,7 +213,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
@@ -241,8 +241,9 @@ template<class DeviceType>
 template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -264,8 +265,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -447,10 +449,10 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -509,7 +511,7 @@ double PairLJGromacsCoulGromacsKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJGromacsCoulGromacsKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJGromacsCoulGromacsKokkos<LMPHostType>;
 #endif
 }

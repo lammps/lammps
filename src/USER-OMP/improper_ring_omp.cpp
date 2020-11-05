@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,17 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_ring_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "timer.h"
 #include "force.h"
 #include "math_special.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
@@ -50,7 +52,7 @@ void ImproperRingOMP::compute(int eflag, int vflag)
   const int inum = neighbor->nimproperlist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,24 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "verlet.h"
-#include <cstring>
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -85,11 +87,12 @@ void Verlet::init()
 void Verlet::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up Verlet run ...\n");
+    fputs("Setting up Verlet run ...\n",screen);
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n",update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",update->ntimestep);
-      fprintf(screen,"  Time step     : %g\n",update->dt);
+      fmt::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
       timer->print_timeout(screen);
     }
   }

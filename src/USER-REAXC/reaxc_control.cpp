@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_control.h"
@@ -41,7 +41,7 @@ char Read_Control_File( char *control_file, control_params* control,
   double  val;
 
   /* open control file */
-  if ( (fp = fopen( control_file, "r" ) ) == NULL ) {
+  if ( (fp = fopen( control_file, "r" ) ) == nullptr ) {
     control->error_ptr->all(FLERR, "The control file cannot be opened");
   }
 

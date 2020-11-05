@@ -1,6 +1,6 @@
 #include "math_special.h"
 #include <cmath>
-#include <stdint.h> // IWYU pragma: keep
+#include <cstdint> // IWYU pragma: keep
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
  *   Joachim Wuttke, Forschungszentrum Jülich, 2013, package maintainer
  *
  * Website:
- *   http://apps.jcns.fz-juelich.de/libcerf
+ *   https://jugit.fz-juelich.de/mlz/libcerf
  *
  * Revision history:
  *   ../CHANGELOG

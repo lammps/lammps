@@ -146,6 +146,8 @@ scientific publications, experimental databases or by using
 of the impact parameter of the ion; these results can be used
 to derive the stopping power.
 
+----------
+
 Style *electron/stopping/fit* calculates the electronic stopping power
 and cumulative energy lost to the electron gas via a quadratic functional
 and applies a drag force to the classical equations-of-motion for all 

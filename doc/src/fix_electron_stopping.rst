@@ -155,10 +155,9 @@ atoms moving above some minimum cutoff velocity (i.e., kinetic energy).
 These coefficients can be determined by fitting a quadratic polynomial to
 electronic stopping data predicted by, for example, SRIM or TD-DFT. Multiple
 'Ecut c1 c2' values can be provided for multi-species simulations in the order
-of the atom types. Details of this implementation are further described in 
-:ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`. There is an 
-examples/USER/misc/electron_stopping/ directory, which illustrates uses 
-of this command.
+of the atom types. There is an examples/USER/misc/electron_stopping/ directory, 
+which illustrates uses of this command. Details of this implementation are 
+further described in :ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

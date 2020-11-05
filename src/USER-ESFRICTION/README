@@ -1,0 +1,5 @@
+The paper explaining the addition of electronic stopping in LAMMPS is available at
+https://arxiv.org/abs/2005.11940
+
+The 'Results and Discussions' section of the above paper has a discussion on the three
+methods of including electronic stopping in collision cascade simulations with LAMMPS.

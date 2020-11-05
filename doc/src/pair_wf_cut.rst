@@ -1,6 +1,6 @@
-.. index:: pair_style wf
+.. index:: pair_style wf/cut
 
-pair_style wf command
+pair_style wf/cut command
 ===========================
 
 Syntax
@@ -9,7 +9,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style wf cutoff
+   pair_style wf/cut cutoff
 
 * cutoff = cutoff for wf interactions (distance units)
 
@@ -19,22 +19,15 @@ Examples
 
 .. code-block:: LAMMPS
 
-   variable         sigma  equal   1.0
-   variable         epsilon equal 1.0
-   variable         nu   equal 1.0
-   variable         mu   equal 1.0
-   variable         rc equal 2.0*${sigma}
-
-   pair_style        wf ${rc}
-   pair_coeff        1 1 ${epsilon} ${sigma} ${nu} ${mu}  ${rc}	
+   pair_style        wf/cut 2.0
+   pair_coeff        1 1 1.0 1.0 1 1  2.0
 
 Description
 """""""""""
 
-The *wf* style computes the potential in :ref:`Wang2020 <Wang2020>`, which is given by:
+The *wf/cut* (Wang-Frenkel) style computes LJ-like potentials as described in :ref:`Wang2020 <Wang2020>`. This potential is by construction finite ranged and it vanishes quadratically at the cutoff distance, avoiding truncation, shifting, interpolation and other typical procedures with the LJ potential. The *wf/cut*  can be used when a typical short-ranged potential with attraction is required. The potential is given by which is given by:
 
 .. math::
-
   \phi(r)= \epsilon \alpha \left(\left[{\sigma\over r}\right]^{2\mu} -1 \right)\left(\left[{r_c\over r}\right]^{2\mu}-1\right)^{2\nu}
 
 with
@@ -49,6 +42,12 @@ and
 
 :math:`r_c` is the cutoff. 
 
+Comparison of the untruncated Lennard-Jones 12-6 potential (red curve), and the WF potentials with :math:`\mu=1` and :math:`\nu=1` are shown in the figure below. The blue curve has :math:`r_c =2.0` and the green curve has :math:`r_c =1.2` and can be used to describe colloidal interactions.
+
+.. image:: JPG/WF_LJ.jpg
+   :align: center
+
+
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the example
 above, or in the data file or restart files read by the
@@ -61,27 +60,8 @@ commands:
 * :math:`\mu`
 * :math:`r_c` (distance units)
 
-----------
-
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
+The last coefficient is optional. If not specified, the global cutoff given in the pair_style command is used.
+The exponents :math:`\nu` and  :math:`\mu` are positive integers, usually set to 1. There is usually little to be gained by choosing other values of :math:`\nu` and  :math:`\mu` (See discussion in :ref:`Wang2020 <Wang2020>`)
 
 ----------
 
@@ -89,7 +69,7 @@ instructions on how to use the accelerated styles effectively.
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-can be  mixed. Careful is required with the cut-off radius. 
+can be  mixed.
 The default mix value is *geometric*\ .  See the "pair\_modify" command
 for details.
 
@@ -123,4 +103,4 @@ Related commands
 
 .. _Wang2020:
 
-**(Wang2020)** X. Wang, S. Ramírez-Hinestrosa, J. Dobnikar, and D. Frenkel, Phys. Chem. Chem. Phys. 22, 10624 (2020).
+**(Wang2020)** X. Wang, S. Ramirez-Hinestrosa, J. Dobnikar, and D. Frenkel, Phys. Chem. Chem. Phys. 22, 10624 (2020).

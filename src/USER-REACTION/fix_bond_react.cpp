@@ -3131,6 +3131,12 @@ void FixBondReact::update_everything()
   int Tdelta_imprp;
   MPI_Allreduce(&delta_imprp,&Tdelta_imprp,1,MPI_INT,MPI_SUM,world);
   atom->nimpropers += Tdelta_imprp;
+
+  if (ndel && (atom->map_style != Atom::MAP_NONE)) {
+    atom->nghost = 0; 
+    atom->map_init();
+    atom->map_set();
+  }
 }
 
 /* ----------------------------------------------------------------------

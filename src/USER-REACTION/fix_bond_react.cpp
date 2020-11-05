@@ -1304,7 +1304,9 @@ void FixBondReact::superimpose_algorithm()
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
         if (hang_catch > atom->nlocal*30) {
-          error->one(FLERR,"Bond/react: Excessive iteration of superimpose algorithm");
+          error->one(FLERR,"Bond/react: Excessive iteration of superimpose algorithm. "
+              "Please check that all pre-reaction template atoms are linked to a bonding atom, "
+              "via at least one path that does not involve edge atoms.");
         }
       }
     }
@@ -3133,7 +3135,7 @@ void FixBondReact::update_everything()
   atom->nimpropers += Tdelta_imprp;
 
   if (ndel && (atom->map_style != Atom::MAP_NONE)) {
-    atom->nghost = 0; 
+    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }

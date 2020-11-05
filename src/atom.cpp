@@ -2566,6 +2566,8 @@ void Atom::update_callback(int ifix)
     if (extra_restart[i] > ifix) extra_restart[i]--;
   for (int i = 0; i < nextra_border; i++)
     if (extra_border[i] > ifix) extra_border[i]--;
+  for (int i = 0; i < nextra_clear; i++)
+    if (extra_clear[i] > ifix) extra_clear[i]--;
 }
 
 /* ----------------------------------------------------------------------

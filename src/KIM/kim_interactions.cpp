@@ -69,6 +69,7 @@
 
 #include <cstring>
 #include <vector>
+#include <string>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -98,7 +99,11 @@ void KimInteractions::do_setup(int narg, char **arg)
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
-    error->all(FLERR,"Illegal kim_interactions command");
+    error->all(FLERR,fmt::format("Illegal kim_interactions command.\nThe "
+                                 "LAMMPS simulation has {} atom type(s), but "
+                                 "{} chemical species passed to the "
+                                 "kim_interactions command", 
+                                 atom->ntypes, narg));
   } else {
     fixed_types = false;
   }

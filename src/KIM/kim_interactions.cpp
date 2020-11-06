@@ -252,7 +252,6 @@ void KimInteractions::do_setup(int narg, char **arg)
 
 void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const
 {
-  int nocomment;
   auto words = utils::split_words(input_line);
 
   const std::string key = words[1];
@@ -285,23 +284,22 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    nocomment = line[0] != '#';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+    if (strspn(line," \t\n\r") == strlen(line)) continue;
 
-    if (nocomment) {
-      words = utils::split_words(line);
-      if (key == "pair") {
-        for (int ia = 0; ia < atom->ntypes; ++ia) {
-          for (int ib = ia; ib < atom->ntypes; ++ib)
-            if (((species[ia] == words[0]) && (species[ib] == words[1]))
-                || ((species[ib] == words[0]) && (species[ia] == words[1])))
-              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,
-                fmt::join(words.begin()+2,words.end()," ")));
-        }
-      } else {
-        for (int ia = 0; ia < atom->ntypes; ++ia)
-          if (species[ia] == words[0])
-            input->one(fmt::format("set type {} charge {}",ia+1,words[1]));
+    words = utils::split_words(line);
+    if (key == "pair") {
+      for (int ia = 0; ia < atom->ntypes; ++ia) {
+        for (int ib = ia; ib < atom->ntypes; ++ib)
+          if (((species[ia] == words[0]) && (species[ib] == words[1]))
+              || ((species[ib] == words[0]) && (species[ia] == words[1])))
+            input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,
+              fmt::join(words.begin()+2,words.end()," ")));
       }
+    } else {
+      for (int ia = 0; ia < atom->ntypes; ++ia)
+        if (species[ia] == words[0])
+          input->one(fmt::format("set type {} charge {}",ia+1,words[1]));
     }
   }
   fclose(fp);

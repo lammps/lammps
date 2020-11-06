@@ -81,11 +81,11 @@ using namespace LAMMPS_NS;
 
 void KimInit::command(int narg, char **arg)
 {
-  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal kim_init command");
+  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal kim_init command.");
 
   if (domain->box_exist)
     error->all(FLERR,"Must use 'kim_init' command before "
-                     "simulation box is defined");
+                     "simulation box is defined.");
   char *model_name = new char[strlen(arg[0])+1];
   strcpy(model_name,arg[0]);
   char *user_units = new char[strlen(arg[1])+1];
@@ -96,7 +96,7 @@ void KimInit::command(int narg, char **arg)
       error->all(FLERR,fmt::format("Illegal kim_init command.\nThe argument "
                                    "followed by unit_style {} is an optional "
                                    "argument and when is used must "
-                                   "be unit_conversion_mode", user_units));
+                                   "be unit_conversion_mode.", user_units));
     }
   } else unit_conversion_mode = false;
 
@@ -127,40 +127,43 @@ void get_kim_unit_names(
     KIM_TimeUnit & timeUnit,
     Error * error)
 {
-  if ((strcmp(system,"real")==0)) {
+  if (strcmp(system,"real") == 0) {
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(system,"metal")==0)) {
+  } else if (strcmp(system,"metal") == 0) {
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if ((strcmp(system,"si")==0)) {
+  } else if (strcmp(system,"si") == 0) {
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(system,"cgs")==0)) {
+  } else if (strcmp(system,"cgs") == 0) {
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(system,"electron")==0)) {
+  } else if (strcmp(system,"electron") == 0) {
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(system,"lj")==0)) {
-    error->all(FLERR,"LAMMPS unit_style lj not supported by KIM models");
+  } else if (strcmp(system,"lj") == 0 ||
+             strcmp(system,"micro") ==0 ||
+             strcmp(system,"nano")==0) {
+    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
+                                 "by KIM models.", system));   
   } else {
-    error->all(FLERR,"Unknown unit_style");
+    error->all(FLERR,"Unknown unit_style.");
   }
 }
 }  // namespace
@@ -180,14 +183,11 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM_CollectionItemType itemType;
 
   int kim_error = KIM_Collections_Create(&kim_Coll);
-  if (kim_error) {
+  if (kim_error) 
     error->all(FLERR,"Unable to access KIM Collections to find Model.");
-  }
 
   kim_error = KIM_Collections_GetItemType(kim_Coll, model_name, &itemType);
-  if (kim_error) {
-    error->all(FLERR,"KIM Model name not found.");
-  }
+  if (kim_error) error->all(FLERR,"KIM Model name not found.");
   KIM_Collections_Destroy(&kim_Coll);
 
   if (KIM_CollectionItemType_Equal(itemType,
@@ -204,8 +204,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
                                      &units_accepted,
                                      &pkim);
 
-    if (kim_error)
-      error->all(FLERR,"Unable to load KIM Simulator Model.");
+    if (kim_error) error->all(FLERR,"Unable to load KIM Simulator Model.");
 
     model_type = MO;
 
@@ -237,10 +236,10 @@ void KimInit::determine_model_type_and_units(char * model_name,
         }
         KIM_Model_Destroy(&pkim);
       }
-      error->all(FLERR,"KIM Model does not support any lammps unit system");
+      error->all(FLERR,"KIM Model does not support any lammps unit system.");
     } else {
       KIM_Model_Destroy(&pkim);
-      error->all(FLERR,"KIM Model does not support the requested unit system");
+      error->all(FLERR,"KIM Model does not support the requested unit system.");
     }
   } else if (KIM_CollectionItemType_Equal(
                itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
@@ -270,10 +269,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
     KIM_SimulatorModel_Destroy(&kim_SM);
 
     if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
-      std::string mesg("Incompatible units for KIM Simulator Model, "
-                       "required units = ");
-      mesg += *model_units;
-      error->all(FLERR,mesg);
+      error->all(FLERR,fmt::format("Incompatible units for KIM Simulator Model"
+                                   ", required units = {}.", *model_units));
     }
   }
 }
@@ -309,7 +306,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
         simulatorModel,&sim_name, &sim_version);
 
     if (0 != strcmp(sim_name,"LAMMPS"))
-      error->all(FLERR,"Incompatible KIM Simulator Model");
+      error->all(FLERR,"Incompatible KIM Simulator Model.");
 
     if (comm->me == 0) {
       std::string mesg("# Using KIM Simulator Model : ");
@@ -394,7 +391,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
         mesg += fmt::format(" {:<8} | {:<{}} | {:<10} | {}\n",i+1,str_name,
                             max_len,data_type,extent);
       }
-    } else mesg += "No mutable parameters. \n";
+    } else mesg += "No mutable parameters.\n";
 
     KIM_Model_Destroy(&pkim);
     input->write_echo(mesg);
@@ -411,7 +408,7 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
   // refuse conversion from or to reduced units
 
   if ((from == "lj") || (to == "lj"))
-    error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
+    error->all(FLERR,"Cannot set up conversion variables for 'lj' units.");
 
   // get index to internal style variables. create, if needed.
   // set conversion factors for newly created variables.

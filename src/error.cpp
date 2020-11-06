@@ -75,7 +75,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
 
   throw LAMMPSException(mesg);
 #else
-  if (lmp->kokkos) Kokkos::finalize();
+  if (Kokkos::is_initialized()) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -161,7 +161,7 @@ void Error::all(const std::string &file, int line, const std::string &str)
   if (logfile) fclose(logfile);
 
   if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
-  if (lmp->kokkos) Kokkos::finalize();
+  if (Kokkos::is_initialized()) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -200,6 +200,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 #else
   if (screen) fflush(screen);
   if (logfile) fflush(logfile);
+  if (Kokkos::is_initialized()) Kokkos::finalize();
   MPI_Abort(world,1);
   exit(1); // to trick "smart" compilers into believing this does not return
 #endif
@@ -246,7 +247,7 @@ void Error::done(int status)
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
-  if (lmp->kokkos) Kokkos::finalize();
+  if (Kokkos::is_initialized()) Kokkos::finalize();
   MPI_Finalize();
   exit(status);
 }

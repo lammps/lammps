@@ -291,9 +291,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 KokkosLMP::~KokkosLMP()
 {
-  // finalize Kokkos
 
-  Kokkos::finalize();
 }
 
 /* ----------------------------------------------------------------------

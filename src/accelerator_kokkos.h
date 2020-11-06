@@ -123,5 +123,10 @@ class DAT {
 
 }
 
+namespace Kokkos {
+  static int is_initialized() {return false;}
+  static void finalize() {}
+}
+
 #endif
 #endif

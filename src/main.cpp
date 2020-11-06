@@ -13,6 +13,7 @@
 
 #include "lammps.h"
 #include "input.h"
+#include "accelerator_kokkos.h"
 
 #include <mpi.h>
 #include <cstdlib>
@@ -53,8 +54,10 @@ int main(int argc, char **argv)
     lammps->input->file();
     delete lammps;
   } catch(LAMMPSAbortException &ae) {
+    if (Kokkos::is_initialized()) Kokkos::finalize();
     MPI_Abort(ae.universe, 1);
   } catch(LAMMPSException &e) {
+    if (Kokkos::is_initialized()) Kokkos::finalize();
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
@@ -64,6 +67,7 @@ int main(int argc, char **argv)
   lammps->input->file();
   delete lammps;
 #endif
+  if (Kokkos::is_initialized()) Kokkos::finalize();
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 }

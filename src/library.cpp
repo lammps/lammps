@@ -18,6 +18,7 @@
 #include "library.h"
 #include <mpi.h>
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -346,6 +347,11 @@ void lammps_mpi_finalize()
       MPI_Finalize();
     }
   }
+}
+
+void lammps_kokkos_finalize()
+{
+  if (Kokkos::is_initialized()) Kokkos::finalize();
 }
 
 // ----------------------------------------------------------------------

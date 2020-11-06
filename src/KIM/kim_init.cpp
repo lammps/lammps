@@ -81,11 +81,11 @@ using namespace LAMMPS_NS;
 
 void KimInit::command(int narg, char **arg)
 {
-  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal kim_init command.");
+  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal kim_init command");
 
   if (domain->box_exist)
     error->all(FLERR,"Must use 'kim_init' command before "
-                     "simulation box is defined.");
+                     "simulation box is defined");
   char *model_name = new char[strlen(arg[0])+1];
   strcpy(model_name,arg[0]);
   char *user_units = new char[strlen(arg[1])+1];
@@ -96,7 +96,7 @@ void KimInit::command(int narg, char **arg)
       error->all(FLERR,fmt::format("Illegal kim_init command.\nThe argument "
                                    "followed by unit_style {} is an optional "
                                    "argument and when is used must "
-                                   "be unit_conversion_mode.", user_units));
+                                   "be unit_conversion_mode", user_units));
     }
   } else unit_conversion_mode = false;
 
@@ -161,9 +161,9 @@ void get_kim_unit_names(
              strcmp(system,"micro") ==0 ||
              strcmp(system,"nano")==0) {
     error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models.", system));   
+                                 "by KIM models", system));   
   } else {
-    error->all(FLERR,"Unknown unit_style.");
+    error->all(FLERR,"Unknown unit_style");
   }
 }
 }  // namespace
@@ -184,10 +184,10 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
   int kim_error = KIM_Collections_Create(&kim_Coll);
   if (kim_error) 
-    error->all(FLERR,"Unable to access KIM Collections to find Model.");
+    error->all(FLERR,"Unable to access KIM Collections to find Model");
 
   kim_error = KIM_Collections_GetItemType(kim_Coll, model_name, &itemType);
-  if (kim_error) error->all(FLERR,"KIM Model name not found.");
+  if (kim_error) error->all(FLERR,"KIM Model name not found");
   KIM_Collections_Destroy(&kim_Coll);
 
   if (KIM_CollectionItemType_Equal(itemType,
@@ -204,7 +204,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
                                      &units_accepted,
                                      &pkim);
 
-    if (kim_error) error->all(FLERR,"Unable to load KIM Simulator Model.");
+    if (kim_error) error->all(FLERR,"Unable to load KIM Simulator Model");
 
     model_type = MO;
 
@@ -236,17 +236,17 @@ void KimInit::determine_model_type_and_units(char * model_name,
         }
         KIM_Model_Destroy(&pkim);
       }
-      error->all(FLERR,"KIM Model does not support any lammps unit system.");
+      error->all(FLERR,"KIM Model does not support any lammps unit system");
     } else {
       KIM_Model_Destroy(&pkim);
-      error->all(FLERR,"KIM Model does not support the requested unit system.");
+      error->all(FLERR,"KIM Model does not support the requested unit system");
     }
   } else if (KIM_CollectionItemType_Equal(
                itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
     KIM_SimulatorModel * kim_SM;
     kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
     if (kim_error)
-      error->all(FLERR,"Unable to load KIM Simulator Model.");
+      error->all(FLERR,"Unable to load KIM Simulator Model");
     model_type = SM;
 
     int sim_fields;
@@ -270,7 +270,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
     if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
       error->all(FLERR,fmt::format("Incompatible units for KIM Simulator Model"
-                                   ", required units = {}.", *model_units));
+                                   ", required units = {}", *model_units));
     }
   }
 }
@@ -299,14 +299,14 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
     int kim_error =
       KIM_SimulatorModel_Create(model_name,&simulatorModel);
     if (kim_error)
-      error->all(FLERR,"Unable to load KIM Simulator Model.");
+      error->all(FLERR,"Unable to load KIM Simulator Model");
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(
         simulatorModel,&sim_name, &sim_version);
 
     if (0 != strcmp(sim_name,"LAMMPS"))
-      error->all(FLERR,"Incompatible KIM Simulator Model.");
+      error->all(FLERR,"Incompatible KIM Simulator Model");
 
     if (comm->me == 0) {
       std::string mesg("# Using KIM Simulator Model : ");
@@ -408,7 +408,7 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
   // refuse conversion from or to reduced units
 
   if ((from == "lj") || (to == "lj"))
-    error->all(FLERR,"Cannot set up conversion variables for 'lj' units.");
+    error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
 
   // get index to internal style variables. create, if needed.
   // set conversion factors for newly created variables.
@@ -449,7 +449,7 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
                                  conversion_factor);
     if (ier != 0)
       error->all(FLERR,fmt::format("Unable to obtain conversion factor: "
-                                   "unit = {}; from = {}; to = {}.",
+                                   "unit = {}; from = {}; to = {}",
                                    units[i], from, to));
 
     variable->internal_set(v_unit,conversion_factor);
@@ -475,7 +475,7 @@ void KimInit::write_log_cite(char *model_name)
     err = KIM_Collections_CacheListOfItemMetadataFiles(
       coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
   } else {
-    error->all(FLERR,"Unknown model type.");
+    error->all(FLERR,"Unknown model type");
   }
 
   if (err) {

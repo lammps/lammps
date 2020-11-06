@@ -83,11 +83,11 @@ using namespace LAMMPS_NS;
 
 void KimInteractions::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kim_interactions command.");
+  if (narg < 1) error->all(FLERR,"Illegal kim_interactions command");
 
   if (!domain->box_exist)
     error->all(FLERR,"Must use 'kim_interactions' command after "
-                     "simulation box is defined.");
+                     "simulation box is defined");
   do_setup(narg,arg);
 }
 
@@ -102,7 +102,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     error->all(FLERR,fmt::format("Illegal kim_interactions command.\nThe "
                                  "LAMMPS simulation has {} atom type(s), but "
                                  "{} chemical species passed to the "
-                                 "kim_interactions command.", 
+                                 "kim_interactions command", 
                                  atom->ntypes, narg));
   } else {
     fixed_types = false;
@@ -161,7 +161,7 @@ void KimInteractions::do_setup(int narg, char **arg)
         }
         if (!species_is_supported) {
           error->all(FLERR,fmt::format("Species '{}' is not supported by this "
-                                       "KIM Simulator Model.", atom_type_sym));
+                                       "KIM Simulator Model", atom_type_sym));
         }
       }
     } else {
@@ -180,7 +180,7 @@ void KimInteractions::do_setup(int narg, char **arg)
       if (0 == strcmp(sim_field,"units")) {
         KIM_SimulatorModel_GetSimulatorFieldLine(simulatorModel,i,0,&sim_value);
         if (0 != strcmp(sim_value,update->unit_style))
-          error->all(FLERR,"Incompatible units for KIM Simulator Model.");
+          error->all(FLERR,"Incompatible units for KIM Simulator Model");
       }
     }
 
@@ -217,7 +217,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     }
 
     if (sim_model_idx < 0)
-      error->all(FLERR,"KIM Simulator Model has no Model definition.");
+      error->all(FLERR,"KIM Simulator Model has no Model definition");
 
     KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
 
@@ -226,7 +226,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     // not a simulator model. issue pair_style and pair_coeff commands.
 
     if (fixed_types)
-      error->all(FLERR,"fixed_types cannot be used with a KIM Portable Model.");
+      error->all(FLERR,"fixed_types cannot be used with a KIM Portable Model");
 
     // NOTE: all references to arg must appear before calls to input->one()
     // as that will reset the argument vector.
@@ -257,16 +257,16 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   const std::string key = words[1];
   if (key != "pair" && key != "charge")
     error->one(FLERR,fmt::format("Unrecognized KEY {} for "
-                                 "KIM_SET_TYPE_PARAMETERS command.", key));
+                                 "KIM_SET_TYPE_PARAMETERS command", key));
   
   std::string filename = words[2];
   std::vector<std::string> species(words.begin()+3,words.end());
   if ((int)species.size() != atom->ntypes)
-    error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command.");
+    error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
 
   FILE *fp;
   fp = fopen(filename.c_str(),"r");
-  if (fp == nullptr) error->one(FLERR,"Parameter file not found.");
+  if (fp == nullptr) error->one(FLERR,"Parameter file not found");
 
   char line[MAXLINE], *ptr;
   int n, eof = 0;

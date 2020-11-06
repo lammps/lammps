@@ -17,6 +17,9 @@
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#ifdef LMP_MLIAPPY
+#include "mliap_model_python.h"
+#endif
 
 #include "atom.h"
 #include "error.h"
@@ -27,6 +30,7 @@
 
 #include <cmath>
 #include <cstring>
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -109,6 +113,7 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
+  
   if (narg < 4)
     error->all(FLERR,"Illegal pair_style command");
 
@@ -132,6 +137,13 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
+      }
+      #ifdef LMP_MLIAPPY
+      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+          if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+          model = new MLIAPModelPython(lmp,arg[iarg+2]);
+          iarg += 3;
+      #endif
       } else error->all(FLERR,"Illegal pair_style mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
@@ -215,10 +227,13 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   // consistency checks
 
-  if (data->ndescriptors != model->ndescriptors)
-    error->all(FLERR,"Incompatible model and descriptor definitions");
-  if (data->nelements != model->nelements)
-    error->all(FLERR,"Incompatible model and descriptor definitions");
+  if (data->ndescriptors != model->ndescriptors) {
+    error->all(FLERR,"Incompatible model and descriptor definitions (different number of descriptors)");
+  };
+  
+  if (data->nelements != model->nelements) {
+    error->all(FLERR,"Incompatible model and descriptor definitions (different number of elements)");
+  };
 }
 
 /* ----------------------------------------------------------------------

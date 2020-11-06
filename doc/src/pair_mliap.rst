@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
        *model* values = style filename
-         style = *linear* or *quadratic*
+         style = *linear* or *quadratic* or *mliappy*
          filename = name of file containing model definitions
        *descriptor* values = style filename
          style = *sna*
@@ -43,9 +43,10 @@ it is possible to use many different models with a given descriptor,
 or many different descriptors with a given model. Currently, the pair_style
 supports just two models, *linear* and *quadratic*,
 and one descriptor, *sna*, the SNAP descriptor used by :doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
-and chem variants. Work is currently underway to extend
-the interface to handle neural network energy models,
-and it is also straightforward to add new descriptor styles.
+and chem variants. With the MLIAPPY package installed, the *mliappy* model 
+is available which can be used to couple python models such as neural network
+energy models.
+It is also straightforward to add new descriptor styles.
 In order to train a model, it is useful to know the gradient or derivative
 of energy, force, and stress w.r.t. model parameters. This information
 can be accessed using the related :doc:`compute mliap <compute_mliap>` command.
@@ -142,6 +143,9 @@ This style is part of the MLIAP package.  It is only enabled if LAMMPS
 was built with that package. In addition, building LAMMPS with the MLIAP package
 requires building LAMMPS with the SNAP package.
 See the :doc:`Build package <Build_package>` doc page for more info.
+
+Python models such as neural networks can be used if the MLIAPPY package is built.
+
 
 Related commands
 """"""""""""""""

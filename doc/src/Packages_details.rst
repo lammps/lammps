@@ -45,6 +45,7 @@ page gives those details.
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`MLIAP <PKG-MLIAP>`
+   * :ref:`MLIAPPY <PKG-MLIAPPY>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -676,6 +677,37 @@ To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be install
 * :doc:`pair_style mliap <pair_mliap>`
 * examples/mliap
 
+----------
+
+.. _PKG-MLIAPPY:
+
+MLIAPPY package
+-------------
+
+**Contents:**
+
+Extension to the MLIAP package for coupling with python models. 
+
+**Install:**
+
+To use this package, also the :ref:`MLIAP package <PKG-MLIAP>` needs to be installed.
+To use this package, also the :ref:`PYTHON package <PKG-PYTHON>` needs to be installed.
+The version of python must be >3.5, and has been tested only with 3.8.
+Compiling this package has only been tested using CMake, not with pure makefiles.s
+The python interpreter linked to LAMMPS will need cython and numpy installed. 
+
+Before compiling, run cythonize on /src/MLIAPPY/mliap_model_python_couple.pyx.
+This will produce /src/MLIAPPY/mliap_model_python_couple.cpp and /src/MLIAPPY/mliap_model_python_couple.h files.
+
+This package includes more options for the mliap compute and pair style.
+
+**Author:** Nicholas Lubbers (LANL).
+
+**Supporting info:**
+
+* src/MLIAPPY: filenames -> commands
+* :doc:`pair_style mliap <pair_mliap>`
+* examples/mliappy (see README)
 ----------
 
 .. _PKG-MOLECULE:

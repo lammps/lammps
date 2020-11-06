@@ -22,8 +22,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
+  if (coefffilename) read_coeffs(coefffilename);
   if (nparams > 0) ndescriptors = sqrt(2*nparams)-1;
   nonlinearflag = 1;
 }

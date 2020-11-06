@@ -26,6 +26,11 @@
 #include <cstring>
 #include <Python.h>  // IWYU pragma: export
 
+#ifdef LMP_MLIAPPY
+#include "mliap_model_python.h"
+#include "mliap_model_python_couple.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 enum{NONE,INT,DOUBLE,STRING,PTR};
@@ -51,7 +56,14 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
-
+  
+  #ifdef LMP_MLIAPPY
+  // Inform python intialization scheme of the mliappy module.
+  // This -must- happen before python is initialized.
+  int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
+  // todo: catch if error and report problem.
+  #endif
+  
   Py_Initialize();
   PyEval_InitThreads();
 

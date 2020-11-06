@@ -18,7 +18,7 @@ Syntax
   .. parsed-literal::
 
        *model* values = style
-         style = *linear* or *quadratic*
+         style = *linear* or *quadratic* or *mliappy*
        *descriptor* values = style filename
          style = *sna*
          filename = name of file containing descriptor definitions
@@ -57,7 +57,8 @@ The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
 The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*.
+either *linear* or *quadratic*. The *mliappy* model is only available
+if lammps is built with MLIAPPY package.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component
@@ -166,6 +167,8 @@ This compute is part of the MLIAP package.  It is only enabled if
 LAMMPS was built with that package.  In addition, building LAMMPS with the MLIAP package
 requires building LAMMPS with the SNAP package.
 See the :doc:`Build package <Build_package>` doc page for more info.
+
+Python models such as neural networks can be used if the MLIAPPY package is built.
 
 Related commands
 """"""""""""""""

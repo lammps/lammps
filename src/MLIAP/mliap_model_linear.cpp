@@ -21,7 +21,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
   if (nparams > 0) ndescriptors = nparams - 1;
 }

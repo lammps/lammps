@@ -63,6 +63,7 @@ class KokkosLMP {
 
 class Kokkos {
  public:
+  static int is_initialized() {return false;}
   static void finalize() {}
 };
 
@@ -121,11 +122,6 @@ class DAT {
   typedef int tdual_int_2d;
 };
 
-}
-
-namespace Kokkos {
-  static int is_initialized() {return false;}
-  static void finalize() {}
 }
 
 #endif

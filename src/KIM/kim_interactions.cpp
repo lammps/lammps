@@ -268,7 +268,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   fp = fopen(filename.c_str(),"r");
   if (fp == nullptr) error->one(FLERR,"Parameter file not found.");
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE], *ptr;
   int n, eof = 0;
 
   while (1) {
@@ -284,7 +284,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+    if (ptr = strchr(line,'#')) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     words = utils::split_words(line);

@@ -92,7 +92,12 @@ void KimInit::command(int narg, char **arg)
   strcpy(user_units,arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2],"unit_conversion_mode")==0) unit_conversion_mode = true;
-    else { error->all(FLERR,"Illegal kim_init command"); }
+    else { 
+      error->all(FLERR,fmt::format("Illegal kim_init command.\nThe argument "
+                                   "followed by unit_style {} is an optional "
+                                   "argument and when is used must "
+                                   "be unit_conversion_mode", user_units));
+    }
   } else unit_conversion_mode = false;
 
   char *model_units;

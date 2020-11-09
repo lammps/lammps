@@ -571,6 +571,24 @@ double lammps_get_natoms(void *handle)
   return natoms;
 }
 
+/* ----------------------------------------------------------------------
+   return the total number of bonds in the system
+   useful before call to lammps_get_bonds() so can pre-allocate vector
+------------------------------------------------------------------------- */
+
+int lammps_get_nbonds(void *handle)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  int nbonds = static_cast<int>(lmp->atom->nbonds);
+  if (nbonds > 9.0e15) return 0; // TODO:XXX why not -1?
+  if (!lmp->force->newton_bond) nbonds *= 2;
+  
+  printf ("nbonds from c: %i\n", nbonds);
+  
+  return nbonds;
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** Get current value of a thermo keyword.
@@ -2582,6 +2600,94 @@ void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
         }
       }
     }
+#endif
+  }
+  END_CAPTURE
+}
+
+/* ----------------------------------------------------------------------
+   Contributing author: Robert Meissner (TUHH & HZG, Hamburg, germany)
+   gather bonded info for all atoms
+     return it in user-allocated data
+   data will be ordered by atom ID
+     requirement for consecutive atom IDs (1 to N)
+   return atom-based values in 1d data, ordered by atom ID
+     e.g. b[0],b[1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     data must be pre-allocated by caller to correct length
+     correct length = Nbonds, as queried by get_nbonds()
+   method:
+     alloc and zero Nbond length vector
+     loop over Nlocal to fill vector with my values
+     Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
+
+void lammps_gather_bonds(void *handle, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+#if defined(LAMMPS_BIGBIG)
+    lmp->error->all(FLERR,"Library function lammps_gather_atoms() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+#else
+    int i,j;
+
+    // error if tags are not defined or not consecutive
+    // NOTE: test that name = image or ids is not a 64-bit int in code?
+
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
+      flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_gather_bonds");
+      return;
+    }
+    
+    int natoms = static_cast<int> (lmp->atom->natoms);
+    int nbonds = static_cast<int> (lmp->atom->nbonds);
+    if (!lmp->force->newton_bond) nbonds *= 2;
+    
+    int *offset;
+    lmp->memory->create(offset,natoms,"lib/gather:copy");
+    for (i = 0; i < natoms; i++) offset[i] = 0;
+    
+    tagint *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+    int *num_bond = lmp->atom->num_bond;
+  
+    for (i = 0; i < nlocal; i++) offset[tag[i]-1] = num_bond[i];
+    MPI_Allreduce(MPI_IN_PLACE,offset,natoms,MPI_INT,MPI_SUM,lmp->world);
+    
+    // move all element to the right and do cumulative sum of elements
+    // in order to get an array which could be used as an offset to 
+    // index all bonds across all procs
+    for(i = natoms-2; i >= 0; i--) offset[i+1] = offset[i]; 
+    for(i = 1; i < natoms; i++) offset[i+1] += offset[i]; 
+    offset[0] = 0; // start with offset 0
+    
+    int *copy;
+    lmp->memory->create(copy,3*nbonds,"lib/gather:copy");
+    for (i = 0; i < 3*nbonds; i++) copy[i] = 0;
+    
+    tagint **bond_atom = lmp->atom->bond_atom;
+    int **bond_type = lmp->atom->bond_type;
+    int off;
+    for (i = 0; i < nlocal; i++) {
+      // set offset and multiply by three b/c of 3 quantities per atom info to store
+      off = offset[tag[i]-1]*3;
+      for (j = 0; j < num_bond[i]; j++) {
+        copy[off++] = bond_type[i][j];
+        copy[off++] = tag[i];
+        copy[off++] = bond_atom[i][j];
+      }
+    } 
+    MPI_Allreduce(copy,data,3*nbonds,MPI_INT,MPI_SUM,lmp->world);
+    
+    lmp->memory->destroy(copy);
+    lmp->memory->destroy(offset);
 #endif
   }
   END_CAPTURE

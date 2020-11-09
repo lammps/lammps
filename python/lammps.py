@@ -331,6 +331,11 @@ class lammps(object):
     self.lib.lammps_scatter_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_subset.restype = None
+    
+    
+    self.lib.lammps_gather_bonds.argtypes = \
+      [c_void_p,c_void_p]
+    self.lib.lammps_gather_bonds.restype = None
 
 
     self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
@@ -702,6 +707,21 @@ class lammps(object):
     """
     return int(self.lib.lammps_get_natoms(self.lmp))
 
+  # -------------------------------------------------------------------------
+  
+  # -------------------------------------------------------------------------
+
+  def get_nbonds(self):
+    """Get the total number of bonds in the LAMMPS instance.
+
+    Will be precise up to 53-bit signed integer due to the
+    underlying :cpp:func:`lammps_get_nbonds` function returning a double.
+
+    :return: number of bonds
+    :rtype: int
+    """
+    return int(self.lib.lammps_get_nbonds(self.lmp))
+    
   # -------------------------------------------------------------------------
 
   def extract_box(self):
@@ -1438,6 +1458,17 @@ class lammps(object):
                                      POINTER(self.c_imageint*n), c_int]
     return self.lib.lammps_create_atoms(self.lmp, n, id_lmp, type_lmp, x_lmp, v_lmp, img_lmp, se_lmp)
 
+  # -------------------------------------------------------------------------
+  
+  # return vector of bonds gathered across procs
+  # count should be 3
+
+  def gather_bonds(self):
+    nbonds = self.get_nbonds()
+    data = ((3*nbonds)*c_int)()
+    self.lib.lammps_gather_bonds(self.lmp,data)
+    return data  
+  
   # -------------------------------------------------------------------------
 
   @property

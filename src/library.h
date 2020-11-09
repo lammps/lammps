@@ -112,6 +112,7 @@ void  lammps_commands_string(void *handle, const char *str);
  * ----------------------------------------------------------------------- */
 
 double lammps_get_natoms(void *handle);
+int lammps_get_nbonds(void *handle);
 double lammps_get_thermo(void *handle, const char *keyword);
 
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
@@ -158,6 +159,8 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 void lammps_scatter(void *handle, char *name, int type, int count, void *data);
 void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
+
+void lammps_gather_bonds(void *handle, void *data);
 
 #if !defined(LAMMPS_BIGBIG)
 int    lammps_create_atoms(void *handle, int n, int *id, int *type,

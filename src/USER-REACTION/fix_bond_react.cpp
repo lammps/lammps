@@ -1153,6 +1153,11 @@ void FixBondReact::close_partner()
       if (i_limit_tags[i2] != 0) continue;
       if (itype != iatomtype[rxnID] || jtype != jatomtype[rxnID]) continue;
 
+      if (molecule_keyword[rxnID] == INTER)
+        if (atom->molecule[i1] == atom->molecule[i2]) continue;
+      else if (molecule_keyword[rxnID] == INTRA)
+        if (atom->molecule[i1] != atom->molecule[i2]) continue;
+
       delx = x[i1][0] - x[i2][0];
       dely = x[i1][1] - x[i2][1];
       delz = x[i1][2] - x[i2][2];

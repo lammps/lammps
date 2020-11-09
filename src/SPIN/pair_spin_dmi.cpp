@@ -257,15 +257,14 @@ void PairSpinDmi::compute(int eflag, int vflag)
         f[i][0] += fi[0];
         f[i][1] += fi[1];
         f[i][2] += fi[2];
-          if (newton_pair || j < nlocal) {
-            f[j][0] -= fi[0];
-            f[j][1] -= fi[1];
-            f[j][2] -= fi[2];
-          }
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
+        }
         fm[i][0] += fmi[0];
         fm[i][1] += fmi[1];
         fm[i][2] += fmi[2];
-
 
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
             evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);

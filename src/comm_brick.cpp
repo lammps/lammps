@@ -174,18 +174,25 @@ void CommBrick::setup()
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
     if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
-        if (multi_bytype == 1) {
-          // Set the BYTYPE cutoff
-          cutghostmulti[i][0] = sqrt(neighbor->cutneighsq[i][i]);
-          cutghostmulti[i][1] = sqrt(neighbor->cutneighsq[i][i]);
-          cutghostmulti[i][2] = sqrt(neighbor->cutneighsq[i][i]);
+      if (multi_tiered) {
+        // If using tiered binlists, use the itype-itype interaction distance for communication
+        double **cutneighsq = neighbor->cutneighsq;
+         for (i = 1; i <= ntypes; i++) {
+          cut = 0.0;
+          if (cutusermulti) cut = cutusermulti[i];
+          cutghostmulti[i][0] = MAX(cut,sqrt(cutneighsq[i][i]));
+          cutghostmulti[i][1] = MAX(cut,sqrt(cutneighsq[i][i]));
+          cutghostmulti[i][2] = MAX(cut,sqrt(cutneighsq[i][i]));
+        }
+      } else {
+        // If using a single binlist, use the max itype-jtype interaction distance for communication
+        double *cuttype = neighbor->cuttype;
+        for (i = 1; i <= ntypes; i++) {
+          cut = 0.0;
+          if (cutusermulti) cut = cutusermulti[i];
+          cutghostmulti[i][0] = MAX(cut,cuttype[i]);
+          cutghostmulti[i][1] = MAX(cut,cuttype[i]);
+          cutghostmulti[i][2] = MAX(cut,cuttype[i]);
         }
       }
     }
@@ -204,13 +211,26 @@ void CommBrick::setup()
     cutghost[2] = cut * length2;
 
     if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
+      if (multi_tiered) {
+        // If using tiered binlists, use the itype-itype interaction distance for communication
+        double **cutneighsq = neighbor->cutneighsq;
+        for (i = 1; i <= ntypes; i++) {
+          cut = 0.0;
+          if (cutusermulti) cut = cutusermulti[i];
+          cutghostmulti[i][0] = length0 * MAX(cut,sqrt(cutneighsq[i][i]));
+          cutghostmulti[i][1] = length1 * MAX(cut,sqrt(cutneighsq[i][i]));
+          cutghostmulti[i][2] = length2 * MAX(cut,sqrt(cutneighsq[i][i]));
+        }
+      } else {
+        // If using a single binlist, use the max itype-jtype interaction distance for communication
+        double *cuttype = neighbor->cuttype;
+        for (i = 1; i <= ntypes; i++) {
+          cut = 0.0;
+          if (cutusermulti) cut = cutusermulti[i];
+          cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
+          cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
+          cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
+        }
       }
     }
   }

@@ -76,7 +76,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   grid2proc = nullptr;
   xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
-  multi_bytype = 0;
+  multi_tiered = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -241,6 +241,10 @@ void Comm::init()
   maxexchange_fix_dynamic = 0;
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+
+  // Can't used multi/tiered communication with Newton off
+  if (force->newton == 0 && multi_tiered)
+    error->all(FLERR,"Cannot use multi/tiered communication with Newton off");
 }
 
 /* ----------------------------------------------------------------------
@@ -327,10 +331,10 @@ void Comm::modify_params(int narg, char **arg)
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i] = cut;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"cutoff/bytype") == 0) {
+    } else if (strcmp(arg[iarg],"cutoff/tiered") == 0) {
       if (mode == Comm::SINGLE)
-        error->all(FLERR,"Use cutoff/bytype in mode multi only");
-      multi_bytype = 1;
+        error->all(FLERR,"Use cutoff/tiered in mode multi only");
+      multi_tiered = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");

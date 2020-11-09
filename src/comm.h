@@ -161,7 +161,7 @@ class Comm : protected Pointers {
                          int (*)(int, char *, int &, int *&, char *&, void *),
                          int, char *&, int, void *, int);
   void rendezvous_stats(int, int, int, int, int, int, bigint);
-  int multi_bytype;                 // 1 if multi cutoff is intra-type cutoff
+  int multi_tiered;                 // 1 if multi cutoff is intra-type cutoff
 
  public:
   enum{MULTIPLE};
@@ -244,6 +244,10 @@ The 3d grid of processors defined by the processors command does not
 match the number of processors LAMMPS is being run on.
 
 E: Processor count in z must be 1 for 2d simulation
+
+Self-explanatory.
+
+E: Cannot use multi/tiered communication with Newton off
 
 Self-explanatory.
 

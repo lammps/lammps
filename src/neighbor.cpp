@@ -1620,12 +1620,12 @@ int Neighbor::choose_bin(NeighRequest *rq)
     if (!rq->kokkos_device != !(mask & NB_KOKKOS_DEVICE)) continue;
     if (!rq->kokkos_host != !(mask & NB_KOKKOS_HOST)) continue;
 
-    // neighbor style is BIN or MULTI or BYTYPE and must match
+    // neighbor style is BIN or MULTI or MULTI/TIERED and must match
 
     if (style == Neighbor::BIN || style == Neighbor::MULTI) {
       if (!(mask & NB_STANDARD)) continue;
-    } else if (style == Neighbor::BYTYPE) {
-      if (!(mask & NB_BYTYPE)) continue;
+    } else if (style == Neighbor::MULTI_TIERED) {
+      if (!(mask & NB_MULTI_TIERED)) continue;
     }
 
     return i+1;
@@ -1698,14 +1698,14 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     if (!rq->ghost != !(mask & NS_GHOST)) continue;
     if (!rq->ssa != !(mask & NS_SSA)) continue;
 
-    // neighbor style is one of BIN, MULTI or BYTYPE and must match
+    // neighbor style is one of BIN, MULTI, or MULT/TIERED and must match
 
     if (style == Neighbor::BIN) {
       if (!(mask & NS_BIN)) continue;
     } else if (style == Neighbor::MULTI) {
       if (!(mask & NS_MULTI)) continue;
-    } else if (style == Neighbor::BYTYPE) {
-      if (!(mask & NS_BYTYPE)) continue;
+    } else if (style == Neighbor::MULT_TIERED) {
+      if (!(mask & NS_MULT_TIERED)) continue;
     }
 
     // dimension is 2 or 3 and must match
@@ -1835,7 +1835,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (!rq->halffull != !(mask & NP_HALF_FULL)) continue;
     if (!rq->off2on != !(mask & NP_OFF2ON)) continue;
 
-    // neighbor style is one of NSQ,BIN,MULTI or BYTYPE and must match
+    // neighbor style is one of NSQ, BIN, MULTI, or MULTI/TIERED and must match
 
     if (style == Neighbor::NSQ) {
       if (!(mask & NP_NSQ)) continue;
@@ -1843,8 +1843,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
       if (!(mask & NP_BIN)) continue;
     } else if (style == Neighbor::MULTI) {
       if (!(mask & NP_MULTI)) continue;
-    } else if (style == Neighbor::BYTYPE) {
-      if (!(mask & NP_BYTYPE)) continue;
+    } else if (style == Neighbor::MULT_TIERED) {
+      if (!(mask & NP_MULT_TIERED)) continue;
     }
 
     // domain triclinic flag is on or off and must match
@@ -2211,7 +2211,7 @@ void Neighbor::set(int narg, char **arg)
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
   else if (strcmp(arg[1],"multi") == 0) style = Neighbor::MULTI;
-  else if (strcmp(arg[1],"bytype") == 0) style = Neighbor::BYTYPE;
+  else if (strcmp(arg[1],"multi/tiered") == 0) style = Neighbor::MULT_TIERED;
   else error->all(FLERR,"Illegal neighbor command");
 
   if (style == Neighbor::MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);

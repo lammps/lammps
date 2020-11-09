@@ -85,6 +85,9 @@ enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
 
+// values for molecule_keyword
+enum{OFF,INTER,INTRA};
+
 /* ---------------------------------------------------------------------- */
 
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
@@ -202,6 +205,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -222,6 +226,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    molecule_keyword[i] = OFF;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -376,6 +381,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
                                                          "'custom_charges' keyword does not exist");
         }
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"molecule") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'molecule' has too few arguments");
+        if (strcmp(arg[iarg+1],"off") == 0) molecule_keyword[rxn] = OFF; //default
+        else if (strcmp(arg[iarg+1],"inter") == 0) molecule_keyword[rxn] = INTER;
+        else if (strcmp(arg[iarg+1],"intra") == 0) molecule_keyword[rxn] = INTRA;
+        else error->one(FLERR,"Bond/react: Illegal option for 'molecule' keyword");
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -556,6 +569,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(molecule_keyword);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -1054,6 +1068,11 @@ void FixBondReact::far_partner()
       if (i_limit_tags[j] != 0) {
         continue;
       }
+
+      if (molecule_keyword[rxnID] == INTER)
+        if (atom->molecule[i] == atom->molecule[j]) continue;
+      else if (molecule_keyword[rxnID] == INTRA)
+        if (atom->molecule[i] != atom->molecule[j]) continue;
 
       jtype = type[j];
       possible = 0;

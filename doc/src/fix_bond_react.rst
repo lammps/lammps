@@ -55,6 +55,10 @@ Syntax
          *custom_charges* value = *no* or *fragmentID*
            no = update all atomic charges (default)
            fragmentID = ID of molecule fragment whose charges are updated
+         *molecule* value = *off* or *inter* or *intra*
+           off = allow both inter- and intramolecular reactions (default)
+           inter = search for reactions between molecules with different IDs
+           intra = search for reactions within the same molecule
 
 Examples
 """"""""
@@ -491,11 +495,19 @@ situations, decreasing rather than increasing this parameter will
 result in an increase in stability.
 
 The *custom_charges* keyword can be used to specify which atoms'
-atomic charges are updated. When the value is set to 'no,' all atomic
+atomic charges are updated. When the value is set to 'no', all atomic
 charges are updated to those specified by the post-reaction template
 (default). Otherwise, the value should be the name of a molecule
 fragment defined in the pre-reaction molecule template. In this case,
 only the atomic charges of atoms in the molecule fragment are updated.
+
+The *molecule* keyword can be used to force the reaction to be
+intermolecular, intramolecular or either. When the value is set to
+'off', molecule IDs are not considered when searching for reactions
+(default). When the value is set to 'inter', the bonding atoms must
+have different molecule IDs in order to be considered for the
+reaction. When the value is set to 'intra', only atoms with the same
+molecule ID are considered for the reaction.
 
 A few other considerations:
 
@@ -558,7 +570,7 @@ These is 1 quantity for each react argument:
 No parameter of this fix can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-When fix bond/react is 'unfixed,' all internally-created groups are
+When fix bond/react is 'unfixed', all internally-created groups are
 deleted. Therefore, fix bond/react can only be unfixed after unfixing
 all other fixes that use any group created by fix bond/react.
 
@@ -581,7 +593,7 @@ Default
 """""""
 
 The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
-reset_mol_ids = yes, custom_charges = no
+reset_mol_ids = yes, custom_charges = no, molecule = off
 
 ----------
 

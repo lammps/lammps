@@ -1720,6 +1720,17 @@ void FixBondReact::ring_check()
   // ring_check can be made more efficient by re-introducing 'frozen' atoms
   // 'frozen' atoms have been assigned and also are no longer pioneers
 
+  // double check the number of neighbors match for all non-edge atoms
+  // otherwise, atoms at 'end' of symmetric ring can behave like edge atoms
+  for (int i = 0; i < onemol->natoms; i++) {
+    if (edge[i][rxnID] == 0) {
+      if (onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0]) {
+        status = GUESSFAIL;
+        return;
+      }
+    }
+  }
+
   for (int i = 0; i < onemol->natoms; i++) {
     for (int j = 0; j < onemol_nxspecial[i][0]; j++) {
       int ring_fail = 1;

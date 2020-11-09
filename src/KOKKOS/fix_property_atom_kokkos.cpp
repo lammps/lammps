@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_property_atom_kokkos.h"
-#include <cstdlib>
-#include <cstring>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "update.h"
 #include "atom_masks.h"
+#include "error.h"
+#include "memory_kokkos.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

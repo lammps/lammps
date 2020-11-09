@@ -85,7 +85,7 @@ where *V* is the volume of the box, **X** is the original vector quantity and
 **x** is the vector in the LAMMPS basis.
 
 There is no requirement that a triclinic box be periodic in any
-dimension, though it typically should be in at least the 2nd dimension
+dimension, though it typically should be in at least the second dimension
 of the tilt (y in xy) if you want to enforce a shift in periodic
 boundary conditions across that boundary.  Some commands that work
 with triclinic boxes, e.g. the :doc:`fix deform <fix_deform>` and :doc:`fix npt <fix_nh>` commands, require periodicity or non-shrink-wrap
@@ -120,7 +120,7 @@ The 9 parameters, as well as lx,ly,lz, can be output via the
 To avoid extremely tilted boxes (which would be computationally
 inefficient), LAMMPS normally requires that no tilt factor can skew
 the box more than half the distance of the parallel box length, which
-is the 1st dimension in the tilt factor (x for xz).  This is required
+is the first dimension in the tilt factor (x for xz).  This is required
 both when the simulation box is created, e.g. via the
 :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands,
 as well as when the box shape changes dynamically during a simulation,
@@ -137,7 +137,7 @@ limit during a dynamics run (e.g. via the :doc:`fix deform <fix_deform>`
 command), then the box is "flipped" to an equivalent shape with a tilt
 factor within the bounds, so the run can continue.  See the :doc:`fix deform <fix_deform>` doc page for further details.
 
-One exception to this rule is if the 1st dimension in the tilt
+One exception to this rule is if the first dimension in the tilt
 factor (x for xy) is non-periodic.  In that case, the limits on the
 tilt factor are not enforced, since flipping the box in that dimension
 does not change the atom positions due to non-periodicity.  In this

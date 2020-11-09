@@ -50,7 +50,7 @@ namespace Test {
 TEST(kokkosresize, host_space_access) {
   // Test with the default device type.
   using TestViewResize::testResize;
-  typedef Kokkos::View<int*>::device_type device_type;
+  using device_type = Kokkos::View<int *>::device_type;
   testResize<device_type>();
 }
 

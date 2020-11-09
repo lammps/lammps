@@ -43,7 +43,7 @@ class RCB : protected Pointers {
   void compute(int, int, double **, double *, double *, double *);
   void compute_old(int, int, double **, double *, double *, double *);
   void invert(int sortflag = 0);
-  bigint memory_usage();
+  double memory_usage();
 
   // DEBUG methods
   //void check();

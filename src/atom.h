@@ -15,15 +15,24 @@
 #define LMP_ATOM_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
+#include <set>
 
 namespace LAMMPS_NS {
+
+  // forward declaration
+
+  class AtomVec;
 
 class Atom : protected Pointers {
  public:
   char *atom_style;
-  class AtomVec *avec;
+  AtomVec *avec;
+  enum{DOUBLE,INT,BIGINT};
+  enum{GROW=0,RESTART=1,BORDER=2};
+  enum{ATOMIC=0,MOLECULAR=1,TEMPLATE=2};
+  enum{MAP_NONE=0,MAP_ARRAY=1,MAP_HASH=2,MAP_YES=3};
 
   // atom counts
 
@@ -49,7 +58,7 @@ class Atom : protected Pointers {
 
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc
-  char *firstgroupname;         // group-ID to store first, NULL if unset
+  char *firstgroupname;         // group-ID to store first, null pointer if unset
 
   // --------------------------------------------------------------------
   // 1st customization section: customize by adding new per-atom variable
@@ -128,6 +137,12 @@ class Atom : protected Pointers {
   double *edpd_cv;               // heat capacity
   int cc_species;
 
+  // USER-MESONT package
+
+  double *length;
+  int *buckling;
+  tagint **bond_nt;
+
   // USER-SMD package
 
   double *contact_radius;
@@ -162,6 +177,7 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,esph_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+  int mesont_flag;
 
   // SPIN package
 
@@ -233,6 +249,7 @@ class Atom : protected Pointers {
   int map_user;                   // user requested map style:
                                   // 0 = no request, 1=array, 2=hash, 3=yes
   tagint map_tag_max;             // max atom ID that map() is setup for
+  std::set<tagint> *unique_tags;  // set to ensure that bodies have unique tags
 
   // spatial sorting of atoms
 
@@ -262,13 +279,13 @@ class Atom : protected Pointers {
   void add_peratom_change_columns(const char *, int);
   void add_peratom_vary(const char *, void *, int, int *,
                         void *, int collength=0);
-  void create_avec(const char *, int, char **, int);
-  virtual class AtomVec *new_avec(const char *, int, int &);
+  void create_avec(const std::string &, int, char **, int);
+  virtual AtomVec *new_avec(const std::string &, int, int &);
 
   void init();
   void setup();
 
-  class AtomVec *style_match(const char *);
+  AtomVec *style_match(const char *);
   void modify_params(int, char **);
   void tag_check();
   void tag_extend();
@@ -277,8 +294,6 @@ class Atom : protected Pointers {
   void bonus_check();
 
   int parse_data(const char *);
-  int count_words(const char *);
-  int count_words(const char *, char *);
 
   void deallocate_topology();
 
@@ -288,8 +303,8 @@ class Atom : protected Pointers {
   void data_angles(int, char *, int *, tagint, int);
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
-  void data_bonus(int, char *, class AtomVec *, tagint);
-  void data_bodies(int, char *, class AtomVec *, tagint);
+  void data_bonus(int, char *, AtomVec *, tagint);
+  void data_bodies(int, char *, AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
@@ -319,7 +334,8 @@ class Atom : protected Pointers {
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
-  void *extract(char *);
+  void *extract(const char *);
+  int extract_datatype(const char *);
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
@@ -329,7 +345,7 @@ class Atom : protected Pointers {
   // NOTE: placeholder method until KOKKOS/AtomVec is refactored
   int memcheck(const char *) {return 1;}
 
-  bigint memory_usage();
+  double memory_usage();
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency

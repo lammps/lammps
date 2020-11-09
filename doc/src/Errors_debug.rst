@@ -23,7 +23,7 @@ We use it to show how to identify the origin of a segmentation fault.
      double *special_lj = force->special_lj;
      int newton_pair = force->newton_pair;
   +  double comx = 0.0;
-   
+
      inum = list->inum;
      ilist = list->ilist;
   @@ -134,8 +135,10 @@ void PairLJCut::compute(int eflag, int vflag)
@@ -31,7 +31,7 @@ We use it to show how to identify the origin of a segmentation fault.
          }
        }
   -  }
-   
+
   +    comx += atom->rmass[i]*x[i][0]; /* BUG */
   +  }
   +  printf("comx = %g\n",comx);
@@ -42,7 +42,7 @@ After recompiling LAMMPS and running the input you should get something like thi
 
 .. code-block:
 
-   $ ./lmp -in in.melt 
+   $ ./lmp -in in.melt
    LAMMPS (19 Mar 2020)
    OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
      using 1 OpenMP thread(s) per MPI task
@@ -98,11 +98,11 @@ drop back to the GDB prompt.
      Unit style    : lj
      Current step  : 0
      Time step     : 0.005
-   
+
    Program received signal SIGSEGV, Segmentation fault.
    0x00000000006653ab in LAMMPS_NS::PairLJCut::compute (this=0x829740, eflag=1, vflag=<optimized out>) at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139
    139      comx += atom->rmass[i]*x[i][0]; /* BUG */
-   (gdb) 
+   (gdb)
 
 Now typing the command "where" will show the stack of functions starting from
 the current function back to "main()".
@@ -119,7 +119,7 @@ the current function back to "main()".
    #4  0x0000000000410ad3 in LAMMPS_NS::Input::execute_command (this=0x7d1410) at /home/akohlmey/compile/lammps/src/input.cpp:864
    #5  0x00000000004111fb in LAMMPS_NS::Input::file (this=0x7d1410) at /home/akohlmey/compile/lammps/src/input.cpp:229
    #6  0x000000000040933a in main (argc=<optimized out>, argv=<optimized out>) at /home/akohlmey/compile/lammps/src/main.cpp:65
-   (gdb) 
+   (gdb)
 
 You can also print the value of variables and see if there is anything
 unexpected.  Segmentation faults, for example, commonly happen when a
@@ -189,12 +189,12 @@ the console are not mixed.
 
 .. code-block::
 
-   $ valgrind ./lmp -in in.melt 
+   $ valgrind ./lmp -in in.melt
    ==1933642== Memcheck, a memory error detector
    ==1933642== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
    ==1933642== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
    ==1933642== Command: ./lmp -in in.melt
-   ==1933642== 
+   ==1933642==
    LAMMPS (19 Mar 2020)
    OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
      using 1 OpenMP thread(s) per MPI task
@@ -228,7 +228,7 @@ the console are not mixed.
    ==1933642==    by 0x4111FA: LAMMPS_NS::Input::file() (input.cpp:229)
    ==1933642==    by 0x409339: main (main.cpp:65)
    ==1933642==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
-   ==1933642== 
+   ==1933642==
 
 As you can see, the stack trace information is similar to that obtained
 from GDB. In addition you get a more specific hint about what cause the

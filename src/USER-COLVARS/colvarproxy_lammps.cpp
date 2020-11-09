@@ -71,11 +71,9 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   _random = new LAMMPS_NS::RanPark(lmp,seed);
 
   first_timestep=true;
-  total_force_requested=false;
   previous_step=-1;
   t_target=temp;
   do_exit=false;
-  restart_every=0;
 
   // User-scripted forces are not available in LAMMPS
   force_script_defined = false;
@@ -94,15 +92,17 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 
   // check if it is possible to save output configuration
   if ((!output_prefix_str.size()) && (!restart_output_prefix_str.size())) {
-    fatal_error("Error: neither the final output state file or "
-                "the output restart file could be defined, exiting.\n");
+    error("Error: neither the final output state file or "
+          "the output restart file could be defined, exiting.\n");
   }
 
   // try to extract a restart prefix from a potential restart command.
   LAMMPS_NS::Output *outp = _lmp->output;
   if ((outp->restart_every_single > 0) && (outp->restart1 != 0)) {
-      restart_output_prefix_str = std::string(outp->restart1);
+    restart_frequency_engine = outp->restart_every_single;
+    restart_output_prefix_str = std::string(outp->restart1);
   } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) {
+    restart_frequency_engine = outp->restart_every_double;
     restart_output_prefix_str = std::string(outp->restart2a);
   }
   // trim off unwanted stuff from the restart prefix
@@ -179,9 +179,9 @@ int colvarproxy_lammps::read_state_file(char const *state_filename)
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-  if (colvars != NULL) {
+  if (colvars != nullptr) {
     delete colvars;
-    colvars = NULL;
+    colvars = nullptr;
   }
 }
 
@@ -207,12 +207,18 @@ double colvarproxy_lammps::compute()
     first_timestep = false;
   } else {
     // Use the time step number from LAMMPS Update object
-    if ( _lmp->update->ntimestep - previous_step == 1 )
+    if ( _lmp->update->ntimestep - previous_step == 1 ) {
       colvars->it++;
-    // Other cases could mean:
-    // - run 0
-    // - beginning of a new run statement
-    // then the internal counter should not be incremented
+      b_simulation_continuing = false;
+    } else {
+      // Cases covered by this condition:
+      // - run 0
+      // - beginning of a new run statement
+      // The internal counter is not incremented, and the objects are made
+      // aware of this via the following flag
+      b_simulation_continuing = true;
+    }
+
   }
   previous_step = _lmp->update->ntimestep;
 
@@ -275,13 +281,6 @@ void colvarproxy_lammps::serialize_status(std::string &rst)
   rst = os.str();
 }
 
-void colvarproxy_lammps::write_output_files()
-{
-  // TODO skip output if undefined
-  colvars->write_restart_file(cvm::output_prefix()+".colvars.state");
-  colvars->write_output_files();
-}
-
 // set status from string
 bool colvarproxy_lammps::deserialize_status(std::string &rst)
 {
@@ -322,13 +321,6 @@ void colvarproxy_lammps::log(std::string const &message)
 
 
 void colvarproxy_lammps::error(std::string const &message)
-{
-  // In LAMMPS, all errors are fatal
-  fatal_error(message);
-}
-
-
-void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
   _lmp->error->one(FLERR,

@@ -22,13 +22,13 @@ extern bool print_stats;
 extern bool verbose;
 extern std::string INPUT_FOLDER;
 
-#define EXPECT_FP_LE_WITH_EPS(val1,val2,eps)                \
-    do {                                                    \
-        const double diff = fabs(val1-val2);                \
-        const double div = std::min(fabs(val1),fabs(val2)); \
-        const double err = (div == 0.0) ? diff : diff/div;  \
-        stats.add(err);                                     \
-        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
+#define EXPECT_FP_LE_WITH_EPS(val1, val2, eps)                \
+    do {                                                      \
+        const double diff = fabs(val1 - val2);                \
+        const double div  = std::min(fabs(val1), fabs(val2)); \
+        const double err  = (div == 0.0) ? diff : diff / div; \
+        stats.add(err);                                       \
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps);   \
     } while (0);
 
 #endif

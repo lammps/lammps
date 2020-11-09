@@ -53,9 +53,12 @@ namespace Kokkos {
 namespace Experimental {
 
 bool HPX::m_hpx_initialized = false;
-Kokkos::Impl::thread_buffer HPX::m_buffer;
+std::atomic<uint32_t> HPX::m_next_instance_id{1};
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-hpx::future<void> HPX::m_future = hpx::make_ready_future<void>();
+std::atomic<uint32_t> HPX::m_active_parallel_region_count{0};
+HPX::instance_data HPX::m_global_instance_data;
+#else
+Kokkos::Impl::thread_buffer HPX::m_global_buffer;
 #endif
 
 int HPX::concurrency() {

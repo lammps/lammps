@@ -1,7 +1,7 @@
 .. index:: pair_style mm3/switch3/coulgauss/long
 
 pair_style mm3/switch3/coulgauss/long command
-==============================================
+=============================================
 
 Syntax
 """"""
@@ -84,7 +84,8 @@ commands:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing rules are fixed for this style as defined above.
 
@@ -102,4 +103,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

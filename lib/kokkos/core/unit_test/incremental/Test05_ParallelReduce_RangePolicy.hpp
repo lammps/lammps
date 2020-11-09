@@ -53,7 +53,7 @@
 namespace Test {
 
 using value_type       = double;
-const double value     = 0.5;
+constexpr double value = 0.5;
 const int num_elements = 10;
 
 struct ReduceFunctor {
@@ -134,8 +134,8 @@ struct TestReduction {
     init();
 
     // Creates a range policy that uses dynamic schedule.
-    typedef Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >
-        range_policy;
+    using range_policy =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
 
     // parallel_reduce call with range policy over num_elements number of
     // iterations

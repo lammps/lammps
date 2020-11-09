@@ -69,7 +69,8 @@ conserved.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -92,7 +93,11 @@ Related commands
 
 :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`, :doc:`fix manifoldforce <fix_manifoldforce>`
 
-**Default:** every = 0, tchain = 3
+Default
+"""""""
+
+every = 0, tchain = 3
+
 
 ----------
 

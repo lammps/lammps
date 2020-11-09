@@ -1,4 +1,8 @@
 .. index:: fix qeq/point
+.. index:: fix qeq/shielded
+.. index:: fix qeq/slater
+.. index:: fix qeq/dynamic
+.. index:: fix qeq/fire
 
 fix qeq/point command
 =====================
@@ -193,7 +197,8 @@ better on larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
    arbitrary choices of these parameters.  We do not develop these QEq
    parameters.  See the examples/qeq directory for some examples.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about these fixes is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
 quantities are stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
@@ -212,7 +217,10 @@ Related commands
 
 :doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix qeq/comb <fix_qeq_comb>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

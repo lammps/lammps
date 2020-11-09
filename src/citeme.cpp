@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@ using namespace LAMMPS_NS;
 
 static const char cite_header[] =
   "This LAMMPS simulation made specific use of work described in the\n"
-  "following references.  See http://lammps.sandia.gov/cite.html\n"
+  "following references.  See https://lammps.sandia.gov/cite.html\n"
   "for details.\n\n";
 
 static const char cite_nagline[] = "\nPlease see the log.cite file "
@@ -28,7 +28,7 @@ static const char cite_nagline[] = "\nPlease see the log.cite file "
 
 CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = NULL;
+  fp = nullptr;
   cs = new citeset();
 }
 

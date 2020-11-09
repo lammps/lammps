@@ -56,9 +56,9 @@ namespace {
 
 template <class ExecSpace, class ScheduleType, class Property>
 struct TestRangeRequire {
-  typedef int value_type;  ///< typedef required for the parallel_reduce
+  using value_type = int;  ///< alias required for the parallel_reduce
 
-  typedef Kokkos::View<int *, ExecSpace> view_type;
+  using view_type = Kokkos::View<int *, ExecSpace>;
 
   view_type m_flags;
 
@@ -82,9 +82,8 @@ struct TestRangeRequire {
             Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N), Property()),
         *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRangeRequire<ExecSpace, ScheduleType, Property> ThisType;
+      using ThisType = TestRangeRequire<ExecSpace, ScheduleType, Property>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, void> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -93,7 +92,6 @@ struct TestRangeRequire {
           empty_label);
       ASSERT_EQ(empty_pcn.get(), typeid(ThisType).name());
     }
-#endif
 
     Kokkos::parallel_for(
         Kokkos::Experimental::require(
@@ -101,9 +99,8 @@ struct TestRangeRequire {
             Property()),
         *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRangeRequire<ExecSpace, ScheduleType, Property> ThisType;
+      using ThisType = TestRangeRequire<ExecSpace, ScheduleType, Property>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -113,7 +110,6 @@ struct TestRangeRequire {
       ASSERT_EQ(empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" +
                                      typeid(VerifyInitTag).name());
     }
-#endif
 
     Kokkos::deep_copy(host_flags, m_flags);
 
@@ -274,8 +270,8 @@ struct TestRangeRequire {
   void test_dynamic_policy() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
-    typedef Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >
-        policy_t;
+    using policy_t =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
 
     {
       Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> >
@@ -288,11 +284,7 @@ struct TestRangeRequire {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
-        count( ExecSpace::impl_hardware_thread_id() )++;
-#endif
+            count(ExecSpace::impl_hardware_thread_id())++;
           });
 
       int error = 0;
@@ -333,11 +325,7 @@ struct TestRangeRequire {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
             count(ExecSpace::impl_hardware_thread_id())++;
-#endif
             lsum++;
           },
           sum);

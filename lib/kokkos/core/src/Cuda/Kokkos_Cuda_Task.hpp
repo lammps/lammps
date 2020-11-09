@@ -754,7 +754,7 @@ namespace Kokkos {
 // TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread
 //               , const iType1 & begin, const iType2 & end )
 //{
-//  typedef typename std::common_type< iType1, iType2 >::type iType;
+//  using iType = typename std::common_type< iType1, iType2 >::type;
 //  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::TaskExec<
 //  Kokkos::Cuda > >(
 //           thread, iType(begin), iType(end) );
@@ -921,7 +921,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::TeamThreadRangeBoundariesStruct<
         iType, Impl::TaskExec<Kokkos::Cuda, Scheduler>>& loop_boundaries,
     const Lambda& lambda, const ReducerType& reducer) {
-  typedef typename ReducerType::value_type ValueType;
+  using ValueType = typename ReducerType::value_type;
   // TODO @internal_documentation what is the point of creating this temporary?
   ValueType result = ValueType();
   reducer.init(result);
@@ -1005,7 +1005,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::ThreadVectorRangeBoundariesStruct<
         iType, Impl::TaskExec<Kokkos::Cuda, Scheduler>>& loop_boundaries,
     const Lambda& lambda, const ReducerType& reducer) {
-  typedef typename ReducerType::value_type ValueType;
+  using ValueType = typename ReducerType::value_type;
 
   ValueType result = ValueType();
   reducer.init(result);

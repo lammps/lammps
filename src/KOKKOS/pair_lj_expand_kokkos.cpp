@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,7 +46,7 @@ PairLJExpandKokkos<DeviceType>::PairLJExpandKokkos(LAMMPS *lmp) : PairLJExpand(l
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ PairLJExpandKokkos<DeviceType>::~PairLJExpandKokkos()
   if (!copymode) {
     k_cutsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    cutsq = NULL;
+    cutsq = nullptr;
   }
 }
 
@@ -67,9 +67,9 @@ template<class DeviceType>
 void PairLJExpandKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +151,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
 
   const F_FLOAT r = sqrt(rsq);
   const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
@@ -171,7 +172,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
 
   const F_FLOAT r = sqrt(rsq);
   const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
@@ -287,7 +289,7 @@ double PairLJExpandKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJExpandKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJExpandKokkos<LMPHostType>;
 #endif
 }

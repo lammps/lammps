@@ -75,6 +75,9 @@
 //----------------------------------------------------------------------------
 #if defined(_WIN32)
 #define KOKKOS_ENABLE_WINDOWS_ATOMICS
+#if defined(KOKKOS_ENABLE_CUDA)
+#define KOKKOS_ENABLE_CUDA_ATOMICS
+#endif
 #else
 #if defined(KOKKOS_ENABLE_CUDA)
 
@@ -86,7 +89,8 @@
 
 #define KOKKOS_ENABLE_ROCM_ATOMICS
 
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU) || \
+    defined(KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE)
 
 #define KOKKOS_ENABLE_HIP_ATOMICS
 
@@ -188,13 +192,22 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 #ifdef _WIN32
 #include "impl/Kokkos_Atomic_Windows.hpp"
-#else
+#endif
 //----------------------------------------------------------------------------
 // Atomic Assembly
 //
 // Implements CAS128-bit in assembly
 
 #include "impl/Kokkos_Atomic_Assembly.hpp"
+
+//----------------------------------------------------------------------------
+// Memory fence
+//
+// All loads and stores from this thread will be globally consistent before
+// continuing
+//
+// void memory_fence() {...};
+#include "impl/Kokkos_Memory_Fence.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic exchange
@@ -215,11 +228,8 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 #include "impl/Kokkos_Atomic_Compare_Exchange_Strong.hpp"
 
-#endif  //_WIN32
-
 #include "impl/Kokkos_Atomic_Generic.hpp"
 
-#ifndef _WIN32
 //----------------------------------------------------------------------------
 // Atomic fetch and add
 //
@@ -285,16 +295,6 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 // { T tmp = *dest ; *dest = max(*dest, val); return tmp ; }
 
 #include "impl/Kokkos_Atomic_MinMax.hpp"
-#endif /*Not _WIN32*/
-
-//----------------------------------------------------------------------------
-// Memory fence
-//
-// All loads and stores from this thread will be globally consistent before
-// continuing
-//
-// void memory_fence() {...};
-#include "impl/Kokkos_Memory_Fence.hpp"
 
 //----------------------------------------------------------------------------
 // Provide volatile_load and safe_load

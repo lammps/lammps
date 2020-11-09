@@ -42,6 +42,7 @@ Examples
    atom_style hybrid charge body nparticle 2 5
    atom_style spin
    atom_style template myMols
+   atom_style hybrid template twomols charge
    atom_style tdpd 2
 
 Description
@@ -102,6 +103,8 @@ quantities.
 | *line*       | end points, angular velocity                        | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -237,6 +240,8 @@ can save memory for systems comprised of a large number of small
 molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in :ref:`(Grime) <Grime>`, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
+The ``examples/template`` directory has a few demo inputs and examples
+showing the use of the *template* atom style versus *molecular*.
 
 .. note::
 
@@ -346,6 +351,8 @@ dynamics (tDPD), respectively.
 
 The *sph* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+The *mesont* style is part of the USER-MESONT package.
 
 The *spin* style is part of the SPIN package.
 

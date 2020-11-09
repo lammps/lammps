@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,7 +67,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
+void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
 {
   if (mbins > (int) k_bins.h_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
@@ -298,7 +298,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
 
 namespace LAMMPS_NS {
 template class NBinSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NBinSSAKokkos<LMPHostType>;
 #endif
 }

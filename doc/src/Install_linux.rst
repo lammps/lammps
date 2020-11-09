@@ -1,5 +1,5 @@
 Download an executable for Linux
-================================
+--------------------------------
 
 Binaries are available for different versions of Linux:
 
@@ -16,13 +16,19 @@ Binaries are available for different versions of Linux:
 .. _ubuntu:
 
 Pre-built Ubuntu Linux executables
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A pre-built LAMMPS executable suitable for running on the latest
 Ubuntu Linux versions, can be downloaded as a Debian package.  This
 allows you to install LAMMPS with a single command, and stay
-up-to-date with the current version of LAMMPS by simply updating your
-operating system.
+up-to-date with the current stable version of LAMMPS by simply updating
+your operating system.  Please note, that the repository below offers
+two LAMMPS packages, ``lammps-daily`` and ``lammps-stable``.  The
+LAMMPS developers recommend to use the ``lammps-stable`` package for
+any production simulations.  The ``lammps-daily`` package is built
+from the LAMMPS development sources, and those versions may have known
+issues and bugs when new features are added and the software has not
+undergone full release testing.
 
 To install the appropriate personal-package archives (PPAs), do the
 following once:
@@ -37,16 +43,16 @@ To install LAMMPS do the following once:
 
 .. code-block:: bash
 
-   $ sudo apt-get install lammps-daily
+   $ sudo apt-get install lammps-stable
 
-This downloads an executable named ``lmp_daily`` to your box, which
+This downloads an executable named ``lmp_stable`` to your box, which
 can then be used in the usual way to run input scripts:
 
 .. code-block:: bash
 
-   $ lmp_daily -in in.lj
+   $ lmp_stable -in in.lj
 
-To update LAMMPS to the most current version, do the following:
+To update LAMMPS to the most current stable version, do the following:
 
 .. code-block:: bash
 
@@ -58,28 +64,28 @@ To get a copy of the current documentation and examples:
 
 .. code-block:: bash
 
-   $ sudo apt-get install lammps-daily-doc
+   $ sudo apt-get install lammps-stable-doc
 
 which will download the doc files in
-``/usr/share/doc/lammps-daily-doc/doc`` and example problems in
+``/usr/share/doc/lammps-stable-doc/doc`` and example problems in
 ``/usr/share/doc/lammps-doc/examples``.
 
 To get a copy of the current potentials files:
 
 .. code-block:: bash
 
-   $ sudo apt-get install lammps-daily-data
+   $ sudo apt-get install lammps-stable-data
 
 which will download the potentials files to
-``/usr/share/lammps-daily/potentials``.  The ``lmp_daily`` binary is
+``/usr/share/lammps-stable/potentials``.  The ``lmp_stable`` binary is
 hard-coded to look for potential files in this directory (it does not
-use the `LAMMPS_POTENTIALS` environment variable, as described
+use the ``LAMMPS_POTENTIALS`` environment variable, as described
 in :doc:`pair_coeff <pair_coeff>` command).
 
-The ``lmp_daily`` binary is built with the :ref:`KIM package <kim>` which
-results in the above command also installing the `kim-api` binaries when LAMMPS
+The ``lmp_stable`` binary is built with the :ref:`KIM package <kim>` which
+results in the above command also installing the ``kim-api`` binaries when LAMMPS
 is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
-can install the `openkim-models` package
+can install the ``openkim-models`` package
 
 .. code-block:: bash
 
@@ -89,9 +95,9 @@ To un-install LAMMPS, do the following:
 
 .. code-block:: bash
 
-   $ sudo apt-get remove lammps-daily
+   $ sudo apt-get remove lammps-stable
 
-Please use ``lmp_daily -help`` to see which compilation options, packages,
+Please use ``lmp_stable -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Anton Gladky (gladky.anton at gmail.com) for setting up this
@@ -102,7 +108,7 @@ Ubuntu package capability.
 .. _fedora:
 
 Pre-built Fedora Linux executables
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS packages for stable releases are available
 in the Fedora Linux distribution as of version 28. The packages
@@ -156,7 +162,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
 .. _epel:
 
 Pre-built EPEL Linux executable
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS (and KIM) packages for stable releases are available
 in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedoraproject.org/wiki/EPEL>`_
@@ -176,7 +182,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in EPEL.
 .. _opensuse:
 
 Pre-built OpenSuse Linux executable
---------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A pre-built LAMMPS package for stable releases is available
 in OpenSuse as of Leap 15.0. You can install the package with:
@@ -211,7 +217,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
 .. _gentoo:
 
 Gentoo Linux executable
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS is part of Gentoo's main package tree and can be installed by
 typing:
@@ -239,7 +245,7 @@ this Gentoo capability.
 .. _arch:
 
 Archlinux build-script
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS is available via Arch's unofficial Arch User repository (AUR).
 There are three scripts available, named lammps, lammps-beta and lammps-git.

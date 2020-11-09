@@ -50,7 +50,8 @@ time.  Thus it is easy to specify a time-dependent torque.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -93,4 +94,7 @@ Related commands
 
 :doc:`fix addforce <fix_addforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

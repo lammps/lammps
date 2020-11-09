@@ -31,10 +31,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	TEST_TARGETS += test-cuda
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
-	OBJ_ROCM = TestROCm.o TestMain.o gtest-all.o
-	TARGETS += KokkosContainers_PerformanceTest_ROCm
-	TEST_TARGETS += test-rocm
+ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
+	OBJ_HIP = TestHIP.o TestMain.o gtest-all.o
+	TARGETS += KokkosContainers_PerformanceTest_HIP
+	TEST_TARGETS += test-hip
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)

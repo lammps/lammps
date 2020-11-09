@@ -56,8 +56,8 @@ namespace TestMemoryPool {
 
 template <typename MemSpace = Kokkos::HostSpace>
 void test_host_memory_pool_defaults() {
-  typedef typename MemSpace::execution_space Space;
-  typedef typename Kokkos::MemoryPool<Space> MemPool;
+  using Space   = typename MemSpace::execution_space;
+  using MemPool = typename Kokkos::MemoryPool<Space>;
 
   {
     const size_t MemoryCapacity = 32000;
@@ -132,8 +132,8 @@ void test_host_memory_pool_defaults() {
 
 template <typename MemSpace = Kokkos::HostSpace>
 void test_host_memory_pool_stats() {
-  typedef typename MemSpace::execution_space Space;
-  typedef typename Kokkos::MemoryPool<Space> MemPool;
+  using Space   = typename MemSpace::execution_space;
+  using MemPool = typename Kokkos::MemoryPool<Space>;
 
   const size_t MemoryCapacity = 32000;
   const size_t MinBlockSize   = 64;
@@ -178,8 +178,8 @@ void test_host_memory_pool_stats() {
 
 template <class DeviceType>
 struct TestMemoryPool_Functor {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type = Kokkos::MemoryPool<DeviceType>;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -268,15 +268,15 @@ void print_memory_pool_stats(typename PoolType::usage_statistics const& stats) {
 template <class DeviceType>
 void test_memory_pool_v2(const bool print_statistics,
                          const bool print_superblocks) {
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef TestMemoryPool_Functor<DeviceType> functor_type;
+  using memory_space    = typename DeviceType::memory_space;
+  using execution_space = typename DeviceType::execution_space;
+  using pool_type       = Kokkos::MemoryPool<DeviceType>;
+  using functor_type    = TestMemoryPool_Functor<DeviceType>;
 
-  typedef typename functor_type::TagAlloc TagAlloc;
-  typedef typename functor_type::TagDealloc TagDealloc;
-  typedef typename functor_type::TagRealloc TagRealloc;
-  typedef typename functor_type::TagMixItUp TagMixItUp;
+  using TagAlloc   = typename functor_type::TagAlloc;
+  using TagDealloc = typename functor_type::TagDealloc;
+  using TagRealloc = typename functor_type::TagRealloc;
+  using TagMixItUp = typename functor_type::TagMixItUp;
 
   const size_t total_alloc_size = 10000000;
   const unsigned min_block_size = 64;
@@ -364,8 +364,8 @@ void test_memory_pool_v2(const bool print_statistics,
 
 template <class DeviceType>
 struct TestMemoryPoolCorners {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type = Kokkos::MemoryPool<DeviceType>;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -407,11 +407,11 @@ struct TestMemoryPoolCorners {
 template <class DeviceType>
 void test_memory_pool_corners(const bool print_statistics,
                               const bool print_superblocks) {
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef TestMemoryPoolCorners<DeviceType> functor_type;
-  typedef typename functor_type::ptrs_type ptrs_type;
+  using memory_space    = typename DeviceType::memory_space;
+  using execution_space = typename DeviceType::execution_space;
+  using pool_type       = Kokkos::MemoryPool<DeviceType>;
+  using functor_type    = TestMemoryPoolCorners<DeviceType>;
+  using ptrs_type       = typename functor_type::ptrs_type;
 
   {
     // superblock size 1 << 14
@@ -491,9 +491,9 @@ struct TestMemoryPoolHuge<
     DeviceType,
     typename std::enable_if<std::is_same<
         Kokkos::HostSpace, typename DeviceType::memory_space>::value>::type> {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef typename DeviceType::memory_space memory_space;
+  using ptrs_type    = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type    = Kokkos::MemoryPool<DeviceType>;
+  using memory_space = typename DeviceType::memory_space;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -541,9 +541,9 @@ struct TestMemoryPoolHuge<
 
 template <class DeviceType>
 void test_memory_pool_huge() {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef TestMemoryPoolHuge<DeviceType> functor_type;
-  typedef Kokkos::RangePolicy<execution_space> policy_type;
+  using execution_space = typename DeviceType::execution_space;
+  using functor_type    = TestMemoryPoolHuge<DeviceType>;
+  using policy_type     = Kokkos::RangePolicy<execution_space>;
 
   functor_type f;
   policy_type policy(0, functor_type::num_superblock);

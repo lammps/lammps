@@ -23,11 +23,11 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_torsion_angles_omp.h"
-#include <mpi.h>
+
 #include "fix_omp.h"
 #include "pair_reaxc_omp.h"
 
@@ -35,6 +35,8 @@
 #include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>

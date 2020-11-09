@@ -57,6 +57,10 @@ public:
   /// Some implementations may use calc_energy() and calc_forces()
   virtual int update();
 
+  /// Returns true if the current step represent a valid increment, whose data
+  /// can be recorded (as opposed to e.g. a continuation step from a restart)
+  virtual bool can_accumulate_data();
+
   /// Compute the energy of the bias
   /// Uses the vector of colvar values provided if not NULL, and the values
   /// currently cached in the bias instance otherwise
@@ -144,13 +148,27 @@ public:
   }
 
   /// Read a keyword from the state data (typically a header)
+  /// \param Input stream
+  /// \param Keyword labeling the header block
   std::istream & read_state_data_key(std::istream &is, char const *key);
 
-  /// Write the bias configuration to a restart file or other stream
+  /// Write the bias configuration to a state file or other stream
   std::ostream & write_state(std::ostream &os);
 
   /// Read the bias configuration from a restart file or other stream
   std::istream & read_state(std::istream &is);
+
+  /// Write the bias state to a file with the given prefix
+  int write_state_prefix(std::string const &prefix);
+
+  /// Write the bias state to a string
+  int write_state_string(std::string &output);
+
+  /// Read the bias state from a file with this name or prefix
+  int read_state_prefix(std::string const &prefix);
+
+  /// Read the bias state from this string buffer
+  int read_state_string(char const *buffer);
 
   /// Write a label to the trajectory file (comment line)
   virtual std::ostream & write_traj_label(std::ostream &os);
@@ -163,6 +181,9 @@ public:
   {
     return COLVARS_OK;
   }
+
+  /// Frequency for writing output files
+  size_t output_freq;
 
   /// Write any output files that this bias may have (e.g. PMF files)
   virtual int write_output_files()

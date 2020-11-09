@@ -20,7 +20,8 @@ namespace LAMMPS_NS {
 
 class AtomVec : protected Pointers {
  public:
-  int molecular;                       // 0 = atomic, 1 = molecular system
+ enum {PER_ATOM=0,PER_TYPE=1};
+  int molecular;                       // 0 = atomic, 1 = molecular system, 2 = molecular template system
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
@@ -145,11 +146,14 @@ class AtomVec : protected Pointers {
   virtual int pack_improper(tagint **);
   virtual void write_improper(FILE *, int, tagint **, int);
 
+  virtual int pack_data_bonus(double *, int) {return 0;}
+  virtual void write_data_bonus(FILE *, int, double *, int) {}
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
-  virtual bigint memory_usage();
-  virtual bigint memory_usage_bonus() {return 0;}
+  virtual double memory_usage();
+  virtual double memory_usage_bonus() {return 0;}
 
   // old hybrid functions, needed by Kokkos package
 
@@ -209,32 +213,12 @@ class AtomVec : protected Pointers {
 
   bool *threads;
 
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // this avoids aliasing issues by having 2 pointers (double,int)
-  //   to same buf memory
-  // constructor for 32-bit int prevents compiler
-  //   from possibly calling the double constructor when passed an int
-  // copy to a double *buf:
-  //   buf[m++] = ubuf(foo).d, where foo is a 32-bit or 64-bit int
-  // copy from a double *buf:
-  //   foo = (int) ubuf(buf[m++]).i;, where (int) or (tagint) match foo
-  //   the cast prevents compiler warnings about possible truncation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
-
   // local methods
 
   void grow_nmax();
   int grow_nmax_bonus(int);
   void setup_fields();
   int process_fields(char *, const char *, Method *);
-  int tokenize(char *, char **&, char *&);
   void create_method(int, Method *);
   void init_method(Method *);
   void destroy_method(Method *);

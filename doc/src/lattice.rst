@@ -260,25 +260,21 @@ of Aidan Thompson), with its 8 atom unit cell.
    variable b equal  $a*sqrt(3.0)
    variable c equal  $a*sqrt(8.0/3.0)
 
-   variable 1_3 equal 1.0/3.0
-   variable 2_3 equal 2.0/3.0
-   variable 1_6 equal 1.0/6.0
-   variable 5_6 equal 5.0/6.0
-   variable 1_12 equal 1.0/12.0
-   variable 5_12 equal 5.0/12.0
+   variable third equal 1.0/3.0
+   variable five6 equal 5.0/6.0
 
    lattice custom    1.0     &
-           a1      $a      0.0     0.0     &
-           a2      0.0     $b      0.0     &
-           a3      0.0     0.0     $c      &
-           basis   0.0     0.0     0.0     &
-           basis   0.5     0.5     0.0     &
-           basis   ${1_3}  0.0     0.5     &
-           basis   ${5_6}  0.5     0.5     &
-           basis   0.0     0.0     0.625   &
-           basis   0.5     0.5     0.625   &
-           basis   ${1_3}  0.0     0.125   &
-           basis   ${5_6}  0.5     0.125
+           a1      $a       0.0     0.0     &
+           a2      0.0      $b      0.0     &
+           a3      0.0      0.0     $c      &
+           basis   0.0      0.0     0.0     &
+           basis   0.5      0.5     0.0     &
+           basis   ${third} 0.0     0.5     &
+           basis   ${five6} 0.5     0.5     &
+           basis   0.0      0.0     0.625   &
+           basis   0.5      0.5     0.625   &
+           basis   ${third} 0.0     0.125   &
+           basis   ${five6} 0.5     0.125
 
    region myreg block 0 1 0 1 0 1
    create_box      2 myreg

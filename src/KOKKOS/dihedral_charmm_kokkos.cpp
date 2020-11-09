@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_charmm_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "kokkos.h"
+#include "neighbor_kokkos.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -789,7 +788,7 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
 namespace LAMMPS_NS {
 template class DihedralCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class DihedralCharmmKokkos<LMPHostType>;
 #endif
 }

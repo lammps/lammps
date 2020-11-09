@@ -1,4 +1,6 @@
 .. index:: fix mvv/dpd
+.. index:: fix mvv/edpd
+.. index:: fix mvv/tdpd
 
 fix mvv/dpd command
 ===================
@@ -76,7 +78,8 @@ addition to position and velocity, and must be used with the
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

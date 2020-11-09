@@ -30,6 +30,7 @@ Syntax
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
                              nbonds,
+                             buckling,
                              vfrac, s0,
                              spin, eradius, ervel, erforce,
                              rho, drho, e, de, cv,
@@ -63,6 +64,7 @@ Syntax
            end12x, end12y, end12z = end points of line segment
            corner123x, corner123y, corner123z = corner points of triangle
            nbonds = number of bonds assigned to an atom
+           buckling = buckling flag used in mesoscopic simulation of nanotubes
 
   .. parsed-literal::
 
@@ -158,7 +160,8 @@ floating-point properties that have been added to each atom via the
 command is used specific names are given to each attribute which are
 what is specified as the "name" portion of *i_name* or *d_name*.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector or per-atom array depending
 on the number of input values.  If a single input is specified, a
@@ -187,4 +190,7 @@ Related commands
 :doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
 :doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

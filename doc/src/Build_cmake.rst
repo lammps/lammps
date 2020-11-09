@@ -1,5 +1,5 @@
 Build LAMMPS with CMake
-=======================
+-----------------------
 
 This page describes how to use `CMake <https://cmake.org>`_ in general
 to build LAMMPS.  Details for specific compile time settings and options
@@ -107,7 +107,7 @@ re-compile and relink the LAMMPS executable with ``cmake --build .`` (or
 ``cmake .`` and then compile again. The included dependency tracking
 should make certain that only the necessary subset of files are
 re-compiled.  You can also delete compiled objects, libraries and
-executables with ``cmake --build . clean`` (or ``make clean``).
+executables with ``cmake --build . --target clean`` (or ``make clean``).
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:

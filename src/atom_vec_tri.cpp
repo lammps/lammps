@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_tri.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -33,7 +35,7 @@ using namespace MathConst;
 
 AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 4;
@@ -48,7 +50,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -554,7 +556,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   tensor[0][2] = tensor[2][0] = inertia[4];
   tensor[0][1] = tensor[1][0] = inertia[5];
 
-  int ierror = MathExtra::jacobi(tensor,bonus[nlocal_bonus].inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,bonus[nlocal_bonus].inertia,evectors);
   if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for triangle");
 
   double ex_space[3],ey_space[3],ez_space[3];
@@ -600,9 +602,9 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecTri::memory_usage_bonus()
+double AtomVecTri::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   return bytes;
 }
@@ -683,6 +685,64 @@ void AtomVecTri::pack_data_post(int ilocal)
 {
   tri[ilocal] = tri_flag;
   rmass[ilocal] = rmass_one;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus tri info for writing to data file
+   if buf is nullptr, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i,j;
+  double xc,yc,zc;
+  double dc1[3],dc2[3],dc3[3];
+  double p[3][3];
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (tri[i] < 0) continue;
+    if (buf) {
+      buf[m++] = ubuf(tag[i]).d;
+      j = tri[i];
+      MathExtra::quat_to_mat(bonus[j].quat,p);
+      MathExtra::matvec(p,bonus[j].c1,dc1);
+      MathExtra::matvec(p,bonus[j].c2,dc2);
+      MathExtra::matvec(p,bonus[j].c3,dc3);
+      xc = x[i][0];
+      yc = x[i][1];
+      zc = x[i][2];
+      buf[m++] = xc + dc1[0];
+      buf[m++] = yc + dc1[1];
+      buf[m++] = zc + dc1[2];
+      buf[m++] = xc + dc2[0];
+      buf[m++] = yc + dc2[1];
+      buf[m++] = zc + dc2[2];
+      buf[m++] = xc + dc3[0];
+      buf[m++] = yc + dc3[1];
+      buf[m++] = zc + dc3[2];
+    } else m += size_data_bonus;
+  }
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus tri info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecTri::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i,
+               buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],
+               buf[i+7],buf[i+8],buf[i+9]);
+    i += size_data_bonus;
+  }
 }
 
 /* ----------------------------------------------------------------------

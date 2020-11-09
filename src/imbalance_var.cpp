@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_var.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -88,7 +89,7 @@ void ImbalanceVar::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::info(FILE *fp)
+std::string ImbalanceVar::info()
 {
-  fprintf(fp,"  weight variable: %s\n",name);
+  return fmt::format("  weight variable: {}\n",name);
 }

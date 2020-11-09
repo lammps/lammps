@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,10 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_electron.h"
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -40,8 +41,8 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_eff_package);
 
-  mass_type = 1;
-  molecular = 0;
+  mass_type = PER_TYPE;
+  molecular = Atom::ATOMIC;
   forceclearflag = 1;
 
   atom->electron_flag = 1;

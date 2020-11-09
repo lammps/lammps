@@ -47,7 +47,7 @@ class CommBrick : public Comm {
   void forward_comm_array(int, double **);         // forward comm of array
   int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
   void *extract(const char *,int &);
-  virtual bigint memory_usage();
+  virtual double memory_usage();
 
  protected:
   int nswap;                        // # of swaps to perform = sum of maxneed

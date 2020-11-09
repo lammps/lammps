@@ -42,7 +42,7 @@ class UCL_Program {
   inline UCL_Program() : _init_done(false) {}
   inline UCL_Program(UCL_Device &device) : _init_done(false) { init(device); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) :
+                     const char *flags="", std::string *log=nullptr) :
       _init_done(false) {
     init(device);
     load_string(program,flags,log);
@@ -74,7 +74,7 @@ class UCL_Program {
 
   /// Load a program from a file and compile with flags
   inline int load(const char *filename, const char *flags="",
-                  std::string *log=NULL) {
+                  std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -93,29 +93,29 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=NULL) {
+                         std::string *log=nullptr) {
     cl_int error_flag;
     const char *prog=(const char *)program;
-    _program=clCreateProgramWithSource(_context,1,&prog,NULL,&error_flag);
+    _program=clCreateProgramWithSource(_context,1,&prog,nullptr,&error_flag);
     CL_CHECK_ERR(error_flag);
-    error_flag = clBuildProgram(_program,1,&_device,flags,NULL,NULL);
+    error_flag = clBuildProgram(_program,1,&_device,flags,nullptr,nullptr);
     if (error_flag!=-11)
       CL_CHECK_ERR(error_flag);
     cl_build_status build_status;
     CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,
                                        CL_PROGRAM_BUILD_STATUS,
                                        sizeof(cl_build_status),&build_status,
-                                       NULL));
+                                       nullptr));
 
-    if (build_status != CL_SUCCESS || log!=NULL) {
+    if (build_status != CL_SUCCESS || log!=nullptr) {
       size_t ms;
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,0,
-                                         NULL, &ms));
+                                         nullptr, &ms));
       char *build_log = new char[ms];
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,ms,
-                                         build_log, NULL));
+                                         build_log, nullptr));
 
-      if (log!=NULL)
+      if (log!=nullptr)
         *log=std::string(build_log);
 
       if (build_status != CL_SUCCESS) {
@@ -363,7 +363,7 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
   _kernel_info_name=function;
   cl_uint nargs;
   CL_SAFE_CALL(clGetKernelInfo(_kernel,CL_KERNEL_NUM_ARGS,sizeof(cl_uint),
-                               &nargs,NULL));
+                               &nargs,nullptr));
   _kernel_info_nargs=nargs;
   #ifdef NOT_TEST_CL_VERSION_1_2
   char tname[256];
@@ -380,8 +380,8 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
 }
 
 void UCL_Kernel::run() {
-  CL_SAFE_CALL(clEnqueueNDRangeKernel(_cq,_kernel,_dimensions,NULL,
-                                      _num_blocks,_block_size,0,NULL,NULL));
+  CL_SAFE_CALL(clEnqueueNDRangeKernel(_cq,_kernel,_dimensions,nullptr,
+                                      _num_blocks,_block_size,0,nullptr,nullptr));
 }
 
 } // namespace

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,16 +15,17 @@
    Contributing author: Zheng GONG (ENS de Lyon, z.gong@outlook.com)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_viscosity_cos.h"
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,7 +45,7 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
 
   vector = new double[7];
 }
@@ -52,8 +53,10 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeViscosityCos::~ComputeViscosityCos() {
-  if (!copymode)
+  if (!copymode) {
     delete[] vector;
+    delete[] extlist;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,7 +259,7 @@ void ComputeViscosityCos::remove_bias_all() {
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeViscosityCos::restore_bias(int i, double *v) {
+void ComputeViscosityCos::restore_bias(int /* i */, double *v) {
   v[0] += vbias[0];
   v[1] += vbias[1];
   v[2] += vbias[2];
@@ -267,7 +270,7 @@ void ComputeViscosityCos::restore_bias(int i, double *v) {
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeViscosityCos::restore_bias_thr(int i, double *v, double *b) {
+void ComputeViscosityCos::restore_bias_thr(int /* i */, double *v, double *b) {
   v[0] += b[0];
   v[1] += b[1];
   v[2] += b[2];

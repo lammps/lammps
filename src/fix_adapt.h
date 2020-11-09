@@ -40,13 +40,16 @@ class FixAdapt : public Fix {
   void setup_pre_force_respa(int,int);
   void pre_force_respa(int,int,int);
   void set_arrays(int);
+  void write_restart(FILE *);
+  void restart(char *);
 
  private:
-  int nadapt,resetflag,scaleflag;
+  int nadapt,resetflag,scaleflag,massflag;
   int anypair, anybond;
   int nlevels_respa;
   char *id_fix_diam,*id_fix_chg;
   class FixStore *fix_diam,*fix_chg;
+  double previous_diam_scale,previous_chg_scale;
   int discflag;
 
   struct Adapt {

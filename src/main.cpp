@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "lammps.h"
-#include <mpi.h>
 #include "input.h"
+
+#include <mpi.h>
+#include <cstdlib>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
@@ -50,9 +52,10 @@ int main(int argc, char **argv)
     LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
     lammps->input->file();
     delete lammps;
-  } catch(LAMMPSAbortException & ae) {
+  } catch(LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
-  } catch(LAMMPSException & e) {
+  } catch(LAMMPSException &e) {
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
   }

@@ -19,6 +19,13 @@ default_arch="sm_35"
 # The default C++ compiler.
 #
 host_compiler=${NVCC_WRAPPER_DEFAULT_COMPILER:-"g++"}
+
+# Default to whatever is in the path
+nvcc_compiler=nvcc
+if [ ! -z $CUDA_ROOT ]; then
+  nvcc_compiler="$CUDA_ROOT/bin/nvcc"
+fi
+
 #host_compiler="icpc"
 #host_compiler="/usr/local/gcc/4.8.3/bin/g++"
 #host_compiler="/usr/local/gcc/4.9.1/bin/g++"
@@ -58,7 +65,7 @@ object_files_xlinker=""
 shared_versioned_libraries_host=""
 shared_versioned_libraries=""
 
-# Does the User set the architecture 
+# Does the User set the architecture
 arch_set=0
 
 # Does the user overwrite the host compiler
@@ -77,7 +84,7 @@ host_only_args=""
 # Just run version on host compiler
 get_host_version=0
 
-# Enable workaround for CUDA 6.5 for pragma ident 
+# Enable workaround for CUDA 6.5 for pragma ident
 replace_pragma_ident=0
 
 # Mark first host compiler argument
@@ -179,7 +186,7 @@ do
     shift
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage|-Xptxas*|--fmad*)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad*|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
@@ -187,7 +194,7 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -rdc|-maxrregcount|--default-stream|-Xnvlink|--fmad)
+  -rdc|-maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
@@ -195,11 +202,11 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle unsupported standard flags
-  --std=c++1y|-std=c++1y|--std=c++1z|-std=c++1z|--std=gnu++1y|-std=gnu++1y|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a|--std=c++17|-std=c++17)
+  --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
     fallback_std_flag="-std=c++14"
     # this is hopefully just occurring in a downstream project during CMake feature tests
     # we really have no choice here but to accept the flag and change  to an accepted C++ standard
-    echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+    echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++17 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
     if [ -n "$std_flag" ]; then
        warn_std_flag
        shared_args=${shared_args/ $std_flag/}
@@ -216,7 +223,25 @@ do
     fi
     std_flag=$corrected_std_flag
     shared_args="$shared_args $std_flag"
-  ;;
+    ;;
+  --std=c++17|-std=c++17)
+    if [ -n "$std_flag" ]; then
+      warn_std_flag
+      shared_args=${shared_args/ $std_flag/}
+    fi
+    # NVCC only has C++17 from version 11 on
+    cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
+    if [ ${cuda_main_version} -lt 11 ]; then
+      fallback_std_flag="-std=c++14"
+      # this is hopefully just occurring in a downstream project during CMake feature tests
+      # we really have no choice here but to accept the flag and change  to an accepted C++ standard
+      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+      std_flag=$fallback_std_flag
+    else
+      std_flag=$1
+    fi
+    shared_args="$shared_args $std_flag"
+    ;;
   --std=c++11|-std=c++11|--std=c++14|-std=c++14)
     if [ -n "$std_flag" ]; then
        warn_std_flag
@@ -224,6 +249,20 @@ do
     fi
     std_flag=$1
     shared_args="$shared_args $std_flag"
+    ;;
+
+  #convert PGI standard flags to something nvcc can handle
+  --c++11|--c++14|--c++17)
+    if [ -n "$std_flag" ]; then
+       warn_std_flag
+       shared_args=${shared_args/ $std_flag/}
+    fi
+    std_flag="-std=${1#--}"
+    shared_args="$shared_args $std_flag"
+    ;;
+
+  #ignore PGI forcing ISO C++-conforming code
+  -A)
     ;;
 
   #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
@@ -237,13 +276,17 @@ do
     ;;
   #strip -Xcompiler because we add it
   -Xcompiler)
-    if [ $first_xcompiler_arg -eq 1 ]; then
-      xcompiler_args="$2"
-      first_xcompiler_arg=0
-    else
-      xcompiler_args="$xcompiler_args,$2"
+    if [[ $2 != "-o" ]]; then
+      if [ $first_xcompiler_arg -eq 1 ]; then
+        xcompiler_args="$2"
+        first_xcompiler_arg=0
+      else
+        xcompiler_args="$xcompiler_args,$2"
+      fi
+      shift
     fi
-    shift
+    # else this we have -Xcompiler -o <filename>, in this case just drop -Xcompiler and process
+    # the -o flag with the filename (done above)
     ;;
   #strip of "-x cu" because we add that
   -x)
@@ -329,7 +372,7 @@ do
     if [ $first_xcompiler_arg -eq 1 ]; then
       xcompiler_args=$1
       first_xcompiler_arg=0
-    else 
+    else
       xcompiler_args="$xcompiler_args,$1"
     fi
     ;;
@@ -387,7 +430,7 @@ if [ $arch_set -ne 1 ]; then
 fi
 
 #Compose compilation command
-nvcc_command="nvcc $cuda_args $shared_args $xlinker_args $shared_versioned_libraries"
+nvcc_command="$nvcc_compiler $cuda_args $shared_args $xlinker_args $shared_versioned_libraries"
 if [ $first_xcompiler_arg -eq 0 ]; then
   nvcc_command="$nvcc_command -Xcompiler $xcompiler_args"
 fi

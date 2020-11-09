@@ -240,19 +240,19 @@ int cvm::atom_group::init_dependencies() {
     }
 
     init_feature(f_ag_active, "active", f_type_dynamic);
-    init_feature(f_ag_center, "translational fit", f_type_static);
-    init_feature(f_ag_rotate, "rotational fit", f_type_static);
-    init_feature(f_ag_fitting_group, "fitting group", f_type_static);
-    init_feature(f_ag_explicit_gradient, "explicit atom gradient", f_type_dynamic);
-    init_feature(f_ag_fit_gradients, "fit gradients", f_type_user);
+    init_feature(f_ag_center, "translational_fit", f_type_static);
+    init_feature(f_ag_rotate, "rotational_fit", f_type_static);
+    init_feature(f_ag_fitting_group, "fitting_group", f_type_static);
+    init_feature(f_ag_explicit_gradient, "explicit_atom_gradient", f_type_dynamic);
+    init_feature(f_ag_fit_gradients, "fit_gradients", f_type_user);
     require_feature_self(f_ag_fit_gradients, f_ag_explicit_gradient);
 
-    init_feature(f_ag_atom_forces, "atomic forces", f_type_dynamic);
+    init_feature(f_ag_atom_forces, "atomic_forces", f_type_dynamic);
 
     // parallel calculation implies that we have at least a scalable center of mass,
     // but f_ag_scalable is kept as a separate feature to deal with future dependencies
-    init_feature(f_ag_scalable, "scalable group calculation", f_type_static);
-    init_feature(f_ag_scalable_com, "scalable group center of mass calculation", f_type_static);
+    init_feature(f_ag_scalable, "scalable_group", f_type_static);
+    init_feature(f_ag_scalable_com, "scalable_group_center_of_mass", f_type_static);
     require_feature_self(f_ag_scalable, f_ag_scalable_com);
 
     // check that everything is initialized

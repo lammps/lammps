@@ -93,7 +93,8 @@ The use of the *fix* keyword is discussed below.
 
 ----------
 
-**Reading multiple data files**
+Reading multiple data files
+"""""""""""""""""""""""""""
 
 The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
@@ -215,7 +216,8 @@ files you read.
 
 ----------
 
-**Format of a data file**
+Format of a data file
+"""""""""""""""""""""
 
 The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
@@ -260,7 +262,8 @@ the 2 words in "Bond Coeffs", is not valid.
 
 ----------
 
-**Format of the header of a data file**
+Format of the header of a data file
+"""""""""""""""""""""""""""""""""""
 
 These are the recognized header keywords.  Header lines can come in
 any order.  The value(s) are read from the beginning of the line.
@@ -432,7 +435,8 @@ are point particles.  See the discussion of ellipsoidflag and the
 
 ----------
 
-**Format of the body of a data file**
+Format of the body of a data file
+"""""""""""""""""""""""""""""""""
 
 These are the section keywords for the body of the file.
 
@@ -530,7 +534,7 @@ input script.
 
        ID = number of angle (1-Nangles)
        type = angle type (1-Nangletype)
-       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
+       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
 
@@ -614,7 +618,7 @@ of analysis.
    * - tdpd
      - atom-ID atom-type x y z cc1 cc2 ... ccNspecies
    * - template
-     - atom-ID molecule-ID template-index template-atom atom-type x y z
+     - atom-ID atom-type molecule-ID template-index template-atom x y z
    * - tri
      - atom-ID molecule-ID atom-type triangleflag density x y z
    * - wavepacket
@@ -673,7 +677,7 @@ not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
 
-The molecule ID is a 2nd identifier attached to an atom.  Normally, it
+The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is a non-bonded atom or if you don't care to
 keep track of molecule assignments.
@@ -691,9 +695,9 @@ triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
 The *template-index* and *template-atom* are only defined used by
 :doc:`atom_style template <atom_style>`.  In this case the
 :doc:`molecule <molecule>` command is used to define a molecule template
-which contains one or more molecules.  If an atom belongs to one of
-those molecules, its *template-index* and *template-atom* are both set
-to positive integers; if not the values are both 0.  The
+which contains one or more molecules (as separate files).  If an atom
+belongs to one of those molecules, its *template-index* and *template-atom*
+are both set to positive integers; if not the values are both 0.  The
 *template-index* is which molecule (1 to Nmols) the atom belongs to.
 The *template-atom* is which atom (1 to Natoms) within the molecule
 the atom is.
@@ -928,7 +932,7 @@ script.
 
        ID = bond number (1-Nbonds)
        type = bond type (1-Nbondtype)
-       atom1,atom2 = IDs of 1st,2nd atoms in bond
+       atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
 
@@ -974,7 +978,7 @@ Coefficients can also be set via the
 
        ID = number of dihedral (1-Ndihedrals)
        type = dihedral type (1-Ndihedraltype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
 
@@ -1075,7 +1079,7 @@ Coefficients can also be set via the
 
        ID = number of improper (1-Nimpropers)
        type = improper type (1-Nimpropertype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:
 

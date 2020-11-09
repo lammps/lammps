@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,7 +46,7 @@ PairLJClass2Kokkos<DeviceType>::PairLJClass2Kokkos(LAMMPS *lmp) : PairLJClass2(l
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ PairLJClass2Kokkos<DeviceType>::~PairLJClass2Kokkos()
   if (allocated) {
     k_cutsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    cutsq = NULL;
+    cutsq = nullptr;
   }
 }
 
@@ -67,9 +67,9 @@ template<class DeviceType>
 void PairLJClass2Kokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -282,7 +282,7 @@ double PairLJClass2Kokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJClass2Kokkos<LMPHostType>;
 #endif
 }

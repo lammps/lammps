@@ -225,7 +225,8 @@ line or triangle particles with the insertion region.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  This means you must be careful when restarting a
 pouring simulation, when the restart file was written in the middle of

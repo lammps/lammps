@@ -52,7 +52,7 @@ class Bond : protected Pointers {
   virtual void write_data(FILE *) {}
   virtual double single(int, double, int, int, double &) = 0;
   virtual double memory_usage();
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void reinit();
 
   void write_file(int, char**);

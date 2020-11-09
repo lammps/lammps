@@ -79,9 +79,9 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *aoff*\ , *doff*\ , *ioff* keywords add the
-specified offset values to the atom types, bond types, angle types,
-dihedral types, and/or improper types as they are read from the
+The *offset*\ , *toff*\ , *boff*\ , *aoff*\ , *doff*\ , *ioff* keywords
+add the specified offset values to the atom types, bond types, angle
+types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
 1,2,3, then each created molecule will have atom types 3,4,5.  For the
 *offset* keyword, all five offset values must be specified, but
@@ -458,7 +458,7 @@ If flag = 0, no a,b,c values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
+the second non-central atom (value c in the Shake Atoms section), and c =
 the angle type (1 to Nangletypes) of the angle between the 3 atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
@@ -467,13 +467,13 @@ the 2 atoms in the cluster.
 If flag = 3, a,b are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), and b = bondtype of the bond between the central atom
-and the 2nd non-central atom (value c in the Shake Atoms section).
+and the second non-central atom (value c in the Shake Atoms section).
 
 If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
-bondtype of the bond between the central atom and the 3rd non-central
+the second non-central atom (value c in the Shake Atoms section), and c =
+bondtype of the bond between the central atom and the third non-central
 atom (value d in the Shake Atoms section).
 
 See the :doc:`fix shake <fix_shake>` doc page for a further description
@@ -484,9 +484,7 @@ of SHAKE clusters.
 Restrictions
 """"""""""""
 
-This command must come after the simulation box is define by a
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
-:doc:`create_box <create_box>` command.
+None
 
 Related commands
 """"""""""""""""

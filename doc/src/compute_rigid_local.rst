@@ -150,7 +150,8 @@ LAMMPS.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of keywords.  The length of the vector or number of rows in the
@@ -187,4 +188,7 @@ Related commands
 
 :doc:`dump local <dump>`, :doc:`compute reduce <compute_reduce>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1186,10 +1186,10 @@ class lammps(object):
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
-    if type == 0:
+    if type == LAMMPS_INT:
       data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
-    elif type == 1:
+    elif type == LAMMPS_DOUBLE:
       data = ((count*natoms)*c_double)()
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
     else: return None

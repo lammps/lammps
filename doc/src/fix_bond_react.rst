@@ -506,8 +506,8 @@ intermolecular, intramolecular or either. When the value is set to
 'off', molecule IDs are not considered when searching for reactions
 (default). When the value is set to 'inter', the bonding atoms must
 have different molecule IDs in order to be considered for the
-reaction. When the value is set to 'intra', only atoms with the same
-molecule ID are considered for the reaction.
+reaction. When the value is set to 'intra', only bonding atoms with
+the same molecule ID are considered for the reaction.
 
 A few other considerations:
 

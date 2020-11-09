@@ -459,6 +459,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  for (int i = 0; i < nreacts; i++) {
+    if (closeneigh[i] == -1) { // indicates will search non-bonded neighbors
+      if (cutsq[i][1] > neighbor->cutneighsq[iatomtype[i]][jatomtype[i]]) {
+        error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
+      }
+    }
+  }
+
   // initialize Marsaglia RNG with processor-unique seed ('prob' keyword)
 
   random = new class RanMars*[nreacts];
@@ -749,12 +757,6 @@ void FixBondReact::init()
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  // check cutoff for iatomtype,jatomtype
-  for (int i = 0; i < nreacts; i++) {
-    if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
-      error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
-  }
 
   // need a half neighbor list, built every Nevery steps
   int irequest = neighbor->request(this,instance_me);

@@ -571,24 +571,6 @@ double lammps_get_natoms(void *handle)
   return natoms;
 }
 
-/* ----------------------------------------------------------------------
-   return the total number of bonds in the system
-   useful before call to lammps_get_bonds() so can pre-allocate vector
-------------------------------------------------------------------------- */
-
-int lammps_get_nbonds(void *handle)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-
-  int nbonds = static_cast<int>(lmp->atom->nbonds);
-  if (nbonds > 9.0e15) return 0; // TODO:XXX why not -1?
-  if (!lmp->force->newton_bond) nbonds *= 2;
-  
-  printf ("nbonds from c: %i\n", nbonds);
-  
-  return nbonds;
-}
-
 /* ---------------------------------------------------------------------- */
 
 /** Get current value of a thermo keyword.
@@ -2614,7 +2596,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
    return atom-based values in 1d data, ordered by atom ID
      e.g. b[0],b[1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
      data must be pre-allocated by caller to correct length
-     correct length = Nbonds, as queried by get_nbonds()
+     correct length = Nbonds
    method:
      alloc and zero Nbond length vector
      loop over Nlocal to fill vector with my values

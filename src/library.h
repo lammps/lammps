@@ -112,7 +112,6 @@ void  lammps_commands_string(void *handle, const char *str);
  * ----------------------------------------------------------------------- */
 
 double lammps_get_natoms(void *handle);
-int lammps_get_nbonds(void *handle);
 double lammps_get_thermo(void *handle, const char *keyword);
 
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi,

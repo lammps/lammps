@@ -325,7 +325,7 @@ def get_canonical_logw(enefn, frametuple_dict, temps, nprod, writefreq,
               pip install --user pymbar
               sudo pip install pymbar
 
-              To install the dev. version directly from github, use:
+              To install the dev. version directly from use:
               pip install pip install git+https://github.com/choderalab/pymbar.git
               """)
 

@@ -66,6 +66,7 @@
 #include "input.h"
 #include "modify.h"
 #include "update.h"
+#include "fmt/format.h"
 
 #include <cstring>
 #include <vector>
@@ -88,6 +89,7 @@ void KimInteractions::command(int narg, char **arg)
   if (!domain->box_exist)
     error->all(FLERR,"Must use 'kim_interactions' command after "
                      "simulation box is defined");
+
   do_setup(narg,arg);
 }
 
@@ -126,7 +128,6 @@ void KimInteractions::do_setup(int narg, char **arg)
   input->write_echo("#=== BEGIN kim_interactions ==================================\n");
 
   if (simulatorModel) {
-
     if (!fixed_types) {
       std::string delimiter("");
       std::string atom_type_sym_list;
@@ -139,9 +140,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       }
 
       KIM_SimulatorModel_AddTemplateMap(
-          simulatorModel,"atom-type-sym-list",atom_type_sym_list.c_str());
+          simulatorModel, "atom-type-sym-list", atom_type_sym_list.c_str());
       KIM_SimulatorModel_AddTemplateMap(
-          simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
+          simulatorModel, "atom-type-num-list", atom_type_num_list.c_str());
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
 
       // validate species selection
@@ -155,8 +156,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       for (auto atom_type_sym : utils::split_words(atom_type_sym_list)) {
         species_is_supported = false;
         if (atom_type_sym == "NULL") continue;
-        for (int i=0; i < sim_num_species; ++i) {
-          KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
+        for (int i = 0; i < sim_num_species; ++i) {
+          KIM_SimulatorModel_GetSupportedSpecies(
+            simulatorModel, i, &sim_species);
           if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
@@ -173,29 +175,37 @@ void KimInteractions::do_setup(int narg, char **arg)
     int sim_fields, sim_lines;
     const char *sim_field, *sim_value;
     KIM_SimulatorModel_GetNumberOfSimulatorFields(simulatorModel, &sim_fields);
-    for (int i=0; i < sim_fields; ++i) {
+    for (int i = 0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
-          simulatorModel,i,&sim_lines,&sim_field);
+          simulatorModel, i, &sim_lines, &sim_field);
 
-      if (0 == strcmp(sim_field,"units")) {
-        KIM_SimulatorModel_GetSimulatorFieldLine(simulatorModel,i,0,&sim_value);
-        if (0 != strcmp(sim_value,update->unit_style))
+      if (strcmp(sim_field,"units") == 0) {
+        KIM_SimulatorModel_GetSimulatorFieldLine(
+          simulatorModel, i, 0, &sim_value);
+        if (strcmp(sim_value,update->unit_style) != 0)
           error->all(FLERR,"Incompatible units for KIM Simulator Model");
       }
     }
 
     int sim_model_idx=-1;
-    for (int i=0; i < sim_fields; ++i) {
+    for (int i = 0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel,i,&sim_lines,&sim_field);
-      if (0 == strcmp(sim_field,"model-defn")) {
-	if (domain->periodicity[0]&&domain->periodicity[1]&&domain->periodicity[2]) input->one("variable kim_periodic equal 1");
-	else if (domain->periodicity[0]&&domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 2");
-	else input->one("variable kim_periodic equal 0");
-        sim_model_idx = i;
-        for (int j=0; j < sim_lines; ++j) {
+      if (strcmp(sim_field,"model-defn") == 0) {
+        if (domain->periodicity[0]&&
+            domain->periodicity[1]&&
+            domain->periodicity[2]) 
+          input->one("variable kim_periodic equal 1");
+        else if (domain->periodicity[0]&&
+                 domain->periodicity[1]&&
+                 !domain->periodicity[2]) 
+          input->one("variable kim_periodic equal 2");
+        else input->one("variable kim_periodic equal 0");
+          sim_model_idx = i;
+
+        for (int j = 0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
-            simulatorModel,sim_model_idx,j,&sim_value);
+            simulatorModel, sim_model_idx, j, &sim_value);
           if (utils::strmatch(sim_value,"^KIM_SET_TYPE_PARAMETERS")) {
             // Notes regarding the KIM_SET_TYPE_PARAMETERS command
             //  * This is an INTERNAL command.
@@ -235,7 +245,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     cmd1 += model_name;
 
     std::string cmd2("pair_coeff * * ");
-    for (int i=0; i < narg; ++i) {
+    for (int i = 0; i < narg; ++i) {
       cmd2 += arg[i];
       cmd2 += " ";
     }
@@ -258,7 +268,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   if (key != "pair" && key != "charge")
     error->one(FLERR,fmt::format("Unrecognized KEY {} for "
                                  "KIM_SET_TYPE_PARAMETERS command", key));
-  
+
   std::string filename = words[2];
   std::vector<std::string> species(words.begin()+3,words.end());
   if ((int)species.size() != atom->ntypes)

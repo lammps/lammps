@@ -708,21 +708,6 @@ class lammps(object):
     return int(self.lib.lammps_get_natoms(self.lmp))
 
   # -------------------------------------------------------------------------
-  
-  # -------------------------------------------------------------------------
-
-  def get_nbonds(self):
-    """Get the total number of bonds in the LAMMPS instance.
-
-    Will be precise up to 53-bit signed integer due to the
-    underlying :cpp:func:`lammps_get_nbonds` function returning a double.
-
-    :return: number of bonds
-    :rtype: int
-    """
-    return int(self.lib.lammps_get_nbonds(self.lmp))
-    
-  # -------------------------------------------------------------------------
 
   def extract_box(self):
     """Extract simulation box parameters
@@ -1464,7 +1449,7 @@ class lammps(object):
   # count should be 3
 
   def gather_bonds(self):
-    nbonds = self.get_nbonds()
+    nbonds = int(self.get_thermo('bonds'))
     data = ((3*nbonds)*c_int)()
     self.lib.lammps_gather_bonds(self.lmp,data)
     return data  

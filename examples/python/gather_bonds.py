@@ -7,11 +7,11 @@ lmp.command('atom_style full')
 lmp.command('read_data data.spce')
 
 natoms = lmp.get_natoms()
-nbonds = lmp.get_thermo('bonds')
+nbonds = int(lmp.get_thermo('bonds'))
 print("atom count: ", natoms)
 print("bond count: ", nbonds)
 
-#bonds = np.array(lmp.gather_bonds(), dtype=ct.c_int).reshape(nbonds, 3)
+bonds = np.array(lmp.gather_bonds(), dtype=ct.c_int).reshape(nbonds, 3)
 
-#print("bond list (type,id1,id2): ")
-#print(bonds)
+print("bond list (type,id1,id2): ")
+print(bonds)

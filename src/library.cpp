@@ -2615,10 +2615,14 @@ void lammps_gather_bonds(void *handle, void *data)
 #else
     int i,j;
 
+
+
     // error if tags are not defined or not consecutive
     // NOTE: test that name = image or ids is not a 64-bit int in code?
-
+    // eror if no bonds are possible due to atom_style
+    
     int flag = 0;
+    if (lmp->atom->molecular != Atom::MOLECULAR) flag = 1;
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;

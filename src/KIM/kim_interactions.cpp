@@ -129,14 +129,13 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   if (simulatorModel) {
     if (!fixed_types) {
-      std::string delimiter("");
-      std::string atom_type_sym_list;
-      std::string atom_type_num_list;
+      std::string atom_type_sym_list(arg[0]);
+      std::string atom_type_num_list = 
+        fmt::format("{}", species_to_atomic_no(arg[0]));
 
-      for (int i = 0; i < narg; i++) {
-        atom_type_sym_list += delimiter + arg[i];
-        atom_type_num_list += delimiter + std::to_string(species_to_atomic_no(arg[i]));
-        delimiter = " ";
+      for (int i = 1; i < narg; ++i) {
+        atom_type_sym_list += fmt::format(" {}", arg[i]);
+        atom_type_num_list += fmt::format(" {}", species_to_atomic_no(arg[i]));
       }
 
       KIM_SimulatorModel_AddTemplateMap(

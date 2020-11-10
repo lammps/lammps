@@ -31,6 +31,21 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   bins = nullptr;
   atom2bin = nullptr;
 
+  nbinx_tiered = nullptr; nbiny_tiered = nullptr; nbinz_tiered = nullptr;
+  mbins_tiered = nullptr;
+  mbinx_tiered = nullptr; mbiny_tiered = nullptr, mbinz_tiered = nullptr;
+  mbinxlo_tiered = nullptr;
+  mbinylo_tiered = nullptr;
+  mbinzlo_tiered = nullptr;
+  binsizex_tiered = nullptr; binsizey_tiered = nullptr; binsizez_tiered = nullptr;
+  bininvx_tiered = nullptr; bininvy_tiered = nullptr; bininvz_tiered = nullptr;
+  binhead_tiered = nullptr;
+  bins_tiered = nullptr;
+  atom2bin_tiered = nullptr;
+  maxbins_tiered = nullptr;
+
+  maxtypes = 0;
+
   neighbor->last_setup_bins = -1;
 
   // geometry settings
@@ -48,6 +63,37 @@ NBin::~NBin()
   memory->destroy(binhead);
   memory->destroy(bins);
   memory->destroy(atom2bin);
+  
+  if (!bins_tiered) return;
+  
+  memory->destroy(nbinx_tiered);
+  memory->destroy(nbiny_tiered);
+  memory->destroy(nbinz_tiered);
+  memory->destroy(mbins_tiered);
+  memory->destroy(mbinx_tiered);
+  memory->destroy(mbiny_tiered);
+  memory->destroy(mbinz_tiered);
+  memory->destroy(mbinxlo_tiered);
+  memory->destroy(mbinylo_tiered);
+  memory->destroy(mbinzlo_tiered);
+
+  memory->destroy(binsizex_tiered);
+  memory->destroy(binsizey_tiered);
+  memory->destroy(binsizez_tiered);
+  memory->destroy(bininvx_tiered);
+  memory->destroy(bininvy_tiered);
+  memory->destroy(bininvz_tiered);
+
+  for (int n = 1; n <= maxtypes; n++) {
+    memory->destroy(binhead_tiered[n]);
+    memory->destroy(bins_tiered[n]);
+    memory->destroy(atom2bin_tiered[n]);
+  }
+  delete [] binhead_tiered;
+  delete [] bins_tiered;
+  delete [] atom2bin_tiered;
+
+  memory->destroy(maxbins_tiered);  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,96 +122,4 @@ void NBin::copy_neighbor_info()
   // only works for style = BIN (checked by Neighbor class)
 
   if (cutoff_custom > 0.0) cutneighmax = cutoff_custom;
-}
-
-/* ----------------------------------------------------------------------
-   setup for bin_atoms()
-------------------------------------------------------------------------- */
-
-void NBin::bin_atoms_setup(int nall)
-{
-  // binhead = per-bin vector, mbins in length
-  // add 1 bin for USER-INTEL package
-
-  if (mbins > maxbin) {
-    maxbin = mbins;
-    memory->destroy(binhead);
-    memory->create(binhead,maxbin,"neigh:binhead");
-  }
-
-  // bins and atom2bin = per-atom vectors
-  // for both local and ghost atoms
-
-  if (nall > maxatom) {
-    maxatom = nall;
-    memory->destroy(bins);
-    memory->create(bins,maxatom,"neigh:bins");
-    memory->destroy(atom2bin);
-    memory->create(atom2bin,maxatom,"neigh:atom2bin");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   convert atom coords into local bin #
-   for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are in correct bins even w/ roundoff
-     hi ghost atoms = nbin,nbin+1,etc
-     owned atoms = 0 to nbin-1
-     lo ghost atoms = -1,-2,etc
-     this is necessary so that both procs on either side of PBC
-       treat a pair of atoms straddling the PBC in a consistent way
-   for triclinic, doesn't matter since stencil & neigh list built differently
-------------------------------------------------------------------------- */
-
-int NBin::coord2bin(double *x)
-{
-  int ix,iy,iz;
-
-  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
-
-  if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
-  else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
-    ix = MIN(ix,nbinx-1);
-  } else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - 1;
-
-  if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny;
-  else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
-    iy = MIN(iy,nbiny-1);
-  } else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - 1;
-
-  if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz;
-  else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
-    iz = MIN(iz,nbinz-1);
-  } else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
-
-  return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
-}
-/* ----------------------------------------------------------------------
-   to be overridden by NBinType
-   ------------------------------------------------------------------------- */
-
-int NBin::coord2bin(double * x, int itype)
-{
-  error->all(FLERR,"coord2bin(x, itype) not available.\n");
-  return -1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double NBin::memory_usage()
-{
-  double bytes = 0;
-  bytes += maxbin*sizeof(int);
-  bytes += 2*maxatom*sizeof(int);
-  return bytes;
 }

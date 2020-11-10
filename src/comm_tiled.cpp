@@ -176,8 +176,8 @@ void CommTiled::setup()
 
   if (mode == Comm::MULTI) {
     double cut;
-    if (multi_tiered) {
-      // If using tiered binlists, use the itype-itype interaction distance for communication
+    if (multi2) {
+      // If using multi2 binlists, use the itype-itype interaction distance for communication
       double **cutneighsq = neighbor->cutneighsq;
        for (i = 1; i <= ntypes; i++) {
         cut = 0.0;

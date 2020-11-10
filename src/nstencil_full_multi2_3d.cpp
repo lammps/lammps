@@ -46,23 +46,9 @@ NStencilFullBytype3d::~NStencilFullBytype3d() {
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void NStencilFullBytype3d::copy_bin_info_bytype(int itype) {
-
-  mbinx = nb->mbinx_type[itype];
-  mbiny = nb->mbiny_type[itype];
-  mbinz = nb->mbinz_type[itype];
-  binsizex = nb->binsizex_type[itype];
-  binsizey = nb->binsizey_type[itype];
-  binsizez = nb->binsizez_type[itype];
-  bininvx = nb->bininvx_type[itype];
-  bininvy = nb->bininvy_type[itype];
-  bininvz = nb->bininvz_type[itype];
-}
 
 /* ---------------------------------------------------------------------- */
-
+INCORPORTE INTO CREATE THEN DELETE, NOTE NAME OF CUTNEIGHMAX ETC
 int NStencilFullBytype3d::copy_neigh_info_bytype(int itype) {
 
   cutneighmaxsq = neighbor->cutneighsq[itype][itype];
@@ -104,13 +90,13 @@ void NStencilFullBytype3d::create_setup()
 	maxstencil_type[itype][jtype] = 0;
       }
     }
-  }
+  } MOVE TO PARENT CLASS
 
   // like -> like => use standard newtoff stencil at bin 
 
   for (itype = 1; itype <= maxtypes; ++itype) {
     copy_bin_info_bytype(itype);
-    smax = copy_neigh_info_bytype(itype);
+    smax = copy_neigh_info_bytype(itype); uses cutneighsq[itype][itype] to create s's
     if (smax > maxstencil_type[itype][itype]) {
       maxstencil_type[itype][itype] = smax;
       memory->destroy(stencil_type[itype][itype]);
@@ -127,7 +113,7 @@ void NStencilFullBytype3d::create_setup()
   for (itype = 1; itype <= maxtypes; ++itype) {
     for (jtype = 1; jtype <= maxtypes; ++jtype) {
       if (itype == jtype) continue;
-      if (cuttypesq[itype] <= cuttypesq[jtype]) {
+      if (cuttypesq[itype] <= cuttypesq[jtype]) { This does work to say which prticle is smller
 	// Potential destroy/create problem?
 	nstencil_type[itype][jtype] = nstencil_type[jtype][jtype];
 	stencil_type[itype][jtype]  = stencil_type[jtype][jtype];
@@ -136,7 +122,7 @@ void NStencilFullBytype3d::create_setup()
 	copy_bin_info_bytype(jtype);
 	// smax = copy_neigh_info_bytype(jtype);
 
-	cutneighmaxsq = cuttypesq[jtype];
+	cutneighmaxsq = cuttypesq[jtype];  Does it need to be this big? Can't I use cutneighsq[i][j]?
 	cutneighmax   = sqrt(cutneighmaxsq);
 	sx = static_cast<int> (cutneighmax*bininvx);
 	if (sx*binsizex < cutneighmax) sx++;

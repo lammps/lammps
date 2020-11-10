@@ -174,8 +174,8 @@ void CommBrick::setup()
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
 
     if (mode == Comm::MULTI) {
-      if (multi_tiered) {
-        // If using tiered binlists, use the itype-itype interaction distance for communication
+      if (multi2) {
+        // If using multi2 binlists, use the itype-itype interaction distance for communication
         double **cutneighsq = neighbor->cutneighsq;
          for (i = 1; i <= ntypes; i++) {
           cut = 0.0;

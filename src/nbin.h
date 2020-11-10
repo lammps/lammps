@@ -22,6 +22,9 @@ class NBin : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
   bigint last_bin;                 // last timestep atoms were binned
+  double cutoff_custom;        // cutoff set by requestor  
+
+  // Variables for NBinStandard
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int mbins;                       // # of local bins and offset on this proc
@@ -35,35 +38,32 @@ class NBin : protected Pointers {
   int *bins;                   // index of next atom in same bin
   int *atom2bin;               // bin assignment for each atom (local+ghost)
 
-  double cutoff_custom;        // cutoff set by requestor
+  // Analogues for NBinMultimulti2
+  
+  int *nbinx_multi2, *nbiny_multi2, *nbinz_multi2;
+  int *mbins_multi2;
+  int *mbinx_multi2, *mbiny_multi2, *mbinz_multi2;
+  int *mbinxlo_multi2, *mbinylo_multi2, *mbinzlo_multi2;
+  double *binsizex_multi2, *binsizey_multi2, *binsizez_multi2;
+  double *bininvx_multi2, *bininvy_multi2, *bininvz_multi2;
 
-  // Analogues for NBinType
-  int * nbinx_type, * nbiny_type, * nbinz_type;
-  int * mbins_type;
-  int * mbinx_type, * mbiny_type, * mbinz_type;
-  int * mbinxlo_type, * mbinylo_type, * mbinzlo_type;
-  double * binsizex_type, * binsizey_type, * binsizez_type;
-  double * bininvx_type, * bininvy_type, * bininvz_type;
-
-  int ** binhead_type;
-  int ** bins_type;
-  int ** atom2bin_type;
-
+  int **binhead_multi2;
+  int **bins_multi2;
+  int **atom2bin_multi2;
+  
   NBin(class LAMMPS *);
   ~NBin();
   void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
-  virtual void bin_atoms_setup(int);
-  double memory_usage();
 
+  virtual void bin_atoms_setup(int) = 0;
   virtual void setup_bins(int) = 0;
   virtual void bin_atoms() = 0;
+  virtual double memory_usage() {return 0.0;}
 
   // Kokkos package
 
   int kokkos;                       // 1 if class stores Kokkos data
-  // For NBinType
-  virtual int coord2bin(double *, int);
 
  protected:
 
@@ -81,12 +81,23 @@ class NBin : protected Pointers {
   int dimension;
   int triclinic;
 
-  int maxbin;                       // size of binhead array
+  // data for standard NBin
+  
   int maxatom;                      // size of bins array
+
+  // data for standard NBin
+
+  int maxbin;                       // size of binhead array
+
+  // data for multi/multi2 NBin
+
+  int maxtypes;                     // size of multi2 arrays
+  int * maxbins_multi2;             // size of 2nd dimension of binhead_multi2 array
 
   // methods
 
   int coord2bin(double *);
+  int coord2bin(double *, int);  
 };
 
 }

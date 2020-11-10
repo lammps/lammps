@@ -429,17 +429,10 @@ TEST_F(KimCommandsTest, kim_query)
     // lmp->input->one(squery);
     // if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("print \"${latconst_1}\"");
-    // std::string output = ::testing::internal::GetCapturedStdout();
-    // if (!verbose) std::cout << output;
-    // ASSERT_THAT(output, MatchesRegex("print.*3.234055244384789.*"));
-    
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("print \"${latconst_2}\"");
-    // output = ::testing::internal::GetCapturedStdout();
-    // if (!verbose) std::cout << output;
-    // ASSERT_THAT(output, MatchesRegex("print.*5.167650199630013.*"));
+    // EXPECT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) == 
+    //              std::string("3.234055244384789")));
+    // EXPECT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) == 
+    //              std::string("5.167650199630013")));
 
     // if (!verbose) ::testing::internal::CaptureStdout();
     // lmp->input->one("clear");
@@ -450,12 +443,8 @@ TEST_F(KimCommandsTest, kim_query)
     // lmp->input->one(squery);
     // if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("print \"${latconst}\"");
-    // output = ::testing::internal::GetCapturedStdout();
-    // if (!verbose) std::cout << output;
-    // ASSERT_THAT(output, 
-    //     MatchesRegex("print.*3.234055244384789.*5.167650199630013.*"));
+    // EXPECT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) == 
+    //              std::string("3.234055244384789  5.167650199630013")));
 
     // squery = "kim_query latconst list get_lattice_constant_hexagonal ";
     // squery += "crystal=[bcc] species=[Zr] units=[angstrom]";
@@ -471,11 +460,8 @@ TEST_F(KimCommandsTest, kim_query)
     // lmp->input->one(squery);
     // if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("print \"${alpha}\"");
-    // output = ::testing::internal::GetCapturedStdout();
-    // if (!verbose) std::cout << output;
-    // ASSERT_THAT(output, MatchesRegex("print.*1.654960564704273e-05.*"));
+    // EXPECT_TRUE((std::string(lmp->input->variable->retrieve("alpha")) == 
+    //              std::string("1.654960564704273e-05")));
 }
 } // namespace LAMMPS_NS
 

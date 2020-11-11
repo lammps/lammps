@@ -11,9 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include "npair_half_bytype_newton_tri.h"
-#include "neighbor.h"
+#include "npair_half_multi2_newton_tri.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -22,14 +20,11 @@
 #include "my_page.h"
 #include "error.h"
 
-#include "nbin.h"
-#include "nstencil.h"
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBytypeNewtonTri::NPairHalfBytypeNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfMulti2NewtonTri::NPairHalfMulti2NewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    KS REWRTIE
@@ -39,12 +34,13 @@ NPairHalfBytypeNewtonTri::NPairHalfBytypeNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfBytypeNewtonTri::build(NeighList *list)
+void NPairHalfMulti2NewtonTri::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,ktype,ibin,kbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
+  int js;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -83,101 +79,97 @@ void NPairHalfBytypeNewtonTri::build(NeighList *list)
       iatom = molatom[i];
       tagprev = tag[i] - iatom - 1;
     }
-
-    int js;
-    int kbin;
-
+    
     // own type: loop over atoms ahead in bin, including ghosts at end of list
     // if j is owned atom, store by virtue of being ahead of i in list
     // if j is ghost, store if x[j] "above and to right of" x[i]
 
-    ibin = nb->atom2bin_type[itype][i];
+    ibin = atom2bin_multi2[itype][i];
 
-    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
 
       if (itype == ktype) {	
 
-	// loop over all atoms in other bins in stencil, store every pair
-	// skip if i,j neighbor cutoff is less than bin distance
-
-	s = this->ns->stencil_type[itype][itype];
-	ns = this->ns->nstencil_type[itype][itype];
-	for (k = 0; k < ns; k++) {
-	  js = nb->binhead_type[itype][ibin + s[k]];
-	  for (j = js; j >= 0; j = nb->bins_type[itype][j]) {
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
-          }
-        }
-	    jtype = type[j];
-	    if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	    delx = xtmp - x[j][0];
-	    dely = ytmp - x[j][1];
-	    delz = ztmp - x[j][2];
-	    rsq = delx*delx + dely*dely + delz*delz;
-
-	    if (rsq <= cutneighsq[itype][jtype]) {
-	      if (molecular) {
-		if (!moltemplate)
-		  which = find_special(special[i],nspecial[i],tag[j]);
-		else if (imol >= 0)
-		  which = find_special(onemols[imol]->special[iatom],
-				       onemols[imol]->nspecial[iatom],
-				       tag[j]-tagprev);
-		else which = 0;
-		if (which == 0) neighptr[n++] = j;
-		else if (domain->minimum_image_check(delx,dely,delz))
-		  neighptr[n++] = j;
-		else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	      } else neighptr[n++] = j;
+	    // loop over all atoms in other bins in stencil, store every pair
+	    // skip if i,j neighbor cutoff is less than bin distance
+        
+	    s = stencil_multi2[itype][itype];
+	    ns = nstencil_multi2[itype][itype];
+	    for (k = 0; k < ns; k++) {
+	      js = binhead_multi2[itype][ibin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
+            if (x[j][2] < ztmp) continue;
+            if (x[j][2] == ztmp) {
+              if (x[j][1] < ytmp) continue;
+              if (x[j][1] == ytmp) {
+                if (x[j][0] < xtmp) continue;
+                if (x[j][0] == xtmp && j <= i) continue;
+              }
+            }
+	        jtype = type[j];
+	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	        delx = xtmp - x[j][0];
+	        dely = ytmp - x[j][1];
+	        delz = ztmp - x[j][2];
+	        rsq = delx*delx + dely*dely + delz*delz;
+        
+	        if (rsq <= cutneighsq[itype][jtype]) {
+	          if (molecular) {
+	    	    if (!moltemplate)
+	    	      which = find_special(special[i],nspecial[i],tag[j]);
+	    	    else if (imol >= 0)
+	    	      which = find_special(onemols[imol]->special[iatom],
+	    	    		       onemols[imol]->nspecial[iatom],
+	    	    		       tag[j]-tagprev);
+	    	    else which = 0;
+	    	    if (which == 0) neighptr[n++] = j;
+	    	    else if (domain->minimum_image_check(delx,dely,delz))
+	    	      neighptr[n++] = j;
+	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	          } else neighptr[n++] = j;
+	        }
+	      }
 	    }
-	  }
-	}
-
-      }
-      else {
+      } else {
         // smaller -> larger: locate i in the ktype bin structure
 
-	kbin = nb->coord2bin(x[i], ktype);
-	s = this->ns->stencil_type[itype][ktype];
-	ns = this->ns->nstencil_type[itype][ktype];
-
-	for (k = 0; k < ns; k++) {
-	  js = nb->binhead_type[ktype][kbin + s[k]];
-	  for (j = js; j >= 0; j = nb->bins_type[ktype][j]) {
-
-	    jtype = type[j];
-	    if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	    delx = xtmp - x[j][0];
-	    dely = ytmp - x[j][1];
-	    delz = ztmp - x[j][2];
-	    rsq = delx*delx + dely*dely + delz*delz;
-
-	    if (rsq <= cutneighsq[itype][jtype]) {
-	      if (molecular) {
-		if (!moltemplate)
-		  which = find_special(special[i],nspecial[i],tag[j]);
-		else if (imol >= 0)
-		  which = find_special(onemols[imol]->special[iatom],
-				       onemols[imol]->nspecial[iatom],
-				       tag[j]-tagprev);
-		else which = 0;
-		if (which == 0) neighptr[n++] = j;
-		else if (domain->minimum_image_check(delx,dely,delz))
-		  neighptr[n++] = j;
-		else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	      } else neighptr[n++] = j;
+	    kbin = coord2bin(x[i], ktype);
+	    s = stencil_multi2[itype][ktype];
+	    ns = nstencil_multi2[itype][ktype];
+        
+	    for (k = 0; k < ns; k++) {
+	      js = binhead_multi2[ktype][kbin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+        
+	        jtype = type[j];
+	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	        delx = xtmp - x[j][0];
+	        dely = ytmp - x[j][1];
+	        delz = ztmp - x[j][2];
+	        rsq = delx*delx + dely*dely + delz*delz;
+        
+	        if (rsq <= cutneighsq[itype][jtype]) {
+	          if (molecular) {
+	    	    if (!moltemplate)
+	    	      which = find_special(special[i],nspecial[i],tag[j]);
+	    	    else if (imol >= 0)
+	    	      which = find_special(onemols[imol]->special[iatom],
+	    	    		       onemols[imol]->nspecial[iatom],
+	    	    		       tag[j]-tagprev);
+	    	    else which = 0;
+	    	    if (which == 0) neighptr[n++] = j;
+	    	    else if (domain->minimum_image_check(delx,dely,delz))
+	    	      neighptr[n++] = j;
+	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	          } else neighptr[n++] = j;
+	        }
+	      }
 	    }
-	  }
-	}
       }
     }
+    
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

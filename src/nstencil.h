@@ -34,7 +34,9 @@ class NStencil : protected Pointers {
   int *** stencil_multi2;          // list of bin offsets in each multi2 stencil
   int ** maxstencil_multi2;        // max stencil size for each multi2 stencil
   
-  ^do i need a multi 2 analog to distsq_multi?
+  // Note distsq_multi is used in multi to quickly skip bins beyond interaction cutoff
+  // Not quite sure why bins are beyond this distance? Have to think
+  // Probably not needed for multi2 since bins are more efficiently chosen
   
   int sx,sy,sz;                    // extent of stencil in each dim
   int **sx_multi2;                 // analogs for multi tiered

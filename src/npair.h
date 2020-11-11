@@ -79,6 +79,14 @@ class NPair : protected Pointers {
   int *atom2bin,*bins;
   int *binhead;
 
+  int *nbinx_multi2, *nbiny_multi2, *nbinz_multi2;
+  int *mbins_multi2;
+  int *mbinx_multi2, *mbiny_multi2, *mbinz_multi2;
+  int *mbinxlo_multi2, *mbinylo_multi2, *mbinzlo_multi2;
+  double *bininvx_multi2, *bininvy_multi2, *bininvz_multi2;
+  int **binhead_multi2,**bins_multi2;
+  int **atom2bin_multi2;
+
   // data from NStencil class
 
   int nstencil;
@@ -88,6 +96,9 @@ class NPair : protected Pointers {
   int **stencil_multi;
   double **distsq_multi;
 
+  int ** nstencil_multi2;
+  int *** stencil_multi2;
+  
   // data common to all NPair variants
 
   int molecular;
@@ -101,6 +112,9 @@ class NPair : protected Pointers {
                 int, int *, tagint *) const;   // test for pair exclusion
   int coord2bin(double *);                     // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
+
+  int coord2bin(double *, int);                // mapping atom coord to type bin
+
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

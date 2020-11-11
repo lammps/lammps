@@ -134,6 +134,25 @@ void NPair::copy_bin_info()
   atom2bin = nb->atom2bin;
   bins = nb->bins;
   binhead = nb->binhead;
+
+  nbinx_multi2 = nb->nbinx_multi2;
+  nbiny_multi2 = nb->nbiny_multi2;
+  nbinz_multi2 = nb->nbinz_multi2;
+  mbins_multi2 = nb->mbins_multi2;
+  mbinx_multi2 = nb->mbinx_multi2;
+  mbiny_multi2 = nb->mbiny_multi2;
+  mbinz_multi2 = nb->mbinz_multi2;
+  mbinxlo_multi2 = nb->mbinxlo_multi2;
+  mbinylo_multi2 = nb->mbinylo_multi2;
+  mbinzlo_multi2 = nb->mbinzlo_multi2;
+
+  bininvx_multi2 = nb->bininvx_multi2;
+  bininvy_multi2 = nb->bininvy_multi2;
+  bininvz_multi2 = nb->bininvz_multi2;
+
+  atom2bin_multi2 = nb->atom2bin_multi2;
+  bins_multi2 = nb->bins_multi2;
+  binhead_multi2 = nb->binhead_multi2;
 }
 
 /* ----------------------------------------------------------------------
@@ -148,6 +167,9 @@ void NPair::copy_stencil_info()
   nstencil_multi = ns->nstencil_multi;
   stencil_multi = ns->stencil_multi;
   distsq_multi = ns->distsq_multi;
+
+  nstencil_multi2 = ns->nstencil_multi2;
+  stencil_multi2 = ns->stencil_multi2;
 }
 
 /* ----------------------------------------------------------------------
@@ -241,3 +263,46 @@ int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
   return iz*mbiny*mbinx + iy*mbinx + ix;
 }
 
+
+/* ----------------------------------------------------------------------
+   same as coord2bin in NbinMulti2
+------------------------------------------------------------------------- */
+
+int NPair::coord2bin(double *x, int it)
+{
+  int ix,iy,iz;
+  int ibin;
+
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable");
+
+  if (x[0] >= bboxhi[0])
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi2[it]) + nbinx_multi2[it];
+  else if (x[0] >= bboxlo[0]) {
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]);
+    ix = MIN(ix,nbinx_multi2[it]-1);
+  } else
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]) - 1;
+
+  if (x[1] >= bboxhi[1])
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi2[it]) + nbiny_multi2[it];
+  else if (x[1] >= bboxlo[1]) {
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]);
+    iy = MIN(iy,nbiny_multi2[it]-1);
+  } else
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]) - 1;
+
+  if (x[2] >= bboxhi[2])
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi2[it]) + nbinz_multi2[it];
+  else if (x[2] >= bboxlo[2]) {
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]);
+    iz = MIN(iz,nbinz_multi2[it]-1);
+  } else
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]) - 1;
+
+  
+  ibin = (iz-mbinzlo_multi2[it])*mbiny_multi2[it]*mbinx_multi2[it]
+       + (iy-mbinylo_multi2[it])*mbinx_multi2[it]
+       + (ix-mbinxlo_multi2[it]);
+  return ibin;
+}

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_full_bytype.h"
+#include "npair_full_multi2.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -19,28 +19,27 @@
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
-#include "nbin.h"
-#include "nstencil.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairFullBytype::NPairFullBytype(LAMMPS *lmp) : NPair(lmp) {}
+NPairFullMulti2::NPairFullMulti2(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   REWRITE
    binned neighbor list construction for all neighbors
    multi-type stencil is itype dependent and is distance checked
    every neighbor pair appears in list of both atoms i and j
-   KS ADJUST
 ------------------------------------------------------------------------- */
 
-void NPairFullBytype::build(NeighList *list)
+void NPairFullMulti2::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,ktype,ibin,kbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
+  int js;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -84,48 +83,46 @@ void NPairFullBytype::build(NeighList *list)
     // skip if i,j neighbor cutoff is less than bin distance
     // skip i = j
 
-    int kbin;
-    ibin = nb->atom2bin_type[itype][i];
-    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+    ibin = atom2bin_multi2[itype][i];
+    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
       if (itype == ktype) {
-	kbin = ibin;
-      }
-      else {
-	// Locate i in ktype bin
-	kbin = nb->coord2bin(x[i], ktype);
+	    kbin = ibin;
+      } else {
+	    // Locate i in ktype bin
+	    kbin = coord2bin(x[i], ktype);
       }
 
-      s = this->ns->stencil_type[itype][ktype];
-      ns = this->ns->nstencil_type[itype][ktype];
+      s = stencil_multi2[itype][ktype];
+      ns = nstencil_multi2[itype][ktype];
       for (k = 0; k < ns; k++) {
-	int js = this->nb->binhead_type[ktype][kbin + s[k]];
-	for (j = js; j >= 0; j = this->nb->bins_type[ktype][j]) {
-	  if (i == j) continue;
+	    js = binhead_multi2[ktype][kbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+	      if (i == j) continue;
 	  
-      jtype = type[j];
-	  if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          jtype = type[j];
+	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-
-	  if (rsq <= cutneighsq[itype][jtype]) {
-	    if (molecular != Atom::ATOMIC) {
-	      if (!moltemplate)
-		which = find_special(special[i],nspecial[i],tag[j]);
-	      else if (imol >= 0)
-		which = find_special(onemols[imol]->special[iatom],
-				     onemols[imol]->nspecial[iatom],
-				     tag[j]-tagprev);
-	      else which = 0;
-	      if (which == 0) neighptr[n++] = j;
-	      else if (domain->minimum_image_check(delx,dely,delz))
-		neighptr[n++] = j;
-	      else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	    } else neighptr[n++] = j;
-	  }
-	}
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+          
+	      if (rsq <= cutneighsq[itype][jtype]) {
+	        if (molecular != Atom::ATOMIC) {
+	          if (!moltemplate)
+		        which = find_special(special[i],nspecial[i],tag[j]);
+	          else if (imol >= 0)
+		        which = find_special(onemols[imol]->special[iatom],
+		    		     onemols[imol]->nspecial[iatom],
+		    		     tag[j]-tagprev);
+	          else which = 0;
+	          if (which == 0) neighptr[n++] = j;
+	          else if (domain->minimum_image_check(delx,dely,delz))
+		        neighptr[n++] = j;
+	          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	        } else neighptr[n++] = j;
+	      }
+	    }
       }
     }
 

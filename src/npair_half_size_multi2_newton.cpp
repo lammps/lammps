@@ -11,21 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
-#include "npair_half_size_bytype_newton.h"
+#include "npair_half_size_multi2_newton.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "my_page.h"
 #include "error.h"
-#include "nbin.h"
-#include "nstencil.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeBytypeNewton::NPairHalfSizeBytypeNewton(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfSizeMulti2Newton::NPairHalfSizeMulti2Newton(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    KS REWRTIE
@@ -35,9 +32,9 @@ NPairHalfSizeBytypeNewton::NPairHalfSizeBytypeNewton(LAMMPS *lmp) : NPair(lmp) {
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeBytypeNewton::build(NeighList *list)
+void NPairHalfSizeMulti2Newton::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,ns;
+  int i,j,k,n,itype,jtype,ktype,ibin,kbin,ns,js;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -71,110 +68,104 @@ void NPairHalfSizeBytypeNewton::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    int js;
-    int kbin;
-
     // own type: loop over atoms ahead in bin, including ghosts at end of list
     // if j is owned atom, store by virtue of being ahead of i in list
     // if j is ghost, store if x[j] "above and to right of" x[i]
 
-    ibin = nb->atom2bin_type[itype][i];
+    ibin = nb->atom2bin_multi2[itype][i];
 
-    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
 
       if (itype == ktype) {
 
-	// own bin ...
-	js = nb->bins_type[itype][i];
-	for (j = js; j >= 0; j = nb->bins_type[itype][j]) {
-	  if (j >= nlocal) {
-	    if (x[j][2] < ztmp) continue;
-	    if (x[j][2] == ztmp) {
-	      if (x[j][1] < ytmp) continue;
-	      if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	    // own bin ...
+	    js = bins_multi2[itype][i];
+	    for (j = js; j >= 0; j = bins_multi2[itype][j]) {
+	      if (j >= nlocal) {
+	        if (x[j][2] < ztmp) continue;
+	        if (x[j][2] == ztmp) {
+	          if (x[j][1] < ytmp) continue;
+	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	        }
+	      }
+        
+	      jtype = type[j];
+	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
+        
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
+	          neighptr[n++] = j ^ mask_history;
+	        else 
+	          neighptr[n++] = j;
+	      }
 	    }
-	  }
 
-	  jtype = type[j];
-	  if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  radsum = radi + radius[j];
-	  cutdistsq = (radsum+skin) * (radsum+skin);
-
-	  if (rsq <= cutdistsq) {
-	    if (history && rsq < radsum*radsum) 
-	      neighptr[n++] = j ^ mask_history;
-	    else 
-	      neighptr[n++] = j;
-	  }
-	}
-
-	// loop over all atoms in other bins in stencil, store every pair
-	// skip if i,j neighbor cutoff is less than bin distance
-
-	s = this->ns->stencil_type[itype][itype];
-	ns = this->ns->nstencil_type[itype][itype];
-	for (k = 0; k < ns; k++) {
-	  js = nb->binhead_type[itype][ibin + s[k]];
-	  for (j = js; j >= 0; j = nb->bins_type[itype][j]) {
-	    jtype = type[j];
-	    // KS. CHECK ME if (cutsq[jtype] < distsq[k]) continue;
-
-	    if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	    delx = xtmp - x[j][0];
-	    dely = ytmp - x[j][1];
-	    delz = ztmp - x[j][2];
-	    rsq = delx*delx + dely*dely + delz*delz;
-	    radsum = radi + radius[j];
-	    cutdistsq = (radsum+skin) * (radsum+skin);
-
-	    if (rsq <= cutdistsq) {
-	      if (history && rsq < radsum*radsum) 
-		neighptr[n++] = j ^ mask_history;
-	      else
-		neighptr[n++] = j;
+	    // loop over all atoms in other bins in stencil, store every pair
+	    // skip if i,j neighbor cutoff is less than bin distance
+        
+	    s = stencil_multi2[itype][itype];
+	    ns = nstencil_multi2[itype][itype];
+	    for (k = 0; k < ns; k++) {
+	      js = binhead_multi2[itype][ibin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
+	        jtype = type[j];
+        
+	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	        delx = xtmp - x[j][0];
+	        dely = ytmp - x[j][1];
+	        delz = ztmp - x[j][2];
+	        rsq = delx*delx + dely*dely + delz*delz;
+	        radsum = radi + radius[j];
+	        cutdistsq = (radsum+skin) * (radsum+skin);
+        
+	        if (rsq <= cutdistsq) {
+	          if (history && rsq < radsum*radsum) 
+	    	    neighptr[n++] = j ^ mask_history;
+	          else
+	    	    neighptr[n++] = j;
+	        }
+	      }
 	    }
-	  }
-	}
-
-      }
-      else {
-	// KS
+      } else {
         // smaller -> larger: locate i in the ktype bin structure
-	kbin = nb->coord2bin(x[i], ktype);
-
-	s = this->ns->stencil_type[itype][ktype];
-	ns = this->ns->nstencil_type[itype][ktype];
-	for (k = 0; k < ns; k++) {
-	  js = nb->binhead_type[ktype][kbin + s[k]];
-	  for (j = js; j >= 0; j = nb->bins_type[ktype][j]) {
-
-	    jtype = type[j];
-
-	    if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	    delx = xtmp - x[j][0];
-	    dely = ytmp - x[j][1];
-	    delz = ztmp - x[j][2];
-	    rsq = delx*delx + dely*dely + delz*delz;
-	    radsum = radi + radius[j];
-	    cutdistsq = (radsum+skin) * (radsum+skin);
-
-	    if (rsq <= cutdistsq) {
-	      if (history && rsq < radsum*radsum) 
-		neighptr[n++] = j ^ mask_history;
-	      else
-		neighptr[n++] = j;
+	    kbin = coord2bin(x[i], ktype);
+        
+	    s = stencil_multi2[itype][ktype];
+	    ns = nstencil_multi2[itype][ktype];
+	    for (k = 0; k < ns; k++) {
+	      js = binhead_multi2[ktype][kbin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+        
+	        jtype = type[j];
+        
+	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	        delx = xtmp - x[j][0];
+	        dely = ytmp - x[j][1];
+	        delz = ztmp - x[j][2];
+	        rsq = delx*delx + dely*dely + delz*delz;
+	        radsum = radi + radius[j];
+	        cutdistsq = (radsum+skin) * (radsum+skin);
+        
+	        if (rsq <= cutdistsq) {
+	          if (history && rsq < radsum*radsum) 
+	    	    neighptr[n++] = j ^ mask_history;
+	          else
+	    	    neighptr[n++] = j;
+	        }
+	      }
 	    }
-	  }
-	}
       }
     }
+    
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

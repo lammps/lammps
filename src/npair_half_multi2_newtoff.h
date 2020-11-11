@@ -13,23 +13,23 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(full/bytype,
-           NPairFullBytype,
-           NP_FULL | NP_BYTYPE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
+NPairStyle(half/multi2/newtoff,
+           NPairHalfMulti2Newtoff,
+           NP_HALF | NP_MULTI2 | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else
 
-#ifndef LMP_NPAIR_FULL_BYTYPE_H
-#define LMP_NPAIR_FULL_BYTYPE_H
+#ifndef LMP_NPAIR_HALF_MULTI2_NEWTOFF_H
+#define LMP_NPAIR_HALF_MULTI2_NEWTOFF_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairFullBytype : public NPair {
+class NPairHalfMulti2Newtoff : public NPair {
  public:
-  NPairFullBytype(class LAMMPS *);
-  ~NPairFullBytype() {}
+  NPairHalfMulti2Newtoff(class LAMMPS *);
+  ~NPairHalfMulti2Newtoff() {}
   void build(class NeighList *);
 };
 

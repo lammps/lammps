@@ -13,23 +13,23 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(half/multi2/newton/tri,
-           NPairHalfMulti2NewtonTri,
-           NP_HALF | NP_MULTI2 | NP_NEWTON | NP_TRI)
+NPairStyle(full/multi2,
+           NPairFullMulti2,
+           NP_FULL | NP_MULTI2 | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else
 
-#ifndef LMP_NPAIR_HALF_MULTI2_NEWTON_TRI_H
-#define LMP_NPAIR_HALF_MULTI2_NEWTON_TRI_H
+#ifndef LMP_NPAIR_FULL_MULTI2_H
+#define LMP_NPAIR_FULL_MULTI2_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfMulti2NewtonTri : public NPair {
+class NPairFullMulti2 : public NPair {
  public:
-  NPairHalfMulti2NewtonTri(class LAMMPS *);
-  ~NPairHalfMulti2NewtonTri() {}
+  NPairFullMulti2(class LAMMPS *);
+  ~NPairFullMulti2() {}
   void build(class NeighList *);
 };
 
@@ -39,5 +39,9 @@ class NPairHalfMulti2NewtonTri : public NPair {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
 
 */

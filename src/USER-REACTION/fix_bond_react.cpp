@@ -3363,7 +3363,13 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         // locally update mega_glove
         my_mega_glove[preID][iupdate] = atom->tag[n];
 
-        if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+        if (atom->molecule_flag) {
+          if (twomol->moleculeflag) {
+            atom->molecule[n] = maxmol_all + twomol->molecule[m];
+          } else {
+            atom->molecule[n] = maxmol_all + 1;
+          }
+        }
         if (atom->molecular == 2) {
           atom->molindex[n] = 0;
           atom->molatom[n] = m;

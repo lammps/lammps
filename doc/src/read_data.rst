@@ -365,21 +365,33 @@ periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.
 
-If the system is non-periodic (in a dimension), then an image flag has
-no meaning (in that dimension) and can lead to unexpected results for
-computations that internally use unwrapped coordinates (like the center of mass).
-Thus those will be be reset to zero on reading and LAMMPS will print a
-warning, if that happens.  If those atoms with non-zero image flags are
-involved in bonded interactions, this simple reset can lead to errors.
-In those cases it is usually best to write out the unwrapped coordinates
-(e.g. with :doc:`write_dump all custom unwrapped.lammpstrj id xu yu zu <write_dump>`)
-as that preserves the relative proximity of the positions for bonded atoms,
-and then post-process the data by moving entire molecules and also then
-adjust the box geometry as needed without affecting the positions.
-When you have non-zero image flags, changing the box also translates
-atoms, and if a molecule straddles (periodic) box boundaries and thus
-the image flags can be different for atoms in the same molecule, that
-can move bonded atoms far apart.
+If the system is non-periodic (in a dimension), then an image flag for
+that direction has no meaning, since there cannot be periodic images
+without periodicity and the data file is therefore - technically speaking
+- invalid.  This situation would happen when a data file was written
+with periodic boundaries and then read back for non-periodic boundaries.
+Accepting a non-zero image flag can lead to unexpected results for any
+operations and computations in LAMMPS that internally use unwrapped
+coordinates (for example computing the center of mass of a group of
+atoms). Thus all non-zero image flags for non-periodic dimensions will
+be be reset to zero on reading the data file and LAMMPS will print a
+warning message, if that happens.  This is equivalent to wrapping atoms
+individually back into the principal unit cell in that direction.  This
+operation is equivalent to the behavior of the :doc:`change_box command
+<change_box>` when used to change periodicity.
+
+
+If those atoms with non-zero image flags are involved in bonded
+interactions, this reset can lead to undesired changes, when the image
+flag values differ between the atoms, i.e. the bonded interaction
+straddles domain boundaries.  For example a bond can become stretched
+across the unit cell if one of its atoms is wrapped to one side of the
+cell and the second atom to the other. In those cases the data file
+needs to be pre-processed externally to become valid again.  This can be
+done by first unwrapping coordinates and then wrapping entire molecules
+instead of individual atoms back into the principal simulation cell and
+finally expanding the cell dimensions in the non-periodic direction as
+needed, so that the image flag would be zero.
 
 .. note::
 

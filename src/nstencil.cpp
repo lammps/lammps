@@ -53,9 +53,10 @@ using namespace LAMMPS_NS;
      no versions that allow ghost on (any need for it?)
    for multi2:
      create one stencil for each itype-jtype pairing
-     stencils do not generally follow the same rules for half/full or newton on/off
-     full stencils including all surrounding bins are always used except
-     for same-type stencils with newton on which uses a half stencil
+     the full/half stencil label refers to the same-type stencil
+     a half list with newton on has a half same-type stencil
+     a full list or half list with newton of has a full same-type stencil
+     cross type stencils are always full to allow small-to-large lookups
      for orthogonal boxes, a half stencil includes bins to the "upper right" of central bin 
      for triclinic, a half stencil includes bins in the z (3D) or y (2D) plane of self and above
      cutoff is not cutneighmaxsq, but max cutoff for that atom type

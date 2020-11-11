@@ -74,7 +74,11 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   nstencil_multi = nullptr;
   stencil_multi = nullptr;
   distsq_multi = nullptr;
-  
+ 
+  nstencil_multi2 = nullptr;
+  stencil_multi2 = nullptr;  
+  maxstencil_multi2 = nullptr;
+ 
   stencil_half = nullptr;
   stencil_skip = nullptr;
   stencil_bin_type = nullptr;
@@ -292,7 +296,6 @@ void NStencil::create_setup()
     for (i = 1; i <= n; i++) {
       for (j = 1; j <= n; j++) {
         stencil_skip[i][j] = 1;   
-        maxstencil_multi2[i][j] = 0;
       }
     }
       

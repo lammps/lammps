@@ -684,7 +684,7 @@ void Molecule::coords(char *line)
       if (values.count() != 4) error->one(FLERR,"Invalid Coords section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Coords section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Coords section in molecule file");
       x[iatom][0] = values.next_double();
       x[iatom][1] = values.next_double();
       x[iatom][2] = values.next_double();
@@ -720,7 +720,7 @@ void Molecule::types(char *line)
       if (values.count() != 2) error->one(FLERR,"Invalid Types section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Types section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Types section in molecule file");
       type[iatom] = values.next_int();
       type[iatom] += toffset;
     }
@@ -751,7 +751,7 @@ void Molecule::molecules(char *line)
       if (values.count() != 2) error->one(FLERR,"Invalid Molecules section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Molecules section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Molecules section in molecule file");
       molecule[iatom] = values.next_int();
       // molecule[iatom] += moffset; // placeholder for possible molecule offset
     }
@@ -812,7 +812,7 @@ void Molecule::charges(char *line)
       if ((int)values.count() != 2) error->one(FLERR,"Invalid Charges section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Charges section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Charges section in molecule file");
       q[iatom] = values.next_double();
     }
   } catch (TokenizerException &e) {
@@ -836,7 +836,7 @@ void Molecule::diameters(char *line)
       if (values.count() != 2) error->one(FLERR,"Invalid Diameters section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
       radius[iatom] = values.next_double();
       radius[iatom] *= sizescale;
       radius[iatom] *= 0.5;
@@ -866,7 +866,7 @@ void Molecule::masses(char *line)
       if (values.count() != 2) error->one(FLERR,"Invalid Masses section in molecule file");
 
       int iatom = values.next_int() - 1;
-      if (iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
+      if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Masses section in molecule file");
       rmass[iatom] = values.next_double();
       rmass[iatom] *= sizescale*sizescale*sizescale;
     }

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_full_bytype_3d.h"
+#include "nstencil_full_multi2_3d.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "nbin.h"
@@ -23,164 +23,79 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilFullBytype3d::NStencilFullBytype3d(LAMMPS *lmp) :
-  NStencil(lmp)
+NStencilFullMulti23d::NStencilFullMulti23d(LAMMPS *lmp) : NStencil(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+void NStencilFullMulti23d::set_stencil_properties()
 {
-  maxstencil_type = NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-NStencilFullBytype3d::~NStencilFullBytype3d() {
-
-  if (maxstencil_type) {
-    memory->destroy(nstencil_type);
-    for (int i = 1; i <= atom->ntypes; i++) {
-      for (int j = 0; j <= atom->ntypes; j++) {
-	if (maxstencil_type[i][j] > 0) memory->destroy(stencil_type[i][j]);
-      }
-      delete [] stencil_type[i];
-    }
-    delete [] stencil_type;
-    memory->destroy(maxstencil_type);
-  }
-}
-
-
-/* ---------------------------------------------------------------------- */
-INCORPORTE INTO CREATE THEN DELETE, NOTE NAME OF CUTNEIGHMAX ETC
-int NStencilFullBytype3d::copy_neigh_info_bytype(int itype) {
-
-  cutneighmaxsq = neighbor->cutneighsq[itype][itype];
-  cutneighmax   = sqrt(cutneighmaxsq);
-  cuttypesq     = neighbor->cuttypesq;
-
-  // sx,sy,sz = max range of stencil in each dim
-  // smax = max possible size of entire 3d stencil
-  // stencil will be empty if cutneighmax = 0.0
-
-  sx = static_cast<int> (cutneighmax*bininvx);
-  if (sx*binsizex < cutneighmax) sx++;
-  sy = static_cast<int> (cutneighmax*bininvy);
-  if (sy*binsizey < cutneighmax) sy++;
-  sz = static_cast<int> (cutneighmax*bininvz);
-  if (sz*binsizez < cutneighmax) sz++;
-
-  return ((2*sx+1) * (2*sy+1) * (2*sz+1));
-}
-
-/* ---------------------------------------------------------------------- */
-
-void NStencilFullBytype3d::create_setup()
-{
-
-  int itype, jtype;
-  int maxtypes;
-  int smax;
-
-  maxtypes = atom->ntypes;
-
-  if (maxstencil_type == NULL) {
-    memory->create(maxstencil_type, maxtypes+1, maxtypes+1, "BAD A");
-    memory->create(nstencil_type, maxtypes+1, maxtypes+1, "BAD B");
-    stencil_type = new int**[maxtypes+1]();
-    for (itype = 1; itype <= maxtypes; ++itype) {
-      stencil_type[itype] = new int*[maxtypes+1]();
-      for (jtype = 1; jtype <= maxtypes; ++jtype) {
-	maxstencil_type[itype][jtype] = 0;
-      }
-    }
-  } MOVE TO PARENT CLASS
-
-  // like -> like => use standard newtoff stencil at bin 
-
-  for (itype = 1; itype <= maxtypes; ++itype) {
-    copy_bin_info_bytype(itype);
-    smax = copy_neigh_info_bytype(itype); uses cutneighsq[itype][itype] to create s's
-    if (smax > maxstencil_type[itype][itype]) {
-      maxstencil_type[itype][itype] = smax;
-      memory->destroy(stencil_type[itype][itype]);
-      memory->create(stencil_type[itype][itype], smax,
-		     "NStencilFullBytype::create_steup() stencil");
-    }
-    create_newtoff(itype, itype, cutneighmaxsq);
+  int n = atom->ntypes;
+  int i, j;
+  
+  // like -> like => use half stencil
+  for (i = 1; i <= n; i++) {
+    stencil_half[i][i] = 0;
+    stencil_skip[i][i] = 0;
+    stencil_bin_type[i][i] = i;
+    stencil_cut[i][i] = sqrt(cutneighsq[i][i]);
   }
 
   // smaller -> larger => use existing newtoff stencil in larger bin
   // larger -> smaller => use multi-like stencil for small-large in smaller bin
   // If types are same cutoff, use existing like-like stencil.
 
-  for (itype = 1; itype <= maxtypes; ++itype) {
-    for (jtype = 1; jtype <= maxtypes; ++jtype) {
-      if (itype == jtype) continue;
-      if (cuttypesq[itype] <= cuttypesq[jtype]) { This does work to say which prticle is smller
-	// Potential destroy/create problem?
-	nstencil_type[itype][jtype] = nstencil_type[jtype][jtype];
-	stencil_type[itype][jtype]  = stencil_type[jtype][jtype];
-      }
-      else {
-	copy_bin_info_bytype(jtype);
-	// smax = copy_neigh_info_bytype(jtype);
+  for (i = 1; i <= n; i++) {
+    for (j = 1; j <= n; j++) {
+      if(i == j) continue;
 
-	cutneighmaxsq = cuttypesq[jtype];  Does it need to be this big? Can't I use cutneighsq[i][j]?
-	cutneighmax   = sqrt(cutneighmaxsq);
-	sx = static_cast<int> (cutneighmax*bininvx);
-	if (sx*binsizex < cutneighmax) sx++;
-	sy = static_cast<int> (cutneighmax*bininvy);
-	if (sy*binsizey < cutneighmax) sy++;
-	sz = static_cast<int> (cutneighmax*bininvz);
-	if (sz*binsizez < cutneighmax) sz++;
-
-	smax = (2*sx+1) * (2*sy+1) * (2*sz+1);
-	if (smax > maxstencil_type[itype][jtype]) {
-	  maxstencil_type[itype][jtype] = smax;
-	  memory->destroy(stencil_type[itype][jtype]);
-	  memory->create(stencil_type[itype][jtype], smax, "Bad C");
-	}
-	create_newtoff(itype, jtype, cuttypesq[jtype]);
+      stencil_half[i][j] = 0;
+      stencil_skip[i][j] = 0;
+      stencil_cut[i][j] = sqrt(cutneighsq[i][j]);          
+      
+      if(cuttypesq[i] <= cuttypesq[j]){
+        stencil_bin_type[i][j] = i;
+      } else {
+        stencil_bin_type[i][j] = j;
       }
     }
   }
-
-  //for (itype = 1; itype <= maxtypes; itype++) {
-  //  for (jtype = 1; jtype <= maxtypes; jtype++) {
-  //    printf("i j n %d %d %d\n", itype, jtype, nstencil_type[itype][jtype]);
-  //    printf("i j n %d %d %d\n", itype, jtype, maxstencil_type[itype][jtype]);
-  //  }
-  // }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-void NStencilFullBytype3d::create_newtoff(int itype, int jtype, double cutsq) {
-
-  int i, j, k, ns;
-
-  ns = 0;
-
-  for (k = -sz; k <= sz; k++)
-    for (j = -sy; j <= sy; j++)
-      for (i = -sx; i <= sx; i++)
-	if (bin_distance(i,j,k) < cutsq)
-	  stencil_type[itype][jtype][ns++] = k*mbiny*mbinx + j*mbinx + i;
-
-  nstencil_type[itype][jtype] = ns;
 }
 
 /* ----------------------------------------------------------------------
-   create stencil based on bin geometry and cutoff
+   create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilFullBytype3d::create()
+void NStencilFullMulti23d::create()
 {
-  //int i,j,k;
-
-  //nstencil = 0;
-
-  //for (k = -sz; k <= sz; k++)
-  //  for (j = -sy; j <= sy; j++)
-  //    for (i = -sx; i <= sx; i++)
-  //      if (bin_distance(i,j,k) < cutneighmaxsq)
-  //        stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+  int itype, jtype, i, j, k, ns;
+  int n = atom->ntypes;
+  double cutsq;
+  
+  
+  for (itype = 1; itype <= n; itype++) {
+    for (jtype = 1; jtype <= n; jtype++) {
+      if (stencil_skip[itype][jtype]) continue;
+      
+      ns = 0;
+      
+      sx = sx_multi2[itype][jtype];
+      sy = sy_multi2[itype][jtype];
+      sz = sz_multi2[itype][jtype];
+      
+      mbinx = mbinx_multi2[itype][jtype];
+      mbiny = mbiny_multi2[itype][jtype];
+      mbinz = mbinz_multi2[itype][jtype];
+      
+      cutsq = stencil_cut[itype][jtype];
+      
+      for (k = -sz; k <= sz; k++)
+        for (j = -sy; j <= sy; j++)
+          for (i = -sx; i <= sx; i++)
+	        if (bin_distance(i,j,k) < cutsq)
+	          stencil_type[itype][jtype][ns++] = 
+                      k*mbiny*mbinx + j*mbinx + i;
+      
+      nstencil_multi2[itype][jtype] = ns;
+    }
+  }
 }

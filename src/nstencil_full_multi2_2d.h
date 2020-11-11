@@ -13,22 +13,22 @@
 
 #ifdef NSTENCIL_CLASS
 
-NStencilStyle(half/multi2/3d,
-              NStencilHalfMulti23d, NS_HALF | NS_MULTI2 | NS_3D | NS_ORTHO)
+NStencilStyle(full/multi2/2d,
+              NStencilFullMulti22d, NS_FULL | NS_Multi2 | NS_2D | NS_ORTHO | NS_TRI)
 
 #else
 
-#ifndef LMP_NSTENCIL_HALF_MULTI2_3D_H
-#define LMP_NSTENCIL_HALF_MULTI2_3D_H
+#ifndef LMP_NSTENCIL_FULL_MULTI2_2D_H
+#define LMP_NSTENCIL_FULL_MULTI2_2D_H
 
 #include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfMulti23d : public NStencil {
+class NStencilFullMulti22d : public NStencil {
  public:
-  NStencilHalfMulti23d(class LAMMPS *);
-  ~NStencilHalfMulti23d();
+  NStencilFullMulti22d(class LAMMPS *);
+  ~NStencilFullMulti22d();
   void create();
 
  protected:

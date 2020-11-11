@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_multi2_3d.h"
+#include "nstencil_half_multi2_2d_tri.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "nbin.h"
@@ -23,12 +23,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti23d::NStencilHalfMulti23d(LAMMPS *lmp) :
+NStencilHalfMulti22dTri::NStencilHalfMulti22d(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::set_stencil_properties()
+void NStencilHalfMulti22d::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
@@ -69,9 +69,9 @@ void NStencilHalfMulti23d::set_stencil_properties()
    create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::create()
+void NStencilHalfMulti22d::create()
 {
-  int itype, jtype, i, j, k, ns;
+  int itype, jtype, i, j, ns;
   int n = atom->ntypes;
   double cutsq;
   
@@ -84,34 +84,25 @@ void NStencilHalfMulti23d::create()
       
       sx = sx_multi2[itype][jtype];
       sy = sy_multi2[itype][jtype];
-      sz = sz_multi2[itype][jtype];
       
       mbinx = mbinx_multi2[itype][jtype];
       mbiny = mbiny_multi2[itype][jtype];
-      mbinz = mbinz_multi2[itype][jtype];
       
       cutsq = stencil_cut[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
-        for (k = 0; k <= sz; k++)
-          for (j = -sy; j <= sy; j++)
-            for (i = -sx; i <= sx; i++)
-	          if (k > 0 || j > 0 || (j == 0 && i > 0)) { 
-	            if (bin_distance(i,j,k) < cutsq)
-	              stencil_type[itype][jtype][ns++] = 
-                          k*mbiny*mbinx + j*mbinx + i;
-	  }
+        for (j = 0; j <= sy; j++)
+          for (i = -sx; i <= sx; i++)
+            if (bin_distance(i,j,0) < cutsq)
+	          stencil_type[itype][jtype][ns++] = j*mbinx + i;
       } else {
-        for (k = -sz; k <= sz; k++)
-          for (j = -sy; j <= sy; j++)
-            for (i = -sx; i <= sx; i++)
-	          if (bin_distance(i,j,k) < cutsq)
-	            stencil_type[itype][jtype][ns++] = 
-                        k*mbiny*mbinx + j*mbinx + i;
+        for (j = -sy; j <= sy; j++)
+          for (i = -sx; i <= sx; i++)
+	        if (bin_distance(i,j,0) < cutsq)
+	          stencil_type[itype][jtype][ns++] = j*mbinx + i;
       }
       
       nstencil_multi2[itype][jtype] = ns;
     }
   }
 }
-

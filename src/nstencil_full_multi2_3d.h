@@ -13,30 +13,26 @@
 
 #ifdef NSTENCIL_CLASS
 
-NStencilStyle(full/multi/tiered/3d,
-              NStencilFullMultiTiered3d, NS_FULL | NS_Multi_Tiered | NS_3D | NS_ORTHO | NS_TRI)
+NStencilStyle(full/multi2/3d,
+              NStencilFullMulti23d, NS_FULL | NS_Multi2 | NS_3D | NS_ORTHO | NS_TRI)
 
 #else
 
-#ifndef LMP_NSTENCIL_FULL_MULTI_TIERED_3D_H
-#define LMP_NSTENCIL_FULL_MULTI_TIERED_3D_H
+#ifndef LMP_NSTENCIL_FULL_MULTI2_3D_H
+#define LMP_NSTENCIL_FULL_MULTI2_3D_H
 
 #include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NStencilFullBytype3d : public NStencil {
+class NStencilFullMulti23d : public NStencil {
  public:
-  NStencilFullBytype3d(class LAMMPS *);
-  ~NStencilFullBytype3d();
+  NStencilFullMulti23d(class LAMMPS *);
+  ~NStencilFullMulti23d();
   void create();
-  void create_setup();
 
-private:
-  int ** maxstencil_type;
-
-  int  copy_neigh_info_bytype(int);
-  void create_newtoff(int, int, double);
+ protected:
+  void set_stencil_properties();
 
 };
 

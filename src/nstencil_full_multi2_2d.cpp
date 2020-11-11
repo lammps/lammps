@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_multi2_3d.h"
+#include "nstencil_full_multi2_2d.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "nbin.h"
@@ -23,42 +23,38 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti23d::NStencilHalfMulti23d(LAMMPS *lmp) :
-  NStencil(lmp) {}
+NStencilFullMulti22d::NStencilFullMulti22d(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::set_stencil_properties()
+void NStencilFullMulti22d::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
   
   // like -> like => use half stencil
   for (i = 1; i <= n; i++) {
-    stencil_half[i][i] = 1;
+    stencil_half[i][i] = 0;
     stencil_skip[i][i] = 0;
     stencil_bin_type[i][i] = i;
     stencil_cut[i][i] = sqrt(cutneighsq[i][i]);
   }
 
-  // Cross types: use full stencil, looking one way through hierarchy
-  // smaller -> larger => use full stencil in larger bin
-  // larger -> smaller => no nstecil required
-  // If cut offs are same, use existing type-type stencil
+  // smaller -> larger => use existing newtoff stencil in larger bin
+  // larger -> smaller => use multi-like stencil for small-large in smaller bin
+  // If types are same cutoff, use existing like-like stencil.
 
   for (i = 1; i <= n; i++) {
     for (j = 1; j <= n; j++) {
       if(i == j) continue;
-      if(cuttypesq[i] > cuttypesq[j]) continue;
 
+      stencil_half[i][j] = 0;
       stencil_skip[i][j] = 0;
       stencil_cut[i][j] = sqrt(cutneighsq[i][j]);          
       
-      if(cuttypesq[i] == cuttypesq[j]){
-        stencil_half[i][j] = 1;
+      if(cuttypesq[i] <= cuttypesq[j]){
         stencil_bin_type[i][j] = i;
       } else {
-        stencil_half[i][j] = 0;
         stencil_bin_type[i][j] = j;
       }
     }
@@ -69,7 +65,7 @@ void NStencilHalfMulti23d::set_stencil_properties()
    create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::create()
+void NStencilFullMulti22d::create()
 {
   int itype, jtype, i, j, k, ns;
   int n = atom->ntypes;
@@ -84,34 +80,18 @@ void NStencilHalfMulti23d::create()
       
       sx = sx_multi2[itype][jtype];
       sy = sy_multi2[itype][jtype];
-      sz = sz_multi2[itype][jtype];
       
       mbinx = mbinx_multi2[itype][jtype];
       mbiny = mbiny_multi2[itype][jtype];
-      mbinz = mbinz_multi2[itype][jtype];
       
       cutsq = stencil_cut[itype][jtype];
       
-      if (stencil_half[itype][jtype]) {
-        for (k = 0; k <= sz; k++)
-          for (j = -sy; j <= sy; j++)
-            for (i = -sx; i <= sx; i++)
-	          if (k > 0 || j > 0 || (j == 0 && i > 0)) { 
-	            if (bin_distance(i,j,k) < cutsq)
-	              stencil_type[itype][jtype][ns++] = 
-                          k*mbiny*mbinx + j*mbinx + i;
-	  }
-      } else {
-        for (k = -sz; k <= sz; k++)
-          for (j = -sy; j <= sy; j++)
-            for (i = -sx; i <= sx; i++)
-	          if (bin_distance(i,j,k) < cutsq)
-	            stencil_type[itype][jtype][ns++] = 
-                        k*mbiny*mbinx + j*mbinx + i;
-      }
+      for (j = -sy; j <= sy; j++)
+        for (i = -sx; i <= sx; i++)
+          if (bin_distance(i,j,0) < cutsq)
+	        stencil_type[itype][jtype][ns++] = j*mbinx + i;
       
       nstencil_multi2[itype][jtype] = ns;
     }
   }
 }
-

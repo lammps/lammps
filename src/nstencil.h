@@ -29,14 +29,17 @@ class NStencil : protected Pointers {
   int **stencilxyz;                // bin offsets in xyz dims
   int *nstencil_multi;             // # bins in each type-based multi stencil
   int **stencil_multi;             // list of bin offsets in each stencil
-  int ** nstencil_multi_tiered;    // # bins bins in each itype-jtype tiered multi stencil
-  int *** stencil_multi_tiered;    // list of bin offsets in each tiered multi stencil
-  int ** maxstencil_type;          // max   
   double **distsq_multi;           // sq distances to bins in each stencil
+  int ** nstencil_multi2;          // # bins bins in each itype-jtype multi2 stencil
+  int *** stencil_multi2;          // list of bin offsets in each multi2 stencil
+  int ** maxstencil_multi2;        // max stencil size for each multi2 stencil
+  
+  ^do i need a multi 2 analog to distsq_multi?
+  
   int sx,sy,sz;                    // extent of stencil in each dim
-  int **sx_multi_tiered;           // analogs for multi tiered
-  int **sy_multi_tiered;
-  int **sz_multi_tiered;
+  int **sx_multi2;                 // analogs for multi tiered
+  int **sy_multi2;
+  int **sz_multi2;
 
   double cutoff_custom;            // cutoff set by requestor  
   
@@ -75,9 +78,9 @@ class NStencil : protected Pointers {
   
   // analogs for multi-tiered
   
-  double **binsizex_multi_tiered;
-  double **binsizey_multi_tiered;
-  double **binsizez_multi_tiered;
+  double **binsizex_multi2;
+  double **binsizey_multi2;
+  double **binsizez_multi2;
 
   // data common to all NStencil variants
 
@@ -94,7 +97,7 @@ class NStencil : protected Pointers {
 
   // methods for multi/tiered NStencil
   
-  void copy_bin_info_multi_tiered(int);     // copy mult/tiered info from NBin class
+  void copy_bin_info_multi2(int);     // copy mult/tiered info from NBin class
   void set_stencil_properties();            // determine which stencils to build and how 
 };
 

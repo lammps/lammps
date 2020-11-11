@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -157,12 +157,12 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   // setup format strings
 
-  vformat = new char*[size_one];
+  vformat = new char*[nfield];
 
-  format_default = new char[4*size_one+1];
+  format_default = new char[4*nfield+1];
   format_default[0] = '\0';
 
-  for (int i = 0; i < size_one; i++) {
+  for (int i = 0; i < nfield; i++) {
     if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
     else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
     else if (vtype[i] == Dump::STRING) strcat(format_default,"%s ");
@@ -170,8 +170,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     vformat[i] = nullptr;
   }
 
-  format_column_user = new char*[size_one];
-  for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
+  format_column_user = new char*[nfield];
+  for (int i = 0; i < nfield; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
@@ -244,12 +244,12 @@ DumpCustom::~DumpCustom()
   delete [] typenames;
 
   if (vformat) {
-    for (int i = 0; i < size_one; i++) delete [] vformat[i];
+    for (int i = 0; i < nfield; i++) delete [] vformat[i];
     delete [] vformat;
   }
 
   if (format_column_user) {
-    for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+    for (int i = 0; i < nfield; i++) delete [] format_column_user[i];
     delete [] format_column_user;
   }
 
@@ -277,7 +277,7 @@ void DumpCustom::init_style()
   // lo priority = line, medium priority = int/float, hi priority = column
 
   char *ptr;
-  for (int i = 0; i < size_one; i++) {
+  for (int i = 0; i < nfield; i++) {
     if (i == 0) ptr = strtok(format," \0");
     else ptr = strtok(nullptr," \0");
     if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
@@ -300,7 +300,7 @@ void DumpCustom::init_style()
       strcpy(vformat[i],ptr);
     }
 
-    if (i+1 < size_one) vformat[i] = strcat(vformat[i]," ");
+    if (i+1 < nfield) vformat[i] = strcat(vformat[i]," ");
   }
 
   // setup boundary string
@@ -466,7 +466,7 @@ void DumpCustom::header_binary(bigint ndump)
   fwrite(&boxyhi,sizeof(double),1,fp);
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
-  fwrite(&size_one,sizeof(int),1,fp);
+  fwrite(&nfield,sizeof(int),1,fp);
 
   header_unit_style_binary();
   header_time_binary();
@@ -495,7 +495,7 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxy,sizeof(double),1,fp);
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
-  fwrite(&size_one,sizeof(int),1,fp);
+  fwrite(&nfield,sizeof(int),1,fp);
 
   header_unit_style_binary();
   header_time_binary();
@@ -1178,13 +1178,13 @@ int DumpCustom::convert_string(int n, double *mybuf)
   int offset = 0;
   int m = 0;
   for (i = 0; i < n; i++) {
-    if (offset + size_one*ONEFIELD > maxsbuf) {
+    if (offset + nfield*ONEFIELD > maxsbuf) {
       if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
       maxsbuf += DELTA;
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    for (j = 0; j < size_one; j++) {
+    for (j = 0; j < nfield; j++) {
       if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
@@ -1233,7 +1233,7 @@ void DumpCustom::write_lines(int n, double *mybuf)
 
   int m = 0;
   for (i = 0; i < n; i++) {
-    for (j = 0; j < size_one; j++) {
+    for (j = 0; j < nfield; j++) {
       if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::STRING)
@@ -1709,7 +1709,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
-      for (int i = 0; i < size_one; i++) {
+      for (int i = 0; i < nfield; i++) {
         delete [] format_column_user[i];
         format_column_user[i] = nullptr;
       }
@@ -1746,7 +1746,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
-      if (i < 0 || i >= size_one)
+      if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
       if (format_column_user[i]) delete [] format_column_user[i];
       int n = strlen(arg[2]) + 1;

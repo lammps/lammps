@@ -101,6 +101,7 @@ class Modify : protected Pointers {
   void add_fix(int, char **, int trysuffix=1);
   void add_fix(const std::string &, int trysuffix=1);
   void replace_fix(const char *, int, char **, int trysuffix=1);
+  void replace_fix(const std::string &, const std::string &, int trysuffix=1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
   void delete_fix(int);

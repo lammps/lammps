@@ -10,14 +10,11 @@ together.
    Python_overview
    Python_install
    Python_run
-   Python_usage
-   Python_call
-   Python_config
-   Python_neighbor
    Python_module
+   Python_ext
+   Python_call
    Python_examples
    Python_error
-   Python_ext
    Python_trouble
 
 If you are not familiar with `Python <http://www.python.org>`_, it is a

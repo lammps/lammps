@@ -1,5 +1,5 @@
 Download the LAMMPS source with git
-===================================
+-----------------------------------
 
 All LAMMPS development is coordinated through the "LAMMPS GitHub
 site".  If you clone the LAMMPS repository onto your local machine, it

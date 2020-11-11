@@ -1,5 +1,5 @@
 Build LAMMPS
-************
+============
 
 LAMMPS is built as a library and an executable from source code using
 either traditional makefiles for use with GNU make (which may require

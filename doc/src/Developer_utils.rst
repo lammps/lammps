@@ -1,6 +1,6 @@
 
-LAMMPS utility functions
-========================
+Utility functions
+-----------------
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common
@@ -172,29 +172,8 @@ Customized standard functions
 
 ---------------------------
 
-Communication buffer coding with *ubuf*
-=========================================
-
-LAMMPS uses communication buffers where it collects data from various
-class instances and then exchanges the data with neighboring sub-domains.
-For simplicity those buffers are defined as ``double`` buffers and
-used for doubles and integer numbers. This presents a unique problem
-when 64-bit integers are used.  While the storage needed for a ``double``
-is also 64-bit, it cannot be used by a simple assignment.  To get around
-that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
-union.  It is used in the various "pack" and "unpack" functions in the
-LAMMPS classes to store and retrieve integers that may be 64-bit from
-the communication buffers.
-
----------------------------
-
-.. doxygenunion:: LAMMPS_NS::ubuf
-   :project: progguide
-
----------------------------
-
 Tokenizer classes
-=================
+-----------------
 
 The purpose of the tokenizer classes is to simplify the recurring task
 of breaking lines of text down into words and/or numbers.
@@ -308,7 +287,7 @@ This code example should produce the following output:
 ----------
 
 File reader classes
-====================
+-------------------
 
 The purpose of the file reader classes is to simplify the recurring task
 of reading and parsing files. They can use the
@@ -382,7 +361,7 @@ A file that would be parsed by the reader code fragment looks like this:
 ----------
 
 Memory pool classes
-===================
+-------------------
 
 The memory pool classes are used for cases where otherwise many
 small memory allocations would be needed and where the data would
@@ -446,7 +425,7 @@ its size is registered later with :cpp:func:`vgot()
 ----------
 
 Eigensolver functions
-=====================
+---------------------
 
 The ``MathEigen`` sub-namespace of the ``LAMMPS_NS`` namespace contains
 functions and classes for eigensolvers. Currently only the
@@ -480,5 +459,26 @@ Tohoku University (under MIT license)
    :project: progguide
 
 .. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+   :project: progguide
+
+---------------------------
+
+Communication buffer coding with *ubuf*
+---------------------------------------
+
+LAMMPS uses communication buffers where it collects data from various
+class instances and then exchanges the data with neighboring sub-domains.
+For simplicity those buffers are defined as ``double`` buffers and
+used for doubles and integer numbers. This presents a unique problem
+when 64-bit integers are used.  While the storage needed for a ``double``
+is also 64-bit, it cannot be used by a simple assignment.  To get around
+that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
+union.  It is used in the various "pack" and "unpack" functions in the
+LAMMPS classes to store and retrieve integers that may be 64-bit from
+the communication buffers.
+
+---------------------------
+
+.. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -418,10 +418,9 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 /* ----------------------------------------------------------------------
    convert a sphere in box coords to an ellipsoid in lamda (0-1)
    coords and return the tight (axis-aligned) bounding box, does not
-   preserve vector magnitude
-   see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
-   http://yiningkarlli.blogspot.com/2013/02/
-     bounding-boxes-for-ellipsoidsfigure.html
+   preserve vector magnitude see:
+   http://www.loria.fr/~shornus/ellipsoid-bbox.html (no longer online) and
+   https://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
 ------------------------------------------------------------------------- */
 
 void KSpace::kspacebbox(double r, double *b)

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -533,8 +533,7 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::
-set_shape(int i, double shapex, double shapey, double shapez)
+void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double shapez)
 {
   if (ellipsoid[i] < 0) {
     if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) return;

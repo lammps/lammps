@@ -36,7 +36,7 @@ In a separate terminal, then, you should run LAMMPS compiled to provide
 fix_ipi functionalities.
 
 ```bash
-   $LAMMPS < in.graphene
+   $LAMMPS -in in.graphene
 ```
 
 You can run multiple instances of LAMMPS if you want to exploit the 

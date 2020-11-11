@@ -7,6 +7,7 @@ add_subdirectory(c-library)
 add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
+add_subdirectory(tools)
 add_subdirectory(force-styles)
 
 find_package(ClangFormat 8.0)

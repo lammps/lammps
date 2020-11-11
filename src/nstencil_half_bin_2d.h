@@ -13,33 +13,24 @@
 
 #ifdef NSTENCIL_CLASS
 
-NStencilStyle(half/bytype/2d/newton,
-              NStencilHalfBytype2dNewton,
-              NS_HALF | NS_BYTYPE | NS_2D | NS_NEWTON | NS_ORTHO)
+NStencilStyle(half/bin/2d,
+              NStencilHalfBin2d,
+              NS_HALF | NS_BIN | NS_2D | NS_ORTHO)
 
 #else
 
-#ifndef LMP_NSTENCIL_HALF_BYTYPE_2D_NEWTON_H
-#define LMP_NSTENCIL_HALF_BYTYPE_2D_NEWTON_H
+#ifndef LMP_NSTENCIL_HALF_BIN_2D_H
+#define LMP_NSTENCIL_HALF_BIN_2D_H
 
 #include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfBytype2dNewton : public NStencil {
+class NStencilHalfBin2d : public NStencil {
  public:
-  NStencilHalfBytype2dNewton(class LAMMPS *);
-  ~NStencilHalfBytype2dNewton();
-  void create_setup();
+  NStencilHalfBin2d(class LAMMPS *);
+  ~NStencilHalfBin2d() {}
   void create();
-
- private:
-  int ** maxstencil_type;
-
-  void copy_bin_info_bytype(int);
-  int  copy_neigh_info_bytype(int);
-  void create_newton(int, int, double);
-  void create_newtoff(int, int, double);
 };
 
 }

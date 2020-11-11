@@ -15,8 +15,7 @@
 
 NStencilStyle(full/multi/3d,
               NStencilFullMulti3d,
-              NS_FULL | NS_MULTI | NS_3D |
-              NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI)
+              NS_FULL | NS_MULTI | NS_3D | NS_ORTHO | NS_TRI)
 
 #else
 

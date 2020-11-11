@@ -11,23 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_multi_2d_newtoff.h"
+#include "nstencil_half_multi_3d.h"
 #include "atom.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti2dNewtoff::
-NStencilHalfMulti2dNewtoff(LAMMPS *lmp) : NStencil(lmp) {}
+NStencilHalfMulti3d::
+NStencilHalfMulti3d(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti2dNewtoff::create()
+void NStencilHalfMulti3d::create()
 {
-  int i,j,n;
+  int i,j,k,n;
   double rsq,typesq;
   int *s;
   double *distsq;
@@ -38,14 +38,16 @@ void NStencilHalfMulti2dNewtoff::create()
     s = stencil_multi[itype];
     distsq = distsq_multi[itype];
     n = 0;
-    for (j = -sy; j <= sy; j++)
-      for (i = -sx; i <= sx; i++) {
-        rsq = bin_distance(i,j,0);
-        if (rsq < typesq) {
-          distsq[n] = rsq;
-          s[n++] = j*mbinx + i;
-        }
-      }
+    for (k = 0; k <= sz; k++)
+      for (j = -sy; j <= sy; j++)
+        for (i = -sx; i <= sx; i++)
+          if (k > 0 || j > 0 || (j == 0 && i > 0)) {
+            rsq = bin_distance(i,j,k);
+            if (rsq < typesq) {
+              distsq[n] = rsq;
+              s[n++] = k*mbiny*mbinx + j*mbinx + i;
+            }
+          }
     nstencil_multi[itype] = n;
   }
 }

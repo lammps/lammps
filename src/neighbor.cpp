@@ -1660,9 +1660,15 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
 
-  //printf("STENCIL RQ FLAGS: hff %d %d n %d g %d s %d newtflag %d\n",
+  // request a full stencil if building full neighbor list or newton is off
+
+  int fullflag = 0;
+  if (rq->full) fullflag = 1;
+  if (!newtflag) fullflag = 1;
+
+  //printf("STENCIL RQ FLAGS: hff %d %d n %d g %d s %d newtflag %d fullflag %d\n",
   //       rq->half,rq->full,rq->newton,rq->ghost,rq->ssa,
-  //       newtflag);
+  //       newtflag, fullflag);
 
   // use request and system settings to match exactly one NStencil class mask
   // checks are bitwise using NeighConst bit masks
@@ -1672,24 +1678,15 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   for (int i = 0; i < nsclass; i++) {
     mask = stencilmasks[i];
 
-    //printf("III %d: half %d full %d newton %d newtoff %d ghost %d ssa %d\n",
-    //       i,mask & NS_HALF,mask & NS_FULL,mask & NS_NEWTON,
-    //       mask & NS_NEWTOFF,mask & NS_GHOST,mask & NS_SSA);
+    //printf("III %d: half %d full %d ghost %d ssa %d\n",
+    //       i,mask & NS_HALF,mask & NS_FULL,mask & NS_GHOST,mask & NS_SSA);
 
     // exactly one of half or full is set and must match
 
-    if (rq->half) {
-      if (!(mask & NS_HALF)) continue;
-    } else if (rq->full) {
+    if (fullflag) {
       if (!(mask & NS_FULL)) continue;
-    }
-
-    // newtflag is on or off and must match
-
-    if (newtflag) {
-      if (!(mask & NS_NEWTON)) continue;
-    } else if (!newtflag) {
-      if (!(mask & NS_NEWTOFF)) continue;
+    } else {
+      if (!(mask & NS_HALF)) continue;
     }
 
     // require match of these request flags and mask bits

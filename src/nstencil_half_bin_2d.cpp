@@ -11,34 +11,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_ghost_bin_2d_newtoff.h"
+#include "nstencil_half_bin_2d.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfGhostBin2dNewtoff::
-NStencilHalfGhostBin2dNewtoff(LAMMPS *lmp) : NStencil(lmp)
-{
-  xyzflag = 1;
-}
+NStencilHalfBin2d::NStencilHalfBin2d(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfGhostBin2dNewtoff::create()
+void NStencilHalfBin2d::create()
 {
   int i,j;
 
   nstencil = 0;
 
-  for (j = -sy; j <= sy; j++)
+  for (j = 0; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
-      if (bin_distance(i,j,0) < cutneighmaxsq) {
-        stencilxyz[nstencil][0] = i;
-        stencilxyz[nstencil][1] = j;
-        stencilxyz[nstencil][2] = 0;
-        stencil[nstencil++] = j*mbinx + i;
-      }
+      if (j > 0 || (j == 0 && i > 0))
+        if (bin_distance(i,j,0) < cutneighmaxsq)
+          stencil[nstencil++] = j*mbinx + i;
 }

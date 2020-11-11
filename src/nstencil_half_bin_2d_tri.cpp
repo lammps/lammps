@@ -11,28 +11,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_bin_3d_newton_tri.h"
+#include "nstencil_half_bin_2d_tri.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin3dNewtonTri::NStencilHalfBin3dNewtonTri(LAMMPS *lmp) :
+NStencilHalfBin2dTri::NStencilHalfBin2dTri(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfBin3dNewtonTri::create()
+void NStencilHalfBin2dTri::create()
 {
-  int i,j,k;
+  int i,j;
 
   nstencil = 0;
 
-  for (k = 0; k <= sz; k++)
-    for (j = -sy; j <= sy; j++)
-      for (i = -sx; i <= sx; i++)
-        if (bin_distance(i,j,k) < cutneighmaxsq)
-          stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+  for (j = 0; j <= sy; j++)
+    for (i = -sx; i <= sx; i++)
+      if (bin_distance(i,j,0) < cutneighmaxsq)
+        stencil[nstencil++] = j*mbinx + i;
 }

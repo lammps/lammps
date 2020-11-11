@@ -13,23 +13,23 @@
 
 #ifdef NSTENCIL_CLASS
 
-NStencilStyle(half/multi/2d/newton/tri,
-              NStencilHalfMulti2dNewtonTri,
-              NS_HALF | NS_MULTI | NS_2D | NS_NEWTON | NS_TRI)
+NStencilStyle(half/bin/2d/tri,
+              NStencilHalfBin2dTri,
+              NS_HALF | NS_BIN | NS_2D | NS_TRI)
 
 #else
 
-#ifndef LMP_NSTENCIL_HALF_MULTI_2D_NEWTON_TRI_H
-#define LMP_NSTENCIL_HALF_MULTI_2D_NEWTON_TRI_H
+#ifndef LMP_NSTENCIL_HALF_BIN_2D_TRI_H
+#define LMP_NSTENCIL_HALF_BIN_2D_TRI_H
 
 #include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfMulti2dNewtonTri : public NStencil {
+class NStencilHalfBin2dTri : public NStencil {
  public:
-  NStencilHalfMulti2dNewtonTri(class LAMMPS *);
-  ~NStencilHalfMulti2dNewtonTri() {}
+  NStencilHalfBin2dTri(class LAMMPS *);
+  ~NStencilHalfBin2dTri() {}
   void create();
 };
 

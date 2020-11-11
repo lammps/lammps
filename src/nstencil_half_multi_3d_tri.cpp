@@ -11,27 +11,42 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_bin_2d_newton_tri.h"
+#include "nstencil_half_multi_3d_tri.h"
+#include "atom.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin2dNewtonTri::NStencilHalfBin2dNewtonTri(LAMMPS *lmp) :
-  NStencil(lmp) {}
+NStencilHalfMulti3dTri::
+NStencilHalfMulti3dTri(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfBin2dNewtonTri::create()
+void NStencilHalfMulti3dTri::create()
 {
-  int i,j;
+  int i,j,k,n;
+  double rsq,typesq;
+  int *s;
+  double *distsq;
 
-  nstencil = 0;
-
-  for (j = 0; j <= sy; j++)
-    for (i = -sx; i <= sx; i++)
-      if (bin_distance(i,j,0) < cutneighmaxsq)
-        stencil[nstencil++] = j*mbinx + i;
+  int ntypes = atom->ntypes;
+  for (int itype = 1; itype <= ntypes; itype++) {
+    typesq = cuttypesq[itype];
+    s = stencil_multi[itype];
+    distsq = distsq_multi[itype];
+    n = 0;
+    for (k = 0; k <= sz; k++)
+      for (j = -sy; j <= sy; j++)
+        for (i = -sx; i <= sx; i++) {
+          rsq = bin_distance(i,j,k);
+          if (rsq < typesq) {
+            distsq[n] = rsq;
+            s[n++] = k*mbiny*mbinx + j*mbinx + i;
+          }
+        }
+    nstencil_multi[itype] = n;
+  }
 }

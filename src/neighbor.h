@@ -248,13 +248,11 @@ namespace NeighConst {
   static const int NS_FULL          = 1<<3;
   static const int NS_2D            = 1<<4;
   static const int NS_3D            = 1<<5;
-  static const int NS_NEWTON        = 1<<6;
-  static const int NS_NEWTOFF       = 1<<7;
-  static const int NS_ORTHO         = 1<<8;
-  static const int NS_TRI           = 1<<9;
-  static const int NS_GHOST         = 1<<10;
-  static const int NS_SSA           = 1<<11;
-  static const int NS_MULTI2        = 1<<12;
+  static const int NS_ORTHO         = 1<<6;
+  static const int NS_TRI           = 1<<7;
+  static const int NS_GHOST         = 1<<8;
+  static const int NS_SSA           = 1<<9;
+  static const int NS_MULTI2        = 1<<10;
 
   static const int NP_NSQ           = 1<<0;
   static const int NP_BIN           = 1<<1;

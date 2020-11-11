@@ -23,12 +23,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti23dTri::NStencilHalfMulti23d(LAMMPS *lmp) :
+NStencilHalfMulti23dTri::NStencilHalfMulti23dTri(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::set_stencil_properties()
+void NStencilHalfMulti23dTri::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
@@ -69,7 +69,7 @@ void NStencilHalfMulti23d::set_stencil_properties()
    create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti23d::create()
+void NStencilHalfMulti23dTri::create()
 {
   int itype, jtype, i, j, k, ns;
   int n = atom->ntypes;
@@ -97,133 +97,18 @@ void NStencilHalfMulti23d::create()
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
               if (bin_distance(i,j,k) < cutsq)
-	            stencil_type[itype][jtype][ns++] = 
+	            stencil_multi2[itype][jtype][ns++] = 
                         k*mbiny*mbinx + j*mbinx + i;
       } else {
         for (k = -sz; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
 	          if (bin_distance(i,j,k) < cutsq)
-	            stencil_type[itype][jtype][ns++] = 
+	            stencil_multi2[itype][jtype][ns++] = 
                         k*mbiny*mbinx + j*mbinx + i;
       }
       
       nstencil_multi2[itype][jtype] = ns;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// KS To superclass
-void NStencilHalfMulti23d::copy_bin_info_bytype(int itype) {
-
-  mbinx = nb->mbinx_type[itype];
-  mbiny = nb->mbiny_type[itype];
-  mbinz = nb->mbinz_type[itype];
-  binsizex = nb->binsizex_type[itype];
-  binsizey = nb->binsizey_type[itype];
-  binsizez = nb->binsizez_type[itype];
-  bininvx = nb->bininvx_type[itype];
-  bininvy = nb->bininvy_type[itype];
-  bininvz = nb->bininvz_type[itype];
-}
-
-/* ---------------------------------------------------------------------- */
-
-// KS To superclass?
-int NStencilHalfMulti23d::copy_neigh_info_bytype(int itype) {
-
-  cutneighmaxsq = neighbor->cutneighsq[itype][itype];
-  cutneighmax   = sqrt(cutneighmaxsq);
-  cuttypesq     = neighbor->cuttypesq;
-
-  // sx,sy,sz = max range of stencil in each dim
-  // smax = max possible size of entire 3d stencil
-  // stencil will be empty if cutneighmax = 0.0
-
-  sx = static_cast<int> (cutneighmax*bininvx);
-  if (sx*binsizex < cutneighmax) sx++;
-  sy = static_cast<int> (cutneighmax*bininvy);
-  if (sy*binsizey < cutneighmax) sy++;
-  sz = static_cast<int> (cutneighmax*bininvz);
-  if (sz*binsizez < cutneighmax) sz++;
-
-  return ((2*sx+1) * (2*sy+1) * (2*sz+1));
-}
-
-/* ---------------------------------------------------------------------- */
-
-void NStencilHalfMulti23d::create_setup()
-{
-
-  int itype, jtype;
-  int maxtypes;
-  int smax;
-
-  // maxstencil_type to superclass?
-  maxtypes = atom->ntypes;
-
-  if (maxstencil_type == NULL) {
-    memory->create(maxstencil_type, maxtypes+1, maxtypes+1, "maxstencil_type");
-    memory->create(nstencil_type, maxtypes+1, maxtypes+1, "nstencil_type");
-    stencil_type = new int**[maxtypes+1]();
-    for (itype = 1; itype <= maxtypes; ++itype) {
-      stencil_type[itype] = new int*[maxtypes+1]();
-      for (jtype = 1; jtype <= maxtypes; ++jtype) {
-	maxstencil_type[itype][jtype] = 0;
-	nstencil_type[itype][jtype] = 0;
-      }
-    }
-  }
-
-  // like -> like => use standard Newton stencil at bin 
-
-  for (itype = 1; itype <= maxtypes; ++itype) {
-    copy_bin_info_bytype(itype);
-    smax = copy_neigh_info_bytype(itype);
-    if (smax > maxstencil_type[itype][itype]) {
-      maxstencil_type[itype][itype] = smax;
-      memory->destroy(stencil_type[itype][itype]);
-      memory->create(stencil_type[itype][itype], smax,
-		     "NStencilHalfBytypeNewton::create_steup() stencil");
-    }
-    create_newton(itype, itype, cutneighmaxsq);
-  }
-
-  // Cross types: "Newton on" reached by using Newton off stencil and
-  // looking one way through hierarchy
-  // smaller -> larger => use Newton off stencil in larger bin
-  // larger -> smaller => no nstecil required
-  // If cut offs are same, use existing type-type stencil
-
-  for (itype = 1; itype <= maxtypes; ++itype) {
-    for (jtype = 1; jtype <= maxtypes; ++jtype) {
-      if (itype == jtype) continue;
-      if (cuttypesq[itype] == cuttypesq[jtype]) {
-	nstencil_type[itype][jtype] = nstencil_type[jtype][jtype];
-	stencil_type[itype][jtype]  = stencil_type[jtype][jtype];
-      }
-      else if (cuttypesq[itype] < cuttypesq[jtype]) {
-	copy_bin_info_bytype(jtype);
-
-	cutneighmaxsq = cuttypesq[jtype];
-	cutneighmax   = sqrt(cutneighmaxsq);
-	sx = static_cast<int> (cutneighmax*bininvx);
-	if (sx*binsizex < cutneighmax) sx++;
-	sy = static_cast<int> (cutneighmax*bininvy);
-	if (sy*binsizey < cutneighmax) sy++;
-	sz = static_cast<int> (cutneighmax*bininvz);
-	if (sz*binsizez < cutneighmax) sz++;
-
-	smax = (2*sx+1) * (2*sy+1) * (2*sz+1);
-	if (smax > maxstencil_type[itype][jtype]) {
-	  maxstencil_type[itype][jtype] = smax;
-	  memory->destroy(stencil_type[itype][jtype]);
-	  memory->create(stencil_type[itype][jtype], smax, "stencil_type[]");
-	}
-	create_newtoff(itype, jtype, cuttypesq[jtype]);
-      }
     }
   }
 }

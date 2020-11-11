@@ -23,12 +23,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti22dTri::NStencilHalfMulti22d(LAMMPS *lmp) :
+NStencilHalfMulti22dTri::NStencilHalfMulti22dTri(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void NStencilHalfMulti22d::set_stencil_properties()
+void NStencilHalfMulti22dTri::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
@@ -69,7 +69,7 @@ void NStencilHalfMulti22d::set_stencil_properties()
    create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti22d::create()
+void NStencilHalfMulti22dTri::create()
 {
   int itype, jtype, i, j, ns;
   int n = atom->ntypes;
@@ -94,12 +94,12 @@ void NStencilHalfMulti22d::create()
         for (j = 0; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
             if (bin_distance(i,j,0) < cutsq)
-	          stencil_type[itype][jtype][ns++] = j*mbinx + i;
+	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       } else {
         for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
 	        if (bin_distance(i,j,0) < cutsq)
-	          stencil_type[itype][jtype][ns++] = j*mbinx + i;
+	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       }
       
       nstencil_multi2[itype][jtype] = ns;

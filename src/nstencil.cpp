@@ -284,6 +284,10 @@ void NStencil::create_setup()
     memory->create(binsizez_multi2, n+1, n+1, 
                    "neighstencil:binsizez_multi2");
 
+    memory->create(mbinx_multi2, n+1, n+1,"neighstencil:mbinx_multi2");
+    memory->create(mbiney_multi2, n+1, n+1, "neighstencil:mbiny_multi2");
+    memory->create(mbinz_multi2, n+1, n+1, "neighstencil:mbinz_multi2");
+
     // Skip all stencils by default, initialize smax
     for (i = 1; i <= n; i++) {
       for (j = 1; j <= n; j++) {
@@ -322,6 +326,10 @@ void NStencil::create_setup()
         binsizex_multi2[i][j] = binsizex;
         binsizey_multi2[i][j] = binsizey;
         binsizez_multi2[i][j] = binsizez;
+        
+        mbinx_multi2[i][j] = mbinx;
+        mbiny_multi2[i][j] = mbiny;
+        mbinz_multi2[i][j] = mbinz;
         
         stencil_range = stencil_cut[i][j];
         

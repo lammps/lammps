@@ -77,7 +77,7 @@ void NPairHalfSizeMulti2Newtoff::build(NeighList *list)
     // stores own/own pairs only once
     // stores own/ghost pairs on both procs
 
-    ibin = nb->atom2bin_type[itype][i];
+    ibin = atom2bin_multi2[itype][i];
     for (ktype = 1; ktype <= atom->ntypes; ktype++) {
       if (itype == ktype) {
 	    kbin = ibin;
@@ -90,7 +90,7 @@ void NPairHalfSizeMulti2Newtoff::build(NeighList *list)
       ns = nstencil_multi2[itype][ktype];
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi2[ktype][kbin + s[k]];
-	    for (j = js; j >=0; j = nb->bins_multi2[ktype][j]) {
+	    for (j = js; j >=0; j = bins_multi2[ktype][j]) {
 	      if (j <= i) continue;
           
 	      jtype = type[j];

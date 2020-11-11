@@ -31,18 +31,18 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   bins = nullptr;
   atom2bin = nullptr;
 
-  nbinx_tiered = nullptr; nbiny_tiered = nullptr; nbinz_tiered = nullptr;
-  mbins_tiered = nullptr;
-  mbinx_tiered = nullptr; mbiny_tiered = nullptr, mbinz_tiered = nullptr;
-  mbinxlo_tiered = nullptr;
-  mbinylo_tiered = nullptr;
-  mbinzlo_tiered = nullptr;
-  binsizex_tiered = nullptr; binsizey_tiered = nullptr; binsizez_tiered = nullptr;
-  bininvx_tiered = nullptr; bininvy_tiered = nullptr; bininvz_tiered = nullptr;
-  binhead_tiered = nullptr;
-  bins_tiered = nullptr;
-  atom2bin_tiered = nullptr;
-  maxbins_tiered = nullptr;
+  nbinx_multi2 = nullptr; nbiny_multi2 = nullptr; nbinz_multi2 = nullptr;
+  mbins_multi2 = nullptr;
+  mbinx_multi2 = nullptr; mbiny_multi2 = nullptr, mbinz_multi2 = nullptr;
+  mbinxlo_multi2 = nullptr;
+  mbinylo_multi2 = nullptr;
+  mbinzlo_multi2 = nullptr;
+  binsizex_multi2 = nullptr; binsizey_multi2 = nullptr; binsizez_multi2 = nullptr;
+  bininvx_multi2 = nullptr; bininvy_multi2 = nullptr; bininvz_multi2 = nullptr;
+  binhead_multi2 = nullptr;
+  bins_multi2 = nullptr;
+  atom2bin_multi2 = nullptr;
+  maxbins_multi2 = nullptr;
 
   maxtypes = 0;
 
@@ -64,36 +64,36 @@ NBin::~NBin()
   memory->destroy(bins);
   memory->destroy(atom2bin);
   
-  if (!bins_tiered) return;
+  if (!bins_multi2) return;
   
-  memory->destroy(nbinx_tiered);
-  memory->destroy(nbiny_tiered);
-  memory->destroy(nbinz_tiered);
-  memory->destroy(mbins_tiered);
-  memory->destroy(mbinx_tiered);
-  memory->destroy(mbiny_tiered);
-  memory->destroy(mbinz_tiered);
-  memory->destroy(mbinxlo_tiered);
-  memory->destroy(mbinylo_tiered);
-  memory->destroy(mbinzlo_tiered);
+  memory->destroy(nbinx_multi2);
+  memory->destroy(nbiny_multi2);
+  memory->destroy(nbinz_multi2);
+  memory->destroy(mbins_multi2);
+  memory->destroy(mbinx_multi2);
+  memory->destroy(mbiny_multi2);
+  memory->destroy(mbinz_multi2);
+  memory->destroy(mbinxlo_multi2);
+  memory->destroy(mbinylo_multi2);
+  memory->destroy(mbinzlo_multi2);
 
-  memory->destroy(binsizex_tiered);
-  memory->destroy(binsizey_tiered);
-  memory->destroy(binsizez_tiered);
-  memory->destroy(bininvx_tiered);
-  memory->destroy(bininvy_tiered);
-  memory->destroy(bininvz_tiered);
+  memory->destroy(binsizex_multi2);
+  memory->destroy(binsizey_multi2);
+  memory->destroy(binsizez_multi2);
+  memory->destroy(bininvx_multi2);
+  memory->destroy(bininvy_multi2);
+  memory->destroy(bininvz_multi2);
 
   for (int n = 1; n <= maxtypes; n++) {
-    memory->destroy(binhead_tiered[n]);
-    memory->destroy(bins_tiered[n]);
-    memory->destroy(atom2bin_tiered[n]);
+    memory->destroy(binhead_multi2[n]);
+    memory->destroy(bins_multi2[n]);
+    memory->destroy(atom2bin_multi2[n]);
   }
-  delete [] binhead_tiered;
-  delete [] bins_tiered;
-  delete [] atom2bin_tiered;
+  delete [] binhead_multi2;
+  delete [] bins_multi2;
+  delete [] atom2bin_multi2;
 
-  memory->destroy(maxbins_tiered);  
+  memory->destroy(maxbins_multi2);  
 }
 
 /* ---------------------------------------------------------------------- */

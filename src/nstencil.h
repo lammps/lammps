@@ -70,7 +70,7 @@ class NStencil : protected Pointers {
   double cutneighmax;
   double cutneighmaxsq;
   double *cuttypesq;
-  double *cutneighsq;
+  double **cutneighsq;
 
   // data from NBin class
 
@@ -80,6 +80,9 @@ class NStencil : protected Pointers {
   
   // analogs for multi-tiered
   
+  int **mbinx_multi2;
+  int **mbiny_multi2;
+  int **mbinz_multi2;
   double **binsizex_multi2;
   double **binsizey_multi2;
   double **binsizez_multi2;

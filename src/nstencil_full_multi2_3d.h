@@ -14,7 +14,7 @@
 #ifdef NSTENCIL_CLASS
 
 NStencilStyle(full/multi2/3d,
-              NStencilFullMulti23d, NS_FULL | NS_Multi2 | NS_3D | NS_ORTHO | NS_TRI)
+              NStencilFullMulti23d, NS_FULL | NS_MULTI2 | NS_3D | NS_ORTHO | NS_TRI)
 
 #else
 

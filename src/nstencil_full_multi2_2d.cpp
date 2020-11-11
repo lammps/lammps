@@ -89,7 +89,7 @@ void NStencilFullMulti22d::create()
       for (j = -sy; j <= sy; j++)
         for (i = -sx; i <= sx; i++)
           if (bin_distance(i,j,0) < cutsq)
-	        stencil_type[itype][jtype][ns++] = j*mbinx + i;
+	        stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       
       nstencil_multi2[itype][jtype] = ns;
     }

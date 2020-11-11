@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class NStencilFullMulti23d : public NStencil {
  public:
   NStencilFullMulti23d(class LAMMPS *);
-  ~NStencilFullMulti23d();
+  ~NStencilFullMulti23d(){}
   void create();
 
  protected:

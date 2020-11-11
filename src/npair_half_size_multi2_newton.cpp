@@ -72,7 +72,7 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
     // if j is owned atom, store by virtue of being ahead of i in list
     // if j is ghost, store if x[j] "above and to right of" x[i]
 
-    ibin = nb->atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi2[itype][i];
 
     for (ktype = 1; ktype <= atom->ntypes; ktype++) {
 

@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "update.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 

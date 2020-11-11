@@ -182,15 +182,15 @@ void NStencil::copy_bin_info()
 
 void NStencil::copy_bin_info_multi2(int type)
 {
-  mbinx = nb->mbinx2[type];
-  mbiny = nb->mbiny2[type];
-  mbinz = nb->mbinz2[type];
-  binsizex = nb->binsizex2[type];
-  binsizey = nb->binsizey2[type];
-  binsizez = nb->binsizez2[type];
-  bininvx = nb->bininvx2[type];
-  bininvy = nb->bininvy2[type];
-  bininvz = nb->bininvz2[type];
+  mbinx = nb->mbinx_multi2[type];
+  mbiny = nb->mbiny_multi2[type];
+  mbinz = nb->mbinz_multi2[type];
+  binsizex = nb->binsizex_multi2[type];
+  binsizey = nb->binsizey_multi2[type];
+  binsizez = nb->binsizez_multi2[type];
+  bininvx = nb->bininvx_multi2[type];
+  bininvy = nb->bininvy_multi2[type];
+  bininvz = nb->bininvz_multi2[type];
 }
 
 /* ----------------------------------------------------------------------
@@ -284,8 +284,8 @@ void NStencil::create_setup()
     memory->create(binsizez_multi2, n+1, n+1, 
                    "neighstencil:binsizez_multi2");
 
-    memory->create(mbinx_multi2, n+1, n+1,"neighstencil:mbinx_multi2");
-    memory->create(mbiney_multi2, n+1, n+1, "neighstencil:mbiny_multi2");
+    memory->create(mbinx_multi2, n+1, n+1, "neighstencil:mbinx_multi2");
+    memory->create(mbiny_multi2, n+1, n+1, "neighstencil:mbiny_multi2");
     memory->create(mbinz_multi2, n+1, n+1, "neighstencil:mbinz_multi2");
 
     // Skip all stencils by default, initialize smax
@@ -321,7 +321,7 @@ void NStencil::create_setup()
            
         // Copy bin info for this particular pair of types
         bin_type = stencil_bin_type[i][j];
-        copy_bin_info_bytype(bin_type);
+        copy_bin_info_multi2(bin_type);
         
         binsizex_multi2[i][j] = binsizex;
         binsizey_multi2[i][j] = binsizey;
@@ -393,8 +393,8 @@ double NStencil::memory_usage()
     bytes += atom->ntypes*maxstencil_multi * sizeof(double);
   } else if (neighstyle == Neighbor::MULTI2) {
     int n = atom->ntypes;
-    for (i = 1; i <= n; ++i) {
-      for (j = 1; j <= n; ++j) {
+    for (int i = 1; i <= n; i++) {
+      for (int j = 1; j <= n; j++) {
         bytes += maxstencil_multi2[i][j] * sizeof(int);
         bytes += maxstencil_multi2[i][j] * sizeof(int);
         bytes += maxstencil_multi2[i][j] * sizeof(double);

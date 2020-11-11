@@ -102,8 +102,8 @@ class NStencil : protected Pointers {
 
   // methods for multi/tiered NStencil
   
-  void copy_bin_info_multi2(int);     // copy mult/tiered info from NBin class
-  void set_stencil_properties();            // determine which stencils to build and how 
+  void copy_bin_info_multi2(int);           // copy mult/tiered info from NBin class
+  virtual void set_stencil_properties(){}   // determine which stencils to build and how 
 };
 
 }

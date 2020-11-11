@@ -68,6 +68,7 @@
 #include "modify.h"
 #include "universe.h"
 #include "variable.h"
+#include "fmt/format.h"
 
 #include <cstring>
 

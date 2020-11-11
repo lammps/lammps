@@ -64,6 +64,7 @@
 #include "modify.h"
 #include "pair_kim.h"
 #include "variable.h"
+#include "fmt/format.h"
 
 #include <cstring>
 #include <sstream>
@@ -118,8 +119,11 @@ void get_kim_unit_names(
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(system, "lj") == 0)) {
-    error->all(FLERR, "LAMMPS unit_style lj not supported by KIM models");
+  } else if (strcmp(system,"lj") == 0 ||
+             strcmp(system,"micro") ==0 ||
+             strcmp(system,"nano")==0) {
+    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
+                                 "by KIM models", system));
   } else
     error->all(FLERR, "Unknown unit_style");
 }

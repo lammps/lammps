@@ -148,12 +148,10 @@ void ComputeSpin::compute_vector()
   int i;
   int countsp, countsptot;
   double mag[4], magtot[4];
-  double m2, m2tot;
-  double m4, m4tot;
   double magenergy, magenergytot;
   double tempnum, tempnumtot;
   double tempdenom, tempdenomtot;
-  double spintemperature,binder;
+  double spintemperature;
 
   invoked_vector = update->ntimestep;
 

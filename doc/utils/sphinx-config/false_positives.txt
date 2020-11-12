@@ -240,6 +240,7 @@ bigint
 Bij
 bilayer
 bilayers
+biquadratic
 binsize
 binstyle
 binutils

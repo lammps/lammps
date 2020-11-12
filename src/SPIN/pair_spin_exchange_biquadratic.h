@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(spin/exchange,PairSpinExchange)
+PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic)
 
 #else
 
-#ifndef LMP_PAIR_SPIN_EXCHANGE_H
-#define LMP_PAIR_SPIN_EXCHANGE_H
+#ifndef LMP_PAIR_SPIN_EXCHANGE_BIQUADRATIC_H
+#define LMP_PAIR_SPIN_EXCHANGE_BIQUADRATIC_H
 
 #include "pair_spin.h"
 
 namespace LAMMPS_NS {
 
-class PairSpinExchange : public PairSpin {
+class PairSpinExchangeBiquadratic : public PairSpin {
  public:
-  PairSpinExchange(class LAMMPS *);
-  virtual ~PairSpinExchange();
+  PairSpinExchangeBiquadratic(class LAMMPS *);
+  virtual ~PairSpinExchangeBiquadratic();
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -36,7 +36,7 @@ class PairSpinExchange : public PairSpin {
   void compute(int, int);
   void compute_single_pair(int, double *);
 
-  void compute_exchange(int, int, double, double *, double *);
+  void compute_exchange(int, int, double, double *, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
   double compute_energy(int , int , double , double *, double *);
 
@@ -48,10 +48,14 @@ class PairSpinExchange : public PairSpin {
   double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
+
   int e_offset;                         // apply energy offset
-  double **J1_mag;                      // exchange coeffs in eV
+  double **J1_mag;                      // H exchange coeffs in eV
   double **J1_mech;                     // mech exchange coeffs in
-  double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
+  double **J2, **J3;                    // J1 in eV, J2 in Ang-1, J3 in Ang
+  double **K1_mag;                      // Bi exchange coeffs in eV
+  double **K1_mech;                     // mech exchange coeffs in
+  double **K2, **K3;                    // K1 in eV, K2 Ang-1, K3 in Ang
   double **cut_spin_exchange;           // cutoff distance exchange
 
   void allocate();

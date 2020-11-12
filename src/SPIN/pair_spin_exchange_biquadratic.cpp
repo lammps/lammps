@@ -156,8 +156,7 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
 
 double PairSpinExchangeBiquadratic::init_one(int i, int j)
 {
-
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   J1_mag[j][i] = J1_mag[i][j];
   J1_mech[j][i] = J1_mech[i][j];

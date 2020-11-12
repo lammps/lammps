@@ -176,7 +176,7 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
-        
+
         // compute first moment
 
         mag[0] += sp[i][0];
@@ -221,9 +221,9 @@ void ComputeSpin::compute_vector()
   magtot[1] *= scale;
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
-  
+
   // compute spin temperature
-  
+
   spintemperature = hbar*tempnumtot;
   spintemperature /= (2.0*kb*tempdenomtot);
 

@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) : 
-  PairSpin(lmp) 
+PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) :
+  PairSpin(lmp)
 {
   e_offset = 0;
 }
@@ -119,14 +119,14 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
 
   // read energy offset flag if specified
 
-  while (iarg < narg) { 
-    if (strcmp(arg[10],"offset") == 0) { 
+  while (iarg < narg) {
+    if (strcmp(arg[10],"offset") == 0) {
       if (strcmp(arg[11],"yes") == 0) {
         e_offset = 1;
       } else if  (strcmp(arg[11],"no") == 0) {
         e_offset = 0;
       } else error->all(FLERR,"Incorrect args for pair coefficients");
-      iarg += 2; 
+      iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
@@ -156,8 +156,7 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
 
 double PairSpinExchangeBiquadratic::init_one(int i, int j)
 {
-
-   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   J1_mag[j][i] = J1_mag[i][j];
   J1_mech[j][i] = J1_mech[i][j];
@@ -180,7 +179,7 @@ void *PairSpinExchangeBiquadratic::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_exchange_global;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -267,10 +266,10 @@ void PairSpinExchangeBiquadratic::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_exchange(i,j,rsq,fmi,spi,spj);
-        
+
         if (lattice_flag)
           compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
-      
+
         if (eflag) {
           evdwl -= compute_energy(i,j,rsq,spi,spj);
           emag[i] += evdwl;
@@ -384,7 +383,7 @@ void PairSpinExchangeBiquadratic::compute_single_pair(int ii, double fmi[3])
    compute exchange interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq, 
+void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
     double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -395,7 +394,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
 
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
   r2k = rsq/J3[itype][jtype]/J3[itype][jtype];
- 
+
   Jex = 4.0*J1_mag[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -403,7 +402,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   Kex = 4.0*K1_mag[itype][jtype]*r2k;
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
-  
+
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   fmi[0] += (Jex*spj[0] + 2.0*Kex*spj[0]*sdots);
@@ -415,7 +414,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, 
+void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
     double rsq, double eij[3], double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -430,22 +429,22 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
   iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
   Kex = K1_mech[itype][jtype];
   iK3 = 1.0/(K3[itype][jtype]*K3[itype][jtype]);
-  
+
   rja = rsq*iJ3;
   rjr = sqrt(rsq)*iJ3;
   rka = rsq*iK3;
   rkr = sqrt(rsq)*iK3;
- 
+
   Jex_mech = 1.0-rja-J2[itype][jtype]*rja*(2.0-rja);
   Jex_mech *= 8.0*Jex*rjr*exp(-rja);
-  
+
   Kex_mech = 1.0-rka-K2[itype][jtype]*rka*(2.0-rka);
   Kex_mech *= 8.0*Kex*rkr*exp(-rka);
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   // apply or not energy and force offset
-  
+
   fx = fy = fz = 0.0;
   if (e_offset == 1) { // set offset
     fx = (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
@@ -469,7 +468,7 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
    compute energy of spin pair i and j
 ------------------------------------------------------------------------- */
 
-double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq, 
+double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
     double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -487,7 +486,7 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   rk = ra/K3[itype][jtype];
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
   ir3k = 1.0/(rk*rk*rk);
- 
+
   Jex = 4.0*J1_mech[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -496,16 +495,16 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
 
-  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
+  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   // apply or not energy and force offset
-  
+
   if (e_offset == 1) { // set offset
     energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
   } else if (e_offset == 0) { // no offset ("normal" calculation)
     energy = 0.5*(Jex*sdots + Kex*sdots*sdots);
   } else error->all(FLERR,"Illegal option in pair exchange/biquadratic command");
-  
+
   return energy;
 }
 
@@ -576,19 +575,19 @@ void PairSpinExchangeBiquadratic::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&J1_mag[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&J1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&J2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&J3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&K1_mag[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&K1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&K2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&K3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_spin_exchange[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&J1_mag[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&J1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&J2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&J3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&K1_mag[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&K1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&K2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&K3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_spin_exchange[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&J1_mag[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&J1_mech[i][j],1,MPI_DOUBLE,0,world);
@@ -624,10 +623,10 @@ void PairSpinExchangeBiquadratic::write_restart_settings(FILE *fp)
 void PairSpinExchangeBiquadratic::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_exchange_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&e_offset,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_exchange_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&e_offset,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_exchange_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&e_offset,1,MPI_INT,0,world);

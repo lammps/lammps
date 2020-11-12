@@ -1976,7 +1976,7 @@ void lammps_gather_atoms(void *handle, char *name, int type, int count, void *da
     // use atom ID to insert each atom's values into copy
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
-    if (type == LAMMPS_INT) {
+    if (type == 0) {
       int *vector = nullptr;
       int **array = nullptr;
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
@@ -2015,7 +2015,7 @@ void lammps_gather_atoms(void *handle, char *name, int type, int count, void *da
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
 
-    } else if (type == LAMMPS_DOUBLE) {
+    } else if (type == 1) {
       double *vector = nullptr;
       double **array = nullptr;
       if (count == 1) vector = (double *) vptr;

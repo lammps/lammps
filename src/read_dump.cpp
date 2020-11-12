@@ -231,6 +231,10 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   readers = new Reader*[nreader];
   nsnapatoms = new bigint[nreader];
+  for (int i=0; i < nreader; ++i) {
+    readers[i] = nullptr;
+    nsnapatoms[i] = 0;
+  }
 
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h

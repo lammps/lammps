@@ -1,8 +1,8 @@
 
 find_package(YAML)
 if(NOT YAML_FOUND)
-  message(STATUS "Skipping tests because libyaml is not found")
-  return()
+  # download and build a local copy of libyaml
+  include(YAML)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)

@@ -310,7 +310,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
       }
     }
   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

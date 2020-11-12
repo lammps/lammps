@@ -18,7 +18,7 @@ profiling and debugging tools (https://github.com/kokkos/kokkos-tools).
 
 A programming guide can be found on the Wiki, the API reference is under development.
 
-For questions find us on Slack: https://kokkosteam.slack.com or open a github issue.
+For questions find us on Slack: https://kokkosteam.slack.com or open a GitHub issue.
 
 For non-public questions send an email to
 crtrott(at)sandia.gov
@@ -44,7 +44,7 @@ To learn more about Kokkos consider watching one of our presentations:
 We are open and try to encourage contributions from external developers.
 To do so please first open an issue describing the contribution and then issue
 a pull request against the develop branch. For larger features it may be good
-to get guidance from the core development team first through the github issue.
+to get guidance from the core development team first through the GitHub issue.
 
 Note that Kokkos Core is licensed under standard 3-clause BSD terms of use.
 Which means contributing to Kokkos allows anyone else to use your contributions

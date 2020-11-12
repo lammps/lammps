@@ -2646,7 +2646,10 @@ void lammps_gather_bonds(void *handle, void *data)
         return;
       }
       nbonds *= 2;
-    }    
+    }
+    // TODO: do we need to check as well overflowing of nbonds if newton is on? 
+    //   or has this been done already upon itialization of lammps? 
+    //   why must be natom < MAXSMALLINT?
     
     // offset stores cummulative sum of number of bonds of each atom
     // for easy access of the bond list using the indices stored in it. 

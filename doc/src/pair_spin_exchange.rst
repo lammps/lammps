@@ -5,7 +5,7 @@ pair_style spin/exchange command
 ================================
 
 pair_style spin/exchange/biquadratic command
-================================
+============================================
 
 Syntax
 """"""
@@ -25,6 +25,7 @@ Examples
    pair_style spin/exchange 4.0
    pair_coeff * * exchange 4.0 0.0446928 0.003496 1.4885
    pair_coeff 1 2 exchange 6.0 -0.01575 0.0 1.965 offset yes
+
    pair_style spin/exchange/biquadratic 4.0
    pair_coeff * * biquadratic 4.0 0.05 0.03 1.48 0.05 0.03 1.48 offset no
    pair_coeff 1 2 biquadratic 6.0 -0.01 0.0 1.9 0.0 0.1 19

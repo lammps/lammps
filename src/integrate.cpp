@@ -125,7 +125,7 @@ void Integrate::ev_setup()
    vflag = 8 = per-atom centroid virial only
    vflag = 9 or 10 = both global and per-atom centroid virial
    vflag = 12 = both per-atom virial and per-atom centroid virial
-   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
+   vflag = 13 or 14 = global, per-atom virial and per-atom centroid virial
 ------------------------------------------------------------------------- */
 
 void Integrate::ev_set(bigint ntimestep)
@@ -142,7 +142,7 @@ void Integrate::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = 2;
+  if (flag) eflag_atom = ENERGY_PER_ATOM;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
@@ -158,13 +158,13 @@ void Integrate::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = 4;
+  if (flag) vflag_atom = VIRIAL_PER_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (i = 0; i < ncvlist_atom; i++)
     if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) cvflag_atom = 8;
+  if (flag) cvflag_atom = VIRIAL_PER_ATOM_CENTROID;
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = ntimestep;

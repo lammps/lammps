@@ -18,6 +18,20 @@
 
 namespace LAMMPS_NS {
 
+enum {
+  ENERGY_NO_COMPUTATION  = 0x00,
+  ENERGY_GLOBAL          = 0x01,
+  ENERGY_PER_ATOM        = 0x02
+};
+
+enum {
+  VIRIAL_NO_COMPUTATION           = 0x00,
+  VIRIAL_GLOBAL_PW_SUM            = 0x01,
+  VIRIAL_GLOBAL_PW_FDOTR_W_GHOSTS = 0x02,
+  VIRIAL_PER_ATOM                 = 0x04,
+  VIRIAL_PER_ATOM_CENTROID        = 0x08
+};
+
 class Pair : protected Pointers {
   friend class AngleSDK;
   friend class AngleSDKOMP;

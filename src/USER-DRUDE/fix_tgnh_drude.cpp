@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
+/* -------------------------------------------------------------------------------------
    Contributing authors: Mark Stevens (SNL), Aidan Thompson (SNL), Zheng Gong (ENS Lyon)
-------------------------------------------------------------------------- */
+---------------------------------------------------------------------------------------- */
 
 #include "fix_tgnh_drude.h"
 #include <cstring>
@@ -50,7 +50,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), irregular(NULL), id_temp(NULL), id_press(NULL)
+  rfix(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
 
@@ -75,8 +75,8 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -112,24 +112,23 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       tstat_flag = 1;
-      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_target = t_start;
-      t_stop = force->numeric(FLERR,arg[iarg+2]);
-      t_period = force->numeric(FLERR,arg[iarg+3]);
+      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (t_start <= 0.0 || t_stop <= 0.0)
         error->all(FLERR,
                    "Target temperature for fix nvt/npt/nph cannot be 0.0");
-      tdrude_target = force->numeric(FLERR,arg[iarg+4]);
-      tdrude_period = force->numeric(FLERR,arg[iarg+5]);
+      tdrude_target = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      tdrude_period = utils::numeric(FLERR,arg[iarg+5],false,lmp);
       iarg += 6;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -139,10 +138,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -153,15 +151,13 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = NONE;
       scalexy = scalexz = scaleyz = 0;
-      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] =
-        force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_start[3] = p_start[4] = p_start[5] = 0.0;
       p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
-      p_period[3] = p_period[4] = p_period[5] =
-        force->numeric(FLERR,arg[iarg+3]);
+      p_period[3] = p_period[4] = p_period[5] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -174,25 +170,25 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 4;
@@ -201,9 +197,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[3] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[3] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[3] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[3] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[3] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       scaleyz = 0;
@@ -212,9 +208,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[4] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[4] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[4] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[4] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[4] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       scalexz = 0;
@@ -223,9 +219,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[5] = force->numeric(FLERR,arg[iarg+1]);
-      p_stop[5] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[5] = force->numeric(FLERR,arg[iarg+3]);
+      p_start[5] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[5] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[5] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       scalexy = 0;
@@ -242,12 +238,12 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      mtchain = force->inumeric(FLERR,arg[iarg+1]);
+      mtchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (mtchain < 1) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      mpchain = force->inumeric(FLERR,arg[iarg+1]);
+      mpchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (mpchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
@@ -258,17 +254,17 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_tchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_tchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
+      nc_pchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
+      nreset_h0 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nreset_h0 < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
@@ -297,9 +293,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
-      fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
-      fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
+      fixedpoint[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      fixedpoint[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      fixedpoint[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
@@ -410,8 +406,12 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[i]) pstat_flag = 1;
 
   if (pstat_flag) {
-    if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-    if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+    if (p_flag[0]) box_change |= BOX_CHANGE_X;
+    if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+    if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+    if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+    if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+    if (p_flag[5]) box_change |= BOX_CHANGE_XY;
     no_change_box = 1;
 
     // pstyle = TRICLINIC if any off-diagonal term is controlled -> 6 dof
@@ -425,10 +425,9 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
     // pre_exchange only required if flips can occur due to shape changes
 
     if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
-      pre_exchange_flag = 1;
-    if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
-                     domain->xy != 0.0))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
+    if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0))
+      pre_exchange_flag = pre_exchange_migrate = 1;
   }
 
   // convert input periods to frequencies
@@ -511,10 +510,10 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -677,7 +676,7 @@ void FixTGNHDrude::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -743,13 +742,13 @@ void FixTGNHDrude::setup_mol_mass_dof() {
 
   // DOFs
   t_current = temperature->compute_scalar();
-  _tdof = temperature->dof;
+  tdof = temperature->dof;
   dof_mol = 3 * n_mol_in_group;
   // remove DOFs of COM motion based on the number of atoms in the group
   if (n_mol_in_group > 1)
     dof_mol -= ((double) 3) * group->count(igroup) / atom->natoms;
   dof_drude = 3 * n_drude;
-  dof_int = _tdof - dof_mol - dof_drude;
+  dof_int = tdof - dof_mol - dof_drude;
 
   if (comm->me == 0) {
     if (screen) {
@@ -774,7 +773,7 @@ void FixTGNHDrude::setup(int /*vflag*/)
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strstr(style,"nphug") == NULL) {
+  if (tstat_flag && strstr(style,"nphug") == nullptr) {
     compute_temp_target();
   } else if (pstat_flag) {
 
@@ -931,7 +930,7 @@ void FixTGNHDrude::final_integrate()
   // compute appropriately coupled elements of mvv_current
 
   t_current = temperature->compute_scalar();
-  _tdof = temperature->dof;
+  tdof = temperature->dof;
 
   // need to recompute pressure to account for change in KE
   // t_current is up-to-date, but compute_temperature is not
@@ -1559,6 +1558,8 @@ double FixTGNHDrude::compute_scalar()
 
 double FixTGNHDrude::compute_vector(int n)
 {
+  if (!temp_computed_end_of_step)
+    compute_temp_mol_int_drude(true);
   switch (n){
     case 0:
       return t_mol;
@@ -1595,7 +1596,7 @@ void FixTGNHDrude::reset_dt()
     dto = 0.5*step_respa[0];
 }
 
-void FixTGNHDrude::compute_temp_mol_int_drude() {
+void FixTGNHDrude::compute_temp_mol_int_drude(bool end_of_step) {
   double **v = atom->v;
   double *mass = atom->mass;
   int *molecule = atom->molecule;
@@ -1690,6 +1691,8 @@ void FixTGNHDrude::compute_temp_mol_int_drude() {
   ke2drude = ke2_int_drude[1] * force->mvv2e;
   t_int = ke2int / dof_int / boltz;
   t_drude = ke2drude / dof_drude / boltz;
+
+  temp_computed_end_of_step = end_of_step;
 }
 
 /* ----------------------------------------------------------------------
@@ -1698,7 +1701,7 @@ void FixTGNHDrude::compute_temp_mol_int_drude() {
 
 void FixTGNHDrude::nhc_temp_integrate()
 {
-  compute_temp_mol_int_drude();
+  compute_temp_mol_int_drude(false);
 
   // update masses of thermostat in case target temperature changes
   etamol_mass[0] = ke2mol_target / (t_freq*t_freq);
@@ -2225,7 +2228,7 @@ void FixTGNHDrude::nh_omega_dot()
   mtk_term1 = 0.0;
   if (mtk_flag) {
     if (pstyle == ISO) {
-      mtk_term1 = _tdof * boltz * t_current;
+      mtk_term1 = tdof * boltz * t_current;
       mtk_term1 /= pdim * atom->natoms;
     } else {
       double *mvv_current = temperature->vector;

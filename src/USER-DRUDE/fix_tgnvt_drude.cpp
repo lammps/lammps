@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,6 +13,7 @@
 
 #include "fix_tgnvt_drude.h"
 #include <cstring>
+
 #include "group.h"
 #include "modify.h"
 #include "error.h"
@@ -33,17 +34,11 @@ FixTGNVTDrude::FixTGNVTDrude(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string tcmd = id + std::string("_temp");
+  id_temp = new char[tcmd.size()+1];
+  strcpy(id_temp, tcmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  tcmd += fmt::format(" {} temp", group->names[igroup]);
+  modify->add_compute(tcmd);
   tcomputeflag = 1;
 }

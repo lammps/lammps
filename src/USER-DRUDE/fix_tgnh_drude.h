@@ -44,7 +44,7 @@ class FixTGNHDrude : public Fix {
  protected:
   int dimension,which;
   double dtv,dtf,dthalf,dt4,dt8,dto;
-  double boltz,nktv2p,_tdof;
+  double boltz,nktv2p,tdof;
   double vol0;                      // reference volume
   double t0;                        // reference temperature
                                     // used for barostat mass
@@ -147,7 +147,8 @@ class FixTGNHDrude : public Fix {
   double dof_mol, dof_int, dof_drude;   // DOFs of different modes in the fix group
   void setup_mol_mass_dof();
   double **v_mol, **v_mol_tmp;
-  void compute_temp_mol_int_drude();
+  void compute_temp_mol_int_drude(bool); // calculate the temperatures of three sets of DOFs
+  bool temp_computed_end_of_step = false;
   double tdrude_target, tdrude_freq;
   double t_mol, t_int, t_drude;
   double ke2mol, ke2int, ke2drude;

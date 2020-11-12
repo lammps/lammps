@@ -234,14 +234,14 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
       local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
       // compute dipolar interaction
-      
+
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
         r3inv = r2inv*rinv;
 
         compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
-        
-        if (lattice_flag) 
+
+        if (lattice_flag)
           compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
 
         if (eflag) {
@@ -269,7 +269,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
       }
     }
   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

@@ -244,7 +244,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_dmi(i,j,eij,fmi,spj);
-        
+
         if (lattice_flag)
           compute_dmi_mech(i,j,rsq,eij,fi,spi,spj);
 
@@ -253,7 +253,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
           evdwl *= 0.5*hbar;
           emag[i] += evdwl;
         } else evdwl = 0.0;
-        
+
         f[i][0] += fi[0];
         f[i][1] += fi[1];
         f[i][2] += fi[2];

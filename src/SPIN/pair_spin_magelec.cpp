@@ -237,7 +237,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_magelec(i,j,eij,fmi,spj);
-        
+
         if (lattice_flag)
           compute_magelec_mech(i,j,fi,spi,spj);
 
@@ -246,7 +246,7 @@ void PairSpinMagelec::compute(int eflag, int vflag)
           evdwl *= 0.5*hbar;
           emag[i] += evdwl;
         } else evdwl = 0.0;
-        
+
         f[i][0] += fi[0];
         f[i][1] += fi[1];
         f[i][2] += fi[2];

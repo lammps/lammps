@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinExchange::PairSpinExchange(LAMMPS *lmp) : 
-  PairSpin(lmp) 
+PairSpinExchange::PairSpinExchange(LAMMPS *lmp) :
+  PairSpin(lmp)
 {
   e_offset = 0;
 }
@@ -66,7 +66,7 @@ PairSpinExchange::~PairSpinExchange()
 void PairSpinExchange::settings(int narg, char **arg)
 {
   PairSpin::settings(narg,arg);
-  
+
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_spin_exchange_global = utils::numeric(FLERR,arg[0],false,lmp);
@@ -112,17 +112,17 @@ void PairSpinExchange::coeff(int narg, char **arg)
 
   // read energy offset flag if specified
 
-  while (iarg < narg) { 
-    if (strcmp(arg[7],"offset") == 0) { 
+  while (iarg < narg) {
+    if (strcmp(arg[7],"offset") == 0) {
       if (strcmp(arg[8],"yes") == 0) {
         e_offset = 1;
       } else if  (strcmp(arg[8],"no") == 0) {
         e_offset = 0;
       } else error->all(FLERR,"Incorrect args for pair coefficients");
-      iarg += 2; 
+      iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
-  
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -252,10 +252,10 @@ void PairSpinExchange::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_exchange(i,j,rsq,fmi,spj);
-        
+
         if (lattice_flag)
           compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
-        
+
         if (eflag) {
           evdwl -= compute_energy(i,j,rsq,spi,spj);
           emag[i] += evdwl;
@@ -388,7 +388,7 @@ void PairSpinExchange::compute_exchange(int i, int j, double rsq, double fmi[3],
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, 
+void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq,
     double eij[3], double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -407,11 +407,11 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq,
 
   Jex_mech = 1.0-ra-J2[itype][jtype]*ra*(2.0-ra);
   Jex_mech *= 8.0*Jex*rr*exp(-ra);
-  
+
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
-  
+
   // apply or not energy and force offset
-  
+
   fx = fy = fz = 0.0;
   if (e_offset == 1) { // set offset
     fx = Jex_mech*(sdots-1.0)*eij[0];
@@ -446,17 +446,17 @@ double PairSpinExchange::compute_energy(int i, int j, double rsq, double spi[3],
   Jex = 4.0*Jex*ra;
   Jex *= (1.0-J2[itype][jtype]*ra);
   Jex *= exp(-ra);
-  
-  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
+
+  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   // apply or not energy and force offset
-  
+
   if (e_offset == 1) { // set offset
     energy = 0.5*Jex*(sdots-1.0);
   } else if (e_offset == 0) { // no offset ("normal" calculation)
     energy = 0.5*Jex*sdots;
   } else error->all(FLERR,"Illegal option in pair exchange/biquadratic command");
-  
+
   return energy;
 }
 

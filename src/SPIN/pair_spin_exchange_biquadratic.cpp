@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) : 
-  PairSpin(lmp) 
+PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) :
+  PairSpin(lmp)
 {
   e_offset = 0;
 }
@@ -119,14 +119,14 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
 
   // read energy offset flag if specified
 
-  while (iarg < narg) { 
-    if (strcmp(arg[10],"offset") == 0) { 
+  while (iarg < narg) {
+    if (strcmp(arg[10],"offset") == 0) {
       if (strcmp(arg[11],"yes") == 0) {
         e_offset = 1;
       } else if  (strcmp(arg[11],"no") == 0) {
         e_offset = 0;
       } else error->all(FLERR,"Incorrect args for pair coefficients");
-      iarg += 2; 
+      iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
@@ -267,10 +267,10 @@ void PairSpinExchangeBiquadratic::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_exchange(i,j,rsq,fmi,spi,spj);
-        
+
         if (lattice_flag)
           compute_exchange_mech(i,j,rsq,eij,fi,spi,spj);
-      
+
         if (eflag) {
           evdwl -= compute_energy(i,j,rsq,spi,spj);
           emag[i] += evdwl;
@@ -384,7 +384,7 @@ void PairSpinExchangeBiquadratic::compute_single_pair(int ii, double fmi[3])
    compute exchange interaction between spins i and j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq, 
+void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
     double fmi[3], double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -395,7 +395,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
 
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
   r2k = rsq/J3[itype][jtype]/J3[itype][jtype];
- 
+
   Jex = 4.0*J1_mag[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -403,7 +403,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   Kex = 4.0*K1_mag[itype][jtype]*r2k;
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
-  
+
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   fmi[0] += (Jex*spj[0] + 2.0*Kex*spj[0]*sdots);
@@ -415,7 +415,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
    compute the mechanical force due to the exchange interaction between atom i and atom j
 ------------------------------------------------------------------------- */
 
-void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j, 
+void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
     double rsq, double eij[3], double fi[3],  double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -430,22 +430,22 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
   iJ3 = 1.0/(J3[itype][jtype]*J3[itype][jtype]);
   Kex = K1_mech[itype][jtype];
   iK3 = 1.0/(K3[itype][jtype]*K3[itype][jtype]);
-  
+
   rja = rsq*iJ3;
   rjr = sqrt(rsq)*iJ3;
   rka = rsq*iK3;
   rkr = sqrt(rsq)*iK3;
- 
+
   Jex_mech = 1.0-rja-J2[itype][jtype]*rja*(2.0-rja);
   Jex_mech *= 8.0*Jex*rjr*exp(-rja);
-  
+
   Kex_mech = 1.0-rka-K2[itype][jtype]*rka*(2.0-rka);
   Kex_mech *= 8.0*Kex*rkr*exp(-rka);
 
   sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   // apply or not energy and force offset
-  
+
   fx = fy = fz = 0.0;
   if (e_offset == 1) { // set offset
     fx = (Jex_mech*(sdots-1.0) + Kex_mech*(sdots*sdots-1.0))*eij[0];
@@ -469,7 +469,7 @@ void PairSpinExchangeBiquadratic::compute_exchange_mech(int i, int j,
    compute energy of spin pair i and j
 ------------------------------------------------------------------------- */
 
-double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq, 
+double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
     double spi[3], double spj[3])
 {
   int *type = atom->type;
@@ -487,7 +487,7 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   rk = ra/K3[itype][jtype];
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
   ir3k = 1.0/(rk*rk*rk);
- 
+
   Jex = 4.0*J1_mech[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
   Jex *= exp(-r2j);
@@ -496,16 +496,16 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
   Kex *= (1.0-K2[itype][jtype]*r2k);
   Kex *= exp(-r2k);
 
-  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);  
+  sdots = (spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
 
   // apply or not energy and force offset
-  
+
   if (e_offset == 1) { // set offset
     energy = 0.5*(Jex*(sdots-1.0) + Kex*(sdots*sdots-1.0));
   } else if (e_offset == 0) { // no offset ("normal" calculation)
     energy = 0.5*(Jex*sdots + Kex*sdots*sdots);
   } else error->all(FLERR,"Illegal option in pair exchange/biquadratic command");
-  
+
   return energy;
 }
 

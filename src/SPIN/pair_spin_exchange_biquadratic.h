@@ -48,7 +48,7 @@ class PairSpinExchangeBiquadratic : public PairSpin {
   double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
-  
+
   int e_offset;                         // apply energy offset
   double **J1_mag;                      // H exchange coeffs in eV
   double **J1_mech;                     // mech exchange coeffs in

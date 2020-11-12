@@ -127,6 +127,71 @@ create_atoms 1 single &
 
         self.assertEqual(1, neighbors_i[0])
 
+    def test_extract_box_non_periodic(self):
+        self.lmp.command("boundary f f f")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        boxlo, boxhi, xy, yz, xz, periodicity, box_change = self.lmp.extract_box()
+
+        self.assertEqual(boxlo, [0.0, 0.0, 0.0])
+        self.assertEqual(boxhi, [2.0, 2.0, 2.0])
+        self.assertEqual(xy, 0.0)
+        self.assertEqual(yz, 0.0)
+        self.assertEqual(xz, 0.0)
+        self.assertEqual(periodicity, [0, 0, 0])
+        self.assertEqual(box_change, 0)
+
+    def test_extract_box_periodic(self):
+        self.lmp.command("boundary p p p")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        boxlo, boxhi, xy, yz, xz, periodicity, box_change = self.lmp.extract_box()
+
+        self.assertEqual(boxlo, [0.0, 0.0, 0.0])
+        self.assertEqual(boxhi, [2.0, 2.0, 2.0])
+        self.assertEqual(xy, 0.0)
+        self.assertEqual(yz, 0.0)
+        self.assertEqual(xz, 0.0)
+        self.assertEqual(periodicity, [1, 1, 1])
+        self.assertEqual(box_change, 0)
+
+    def test_extract_box_triclinic(self):
+        self.lmp.command("boundary p p p")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("change_box all triclinic")
+        self.lmp.command("change_box all xy final 0.1 yz final 0.2 xz final 0.3")
+
+        boxlo, boxhi, xy, yz, xz, periodicity, box_change = self.lmp.extract_box()
+
+        self.assertEqual(boxlo, [0.0, 0.0, 0.0])
+        self.assertEqual(boxhi, [2.0, 2.0, 2.0])
+        self.assertEqual(xy, 0.1)
+        self.assertEqual(yz, 0.2)
+        self.assertEqual(xz, 0.3)
+        self.assertEqual(periodicity, [1, 1, 1])
+        self.assertEqual(box_change, 0)
+
+    def test_reset_box(self):
+        self.lmp.command("boundary p p p")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("change_box all triclinic")
+        self.lmp.command("change_box all xy final 0.1 yz final 0.2 xz final 0.3")
+        self.lmp.reset_box([0,0,0], [1,1,1], 0, 0, 0)
+
+        boxlo, boxhi, xy, yz, xz, periodicity, box_change = self.lmp.extract_box()
+
+        self.assertEqual(boxlo, [0.0, 0.0, 0.0])
+        self.assertEqual(boxhi, [1.0, 1.0, 1.0])
+        self.assertEqual(xy, 0)
+        self.assertEqual(yz, 0)
+        self.assertEqual(xz, 0)
+        self.assertEqual(periodicity, [1, 1, 1])
+        self.assertEqual(box_change, 0)
+
 
 ##############################
 if __name__ == "__main__":

@@ -88,6 +88,11 @@ void NStencilHalfMulti22d::create()
       mbinx = mbinx_multi2[itype][jtype];
       mbiny = mbiny_multi2[itype][jtype];
       
+      // Redefine for use in bin_distance()
+      binsizex = binsizex_multi2[itype][jtype];
+      binsizey = binsizey_multi2[itype][jtype];
+      binsizez = binsizez_multi2[itype][jtype];
+      
       cutsq = stencil_cut[itype][jtype];
       
       if (stencil_half[itype][jtype]) {

@@ -86,6 +86,11 @@ void NStencilFullMulti23d::create()
       mbiny = mbiny_multi2[itype][jtype];
       mbinz = mbinz_multi2[itype][jtype];
       
+      // Redefine for use in bin_distance()
+      binsizex = binsizex_multi2[itype][jtype];
+      binsizey = binsizey_multi2[itype][jtype];
+      binsizez = binsizez_multi2[itype][jtype];      
+      
       cutsq = stencil_cut[itype][jtype];
       
       for (k = -sz; k <= sz; k++)

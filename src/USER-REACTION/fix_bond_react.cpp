@@ -3204,11 +3204,12 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 {
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
-  imageint imageflag;
   double coord[3],lamda[3],rotmat[3][3],vnew[3];
   double *newcoord;
   double **v = atom->v;
   double t;
+  imageint imageflag = ((imageint) IMGMAX << IMG2BITS) |
+    ((imageint) IMGMAX << IMGBITS) | IMGMAX;;
 
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
@@ -3314,8 +3315,6 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       if (fitroot == me) {
         MathExtra::matvec(rotmat,twomol->x[m],coord);
         for (int i = 0; i < 3; i++) coord[i] += superposer.T[i];
-        imageflag = ((imageint) IMGMAX << IMG2BITS) |
-          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
         domain->remap(coord,imageflag);
       }
       MPI_Bcast(coord,3,MPI_DOUBLE,fitroot,world);

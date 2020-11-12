@@ -2625,19 +2625,35 @@ void lammps_gather_bonds(void *handle, void *data)
     if (lmp->atom->molecular != Atom::MOLECULAR) flag = 1;
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
-    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    // TODO: guess this is unneccessary if we use bigint for natoms?  
+    //if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_gather_bonds");
       return;
     }
     
-    int natoms = static_cast<int> (lmp->atom->natoms);
-    int nbonds = static_cast<int> (lmp->atom->nbonds);
-    if (!lmp->force->newton_bond) nbonds *= 2;
+    // using a bigint for natoms as done in create_atoms()
+    bigint natoms = lmp->atom->natoms;
+    // using a bigint also for nbonds
+    bigint nbonds = lmp->atom->nbonds;
+    // check if we overflow the bigint if we double nbonds
+    // due to the newton off setting. if nbonds bigger than 
+    // MAXBIGINT/2, nbonds would overflow bigint.
+    if (!lmp->force->newton_bond) {
+      if ((nbonds >= MAXBIGINT / 2) && lmp->comm->me == 0) {
+        lmp->error->warning(FLERR,"Library error in lammps_gather_bonds");
+        return;
+      }
+      nbonds *= 2;
+    }    
     
-    int *offset;
-    lmp->memory->create(offset,natoms,"lib/gather:copy");
+    // offset stores cummulative sum of number of bonds of each atom
+    // for easy access of the bond list using the indices stored in it. 
+    bigint *offset;
+    lmp->memory->create(offset,natoms,"lib/gather:offset");
+    // need to set all entries to zero, else MPI_allreduce  
+    // will not gather all local number of bonds correctly
     for (i = 0; i < natoms; i++) offset[i] = 0;
     
     tagint *tag = lmp->atom->tag;
@@ -2645,7 +2661,7 @@ void lammps_gather_bonds(void *handle, void *data)
     int *num_bond = lmp->atom->num_bond;
   
     for (i = 0; i < nlocal; i++) offset[tag[i]-1] = num_bond[i];
-    MPI_Allreduce(MPI_IN_PLACE,offset,natoms,MPI_INT,MPI_SUM,lmp->world);
+    MPI_Allreduce(MPI_IN_PLACE,offset,natoms,MPI_LMP_BIGINT,MPI_SUM,lmp->world);
     
     // move all element to the right and do cumulative sum of elements
     // in order to get an array which could be used as an offset to 
@@ -2654,25 +2670,27 @@ void lammps_gather_bonds(void *handle, void *data)
     for(i = 1; i < natoms; i++) offset[i+1] += offset[i]; 
     offset[0] = 0; // start with offset 0
     
-    int *copy;
-    lmp->memory->create(copy,3*nbonds,"lib/gather:copy");
-    for (i = 0; i < 3*nbonds; i++) copy[i] = 0;
+    // topo stores the bond type and the connected atoms of every atom.
+    // Use range from offset to find bonds of specific atoms in topo
+    int *topo;
+    lmp->memory->create(topo,3*nbonds,"lib/gather:topo");
+    for (i = 0; i < 3*nbonds; i++) topo[i] = 0;
     
     tagint **bond_atom = lmp->atom->bond_atom;
     int **bond_type = lmp->atom->bond_type;
-    int off;
+    bigint off;
     for (i = 0; i < nlocal; i++) {
       // set offset and multiply by three b/c of 3 quantities per atom info to store
       off = offset[tag[i]-1]*3;
       for (j = 0; j < num_bond[i]; j++) {
-        copy[off++] = bond_type[i][j];
-        copy[off++] = tag[i];
-        copy[off++] = bond_atom[i][j];
+        topo[off++] = bond_type[i][j];
+        topo[off++] = tag[i];
+        topo[off++] = bond_atom[i][j];
       }
     } 
-    MPI_Allreduce(copy,data,3*nbonds,MPI_INT,MPI_SUM,lmp->world);
+    MPI_Allreduce(topo,data,3*nbonds,MPI_INT,MPI_SUM,lmp->world);
     
-    lmp->memory->destroy(copy);
+    lmp->memory->destroy(topo);
     lmp->memory->destroy(offset);
 #endif
   }

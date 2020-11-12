@@ -3254,9 +3254,9 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
   int ifit = atom->map(my_mega_glove[ibonding[rxnID]+1][iupdate]); // use this local ID to find fitting proc
   Superpose3D<double, double **> superposer(n2superpose);
-  int root = 0;
+  int fitroot = 0;
   if (ifit >= 0 && ifit < atom->nlocal) {
-    root = me;
+    fitroot = me;
 
     // get 'temperatere' averaged over site, used for created atoms' vels
     t = get_temperature(my_mega_glove,1,iupdate);
@@ -3294,15 +3294,14 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     memory->destroy(xfrozen);
     memory->destroy(xmobile);
   }
-  MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
-  MPI_Bcast(&t,1,MPI_DOUBLE,root,world);
+  MPI_Allreduce(MPI_IN_PLACE,&fitroot,1,MPI_INT,MPI_SUM,world);
+  MPI_Bcast(&t,1,MPI_DOUBLE,fitroot,world);
 
   // check if new atoms are in my sub-box or above it if I am highest proc
   // if so, add atom to my list via create_atom()
   // initialize additional info about the atoms
   // set group mask to "all" plus fix group
   int preID; // new equivalences index
-  root = 0;
   int add_count = 0;
   for (int m = 0; m < twomol->natoms; m++) {
     if (create_atoms[m][rxnID] == 1) {
@@ -3312,17 +3311,14 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
       // apply optimal rotation/translation for created atom coords
       // also map coords back into simulation box
-      root = 0;
-      if (ifit >= 0 && ifit < atom->nlocal) {
-        root = me;
+      if (fitroot == me) {
         MathExtra::matvec(rotmat,twomol->x[m],coord);
         for (int i = 0; i < 3; i++) coord[i] += superposer.T[i];
         imageflag = ((imageint) IMGMAX << IMG2BITS) |
           ((imageint) IMGMAX << IMGBITS) | IMGMAX;
         domain->remap(coord,imageflag);
       }
-      MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
-      MPI_Bcast(coord,3,MPI_DOUBLE,root,world);
+      MPI_Bcast(coord,3,MPI_DOUBLE,fitroot,world);
 
       if (domain->triclinic) {
         domain->x2lamda(coord,lamda);
@@ -3352,7 +3348,8 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
         }
       }
-      root = 0;
+
+      int root = 0;
       if (flag) {
         root = me;
 

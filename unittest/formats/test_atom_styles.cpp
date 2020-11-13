@@ -130,217 +130,361 @@ protected:
     }
 };
 
+// default class Atom state
+struct AtomState {
+    std::string atom_style = "atomic";
+    bigint natoms = 0;
+    int nlocal = 0;
+    int nghost = 0;
+    int nmax = 1;
+    int tag_enable = 1;
+    int molecular = Atom::ATOMIC;
+    bigint nellipsoids = 0;
+    bigint nlines = 0;
+    bigint ntris = 0;
+    bigint nbodies = 0;
+    bigint nbonds = 0;
+    bigint nangles = 0;
+    bigint ndihedrals = 0;
+    bigint nimpropers = 0;
+    int ntypes = 0;
+    int nbondtypes = 0;
+    int nangletypes = 0;
+    int ndihedraltypes = 0;
+    int nimpropertypes = 0;
+    int bond_per_atom = 0;
+    int angle_per_atom = 0;
+    int dihedral_per_atom = 0;
+    int improper_per_atom = 0;
+    int extra_bond_per_atom = 0;
+    int extra_angle_per_atom = 0;
+    int extra_dihedral_per_atom = 0;
+    int extra_improper_per_atom = 0;
+
+    int sphere_flag = 0;
+    int ellipsoid_flag = 0;
+    int line_flag = 0;
+    int tri_flag = 0;
+    int body_flag = 0;
+    int peri_flag = 0;
+    int electron_flag = 0;
+    int wavepacket_flag = 0;
+    int sph_flag = 0;
+    int molecule_flag = 0;
+    int molindex_flag = 0;
+    int molatom_flag = 0;
+    int q_flag = 0;
+    int mu_flag = 0;
+    int rmass_flag = 0;
+    int radius_flag = 0;
+    int omega_flag = 0;
+    int torque_flag = 0;
+    int angmom_flag = 0;
+    int vfrac_flag = 0;
+    int spin_flag = 0;
+    int eradius_flag = 0;
+    int ervel_flag = 0;
+    int erforce_flag = 0;
+    int cs_flag = 0;
+    int csforce_flag = 0;
+    int vforce_flag = 0;
+    int ervelforce_flag = 0;
+    int etag_flag = 0;
+    int rho_flag = 0;
+    int esph_flag = 0;
+    int cv_flag = 0;
+    int vest_flag = 0;
+    int dpd_flag = 0;
+    int edpd_flag = 0;
+    int tdpd_flag = 0;
+    int mesont_flag = 0;
+    int sp_flag = 0;
+    int x0_flag = 0;
+    int smd_flag = 0;
+    int damage_flag = 0;
+    int contact_radius_flag = 0;
+    int smd_data_9_flag = 0;
+    int smd_stress_flag = 0;
+    int eff_plastic_strain_flag = 0;
+    int eff_plastic_strain_rate_flag = 0;
+    double pdscale = 1.0;
+
+
+    int maxspecial = 1;
+
+    int nmolecule = 0;
+
+    int nivector = 0;
+    int ndvector = 0;
+
+    int nextra_grow = 0;
+    int nextra_restart = 0;
+    int nextra_border = 0;
+    int nextra_grow_max = 0;
+    int nextra_restart_max = 0;
+    int nextra_border_max = 0;
+    int nextra_store = 0;
+
+    int map_style = Atom::MAP_NONE;
+    int map_user = 0;
+    tagint map_tag_max = -1;
+
+    // properties X that aren't controlled by an equivalent X_flag
+    bool has_type = true;
+    bool has_mask = true;
+    bool has_image = true;
+    bool has_x = true;
+    bool has_v = true;
+    bool has_f = true;
+
+    bool has_bonds = false;
+    bool has_angles = false;
+    bool has_dihedral = false;
+    bool has_improper = false;
+
+    bool has_iname = false;
+    bool has_dname = false;
+    bool has_mass = false;
+    bool has_mass_setflag = false;
+};
+
+template<typename T>
+void ASSERT_ARRAY_ALLOCATED(const T * ptr, bool enabled) {
+    if (enabled) {
+        ASSERT_NE(ptr, nullptr);
+    } else {
+        ASSERT_EQ(ptr, nullptr);
+    }
+}
+
+void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
+    ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));
+
+    ASSERT_NE(atom->avec, nullptr);
+    ASSERT_EQ(atom->natoms, expected.natoms);
+    ASSERT_EQ(atom->nlocal, expected.nlocal);
+    ASSERT_EQ(atom->nghost, expected.nghost);
+    ASSERT_EQ(atom->nmax, expected.nmax);
+    ASSERT_EQ(atom->tag_enable, expected.tag_enable);
+    ASSERT_EQ(atom->molecular, expected.molecular);
+    ASSERT_EQ(atom->nellipsoids, expected.nellipsoids);
+    ASSERT_EQ(atom->nlines, expected.nlines);
+    ASSERT_EQ(atom->ntris, expected.ntris);
+    ASSERT_EQ(atom->nbodies, expected.nbodies);
+    ASSERT_EQ(atom->nbonds, expected.nbonds);
+    ASSERT_EQ(atom->nangles, expected.nangles);
+    ASSERT_EQ(atom->ndihedrals, expected.ndihedrals);
+    ASSERT_EQ(atom->nimpropers, expected.nimpropers);
+    ASSERT_EQ(atom->ntypes, expected.ntypes);
+    ASSERT_EQ(atom->nbondtypes, expected.nbondtypes);
+    ASSERT_EQ(atom->nangletypes, expected.nangletypes);
+    ASSERT_EQ(atom->ndihedraltypes, expected.ndihedraltypes);
+    ASSERT_EQ(atom->nimpropertypes, expected.nimpropertypes);
+    ASSERT_EQ(atom->bond_per_atom, expected.bond_per_atom);
+    ASSERT_EQ(atom->angle_per_atom, expected.angle_per_atom);
+    ASSERT_EQ(atom->dihedral_per_atom, expected.dihedral_per_atom);
+    ASSERT_EQ(atom->improper_per_atom, expected.improper_per_atom);
+    ASSERT_EQ(atom->extra_bond_per_atom, expected.extra_bond_per_atom);
+    ASSERT_EQ(atom->extra_angle_per_atom, expected.extra_angle_per_atom);
+    ASSERT_EQ(atom->extra_dihedral_per_atom, expected.extra_dihedral_per_atom);
+    ASSERT_EQ(atom->extra_improper_per_atom, expected.extra_improper_per_atom);
+    
+    ASSERT_EQ(atom->sphere_flag, expected.sphere_flag);
+    ASSERT_EQ(atom->ellipsoid_flag, expected.ellipsoid_flag);
+    ASSERT_EQ(atom->line_flag, expected.line_flag);
+    ASSERT_EQ(atom->tri_flag, expected.tri_flag);
+    ASSERT_EQ(atom->body_flag, expected.body_flag);
+    ASSERT_EQ(atom->peri_flag, expected.peri_flag);
+    ASSERT_EQ(atom->electron_flag, expected.electron_flag);
+    ASSERT_EQ(atom->wavepacket_flag, expected.wavepacket_flag);
+    ASSERT_EQ(atom->sph_flag, expected.sph_flag);
+    ASSERT_EQ(atom->molecule_flag, expected.molecule_flag);
+    ASSERT_EQ(atom->molindex_flag, expected.molindex_flag);
+    ASSERT_EQ(atom->molatom_flag, expected.molatom_flag);
+    ASSERT_EQ(atom->q_flag, expected.q_flag);
+    ASSERT_EQ(atom->mu_flag, expected.mu_flag);
+    ASSERT_EQ(atom->rmass_flag, expected.rmass_flag);
+    ASSERT_EQ(atom->radius_flag, expected.radius_flag);
+    ASSERT_EQ(atom->omega_flag, expected.omega_flag);
+    ASSERT_EQ(atom->torque_flag, expected.torque_flag);
+    ASSERT_EQ(atom->angmom_flag, expected.angmom_flag);
+    ASSERT_EQ(atom->vfrac_flag, expected.vfrac_flag);
+    ASSERT_EQ(atom->spin_flag, expected.spin_flag);
+    ASSERT_EQ(atom->eradius_flag, expected.eradius_flag);
+    ASSERT_EQ(atom->ervel_flag, expected.ervel_flag);
+    ASSERT_EQ(atom->erforce_flag, expected.erforce_flag);
+    ASSERT_EQ(atom->cs_flag, expected.cs_flag);
+    ASSERT_EQ(atom->csforce_flag, expected.csforce_flag);
+    ASSERT_EQ(atom->vforce_flag, expected.vforce_flag);
+    ASSERT_EQ(atom->ervelforce_flag, expected.ervelforce_flag);
+    ASSERT_EQ(atom->etag_flag, expected.etag_flag);
+    ASSERT_EQ(atom->rho_flag, expected.rho_flag);
+    ASSERT_EQ(atom->esph_flag, expected.esph_flag);
+    ASSERT_EQ(atom->cv_flag, expected.cv_flag);
+    ASSERT_EQ(atom->vest_flag, expected.vest_flag);
+    ASSERT_EQ(atom->dpd_flag, expected.dpd_flag);
+    ASSERT_EQ(atom->edpd_flag, expected.edpd_flag);
+    ASSERT_EQ(atom->tdpd_flag, expected.tdpd_flag);
+    ASSERT_EQ(atom->mesont_flag, expected.mesont_flag);
+    ASSERT_EQ(atom->sp_flag, expected.sp_flag);
+    ASSERT_EQ(atom->x0_flag, expected.x0_flag);
+    ASSERT_EQ(atom->smd_flag, expected.smd_flag);
+    ASSERT_EQ(atom->damage_flag, expected.damage_flag);
+    ASSERT_EQ(atom->contact_radius_flag, expected.contact_radius_flag);
+    ASSERT_EQ(atom->smd_data_9_flag, expected.smd_data_9_flag);
+    ASSERT_EQ(atom->smd_stress_flag, expected.smd_stress_flag);
+    ASSERT_EQ(atom->eff_plastic_strain_flag, expected.eff_plastic_strain_flag);
+    ASSERT_EQ(atom->eff_plastic_strain_rate_flag, expected.eff_plastic_strain_rate_flag);
+    ASSERT_EQ(atom->pdscale, expected.pdscale);
+
+    ASSERT_ARRAY_ALLOCATED(atom->tag, expected.tag_enable);
+    ASSERT_ARRAY_ALLOCATED(atom->type, expected.has_type);
+    ASSERT_ARRAY_ALLOCATED(atom->mask, expected.has_mask);
+    ASSERT_ARRAY_ALLOCATED(atom->image, expected.has_image);
+
+    ASSERT_ARRAY_ALLOCATED(atom->x, expected.has_x);
+    ASSERT_ARRAY_ALLOCATED(atom->v, expected.has_v);
+    ASSERT_ARRAY_ALLOCATED(atom->f, expected.has_f);
+    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->mu, expected.mu_flag);
+
+    ASSERT_ARRAY_ALLOCATED(atom->omega, expected.omega_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->angmom, expected.angmom_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->torque, expected.torque_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->radius, expected.radius_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->rmass, expected.rmass_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->ellipsoid, expected.ellipsoid_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->line, expected.line_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->tri, expected.tri_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->body, expected.body_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->molecule, expected.molecule_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->molindex, expected.molindex_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->molatom, expected.molatom_flag);
+
+    ASSERT_ARRAY_ALLOCATED(atom->num_bond, expected.has_bonds);
+    ASSERT_ARRAY_ALLOCATED(atom->bond_type, expected.has_bonds);
+    ASSERT_ARRAY_ALLOCATED(atom->bond_atom, expected.has_bonds);
+
+    ASSERT_ARRAY_ALLOCATED(atom->num_angle, expected.has_angles);
+    ASSERT_ARRAY_ALLOCATED(atom->angle_type, expected.has_angles);
+    ASSERT_ARRAY_ALLOCATED(atom->angle_atom1, expected.has_angles);
+    ASSERT_ARRAY_ALLOCATED(atom->angle_atom2, expected.has_angles);
+    ASSERT_ARRAY_ALLOCATED(atom->angle_atom3, expected.has_angles);
+
+    ASSERT_ARRAY_ALLOCATED(atom->num_dihedral, expected.has_dihedral);
+    ASSERT_ARRAY_ALLOCATED(atom->dihedral_type, expected.has_dihedral);
+    ASSERT_ARRAY_ALLOCATED(atom->dihedral_atom1, expected.has_dihedral);
+    ASSERT_ARRAY_ALLOCATED(atom->dihedral_atom2, expected.has_dihedral);
+    ASSERT_ARRAY_ALLOCATED(atom->dihedral_atom3, expected.has_dihedral);
+    ASSERT_ARRAY_ALLOCATED(atom->dihedral_atom4, expected.has_dihedral);
+
+    ASSERT_ARRAY_ALLOCATED(atom->num_improper, expected.has_improper);
+    ASSERT_ARRAY_ALLOCATED(atom->improper_type, expected.has_improper);
+    ASSERT_ARRAY_ALLOCATED(atom->improper_atom1, expected.has_improper);
+    ASSERT_ARRAY_ALLOCATED(atom->improper_atom2, expected.has_improper);
+    ASSERT_ARRAY_ALLOCATED(atom->improper_atom3, expected.has_improper);
+    ASSERT_ARRAY_ALLOCATED(atom->improper_atom4, expected.has_improper);
+
+    ASSERT_EQ(atom->maxspecial, expected.maxspecial);
+
+    // currently ignored
+    ASSERT_ARRAY_ALLOCATED(atom->nspecial, false);
+    ASSERT_ARRAY_ALLOCATED(atom->special, false);
+    ASSERT_ARRAY_ALLOCATED(atom->vfrac, false);
+    ASSERT_ARRAY_ALLOCATED(atom->s0, false);
+    ASSERT_ARRAY_ALLOCATED(atom->x0, false);
+    ASSERT_ARRAY_ALLOCATED(atom->sp, false);
+    ASSERT_ARRAY_ALLOCATED(atom->fm, false);
+    ASSERT_ARRAY_ALLOCATED(atom->fm_long, false);
+    ASSERT_ARRAY_ALLOCATED(atom->spin, false);
+    ASSERT_ARRAY_ALLOCATED(atom->eradius, false);
+    ASSERT_ARRAY_ALLOCATED(atom->ervel, false);
+    ASSERT_ARRAY_ALLOCATED(atom->erforce, false);
+    ASSERT_ARRAY_ALLOCATED(atom->ervelforce, false);
+    ASSERT_ARRAY_ALLOCATED(atom->cs, false);
+    ASSERT_ARRAY_ALLOCATED(atom->csforce, false);
+    ASSERT_ARRAY_ALLOCATED(atom->vforce, false);
+    ASSERT_ARRAY_ALLOCATED(atom->etag, false);
+    ASSERT_ARRAY_ALLOCATED(atom->uCond, false);
+    ASSERT_ARRAY_ALLOCATED(atom->uMech, false);
+    ASSERT_ARRAY_ALLOCATED(atom->uChem, false);
+    ASSERT_ARRAY_ALLOCATED(atom->uCG, false);
+    ASSERT_ARRAY_ALLOCATED(atom->uCGnew, false);
+    ASSERT_ARRAY_ALLOCATED(atom->duChem, false);
+    ASSERT_ARRAY_ALLOCATED(atom->dpdTheta, false);
+    ASSERT_ARRAY_ALLOCATED(atom->cc, false);
+    ASSERT_ARRAY_ALLOCATED(atom->cc_flux, false);
+    ASSERT_ARRAY_ALLOCATED(atom->edpd_temp, false);
+    ASSERT_ARRAY_ALLOCATED(atom->edpd_flux, false);
+    ASSERT_ARRAY_ALLOCATED(atom->edpd_cv, false);
+    ASSERT_ARRAY_ALLOCATED(atom->length, false);
+    ASSERT_ARRAY_ALLOCATED(atom->buckling, false);
+    ASSERT_ARRAY_ALLOCATED(atom->bond_nt, false);
+    ASSERT_ARRAY_ALLOCATED(atom->contact_radius, false);
+    ASSERT_ARRAY_ALLOCATED(atom->smd_data_9, false);
+    ASSERT_ARRAY_ALLOCATED(atom->smd_stress, false);
+    ASSERT_ARRAY_ALLOCATED(atom->eff_plastic_strain, false);
+    ASSERT_ARRAY_ALLOCATED(atom->eff_plastic_strain_rate, false);
+    ASSERT_ARRAY_ALLOCATED(atom->damage, false);
+    ASSERT_ARRAY_ALLOCATED(atom->rho, false);
+    ASSERT_ARRAY_ALLOCATED(atom->drho, false);
+    ASSERT_ARRAY_ALLOCATED(atom->esph, false);
+    ASSERT_ARRAY_ALLOCATED(atom->desph, false);
+    ASSERT_ARRAY_ALLOCATED(atom->cv, false);
+    ASSERT_ARRAY_ALLOCATED(atom->vest, false);
+
+    ASSERT_EQ(atom->nmolecule, expected.nmolecule);
+
+    ASSERT_ARRAY_ALLOCATED(atom->molecules, expected.molecule_flag);
+
+    ASSERT_EQ(atom->nivector, expected.nivector);
+    ASSERT_EQ(atom->ndvector, expected.ndvector);
+
+    ASSERT_ARRAY_ALLOCATED(atom->iname, expected.has_iname);
+    ASSERT_ARRAY_ALLOCATED(atom->dname, expected.has_dname);
+    ASSERT_ARRAY_ALLOCATED(atom->mass, expected.has_mass);
+    ASSERT_ARRAY_ALLOCATED(atom->mass_setflag, expected.has_mass_setflag);
+
+    ASSERT_EQ(atom->nextra_grow, expected.nextra_grow);
+    ASSERT_EQ(atom->nextra_restart, expected.nextra_restart);
+    ASSERT_EQ(atom->nextra_border, expected.nextra_border);
+    ASSERT_EQ(atom->nextra_grow_max, expected.nextra_grow_max);
+    ASSERT_EQ(atom->nextra_restart_max, expected.nextra_restart_max);
+    ASSERT_EQ(atom->nextra_border_max, expected.nextra_border_max);
+    ASSERT_EQ(atom->nextra_store, expected.nextra_store);
+
+    ASSERT_ARRAY_ALLOCATED(atom->extra_grow, false);
+    ASSERT_ARRAY_ALLOCATED(atom->extra_restart, false);
+    ASSERT_ARRAY_ALLOCATED(atom->extra_border, false);
+    ASSERT_ARRAY_ALLOCATED(atom->extra, false);
+    ASSERT_ARRAY_ALLOCATED(atom->sametag, false);
+
+    ASSERT_EQ(atom->map_style, expected.map_style);
+    ASSERT_EQ(atom->map_user, expected.map_user);
+    ASSERT_EQ(atom->map_tag_max, expected.map_tag_max);
+}
+
 TEST_F(AtomStyleTest, atomic)
 {
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
-    ASSERT_NE(lmp->atom->avec, nullptr);
-    ASSERT_EQ(lmp->atom->natoms, 0);
-    ASSERT_EQ(lmp->atom->nlocal, 0);
-    ASSERT_EQ(lmp->atom->nghost, 0);
-    ASSERT_EQ(lmp->atom->nmax, 1);
-    ASSERT_EQ(lmp->atom->tag_enable, 1);
-    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
-    ASSERT_EQ(lmp->atom->nellipsoids, 0);
-    ASSERT_EQ(lmp->atom->nlines, 0);
-    ASSERT_EQ(lmp->atom->ntris, 0);
-    ASSERT_EQ(lmp->atom->nbodies, 0);
-    ASSERT_EQ(lmp->atom->nbonds, 0);
-    ASSERT_EQ(lmp->atom->nangles, 0);
-    ASSERT_EQ(lmp->atom->ndihedrals, 0);
-    ASSERT_EQ(lmp->atom->nimpropers, 0);
-    ASSERT_EQ(lmp->atom->ntypes, 0);
-    ASSERT_EQ(lmp->atom->nbondtypes, 0);
-    ASSERT_EQ(lmp->atom->nangletypes, 0);
-    ASSERT_EQ(lmp->atom->ndihedraltypes, 0);
-    ASSERT_EQ(lmp->atom->nimpropertypes, 0);
-    ASSERT_EQ(lmp->atom->bond_per_atom, 0);
-    ASSERT_EQ(lmp->atom->angle_per_atom, 0);
-    ASSERT_EQ(lmp->atom->dihedral_per_atom, 0);
-    ASSERT_EQ(lmp->atom->improper_per_atom, 0);
-    ASSERT_EQ(lmp->atom->extra_bond_per_atom, 0);
-    ASSERT_EQ(lmp->atom->extra_angle_per_atom, 0);
-    ASSERT_EQ(lmp->atom->extra_dihedral_per_atom, 0);
-    ASSERT_EQ(lmp->atom->extra_improper_per_atom, 0);
+    AtomState expected;
+    expected.atom_style = "atomic";
+    expected.molecular = Atom::ATOMIC;
+    expected.tag_enable = 1;
+    expected.has_type = true;
+    expected.has_mask = true;
+    expected.has_image = true;
+    expected.has_x = true;
+    expected.has_v = true;
+    expected.has_f = true;
 
-    ASSERT_EQ(lmp->atom->sphere_flag, 0);
-    ASSERT_EQ(lmp->atom->ellipsoid_flag, 0);
-    ASSERT_EQ(lmp->atom->line_flag, 0);
-    ASSERT_EQ(lmp->atom->tri_flag, 0);
-    ASSERT_EQ(lmp->atom->body_flag, 0);
-    ASSERT_EQ(lmp->atom->peri_flag, 0);
-    ASSERT_EQ(lmp->atom->electron_flag, 0);
-    ASSERT_EQ(lmp->atom->wavepacket_flag, 0);
-    ASSERT_EQ(lmp->atom->sph_flag, 0);
-    ASSERT_EQ(lmp->atom->molecule_flag, 0);
-    ASSERT_EQ(lmp->atom->molindex_flag, 0);
-    ASSERT_EQ(lmp->atom->molatom_flag, 0);
-    ASSERT_EQ(lmp->atom->q_flag, 0);
-    ASSERT_EQ(lmp->atom->mu_flag, 0);
-    ASSERT_EQ(lmp->atom->rmass_flag, 0);
-    ASSERT_EQ(lmp->atom->radius_flag, 0);
-    ASSERT_EQ(lmp->atom->omega_flag, 0);
-    ASSERT_EQ(lmp->atom->torque_flag, 0);
-    ASSERT_EQ(lmp->atom->angmom_flag, 0);
-    ASSERT_EQ(lmp->atom->vfrac_flag, 0);
-    ASSERT_EQ(lmp->atom->spin_flag, 0);
-    ASSERT_EQ(lmp->atom->eradius_flag, 0);
-    ASSERT_EQ(lmp->atom->ervel_flag, 0);
-    ASSERT_EQ(lmp->atom->erforce_flag, 0);
-    ASSERT_EQ(lmp->atom->cs_flag, 0);
-    ASSERT_EQ(lmp->atom->csforce_flag, 0);
-    ASSERT_EQ(lmp->atom->vforce_flag, 0);
-    ASSERT_EQ(lmp->atom->ervelforce_flag, 0);
-    ASSERT_EQ(lmp->atom->etag_flag, 0);
-    ASSERT_EQ(lmp->atom->rho_flag, 0);
-    ASSERT_EQ(lmp->atom->esph_flag, 0);
-    ASSERT_EQ(lmp->atom->cv_flag, 0);
-    ASSERT_EQ(lmp->atom->vest_flag, 0);
-    ASSERT_EQ(lmp->atom->dpd_flag, 0);
-    ASSERT_EQ(lmp->atom->edpd_flag, 0);
-    ASSERT_EQ(lmp->atom->tdpd_flag, 0);
-    ASSERT_EQ(lmp->atom->mesont_flag, 0);
-    ASSERT_EQ(lmp->atom->sp_flag, 0);
-    ASSERT_EQ(lmp->atom->x0_flag, 0);
-    ASSERT_EQ(lmp->atom->smd_flag, 0);
-    ASSERT_EQ(lmp->atom->damage_flag, 0);
-    ASSERT_EQ(lmp->atom->contact_radius_flag, 0);
-    ASSERT_EQ(lmp->atom->smd_data_9_flag, 0);
-    ASSERT_EQ(lmp->atom->smd_stress_flag, 0);
-    ASSERT_EQ(lmp->atom->eff_plastic_strain_flag, 0);
-    ASSERT_EQ(lmp->atom->eff_plastic_strain_rate_flag, 0);
-    ASSERT_EQ(lmp->atom->pdscale, 1.0);
-
-    ASSERT_NE(lmp->atom->tag, nullptr);
-    ASSERT_NE(lmp->atom->type, nullptr);
-    ASSERT_NE(lmp->atom->mask, nullptr);
-    ASSERT_NE(lmp->atom->image, nullptr);
-    ASSERT_NE(lmp->atom->x, nullptr);
-    ASSERT_NE(lmp->atom->v, nullptr);
-    ASSERT_NE(lmp->atom->f, nullptr);
-    ASSERT_EQ(lmp->atom->q, nullptr);
-    ASSERT_EQ(lmp->atom->mu, nullptr);
-    ASSERT_EQ(lmp->atom->omega, nullptr);
-    ASSERT_EQ(lmp->atom->angmom, nullptr);
-    ASSERT_EQ(lmp->atom->torque, nullptr);
-    ASSERT_EQ(lmp->atom->radius, nullptr);
-    ASSERT_EQ(lmp->atom->rmass, nullptr);
-    ASSERT_EQ(lmp->atom->ellipsoid, nullptr);
-    ASSERT_EQ(lmp->atom->line, nullptr);
-    ASSERT_EQ(lmp->atom->tri, nullptr);
-    ASSERT_EQ(lmp->atom->body, nullptr);
-    ASSERT_EQ(lmp->atom->molecule, nullptr);
-    ASSERT_EQ(lmp->atom->molindex, nullptr);
-    ASSERT_EQ(lmp->atom->molatom, nullptr);
-    ASSERT_EQ(lmp->atom->num_bond, nullptr);
-    ASSERT_EQ(lmp->atom->bond_type, nullptr);
-    ASSERT_EQ(lmp->atom->bond_atom, nullptr);
-    ASSERT_EQ(lmp->atom->num_angle, nullptr);
-    ASSERT_EQ(lmp->atom->angle_type, nullptr);
-    ASSERT_EQ(lmp->atom->angle_atom1, nullptr);
-    ASSERT_EQ(lmp->atom->angle_atom2, nullptr);
-    ASSERT_EQ(lmp->atom->angle_atom3, nullptr);
-    ASSERT_EQ(lmp->atom->num_dihedral, nullptr);
-    ASSERT_EQ(lmp->atom->dihedral_type, nullptr);
-    ASSERT_EQ(lmp->atom->dihedral_atom1, nullptr);
-    ASSERT_EQ(lmp->atom->dihedral_atom2, nullptr);
-    ASSERT_EQ(lmp->atom->dihedral_atom3, nullptr);
-    ASSERT_EQ(lmp->atom->dihedral_atom4, nullptr);
-    ASSERT_EQ(lmp->atom->num_improper, nullptr);
-    ASSERT_EQ(lmp->atom->improper_type, nullptr);
-    ASSERT_EQ(lmp->atom->improper_atom1, nullptr);
-    ASSERT_EQ(lmp->atom->improper_atom2, nullptr);
-    ASSERT_EQ(lmp->atom->improper_atom3, nullptr);
-    ASSERT_EQ(lmp->atom->improper_atom4, nullptr);
-    ASSERT_EQ(lmp->atom->maxspecial, 1);
-    ASSERT_EQ(lmp->atom->nspecial, nullptr);
-    ASSERT_EQ(lmp->atom->special, nullptr);
-    ASSERT_EQ(lmp->atom->vfrac, nullptr);
-    ASSERT_EQ(lmp->atom->s0, nullptr);
-    ASSERT_EQ(lmp->atom->x0, nullptr);
-    ASSERT_EQ(lmp->atom->sp, nullptr);
-    ASSERT_EQ(lmp->atom->fm, nullptr);
-    ASSERT_EQ(lmp->atom->fm_long, nullptr);
-    ASSERT_EQ(lmp->atom->spin, nullptr);
-    ASSERT_EQ(lmp->atom->eradius, nullptr);
-    ASSERT_EQ(lmp->atom->ervel, nullptr);
-    ASSERT_EQ(lmp->atom->erforce, nullptr);
-    ASSERT_EQ(lmp->atom->ervelforce, nullptr);
-    ASSERT_EQ(lmp->atom->cs, nullptr);
-    ASSERT_EQ(lmp->atom->csforce, nullptr);
-    ASSERT_EQ(lmp->atom->vforce, nullptr);
-    ASSERT_EQ(lmp->atom->etag, nullptr);
-    ASSERT_EQ(lmp->atom->uCond, nullptr);
-    ASSERT_EQ(lmp->atom->uMech, nullptr);
-    ASSERT_EQ(lmp->atom->uChem, nullptr);
-    ASSERT_EQ(lmp->atom->uCG, nullptr);
-    ASSERT_EQ(lmp->atom->uCGnew, nullptr);
-    ASSERT_EQ(lmp->atom->duChem, nullptr);
-    ASSERT_EQ(lmp->atom->dpdTheta, nullptr);
-    ASSERT_EQ(lmp->atom->cc, nullptr);
-    ASSERT_EQ(lmp->atom->cc_flux, nullptr);
-    ASSERT_EQ(lmp->atom->edpd_temp, nullptr);
-    ASSERT_EQ(lmp->atom->edpd_flux, nullptr);
-    ASSERT_EQ(lmp->atom->edpd_cv, nullptr);
-    ASSERT_EQ(lmp->atom->length, nullptr);
-    ASSERT_EQ(lmp->atom->buckling, nullptr);
-    ASSERT_EQ(lmp->atom->bond_nt, nullptr);
-    ASSERT_EQ(lmp->atom->contact_radius, nullptr);
-    ASSERT_EQ(lmp->atom->smd_data_9, nullptr);
-    ASSERT_EQ(lmp->atom->smd_stress, nullptr);
-    ASSERT_EQ(lmp->atom->eff_plastic_strain, nullptr);
-    ASSERT_EQ(lmp->atom->eff_plastic_strain_rate, nullptr);
-    ASSERT_EQ(lmp->atom->damage, nullptr);
-    ASSERT_EQ(lmp->atom->rho, nullptr);
-    ASSERT_EQ(lmp->atom->drho, nullptr);
-    ASSERT_EQ(lmp->atom->esph, nullptr);
-    ASSERT_EQ(lmp->atom->desph, nullptr);
-    ASSERT_EQ(lmp->atom->cv, nullptr);
-    ASSERT_EQ(lmp->atom->vest, nullptr);
-    ASSERT_EQ(lmp->atom->nmolecule, 0);
-    ASSERT_EQ(lmp->atom->molecules, nullptr);
-    ASSERT_EQ(lmp->atom->nivector, 0);
-    ASSERT_EQ(lmp->atom->ndvector, 0);
-    ASSERT_EQ(lmp->atom->iname, nullptr);
-    ASSERT_EQ(lmp->atom->dname, nullptr);
-    ASSERT_EQ(lmp->atom->mass, nullptr);
-    ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
-    ASSERT_EQ(lmp->atom->extra, nullptr);
-    ASSERT_EQ(lmp->atom->sametag, nullptr);
-    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
-    ASSERT_EQ(lmp->atom->map_user, 0);
-    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_style charge");
     lmp->input->one("atom_style atomic");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
-    ASSERT_NE(lmp->atom->avec, nullptr);
-    ASSERT_EQ(lmp->atom->natoms, 0);
-    ASSERT_EQ(lmp->atom->nlocal, 0);
-    ASSERT_EQ(lmp->atom->nghost, 0);
-    ASSERT_EQ(lmp->atom->nmax, 1);
-    ASSERT_EQ(lmp->atom->tag_enable, 1);
-    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
-    ASSERT_EQ(lmp->atom->ntypes, 0);
-
-    ASSERT_EQ(lmp->atom->molecule_flag, 0);
-    ASSERT_EQ(lmp->atom->molindex_flag, 0);
-    ASSERT_EQ(lmp->atom->molatom_flag, 0);
-
-    ASSERT_EQ(lmp->atom->q_flag, 0);
-    ASSERT_EQ(lmp->atom->q, nullptr);
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_modify map hash");
@@ -353,6 +497,7 @@ TEST_F(AtomStyleTest, atomic)
     lmp->input->one("mass 2 2.4");
     lmp->input->one("pair_coeff * *");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);

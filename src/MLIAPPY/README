@@ -1,0 +1,9 @@
+This package provides a coupling to PyTorch energy models
+via the MLIAP package.
+
+Before compiling LAMMPS with either make or cmake, you have
+to run cythoniz to create the coupling source files
+in the src/MLIAPPY directory e.g.
+
+cd MLIAPPY
+~/anaconda3/bin/cythonize  mliap_model_python_couple.pyx

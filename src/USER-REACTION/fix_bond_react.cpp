@@ -3314,8 +3314,7 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       if (fitroot == me) {
         MathExtra::matvec(rotmat,twomol->x[m],coord);
         for (int i = 0; i < 3; i++) coord[i] += superposer.T[i];
-        imageflag = ((imageint) IMGMAX << IMG2BITS) |
-          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+        imageflag = atom->image[ifit];
         domain->remap(coord,imageflag);
       }
       MPI_Bcast(&imageflag,1,MPI_LMP_IMAGEINT,fitroot,world);

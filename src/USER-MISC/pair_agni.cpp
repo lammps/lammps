@@ -478,7 +478,14 @@ void PairAGNI::read_file(char *file)
       params[wantdata].yU[fp_counter] = atof(words[params[wantdata].numeta]);
       params[wantdata].alpha[fp_counter] = atof(words[params[wantdata].numeta+1]);
       fp_counter++;
-    } else {
+    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+3)) {  
+      for (i = 0; i < params[wantdata].numeta; ++i) {
+        params[wantdata].xU[i][fp_counter] = atof(words[i + 1]);
+      }
+      params[wantdata].yU[fp_counter] = atof(words[params[wantdata].numeta + 1]);
+      params[wantdata].alpha[fp_counter] = atof(words[params[wantdata].numeta+2]);
+      fp_counter++;
+    }else {
       if (comm->me == 0)
         error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");
     }

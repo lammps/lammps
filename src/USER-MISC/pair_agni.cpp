@@ -31,8 +31,6 @@
 #include <cmath>
 #include <cstring>
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
@@ -208,7 +206,7 @@ void PairAGNI::compute(int eflag, int vflag)
 
       for(int k = 0; k < iparam.numeta; ++k) {
         const double xu = iparam.xU[k][j];
-//std::cout<<xu<<"\n";
+
         kx += square(Vx[k] - xu);
         ky += square(Vy[k] - xu);
         kz += square(Vz[k] - xu);
@@ -217,8 +215,6 @@ void PairAGNI::compute(int eflag, int vflag)
       fxtmp += iparam.alpha[j]*exp(kx*e);
       fytmp += iparam.alpha[j]*exp(ky*e);
       fztmp += iparam.alpha[j]*exp(kz*e);
-
-//std::cout<<iparam.alpha[j]<<"\n";
     }
     fxtmp += iparam.b;
     fytmp += iparam.b;

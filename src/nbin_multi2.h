@@ -38,7 +38,6 @@ class NBinMulti2 : public NBin {
 
  private:
 
-  int coord2bin(double *, int);
   int itype_min();
 };
 

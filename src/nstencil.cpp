@@ -124,13 +124,17 @@ NStencil::~NStencil()
     memory->destroy(stencil_bin_type);
     memory->destroy(stencil_cut);
     
-    memory->destroy(sx_multi2);
-    memory->destroy(sy_multi2);
-    memory->destroy(sz_multi2);
+    memory->destroy(stencil_sx_multi2);
+    memory->destroy(stencil_sy_multi2);
+    memory->destroy(stencil_sz_multi2);
+
+    memory->destroy(stencil_mbinx_multi2);
+    memory->destroy(stencil_mbiny_multi2);
+    memory->destroy(stencil_mbinz_multi2);
     
-    memory->destroy(binsizex_multi2);
-    memory->destroy(binsizey_multi2);
-    memory->destroy(binsizez_multi2);
+    memory->destroy(stencil_binsizex_multi2);
+    memory->destroy(stencil_binsizey_multi2);
+    memory->destroy(stencil_binsizez_multi2);
   }
 }
 
@@ -181,20 +185,20 @@ void NStencil::copy_bin_info()
 }
 
 /* ----------------------------------------------------------------------
-   copy needed info for a given type from NBin class to this stencil class
+   copy needed info for multi2 from NBin class to this stencil class
 ------------------------------------------------------------------------- */
 
-void NStencil::copy_bin_info_multi2(int type)
+void NStencil::copy_bin_info_multi2()
 {
-  mbinx = nb->mbinx_multi2[type];
-  mbiny = nb->mbiny_multi2[type];
-  mbinz = nb->mbinz_multi2[type];
-  binsizex = nb->binsizex_multi2[type];
-  binsizey = nb->binsizey_multi2[type];
-  binsizez = nb->binsizez_multi2[type];
-  bininvx = nb->bininvx_multi2[type];
-  bininvy = nb->bininvy_multi2[type];
-  bininvz = nb->bininvz_multi2[type];
+  mbinx_multi2 = nb->mbinx_multi2;
+  mbiny_multi2 = nb->mbiny_multi2;
+  mbinz_multi2 = nb->mbinz_multi2;
+  binsizex_multi2 = nb->binsizex_multi2;
+  binsizey_multi2 = nb->binsizey_multi2;
+  binsizez_multi2 = nb->binsizez_multi2;
+  bininvx_multi2 = nb->bininvx_multi2;
+  bininvy_multi2 = nb->bininvy_multi2;
+  bininvz_multi2 = nb->bininvz_multi2;
 }
 
 /* ----------------------------------------------------------------------
@@ -266,6 +270,8 @@ void NStencil::create_setup()
     int i, j, bin_type, smax;
     double stencil_range;
     int n = atom->ntypes;
+    
+    if(nb) copy_bin_info_multi2();
 
     // Allocate arrays to store stencil information
     memory->create(stencil_half, n+1, n+1, 
@@ -277,20 +283,26 @@ void NStencil::create_setup()
     memory->create(stencil_cut, n+1, n+1, 
                    "neighstencil:stencil_cut");
 
-    memory->create(sx_multi2, n+1, n+1, "neighstencil:sx_multi2");               
-    memory->create(sy_multi2, n+1, n+1, "neighstencil:sy_multi2");
-    memory->create(sz_multi2, n+1, n+1, "neighstencil:sz_multi2");
+    memory->create(stencil_sx_multi2, n+1, n+1, 
+                   "neighstencil:stencil_sx_multi2");               
+    memory->create(stencil_sy_multi2, n+1, n+1, 
+                   "neighstencil:stencil_sy_multi2");
+    memory->create(stencil_sz_multi2, n+1, n+1, 
+                   "neighstencil:stencil_sz_multi2");
 
-    memory->create(binsizex_multi2, n+1, n+1, 
-                   "neighstencil:binsizex_multi2");
-    memory->create(binsizey_multi2, n+1, n+1, 
-                   "neighstencil:binsizey_multi2");
-    memory->create(binsizez_multi2, n+1, n+1, 
-                   "neighstencil:binsizez_multi2");
+    memory->create(stencil_binsizex_multi2, n+1, n+1, 
+                   "neighstencil:stencil_binsizex_multi2");
+    memory->create(stencil_binsizey_multi2, n+1, n+1, 
+                   "neighstencil:stencil_binsizey_multi2");
+    memory->create(stencil_binsizez_multi2, n+1, n+1, 
+                   "neighstencil:stencil_binsizez_multi2");
 
-    memory->create(mbinx_multi2, n+1, n+1, "neighstencil:mbinx_multi2");
-    memory->create(mbiny_multi2, n+1, n+1, "neighstencil:mbiny_multi2");
-    memory->create(mbinz_multi2, n+1, n+1, "neighstencil:mbinz_multi2");
+    memory->create(stencil_mbinx_multi2, n+1, n+1, 
+                   "neighstencil:stencil_mbinx_multi2");
+    memory->create(stencil_mbiny_multi2, n+1, n+1, 
+                   "neighstencil:stencil_mbiny_multi2");
+    memory->create(stencil_mbinz_multi2, n+1, n+1, 
+                   "neighstencil:stencil_mbinz_multi2");
 
     // Skip all stencils by default, initialize smax
     for (i = 1; i <= n; i++) {
@@ -324,28 +336,27 @@ void NStencil::create_setup()
            
         // Copy bin info for this particular pair of types
         bin_type = stencil_bin_type[i][j];
-        copy_bin_info_multi2(bin_type);
         
-        binsizex_multi2[i][j] = binsizex;
-        binsizey_multi2[i][j] = binsizey;
-        binsizez_multi2[i][j] = binsizez;
+        stencil_binsizex_multi2[i][j] = binsizex_multi2[bin_type];
+        stencil_binsizey_multi2[i][j] = binsizey_multi2[bin_type];
+        stencil_binsizez_multi2[i][j] = binsizez_multi2[bin_type];
         
-        mbinx_multi2[i][j] = mbinx;
-        mbiny_multi2[i][j] = mbiny;
-        mbinz_multi2[i][j] = mbinz;
+        stencil_mbinx_multi2[i][j] = mbinx_multi2[bin_type];
+        stencil_mbiny_multi2[i][j] = mbiny_multi2[bin_type];
+        stencil_mbinz_multi2[i][j] = mbinz_multi2[bin_type];
         
         stencil_range = stencil_cut[i][j];
         
-        sx = static_cast<int> (stencil_range*bininvx);
+        sx = static_cast<int> (stencil_range*bininvx_multi2[bin_type]);
         if (sx*binsizex < stencil_range) sx++;
-        sy = static_cast<int> (stencil_range*bininvy);
+        sy = static_cast<int> (stencil_range*bininvy_multi2[bin_type]);
         if (sy*binsizey < stencil_range) sy++;
-        sz = static_cast<int> (stencil_range*bininvz);
+        sz = static_cast<int> (stencil_range*bininvz_multi2[bin_type]);
         if (sz*binsizez < stencil_range) sz++;
         
-        sx_multi2[i][j] = sx;
-        sy_multi2[i][j] = sy;
-        sz_multi2[i][j] = sz;
+        stencil_sx_multi2[i][j] = sx;
+        stencil_sy_multi2[i][j] = sy;
+        stencil_sz_multi2[i][j] = sz;
 
         smax = ((2*sx+1) * (2*sy+1) * (2*sz+1));        
         
@@ -379,6 +390,30 @@ double NStencil::bin_distance(int i, int j, int k)
   if (k > 0) delz = (k-1)*binsizez;
   else if (k == 0) delz = 0.0;
   else delz = (k+1)*binsizez;
+
+  return (delx*delx + dely*dely + delz*delz);
+}
+
+
+/* ----------------------------------------------------------------------
+   compute closest distance for a given atom type
+------------------------------------------------------------------------- */
+
+double NStencil::bin_distance_multi2(int i, int j, int k, int type)
+{
+  double delx,dely,delz;
+
+  if (i > 0) delx = (i-1)*binsizex_multi2[type];
+  else if (i == 0) delx = 0.0;
+  else delx = (i+1)*binsizex_multi2[type];
+
+  if (j > 0) dely = (j-1)*binsizey_multi2[type];
+  else if (j == 0) dely = 0.0;
+  else dely = (j+1)*binsizey_multi2[type];
+
+  if (k > 0) delz = (k-1)*binsizez_multi2[type];
+  else if (k == 0) delz = 0.0;
+  else delz = (k+1)*binsizez_multi2[type];
 
   return (delx*delx + dely*dely + delz*delz);
 }

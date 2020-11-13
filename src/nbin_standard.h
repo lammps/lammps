@@ -34,10 +34,6 @@ class NBinStandard : public NBin {
   void setup_bins(int);
   void bin_atoms();
   double memory_usage();
-  
- private:
-
-  int coord2bin(double *);
 };
 
 }

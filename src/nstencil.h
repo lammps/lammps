@@ -39,13 +39,13 @@ class NStencil : protected Pointers {
   // Probably not needed for multi2 since bins are more efficiently chosen
   
   int sx,sy,sz;                    // extent of stencil in each dim
-  int **sx_multi2;                 // analogs for multi tiered
-  int **sy_multi2;
-  int **sz_multi2;
+  int **stencil_sx_multi2;         // analogs for each multi2 stencil
+  int **stencil_sy_multi2;
+  int **stencil_sz_multi2;
 
   double cutoff_custom;            // cutoff set by requestor  
   
-  // Arrays to store options for multi/tiered itype-jtype stencils
+  // Arrays to store options for multi2 itype-jtype stencils
   bool **stencil_half;             // flag creation of a half stencil for itype-jtype
   bool **stencil_skip;             // skip creation of itype-jtype stencils (for newton on)  
   int **stencil_bin_type;          // what type to use for bin information
@@ -78,15 +78,27 @@ class NStencil : protected Pointers {
   double binsizex,binsizey,binsizez;
   double bininvx,bininvy,bininvz;
   
-  // analogs for multi-tiered
+  // data from NBin class for multi2
   
-  int **mbinx_multi2;
-  int **mbiny_multi2;
-  int **mbinz_multi2;
-  double **binsizex_multi2;
-  double **binsizey_multi2;
-  double **binsizez_multi2;
-
+  int *mbinx_multi2;
+  int *mbiny_multi2;
+  int *mbinz_multi2;
+  double *binsizex_multi2;
+  double *binsizey_multi2;
+  double *binsizez_multi2;
+  double *bininvx_multi2;
+  double *bininvy_multi2;
+  double *bininvz_multi2;
+  
+  // Stored bin information for each stencil
+  
+  int **stencil_mbinx_multi2;
+  int **stencil_mbiny_multi2;
+  int **stencil_mbinz_multi2;
+  double **stencil_binsizex_multi2;
+  double **stencil_binsizey_multi2;
+  double **stencil_binsizez_multi2;  
+  
   // data common to all NStencil variants
 
   int xyzflag;                     // 1 if stencilxyz is allocated
@@ -95,15 +107,16 @@ class NStencil : protected Pointers {
 
   int dimension;
 
-  // methods for all NStencil variants
+  // methods for standard NStencil variants
 
   void copy_bin_info();                     // copy info from NBin class
   double bin_distance(int, int, int);       // distance between bin corners
 
-  // methods for multi/tiered NStencil
-  
-  void copy_bin_info_multi2(int);           // copy mult/tiered info from NBin class
-  virtual void set_stencil_properties(){}   // determine which stencils to build and how 
+  // methods for multi2 NStencil
+
+  double bin_distance_multi2(int, int, int, int);  // distance between bin corners for different types 
+  void copy_bin_info_multi2();                     // copy mult2 info from NBin class
+  virtual void set_stencil_properties(){}          // determine which stencils to build and how 
 };
 
 }

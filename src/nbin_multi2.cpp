@@ -324,7 +324,7 @@ void NBinMulti2::bin_atoms()
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         n = type[i];
-        ibin = coord2bin(x[i], n);
+        ibin = coord2bin_multi2(x[i], n);
         atom2bin_multi2[n][i] = ibin;
         bins_multi2[n][i] = binhead_multi2[n][ibin];
         binhead_multi2[n][ibin] = i;
@@ -332,7 +332,7 @@ void NBinMulti2::bin_atoms()
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
       n = type[i];
-      ibin = coord2bin(x[i], n);
+      ibin = coord2bin_multi2(x[i], n);
       atom2bin_multi2[n][i] = ibin;
       bins_multi2[n][i] = binhead_multi2[n][ibin];
       binhead_multi2[n][ibin] = i;
@@ -340,65 +340,13 @@ void NBinMulti2::bin_atoms()
   } else {
     for (i = nall-1; i >= 0; i--) {
       n = type[i];
-      ibin = coord2bin(x[i], n);
+      ibin = coord2bin_multi2(x[i], n);
       atom2bin_multi2[n][i] = ibin;
       bins_multi2[n][i] = binhead_multi2[n][ibin];
       binhead_multi2[n][ibin] = i;
     }
   }
 }
-
-/* ----------------------------------------------------------------------
-   convert atom coords into local bin # for a particular type
-   for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are in correct bins even w/ roundoff
-     hi ghost atoms = nbin,nbin+1,etc
-     owned atoms = 0 to nbin-1
-     lo ghost atoms = -1,-2,etc
-     this is necessary so that both procs on either side of PBC
-       treat a pair of atoms straddling the PBC in a consistent way
-   for triclinic, doesn't matter since stencil & neigh list built differently
-------------------------------------------------------------------------- */
-
-int NBinMulti2::coord2bin(double *x, int it)
-{
-  int ix,iy,iz;
-  int ibin;
-
-  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
-
-  if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi2[it]) + nbinx_multi2[it];
-  else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]);
-    ix = MIN(ix,nbinx_multi2[it]-1);
-  } else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]) - 1;
-
-  if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi2[it]) + nbiny_multi2[it];
-  else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]);
-    iy = MIN(iy,nbiny_multi2[it]-1);
-  } else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]) - 1;
-
-  if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi2[it]) + nbinz_multi2[it];
-  else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]);
-    iz = MIN(iz,nbinz_multi2[it]-1);
-  } else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]) - 1;
-
-  
-  ibin = (iz-mbinzlo_multi2[it])*mbiny_multi2[it]*mbinx_multi2[it]
-       + (iy-mbinylo_multi2[it])*mbinx_multi2[it]
-       + (ix-mbinxlo_multi2[it]);
-  return ibin;
-}
-
 
 /* ---------------------------------------------------------------------- */
 

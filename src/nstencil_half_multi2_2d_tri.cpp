@@ -71,7 +71,7 @@ void NStencilHalfMulti22dTri::set_stencil_properties()
 
 void NStencilHalfMulti22dTri::create()
 {
-  int itype, jtype, i, j, ns;
+  int itype, jtype, bin_type, i, j, ns;
   int n = atom->ntypes;
   double cutsq;
   
@@ -82,28 +82,25 @@ void NStencilHalfMulti22dTri::create()
       
       ns = 0;
       
-      sx = sx_multi2[itype][jtype];
-      sy = sy_multi2[itype][jtype];
+      sx = stencil_sx_multi2[itype][jtype];
+      sy = stencil_sy_multi2[itype][jtype];
       
-      mbinx = mbinx_multi2[itype][jtype];
-      mbiny = mbiny_multi2[itype][jtype];
+      mbinx = stencil_mbinx_multi2[itype][jtype];
+      mbiny = stencil_mbiny_multi2[itype][jtype];
       
-      // Redefine for use in bin_distance()
-      binsizex = binsizex_multi2[itype][jtype];
-      binsizey = binsizey_multi2[itype][jtype];
-      binsizez = binsizez_multi2[itype][jtype];
+      bin_type = stencil_bin_type[i][j];
       
       cutsq = stencil_cut[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
         for (j = 0; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
-            if (bin_distance(i,j,0) < cutsq)
+            if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
 	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       } else {
         for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
-	        if (bin_distance(i,j,0) < cutsq)
+	        if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
 	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       }
       

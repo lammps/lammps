@@ -97,7 +97,7 @@ class NBin : protected Pointers {
   // methods
 
   int coord2bin(double *);
-  int coord2bin(double *, int);  
+  int coord2bin_multi2(double *, int);  
 };
 
 }

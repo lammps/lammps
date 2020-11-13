@@ -388,9 +388,10 @@ void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
 
     ASSERT_EQ(atom->maxspecial, expected.maxspecial);
 
-    // currently ignored
     ASSERT_ARRAY_ALLOCATED(atom->nspecial, expected.has_nspecial);
     ASSERT_ARRAY_ALLOCATED(atom->special, expected.has_special);
+
+    // currently ignored
     ASSERT_ARRAY_ALLOCATED(atom->vfrac, false);
     ASSERT_ARRAY_ALLOCATED(atom->s0, false);
     ASSERT_ARRAY_ALLOCATED(atom->x0, false);

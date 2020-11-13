@@ -464,7 +464,7 @@ void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
     ASSERT_EQ(atom->map_tag_max, expected.map_tag_max);
 }
 
-TEST_F(AtomStyleTest, atomic)
+TEST_F(AtomStyleTest, atomic_is_default)
 {
     AtomState expected;
     expected.atom_style = "atomic";
@@ -478,6 +478,20 @@ TEST_F(AtomStyleTest, atomic)
     expected.has_f = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+}
+
+TEST_F(AtomStyleTest, atomic_after_charge)
+{
+    AtomState expected;
+    expected.atom_style = "atomic";
+    expected.molecular = Atom::ATOMIC;
+    expected.tag_enable = 1;
+    expected.has_type = true;
+    expected.has_mask = true;
+    expected.has_image = true;
+    expected.has_x = true;
+    expected.has_v = true;
+    expected.has_f = true;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_style charge");
@@ -485,7 +499,10 @@ TEST_F(AtomStyleTest, atomic)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+}
 
+TEST_F(AtomStyleTest, atomic)
+{
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_modify map hash");
     lmp->input->one("create_box 2 box");

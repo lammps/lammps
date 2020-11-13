@@ -2618,9 +2618,9 @@ void lammps_gather_bonds(void *handle, void *data)
 
 
     // error if tags are not defined or not consecutive
+    // eror if no bonds are possible due to non molecular atom style
     // NOTE: test that name = image or ids is not a 64-bit int in code?
-    // eror if no bonds are possible due to atom_style
-    
+
     int flag = 0;
     if (lmp->atom->molecular != Atom::MOLECULAR) flag = 1;
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
@@ -2652,7 +2652,7 @@ void lammps_gather_bonds(void *handle, void *data)
     //   why must be natom < MAXSMALLINT?
     
     // offset stores cummulative sum of number of bonds of each atom
-    // for easy access of the bond list using the indices stored in it. 
+    // for easy access of the topo list using the indices stored in offset. 
     bigint *offset;
     lmp->memory->create(offset,natoms,"lib/gather:offset");
     // need to set all entries to zero, else MPI_allreduce  
@@ -2675,7 +2675,10 @@ void lammps_gather_bonds(void *handle, void *data)
     
     // topo stores the bond type and the connected atoms of every atom.
     // Use range from offset to find bonds of specific atoms in topo
-    int *topo;
+    // TODO: topo actually needs to be as well a bigint. but I don't 
+    //   know how to return a bigint in python. if I do, it produces
+    //   a segfault (and yes, I changed the ctype in lammps.py :) ...)
+    tagint *topo;
     lmp->memory->create(topo,3*nbonds,"lib/gather:topo");
     for (i = 0; i < 3*nbonds; i++) topo[i] = 0;
     
@@ -2691,7 +2694,7 @@ void lammps_gather_bonds(void *handle, void *data)
         topo[off++] = bond_atom[i][j];
       }
     } 
-    MPI_Allreduce(topo,data,3*nbonds,MPI_INT,MPI_SUM,lmp->world);
+    MPI_Allreduce(topo,data,3*nbonds,MPI_LMP_TAGINT,MPI_SUM,lmp->world);
     
     lmp->memory->destroy(topo);
     lmp->memory->destroy(offset);

@@ -335,7 +335,7 @@ class lammps(object):
     
     self.lib.lammps_gather_bonds.argtypes = \
       [c_void_p,c_void_p]
-    self.lib.lammps_gather_bonds.restype = None
+    self.lib.lammps_gather_bonds.restype = self.c_tagint
 
 
     self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
@@ -1450,7 +1450,7 @@ class lammps(object):
 
   def gather_bonds(self):
     nbonds = int(self.get_thermo('bonds'))
-    data = ((3*nbonds)*c_int)()
+    data = ((3*nbonds)*self.c_tagint)()
     self.lib.lammps_gather_bonds(self.lmp,data)
     return data  
   

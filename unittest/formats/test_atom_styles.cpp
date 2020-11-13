@@ -248,14 +248,12 @@ struct AtomState {
     bool has_mass_setflag = false;
 };
 
-template<typename T>
-void ASSERT_ARRAY_ALLOCATED(const T * ptr, bool enabled) {
-    if (enabled) {
-        ASSERT_NE(ptr, nullptr);
-    } else {
-        ASSERT_EQ(ptr, nullptr);
+#define ASSERT_ARRAY_ALLOCATED(ptr, enabled) \
+    if (enabled) { \
+        ASSERT_NE(ptr, nullptr); \
+    } else { \
+        ASSERT_EQ(ptr, nullptr); \
     }
-}
 
 void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
     ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));

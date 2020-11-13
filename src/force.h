@@ -26,6 +26,20 @@ namespace LAMMPS_NS {
   class KSpace;
   class Pair;
 
+enum {
+  ENERGY_NONE    = 0x00,
+  ENERGY_GLOBAL  = 0x01,
+  ENERGY_PERATOM = 0x02
+};
+
+enum {
+  VIRIAL_NONE     = 0x00,
+  VIRIAL_TALLY    = 0x01,
+  VIRIAL_FDOTR    = 0x02,
+  VIRIAL_PERATOM  = 0x04,
+  VIRIAL_CENTROID = 0x08
+};
+
 class Force : protected Pointers {
  public:
   double boltz;                      // Boltzmann constant (eng/degree-K)

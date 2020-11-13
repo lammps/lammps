@@ -787,13 +787,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 
   eflag_either = eflag;
   eflag_global = eflag & ENERGY_GLOBAL;
-  eflag_atom = eflag & ENERGY_PER_ATOM;
+  eflag_atom = eflag & ENERGY_PERATOM;
 
-  vflag_global = vflag & (VIRIAL_GLOBAL_PW_SUM | VIRIAL_GLOBAL_PW_FDOTR_W_GHOSTS);
-  vflag_atom = vflag & VIRIAL_PER_ATOM;
+  vflag_global = vflag & (VIRIAL_TALLY | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_PERATOM;
   cvflag_atom = 0;
 
-  if (vflag & VIRIAL_PER_ATOM_CENTROID) {
+  if (vflag & VIRIAL_CENTROID) {
     if (centroidstressflag & 2) {
       cvflag_atom = 1;
     } else {
@@ -873,7 +873,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 
-  if (vflag_global == VIRIAL_GLOBAL_PW_FDOTR_W_GHOSTS && no_virial_fdotr_compute == 0) {
+  if (vflag_global == VIRIAL_FDOTR && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
     if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;

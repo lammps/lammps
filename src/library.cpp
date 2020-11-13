@@ -2615,17 +2615,16 @@ void lammps_gather_bonds(void *handle, void *data)
 #else
     int i,j;
 
-
-
-    // error if tags are not defined or not consecutive
-    // eror if no bonds are possible due to non molecular atom style
+    // error if tags are not defined or not consecutive or if no bonds 
+    // are possible due to non molecular atom style
     // NOTE: test that name = image or ids is not a 64-bit int in code?
 
     int flag = 0;
     if (lmp->atom->molecular != Atom::MOLECULAR) flag = 1;
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
-    // TODO: guess this is unneccessary if we use bigint for natoms?  
+    // TODO: guess unneccessary if natoms is bigint? alternative check?  
+    //   why must be natom < MAXSMALLINT?
     //if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
@@ -2633,30 +2632,24 @@ void lammps_gather_bonds(void *handle, void *data)
       return;
     }
     
-    // using a bigint for natoms as done in create_atoms()
     bigint natoms = lmp->atom->natoms;
-    // using a bigint also for nbonds
     bigint nbonds = lmp->atom->nbonds;
-    // check if we overflow the bigint if we double nbonds
-    // due to the newton off setting. if nbonds bigger than 
-    // MAXBIGINT/2, nbonds would overflow bigint.
+    // overflow check of bigint if we double nbonds due to newton off. 
     if (!lmp->force->newton_bond) {
-      if ((nbonds >= MAXBIGINT / 2) && lmp->comm->me == 0) {
+      if ((nbonds >= (MAXBIGINT / 2)) && lmp->comm->me == 0) {
         lmp->error->warning(FLERR,"Library error in lammps_gather_bonds");
         return;
       }
       nbonds *= 2;
     }
-    // TODO: do we need to check as well overflowing of nbonds if newton is on? 
-    //   or has this been done already upon itialization of lammps? 
-    //   why must be natom < MAXSMALLINT?
+    // TODO: overflow check of nbonds if newton on? 
+    //   done already upon itialization of lammps? 
     
-    // offset stores cummulative sum of number of bonds of each atom
-    // for easy access of the topo list using the indices stored in offset. 
+    // offset stores cummulative sum of nbonds of each atom allowing
+    // easy access of topo using indices stored in offset. 
     bigint *offset;
     lmp->memory->create(offset,natoms,"lib/gather:offset");
-    // need to set all entries to zero, else MPI_allreduce  
-    // will not gather all local number of bonds correctly
+    // set all entries to zero allowing MPI_allreduce to gathers local nbonds correctly
     for (i = 0; i < natoms; i++) offset[i] = 0;
     
     tagint *tag = lmp->atom->tag;
@@ -2666,19 +2659,17 @@ void lammps_gather_bonds(void *handle, void *data)
     for (i = 0; i < nlocal; i++) offset[tag[i]-1] = num_bond[i];
     MPI_Allreduce(MPI_IN_PLACE,offset,natoms,MPI_LMP_BIGINT,MPI_SUM,lmp->world);
     
-    // move all element to the right and do cumulative sum of elements
-    // in order to get an array which could be used as an offset to 
-    // index all bonds across all procs
+    // right shift of elements cumulative sum produces offset array 
+    // indexing local nbonds from all procs
     for(i = natoms-2; i >= 0; i--) offset[i+1] = offset[i]; 
     for(i = 1; i < natoms; i++) offset[i+1] += offset[i]; 
     offset[0] = 0; // start with offset 0
     
-    // topo stores the bond type and the connected atoms of every atom.
-    // Use range from offset to find bonds of specific atoms in topo
-    // TODO: topo actually needs to be as well a bigint. but I don't 
-    //   know how to return a bigint in python. if I do, it produces
-    //   a segfault (and yes, I changed the ctype in lammps.py :) ...)
+    // topo stores bond type and atoms connected to each atom which are 
+    // indexed using offset to get bonds of specific atoms
     tagint *topo;
+    // TODO: is this a problem if nbonds is a bigint? Or will LAMMPS be
+    //   able to allocate enough memory?
     lmp->memory->create(topo,3*nbonds,"lib/gather:topo");
     for (i = 0; i < 3*nbonds; i++) topo[i] = 0;
     

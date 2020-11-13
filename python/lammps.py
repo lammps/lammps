@@ -1449,6 +1449,9 @@ class lammps(object):
   # count should be 3
 
   def gather_bonds(self):
+    # converting nbonds from a bigint in library to an int in python is OK
+    # b/c since version 2.5 every number that exceeds the limits of 32 bit 
+    # is automatically converted to a bignum (see PEP 237).
     nbonds = int(self.get_thermo('bonds'))
     data = ((3*nbonds)*self.c_tagint)()
     self.lib.lammps_gather_bonds(self.lmp,data)

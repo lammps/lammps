@@ -869,7 +869,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     }
   }
 
-  // if vflag_global = VIRIAL_GLOBAL_PW_FDOTR_W_GHOSTS and pair::compute() calls virial_fdotr_compute()
+  // if vflag_global = VIRIAL_FDOTR and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 

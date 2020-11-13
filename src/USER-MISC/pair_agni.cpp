@@ -31,6 +31,8 @@
 #include <cmath>
 #include <cstring>
 
+#include <iostream>
+
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
@@ -67,7 +69,6 @@ static const char cite_pair_agni[] =
   " year      = {2017},\n"
   "}\n\n";
 
-#define AGNI_VERSION 1
 #define MAXLINE 10240
 #define MAXWORD 40
 
@@ -81,6 +82,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  ver = 0;
 
   no_virial_fdotr_compute = 1;
 
@@ -185,7 +187,13 @@ void PairAGNI::compute(int eflag, int vflag)
         const double wZ = cF*delz/r;
 
         for (k = 0; k < iparam.numeta; ++k) {
-          const double e = exp(-(iparam.eta[k]*rsq));
+          	double e = 0.0;
+
+		if(ver == 1) //FP1
+			e = exp(-(iparam.eta[k]*rsq));
+		else if(ver == 2) //FP2
+			e = (1 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(2 * MathConst::MY_PI))) * exp(-(square(r - iparam.eta[k])) / (2 * square(iparam.gwidth)));
+		
           Vx[k] += wX*e;
           Vy[k] += wY*e;
           Vz[k] += wZ*e;
@@ -200,6 +208,7 @@ void PairAGNI::compute(int eflag, int vflag)
 
       for(int k = 0; k < iparam.numeta; ++k) {
         const double xu = iparam.xU[k][j];
+//std::cout<<xu<<"\n";
         kx += square(Vx[k] - xu);
         ky += square(Vy[k] - xu);
         kz += square(Vz[k] - xu);
@@ -208,6 +217,8 @@ void PairAGNI::compute(int eflag, int vflag)
       fxtmp += iparam.alpha[j]*exp(kx*e);
       fytmp += iparam.alpha[j]*exp(ky*e);
       fztmp += iparam.alpha[j]*exp(kz*e);
+
+//std::cout<<iparam.alpha[j]<<"\n";
     }
     fxtmp += iparam.b;
     fytmp += iparam.b;
@@ -293,6 +304,8 @@ void PairAGNI::coeff(int narg, char **arg)
       nelements++;
     }
   }
+  if (nelements != 1)
+        error->all(FLERR,"Cannot handle multi-element systems with this potential");
 
   // read potential file and initialize potential parameters
 
@@ -364,10 +377,12 @@ void PairAGNI::read_file(char *file)
     }
   }
 
-  int i,j,n,nwords,curparam,wantdata;
+  int i,j,n,nwords,curparam,wantdata,fp_counter;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char **words = new char*[MAXWORD+1];
+
+  fp_counter = 0;
 
   while (1) {
     n = 0;
@@ -400,11 +415,9 @@ void PairAGNI::read_file(char *file)
     --nwords;
 
     if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {
-      int ver = atoi(words[1]);
-      if (ver != AGNI_VERSION)
+      ver = atoi(words[1]);
+      if ((ver < 1) || (ver > 2))
         error->all(FLERR,"Incompatible AGNI potential file version");
-      if ((ver == 1) && (nelements != 1))
-        error->all(FLERR,"Cannot handle multi-element systems with this potential");
 
     } else if ((nwords == 2) && (strcmp(words[0],"n_elements") == 0)) {
       nparams = atoi(words[1]);
@@ -449,21 +462,22 @@ void PairAGNI::read_file(char *file)
       params[curparam].lambda = atof(words[1]);
     } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"b") == 0)) {
       params[curparam].b = atof(words[1]);
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"gwidth") == 0)) {
+    	params[curparam].gwidth = atof(words[1]);
     } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"n_train") == 0)) {
-      params[curparam].numtrain = atoi(words[1]);
+      	params[curparam].numtrain = atoi(words[1]);
     } else if ((curparam >=0) && (nwords > 1) && (strcmp(words[0],"eta") == 0)) {
       params[curparam].numeta = nwords-1;
       params[curparam].eta = new double[nwords-1];
       for (i = 0, j = 1 ; j < nwords; ++i, ++j)
         params[curparam].eta[i] = atof(words[j]);
-    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+3)) {
-      n = (int) atof(words[0]);
+    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+2)) {  
       for (i = 0; i < params[wantdata].numeta; ++i) {
-        params[wantdata].xU[i][n] = atof(words[i+1]);
+        params[wantdata].xU[i][fp_counter] = atof(words[i]);
       }
-      params[wantdata].yU[n] = atof(words[params[wantdata].numeta+1]);
-      params[wantdata].alpha[n] = atof(words[params[wantdata].numeta+2]);
-
+      params[wantdata].yU[fp_counter] = atof(words[params[wantdata].numeta]);
+      params[wantdata].alpha[fp_counter] = atof(words[params[wantdata].numeta+1]);
+      fp_counter++;
     } else {
       if (comm->me == 0)
         error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");

@@ -202,8 +202,9 @@ bonds between nuclear cores and Drude electrons in a different manner.
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  For per-
-atom sections, entries should be numbered from 1 to Natoms, where
-Natoms is the number of atoms in the template.
+atom sections, entries should be numbered from 1 to Natoms (where
+Natoms is the number of atoms in the template), indicating which atom
+(or bond, etc) the entry applies to.
 
 ----------
 

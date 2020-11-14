@@ -766,7 +766,7 @@ void FixBondReact::init()
 
     // check cutoff for iatomtype,jatomtype
     for (int i = 0; i < nreacts; i++) {
-      if (!utils::strmatch(force->pair_style,"^hybrid"))
+      if (closeneigh[i] == -1) // indicates will search for non-bonded bonding atoms
         if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
           error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
     }

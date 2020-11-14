@@ -43,6 +43,9 @@ void Replicate::command(int narg, char **arg)
     error->all(FLERR,"Replicate command before simulation box is defined");
   if (narg < 3 || narg > 4) error->all(FLERR,"Illegal replicate command");
 
+  if (atom->molecular == Atom::TEMPLATE)
+    error->all(FLERR,"Cannot use replicate command with atom style template");
+
   int me = comm->me;
   int nprocs = comm->nprocs;
 

@@ -557,6 +557,7 @@ void DeleteAtoms::recount_topology()
     for (int i = 0; i < nlocal; i++) {
       imol = molindex[i];
       iatom = molatom[i];
+      if (imol < 0) continue;
       nbonds += onemols[imol]->num_bond[iatom];
       nangles += onemols[imol]->num_angle[iatom];
       ndihedrals += onemols[imol]->num_dihedral[iatom];

@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PairSpinExchange : public PairSpin {
  public:
-  PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp) {}
+  PairSpinExchange(class LAMMPS *);
   virtual ~PairSpinExchange();
   void settings(int, char **);
   void coeff(int, char **);
@@ -38,8 +38,7 @@ class PairSpinExchange : public PairSpin {
 
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
-
-  // double compute_energy(int , int , double , double *, double *);
+  double compute_energy(int , int , double , double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -49,6 +48,7 @@ class PairSpinExchange : public PairSpin {
   double cut_spin_exchange_global;      // global exchange cutoff distance
 
  protected:
+  int e_offset;                         // apply energy offset
   double **J1_mag;                      // exchange coeffs in eV
   double **J1_mech;                     // mech exchange coeffs in
   double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang

@@ -1,0 +1,21 @@
+# demo for atom style template simulating a cyclohexane methane mixture
+# part 2: continuing from data file
+
+units real
+boundary p p p
+molecule cychex cyclohexane.mol
+atom_style molecular
+
+pair_style lj/cut 12.0
+pair_modify mix geometric tail yes
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+
+read_data molecular-mix.data
+
+thermo 100
+
+fix 1 all nvt temp 300.0 300.0 1.0
+# dump 1 all custom 100 custom template-mix.lammpstrj id xu yu zu
+run 2000

@@ -185,6 +185,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel,i,&sim_lines,&sim_field);
       if (0 == strcmp(sim_field,"model-defn")) {
+	if (domain->periodicity[0]&&domain->periodicity[1]&&domain->periodicity[2]) input->one("variable kim_periodic equal 1");
+	else if (domain->periodicity[0]&&domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 2");
+	else input->one("variable kim_periodic equal 0");
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
@@ -276,7 +279,6 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    ptr = line;
     nocomment = line[0] != '#';
 
     if(nocomment) {
@@ -286,7 +288,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
           for (int ib = ia; ib < atom->ntypes; ++ib)
             if (((species[ia] == words[0]) && (species[ib] == words[1]))
                 || ((species[ib] == words[0]) && (species[ia] == words[1])))
-              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,words[2]));
+              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,fmt::join(words.begin()+2,words.end()," ")));
         }
       } else if (key == "charge") {
         for (int ia = 0; ia < atom->ntypes; ++ia)

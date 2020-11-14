@@ -183,7 +183,7 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       for (int j = 0; j < DUMP_NC_MAX_DIMS; j++) {
         perat[inc].field[j] = -1;
       }
-      strcpy(perat[inc].name, mangled);
+      strncpy(perat[inc].name, mangled, NC_FIELD_NAME_MAX);
       n_perat++;
     }
 

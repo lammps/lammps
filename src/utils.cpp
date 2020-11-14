@@ -773,6 +773,22 @@ std::string utils::path_basename(const std::string &path) {
 }
 
 /* ----------------------------------------------------------------------
+   Return only the leading part of a path, return just the directory
+------------------------------------------------------------------------- */
+
+std::string utils::path_dirname(const std::string &path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of("/\\");
+#else
+  size_t start = path.find_last_of("/");
+#endif
+
+  if (start == std::string::npos) return ".";
+
+  return path.substr(0,start);
+}
+
+/* ----------------------------------------------------------------------
    join two paths
 ------------------------------------------------------------------------- */
 
@@ -846,6 +862,7 @@ std::string utils::get_potential_date(const std::string &path, const std::string
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
+  if (line == nullptr) return "";
   Tokenizer words(line);
   while (words.has_next()) {
     if (words.next() == "DATE:") {
@@ -865,6 +882,7 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
+  if (line == nullptr) return "";
   Tokenizer words(line);
   while (words.has_next()) {
     if (words.next() == "UNITS:") {

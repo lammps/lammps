@@ -509,7 +509,6 @@ void Molecule::read(int flag)
   // count = vector for tallying bonds,angles,etc per atom
 
   if (flag == 0) memory->create(count,natoms,"molecule:count");
-  else count = nullptr;
 
   // grab keyword and skip next line
 
@@ -616,10 +615,6 @@ void Molecule::read(int flag)
     parse_keyword(1,line,keyword);
   }
 
-  // clean up
-
-  memory->destroy(count);
-
   // error check
 
   if (flag == 0) {
@@ -665,6 +660,10 @@ void Molecule::read(int flag)
       maxradius = radius[0];
     }
   }
+
+  // clean up
+
+  if (flag) memory->destroy(count);
 }
 
 /* ----------------------------------------------------------------------
@@ -673,6 +672,7 @@ void Molecule::read(int flag)
 
 void Molecule::coords(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -682,6 +682,7 @@ void Molecule::coords(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Coords section in molecule file");
+      count[iatom]++;
       x[iatom][0] = values.next_double();
       x[iatom][1] = values.next_double();
       x[iatom][2] = values.next_double();
@@ -694,6 +695,9 @@ void Molecule::coords(char *line)
     error->one(FLERR, fmt::format("Invalid Coords section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Coords section in molecule file");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < natoms; i++)
@@ -709,6 +713,7 @@ void Molecule::coords(char *line)
 
 void Molecule::types(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -718,6 +723,7 @@ void Molecule::types(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Types section in molecule file");
+      count[iatom]++;
       type[iatom] = values.next_int();
       type[iatom] += toffset;
     }
@@ -725,6 +731,9 @@ void Molecule::types(char *line)
     error->one(FLERR, fmt::format("Invalid Types section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Types section in molecule file");
 
   for (int i = 0; i < natoms; i++)
     if ((type[i] <= 0) || (domain->box_exist && (type[i] > atom->ntypes)))
@@ -741,6 +750,7 @@ void Molecule::types(char *line)
 
 void Molecule::molecules(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -749,6 +759,7 @@ void Molecule::molecules(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Molecules section in molecule file");
+      count[iatom]++;
       molecule[iatom] = values.next_int();
       // molecule[iatom] += moffset; // placeholder for possible molecule offset
     }
@@ -756,6 +767,9 @@ void Molecule::molecules(char *line)
     error->one(FLERR, fmt::format("Invalid Molecules section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Molecules section in molecule file");
 
   for (int i = 0; i < natoms; i++)
     if (molecule[i] <= 0)
@@ -801,6 +815,7 @@ void Molecule::fragments(char *line)
 
 void Molecule::charges(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -810,12 +825,16 @@ void Molecule::charges(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Charges section in molecule file");
+      count[iatom]++;
       q[iatom] = values.next_double();
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, fmt::format("Invalid Charges section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Charges section in molecule file");
 }
 
 /* ----------------------------------------------------------------------
@@ -824,6 +843,7 @@ void Molecule::charges(char *line)
 
 void Molecule::diameters(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     maxradius = 0.0;
     for (int i = 0; i < natoms; i++) {
@@ -834,6 +854,7 @@ void Molecule::diameters(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Diameters section in molecule file");
+      count[iatom]++;
       radius[iatom] = values.next_double();
       radius[iatom] *= sizescale;
       radius[iatom] *= 0.5;
@@ -843,6 +864,9 @@ void Molecule::diameters(char *line)
     error->one(FLERR, fmt::format("Invalid Diameters section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Diameters section in molecule file");
 
   for (int i = 0; i < natoms; i++)
     if (radius[i] < 0.0)
@@ -855,6 +879,7 @@ void Molecule::diameters(char *line)
 
 void Molecule::masses(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -864,6 +889,7 @@ void Molecule::masses(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Masses section in molecule file");
+      count[iatom]++;
       rmass[iatom] = values.next_double();
       rmass[iatom] *= sizescale*sizescale*sizescale;
     }
@@ -871,6 +897,9 @@ void Molecule::masses(char *line)
     error->one(FLERR, fmt::format("Invalid Masses section in molecule file\n"
                                   "{}", e.what()));
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (count[i] == 0) error->all(FLERR,"Invalid Masses section in molecule file");
 
   for (int i = 0; i < natoms; i++)
     if (rmass[i] <= 0.0) error->all(FLERR,"Invalid atom mass in molecule file");
@@ -1302,7 +1331,6 @@ void Molecule::special_generate()
 {
   int newton_bond = force->newton_bond;
   tagint atom1,atom2;
-  int *count = new int[natoms];
 
   // temporary array for special atoms
 
@@ -1388,7 +1416,6 @@ void Molecule::special_generate()
       }
     }
   }
-  delete[] count;
 
   maxspecial = 0;
   for (int i = 0; i < natoms; i++)

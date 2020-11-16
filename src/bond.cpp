@@ -98,13 +98,13 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   // per-atom virial and per-atom centroid virial are the same for bonds
-  vflag_atom = vflag / 4;
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 

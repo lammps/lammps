@@ -798,6 +798,8 @@ void Min::ev_setup()
 }
 
 /* ----------------------------------------------------------------------
+  TODO: comment
+
    set eflag,vflag for current iteration
    invoke matchstep() on all timestep-dependent computes to clear their arrays
    eflag/vflag based on computes that need info on this ntimestep
@@ -829,7 +831,7 @@ void Min::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = 2;
+  if (flag) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = update->ntimestep;
   if (eflag_atom) update->eflag_atom = update->ntimestep;
@@ -845,13 +847,13 @@ void Min::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = 4;
+  if (flag) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (i = 0; i < ncvlist_atom; i++)
     if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) cvflag_atom = 8;
+  if (flag) cvflag_atom = VIRIAL_CENTROID;
 
   if (vflag_global) update->vflag_global = update->ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = update->ntimestep;

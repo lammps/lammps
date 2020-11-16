@@ -189,12 +189,12 @@ void Fix::ev_setup(int eflag, int vflag)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag % 2; // TODO
+  eflag_atom = eflag / 2;  // TODO
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag % 4; // TODO
+  vflag_atom = vflag / 4; // TODO
 
   // reallocate per-atom arrays if necessary
 
@@ -250,8 +250,8 @@ void Fix::v_setup(int vflag)
 
   evflag = 1;
 
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag % 4; // TODO
+  vflag_atom = vflag / 4; // TODO
 
   // reallocate per-atom array if necessary
 

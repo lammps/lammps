@@ -94,12 +94,12 @@ void Angle::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
-  vflag_global = vflag % 4;
-  vflag_atom = vflag & 4;
-  cvflag_atom = vflag & 8;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
+  cvflag_atom = vflag & VIRIAL_CENTROID;
   vflag_either = vflag_global || vflag_atom;
 
   // reallocate per-atom arrays if necessary

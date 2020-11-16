@@ -82,10 +82,10 @@ PairHybrid::~PairHybrid()
 /* ----------------------------------------------------------------------
   call each sub-style's compute() or compute_outer() function
   accumulate sub-style global/peratom energy/virial in hybrid
-  for global vflag = 1:
+  for global vflag = VIRIAL_PAIR:
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
-  for global vflag = 2:
+  for global vflag = VIRIAL_FDOTR:
     call sub-style with adjusted vflag to prevent it calling
       virial_fdotr_compute()
     hybrid calls virial_fdotr_compute() on final accumulated f
@@ -96,20 +96,20 @@ void PairHybrid::compute(int eflag, int vflag)
   int i,j,m,n;
 
   // if no_virial_fdotr_compute is set and global component of
-  //   incoming vflag = 2, then
-  // reset vflag as if global component were 1
+  //   incoming vflag = VIRIAL_FDOTR, then
+  // reset vflag as if global component were VIRIAL_PAIR
   // necessary since one or more sub-styles cannot compute virial as F dot r
 
-  if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+  if (no_virial_fdotr_compute && (vflag & VIRIAL_FDOTR)) vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
 
   ev_init(eflag,vflag);
 
-  // check if global component of incoming vflag = 2
-  // if so, reset vflag passed to substyle as if it were 0
+  // check if global component of incoming vflag = VIRIAL_FDOTR
+  // if so, reset vflag passed to substyle as if it were VIRIAL_NONE
   // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;
-  if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
+  if (vflag & VIRIAL_FDOTR) vflag_substyle = vflag & ~VIRIAL_FDOTR;
   else vflag_substyle = vflag;
 
   double *saved_special = save_special();

@@ -139,7 +139,7 @@ void Integrate::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = ENERGY_PERATOM;
+  if (flag) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
@@ -155,7 +155,7 @@ void Integrate::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = VIRIAL_PERATOM;
+  if (flag) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;

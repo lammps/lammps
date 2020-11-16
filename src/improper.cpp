@@ -79,7 +79,7 @@ void Improper::init()
      eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
      eflag_either = 1 if eflag_global or eflag_atom is set
      vflag_global = 1 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_PERATOM bit of vflag set
+     vflag_atom   = 1 if VIRIAL_ATOM bit of vflag set
      cvflag_atom  = 1 if VIRIAL_CENTROID bit of vflag set
      vflag_either = 1 if any of vflag_global, vflag_atom, cvflag_atom is set
 ------------------------------------------------------------------------- */

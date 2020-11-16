@@ -785,7 +785,7 @@ void Pair::del_tally_callback(Compute *ptr)
      eflag_either = 1 if eflag_global or eflag_atom is set
      vflag_global = 1 if VIRIAL_PAIR bit of vflag set
      vflag_global = 2 if VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_PERATOM bit of vflag set
+     vflag_atom   = 1 if VIRIAL_ATOM bit of vflag set
      vflag_atom   = 1 if VIRIAL_CENTROID bit of vflag set
                       and centroidstressflag != CENTROID_AVAIL
      cvflag_atom  = 1 if VIRIAL_CENTROID bit of vflag set
@@ -805,10 +805,10 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 
   eflag_either = eflag;
   eflag_global = eflag & ENERGY_GLOBAL;
-  eflag_atom = eflag & ENERGY_PERATOM;
+  eflag_atom = eflag & ENERGY_ATOM;
 
-  vflag_global = vflag & (VIRIAL_TALLY | VIRIAL_FDOTR);
-  vflag_atom = vflag & VIRIAL_PERATOM;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
   cvflag_atom = 0;
 
   if (vflag & VIRIAL_CENTROID) {

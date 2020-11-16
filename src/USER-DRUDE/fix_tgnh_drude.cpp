@@ -743,11 +743,9 @@ void FixTGNHDrude::setup_mol_mass_dof() {
   // DOFs
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
-  dof_mol = 3 * n_mol_in_group;
-  // remove DOFs of COM motion based on the number of atoms in the group
-  if (n_mol_in_group > 1)
-    dof_mol -= ((double) 3) * group->count(igroup) / atom->natoms;
-  dof_drude = 3 * n_drude;
+  // remove DOFs of COM translational motion based on the number of molecules in the group
+  dof_mol = 3.0 * n_mol_in_group - 3.0 * n_mol_in_group / n_mol;
+  dof_drude = 3.0 * n_drude;
   dof_int = tdof - dof_mol - dof_drude;
 
   if (comm->me == 0) {

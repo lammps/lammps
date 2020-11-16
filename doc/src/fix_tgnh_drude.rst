@@ -82,25 +82,24 @@ which are defined in terms of their associated degrees of freedom (DOF):
 
 .. math::
 
-    T_\mathrm{M}=\frac{\Sigma_{i}^{N_\mathrm{mol}} M_i V_i^2}{3 ( N_\mathrm{mol} - \frac{N_\mathrm{real} + N_\mathrm{drude}}{N_\mathrm{system}}) k_\mathrm{B}}
+    T_\mathrm{M}=\frac{\Sigma_{i}^{N_\mathrm{mol}} M_i V_i^2}{3 \left ( N_\mathrm{mol} - \frac{N_\mathrm{mol}}{N_\mathrm{mol,sys}} \right ) k_\mathrm{B}}
 
 .. math::
 
-    T_\mathrm{R}=\frac{\Sigma_{i}^{N_\mathrm{real}} m_i (v_i-v_{M,i})^2}{(N_\mathrm{DOF} - 3 N_\mathrm{mol} - 3 N_\mathrm{drude}) k_\mathrm{B}}
+    T_\mathrm{R}=\frac{\Sigma_{i}^{N_\mathrm{real}} m_i (v_i-v_{M,i})^2}{(N_\mathrm{DOF} - 3 N_\mathrm{mol} + 3 \frac{N_\mathrm{mol}}{N_\mathrm{mol,sys}} - 3 N_\mathrm{drude}) k_\mathrm{B}}
 
 .. math::
 
     T_\mathrm{D}=\frac{\Sigma_{i}^{N_\mathrm{drude}} m_i^{\prime} v_i^{\prime 2}}{3 N_\mathrm{drude} k_\mathrm{B}}
 
-Here :math:`N_\mathrm{mol}` is the number of molecules in the group,
-:math:`N_\mathrm{real}` is the number of atom-Drude pairs and non-polarizable atoms in the group,
-:math:`N_\mathrm{drude}` is the number of Drude particles in the group,
-:math:`N_\mathrm{system}` is the number of particles (including real atoms and Drude particles) in the whole system.
+Here :math:`N_\mathrm{mol}` and :math:`N_\mathrm{mol,sys}` are the numbers of molecules in the group and in the whole system, respectively.
+:math:`N_\mathrm{real}` is the number of atom-Drude pairs and non-polarizable atoms in the group.
+:math:`N_\mathrm{drude}` is the number of Drude particles in the group.
 :math:`N_\mathrm{DOF}` is the DOF of the group.
-:math:`M_i` and :math:`V_i` are the mass and the COM velocity of the i-th molecule,
-:math:`m_i` is the mass of the i-th atom-Drude pair or non-polarizable atom,
-:math:`v_i` is the velocity of COM of i-th atom-Drude pair or non-polarizable atom,
-:math:`v_{M,i}` is the COM velocity of the molecule the i-th atom-Drude pair or non-polarizable atom belongs to,
+:math:`M_i` and :math:`V_i` are the mass and the COM velocity of the i-th molecule.
+:math:`m_i` is the mass of the i-th atom-Drude pair or non-polarizable atom.
+:math:`v_i` is the velocity of COM of i-th atom-Drude pair or non-polarizable atom.
+:math:`v_{M,i}` is the COM velocity of the molecule the i-th atom-Drude pair or non-polarizable atom belongs to.
 :math:`m_i^\prime` and :math:`v_i^\prime` are the reduced mass and the relative velocity of the i-th atom-Drude pair.
 
 .. note::

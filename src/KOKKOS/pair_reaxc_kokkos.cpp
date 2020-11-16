@@ -3629,7 +3629,7 @@ void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i,
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for values of eflag and vflag
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -3645,7 +3645,7 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
 
   vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-  vflag_atom = vflag / 4; // TODO
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -3673,11 +3673,11 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroVAtom>(0,maxvatom),*this);
   }
 
-  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
+  // if vflag_global = VIRIAL_FDOTR and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 
-  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
+  if (vflag_global == VIRIAL_FDOTR && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
     if (vflag_atom == 0) vflag_either = 0;

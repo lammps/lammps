@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
 
@@ -189,12 +190,12 @@ void Fix::ev_setup(int eflag, int vflag)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2; // TODO
-  eflag_atom = eflag / 2;  // TODO
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4; // TODO
-  vflag_atom = vflag / 4; // TODO
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -234,7 +235,7 @@ void Fix::ev_setup(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    if thermo_virial is on:
      setup for virial computation
-     see integrate::ev_set() for values of vflag (0-6)
+     see integrate::ev_set() for values of vflag
      fixes call this if use v_tally()
    else: set evflag=0
 ------------------------------------------------------------------------- */
@@ -250,8 +251,8 @@ void Fix::v_setup(int vflag)
 
   evflag = 1;
 
-  vflag_global = vflag % 4; // TODO
-  vflag_atom = vflag / 4; // TODO
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom array if necessary
 

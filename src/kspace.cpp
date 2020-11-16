@@ -221,7 +221,7 @@ void KSpace::pair_check()
      eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
      eflag_either = 1 if eflag_global or eflag_atom is set
      vflag_global = 1 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_ATOM bit of vflag set
+     vflag_atom   = 1 if VIRIAL_ATOM or VIRIAL_CENTROID bit of vflag set
      vflag_either = 1 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
@@ -237,7 +237,7 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-  vflag_atom = vflag / 4; // TODO
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   if (eflag_atom || vflag_atom) evflag_atom = 1;
   else evflag_atom = 0;

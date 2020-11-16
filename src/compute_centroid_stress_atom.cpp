@@ -126,7 +126,7 @@ void ComputeCentroidStressAtom::init()
 
   // check if pair styles support centroid atom stress
   if (pairflag && force->pair)
-    if (force->pair->centroidstressflag == CENTROID_NOTAVAIL)
+    if (force->pair->centroidstressflag & CENTROID_NOTAVAIL)
       error->all(FLERR, "Pair style does not support compute centroid/stress/atom");
 }
 
@@ -178,7 +178,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // per-atom virial and per-atom centroid virial are the same for two-body
   // many-body pair styles not yet implemented
   if (pairflag && force->pair && force->pair->compute_flag) {
-    if (force->pair->centroidstressflag == CENTROID_AVAIL) {
+    if (force->pair->centroidstressflag & CENTROID_AVAIL) {
       double **cvatom = force->pair->cvatom;
       for (i = 0; i < npair; i++)
         for (j = 0; j < 9; j++)

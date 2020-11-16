@@ -77,7 +77,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag =
     tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
-  centroidstressflag = CENTROID_SAME;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   // pair_modify settings
 

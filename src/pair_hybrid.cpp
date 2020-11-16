@@ -45,7 +45,7 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   // assume pair hybrid always supports centroid atomic stress,
   // so that cflag_atom gets set when needed
-  centroidstressflag = 2;
+  centroidstressflag = CENTROID_AVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,7 +168,7 @@ void PairHybrid::compute(int eflag, int vflag)
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
-      if (styles[m]->centroidstressflag & 2) {
+      if (styles[m]->centroidstressflag & CENTROID_AVAIL) {
         double **cvatom_substyle = styles[m]->cvatom;
         for (i = 0; i < n; i++)
           for (j = 0; j < 9; j++)
@@ -401,7 +401,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
+    if (styles[m]->centroidstressflag & CENTROID_NOTAVAIL) centroidstressflag |= CENTROID_NOTAVAIL;
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;

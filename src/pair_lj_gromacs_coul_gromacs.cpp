@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 }
 
 /* ---------------------------------------------------------------------- */

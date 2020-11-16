@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
   single_hessian_enable = 1;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 }
 
 /* ---------------------------------------------------------------------- */

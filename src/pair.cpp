@@ -812,13 +812,13 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   cvflag_atom = 0;
 
   if (vflag & VIRIAL_CENTROID) {
-    if (centroidstressflag & 2) {
+    if (centroidstressflag & CENTROID_AVAIL) {
       cvflag_atom = 1;
     } else {
       vflag_atom = 1;
     }
     // extra check, because both bits might be set
-    if (centroidstressflag & 1) vflag_atom = 1;
+    if (centroidstressflag & CENTROID_SAME) vflag_atom = 1;
   }
 
   vflag_either = vflag_global || vflag_atom;

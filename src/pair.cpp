@@ -74,9 +74,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   setflag = nullptr;
   cutsq = nullptr;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag =
+    tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
-  centroidstressflag = 4;
+  centroidstressflag = CENTROID_SAME;
 
   // pair_modify settings
 
@@ -776,7 +777,24 @@ void Pair::del_tally_callback(Compute *ptr)
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise 0:
+     evflag       = 1 if any bits of eflag or vflag are set
+     eflag_global = 1 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
+     eflag_either = 1 if eflag_global or eflag_atom is set
+     vflag_global = 1 if VIRIAL_PAIR bit of vflag set
+     vflag_global = 2 if VIRIAL_FDOTR bit of vflag set
+     vflag_atom   = 1 if VIRIAL_PERATOM bit of vflag set
+     vflag_atom   = 1 if VIRIAL_CENTROID bit of vflag set
+                      and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  = 1 if VIRIAL_CENTROID bit of vflag set
+                      and centroidstressflag = CENTROID_AVAIL
+     vflag_either = 1 if any of vflag_global, vflag_atom, cvflag_atom is set
+   centroidstressflag is set by the pair style to one of these values:
+     CENTROID_SAME = same as two-body stress
+     CENTROID_AVAIL = different and implemented
+     CENTROID_NOTAVAIL = different but not yet implemented
 ------------------------------------------------------------------------- */
 
 void Pair::ev_setup(int eflag, int vflag, int alloc)

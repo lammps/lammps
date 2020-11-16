@@ -144,11 +144,12 @@ void Min::init()
   requestor = nullptr;
 
   // virial_style:
-  // 1 if computed explicitly by pair->compute via sum over pair interactions
-  // 2 if computed implicitly by pair->virial_compute via sum over ghost atoms
+  // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions
+  // VIRIAL_FDOTR if computed implicitly in pair by
+  //   virial_fdotr_compute() via sum over ghosts
 
-  if (force->newton_pair) virial_style = 2;
-  else virial_style = 1;
+  if (force->newton_pair) virial_style = VIRIAL_FDOTR;
+  else virial_style = VIRIAL_PAIR;
 
   // setup lists of computes for global and per-atom PE and pressure
 

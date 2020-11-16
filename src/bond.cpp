@@ -80,7 +80,15 @@ void Bond::init()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise 0:
+     evflag       = 1 if any bits of eflag or vflag are set
+     eflag_global = 1 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
+     eflag_either = 1 if eflag_global or eflag_atom is set
+     vflag_global = 1 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   = 1 if VIRIAL_PERATOM or VIRIAL_CENTROID bit of vflag set
+     vflag_either = 1 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Bond::ev_setup(int eflag, int vflag, int alloc)

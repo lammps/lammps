@@ -52,6 +52,8 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
   varflag = 0;
   propflag = 0;
   nevery = 1;
+  ghostflag = 0;
+  initflag = 0;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -90,8 +92,23 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
       nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"ghost") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+      if (strcmp(arg[iarg+1],"no") == 0) ghostflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) ghostflag = 1;
+      else error->all(FLERR,"Illegal group command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"init") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+      if (strcmp(arg[iarg+1],"no") == 0) initflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) initflag = 1;
+      else error->all(FLERR,"Illegal group command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal group command");
   }
+  if (ghostflag && (!regionflag || varflag || propflag))
+    error->all(FLERR,
+        "Only simple dynamic region groups can be used with 'ghost yes'");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,6 +188,8 @@ void FixGroup::init()
   if (warn && comm->me == 0)
     error->warning(FLERR,"One or more dynamic groups may not be "
                    "updated at correct point in timestep");
+
+  if (initflag) set_group();
 }
 
 /* ----------------------------------------------------------------------
@@ -203,6 +222,7 @@ void FixGroup::post_integrate_respa(int ilevel, int /*iloop*/)
 void FixGroup::set_group()
 {
   int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
 
   // invoke atom-style variable if defined
   // set post_integrate flag to 1, then unset after
@@ -253,6 +273,17 @@ void FixGroup::set_group()
 
     if (inflag) mask[i] |= gbit;
     else mask[i] &= gbitinverse;
+  }
+
+  // assumes that only region is used to determine group
+  if (ghostflag) {
+    for (int i = nlocal; i < nlocal+nghost; i++) {
+      if (mask[i] & groupbit) inflag = region->match(x[i][0],x[i][1],x[i][2]);
+      else inflag = 0;
+
+      if (inflag) mask[i] |= gbit;
+      else mask[i] &= gbitinverse;
+    }
   }
 
   if (varflag) memory->destroy(var);

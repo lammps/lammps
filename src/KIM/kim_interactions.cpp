@@ -68,6 +68,7 @@
 #include "update.h"
 #include "fmt/format.h"
 
+#include <cstdio>
 #include <cstring>
 #include <vector>
 #include <string>
@@ -274,9 +275,11 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   if ((int)species.size() != atom->ntypes)
     error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
 
-  FILE *fp;
-  fp = fopen(filename.c_str(),"r");
-  if (fp == nullptr) error->one(FLERR,"Parameter file not found");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    fp = fopen(filename.c_str(),"r");
+    if (fp == nullptr) error->one(FLERR,"Parameter file not found");
+  }
 
   char line[MAXLINE], *ptr;
   int n, eof = 0;
@@ -312,7 +315,6 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
           input->one(fmt::format("set type {} charge {}",ia+1,words[1]));
     }
   }
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -59,7 +59,7 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/long* *lj/cut/coul/msm* or *lj/cut/coul/wolf*
+* style = *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/long* or *lj/cut/coul/msm* or *lj/cut/coul/wolf*
 * args = list of arguments for a particular style
 
 .. parsed-literal::

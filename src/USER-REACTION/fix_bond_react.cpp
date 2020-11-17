@@ -385,15 +385,25 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         }
         iarg += 2;
       } else if (strcmp(arg[iarg],"modify_create") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+        if (iarg++ > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'modify_create' has too few arguments");
-        if (strcmp(arg[iarg+1],"no") == 0) modify_create_fragid[rxn] = -1; //default
-        else {
-          modify_create_fragid[rxn] = atom->molecules[reacted_mol[rxn]]->findfragment(arg[iarg+1]);
-          if (modify_create_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
-                                                         "'modify_create' keyword does not exist");
+        while (iarg < narg && strcmp(arg[iarg],"react") != 0 ) {
+          if (strcmp(arg[iarg],"fit") == 0) {
+            if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                          "'modify_create' has too few arguments");
+            if (strcmp(arg[iarg+1],"all") == 0) modify_create_fragid[rxn] = -1; //default
+            else {
+              modify_create_fragid[rxn] = atom->molecules[reacted_mol[rxn]]->findfragment(arg[iarg+1]);
+              if (modify_create_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
+                                                             "'modify_create' keyword does not exist");
+            }
+            iarg += 2;
+          } else if (strcmp(arg[iarg],"near") == 0) {
+            if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                          "'modify_create' has too few arguments");
+            iarg += 2;
+          } else break;
         }
-        iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
   }

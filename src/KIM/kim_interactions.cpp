@@ -189,7 +189,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     int sim_model_idx=-1;
     for (int i = 0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
-        simulatorModel,i,&sim_lines,&sim_field);
+        simulatorModel, i, &sim_lines, &sim_field);
       if (strcmp(sim_field,"model-defn") == 0) {
         if (domain->periodicity[0]&&
             domain->periodicity[1]&&
@@ -200,7 +200,8 @@ void KimInteractions::do_setup(int narg, char **arg)
                  !domain->periodicity[2]) 
           input->one("variable kim_periodic equal 2");
         else input->one("variable kim_periodic equal 0");
-          sim_model_idx = i;
+
+        sim_model_idx = i;
 
         for (int j = 0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(

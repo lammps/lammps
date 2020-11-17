@@ -16,6 +16,7 @@
                          Ryan S. Elliott (UMN)
                          Ellad B. Tadmor (UMN)
                          Ronald Miller   (Carleton U)
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -130,14 +131,14 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   if (simulatorModel) {
     if (!fixed_types) {
-      std::string atom_type_sym_list(arg[0]);
+      std::string atom_type_sym_list = 
+        fmt::format("{}", fmt::join(arg, arg + narg, " "));
+      
       std::string atom_type_num_list = 
         fmt::format("{}", species_to_atomic_no(arg[0]));
 
-      for (int i = 1; i < narg; ++i) {
-        atom_type_sym_list += fmt::format(" {}", arg[i]);
+      for (int i = 1; i < narg; ++i)
         atom_type_num_list += fmt::format(" {}", species_to_atomic_no(arg[i]));
-      }
 
       KIM_SimulatorModel_AddTemplateMap(
           simulatorModel, "atom-type-sym-list", atom_type_sym_list.c_str());
@@ -187,7 +188,7 @@ void KimInteractions::do_setup(int narg, char **arg)
       }
     }
 
-    int sim_model_idx=-1;
+    bool no_model_definition = true;
     for (int i = 0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel, i, &sim_lines, &sim_field);
@@ -202,11 +203,12 @@ void KimInteractions::do_setup(int narg, char **arg)
           input->one("variable kim_periodic equal 2");
         else input->one("variable kim_periodic equal 0");
 
-        sim_model_idx = i;
+        // KIM Simulator Model has a Model definition
+        no_model_definition = false;
 
         for (int j = 0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
-            simulatorModel, sim_model_idx, j, &sim_value);
+            simulatorModel, i, j, &sim_value);
           if (utils::strmatch(sim_value,"^KIM_SET_TYPE_PARAMETERS")) {
             // Notes regarding the KIM_SET_TYPE_PARAMETERS command
             //  * This is an INTERNAL command.
@@ -227,7 +229,7 @@ void KimInteractions::do_setup(int narg, char **arg)
       }
     }
 
-    if (sim_model_idx < 0)
+    if (no_model_definition)
       error->all(FLERR,"KIM Simulator Model has no Model definition");
 
     KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
@@ -242,14 +244,9 @@ void KimInteractions::do_setup(int narg, char **arg)
     // NOTE: all references to arg must appear before calls to input->one()
     // as that will reset the argument vector.
 
-    std::string cmd1("pair_style kim ");
-    cmd1 += model_name;
-
-    std::string cmd2("pair_coeff * * ");
-    for (int i = 0; i < narg; ++i) {
-      cmd2 += arg[i];
-      cmd2 += " ";
-    }
+    auto cmd1 = fmt::format("pair_style kim {}", model_name);
+    auto cmd2 = 
+      fmt::format("pair_coeff * * {}", fmt::join(arg, arg + narg, " "));
 
     input->one(cmd1);
     input->one(cmd2);

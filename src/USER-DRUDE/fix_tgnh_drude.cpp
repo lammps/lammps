@@ -1728,7 +1728,7 @@ void FixTGNHDrude::nhc_temp_integrate()
 }
 
 double FixTGNHDrude::propagate(double *eta, double *eta_dot, double *eta_dotdot, const double *eta_mass,
-                               double ke2, double ke2_target, double tt) {
+                               const double &ke2, const double &ke2_target, const double &tt) const {
   int ich;
   double expfac;
   double ncfac = 1.0 / nc_tchain;

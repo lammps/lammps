@@ -699,7 +699,7 @@ void FixTGNHDrude::init()
 void FixTGNHDrude::setup_mol_mass_dof() {
   double *mass = atom->mass;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   int *drudetype = fix_drude->drudetype;
   int n_drude, n_drude_tmp = 0;
@@ -710,13 +710,13 @@ void FixTGNHDrude::setup_mol_mass_dof() {
     id_mol = std::max(id_mol, molecule[i]);
     if (mask[i] & groupbit) {
       if (drudetype[type[i]] == DRUDE_TYPE)
-        n_drude_tmp += 1;
+        n_drude_tmp++;
     }
   }
   MPI_Allreduce(&n_drude_tmp, &n_drude, 1, MPI_LMP_TAGINT, MPI_SUM, world);
   MPI_Allreduce(&id_mol, &n_mol, 1, MPI_LMP_TAGINT, MPI_MAX, world);
 
-  // use flag_mol to determin the number of molecules in the fix group
+  // use flag_mol to determine the number of molecules in the fix group
   int *flag_mol = new int[n_mol + 1];
   int *flag_mol_tmp = new int[n_mol + 1];
   memset(flag_mol_tmp, 0, sizeof(int) * (n_mol + 1));
@@ -730,6 +730,8 @@ void FixTGNHDrude::setup_mol_mass_dof() {
     if (flag_mol[i])
       n_mol_in_group++;
   }
+  delete[] flag_mol;
+  delete[] flag_mol_tmp;
 
   // length of v_mol set to n_mol+1, so that the subscript start from 1, we can call v_mol[n_mol]
   memory->create(v_mol, n_mol + 1, 3, "fix_tgnh_drude::v_mol");
@@ -743,6 +745,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
     mass_tmp[id_mol] += mass[type[i]];
   }
   MPI_Allreduce(mass_tmp, mass_mol, n_mol + 1, MPI_DOUBLE, MPI_SUM, world);
+  delete[] mass_tmp;
 
   // DOFs
   t_current = temperature->compute_scalar();
@@ -1601,11 +1604,11 @@ void FixTGNHDrude::reset_dt()
 void FixTGNHDrude::compute_temp_mol_int_drude(bool end_of_step) {
   double **v = atom->v;
   double *mass = atom->mass;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   int *mask = atom->mask;
   int *drudetype = fix_drude->drudetype;
-  int *drudeid = fix_drude->drudeid;
+  tagint *drudeid = fix_drude->drudeid;
   int imol, ci, di;
   double mass_com, mass_reduced, mass_core, mass_drude;
   double vint, vcom, vrel;
@@ -1988,9 +1991,9 @@ void FixTGNHDrude::nh_v_temp()
   double *mass = atom->mass;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *drudetype = fix_drude->drudetype;
-  int *drudeid = fix_drude->drudeid;
+  tagint *drudeid = fix_drude->drudeid;
 
   int imol, i, j, ci, di, itype;
   double mass_com, mass_core, mass_drude;

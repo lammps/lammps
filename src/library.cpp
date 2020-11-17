@@ -841,6 +841,10 @@ not recognized, the function returns -1.
        See :doc:`create_box`.
    * - nthreads
      - Number of requested OpenMP threads for LAMMPS' execution
+   * - newton_bond
+     - 1 if Newton's 3rd law is applied to bonded interactions, 0 if not.
+   * - newton_pair
+     - 1 if Newton's 3rd law is applied to non-bonded interactions, 0 if not.
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
@@ -933,6 +937,8 @@ int lammps_extract_setting(void *handle, const char *keyword)
 
   if (strcmp(keyword,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(keyword,"box_exist") == 0) return lmp->domain->box_exist;
+  if (strcmp(keyword,"newton_bond") == 0) return lmp->force->newton_bond;
+  if (strcmp(keyword,"newton_pair") == 0) return lmp->force->newton_pair;
   if (strcmp(keyword,"triclinic") == 0) return lmp->domain->triclinic;
 
   if (strcmp(keyword,"universe_rank") == 0) return lmp->universe->me;

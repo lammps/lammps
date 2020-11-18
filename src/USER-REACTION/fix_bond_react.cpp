@@ -2708,7 +2708,10 @@ void FixBondReact::update_everything()
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
           if (insert_atoms(global_mega_glove,i))
-          ; else continue; // create aborted
+          ; else { // create aborted
+            reaction_count_total[rxnID]--;
+            continue;
+          }
         }
 
         for (int j = 0; j < max_natoms+1; j++)
@@ -3218,7 +3221,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   double **coords,lamda[3],rotmat[3][3],vnew[3];
   double *newcoord;
   double **v = atom->v;
-  double t;
+  double t,delx,dely,delz,rsq;
 
   memory->create(coords,twomol->natoms,3,"bond/react:coords");
   memory->create(imageflags,twomol->natoms,"bond/react:imageflags");
@@ -3310,6 +3313,50 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   MPI_Allreduce(MPI_IN_PLACE,&fitroot,1,MPI_INT,MPI_SUM,world);
   MPI_Bcast(&t,1,MPI_DOUBLE,fitroot,world);
 
+  // get coordinates and image flags
+  for (int m = 0; m < twomol->natoms; m++) {
+    if (create_atoms[m][rxnID] == 1) {
+      // apply optimal rotation/translation for created atom coords
+      // also map coords back into simulation box
+      if (fitroot == me) {
+        MathExtra::matvec(rotmat,twomol->x[m],coords[m]);
+        for (int i = 0; i < 3; i++) coords[m][i] += superposer.T[i];
+        imageflags[m] = atom->image[ifit];
+        domain->remap(coords[m],imageflags[m]);
+      }
+      MPI_Bcast(&imageflags[m],1,MPI_LMP_IMAGEINT,fitroot,world);
+      MPI_Bcast(coords[m],3,MPI_DOUBLE,fitroot,world);
+    }
+  }
+
+  // check distance between any existing atom and inserted atom
+  // if less than near, abort
+  if (nearsq[rxnID] > 0) {
+    int abortflag = 0;
+    for (int m = 0; m < twomol->natoms; m++) {
+      if (create_atoms[m][rxnID] == 1) {
+        for (int i = 0; i < nlocal; i++) {
+          delx = coords[m][0] - x[i][0];
+          dely = coords[m][1] - x[i][1];
+          delz = coords[m][2] - x[i][2];
+          domain->minimum_image(delx,dely,delz);
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < nearsq[rxnID]) {
+            abortflag = 1;
+            break;
+          }
+        }
+        if (abortflag) break;
+      }
+    }
+    MPI_Allreduce(MPI_IN_PLACE,&abortflag,1,MPI_INT,MPI_MAX,world);
+    if (abortflag) {
+      memory->destroy(coords);
+      memory->destroy(imageflags);
+      return 0;
+    }
+  }
+
   // check if new atoms are in my sub-box or above it if I am highest proc
   // if so, add atom to my list via create_atom()
   // initialize additional info about the atoms
@@ -3321,17 +3368,6 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       // increase atom count
       add_count++;
       preID = onemol->natoms+add_count;
-
-      // apply optimal rotation/translation for created atom coords
-      // also map coords back into simulation box
-      if (fitroot == me) {
-        MathExtra::matvec(rotmat,twomol->x[m],coords[m]);
-        for (int i = 0; i < 3; i++) coords[m][i] += superposer.T[i];
-        imageflags[m] = atom->image[ifit];
-        domain->remap(coords[m],imageflags[m]);
-      }
-      MPI_Bcast(&imageflags[m],1,MPI_LMP_IMAGEINT,fitroot,world);
-      MPI_Bcast(coords[m],3,MPI_DOUBLE,fitroot,world);
 
       if (domain->triclinic) {
         domain->x2lamda(coords[m],lamda);

@@ -101,7 +101,7 @@ void PairHybrid::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   // check if global component of incoming vflag = VIRIAL_FDOTR
-  // if so, reset vflag passed to substyle as if it were VIRIAL_NONE
+  // if so, reset vflag passed to substyle so VIRIAL_FDOTR is turned off
   // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;

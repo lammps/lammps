@@ -778,7 +778,7 @@ void Pair::del_tally_callback(Compute *ptr)
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
-   set the following flags, values are otherwise 0:
+   set the following flags, values are otherwise set to 0:
      eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
      eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
      eflag_either != 0 if eflag_global or eflag_atom is set
@@ -811,6 +811,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 0) vflag_fdotr = 1;
   vflag_atom = vflag & VIRIAL_ATOM;
   if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL) vflag_atom = 1;
+  cvflag_atom = 0;
   if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL) cvflag_atom = 1;
   vflag_either = vflag_global || vflag_atom || cvflag_atom;
 

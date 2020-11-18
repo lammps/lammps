@@ -417,7 +417,7 @@ void PairHybrid::flags()
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->centroidstressflag == CENTROID_NOTAVAIL)
       centroidstressflag == CENTROID_NOTAVAIL;
-    if (centroidstyle == CENTROID_SAME &&
+    if (centroidstressflag == CENTROID_SAME &&
 	styles[m]->centroidstressflag == CENTROID_AVAIL)
       centroidstressflag == CENTROID_AVAIL;
   }

@@ -41,9 +41,9 @@ enum {
 };
 
 enum {
-  CENTROID_SAME     = 0x01,
-  CENTROID_AVAIL    = 0x02,
-  CENTROID_NOTAVAIL = 0x04
+  CENTROID_SAME     = 0,
+  CENTROID_AVAIL    = 1,
+  CENTROID_NOTAVAIL = 2
 };
 
 class Force : protected Pointers {

@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "force.h"
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"

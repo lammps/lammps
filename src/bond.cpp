@@ -81,7 +81,7 @@ void Bond::init()
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
-   set the following flags, values are otherwise 0:
+   set the following flags, values are otherwise set to 0:
      evflag       != 0 if any bits of eflag or vflag are set
      eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
      eflag_atom   != 0 if ENERGY_ATOM bit of eflag set

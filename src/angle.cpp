@@ -77,7 +77,7 @@ void Angle::init()
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
-   set the following flags, values are otherwise 0:
+   set the following flags, values are otherwise set to 0:
      evflag       != 0 if any bits of eflag or vflag are set
      eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
      eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
@@ -105,6 +105,7 @@ void Angle::ev_setup(int eflag, int vflag, int alloc)
   vflag_atom = vflag & VIRIAL_ATOM;
   if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL)
     vflag_atom = 1;
+  cvflag_atom = 0;
   if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL)
     cvflag_atom = 1;
   vflag_either = vflag_global || vflag_atom || cvflag_atom;

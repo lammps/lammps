@@ -41,7 +41,7 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges*
+* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges* or *modify_create*
 
   .. parsed-literal::
 
@@ -55,9 +55,12 @@ Syntax
          *custom_charges* value = *no* or *fragmentID*
            no = update all atomic charges (default)
            fragmentID = ID of molecule fragment whose charges are updated
-         *modify_create* value = *no* or *fragmentID*
-           no = use all eligible atoms for create-atoms fit (default)
-           fragmentID = ID of molecule fragment used for create-atoms fit
+         *modify_create* keyword values
+           *fit* value = *all* or *fragmentID*
+             all = use all eligible atoms for create-atoms fit (default)
+             fragmentID = ID of molecule fragment used for create-atoms fit
+           *near* value = R
+             R = only insert atom/molecule if further than R from existing particles (distance units)
 
 Examples
 """"""""
@@ -362,13 +365,23 @@ pre-reaction template. The inserted positions of created atoms are
 determined by the coordinates of the post-reaction template, after
 optimal translation and rotation of the post-reaction template to the
 reaction site (using a fit with atoms that are neither created nor
-deleted). Or, the *modify_create* keyword can be used to specify which
-post-reaction atoms are used for this fit. The *fragmentID* value must
-be the name of a molecule fragment defined in the post-reaction
-:doc:`molecule <molecule>` template, and only atoms in this fragment
-are used for the fit. The velocity of each created atom is initialized
-in a random direction with a magnitude calculated from the
-instantaneous temperature of the reaction site.
+deleted). The *modify_create* keyword can be used to modify the
+default behavior when creating atoms. The *modify_create* keyword has
+two sub-keywords, *fit* and *near*. One or more of the sub-keywords
+may be used after the *modify_create* keyword. The *fit* sub-keyword
+can be used to specify which post-reaction atoms are used for the
+optimal translation and rotation of the post-reaction template. The
+*fragmentID* value of the *fit* sub-keyword must be the name of a
+molecule fragment defined in the post-reaction :doc:`molecule
+<molecule>` template, and only atoms in this fragment are used for the
+fit. Atoms are created only if no current atom in the simulation is
+within a distance R of any created atom, including the effect of
+periodic boundary conditions if applicable. R is defined by the *near*
+sub-keyword. Note that the default value for R is 0.0, which will
+allow atoms to strongly overlap if you are inserting where other atoms
+are present. The velocity of each created atom is initialized in a
+random direction with a magnitude calculated from the instantaneous
+temperature of the reaction site.
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be

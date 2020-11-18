@@ -1,8 +1,11 @@
 .. index:: fix shake
+.. index:: fix shake/kk
 .. index:: fix rattle
 
 fix shake command
 =================
+
+Accelerator Variants: *shake/kk*
 
 fix rattle command
 ==================

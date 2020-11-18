@@ -3214,11 +3214,14 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 {
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
-  imageint imageflag;
-  double coord[3],lamda[3],rotmat[3][3],vnew[3];
+  imageint *imageflags;
+  double **coords,lamda[3],rotmat[3][3],vnew[3];
   double *newcoord;
   double **v = atom->v;
   double t;
+
+  memory->create(coords,twomol->natoms,3,"bond/react:coords");
+  memory->create(imageflags,twomol->natoms,"bond/react:imageflags");
 
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
@@ -3322,18 +3325,18 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       // apply optimal rotation/translation for created atom coords
       // also map coords back into simulation box
       if (fitroot == me) {
-        MathExtra::matvec(rotmat,twomol->x[m],coord);
-        for (int i = 0; i < 3; i++) coord[i] += superposer.T[i];
-        imageflag = atom->image[ifit];
-        domain->remap(coord,imageflag);
+        MathExtra::matvec(rotmat,twomol->x[m],coords[m]);
+        for (int i = 0; i < 3; i++) coords[m][i] += superposer.T[i];
+        imageflags[m] = atom->image[ifit];
+        domain->remap(coords[m],imageflags[m]);
       }
-      MPI_Bcast(&imageflag,1,MPI_LMP_IMAGEINT,fitroot,world);
-      MPI_Bcast(coord,3,MPI_DOUBLE,fitroot,world);
+      MPI_Bcast(&imageflags[m],1,MPI_LMP_IMAGEINT,fitroot,world);
+      MPI_Bcast(coords[m],3,MPI_DOUBLE,fitroot,world);
 
       if (domain->triclinic) {
-        domain->x2lamda(coord,lamda);
+        domain->x2lamda(coords[m],lamda);
         newcoord = lamda;
-      } else newcoord = coord;
+      } else newcoord = coords[m];
 
       flag = 0;
       if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
@@ -3363,7 +3366,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       if (flag) {
         root = me;
 
-        atom->avec->create_atom(twomol->type[m],coord);
+        atom->avec->create_atom(twomol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + add_count;
 
@@ -3383,7 +3386,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         }
 
         atom->mask[n] = 1 | groupbit;
-        atom->image[n] = imageflag;
+        atom->image[n] = imageflags[m];
 
         // guess a somewhat reasonable initial velocity based on reaction site
         // further control is possible using bond_react_MASTER_group
@@ -3441,7 +3444,9 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     atom->map_init();
     atom->map_set();
   }
-
+  // atom creation successful
+  memory->destroy(coords);
+  memory->destroy(imageflags);
   return 1;
 }
 

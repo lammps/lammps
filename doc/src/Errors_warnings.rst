@@ -119,7 +119,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm_modify cutoff <comm_modify>`.
 
 *Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
-
    Since LAMMPS stores topology data with individual atoms, all atoms
    comprising a bond, angle, dihedral or improper must be present on any
    sub-domain that "owns" the atom with the information, either as a

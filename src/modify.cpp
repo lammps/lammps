@@ -999,6 +999,23 @@ void Modify::replace_fix(const char *replaceID,
 }
 
 /* ----------------------------------------------------------------------
+   convenience function to allow replacing a fix from a single string
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const std::string &oldfix,
+                         const std::string &fixcmd, int trysuffix)
+{
+  auto args = utils::split_words(fixcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
+  delete[] newarg;
+}
+
+/* ----------------------------------------------------------------------
    one instance per fix in style_fix.h
 ------------------------------------------------------------------------- */
 

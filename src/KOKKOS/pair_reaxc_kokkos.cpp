@@ -3545,7 +3545,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
 
 
   //LG the funny and useless code below seems to help getting correct answers
-#if HIP_PRINTF_WORKAROUND
+#ifdef HIP_PRINTF_WORKAROUND
    if (ii < 2){
     if (j_start == -1) printf("ii = %d\n",ii);
     if (-1 == counters_jj_min[ii]) printf("ii=%d, j_start = %d, counters_jj_min[%d]=%d\n",ii,j_start,ii,counters_jj_min[ii]);

@@ -815,7 +815,8 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   evflag = eflag_either || vflag_either;
-
+  if (!evflag) return;
+  
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {

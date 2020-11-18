@@ -67,6 +67,7 @@ class FixBondReact : public Fix {
   int *custom_charges_fragid;
   int *create_atoms_flag;
   int *modify_create_fragid;
+  double *nearsq;
   int nconstraints;
   int narrhenius;
   double **constraints;
@@ -185,7 +186,7 @@ class FixBondReact : public Fix {
   void glove_ghostcheck();
   void ghost_glovecast();
   void update_everything();
-  void insert_atoms(tagint **, int);
+  int insert_atoms(tagint **, int);
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove

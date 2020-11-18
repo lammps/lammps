@@ -207,6 +207,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
   memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
+  memory->create(nearsq,nreacts,"bond/react:nearsq");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -229,6 +230,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     custom_charges_fragid[i] = -1;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
+    nearsq[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -401,6 +403,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           } else if (strcmp(arg[iarg],"near") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                           "'modify_create' has too few arguments");
+            nearsq[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+            nearsq[rxn] *= nearsq[rxn];
             iarg += 2;
           } else break;
         }
@@ -587,6 +591,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(custom_charges_fragid);
   memory->destroy(create_atoms_flag);
   memory->destroy(modify_create_fragid);
+  memory->destroy(nearsq);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -2645,9 +2650,8 @@ update molecule IDs, charges, types, special lists and all topology
 
 void FixBondReact::update_everything()
 {
+  int nlocal; // must be defined after create_atoms
   int *type = atom->type;
-
-  int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
@@ -2696,6 +2700,17 @@ void FixBondReact::update_everything()
         rxnID = global_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         if (iskip[rxnID]++ < nghostlyskips[rxnID]) continue;
+
+        // we can insert atoms here, now that reactions are finalized
+        // can't do it any earlier, due to skipped reactions (max_rxn)
+        // reactions that create atoms are always treated as 'global'
+        if (create_atoms_flag[rxnID] == 1) {
+          onemol = atom->molecules[unreacted_mol[rxnID]];
+          twomol = atom->molecules[reacted_mol[rxnID]];
+          if (insert_atoms(global_mega_glove,i))
+          ; else continue; // create aborted
+        }
+
         for (int j = 0; j < max_natoms+1; j++)
           update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
         update_num_mega++;
@@ -2703,22 +2718,8 @@ void FixBondReact::update_everything()
     }
     delete [] iskip;
 
-    // we can insert atoms here, now that reactions are finalized
-    // can't do it any earlier, due to skipped reactions (max_rxn)
-    // reactions that create atoms are always treated as 'global'
-    if (pass == 1) {
-      for (int i = 0; i < update_num_mega; i++) {
-        rxnID = update_mega_glove[0][i];
-        if (create_atoms_flag[rxnID] == 1) {
-          onemol = atom->molecules[unreacted_mol[rxnID]];
-          twomol = atom->molecules[reacted_mol[rxnID]];
-          insert_atoms(update_mega_glove,i);
-          nlocal = atom->nlocal;
-        }
-      }
-    }
-
     // mark to-delete atoms
+    nlocal = atom->nlocal;
     mark = new int[nlocal];
     for (int i = 0; i < nlocal; i++) mark[i] = 0;
     for (int i = 0; i < update_num_mega; i++) {
@@ -3209,7 +3210,7 @@ void FixBondReact::update_everything()
 insert created atoms
 ------------------------------------------------------------------------- */
 
-void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
+int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 {
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
@@ -3440,6 +3441,8 @@ void FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     atom->map_init();
     atom->map_set();
   }
+
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

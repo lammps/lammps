@@ -3226,12 +3226,6 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   memory->create(coords,twomol->natoms,3,"bond/react:coords");
   memory->create(imageflags,twomol->natoms,"bond/react:imageflags");
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
-  // same logic as beginning of Comm::exchange()
-  // do it now b/c inserting atoms will overwrite ghost atoms
-  atom->nghost = 0;
-  atom->avec->clear_bonus();
-
   double *sublo,*subhi;
   if (domain->triclinic == 0) {
     sublo = domain->sublo;
@@ -3356,6 +3350,12 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       return 0;
     }
   }
+
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c inserting atoms will overwrite ghost atoms
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
 
   // check if new atoms are in my sub-box or above it if I am highest proc
   // if so, add atom to my list via create_atom()

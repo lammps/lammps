@@ -17,7 +17,8 @@
 
 class MeltTest : public LAMMPSTest {
 protected:
-    virtual void InitSystem() override {
+    virtual void InitSystem() override
+    {
         command("units           lj");
         command("atom_style      atomic");
         command("atom_modify     map yes");
@@ -34,7 +35,7 @@ protected:
         command("pair_coeff      1 1 1.0 1.0 2.5");
 
         command("neighbor        0.3 bin");
-        command("neigh_modify    every 20 delay 0 check no");        
+        command("neigh_modify    every 20 delay 0 check no");
     }
 };
 

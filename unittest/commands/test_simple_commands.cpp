@@ -319,7 +319,7 @@ TEST_F(SimpleCommandsTest, Shell)
     lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    char * test_var = getenv("TEST_VARIABLE");
+    char *test_var = getenv("TEST_VARIABLE");
     ASSERT_NE(test_var, nullptr);
     ASSERT_THAT(test_var, StrEq("simpletest"));
 
@@ -328,8 +328,8 @@ TEST_F(SimpleCommandsTest, Shell)
     lmp->input->one("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    char * test_var2 = getenv("TEST_VARIABLE2");
-    char * other_var = getenv("OTHER_VARIABLE");
+    char *test_var2 = getenv("TEST_VARIABLE2");
+    char *other_var = getenv("OTHER_VARIABLE");
 
     ASSERT_NE(test_var2, nullptr);
     ASSERT_THAT(test_var2, StrEq("simpletest2"));

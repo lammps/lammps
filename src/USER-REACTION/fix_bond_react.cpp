@@ -3416,11 +3416,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
             atom->molecule[n] = maxmol_all + 1;
           }
         }
-        if (atom->molecular == 2) {
-          atom->molindex[n] = 0;
-          atom->molatom[n] = m;
-        }
-
+        
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
 

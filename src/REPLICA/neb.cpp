@@ -490,9 +490,13 @@ void NEB::readfile(char *file, int flag)
           x[m][1] += fraction*dely;
           x[m][2] += fraction*delz;
         } else {
-          x[m][0] = xx;
-          x[m][1] = yy;
-          x[m][2] = zz;
+          delx = xx - x[m][0];
+          dely = yy - x[m][1];
+          delz = zz - x[m][2];
+          domain->minimum_image(delx,dely,delz);
+          x[m][0] += delx;
+          x[m][1] += dely;
+          x[m][2] += delz;
         }
       }
 

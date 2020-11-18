@@ -88,7 +88,8 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = nullptr;
   vatom = nullptr;
-
+  centroidstressatom = NOTAVAIL;
+  
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
@@ -216,13 +217,14 @@ void KSpace::pair_check()
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise 0:
-     evflag       = 1 if any bits of eflag or vflag are set
-     eflag_global = 1 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
-     eflag_either = 1 if eflag_global or eflag_atom is set
-     vflag_global = 1 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_ATOM or VIRIAL_CENTROID bit of vflag set
-     vflag_either = 1 if vflag_global or vflag_atom is set
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+                       no current support for centroid stress
+     vflag_either != 0 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void KSpace::ev_setup(int eflag, int vflag, int alloc)
@@ -237,7 +239,7 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+  vflag_atom = vflag & VIRIAL_ATOM;
 
   if (eflag_atom || vflag_atom) evflag_atom = 1;
   else evflag_atom = 0;

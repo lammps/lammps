@@ -40,6 +40,7 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
   vatom = nullptr;
   cvatom = nullptr;
   setflag = nullptr;
+  centroidstressflag = CENTROID_AVAIL;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -76,14 +77,17 @@ void Dihedral::init()
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise 0:
-     evflag       = 1 if any bits of eflag or vflag are set
-     eflag_global = 1 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
-     eflag_either = 1 if eflag_global or eflag_atom is set
-     vflag_global = 1 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_ATOM bit of vflag set
-     cvflag_atom  = 1 if VIRIAL_CENTROID bit of vflag set
-     vflag_either = 1 if any of vflag_global, vflag_atom, cvflag_atom is set
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag = CENTROID_AVAIL
+     vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Dihedral::ev_setup(int eflag, int vflag, int alloc)
@@ -98,8 +102,11 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   vflag_atom = vflag & VIRIAL_ATOM;
-  cvflag_atom = vflag & VIRIAL_CENTROID;
-  vflag_either = vflag_global || vflag_atom;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL)
+    vflag_atom = 1;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL)
+    cvflag_atom = 1;
+  vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   // reallocate per-atom arrays if necessary
 

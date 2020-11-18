@@ -116,7 +116,7 @@ void Integrate::ev_setup()
    eflag: set any or no bits
      ENERGY_GLOBAL bit for global energy
      ENERGY_ATOM   bit for per-atom energy
-   vflag: set any or no bits, but GLOBAL/FDOTR bit cannot both be set
+   vflag: set any or no bits, but PAIR/FDOTR bits cannot both be set
      VIRIAL_PAIR     bit for global virial as sum of pairwise terms
      VIRIAL_FDOTR    bit for global virial via F dot r
      VIRIAL_ATOM     bit for per-atom virial

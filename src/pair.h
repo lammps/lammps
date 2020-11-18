@@ -68,7 +68,7 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
-  int centroidstressflag;        // centroid atomic compared to two-body stress
+  int centroidstressflag;        // centroid stress compared to two-body stress
                                  // CENTROID_SAME = same as two-body stress
                                  // CENTROID_AVAIL = different and implemented
                                  // CENTROID_NOTAVAIL = different, not yet implemented

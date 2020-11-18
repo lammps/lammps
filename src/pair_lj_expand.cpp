@@ -32,7 +32,6 @@ using namespace MathConst;
 PairLJExpand::PairLJExpand(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  centroidstressflag = CENTROID_SAME;
 }
 
 /* ---------------------------------------------------------------------- */

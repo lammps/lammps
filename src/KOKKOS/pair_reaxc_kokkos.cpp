@@ -3630,6 +3630,8 @@ void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i,
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for values of eflag and vflag
+   see pair::ev_setup() for values of eflag_* and vflag_*
+   VIRIAL_CENTROID bitflag is not yet supported by ReaxFF
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -3645,7 +3647,7 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
 
   vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+  vflag_atom = vflag & VIRIAL_ATOM;
 
   // reallocate per-atom arrays if necessary
 

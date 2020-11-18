@@ -77,7 +77,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag =
     tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
-  centroidstressflag = CENTROID_NOTAVAIL;
+  centroidstressflag = CENTROID_SAME;
 
   // pair_modify settings
 
@@ -779,18 +779,21 @@ void Pair::del_tally_callback(Compute *ptr)
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise 0:
-     evflag       = 1 if any bits of eflag or vflag are set
-     eflag_global = 1 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   = 1 if ENERGY_ATOM bit of eflag set
-     eflag_either = 1 if eflag_global or eflag_atom is set
-     vflag_global = 1 if VIRIAL_PAIR bit of vflag set
-     vflag_global = 2 if VIRIAL_FDOTR bit of vflag set
-     vflag_atom   = 1 if VIRIAL_ATOM bit of vflag set
-     vflag_atom   = 1 if VIRIAL_CENTROID bit of vflag set
-                      and centroidstressflag != CENTROID_AVAIL
-     cvflag_atom  = 1 if VIRIAL_CENTROID bit of vflag set
-                      and centroidstressflag = CENTROID_AVAIL
-     vflag_either = 1 if any of vflag_global, vflag_atom, cvflag_atom is set
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global = VIRIAL_PAIR if VIRIAL_PAIR bit of vflag set
+     vflag_global = VIRIAL_FDOTR if VIRIAL_FDOTR bit of vflag set
+       this setting also sets vflag_dotr = 1 if pair style supports it,
+       which unsets vflag_global and can also thus change other flags,
+       see logic at end of method
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag = CENTROID_AVAIL
+     vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
    centroidstressflag is set by the pair style to one of these values:
      CENTROID_SAME = same as two-body stress
      CENTROID_AVAIL = different and implemented
@@ -809,19 +812,11 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   vflag_atom = vflag & VIRIAL_ATOM;
-  cvflag_atom = 0;
-
-  if (vflag & VIRIAL_CENTROID) {
-    if (centroidstressflag & CENTROID_AVAIL) {
-      cvflag_atom = 1;
-    } else {
-      vflag_atom = 1;
-    }
-    // extra check, because both bits might be set
-    if (centroidstressflag & CENTROID_SAME) vflag_atom = 1;
-  }
-
-  vflag_either = vflag_global || vflag_atom;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL)
+    vflag_atom = 1;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL)
+    cvflag_atom = 1;
+  vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -894,10 +889,9 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   if (vflag_global == VIRIAL_FDOTR && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
-    if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;
-    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
+    if (!vflag_atom == 0 && !cvflag_atom) vflag_either = 0;
+    if (!vflag_either == 0 && !eflag_either) evflag = 0;
   } else vflag_fdotr = 0;
-
 
   // run ev_setup option for USER-TALLY computes
 

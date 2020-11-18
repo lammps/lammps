@@ -81,6 +81,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   no_virial_fdotr_compute = 1;
 

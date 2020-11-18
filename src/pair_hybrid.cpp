@@ -29,7 +29,6 @@
 
 #include "suffix.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -42,10 +41,6 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
 
   outerflag = 0;
   respaflag = 0;
-
-  // assume pair hybrid always supports centroid atomic stress,
-  // so that cflag_atom gets set when needed
-  centroidstressflag = CENTROID_AVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,12 +90,13 @@ void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
-  // if no_virial_fdotr_compute is set and global component of
-  //   incoming vflag = VIRIAL_FDOTR, then
-  // reset vflag as if global component were VIRIAL_PAIR
+  // check if no_virial_fdotr_compute is set and global component of
+  //   incoming vflag = VIRIAL_FDOTR
+  // if so, reset vflag as if global component were VIRIAL_PAIR
   // necessary since one or more sub-styles cannot compute virial as F dot r
 
-  if (no_virial_fdotr_compute && (vflag & VIRIAL_FDOTR)) vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
+  if (no_virial_fdotr_compute && (vflag & VIRIAL_FDOTR))
+    vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
 
   ev_init(eflag,vflag);
 
@@ -165,10 +161,13 @@ void PairHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+
+    // substyles may be CENTROID_SAME or CENTROID_AVAIL
+    
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
-      if (styles[m]->centroidstressflag & CENTROID_AVAIL) {
+      if (styles[m]->centroidstressflag == CENTROID_AVAIL) {
         double **cvatom_substyle = styles[m]->cvatom;
         for (i = 0; i < n; i++)
           for (j = 0; j < 9; j++)
@@ -386,6 +385,7 @@ void PairHybrid::flags()
   compute_flag = 0;
   respa_enable = 0;
   restartinfo = 0;
+  
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) ++single_enable;
     if (styles[m]->respa_enable) ++respa_enable;
@@ -401,12 +401,26 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    if (styles[m]->centroidstressflag & CENTROID_NOTAVAIL) centroidstressflag |= CENTROID_NOTAVAIL;
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
   restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
+
+  // set centroidstressflag for pair hybrid
+  // set to CENTROID_NOTAVAIL if any substyle is NOTAVAIL
+  // else set to CENTROID_AVAIL if any substyle is AVAIL
+  // else set to CENTROID_SAME if all substyles are SAME
+
+  centroidstressflag = CENTROID_SAME;
+
+  for (m = 0; m < nstyles; m++) {
+    if (styles[m]->centroidstressflag == CENTROID_NOTAVAIL)
+      centroidstressflag == CENTROID_NOTAVAIL;
+    if (centroidstyle == CENTROID_SAME &&
+	styles[m]->centroidstressflag == CENTROID_AVAIL)
+      centroidstressflag == CENTROID_AVAIL;
+  }
 }
 
 /* ----------------------------------------------------------------------

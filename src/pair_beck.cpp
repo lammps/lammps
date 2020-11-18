@@ -26,15 +26,12 @@
 #include "error.h"
 #include "math_special.h"
 
-
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = CENTROID_SAME;
-}
+PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

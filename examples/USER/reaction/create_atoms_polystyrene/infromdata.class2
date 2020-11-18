@@ -32,7 +32,7 @@ molecule mol4 chain_plus_styrene_reacted.data_template
 
 fix rxn1 all bond/react stabilization yes statted_grp .03 &
     react rxn2 all 1 0 3.0 mol3 mol4 chain_plus_styrene_map_create_atoms &
-        modify_create create_fit stabilize_steps 100 max_rxn 50
+        modify_create fit create_fit near 2.0 stabilize_steps 100 max_rxn 50
 
 fix 1 statted_grp_REACT nvt temp $T $T 100 #iso 1 1 1000
 

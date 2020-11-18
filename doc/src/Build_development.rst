@@ -182,7 +182,7 @@ Tests for styles of the same kind of style (e.g. pair styles or bond
 styles) are performed with the same test executable using different
 input files in YAML format.  So to add a test for another style of the
 same kind it may be sufficient to add a suitable YAML file.
-:ref:`Detailed instructions for adding tests <Developer_unittest>` are
+:doc:`Detailed instructions for adding tests <Developer_unittest>` are
 provided in the Programmer Guide part of the manual.
 
 Unit tests for force styles

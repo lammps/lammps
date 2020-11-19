@@ -1805,9 +1805,9 @@ int FixBondReact::check_constraints()
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < constraints[i].par[0] || rsq > constraints[i].par[1]) return 0;
       } else if (constraints[i].type == ANGLE) {
-        get_IDcoords((int) constraints[i].par[2], (int) constraints[i].par[3], x1);
-        get_IDcoords((int) constraints[i].par[4], (int) constraints[i].par[5], x2);
-        get_IDcoords((int) constraints[i].par[6], (int) constraints[i].par[7], x3);
+        get_IDcoords(constraints[i].idtype[0], constraints[i].id[0], x1);
+        get_IDcoords(constraints[i].idtype[1], constraints[i].id[1], x2);
+        get_IDcoords(constraints[i].idtype[2], constraints[i].id[2], x3);
 
         // 1st bond
         delx1 = x1[0] - x2[0];
@@ -1830,7 +1830,7 @@ int FixBondReact::check_constraints()
         c /= r1*r2;
         if (c > 1.0) c = 1.0;
         if (c < -1.0) c = -1.0;
-        if (acos(c) < constraints[i].par[8] || acos(c) > constraints[i].par[9]) return 0;
+        if (acos(c) < constraints[i].par[0] || acos(c) > constraints[i].par[1]) return 0;
       } else if (constraints[i].type == DIHEDRAL) {
         // phi calculation from dihedral style harmonic
         get_IDcoords((int) constraints[i].par[2], (int) constraints[i].par[3], x1);
@@ -3369,11 +3369,11 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints].type = ANGLE;
       sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
-      readID(strargs[0], nconstraints, 2, 3);
-      readID(strargs[1], nconstraints, 4, 5);
-      readID(strargs[2], nconstraints, 6, 7);
-      constraints[nconstraints].par[8] = tmp[0]/180.0 * MY_PI;
-      constraints[nconstraints].par[9] = tmp[1]/180.0 * MY_PI;
+      readID(strargs[0], nconstraints, 0);
+      readID(strargs[1], nconstraints, 1);
+      readID(strargs[2], nconstraints, 2);
+      constraints[nconstraints].par[0] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints].par[1] = tmp[1]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"dihedral") == 0) {
       constraints[nconstraints].type = DIHEDRAL;
       tmp[2] = 181.0; // impossible range

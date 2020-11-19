@@ -442,7 +442,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   int tmp = 0;
   for (int i = 0; i < nconstraints; i++) {
     if (constraints[i].type == ARRHENIUS) {
-      rrhandom[tmp++] = new RanMars(lmp,(int) constraints[i].par[6] + me);
+      rrhandom[tmp++] = new RanMars(lmp,(int) constraints[i].par[4] + me);
     }
   }
 
@@ -1896,9 +1896,9 @@ int FixBondReact::check_constraints()
         if (ANDgate != 1) return 0;
       } else if (constraints[i].type == ARRHENIUS) {
         t = get_temperature();
-        prrhob = constraints[i].par[3]*pow(t,constraints[i].par[4])*
-          exp(-constraints[i].par[5]/(force->boltz*t));
-        if (prrhob < rrhandom[(int) constraints[i].par[2]]->uniform()) return 0;
+        prrhob = constraints[i].par[1]*pow(t,constraints[i].par[2])*
+          exp(-constraints[i].par[3]/(force->boltz*t));
+        if (prrhob < rrhandom[(int) constraints[i].par[0]]->uniform()) return 0;
       } else if (constraints[i].type == RMSD) {
         // call superpose
         int iatom;
@@ -3390,12 +3390,12 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[nconstraints].par[13] = tmp[3]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[nconstraints].type = ARRHENIUS;
-      constraints[nconstraints].par[2] = narrhenius++;
+      constraints[nconstraints].par[0] = narrhenius++;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      constraints[nconstraints].par[3] = tmp[0];
-      constraints[nconstraints].par[4] = tmp[1];
-      constraints[nconstraints].par[5] = tmp[2];
-      constraints[nconstraints].par[6] = tmp[3];
+      constraints[nconstraints].par[1] = tmp[0];
+      constraints[nconstraints].par[2] = tmp[1];
+      constraints[nconstraints].par[3] = tmp[2];
+      constraints[nconstraints].par[4] = tmp[3];
     } else if (strcmp(constraint_type,"rmsd") == 0) {
       constraints[nconstraints].type = RMSD;
       strcpy(strargs[0],"0");

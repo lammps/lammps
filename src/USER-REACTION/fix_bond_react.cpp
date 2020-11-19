@@ -3228,7 +3228,9 @@ void FixBondReact::read(int myrxn)
 
   int equivflag = 0, bondflag = 0;
   while (strlen(keyword)) {
-    if (strcmp(keyword,"BondingIDs") == 0) {
+    if (strcmp(keyword,"InitiatorIDs") == 0 || strcmp(keyword,"BondingIDs") == 0) {
+      if (strcmp(keyword,"BondingIDs") == 0)
+        error->warning(FLERR,"Bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
@@ -3257,7 +3259,7 @@ void FixBondReact::read(int myrxn)
 
   // error check
   if (bondflag == 0 || equivflag == 0)
-    error->all(FLERR,"Bond/react: Map file missing BondingIDs or Equivalences section\n");
+    error->all(FLERR,"Bond/react: Map file missing InitiatorIDs or Equivalences section\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)

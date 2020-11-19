@@ -1906,7 +1906,7 @@ int FixBondReact::check_constraints()
         int n2superpose = 0;
         double **xfrozen; // coordinates for the "frozen" target molecule
         double **xmobile; // coordinates for the "mobile" molecule
-        int ifragment = constraints[i].par[3];
+        int ifragment = constraints[i].id[0];
         if (ifragment >= 0) {
           for (int j = 0; j < onemol->natoms; j++)
             if (onemol->fragmentmask[ifragment][j]) n2superpose++;
@@ -1943,7 +1943,7 @@ int FixBondReact::check_constraints()
         }
         Superpose3D<double, double **> superposer(n2superpose);
         double rmsd = superposer.Superpose(xfrozen, xmobile);
-        if (rmsd > constraints[i].par[2]) return 0;
+        if (rmsd > constraints[i].par[0]) return 0;
         memory->destroy(xfrozen);
         memory->destroy(xmobile);
       }
@@ -3400,12 +3400,12 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[nconstraints].type = RMSD;
       strcpy(strargs[0],"0");
       sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
-      constraints[nconstraints].par[2] = tmp[0]; // RMSDmax
-      constraints[nconstraints].par[3] = -1; // optional molecule fragment
+      constraints[nconstraints].par[0] = tmp[0]; // RMSDmax
+      constraints[nconstraints].id[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {
         int ifragment = onemol->findfragment(strargs[0]);
         if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
-        else constraints[nconstraints].par[3] = ifragment;
+        else constraints[nconstraints].id[0] = ifragment;
       }
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");

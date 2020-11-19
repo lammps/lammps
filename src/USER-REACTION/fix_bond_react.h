@@ -31,7 +31,9 @@ namespace LAMMPS_NS {
 class FixBondReact : public Fix {
  public:
 
-  enum {MAXLINE=256};
+  enum {MAXLINE=256}; // max length of line read from files
+  enum {MAXCONIDS=4}; // max # of IDs used by any constraint
+  enum {MAXCONPAR=4}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
@@ -68,7 +70,6 @@ class FixBondReact : public Fix {
   int *molecule_keyword;
   int nconstraints;
   int narrhenius;
-  double **constraints;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
@@ -155,7 +156,7 @@ class FixBondReact : public Fix {
   void DeleteAtoms(char *, int);
   void CustomCharges(int, int);
   void ChiralCenters(char *, int);
-  void Constraints(char *, int);
+  void ReadConstraints(char *, int);
   void readID(char *, int, int, int);
 
   void make_a_guess ();
@@ -194,6 +195,16 @@ class FixBondReact : public Fix {
     int reaction_count_total;
   };
   Set *set;
+
+  struct Constraint {
+    int type;
+    int rxnID;
+    int op;
+    int id[MAXCONIDS];
+    int idtype[MAXCONIDS];
+    double par[MAXCONPAR];
+  };
+  Constraint *constraints;
 
   // DEBUG
 

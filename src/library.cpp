@@ -1811,36 +1811,44 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
 \verbatim embed:rst
 
 This function returns a pointer to data from a LAMMPS :doc:`variable`
-identified by its name.  The variable must be either an *equal*\ -style
-compatible or an *atom*\ -style variable.  Variables of style *internal*
+identified by its name.  When the variable is either an *equal*\ -style
+compatible or an *atom*\ -style variable the variable is evaluated and
+the corresponding value(s) returned.  Variables of style *internal*
 are compatible with *equal*\ -style variables and so are *python*\
--style variables, if they return a numeric value.  The function returns
+-style variables, if they return a numeric value.  For other
+variable styles their string value is returned.  The function returns
 ``NULL`` when a variable of the provided *name* is not found or of an
 incompatible style.  The *group* argument is only used for *atom*\
 -style variables and ignored otherwise.  If set to ``NULL`` when
 extracting data from and *atom*\ -style variable, the group is assumed
 to be "all".
 
-.. note::
+When requesting data from an *equal*\ -style or compatible variable
+this function allocates storage for a single double value, copies the
+returned value to it, and returns a pointer to the location of the
+copy.  Therefore the allocated storage needs to be freed after its
+use to avoid a memory leak. Example:
 
-   When requesting data from an *equal*\ -style or compatible variable
-   this function allocates storage for a single double value, copies the
-   returned value to it, and returns a pointer to the location of the
-   copy.  Therefore the allocated storage needs to be freed after its
-   use to avoid a memory leak. Example:
+.. code-block:: c
 
-   .. code-block:: c
+   double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
+   double value = *dptr;
+   lammps_free((void *)dptr);
 
-      double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
-      double value = *dptr;
-      lammps_free((void *)dptr);
+For *atom*\ -style variables the data returned is a pointer to an
+allocated block of storage of double of the length ``atom->nlocal``.
+Since the data is returned a copy, the location will persist, but its
+content will not be updated, in case the variable is re-evaluated.
+To avoid a memory leak this pointer needs to be freed after use in
+the calling program.
 
-   For *atom*\ -style variables the data returned is a pointer to an
-   allocated block of storage of double of the length ``atom->nlocal``.
-   To avoid a memory leak, also this pointer needs to be freed after use.
+For other variable styles the returned pointer needs to be cast to
+a char pointer.
 
-Since the data is returned as copies, the location will persist, but its
-values will not be updated, in case the variable is re-evaluated.
+.. code-block:: c
+
+   const char *cptr = (const char *) lammps_extract_variable(handle,name,NULL);
+   printf("The value of variable %s is %s\n", name, cptr);
 
 .. note::
 
@@ -1858,7 +1866,7 @@ values will not be updated, in case the variable is re-evaluated.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_variable(void *handle, char *name, char *group)
+void *lammps_extract_variable(void *handle, const char *name, const char *group)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1871,9 +1879,7 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
       double *dptr = (double *) malloc(sizeof(double));
       *dptr = lmp->input->variable->compute_equal(ivar);
       return (void *) dptr;
-    }
-
-    if (lmp->input->variable->atomstyle(ivar)) {
+    } else if (lmp->input->variable->atomstyle(ivar)) {
       if (group == nullptr) group = (char *)"all";
       int igroup = lmp->group->find(group);
       if (igroup < 0) return nullptr;
@@ -1881,6 +1887,8 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
       double *vector = (double *) malloc(nlocal*sizeof(double));
       lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
       return (void *) vector;
+    } else {
+      return lmp->input->variable->retrieve(name);
     }
   }
   END_CAPTURE

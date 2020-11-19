@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char **/*arg*/) : Pointers(lmp)
+Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char ** /*arg*/) : Pointers(lmp)
 {
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;

@@ -305,6 +305,7 @@ accelerated styles exist.
 * :doc:`spin/dipole/long <pair_spin_dipole>` -
 * :doc:`spin/dmi <pair_spin_dmi>` -
 * :doc:`spin/exchange <pair_spin_exchange>` -
+* :doc:`spin/exchange/biquadratic <pair_spin_exchange>` -
 * :doc:`spin/magelec <pair_spin_magelec>` -
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -

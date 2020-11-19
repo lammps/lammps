@@ -1,4 +1,4 @@
-set(KIM-API_MIN_VERSION 2.1.3)
+set(KIM-API_MIN_VERSION 2.2.0)
 find_package(CURL)
 if(CURL_FOUND)
   if(CMAKE_VERSION VERSION_LESS 3.12)
@@ -19,13 +19,10 @@ if(CURL_FOUND)
     target_compile_definitions(lammps PRIVATE -DLMP_NO_SSL_CHECK)
   endif()
 endif()
-find_package(PkgConfig QUIET)
+find_package(KIM-API ${KIM-API_MIN_VERSION} QUIET CONFIG)
 set(DOWNLOAD_KIM_DEFAULT ON)
-if(PKG_CONFIG_FOUND)
-  pkg_check_modules(KIM-API QUIET libkim-api>=${KIM-API_MIN_VERSION})
-  if(KIM-API_FOUND)
+if(KIM-API_FOUND)
     set(DOWNLOAD_KIM_DEFAULT OFF)
-  endif()
 endif()
 option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
 if(DOWNLOAD_KIM)
@@ -34,8 +31,8 @@ if(DOWNLOAD_KIM)
   enable_language(C)
   enable_language(Fortran)
   ExternalProject_Add(kim_build
-    URL https://s3.openkim.org/kim-api/kim-api-2.1.3.txz
-    URL_MD5 6ee829a1bbba5f8b9874c88c4c4ebff8
+    URL https://s3.openkim.org/kim-api/kim-api-2.2.0.txz
+    URL_MD5 e7f944e1593cffd7444679a660607f6c
     BINARY_DIR build
     CMAKE_ARGS ${CMAKE_REQUEST_PIC}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -53,11 +50,20 @@ if(DOWNLOAD_KIM)
   add_library(LAMMPS::KIM UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::KIM PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkim-api${CMAKE_SHARED_LIBRARY_SUFFIX}"
-    INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include/kim-api")
-  target_link_libraries(lammps PRIVATE LAMMPS::KIM)
+    INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include/kim-api"
+    )
   add_dependencies(LAMMPS::KIM kim_build)
+  target_link_libraries(lammps PRIVATE LAMMPS::KIM)
+  # Set rpath so lammps build directory is relocatable
+  if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(_rpath_prefix "@loader_path")
+  else()
+    set(_rpath_prefix "$ORIGIN")
+  endif()
+  set_target_properties(lmp PROPERTIES
+    BUILD_RPATH "${_rpath_prefix}/kim_build-prefix/lib"
+    )
 else()
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(KIM-API REQUIRED IMPORTED_TARGET libkim-api>=${KIM-API_MIN_VERSION})
-  target_link_libraries(lammps PRIVATE PkgConfig::KIM-API)
+  find_package(KIM-API ${KIM-API_MIN_VERSION} CONFIG REQUIRED)
+  target_link_libraries(lammps PRIVATE KIM-API::kim-api)
 endif()

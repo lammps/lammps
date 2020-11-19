@@ -1833,10 +1833,10 @@ int FixBondReact::check_constraints()
         if (acos(c) < constraints[i].par[0] || acos(c) > constraints[i].par[1]) return 0;
       } else if (constraints[i].type == DIHEDRAL) {
         // phi calculation from dihedral style harmonic
-        get_IDcoords((int) constraints[i].par[2], (int) constraints[i].par[3], x1);
-        get_IDcoords((int) constraints[i].par[4], (int) constraints[i].par[5], x2);
-        get_IDcoords((int) constraints[i].par[6], (int) constraints[i].par[7], x3);
-        get_IDcoords((int) constraints[i].par[8], (int) constraints[i].par[9], x4);
+        get_IDcoords(constraints[i].idtype[0], constraints[i].id[0], x1);
+        get_IDcoords(constraints[i].idtype[1], constraints[i].id[1], x2);
+        get_IDcoords(constraints[i].idtype[2], constraints[i].id[2], x3);
+        get_IDcoords(constraints[i].idtype[3], constraints[i].id[3], x4);
 
         vb1x = x1[0] - x2[0];
         vb1y = x1[1] - x2[1];
@@ -1883,15 +1883,15 @@ int FixBondReact::check_constraints()
         phi = atan2(s,c);
 
         ANDgate = 0;
-        if (constraints[i].par[10] < constraints[i].par[11]) {
-          if (phi > constraints[i].par[10] && phi < constraints[i].par[11]) ANDgate = 1;
+        if (constraints[i].par[0] < constraints[i].par[1]) {
+          if (phi > constraints[i].par[0] && phi < constraints[i].par[1]) ANDgate = 1;
         } else {
-          if (phi > constraints[i].par[10] || phi < constraints[i].par[11]) ANDgate = 1;
+          if (phi > constraints[i].par[0] || phi < constraints[i].par[1]) ANDgate = 1;
         }
-        if (constraints[i].par[12] < constraints[i].par[13]) {
-          if (phi > constraints[i].par[12] && phi < constraints[i].par[13]) ANDgate = 1;
+        if (constraints[i].par[2] < constraints[i].par[3]) {
+          if (phi > constraints[i].par[2] && phi < constraints[i].par[3]) ANDgate = 1;
         } else {
-          if (phi > constraints[i].par[12] || phi < constraints[i].par[13]) ANDgate = 1;
+          if (phi > constraints[i].par[2] || phi < constraints[i].par[3]) ANDgate = 1;
         }
         if (ANDgate != 1) return 0;
       } else if (constraints[i].type == ARRHENIUS) {
@@ -3380,14 +3380,14 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       tmp[3] = 182.0;
       sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
              strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      readID(strargs[0], nconstraints, 2, 3);
-      readID(strargs[1], nconstraints, 4, 5);
-      readID(strargs[2], nconstraints, 6, 7);
-      readID(strargs[3], nconstraints, 8, 9);
-      constraints[nconstraints].par[10] = tmp[0]/180.0 * MY_PI;
-      constraints[nconstraints].par[11] = tmp[1]/180.0 * MY_PI;
-      constraints[nconstraints].par[12] = tmp[2]/180.0 * MY_PI;
-      constraints[nconstraints].par[13] = tmp[3]/180.0 * MY_PI;
+      readID(strargs[0], nconstraints, 0);
+      readID(strargs[1], nconstraints, 1);
+      readID(strargs[2], nconstraints, 2);
+      readID(strargs[3], nconstraints, 3);
+      constraints[nconstraints].par[0] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints].par[1] = tmp[1]/180.0 * MY_PI;
+      constraints[nconstraints].par[2] = tmp[2]/180.0 * MY_PI;
+      constraints[nconstraints].par[3] = tmp[3]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[nconstraints].type = ARRHENIUS;
       constraints[nconstraints].par[0] = narrhenius++;

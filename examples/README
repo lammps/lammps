@@ -111,6 +111,7 @@ srd:      stochastic rotation dynamics (SRD) particles as solvent
 steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+template: examples for using atom_style template and comparing to atom style molecular
 threebody: regression test input for a variety of manybody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
@@ -179,7 +180,7 @@ the same simulation in different unit systems.
 
 The USER directory contains subdirectories of user-provided example
 scripts for ser packages.  See the README files in those directories
-for more info.  See the doc/Section_start.html file for more info
+for more info.  See the doc/html/Build_package.html file for more info
 about installing and building user packages.
 
 The VISCOSITY directory has example scripts for computing the

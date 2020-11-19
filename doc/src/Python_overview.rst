@@ -1,11 +1,12 @@
 Overview
 ========
 
-The LAMMPS distribution includes a python directory with all you need to
-run LAMMPS from Python.  The ``python/lammps.py`` contains :doc:`the
-"lammps" Python <Python_module>` that wraps the LAMMPS C-library
-interface.  This file makes it is possible to do the following either
-from a Python script, or interactively from a Python prompt:
+The LAMMPS distribution includes a ``python`` directory with the Python
+code needed to run LAMMPS from Python.  The ``python/lammps.py``
+contains :doc:`the "lammps" Python <Python_module>` that wraps the
+LAMMPS C-library interface.  This file makes it is possible to do the
+following either from a Python script, or interactively from a Python
+prompt:
 
 - create one or more instances of LAMMPS
 - invoke LAMMPS commands or read them from an input script
@@ -13,7 +14,7 @@ from a Python script, or interactively from a Python prompt:
 - extract LAMMPS results
 - and modify internal LAMMPS data structures.
 
-From a Python script you can do this in serial or parallel.  Running
+From a Python script you can do this in serial or in parallel.  Running
 Python interactively in parallel does not generally work, unless you
 have a version of Python that extends Python to enable multiple
 instances of Python to read what you type.
@@ -34,20 +35,20 @@ Below is an example output for Python version 3.8.5.
 .. code-block::
 
    $ python
-   Python 3.8.5 (default, Aug 12 2020, 00:00:00) 
+   Python 3.8.5 (default, Aug 12 2020, 00:00:00)
    [GCC 10.2.1 20200723 (Red Hat 10.2.1-1)] on linux
    Type "help", "copyright", "credits" or "license" for more information.
-   >>> 
+   >>>
 
 
-.. warning:: Python 2 support is deprecated
+.. warning::
 
-   While the LAMMPS Python module was originally developed to support
-   both, Python 2 and 3, any new code is only tested with Python 3.
-   Please note that Python 2 is no longer maintained as of `January 1,
-   2020 <https://www.python.org/doc/sunset-python-2/>`_.  Therefore, we
-   highly recommend using Python version 3.6 or later.  Compatibility to
-   Python 2 will be removed eventually.
+   The options described in this section of the manual for using Python with
+   LAMMPS currently support either Python 2 or 3.  Specifically version 2.7 or
+   later and 3.6 or later.  Since the Python community no longer maintains Python
+   2 (see `this notice <https://www.python.org/doc/sunset-python-2/>`_), we
+   recommend use of Python 3 with LAMMPS.  While Python 2 code should continue to
+   work, that is not something we can guarantee long-term.
 
 ---------
 

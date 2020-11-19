@@ -348,8 +348,13 @@ class lammps(object):
     self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
+    self.lib.lammps_is_running.argtypes = [c_void_p]
+    self.lib.lammps_is_running.restype = c_int
+
+    self.lib.lammps_force_timeout.argtypes = [c_void_p]
+
     self.lib.lammps_has_error.argtypes = [c_void_p]
-    self.lib.lammps_has_error.restype = c_bool
+    self.lib.lammps_has_error.restype = c_int
 
     self.lib.lammps_get_last_error_message.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_get_last_error_message.restype = c_int
@@ -366,15 +371,23 @@ class lammps(object):
 
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
 
-    self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
-
     self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
 
     self.lib.lammps_style_count.argtypes = [c_void_p, c_char_p]
 
     self.lib.lammps_style_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
 
+    self.lib.lammps_has_id.argtypes = [c_void_p, c_char_p, c_char_p]
+
+    self.lib.lammps_id_count.argtypes = [c_void_p, c_char_p]
+
+    self.lib.lammps_id_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
+
     self.lib.lammps_version.argtypes = [c_void_p]
+
+    self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
 
     self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
 
@@ -550,6 +563,21 @@ class lammps(object):
     :rtype:  int
     """
     return self.lib.lammps_version(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  def get_os_info(self):
+    """Return a string with information about the OS and compiler runtime
+
+    This is a wrapper around the :cpp:func:`lammps_get_os_info` function of the C-library interface.
+
+    :return: OS info string
+    :rtype:  string
+    """
+
+    sb = create_string_buffer(512)
+    self.lib.lammps_get_os_info(sb,512)
+    return sb
 
   # -------------------------------------------------------------------------
 
@@ -1086,7 +1114,7 @@ class lammps(object):
     after the data is copied to a Python variable or list.
     The variable must be either an equal-style (or equivalent)
     variable or an atom-style variable. The variable type has to
-    provided as ``vartype`` parameter which may be two constants:
+    provided as ``vartype`` parameter which may be one of two constants:
     ``LMP_VAR_EQUAL`` or ``LMP_VAR_STRING``; it defaults to
     equal-style variables.
     The group parameter is only used for atom-style variables and
@@ -1107,7 +1135,8 @@ class lammps(object):
     if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      result = ptr[0]
+      if ptr: result = ptr[0]
+      else: return None
       self.lib.lammps_free(ptr)
       return result
     elif vartype == LMP_VAR_ATOM:
@@ -1115,8 +1144,10 @@ class lammps(object):
       result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      for i in range(nlocal): result[i] = ptr[i]
-      self.lib.lammps_free(ptr)
+      if ptr:
+        for i in range(nlocal): result[i] = ptr[i]
+        self.lib.lammps_free(ptr)
+      else: return None
       return result
     return None
 
@@ -1425,6 +1456,38 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   @property
+  def is_running(self):
+    """ Report whether being called from a function during a run or a minimization
+
+    Various LAMMPS commands must not be called during an ongoing
+    run or minimization.  This property allows to check for that.
+    This is a wrapper around the :cpp:func:`lammps_is_running`
+    function of the library interface.
+
+    .. versionadded:: 9Oct2020
+
+    :return: True when called during a run otherwise false
+    :rtype: bool
+    """
+    return self.lib.lammps_is_running(self.lmp) == 1
+
+  # -------------------------------------------------------------------------
+
+  def force_timeout(self):
+    """ Trigger an immediate timeout, i.e. a "soft stop" of a run.
+
+    This function allows to cleanly stop an ongoing run or minimization
+    at the next loop iteration.
+    This is a wrapper around the :cpp:func:`lammps_force_timeout`
+    function of the library interface.
+
+    .. versionadded:: 9Oct2020
+    """
+    self.lib.lammps_force_timeout(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  @property
   def has_exceptions(self):
     """ Report whether the LAMMPS shared library was compiled with C++
     exceptions handling enabled
@@ -1559,6 +1622,53 @@ class lammps(object):
         self.lib.lammps_style_name(self.lmp, category.encode(), idx, sb, 100)
         self._available_styles[category].append(sb.value.decode())
     return self._available_styles[category]
+
+  # -------------------------------------------------------------------------
+
+  def has_id(self, category, name):
+    """Returns whether a given ID name is available in a given category
+
+    This is a wrapper around the function :cpp:func:`lammps_has_id`
+    of the library interface.
+
+    .. versionadded:: 9Oct2020
+
+    :param category: name of category
+    :type  category: string
+    :param name: name of the ID
+    :type  name: string
+
+    :return: true if ID is available in given category
+    :rtype:  bool
+    """
+    return self.lib.lammps_has_id(self.lmp, category.encode(), name.encode()) != 0
+
+  # -------------------------------------------------------------------------
+
+  def available_ids(self, category):
+    """Returns a list of IDs available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_id_count()`
+    and :cpp:func:`lammps_id_name()` of the library interface.
+
+    .. versionadded:: 9Oct2020
+
+    :param category: name of category
+    :type  category: string
+
+    :return: list of id names in given category
+    :rtype:  list
+    """
+
+    categories = ['compute','dump','fix','group','molecule','region','variable']
+    available_ids = []
+    if category in categories:
+      num = self.lib.lammps_id_count(self.lmp, category.encode())
+      sb = create_string_buffer(100)
+      for idx in range(num):
+        self.lib.lammps_id_name(self.lmp, category.encode(), idx, sb, 100)
+        available_ids.append(sb.value.decode())
+    return available_ids
 
   # -------------------------------------------------------------------------
 
@@ -2042,8 +2152,9 @@ class Variable(object):
 
 class AtomList(object):
   """
-  A dynamic list of atoms that returns either an Atom or Atom2D instance for
-  each atom. Instances are only allocated when accessed.
+  A dynamic list of atoms that returns either an :py:class:`Atom` or
+  :py:class:`Atom2D` instance for each atom. Instances are only allocated
+  when accessed.
 
   :ivar natoms: total number of atoms
   :ivar dimensions: number of dimensions in system
@@ -2088,31 +2199,61 @@ class Atom(object):
 
   @property
   def id(self):
+    """
+    Return the atom ID
+
+    :type: int
+    """
     return int(self._pylmp.eval("id[%d]" % self.index))
 
   @property
   def type(self):
+    """
+    Return the atom type
+
+    :type: int
+    """
     return int(self._pylmp.eval("type[%d]" % self.index))
 
   @property
   def mol(self):
+    """
+    Return the atom molecule index
+
+    :type: int
+    """
     return self._pylmp.eval("mol[%d]" % self.index)
 
   @property
   def mass(self):
+    """
+    Return the atom mass
+
+    :type: float
+    """
     return self._pylmp.eval("mass[%d]" % self.index)
 
   @property
   def position(self):
+    """
+    :getter: Return position of atom
+    :setter: Set position of atom
+    :type: tuple (float, float, float)
+    """
     return (self._pylmp.eval("x[%d]" % self.index),
             self._pylmp.eval("y[%d]" % self.index),
             self._pylmp.eval("z[%d]" % self.index))
 
   @position.setter
   def position(self, value):
-     self._pylmp.set("atom", self.index, "x", value[0])
-     self._pylmp.set("atom", self.index, "y", value[1])
-     self._pylmp.set("atom", self.index, "z", value[2])
+    """
+    :getter: Return velocity of atom
+    :setter: Set velocity of atom
+    :type: tuple (float, float, float)
+    """
+    self._pylmp.set("atom", self.index, "x", value[0])
+    self._pylmp.set("atom", self.index, "y", value[1])
+    self._pylmp.set("atom", self.index, "z", value[2])
 
   @property
   def velocity(self):
@@ -2128,12 +2269,22 @@ class Atom(object):
 
   @property
   def force(self):
+    """
+    Return the total force acting on the atom
+
+    :type: tuple (float, float, float)
+    """
     return (self._pylmp.eval("fx[%d]" % self.index),
             self._pylmp.eval("fy[%d]" % self.index),
             self._pylmp.eval("fz[%d]" % self.index))
 
   @property
   def charge(self):
+    """
+    Return the atom charge
+
+    :type: float
+    """
     return self._pylmp.eval("q[%d]" % self.index)
 
 # -------------------------------------------------------------------------
@@ -2142,6 +2293,9 @@ class Atom2D(Atom):
   """
   A wrapper class then represents a single 2D atom inside of LAMMPS
 
+  Inherits all properties from the :py:class:`Atom` class, but returns 2D versions
+  of position, velocity, and force.
+
   It provides access to properties of the atom and allows you to change some of them.
   """
   def __init__(self, pylammps_instance, index):
@@ -2149,6 +2303,11 @@ class Atom2D(Atom):
 
   @property
   def position(self):
+    """
+    :getter: Return position of atom
+    :setter: Set position of atom
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("x[%d]" % self.index),
             self._pylmp.eval("y[%d]" % self.index))
 
@@ -2159,6 +2318,11 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
+    """
+    :getter: Return velocity of atom
+    :setter: Set velocity of atom
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("vx[%d]" % self.index),
             self._pylmp.eval("vy[%d]" % self.index))
 
@@ -2169,6 +2333,11 @@ class Atom2D(Atom):
 
   @property
   def force(self):
+    """
+    Return the total force acting on the atom
+
+    :type: tuple (float, float)
+    """
     return (self._pylmp.eval("fx[%d]" % self.index),
             self._pylmp.eval("fy[%d]" % self.index))
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -796,10 +796,12 @@ void ReadData::command(int narg, char **arg)
     for (int i = 0; i < nlocal; i++) {
       imol = molindex[i];
       iatom = molatom[i];
-      nbonds += onemols[imol]->num_bond[iatom];
-      nangles += onemols[imol]->num_angle[iatom];
-      ndihedrals += onemols[imol]->num_dihedral[iatom];
-      nimpropers += onemols[imol]->num_improper[iatom];
+      if (imol >=0) {
+        nbonds += onemols[imol]->num_bond[iatom];
+        nangles += onemols[imol]->num_angle[iatom];
+        ndihedrals += onemols[imol]->num_dihedral[iatom];
+        nimpropers += onemols[imol]->num_improper[iatom];
+      }
     }
 
     MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -916,6 +918,17 @@ void ReadData::header(int firstpass)
 {
   int n;
   char *ptr;
+
+  // initialize type counts by the "extra" numbers so they get counted
+  // in case the corresponding "types" line is missing and thus the extra
+  // value will not be processed.
+  if (addflag == NONE) {
+    atom->ntypes = extra_atom_types;
+    atom->nbondtypes = extra_bond_types;
+    atom->nangletypes = extra_angle_types;
+    atom->ndihedraltypes = extra_dihedral_types;
+    atom->nimpropertypes = extra_improper_types;
+  }
 
   // customize for new sections
 

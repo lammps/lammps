@@ -1,5 +1,5 @@
 How a timestep works
-====================
+--------------------
 
 The first and most fundamental operation within LAMMPS to understand is
 how a timestep is structured.  Timestepping is performed by calling

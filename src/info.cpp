@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -109,7 +109,7 @@ static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
 
-static const char *mapstyles[] = { "none", "array", "hash" };
+static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
 static const char *commstyles[] = { "brick", "tiled" };
 static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
@@ -348,18 +348,20 @@ void Info::command(int narg, char **arg)
                commstyles[comm->style], commlayout[comm->layout],
                comm->ghost_velocity ? "yes" : "no");
 
-    if (comm->mode == 0)
-      fmt::print(out,"Communication mode = single\n"
-                 "Communication cutoff = {}\n",
-                 comm->get_comm_cutoff());
+    if (domain->box_exist) {
+      if (comm->mode == 0)
+        fmt::print(out,"Communication mode = single\n"
+                   "Communication cutoff = {}\n",
+                   comm->get_comm_cutoff());
 
-    if (comm->mode == 1) {
-      fputs("Communication mode = multi\n",out);
-      double cut;
-      for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
-        cut = neighbor->cuttype[i];
-        if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-        fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+      if (comm->mode == 1) {
+        fputs("Communication mode = multi\n",out);
+        double cut;
+        for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
+          cut = neighbor->cuttype[i];
+          if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+          fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+        }
       }
     }
     fmt::print(out,"Nprocs = {},   Nthreads = {}\n",comm->nprocs,comm->nthreads);
@@ -391,7 +393,7 @@ void Info::command(int narg, char **arg)
     if (atom->molecular > 0) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
-      fmt::print(out,"Bonds    =  {:12},  types = {:8},  style = {}\n",
+      fmt::print(out,"Bonds     = {:12},  types = {:8},  style = {}\n",
                  atom->nbonds, atom->nbondtypes, msg);
 
       msg = force->angle_style ? force->angle_style : "none";
@@ -1240,7 +1242,7 @@ std::string Info::get_mpi_vendor() {
   #elif defined(MSMPI_VER)
   return "Microsoft MPI";
   #else
-  return "Unknown";
+  return "Unknown MPI implementation";
   #endif
 }
 
@@ -1251,7 +1253,8 @@ std::string Info::get_mpi_info(int &major, int &minor)
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version,&len);
 #else
-  static char version[] = "Undetected MPI implementation";
+  static char version[32];
+  strcpy(version,get_mpi_vendor().c_str());
   len = strlen(version);
 #endif
 

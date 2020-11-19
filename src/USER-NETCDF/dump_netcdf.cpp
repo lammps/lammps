@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -183,7 +183,7 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       for (int j = 0; j < DUMP_NC_MAX_DIMS; j++) {
         perat[inc].field[j] = -1;
       }
-      strcpy(perat[inc].name, mangled);
+      strncpy(perat[inc].name, mangled, NC_FIELD_NAME_MAX);
       n_perat++;
     }
 

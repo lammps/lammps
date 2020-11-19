@@ -1,6 +1,7 @@
 // unit tests creating LAMMPS instances via the library interface
 
 #include "lammps.h"
+#define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <cstdio> // for stdin, stdout
 #include <mpi.h>

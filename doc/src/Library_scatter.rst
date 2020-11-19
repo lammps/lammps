@@ -1,5 +1,5 @@
-Library functions for scatter/gather operations
-================================================
+Scatter/gather operations
+=========================
 
 This section has functions which gather per-atom data from one or more
 processors into a contiguous global list ordered by atom ID.  The same
@@ -22,6 +22,7 @@ It documents the following functions:
 - :cpp:func:`lammps_gather_subset`
 - :cpp:func:`lammps_scatter`
 - :cpp:func:`lammps_scatter_subset`
+- :cpp:func:`lammps_create_atoms`
 
 -----------------------
 
@@ -72,3 +73,10 @@ It documents the following functions:
 
 .. doxygenfunction:: lammps_scatter_subset
    :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_create_atoms(void *handle, int n, int *id, int *type, double *x, double *v, int *image, int bexpand)
+   :project: progguide
+
+

@@ -3420,7 +3420,7 @@ if ID starts with character, assume it is a pre-reaction molecule fragment ID
 otherwise, it is a pre-reaction atom ID
 ---------------------------------------------------------------------- */
 
-void FixBondReact::readID(char *strarg, int iconstr, int i, int dummy)
+void FixBondReact::readID(char *strarg, int iconstr, int i)
 {
   if (isalpha(strarg[0])) {
     constraints[iconstr].idtype[i] = FRAG; // fragment vs. atom ID flag

@@ -157,7 +157,7 @@ class FixBondReact : public Fix {
   void CustomCharges(int, int);
   void ChiralCenters(char *, int);
   void ReadConstraints(char *, int);
-  void readID(char *, int, int, int);
+  void readID(char *, int, int);
 
   void make_a_guess ();
   void neighbor_loop();

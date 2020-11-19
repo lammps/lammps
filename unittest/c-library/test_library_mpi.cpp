@@ -27,18 +27,17 @@ TEST(MPI, global_box)
 
     double boxlo[3];
     double boxhi[3];
-    double xy  = 0.0;
-    double yz  = 0.0;
-    double xz  = 0.0;
+    double xy = 0.0;
+    double yz = 0.0;
+    double xz = 0.0;
     int pflags[3];
     int boxflag;
 
     ::testing::internal::CaptureStdout();
-    const char *args[] = {"LAMMPS_test", "-log",      "none",
-                          "-echo",       "screen",    "-nocite"};
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
-    void * lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+    void *lmp          = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
     lammps_command(lmp, "units           lj");
     lammps_command(lmp, "atom_style      atomic");
     lammps_command(lmp, "region          box block 0 2 0 2 0 2");
@@ -71,18 +70,17 @@ TEST(MPI, sub_box)
 
     double boxlo[3];
     double boxhi[3];
-    double xy  = 0.0;
-    double yz  = 0.0;
-    double xz  = 0.0;
+    double xy = 0.0;
+    double yz = 0.0;
+    double xz = 0.0;
     int pflags[3];
     int boxflag;
 
     ::testing::internal::CaptureStdout();
-    const char *args[] = {"LAMMPS_test", "-log",      "none",
-                          "-echo",       "screen",    "-nocite"};
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
-    void * lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+    void *lmp          = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
     lammps_command(lmp, "units           lj");
     lammps_command(lmp, "atom_style      atomic");
     lammps_command(lmp, "region          box block 0 2 0 2 0 2");
@@ -99,8 +97,8 @@ TEST(MPI, sub_box)
     EXPECT_EQ(boxhi[1], 2.0);
     EXPECT_EQ(boxhi[2], 2.0);
 
-    double * sublo = (double*)lammps_extract_global(lmp, "sublo");
-    double * subhi = (double*)lammps_extract_global(lmp, "subhi");
+    double *sublo = (double *)lammps_extract_global(lmp, "sublo");
+    double *subhi = (double *)lammps_extract_global(lmp, "subhi");
 
     ASSERT_NE(sublo, nullptr);
     ASSERT_NE(subhi, nullptr);
@@ -119,26 +117,25 @@ TEST(MPI, sub_box)
 
 class MPITest : public ::testing::Test {
 public:
-    void command(const std::string &line) {
-        lammps_command(lmp, line.c_str());
-    }
+    void command(const std::string &line) { lammps_command(lmp, line.c_str()); }
 
 protected:
-    const char * testbinary = "LAMMPSTest";
+    const char *testbinary = "LAMMPSTest";
     void *lmp;
 
     void SetUp() override
     {
-        const char *args[] = { testbinary, "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        const char *args[] = {testbinary, "-log", "none", "-echo", "screen", "-nocite"};
+        char **argv        = (char **)args;
+        int argc           = sizeof(args) / sizeof(char *);
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
         InitSystem();
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    virtual void InitSystem() {
+    virtual void InitSystem()
+    {
         command("units           lj");
         command("atom_style      atomic");
         command("atom_modify     map yes");
@@ -169,78 +166,81 @@ protected:
 
 #if !defined(LAMMPS_BIGBIG)
 
-TEST_F(MPITest, gather) {
+TEST_F(MPITest, gather)
+{
     int64_t natoms = (int64_t)lammps_get_natoms(lmp);
     ASSERT_EQ(natoms, 32);
-    int * p_nlocal = (int*)lammps_extract_global(lmp, "nlocal");
-    int nlocal = *p_nlocal;
+    int *p_nlocal = (int *)lammps_extract_global(lmp, "nlocal");
+    int nlocal    = *p_nlocal;
     EXPECT_LT(nlocal, 32);
     EXPECT_EQ(nlocal, 8);
 
     // get the entire x on all procs
-    double * x = new double[natoms * 3];
-    lammps_gather(lmp, (char*)"x", 1, 3, x);
+    double *x = new double[natoms * 3];
+    lammps_gather(lmp, (char *)"x", 1, 3, x);
 
-    int * tag = (int*)lammps_extract_atom(lmp, "id");
-    double ** x_local = (double**)lammps_extract_atom(lmp, "x");
+    int *tag         = (int *)lammps_extract_atom(lmp, "id");
+    double **x_local = (double **)lammps_extract_atom(lmp, "x");
 
     // each proc checks its local atoms
-    for(int i = 0; i < nlocal; i++) {
-        int64_t j = tag[i]-1;
-        double * x_i = x_local[i];
-        double * x_g = &x[j*3];
+    for (int i = 0; i < nlocal; i++) {
+        int64_t j   = tag[i] - 1;
+        double *x_i = x_local[i];
+        double *x_g = &x[j * 3];
         EXPECT_DOUBLE_EQ(x_g[0], x_i[0]);
         EXPECT_DOUBLE_EQ(x_g[1], x_i[1]);
         EXPECT_DOUBLE_EQ(x_g[2], x_i[2]);
     }
 
-    delete [] x;
+    delete[] x;
 }
 
-TEST_F(MPITest, scatter) {
-    int * p_nlocal = (int*)lammps_extract_global(lmp, "nlocal");
-    int nlocal = *p_nlocal;
-    double * x_orig = new double[3*nlocal];
-    double ** x_local = (double**)lammps_extract_atom(lmp, "x");
+TEST_F(MPITest, scatter)
+{
+    int *p_nlocal    = (int *)lammps_extract_global(lmp, "nlocal");
+    int nlocal       = *p_nlocal;
+    double *x_orig   = new double[3 * nlocal];
+    double **x_local = (double **)lammps_extract_atom(lmp, "x");
 
     // make copy of original local x vector
-    for(int i = 0; i < nlocal; i++) {
-        int j = 3*i;
-        x_orig[j] = x_local[i][0];
+    for (int i = 0; i < nlocal; i++) {
+        int j         = 3 * i;
+        x_orig[j]     = x_local[i][0];
         x_orig[j + 1] = x_local[i][1];
         x_orig[j + 2] = x_local[i][2];
     }
 
     // get the entire x on all procs
     int64_t natoms = (int64_t)lammps_get_natoms(lmp);
-    double * x = new double[natoms * 3];
-    lammps_gather(lmp, (char*)"x", 1, 3, x);
+    double *x      = new double[natoms * 3];
+    lammps_gather(lmp, (char *)"x", 1, 3, x);
 
     // shift all coordinates by 0.001
     const double delta = 0.001;
-    for(int64_t i = 0; i < 3*natoms; i++) x[i] += delta;
+    for (int64_t i = 0; i < 3 * natoms; i++)
+        x[i] += delta;
 
     // update positions of all atoms
-    lammps_scatter(lmp, (char*)"x", 1, 3, x);
-    delete [] x;
+    lammps_scatter(lmp, (char *)"x", 1, 3, x);
+    delete[] x;
     x = nullptr;
 
     // get new nlocal and x_local
-    p_nlocal = (int*)lammps_extract_global(lmp, "nlocal");
-    nlocal = *p_nlocal;
-    x_local = (double**)lammps_extract_atom(lmp, "x");
+    p_nlocal = (int *)lammps_extract_global(lmp, "nlocal");
+    nlocal   = *p_nlocal;
+    x_local  = (double **)lammps_extract_atom(lmp, "x");
 
     ASSERT_EQ(nlocal, 8);
 
     // each proc checks its local atoms for shift
-    for(int i = 0; i < nlocal; i++) {
-        double * x_a = x_local[i];
-        double * x_b = &x_orig[i*3];
-        EXPECT_DOUBLE_EQ(x_a[0], x_b[0]+delta);
-        EXPECT_DOUBLE_EQ(x_a[1], x_b[1]+delta);
-        EXPECT_DOUBLE_EQ(x_a[2], x_b[2]+delta);
+    for (int i = 0; i < nlocal; i++) {
+        double *x_a = x_local[i];
+        double *x_b = &x_orig[i * 3];
+        EXPECT_DOUBLE_EQ(x_a[0], x_b[0] + delta);
+        EXPECT_DOUBLE_EQ(x_a[1], x_b[1] + delta);
+        EXPECT_DOUBLE_EQ(x_a[2], x_b[2] + delta);
     }
 
-    delete [] x_orig;
+    delete[] x_orig;
 }
 #endif

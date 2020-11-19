@@ -1,5 +1,6 @@
 // unit tests for checking LAMMPS configuration settings  through the library interface
 
+#define LAMMPS_LIB_MPI 1
 #include "lammps.h"
 #include "library.h"
 #include "timer.h"

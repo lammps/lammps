@@ -156,11 +156,9 @@ TEST(MPI, multi_partition)
     lammps_mpi_init();
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
-    fp = fopen("in.mp_dummy", "w");
-    fclose(fp);
 
     const char *args[] = {"LAMMPS_test", "-log",   "none",    "-partition", "2x2",
-                          "-echo",       "screen", "-nocite", "-in",        "in.mp_dummy"};
+                          "-echo",       "screen", "-nocite", "-in",        "none"};
     char **argv        = (char **)args;
     int argc           = sizeof(args) / sizeof(char *);
     void *lmp          = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
@@ -184,7 +182,6 @@ TEST(MPI, multi_partition)
     }
 
     lammps_close(lmp);
-    unlink("in.mp_dummy");
 };
 
 class MPITest : public ::testing::Test {

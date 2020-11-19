@@ -115,6 +115,78 @@ TEST(MPI, sub_box)
     ::testing::internal::GetCapturedStdout();
 };
 
+TEST(MPI, split_comm)
+{
+    int nprocs, me, color, key;
+    MPI_Comm newcomm;
+    lammps_mpi_init();
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &me);
+    color = me % 2;
+    key   = me;
+
+    MPI_Comm_split(MPI_COMM_WORLD, color, key, &newcomm);
+
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+    void *lmp          = lammps_open(argc, argv, newcomm, nullptr);
+    lammps_command(lmp, "units           lj");
+    lammps_command(lmp, "atom_style      atomic");
+    lammps_command(lmp, "region          box block 0 2 0 2 0 2");
+    lammps_command(lmp, "create_box      1 box");
+
+    MPI_Comm_size(newcomm, &nprocs);
+    MPI_Comm_rank(newcomm, &me);
+    EXPECT_EQ(nprocs, 2);
+    EXPECT_GT(me, -1);
+    EXPECT_LT(me, 2);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), nprocs);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), me);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), nprocs);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), me);
+
+    lammps_close(lmp);
+};
+
+TEST(MPI, multi_partition)
+{
+    FILE *fp;
+    int nprocs, me;
+    lammps_mpi_init();
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &me);
+    fp = fopen("in.mp_dummy", "w");
+    fclose(fp);
+
+    const char *args[] = {"LAMMPS_test", "-log",   "none",    "-partition", "2x2",
+                          "-echo",       "screen", "-nocite", "-in",        "in.mp_dummy"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+    void *lmp          = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
+
+    lammps_command(lmp, "units           lj");
+    lammps_command(lmp, "atom_style      atomic");
+    lammps_command(lmp, "region          box block 0 2 0 2 0 2");
+    lammps_command(lmp, "create_box      1 box");
+    lammps_command(lmp, "variable        partition universe 1 2");
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), nprocs);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), me);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), nprocs / 2);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), me % 2);
+
+    char *part_id = (char *)lammps_extract_variable(lmp, "partition", nullptr);
+    if (me < 2) {
+        ASSERT_THAT(part_id, StrEq("1"));
+    } else {
+        ASSERT_THAT(part_id, StrEq("2"));
+    }
+
+    lammps_close(lmp);
+    unlink("in.mp_dummy");
+};
+
 class MPITest : public ::testing::Test {
 public:
     void command(const std::string &line) { lammps_command(lmp, line.c_str()); }
@@ -163,6 +235,16 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
+
+TEST_F(MPITest, size_rank)
+{
+    int nprocs, me;
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &me);
+
+    EXPECT_EQ(nprocs, lammps_extract_setting(lmp, "world_size"));
+    EXPECT_EQ(me, lammps_extract_setting(lmp, "world_rank"));
+}
 
 #if !defined(LAMMPS_BIGBIG)
 

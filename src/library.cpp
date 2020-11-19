@@ -839,9 +839,19 @@ not recognized, the function returns -1.
    * - box_exist
      - 1 if the simulation box is defined, 0 if not.
        See :doc:`create_box`.
+   * - nthreads
+     - Number of requested OpenMP threads for LAMMPS' execution
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
+   * - universe_rank
+     - MPI rank on LAMMPS' universe communicator (0 <= universe_rank < universe_size)
+   * - universe_size
+     - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
+   * - world_rank
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size)
+   * - world_size
+     - Number of ranks on LAMMPS' world communicator
 
 .. _extract_system_sizes:
 
@@ -924,6 +934,12 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(keyword,"box_exist") == 0) return lmp->domain->box_exist;
   if (strcmp(keyword,"triclinic") == 0) return lmp->domain->triclinic;
+
+  if (strcmp(keyword,"universe_rank") == 0) return lmp->universe->me;
+  if (strcmp(keyword,"universe_size") == 0) return lmp->universe->nprocs;
+  if (strcmp(keyword,"world_rank") == 0) return lmp->comm->me;
+  if (strcmp(keyword,"world_size") == 0) return lmp->comm->nprocs;
+  if (strcmp(keyword,"nthreads") == 0) return lmp->comm->nthreads;
 
   if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;

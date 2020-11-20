@@ -1962,11 +1962,16 @@ int FixBondReact::check_constraints()
     }
   }
 
-  for (int i = 0; i < nconstraints[rxnID]; i++) {
-    if (satisfied[i] == 0) {
-      memory->destroy(satisfied);
-      return 0;
+  if (nconstraints[rxnID] > 0) {
+    char evalstr[MAXLINE],*ptr,valstr;
+    strcpy(evalstr,constraintstr[rxnID]);
+    for (int i = 0; i < nconstraints[rxnID]; i++) {
+      sprintf(&valstr,"%d", satisfied[i]);
+      ptr = strchr(evalstr,'C');
+      *ptr = valstr;
     }
+    double verdict = input->variable->evaluate_boolean(evalstr);
+    if (verdict == 0.0) return 0;
   }
 
   // let's also check chirality within 'check_constraint'

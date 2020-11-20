@@ -69,8 +69,10 @@
 #include "utils.h"
 #include "fmt/format.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 

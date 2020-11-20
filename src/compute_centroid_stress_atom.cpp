@@ -257,7 +257,7 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double **vatom = force->kspace->vatom;
-    for (i = 0; i < nkspace; i++)
+    for (i = 0; i < nkspace; i++) {
       for (j = 0; j < 6; j++)
         stress[i][j] += vatom[i][j];
       for (j = 6; j < 9; j++)

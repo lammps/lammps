@@ -1106,25 +1106,29 @@ void PairKIM::set_kim_model_has_flags()
     }
   }
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialEnergy'; "
-                   "Potential energy will be zero");
+  if (comm->me == 0) {
+    if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; "
+                           "Potential energy will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialForce'; "
-                   "Forces will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialForce'; "
+                           "Forces will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleEnergy'; "
-                   "energy per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleEnergy'; "
+                           "energy per atom will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleVirial'; "
-                   "virial per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleVirial'; "
+                           "virial per atom will be zero");
+  }
 
   int numberOfComputeCallbackNames;
   KIM_COMPUTE_CALLBACK_NAME_GetNumberOfComputeCallbackNames(

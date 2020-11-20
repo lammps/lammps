@@ -79,7 +79,7 @@ static const char cite_fix_bond_react[] =
 // RESTORE: restore mode, load most recent restore point
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
-// constraint constants: constraints types, boolean operations, and ID type
+// constraint constants: constraint types, boolean operation, and ID type
 enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD,AND,OR,ATOM,FRAG};
 
 // keyword values that accept variables as input
@@ -115,7 +115,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
-  nconstraints = 0;
   narrhenius = 0;
   status = PROCEED;
 
@@ -206,7 +205,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
-  memory->create(constraints,0,"bond/react:constraints");
+  memory->create(nconstraints,nreacts,"bond/react:nconstraints");
+  memory->create(constraints,0,nreacts,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
@@ -440,9 +440,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   rrhandom = new class RanMars*[narrhenius];
   int tmp = 0;
-  for (int i = 0; i < nconstraints; i++) {
-    if (constraints[i].type == ARRHENIUS) {
-      rrhandom[tmp++] = new RanMars(lmp,(int) constraints[i].par[4] + me);
+  for (int i = 0; i < nreacts; i++) {
+    for (int j = 0; j < nconstraints[i]; j++) {
+      if (constraints[j][i].type == ARRHENIUS) {
+        rrhandom[tmp++] = new RanMars(lmp,(int) constraints[j][i].par[4] + me);
+      }
     }
   }
 
@@ -562,6 +564,8 @@ FixBondReact::~FixBondReact()
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
   memory->destroy(molecule_keyword);
+  memory->destroy(constraints);
+  memory->destroy(nconstraints);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -1793,160 +1797,158 @@ int FixBondReact::check_constraints()
   tagint atom1,atom2;
   double **x = atom->x;
 
-  for (int i = 0; i < nconstraints; i++) {
-    if (constraints[i].rxnID == rxnID) {
-      if (constraints[i].type == DISTANCE) {
-        get_IDcoords(constraints[i].idtype[0], constraints[i].id[0], x1);
-        get_IDcoords(constraints[i].idtype[1], constraints[i].id[1], x2);
-        delx = x1[0] - x2[0];
-        dely = x1[1] - x2[1];
-        delz = x1[2] - x2[2];
-        domain->minimum_image(delx,dely,delz); // ghost location fix
-        rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq < constraints[i].par[0] || rsq > constraints[i].par[1]) return 0;
-      } else if (constraints[i].type == ANGLE) {
-        get_IDcoords(constraints[i].idtype[0], constraints[i].id[0], x1);
-        get_IDcoords(constraints[i].idtype[1], constraints[i].id[1], x2);
-        get_IDcoords(constraints[i].idtype[2], constraints[i].id[2], x3);
+  for (int i = 0; i < nconstraints[rxnID]; i++) {
+    if (constraints[i][rxnID].type == DISTANCE) {
+      get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
+      get_IDcoords(constraints[i][rxnID].idtype[1], constraints[i][rxnID].id[1], x2);
+      delx = x1[0] - x2[0];
+      dely = x1[1] - x2[1];
+      delz = x1[2] - x2[2];
+      domain->minimum_image(delx,dely,delz); // ghost location fix
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < constraints[i][rxnID].par[0] || rsq > constraints[i][rxnID].par[1]) return 0;
+    } else if (constraints[i][rxnID].type == ANGLE) {
+      get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
+      get_IDcoords(constraints[i][rxnID].idtype[1], constraints[i][rxnID].id[1], x2);
+      get_IDcoords(constraints[i][rxnID].idtype[2], constraints[i][rxnID].id[2], x3);
 
-        // 1st bond
-        delx1 = x1[0] - x2[0];
-        dely1 = x1[1] - x2[1];
-        delz1 = x1[2] - x2[2];
-        domain->minimum_image(delx1,dely1,delz1); // ghost location fix
-        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-        r1 = sqrt(rsq1);
+      // 1st bond
+      delx1 = x1[0] - x2[0];
+      dely1 = x1[1] - x2[1];
+      delz1 = x1[2] - x2[2];
+      domain->minimum_image(delx1,dely1,delz1); // ghost location fix
+      rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+      r1 = sqrt(rsq1);
 
-        // 2nd bond
-        delx2 = x3[0] - x2[0];
-        dely2 = x3[1] - x2[1];
-        delz2 = x3[2] - x2[2];
-        domain->minimum_image(delx2,dely2,delz2); // ghost location fix
-        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-        r2 = sqrt(rsq2);
+      // 2nd bond
+      delx2 = x3[0] - x2[0];
+      dely2 = x3[1] - x2[1];
+      delz2 = x3[2] - x2[2];
+      domain->minimum_image(delx2,dely2,delz2); // ghost location fix
+      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+      r2 = sqrt(rsq2);
 
-        // angle (cos and sin)
-        c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-        c /= r1*r2;
-        if (c > 1.0) c = 1.0;
-        if (c < -1.0) c = -1.0;
-        if (acos(c) < constraints[i].par[0] || acos(c) > constraints[i].par[1]) return 0;
-      } else if (constraints[i].type == DIHEDRAL) {
-        // phi calculation from dihedral style harmonic
-        get_IDcoords(constraints[i].idtype[0], constraints[i].id[0], x1);
-        get_IDcoords(constraints[i].idtype[1], constraints[i].id[1], x2);
-        get_IDcoords(constraints[i].idtype[2], constraints[i].id[2], x3);
-        get_IDcoords(constraints[i].idtype[3], constraints[i].id[3], x4);
+      // angle (cos and sin)
+      c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+      c /= r1*r2;
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
+      if (acos(c) < constraints[i][rxnID].par[0] || acos(c) > constraints[i][rxnID].par[1]) return 0;
+    } else if (constraints[i][rxnID].type == DIHEDRAL) {
+      // phi calculation from dihedral style harmonic
+      get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
+      get_IDcoords(constraints[i][rxnID].idtype[1], constraints[i][rxnID].id[1], x2);
+      get_IDcoords(constraints[i][rxnID].idtype[2], constraints[i][rxnID].id[2], x3);
+      get_IDcoords(constraints[i][rxnID].idtype[3], constraints[i][rxnID].id[3], x4);
 
-        vb1x = x1[0] - x2[0];
-        vb1y = x1[1] - x2[1];
-        vb1z = x1[2] - x2[2];
-        domain->minimum_image(vb1x,vb1y,vb1z);
+      vb1x = x1[0] - x2[0];
+      vb1y = x1[1] - x2[1];
+      vb1z = x1[2] - x2[2];
+      domain->minimum_image(vb1x,vb1y,vb1z);
 
-        vb2x = x3[0] - x2[0];
-        vb2y = x3[1] - x2[1];
-        vb2z = x3[2] - x2[2];
-        domain->minimum_image(vb2x,vb2y,vb2z);
+      vb2x = x3[0] - x2[0];
+      vb2y = x3[1] - x2[1];
+      vb2z = x3[2] - x2[2];
+      domain->minimum_image(vb2x,vb2y,vb2z);
 
-        vb2xm = -vb2x;
-        vb2ym = -vb2y;
-        vb2zm = -vb2z;
-        domain->minimum_image(vb2xm,vb2ym,vb2zm);
+      vb2xm = -vb2x;
+      vb2ym = -vb2y;
+      vb2zm = -vb2z;
+      domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
-        vb3x = x4[0] - x3[0];
-        vb3y = x4[1] - x3[1];
-        vb3z = x4[2] - x3[2];
-        domain->minimum_image(vb3x,vb3y,vb3z);
+      vb3x = x4[0] - x3[0];
+      vb3y = x4[1] - x3[1];
+      vb3z = x4[2] - x3[2];
+      domain->minimum_image(vb3x,vb3y,vb3z);
 
-        ax = vb1y*vb2zm - vb1z*vb2ym;
-        ay = vb1z*vb2xm - vb1x*vb2zm;
-        az = vb1x*vb2ym - vb1y*vb2xm;
-        bx = vb3y*vb2zm - vb3z*vb2ym;
-        by = vb3z*vb2xm - vb3x*vb2zm;
-        bz = vb3x*vb2ym - vb3y*vb2xm;
+      ax = vb1y*vb2zm - vb1z*vb2ym;
+      ay = vb1z*vb2xm - vb1x*vb2zm;
+      az = vb1x*vb2ym - vb1y*vb2xm;
+      bx = vb3y*vb2zm - vb3z*vb2ym;
+      by = vb3z*vb2xm - vb3x*vb2zm;
+      bz = vb3x*vb2ym - vb3y*vb2xm;
 
-        rasq = ax*ax + ay*ay + az*az;
-        rbsq = bx*bx + by*by + bz*bz;
-        rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-        rg = sqrt(rgsq);
+      rasq = ax*ax + ay*ay + az*az;
+      rbsq = bx*bx + by*by + bz*bz;
+      rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+      rg = sqrt(rgsq);
 
-        ra2inv = rb2inv = 0.0;
-        if (rasq > 0) ra2inv = 1.0/rasq;
-        if (rbsq > 0) rb2inv = 1.0/rbsq;
-        rabinv = sqrt(ra2inv*rb2inv);
+      ra2inv = rb2inv = 0.0;
+      if (rasq > 0) ra2inv = 1.0/rasq;
+      if (rbsq > 0) rb2inv = 1.0/rbsq;
+      rabinv = sqrt(ra2inv*rb2inv);
 
-        c = (ax*bx + ay*by + az*bz)*rabinv;
-        s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
+      c = (ax*bx + ay*by + az*bz)*rabinv;
+      s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
 
-        if (c > 1.0) c = 1.0;
-        if (c < -1.0) c = -1.0;
-        phi = atan2(s,c);
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
+      phi = atan2(s,c);
 
-        ANDgate = 0;
-        if (constraints[i].par[0] < constraints[i].par[1]) {
-          if (phi > constraints[i].par[0] && phi < constraints[i].par[1]) ANDgate = 1;
-        } else {
-          if (phi > constraints[i].par[0] || phi < constraints[i].par[1]) ANDgate = 1;
-        }
-        if (constraints[i].par[2] < constraints[i].par[3]) {
-          if (phi > constraints[i].par[2] && phi < constraints[i].par[3]) ANDgate = 1;
-        } else {
-          if (phi > constraints[i].par[2] || phi < constraints[i].par[3]) ANDgate = 1;
-        }
-        if (ANDgate != 1) return 0;
-      } else if (constraints[i].type == ARRHENIUS) {
-        t = get_temperature();
-        prrhob = constraints[i].par[1]*pow(t,constraints[i].par[2])*
-          exp(-constraints[i].par[3]/(force->boltz*t));
-        if (prrhob < rrhandom[(int) constraints[i].par[0]]->uniform()) return 0;
-      } else if (constraints[i].type == RMSD) {
-        // call superpose
-        int iatom;
-        int iref = -1; // choose first atom as reference
-        int n2superpose = 0;
-        double **xfrozen; // coordinates for the "frozen" target molecule
-        double **xmobile; // coordinates for the "mobile" molecule
-        int ifragment = constraints[i].id[0];
-        if (ifragment >= 0) {
-          for (int j = 0; j < onemol->natoms; j++)
-            if (onemol->fragmentmask[ifragment][j]) n2superpose++;
-          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
-          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
-          int myincr = 0;
-          for (int j = 0; j < onemol->natoms; j++) {
-            if (onemol->fragmentmask[ifragment][j]) {
-              iatom = atom->map(glove[j][1]);
-              if (iref == -1) iref = iatom;
-              iatom = domain->closest_image(iref,iatom);
-              for (int k = 0; k < 3; k++) {
-                xfrozen[myincr][k] = x[iatom][k];
-                xmobile[myincr][k] = onemol->x[j][k];
-              }
-              myincr++;
-            }
-          }
-        } else {
-          int iatom;
-          int iref = -1; // choose first atom as reference
-          n2superpose = onemol->natoms;
-          memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
-          memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
-          for (int j = 0; j < n2superpose; j++) {
+      ANDgate = 0;
+      if (constraints[i][rxnID].par[0] < constraints[i][rxnID].par[1]) {
+        if (phi > constraints[i][rxnID].par[0] && phi < constraints[i][rxnID].par[1]) ANDgate = 1;
+      } else {
+        if (phi > constraints[i][rxnID].par[0] || phi < constraints[i][rxnID].par[1]) ANDgate = 1;
+      }
+      if (constraints[i][rxnID].par[2] < constraints[i][rxnID].par[3]) {
+        if (phi > constraints[i][rxnID].par[2] && phi < constraints[i][rxnID].par[3]) ANDgate = 1;
+      } else {
+        if (phi > constraints[i][rxnID].par[2] || phi < constraints[i][rxnID].par[3]) ANDgate = 1;
+      }
+      if (ANDgate != 1) return 0;
+    } else if (constraints[i][rxnID].type == ARRHENIUS) {
+      t = get_temperature();
+      prrhob = constraints[i][rxnID].par[1]*pow(t,constraints[i][rxnID].par[2])*
+        exp(-constraints[i][rxnID].par[3]/(force->boltz*t));
+      if (prrhob < rrhandom[(int) constraints[i][rxnID].par[0]]->uniform()) return 0;
+    } else if (constraints[i][rxnID].type == RMSD) {
+      // call superpose
+      int iatom;
+      int iref = -1; // choose first atom as reference
+      int n2superpose = 0;
+      double **xfrozen; // coordinates for the "frozen" target molecule
+      double **xmobile; // coordinates for the "mobile" molecule
+      int ifragment = constraints[i][rxnID].id[0];
+      if (ifragment >= 0) {
+        for (int j = 0; j < onemol->natoms; j++)
+          if (onemol->fragmentmask[ifragment][j]) n2superpose++;
+        memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+        memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+        int myincr = 0;
+        for (int j = 0; j < onemol->natoms; j++) {
+          if (onemol->fragmentmask[ifragment][j]) {
             iatom = atom->map(glove[j][1]);
             if (iref == -1) iref = iatom;
             iatom = domain->closest_image(iref,iatom);
             for (int k = 0; k < 3; k++) {
-              xfrozen[j][k] = x[iatom][k];
-              xmobile[j][k] = onemol->x[j][k];
+              xfrozen[myincr][k] = x[iatom][k];
+              xmobile[myincr][k] = onemol->x[j][k];
             }
+            myincr++;
           }
         }
-        Superpose3D<double, double **> superposer(n2superpose);
-        double rmsd = superposer.Superpose(xfrozen, xmobile);
-        if (rmsd > constraints[i].par[0]) return 0;
-        memory->destroy(xfrozen);
-        memory->destroy(xmobile);
+      } else {
+        int iatom;
+        int iref = -1; // choose first atom as reference
+        n2superpose = onemol->natoms;
+        memory->create(xfrozen,n2superpose,3,"bond/react:xfrozen");
+        memory->create(xmobile,n2superpose,3,"bond/react:xmobile");
+        for (int j = 0; j < n2superpose; j++) {
+          iatom = atom->map(glove[j][1]);
+          if (iref == -1) iref = iatom;
+          iatom = domain->closest_image(iref,iatom);
+          for (int k = 0; k < 3; k++) {
+            xfrozen[j][k] = x[iatom][k];
+            xmobile[j][k] = onemol->x[j][k];
+          }
+        }
       }
+      Superpose3D<double, double **> superposer(n2superpose);
+      double rmsd = superposer.Superpose(xfrozen, xmobile);
+      if (rmsd > constraints[i][rxnID].par[0]) return 0;
+      memory->destroy(xfrozen);
+      memory->destroy(xmobile);
     }
   }
 
@@ -3214,8 +3216,8 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
     else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
-      sscanf(line,"%d",&nconstr);
-      memory->grow(constraints,nconstraints+nconstr,"bond/react:constraints");
+      sscanf(line,"%d",&nconstraints[myrxn]);
+      memory->grow(constraints,nconstraints[myrxn],nreacts,"bond/react:constraints");
     } else break;
   }
 
@@ -3351,65 +3353,63 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 void FixBondReact::ReadConstraints(char *line, int myrxn)
 {
   double tmp[MAXCONARGS];
-  char **strargs;
+  char **strargs,*ptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
   char *constraint_type = new char[MAXLINE];
-  for (int i = 0; i < nconstr; i++) {
+  for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);
     sscanf(line,"%s",constraint_type);
-    constraints[nconstraints].rxnID = myrxn;
     if (strcmp(constraint_type,"distance") == 0) {
-      constraints[nconstraints].type = DISTANCE;
+      constraints[i][myrxn].type = DISTANCE;
       sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
-      readID(strargs[0], nconstraints, 0);
-      readID(strargs[1], nconstraints, 1);
+      readID(strargs[0], i, myrxn, 0);
+      readID(strargs[1], i, myrxn, 1);
       // cutoffs
-      constraints[nconstraints].par[0] = tmp[0]*tmp[0]; // using square of distance
-      constraints[nconstraints].par[1] = tmp[1]*tmp[1];
+      constraints[i][myrxn].par[0] = tmp[0]*tmp[0]; // using square of distance
+      constraints[i][myrxn].par[1] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
-      constraints[nconstraints].type = ANGLE;
+      constraints[i][myrxn].type = ANGLE;
       sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
-      readID(strargs[0], nconstraints, 0);
-      readID(strargs[1], nconstraints, 1);
-      readID(strargs[2], nconstraints, 2);
-      constraints[nconstraints].par[0] = tmp[0]/180.0 * MY_PI;
-      constraints[nconstraints].par[1] = tmp[1]/180.0 * MY_PI;
+      readID(strargs[0], i, myrxn, 0);
+      readID(strargs[1], i, myrxn, 1);
+      readID(strargs[2], i, myrxn, 2);
+      constraints[i][myrxn].par[0] = tmp[0]/180.0 * MY_PI;
+      constraints[i][myrxn].par[1] = tmp[1]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"dihedral") == 0) {
-      constraints[nconstraints].type = DIHEDRAL;
+      constraints[i][myrxn].type = DIHEDRAL;
       tmp[2] = 181.0; // impossible range
       tmp[3] = 182.0;
       sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
              strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      readID(strargs[0], nconstraints, 0);
-      readID(strargs[1], nconstraints, 1);
-      readID(strargs[2], nconstraints, 2);
-      readID(strargs[3], nconstraints, 3);
-      constraints[nconstraints].par[0] = tmp[0]/180.0 * MY_PI;
-      constraints[nconstraints].par[1] = tmp[1]/180.0 * MY_PI;
-      constraints[nconstraints].par[2] = tmp[2]/180.0 * MY_PI;
-      constraints[nconstraints].par[3] = tmp[3]/180.0 * MY_PI;
+      readID(strargs[0], i, myrxn, 0);
+      readID(strargs[1], i, myrxn, 1);
+      readID(strargs[2], i, myrxn, 2);
+      readID(strargs[3], i, myrxn, 3);
+      constraints[i][myrxn].par[0] = tmp[0]/180.0 * MY_PI;
+      constraints[i][myrxn].par[1] = tmp[1]/180.0 * MY_PI;
+      constraints[i][myrxn].par[2] = tmp[2]/180.0 * MY_PI;
+      constraints[i][myrxn].par[3] = tmp[3]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
-      constraints[nconstraints].type = ARRHENIUS;
-      constraints[nconstraints].par[0] = narrhenius++;
+      constraints[i][myrxn].type = ARRHENIUS;
+      constraints[i][myrxn].par[0] = narrhenius++;
       sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      constraints[nconstraints].par[1] = tmp[0];
-      constraints[nconstraints].par[2] = tmp[1];
-      constraints[nconstraints].par[3] = tmp[2];
-      constraints[nconstraints].par[4] = tmp[3];
+      constraints[i][myrxn].par[1] = tmp[0];
+      constraints[i][myrxn].par[2] = tmp[1];
+      constraints[i][myrxn].par[3] = tmp[2];
+      constraints[i][myrxn].par[4] = tmp[3];
     } else if (strcmp(constraint_type,"rmsd") == 0) {
-      constraints[nconstraints].type = RMSD;
+      constraints[i][myrxn].type = RMSD;
       strcpy(strargs[0],"0");
       sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
-      constraints[nconstraints].par[0] = tmp[0]; // RMSDmax
-      constraints[nconstraints].id[0] = -1; // optional molecule fragment
+      constraints[i][myrxn].par[0] = tmp[0]; // RMSDmax
+      constraints[i][myrxn].id[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {
         int ifragment = onemol->findfragment(strargs[0]);
         if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
-        else constraints[nconstraints].id[0] = ifragment;
+        else constraints[i][myrxn].id[0] = ifragment;
       }
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
-    nconstraints++;
   }
   delete [] constraint_type;
   memory->destroy(strargs);
@@ -3420,18 +3420,18 @@ if ID starts with character, assume it is a pre-reaction molecule fragment ID
 otherwise, it is a pre-reaction atom ID
 ---------------------------------------------------------------------- */
 
-void FixBondReact::readID(char *strarg, int iconstr, int i)
+void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
 {
   if (isalpha(strarg[0])) {
-    constraints[iconstr].idtype[i] = FRAG; // fragment vs. atom ID flag
+    constraints[iconstr][myrxn].idtype[i] = FRAG; // fragment vs. atom ID flag
     int ifragment = onemol->findfragment(strarg);
     if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
-    constraints[iconstr].id[i] = ifragment;
+    constraints[iconstr][myrxn].id[i] = ifragment;
   } else {
-    constraints[iconstr].idtype[i] = ATOM; // fragment vs. atom ID flag
+    constraints[iconstr][myrxn].idtype[i] = ATOM; // fragment vs. atom ID flag
     int iatom = atoi(strarg);
     if (iatom > onemol->natoms) error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-    constraints[iconstr].id[i] = iatom;
+    constraints[iconstr][myrxn].id[i] = iatom;
   }
 }
 

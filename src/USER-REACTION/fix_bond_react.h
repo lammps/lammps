@@ -68,7 +68,7 @@ class FixBondReact : public Fix {
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *molecule_keyword;
-  int nconstraints;
+  int *nconstraints;
   int narrhenius;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
@@ -115,7 +115,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ndelete,nchiral,nconstr; // # edge, equivalent atoms in mapping file
+  int nedge,nequivalent,ndelete,nchiral; // # edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -157,7 +157,7 @@ class FixBondReact : public Fix {
   void CustomCharges(int, int);
   void ChiralCenters(char *, int);
   void ReadConstraints(char *, int);
-  void readID(char *, int, int);
+  void readID(char *, int, int, int);
 
   void make_a_guess ();
   void neighbor_loop();
@@ -204,7 +204,7 @@ class FixBondReact : public Fix {
     int idtype[MAXCONIDS];
     double par[MAXCONPAR];
   };
-  Constraint *constraints;
+  Constraint **constraints;
 
   // DEBUG
 

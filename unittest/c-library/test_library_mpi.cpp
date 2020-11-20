@@ -111,6 +111,22 @@ TEST(MPI, sub_box)
     EXPECT_LE(subhi[2], boxhi[2]);
 
     ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "change_box all triclinic");
+    ::testing::internal::GetCapturedStdout();
+
+    sublo = (double *)lammps_extract_global(lmp, "sublo_lambda");
+    subhi = (double *)lammps_extract_global(lmp, "subhi_lambda");
+    ASSERT_NE(sublo, nullptr);
+    ASSERT_NE(subhi, nullptr);
+
+    EXPECT_GE(sublo[0], 0.0);
+    EXPECT_GE(sublo[1], 0.0);
+    EXPECT_GE(sublo[2], 0.0);
+    EXPECT_LE(subhi[0], 1.0);
+    EXPECT_LE(subhi[1], 1.0);
+    EXPECT_LE(subhi[2], 1.0);
+
+    ::testing::internal::CaptureStdout();
     lammps_close(lmp);
     ::testing::internal::GetCapturedStdout();
 };

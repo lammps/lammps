@@ -79,8 +79,11 @@ static const char cite_fix_bond_react[] =
 // RESTORE: restore mode, load most recent restore point
 enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
-// constraint constants: constraint types, boolean operation, and ID type
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD,AND,OR,ATOM,FRAG};
+// types of available reaction constraints
+enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
+
+// ID type used by constraint
+enum{ATOM,FRAG};
 
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
@@ -206,6 +209,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(nconstraints,nreacts,"bond/react:nconstraints");
+  memory->create(constraintstr,nreacts,MAXLINE,"bond/react:constraintstr");
   memory->create(constraints,0,nreacts,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -566,6 +570,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(molecule_keyword);
   memory->destroy(constraints);
   memory->destroy(nconstraints);
+  // need to delete rxn_name and constraintstr
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -1797,6 +1802,11 @@ int FixBondReact::check_constraints()
   tagint atom1,atom2;
   double **x = atom->x;
 
+  int *satisfied;
+  memory->create(satisfied,nconstraints[rxnID],"bond/react:satisfied");
+  for (int i = 0; i < nconstraints[rxnID]; i++)
+    satisfied[i] = 1;
+
   for (int i = 0; i < nconstraints[rxnID]; i++) {
     if (constraints[i][rxnID].type == DISTANCE) {
       get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
@@ -1806,7 +1816,7 @@ int FixBondReact::check_constraints()
       delz = x1[2] - x2[2];
       domain->minimum_image(delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < constraints[i][rxnID].par[0] || rsq > constraints[i][rxnID].par[1]) return 0;
+      if (rsq < constraints[i][rxnID].par[0] || rsq > constraints[i][rxnID].par[1]) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == ANGLE) {
       get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
       get_IDcoords(constraints[i][rxnID].idtype[1], constraints[i][rxnID].id[1], x2);
@@ -1833,7 +1843,7 @@ int FixBondReact::check_constraints()
       c /= r1*r2;
       if (c > 1.0) c = 1.0;
       if (c < -1.0) c = -1.0;
-      if (acos(c) < constraints[i][rxnID].par[0] || acos(c) > constraints[i][rxnID].par[1]) return 0;
+      if (acos(c) < constraints[i][rxnID].par[0] || acos(c) > constraints[i][rxnID].par[1]) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == DIHEDRAL) {
       // phi calculation from dihedral style harmonic
       get_IDcoords(constraints[i][rxnID].idtype[0], constraints[i][rxnID].id[0], x1);
@@ -1896,12 +1906,12 @@ int FixBondReact::check_constraints()
       } else {
         if (phi > constraints[i][rxnID].par[2] || phi < constraints[i][rxnID].par[3]) ANDgate = 1;
       }
-      if (ANDgate != 1) return 0;
+      if (ANDgate != 1) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == ARRHENIUS) {
       t = get_temperature();
       prrhob = constraints[i][rxnID].par[1]*pow(t,constraints[i][rxnID].par[2])*
         exp(-constraints[i][rxnID].par[3]/(force->boltz*t));
-      if (prrhob < rrhandom[(int) constraints[i][rxnID].par[0]]->uniform()) return 0;
+      if (prrhob < rrhandom[(int) constraints[i][rxnID].par[0]]->uniform()) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == RMSD) {
       // call superpose
       int iatom;
@@ -1946,9 +1956,16 @@ int FixBondReact::check_constraints()
       }
       Superpose3D<double, double **> superposer(n2superpose);
       double rmsd = superposer.Superpose(xfrozen, xmobile);
-      if (rmsd > constraints[i][rxnID].par[0]) return 0;
       memory->destroy(xfrozen);
       memory->destroy(xmobile);
+      if (rmsd > constraints[i][rxnID].par[0]) satisfied[i] = 0;
+    }
+  }
+
+  for (int i = 0; i < nconstraints[rxnID]; i++) {
+    if (satisfied[i] == 0) {
+      memory->destroy(satisfied);
+      return 0;
     }
   }
 
@@ -1975,6 +1992,7 @@ int FixBondReact::check_constraints()
     }
   }
 
+  memory->destroy(satisfied);
   return 1;
 }
 
@@ -3356,8 +3374,29 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
   char **strargs,*ptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
   char *constraint_type = new char[MAXLINE];
+  strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);
+    if (ptr = strrchr(line,'(')) { // reverse char search
+      strncat(constraintstr[myrxn],line,ptr-line+1);
+      line = ptr + 1;
+    }
+    // 'C' indicates where to sub in next constraint
+    strcat(constraintstr[myrxn],"C");
+    if (ptr = strchr(line,')')) {
+      strncat(constraintstr[myrxn],ptr,strrchr(line,')')-ptr+1);
+    }
+    if (ptr = strstr(line,"&&")) {
+      strcat(constraintstr[myrxn],"&&");
+      *ptr = '\0';
+    } else if (ptr = strstr(line,"||")) {
+      strcat(constraintstr[myrxn],"||");
+      *ptr = '\0';
+    } else if (i+1 < nconstraints[myrxn]){
+      strcat(constraintstr[myrxn],"&&");
+    }
+    if (ptr = strchr(line,')'))
+      *ptr = '\0';
     sscanf(line,"%s",constraint_type);
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[i][myrxn].type = DISTANCE;
@@ -3411,6 +3450,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else
       error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
   }
+  strcat(constraintstr[myrxn],")"); // close boolean constraint logic string
   delete [] constraint_type;
   memory->destroy(strargs);
 }

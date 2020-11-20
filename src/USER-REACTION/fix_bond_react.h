@@ -69,6 +69,7 @@ class FixBondReact : public Fix {
   int *custom_charges_fragid;
   int *molecule_keyword;
   int *nconstraints;
+  char **constraintstr;
   int narrhenius;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
@@ -198,8 +199,6 @@ class FixBondReact : public Fix {
 
   struct Constraint {
     int type;
-    int rxnID;
-    int op;
     int id[MAXCONIDS];
     int idtype[MAXCONIDS];
     double par[MAXCONPAR];

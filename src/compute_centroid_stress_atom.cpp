@@ -221,8 +221,8 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   // per-atom virial and per-atom centroid virial are the same for bonds
   // bond styles are all CENTROID_SAME
-  // all other styles are CENTROID_AVAIL or CENTROID_NOTAVAIL
-  // add KSpace when it becomes supported
+  // angle, dihedral, improper styles are CENTROID_AVAIL or CENTROID_NOTAVAIL
+  // KSpace styles are all CENTROID_NOTAVAIL, placeholder CENTROID_SAME below
   
   if (bondflag && force->bond) {
     double **vatom = force->bond->vatom;
@@ -255,12 +255,15 @@ void ComputeCentroidStressAtom::compute_peratom()
         stress[i][j] += cvatom[i][j];
   }
 
-  //if (kspaceflag && force->kspace && force->kspace->compute_flag) {
-  //  double **vatom = force->kspace->vatom;
-  //  for (i = 0; i < nkspace; i++)
-  //    for (j = 0; j < 9; j++)
-  //      stress[i][j] += cvatom[i][j];
-  // }
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
+    double **vatom = force->kspace->vatom;
+    for (i = 0; i < nkspace; i++)
+      for (j = 0; j < 6; j++)
+        stress[i][j] += vatom[i][j];
+      for (j = 6; j < 9; j++)
+        stress[i][j] += vatom[i][j-3];
+    }
+  }
 
   // add in per-atom contributions from relevant fixes
   // skip if vatom = nullptr

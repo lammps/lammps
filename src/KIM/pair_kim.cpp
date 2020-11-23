@@ -834,6 +834,9 @@ void PairKIM::kim_init()
   else if (!requestedUnitsAccepted)
     error->all(FLERR,"KIM Model did not accept the requested unit system");
 
+  auto logID = fmt::format("{}_Model", comm->me);
+  KIM_Model_SetLogID(pkim, logID.c_str());
+
   // check that the model does not require unknown capabilities
   kimerror = check_for_routine_compatibility();
   if (kimerror)
@@ -844,6 +847,9 @@ void PairKIM::kim_init()
     KIM_Model_Destroy(&pkim);
     error->all(FLERR,"KIM ComputeArgumentsCreate failed");
   } else kim_init_ok = true;
+
+  logID = fmt::format("{}_ComputeArguments", comm->me);
+  KIM_ComputeArguments_SetLogID(pargs, logID.c_str());
 
   // determine KIM Model capabilities (used in this function below)
   set_kim_model_has_flags();

@@ -57,6 +57,7 @@
 
 #include "kim_param.h"
 
+#include "comm.h"
 #include "error.h"
 #include "fix_store_kim.h"
 #include "force.h"
@@ -247,6 +248,9 @@ void KimParam::command(int narg, char **arg)
                                    &pkim);
       if (kim_error)
         error->all(FLERR, "Unable to create KIM Portable Model");
+
+      auto logID = fmt::format("{}_Model", comm->me);
+      KIM_Model_SetLogID(pkim, logID.c_str());
     }
   }
 

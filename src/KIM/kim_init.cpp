@@ -187,6 +187,9 @@ void KimInit::determine_model_type_and_units(char * model_name,
   if (kim_error) 
     error->all(FLERR,"Unable to access KIM Collections to find Model");
 
+  auto logID = fmt::format("{}_Collections", comm->me);
+  KIM_Collections_SetLogID(kim_Coll, logID.c_str());
+
   kim_error = KIM_Collections_GetItemType(kim_Coll, model_name, &itemType);
   if (kim_error) error->all(FLERR,"KIM Model name not found");
   KIM_Collections_Destroy(&kim_Coll);
@@ -210,6 +213,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
     model_type = MO;
 
     if (units_accepted) {
+      logID = fmt::format("{}_Model", comm->me);
+      KIM_Model_SetLogID(pkim, logID.c_str());
       *model_units = new char[strlen(user_units)+1];
       strcpy(*model_units,user_units);
       return;
@@ -231,6 +236,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
                                      &units_accepted,
                                      &pkim);
         if (units_accepted) {
+          logID = fmt::format("{}_Model", comm->me);
+          KIM_Model_SetLogID(pkim, logID.c_str());
           *model_units = new char[strlen(systems[i])+1];
           strcpy(*model_units,systems[i]);
           return;
@@ -243,12 +250,15 @@ void KimInit::determine_model_type_and_units(char * model_name,
       error->all(FLERR,"KIM Model does not support the requested unit system");
     }
   } else if (KIM_CollectionItemType_Equal(
-               itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
+             itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
     KIM_SimulatorModel * kim_SM;
     kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
     if (kim_error)
       error->all(FLERR,"Unable to load KIM Simulator Model");
     model_type = SM;
+
+    logID = fmt::format("{}_SimulatorModel", comm->me);
+    KIM_SimulatorModel_SetLogID(kim_SM, logID.c_str());
 
     int sim_fields;
     int sim_lines;
@@ -263,7 +273,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
       if (0 == strcmp(sim_field,"units")) {
         KIM_SimulatorModel_GetSimulatorFieldLine(kim_SM,i,0,&sim_value);
         int len=strlen(sim_value)+1;
-        *model_units = new char[len]; strcpy(*model_units,sim_value);
+        *model_units = new char[len];
+        strcpy(*model_units,sim_value);
         break;
       }
     }
@@ -301,6 +312,9 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       KIM_SimulatorModel_Create(model_name,&simulatorModel);
     if (kim_error)
       error->all(FLERR,"Unable to load KIM Simulator Model");
+
+    auto logID = fmt::format("{}_SimulatorModel", comm->me);
+    KIM_SimulatorModel_SetLogID(simulatorModel, logID.c_str());
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(
@@ -467,6 +481,9 @@ void KimInit::write_log_cite(char *model_name)
   KIM_Collections * coll;
   int err = KIM_Collections_Create(&coll);
   if (err) return;
+
+  auto logID = fmt::format("{}_Collections", comm->me);
+  KIM_Collections_SetLogID(coll, logID.c_str());
 
   int extent;
   if (model_type == MO) {

@@ -72,7 +72,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 
-  if (vflag_global == 2)
+  if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;

@@ -40,7 +40,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
@@ -77,6 +76,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
   fix_id = new char[24];

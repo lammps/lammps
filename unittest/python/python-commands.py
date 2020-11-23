@@ -1,6 +1,6 @@
 
 import sys,os,unittest
-from lammps import lammps
+from lammps import lammps, LMP_VAR_ATOM
 
 class PythonCommand(unittest.TestCase):
 
@@ -200,6 +200,28 @@ create_atoms 1 single &
         self.lmp.command("variable a equal 3.14")
         a = self.lmp.extract_variable("a")
         self.assertEqual(a, 3.14)
+
+    def test_extract_variable_atomstyle(self):
+        self.lmp.command("units lj")
+        self.lmp.command("atom_style atomic")
+        self.lmp.command("atom_modify map array")
+        self.lmp.command("boundary f f f")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        x = [
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.5
+        ]
+
+        types = [1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.lmp.command("variable a atom x*x+y*y+z*z")
+        a = self.lmp.extract_variable("a", "all", LMP_VAR_ATOM)
+        self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
+        self.assertEqual(a[1], x[3]*x[3]+x[4]*x[4]+x[5]*x[5])
 
 ##############################
 if __name__ == "__main__":

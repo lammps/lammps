@@ -267,6 +267,16 @@ create_atoms 1 single &
             result = self.lmp.get_thermo(key)
             self.assertEqual(value, result, key)
 
+    def test_extract_global_double(self):
+        self.lmp.command("region box block -1 1 -2 2 -3 3")
+        self.lmp.command("create_box 1 box")
+        self.assertEqual(self.lmp.extract_global("boxxlo"), -1.0)
+        self.assertEqual(self.lmp.extract_global("boxxhi"), 1.0)
+        self.assertEqual(self.lmp.extract_global("boxylo"), -2.0)
+        self.assertEqual(self.lmp.extract_global("boxyhi"), 2.0)
+        self.assertEqual(self.lmp.extract_global("boxzlo"), -3.0)
+        self.assertEqual(self.lmp.extract_global("boxzhi"), 3.0)
+
 ##############################
 if __name__ == "__main__":
     unittest.main()

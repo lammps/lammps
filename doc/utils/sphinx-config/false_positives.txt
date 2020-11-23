@@ -1119,11 +1119,13 @@ gmail
 gmake
 gmask
 Gmask
+GMock
 gneb
 GNEB
 Goldfarb
 Gonzalez-Melchor
 googlemail
+googletest
 Gordan
 GPa
 gpu

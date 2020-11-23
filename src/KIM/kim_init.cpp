@@ -180,19 +180,19 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM_TemperatureUnit temperatureUnit;
   KIM_TimeUnit timeUnit;
   int units_accepted;
-  KIM_Collections * kim_Coll;
+  KIM_Collections * collections;
   KIM_CollectionItemType itemType;
 
-  int kim_error = KIM_Collections_Create(&kim_Coll);
+  int kim_error = KIM_Collections_Create(&collections);
   if (kim_error) 
     error->all(FLERR,"Unable to access KIM Collections to find Model");
 
   auto logID = fmt::format("{}_Collections", comm->me);
-  KIM_Collections_SetLogID(kim_Coll, logID.c_str());
+  KIM_Collections_SetLogID(collections, logID.c_str());
 
-  kim_error = KIM_Collections_GetItemType(kim_Coll, model_name, &itemType);
+  kim_error = KIM_Collections_GetItemType(collections, model_name, &itemType);
   if (kim_error) error->all(FLERR,"KIM Model name not found");
-  KIM_Collections_Destroy(&kim_Coll);
+  KIM_Collections_Destroy(&collections);
 
   if (KIM_CollectionItemType_Equal(itemType,
                                    KIM_COLLECTION_ITEM_TYPE_portableModel)) {
@@ -251,34 +251,35 @@ void KimInit::determine_model_type_and_units(char * model_name,
     }
   } else if (KIM_CollectionItemType_Equal(
              itemType, KIM_COLLECTION_ITEM_TYPE_simulatorModel)) {
-    KIM_SimulatorModel * kim_SM;
-    kim_error = KIM_SimulatorModel_Create(model_name, &kim_SM);
+    KIM_SimulatorModel * simulatorModel;
+    kim_error = KIM_SimulatorModel_Create(model_name, &simulatorModel);
     if (kim_error)
       error->all(FLERR,"Unable to load KIM Simulator Model");
     model_type = SM;
 
     logID = fmt::format("{}_SimulatorModel", comm->me);
-    KIM_SimulatorModel_SetLogID(kim_SM, logID.c_str());
+    KIM_SimulatorModel_SetLogID(simulatorModel, logID.c_str());
 
     int sim_fields;
     int sim_lines;
     char const * sim_field;
     char const * sim_value;
-    KIM_SimulatorModel_GetNumberOfSimulatorFields(kim_SM, &sim_fields);
-    KIM_SimulatorModel_CloseTemplateMap(kim_SM);
+    KIM_SimulatorModel_GetNumberOfSimulatorFields(simulatorModel, &sim_fields);
+    KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
     for (int i=0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
-          kim_SM,i,&sim_lines,&sim_field);
+          simulatorModel, i, &sim_lines, &sim_field);
 
       if (0 == strcmp(sim_field,"units")) {
-        KIM_SimulatorModel_GetSimulatorFieldLine(kim_SM,i,0,&sim_value);
+        KIM_SimulatorModel_GetSimulatorFieldLine(
+          simulatorModel, i, 0, &sim_value);
         int len=strlen(sim_value)+1;
         *model_units = new char[len];
         strcpy(*model_units,sim_value);
         break;
       }
     }
-    KIM_SimulatorModel_Destroy(&kim_SM);
+    KIM_SimulatorModel_Destroy(&simulatorModel);
 
     if ((! unit_conversion_mode) && (strcmp(*model_units, user_units)!=0)) {
       error->all(FLERR,fmt::format("Incompatible units for KIM Simulator Model"
@@ -309,7 +310,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   KIM_SimulatorModel * simulatorModel;
   if (model_type == SM) {
     int kim_error =
-      KIM_SimulatorModel_Create(model_name,&simulatorModel);
+      KIM_SimulatorModel_Create(model_name, &simulatorModel);
     if (kim_error)
       error->all(FLERR,"Unable to load KIM Simulator Model");
 
@@ -318,7 +319,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(
-        simulatorModel,&sim_name, &sim_version);
+        simulatorModel, &sim_name, &sim_version);
 
     if (0 != strcmp(sim_name,"LAMMPS"))
       error->all(FLERR,"Incompatible KIM Simulator Model");
@@ -478,26 +479,28 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
 
 void KimInit::write_log_cite(char *model_name)
 {
-  KIM_Collections * coll;
-  int err = KIM_Collections_Create(&coll);
+  KIM_Collections * collections;
+  int err = KIM_Collections_Create(&collections);
   if (err) return;
 
   auto logID = fmt::format("{}_Collections", comm->me);
-  KIM_Collections_SetLogID(coll, logID.c_str());
+  KIM_Collections_SetLogID(collections, logID.c_str());
 
   int extent;
   if (model_type == MO) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-      coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
+      collections, KIM_COLLECTION_ITEM_TYPE_portableModel,
+      model_name,&extent);
   } else if (model_type == SM) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-      coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
+      collections, KIM_COLLECTION_ITEM_TYPE_simulatorModel,
+      model_name, &extent);
   } else {
     error->all(FLERR,"Unknown model type");
   }
 
   if (err) {
-    KIM_Collections_Destroy(&coll);
+    KIM_Collections_Destroy(&collections);
     return;
   }
 
@@ -506,7 +509,8 @@ void KimInit::write_log_cite(char *model_name)
     int availableAsString;
     char const * fileString;
     err = KIM_Collections_GetItemMetadataFile(
-        coll,i,&fileName,nullptr,nullptr,&availableAsString,&fileString);
+        collections, i, &fileName, nullptr, nullptr, 
+        &availableAsString, &fileString);
     if (err) continue;
 
     if (0 == strncmp("kimcite",fileName,7)) {
@@ -514,5 +518,5 @@ void KimInit::write_log_cite(char *model_name)
     }
   }
 
-  KIM_Collections_Destroy(&coll);
+  KIM_Collections_Destroy(&collections);
 }

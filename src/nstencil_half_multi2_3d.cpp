@@ -49,12 +49,12 @@ void NStencilHalfMulti23d::set_stencil_properties()
   for (i = 1; i <= n; i++) {
     for (j = 1; j <= n; j++) {
       if(i == j) continue;
-      if(cuttypesq[i] > cuttypesq[j]) continue;
+      if(cutneighsq[i][i] > cutneighsq[j][j]) continue;
 
       stencil_skip[i][j] = 0;
       stencil_cut[i][j] = sqrt(cutneighsq[i][j]);          
       
-      if(cuttypesq[i] == cuttypesq[j]){
+      if(cutneighsq[i][i] == cutneighsq[j][j]){
         stencil_half[i][j] = 1;
         stencil_bin_type[i][j] = i;
       } else {

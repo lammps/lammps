@@ -51,7 +51,7 @@ void NStencilFullMulti23d::set_stencil_properties()
       stencil_half[i][j] = 0;
       stencil_skip[i][j] = 0;
       
-      if(cuttypesq[i] <= cuttypesq[j]){
+      if(cutneighsq[i][i] <= cutneighsq[j][j]){
         stencil_cut[i][j] = sqrt(cutneighsq[j][j]);   
         stencil_bin_type[i][j] = j;
       } else {

@@ -71,7 +71,7 @@ void NStencilHalfMulti22d::set_stencil_properties()
 
 void NStencilHalfMulti22d::create()
 {
-  int itype, jtype, i, j, ns;
+  int itype, jtype, bin_type, i, j, ns;
   int n = atom->ntypes;
   double cutsq;
   
@@ -88,19 +88,21 @@ void NStencilHalfMulti22d::create()
       mbinx = stencil_mbinx_multi2[itype][jtype];
       mbiny = stencil_mbiny_multi2[itype][jtype];
       
+      bin_type = stencil_bin_type[itype][jtype];      
+      
       cutsq = stencil_cut[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
         for (j = 0; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
             if (j > 0 || (j == 0 && i > 0)) { 
-              if (bin_distance(i,j,0) < cutsq)
+              if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
                   stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
 	  }
       } else {
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
-	          if (bin_distance(i,j,0) < cutsq)
+              if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
 	            stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
       }
       

@@ -88,7 +88,7 @@ void NStencilHalfMulti22dTri::create()
       mbinx = stencil_mbinx_multi2[itype][jtype];
       mbiny = stencil_mbiny_multi2[itype][jtype];
       
-      bin_type = stencil_bin_type[i][j];
+      bin_type = stencil_bin_type[itype][jtype];
       
       cutsq = stencil_cut[itype][jtype];
       

@@ -158,7 +158,7 @@ void CommBrick::setup()
   // for multi:
   //   cutghostmulti = same as cutghost, only for each atom type
 
-  int i;
+  int i,j;
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
 
@@ -175,14 +175,23 @@ void CommBrick::setup()
 
     if (mode == Comm::MULTI) {
       if (multi2) {
-        // If using multi2 binlists, use the itype-itype interaction distance for communication
+        // If using multi2 binlists, communicate itype particles a distance
+        // equal to the max of itype-jtype interaction given smaller jtype particles 
         double **cutneighsq = neighbor->cutneighsq;
-         for (i = 1; i <= ntypes; i++) {
+        double *cuttypesq = neighbor->cuttypesq;
+        for (i = 1; i <= ntypes; i++) {
           cut = 0.0;
-          if (cutusermulti) cut = cutusermulti[i];
-          cutghostmulti[i][0] = MAX(cut,sqrt(cutneighsq[i][i]));
-          cutghostmulti[i][1] = MAX(cut,sqrt(cutneighsq[i][i]));
-          cutghostmulti[i][2] = MAX(cut,sqrt(cutneighsq[i][i]));
+          if (cutusermulti) {
+            cutghostmulti[i][0] = cutusermulti[i];
+            cutghostmulti[i][1] = cutusermulti[i];
+            cutghostmulti[i][2] = cutusermulti[i];
+          }
+          for (j = 1; j <= ntypes; j++){
+            if(cuttypesq[j] > cuttypesq[i]) continue;
+            cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutneighsq[i][j]));
+            cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutneighsq[i][j]));
+            cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutneighsq[i][j]));
+          }
         }
       } else {
         // If using a single binlist, use the max itype-jtype interaction distance for communication
@@ -212,14 +221,27 @@ void CommBrick::setup()
 
     if (mode == Comm::MULTI) {
       if (multi2) {
-        // If using multi2 binlists, use the itype-itype interaction distance for communication
+        // If using multi2 binlists, communicate itype particles a distance
+        // equal to the max of itype-jtype interaction given smaller jtype particles 
         double **cutneighsq = neighbor->cutneighsq;
+        double *cuttypesq = neighbor->cuttypesq;
         for (i = 1; i <= ntypes; i++) {
           cut = 0.0;
-          if (cutusermulti) cut = cutusermulti[i];
-          cutghostmulti[i][0] = length0 * MAX(cut,sqrt(cutneighsq[i][i]));
-          cutghostmulti[i][1] = length1 * MAX(cut,sqrt(cutneighsq[i][i]));
-          cutghostmulti[i][2] = length2 * MAX(cut,sqrt(cutneighsq[i][i]));
+          if (cutusermulti) {
+            cutghostmulti[i][0] = cutusermulti[i];
+            cutghostmulti[i][1] = cutusermulti[i];
+            cutghostmulti[i][2] = cutusermulti[i];
+          }
+          for (j = 1; j <= ntypes; j++){
+            if(cuttypesq[j] > cuttypesq[i]) continue;
+            cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutneighsq[i][j]));
+            cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutneighsq[i][j]));
+            cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutneighsq[i][j]));
+          }
+          
+          cutghostmulti[i][0] *= length0;
+          cutghostmulti[i][1] *= length1;
+          cutghostmulti[i][2] *= length2;
         }
       } else {
         // If using a single binlist, use the max itype-jtype interaction distance for communication

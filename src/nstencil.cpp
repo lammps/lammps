@@ -324,6 +324,7 @@ void NStencil::create_setup()
         stencil_multi2[i] = new int*[n+1]();
         for (j = 1; j <= n; ++j) {
 	      maxstencil_multi2[i][j] = 0;
+          nstencil_multi2[i][j] = 0;
         }
       }
     }    

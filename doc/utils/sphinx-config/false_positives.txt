@@ -240,6 +240,7 @@ bigint
 Bij
 bilayer
 bilayers
+biquadratic
 binsize
 binstyle
 binutils
@@ -2978,6 +2979,8 @@ Subclassed
 subcutoff
 subcycle
 subcycling
+subhi
+sublo
 Subramaniyan
 subscripted
 subscripting

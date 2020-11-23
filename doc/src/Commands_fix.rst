@@ -195,7 +195,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
-   * :doc:`shake <fix_shake>`
+   * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
    * :doc:`smd/adjust_dt <fix_smd_adjust_dt>`

@@ -16,7 +16,6 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-
 #include <cmath>
 #include <cstdio>
 
@@ -44,6 +43,7 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   no_virial_fdotr_compute = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   map = nullptr;
   quip_potential = nullptr;

@@ -66,6 +66,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   single_extra = 12;
   svector = new double[single_extra];

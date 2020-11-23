@@ -192,6 +192,14 @@ create_atoms 1 single &
         self.assertEqual(periodicity, [1, 1, 1])
         self.assertEqual(box_change, 0)
 
+    def test_extract_variable_equalstyle(self):
+        self.lmp.command("variable a equal 100")
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, 100)
+
+        self.lmp.command("variable a equal 3.14")
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, 3.14)
 
 ##############################
 if __name__ == "__main__":

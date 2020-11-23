@@ -217,11 +217,55 @@ create_atoms 1 single &
         types = [1, 1]
 
         self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
-        nlocal = self.lmp.extract_global("nlocal")
         self.lmp.command("variable a atom x*x+y*y+z*z")
         a = self.lmp.extract_variable("a", "all", LMP_VAR_ATOM)
         self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
         self.assertEqual(a[1], x[3]*x[3]+x[4]*x[4]+x[5]*x[5])
+
+    def test_get_thermo(self):
+        self.lmp.command("units lj")
+        self.lmp.command("atom_style atomic")
+        self.lmp.command("atom_modify map array")
+        self.lmp.command("boundary f f f")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+
+        x = [
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.5
+        ]
+
+        types = [1, 1]
+        self.lmp.create_atoms(2, id=None, type=types, x=x)
+
+        state = {
+            "step": 0,
+            "elapsed" : 0.0,
+            "elaplong": 0,
+            "dt" : 0.005,
+            "time" : 0.0,
+            "atoms" : 2.0,
+            "temp" : 0,
+            "press" : 0,
+            "pe" : 0.0,
+            "ke" : 0.0,
+            "etotal" : 0.0,
+            "enthalpy" : 0.0,
+            "vol" : 8.0,
+            "lx" : 2.0,
+            "ly" : 2.0,
+            "lz" : 2.0,
+            "xlo" : 0,
+            "xhi" : 2.0,
+            "ylo" : 0,
+            "yhi" : 2.0,
+            "zlo" : 0,
+            "zhi" : 2.0
+        }
+
+        for key, value in state.items():
+            result = self.lmp.get_thermo(key)
+            self.assertEqual(value, result, key)
 
 ##############################
 if __name__ == "__main__":

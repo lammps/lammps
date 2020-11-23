@@ -11,13 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fmt/format.h"
+#include "lammps.h"
+
+#include "force.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "output.h"
 #include "update.h"
 #include "utils.h"
+
+#include "fmt/format.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -159,6 +162,33 @@ TEST_F(SimpleCommandsTest, Log)
     remove("simple_command_test.log");
 
     TEST_FAILURE(".*ERROR: Illegal log command.*", lmp->input->one("log"););
+}
+
+TEST_F(SimpleCommandsTest, Newton)
+{
+    // default setting is "on" for both
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 0);
+    ASSERT_EQ(lmp->force->newton_bond, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton on off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton off on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 0);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
 }
 
 TEST_F(SimpleCommandsTest, Quit)

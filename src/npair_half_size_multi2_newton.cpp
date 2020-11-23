@@ -138,6 +138,39 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
         // smaller -> larger: locate i in the ktype bin structure
 	    kbin = coord2bin(x[i], ktype);
         
+        // if same size, use half list so check own bin
+        if(cutneighsq[itype][itype] == cutneighsq[ktype][ktype]){
+	      js = binhead_multi2[ktype][kbin];
+	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+	        if (j >= nlocal) {
+	          if (x[j][2] < ztmp) continue;
+	          if (x[j][2] == ztmp) {
+	            if (x[j][1] < ytmp) continue;
+	            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	          }
+	        }
+          
+	        jtype = type[j];
+	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          
+	        delx = xtmp - x[j][0];
+	        dely = ytmp - x[j][1];
+	        delz = ztmp - x[j][2];
+	        rsq = delx*delx + dely*dely + delz*delz;
+	        radsum = radi + radius[j];
+	        cutdistsq = (radsum+skin) * (radsum+skin);
+        
+	        if (rsq <= cutdistsq) {
+	          if (history && rsq < radsum*radsum) 
+	    	    neighptr[n++] = j ^ mask_history;
+	          else
+	    	    neighptr[n++] = j;
+	        }
+	      }  
+        }
+         
+        // Check other stencils
+        
 	    s = stencil_multi2[itype][ktype];
 	    ns = nstencil_multi2[itype][ktype];
 	    for (k = 0; k < ns; k++) {

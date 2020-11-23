@@ -115,6 +115,7 @@ void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
 	    }
       } else {
         // smaller -> larger: locate i in the ktype bin structure
+        
 	    kbin = coord2bin(x[i], ktype);
         
 	    s = stencil_multi2[itype][ktype];
@@ -124,6 +125,18 @@ void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
 	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
         
 	        jtype = type[j];
+            
+            // if same size, use half stencil            
+            if(cutneighsq[itype][itype] == cutneighsq[ktype][ktype]){
+              if (x[j][2] < ztmp) continue;
+              if (x[j][2] == ztmp) {
+                if (x[j][1] < ytmp) continue;
+                if (x[j][1] == ytmp) {
+                  if (x[j][0] < xtmp) continue;
+                  if (x[j][0] == xtmp && j <= i) continue;
+                }
+              }                
+            }
         
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         

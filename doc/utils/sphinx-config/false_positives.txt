@@ -2979,6 +2979,8 @@ Subclassed
 subcutoff
 subcycle
 subcycling
+subhi
+sublo
 Subramaniyan
 subscripted
 subscripting

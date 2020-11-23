@@ -64,6 +64,14 @@ if(DOWNLOAD_KIM)
     BUILD_RPATH "${_rpath_prefix}/kim_build-prefix/lib"
     )
 else()
-  find_package(KIM-API ${KIM-API_MIN_VERSION} CONFIG REQUIRED)
-  target_link_libraries(lammps PRIVATE KIM-API::kim-api)
+  if(KIM-API_FOUND AND KIM_API_VERSION VERSION_GREATER_EQUAL KIM-API_MIN_VERSION)
+    # For kim-api >= 2.2.0
+    find_package(KIM-API ${KIM-API_MIN_VERSION} CONFIG REQUIRED)
+    target_link_libraries(lammps PRIVATE KIM-API::kim-api)
+  else()
+    # For kim-api < 2.2.0
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(KIM-API REQUIRED IMPORTED_TARGET libkim-api>=${KIM-API_MIN_VERSION})
+    target_link_libraries(lammps PRIVATE PkgConfig::KIM-API)
+  endif()
 endif()

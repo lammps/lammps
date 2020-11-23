@@ -399,7 +399,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
         if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
 
         bool multiple_forms = false;
         int packed_j = 0;

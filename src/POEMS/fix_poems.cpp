@@ -74,6 +74,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
 

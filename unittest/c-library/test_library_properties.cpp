@@ -199,6 +199,12 @@ TEST_F(LibraryProperties, setting)
     lammps_command(lmp, "dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), 0);
+    EXPECT_GT(lammps_extract_setting(lmp, "nthreads"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 0);

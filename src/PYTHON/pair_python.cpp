@@ -41,7 +41,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
   py_potential = nullptr;
   skip_types = nullptr;

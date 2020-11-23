@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "force.h"
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -81,6 +82,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   ver = 0;
+
   centroidstressflag = CENTROID_NOTAVAIL;
 
   no_virial_fdotr_compute = 1;

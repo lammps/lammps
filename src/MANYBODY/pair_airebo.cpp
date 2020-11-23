@@ -69,6 +69,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   nC = nH = nullptr;
   map = nullptr;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   sigwid = 0.84;
   sigcut = 3.0;

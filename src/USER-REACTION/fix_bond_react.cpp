@@ -231,6 +231,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
     molecule_keyword[i] = OFF;
+    nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;

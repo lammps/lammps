@@ -137,16 +137,16 @@ additional tests.
 Tests for individual LAMMPS commands
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These tests are a bit more complex as they require to first create a
-:cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance and then use the
-:doc:`C++ API <Cplusplus>` to pass individual commands to that LAMMPS
-instance.  For that reason these tests use a googletest "test fixture",
-i.e. a class derived from ``testing::Test`` that will create (and
-delete) the required LAMMPS class instance for each set of tests in a
-TEST_F() function.  Please see the individual source files for different
-examples of setting up suitable test fixtures.  Here is an example for
-implementing a test using a fixture by first checking the default
-value and then issuing LAMMPS commands and checking whether they
+The tests ``unittest/commands`` are a bit more complex as they require
+to first create a :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance
+and then use the :doc:`C++ API <Cplusplus>` to pass individual commands
+to that LAMMPS instance.  For that reason these tests use a googletest
+"test fixture", i.e. a class derived from ``testing::Test`` that will
+create (and delete) the required LAMMPS class instance for each set of
+tests in a TEST_F() function.  Please see the individual source files
+for different examples of setting up suitable test fixtures.  Here is an
+example for implementing a test using a fixture by first checking the
+default value and then issuing LAMMPS commands and checking whether they
 have the desired effect:
 
 .. code-block:: c++
@@ -218,17 +218,70 @@ The following test programs are currently available:
      - Tests to validate the :doc:`reset_atom_ids <reset_atom_ids>` and :doc:`reset_mol_ids <reset_mol_ids>` commands
 
 
-Adding tests for the C-style library interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Tests for the C-style library interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Adding tests for the Python module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Tests for validating the LAMMPS C-style library interface are in the
+``unittest/c-library`` folder.  They are implemented in either way used
+for utility functions and for LAMMPS commands, but use the functions
+implemented in the ``src/library.cpp`` file as much as possible.  There
+may be some overlap with other tests, but only in as much as is required
+to test the C-style library API.  The tests are distributed over
+multiple test programs which tries to match the grouping of the
+functions in the source code and :ref:`in the manual <lammps_c_api>`.
 
-Adding tests for the Fortran interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This group of tests also includes tests invoking LAMMPS in parallel
+through the library interface, provided that LAMMPS was compiled with
+MPI support.  These include tests where LAMMPS is run in multi-partition
+mode or only on a subset of the MPI world communicator.  The CMake
+script code for adding this kind of test looks like this:
+
+.. code-block:: CMake
+
+   if (BUILD_MPI)
+     add_executable(test_library_mpi test_library_mpi.cpp)
+     target_link_libraries(test_library_mpi PRIVATE lammps GTest::GTest GTest::GMock)
+     target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
+     add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
+   endif()
+
+Note the custom function ``add_mpi_test()`` which adapts how ``ctest``
+will execute the test so it is launched in parallel (with 4 MPI ranks).
+
+Tests for the Python module and package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``unittest/python`` folder contains primarily tests for classes and
+functions in the LAMMPS python module but also for commands in the
+PYTHON package.  These tests are only enabled, if the necessary
+pre-requisites are detected or enabled during configuration and
+compilation of LAMMPS (shared library build enabled, Python interpreter
+found, Python development files found).
+
+The python tests are implemented using the ``unittest`` standard Python
+module and split into multiple files with similar categories as the
+tests for the C-style library interface.
+
+Tests for the Fortran interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tests for using the Fortran module are in the ``unittest/fortran``
+folder.  Since they are also using the googletest library, they require
+to also implement test wrappers in C++ that will call fortran functions
+which provide a C function interface through ISO_C_BINDINGS that will in
+turn call the functions in the LAMMPS Fortran module.  This part of the
+unit tests is incomplete since the Fortran module it is based on is
+incomplete as well.
 
 Adding tests for the C++-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The tests in the ``unittest/cplusplus`` folder are somewhat similar to
+the tests for the C-style library interface, but do not need to test the
+several convenience and utility functions that are only available through
+the C-style interface.  Instead it can focus on the more generic features
+that are used internally.  This part of the unit tests is currently still
+mostly in the planning stage.
 
 Adding tests for styles computing or modifying forces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -269,6 +322,80 @@ something like the following (see ``mol-pair-zero.yaml``):
 
    [...]
 
+The following table describes the listed keys and their purpose for
+testing pair styles:
 
-Adding tests for programs in the tools folder
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. list-table::
+   :header-rows: 1
+
+   * - Key:
+     - Description:
+   * - lammps_version
+     - LAMMPS version used to last update the reference data
+   * - date_generated
+     - date when the file was last updated
+   * - epsilon
+     - base value for the relative precision required for tests to pass
+   * - prerequistes
+     - list of style kind / style name pairs required to run the test
+   * - pre_commands
+     - LAMMPS commands to be executed before the input template file is read
+   * - post_commands
+     - LAMMPS commands to be executed right before the actual tests
+   * - input_file
+     - LAMMPS input file template based on pair style zero
+   * - pair_style
+     - arguments to the pair_style command to be tested
+   * - pair_coeff
+     - list of pair_coeff arguments to set parameters for the input template
+   * - extract
+     - list of keywords supported by ``Pair::extract()`` and their dimension
+   * - natoms
+     - number of atoms in the input file template
+   * - init_vdwl
+     - non-Coulomb pair energy after "run 0"
+   * - init_coul
+     - Coulomb pair energy after "run 0"
+
+The file continues with reference values for stress, energy, and forces.
+
+The test program will read all this data from the YAML file and then
+create a LAMMPS instance, apply the settings/commands from the YAML file
+as needed and then issue a "run 0" command, write out a restart file, a
+data file and a coeff file. The actual test will then compare computed
+energies, stresses, and forces with the reference data, issue a "run 4"
+command and compare to the second set of reference data.  This will be
+run with both the newton_pair setting enabled and disabled and is
+expected to generate the same results (allowing for some numerical
+noise). Then it will restart from the previously generated restart and
+compare with the reference and also start from the data file.  A final
+check will use multi-cutoff r-RESPA (if supported by the pair style) at
+a 1:1 split and compare to the Verlet results.  These sets of tests are
+run with multiple test fixtures for accelerated styles (OPT, USER-OMP,
+USER-INTEL) and for the latter two with 4 OpenMP threads enabled.  For
+these tests the relative error (epsilon) is lowered by a common factor
+due to the additional numerical noise, but the tests are still comparing
+to the same reference data.
+
+Additional tests will check whether all listed extract keywords are
+supported and have the correct dimensionality and the final set of tests
+will set up a few pairs of atoms explicitly and in such a fashion that
+the forces on the atoms computed from ``Pair::compute()`` will match
+individually with the results from ``Pair::single()``, if the pair style
+does support that functionality.
+
+With this scheme most of the code any any tested pair style will be
+executed and consistent results are required for different settings and
+between different accelerated pair style variants and the base class, as
+well as for computing individual pairs through the ``Pair::single()``
+where supported.
+
+
+Tests for programs in the tools folder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``unittest/tools`` folder contains tests for programs in the
+``tools`` folder.  This currently only contains tests for the LAMMPS
+shell, which are implemented as a python scripts using the ``unittest``
+Python module and launching the tool commands through the ``subprocess``
+Python module.

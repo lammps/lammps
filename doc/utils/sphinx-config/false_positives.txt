@@ -3291,6 +3291,7 @@ vdfmax
 vdim
 vdisplace
 vdW
+vdwl
 vec
 vectorial
 vectorization

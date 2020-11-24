@@ -105,7 +105,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   maxeatom = maxvatom = 0;
   vflag_atom = 0;
   centroidstressflag = CENTROID_SAME;
-  
+
   // KOKKOS per-fix data masks
 
   execution_space = Host;

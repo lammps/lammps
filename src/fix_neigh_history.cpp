@@ -41,7 +41,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   restart_global = 1;
-  
+
   create_attribute = 1;
   maxexchange_dynamic = 1;
 
@@ -855,7 +855,7 @@ void FixNeighHistory::write_restart(FILE *fp)
   if (comm->me == 0) {
     int size = 0;
     fwrite(&size,sizeof(int),1,fp);
-  }  
+  }
 }
 
 

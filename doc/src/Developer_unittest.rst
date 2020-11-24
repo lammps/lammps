@@ -172,7 +172,7 @@ the default case, verbose == false, the test output will be compact and
 not mixed with LAMMPS output. However setting the verbose flag (via
 setting the TEST_ARGS environment variable, ``TEST_ARGS=-v``) can be
 helpful to understand why tests fail unexpectedly.
-   
+
 Another complexity of these tests stems from the need to capture
 situations where LAMMPS will stop with an error, i.e. handle so-called
 "death tests".  Here the LAMMPS code will operate differently depending

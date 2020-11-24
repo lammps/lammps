@@ -273,8 +273,8 @@ turn call the functions in the LAMMPS Fortran module.  This part of the
 unit tests is incomplete since the Fortran module it is based on is
 incomplete as well.
 
-Adding tests for the C++-style library interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Tests for the C++-style library interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The tests in the ``unittest/cplusplus`` folder are somewhat similar to
 the tests for the C-style library interface, but do not need to test the
@@ -283,8 +283,8 @@ the C-style interface.  Instead it can focus on the more generic features
 that are used internally.  This part of the unit tests is currently still
 mostly in the planning stage.
 
-Adding tests for styles computing or modifying forces
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Tests for styles computing or modifying forces
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 These are tests common configurations for pair styles, bond styles,
 angle styles, kspace styles and certain fix styles.  Those are tests
@@ -322,7 +322,7 @@ something like the following (see ``mol-pair-zero.yaml``):
 
    [...]
 
-The following table describes the listed keys and their purpose for
+The following table describes the available keys and their purpose for
 testing pair styles:
 
 .. list-table::
@@ -356,8 +356,18 @@ testing pair styles:
      - non-Coulomb pair energy after "run 0"
    * - init_coul
      - Coulomb pair energy after "run 0"
-
-The file continues with reference values for stress, energy, and forces.
+   * - init_stress
+     - stress tensor after "run 0"
+   * - init_forces
+     - forces on atoms after "run 0"
+   * - run_vdwl
+     - non-Coulomb pair energy after "run 4"
+   * - run_coul
+     - Coulomb pair energy after "run 4"
+   * - run_stress
+     - stress tensor after "run 4"
+   * - run_forces
+     - forces on atoms after "run 4"
 
 The test program will read all this data from the YAML file and then
 create a LAMMPS instance, apply the settings/commands from the YAML file
@@ -384,11 +394,35 @@ the forces on the atoms computed from ``Pair::compute()`` will match
 individually with the results from ``Pair::single()``, if the pair style
 does support that functionality.
 
-With this scheme most of the code any any tested pair style will be
-executed and consistent results are required for different settings and
-between different accelerated pair style variants and the base class, as
-well as for computing individual pairs through the ``Pair::single()``
-where supported.
+With this scheme a large fraction of the code of any tested pair style
+will be executed and consistent results are required for different
+settings and between different accelerated pair style variants and the
+base class, as well as for computing individual pairs through the
+``Pair::single()`` where supported.
+
+The ``test_pair_style`` tester is used with 4 categories of test inputs:
+
+- pair styles compatible with molecular systems using bonded
+  interactions and exclusions.  For pair styles requiring a KSpace style
+  the KSpace computations are disabled.  The YAML files match the
+  pattern "mol-pair-\*.yaml" and the tests are correspondingly labeled
+  with "MolPairStyle:\*"
+- pair styles not compatible with the previous input template.
+  The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
+  correspondingly labeled with "AtomicPairStyle:\*"
+- manybody pair styles.
+  The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
+  correspondingly labeled with "AtomicPairStyle:\*"
+- kspace styles.
+  The YAML files match the pattern "kspace-\*.yaml" and the tests are
+  correspondingly labeled with "KSpaceStyle:\*". In these cases a compatible
+  pair style is defined, but the computation of the pair style contributions
+  is disabled.
+
+The ``test_bond_style`` and ``test_angle_style`` are set up in a similar
+fashion and share support functions with the pair style tester.  The final
+group of tests in this section is for fix styles that add/manipulate forces
+and velocities, e.g. for time integration, thermostats and more.
 
 
 Tests for programs in the tools folder

@@ -254,7 +254,7 @@ Tests for the Python module and package
 The ``unittest/python`` folder contains primarily tests for classes and
 functions in the LAMMPS python module but also for commands in the
 PYTHON package.  These tests are only enabled, if the necessary
-pre-requisites are detected or enabled during configuration and
+prerequisites are detected or enabled during configuration and
 compilation of LAMMPS (shared library build enabled, Python interpreter
 found, Python development files found).
 
@@ -336,7 +336,7 @@ testing pair styles:
      - date when the file was last updated
    * - epsilon
      - base value for the relative precision required for tests to pass
-   * - prerequistes
+   * - prerequisites
      - list of style kind / style name pairs required to run the test
    * - pre_commands
      - LAMMPS commands to be executed before the input template file is read

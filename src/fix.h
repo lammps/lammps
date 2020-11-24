@@ -102,6 +102,11 @@ class Fix : protected Pointers {
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
+
   int restart_reset;             // 1 if restart just re-initialized fix
 
   // KOKKOS host/device flag and data masks

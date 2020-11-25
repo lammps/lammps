@@ -111,8 +111,10 @@ error margin).  The status of this automated testing can be viewed on
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `PyYAML <http://pyyaml.org/>`_ library and development
-headers to compile and will download and compile a recent version of the
+It requires the `YAML <http://pyyaml.org/>`_ library and development
+headers (if not found locally a recent version will be downloaded
+and compiled transparently) to compile and will download and compile
+a specific recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
 

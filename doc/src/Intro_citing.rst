@@ -24,13 +24,15 @@ DOI for the LAMMPS code
 LAMMPS developers use the `Zenodo service at CERN
 <https://zenodo.org/>`_ to create digital object identifies (DOI) for
 stable releases of the LAMMPS code. There are two types of DOIs for the
-LAMMPS source code: 1) the canonical DOI for **all** versions of LAMMPS,
-which will always point to the latest stable release version is:
+LAMMPS source code: the canonical DOI for **all** versions of LAMMPS,
+which will always point to the **latest** stable release version is:
 
-  `DOI: 10.5281/zenodo.3726416 <https://dx.doi/org/10.5281/zenodo.3726416>`_
+- DOI: `10.5281/zenodo.3726416 <https://dx.doi.org/10.5281/zenodo.3726416>`_
 
-In addition there are DOIs for individual stable releases starting with
-the `3 March 2020 version, DOI:10.5281/zenodo.3726417 <https://dx.doi/org/10.5281/zenodo.3726416>`_
+In addition there are DOIs for individual stable releases. Currently there are:
+
+- 3 March 2020 version: `DOI:10.5281/zenodo.3726417 <https://dx.doi.org/10.5281/zenodo.3726417>`_
+- 29 October 2020 version: `DOI:10.5281/zenodo.4157471 <https://dx.doi.org/10.5281/zenodo.4157471>`_
 
 
 Home page

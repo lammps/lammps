@@ -162,14 +162,14 @@ is.
 File extension association
 """"""""""""""""""""""""""
 
-Since the LAMMPS shell (unlike the regular LAMMPS executable) does not
-exit when an input file is passed on the command line with the "-in" or
-"-i" flag (the behavior is like for "python -i <filename>"), it makes
-the LAMMPS shell suitable for associating it with input files based on
-their filename extension (e.g. ".lmp").  Since "lammps-shell" is a
-console application, you have to run it inside a terminal program with a
-command line like this:
+The LAMMPS shell (unlike the regular LAMMPS executable) does not
+exit when an input file is passed on the command line, which can be
+either with the "-in" or "-i" flag (the behavior is like for
+"python -i <filename>") or as the first argument without a flag.
+Thus the LAMMPS shell is suitable for associating it with input files
+based on their filename extension (e.g. ".lmp").  Since "lammps-shell"
+is a console application, you have to run it inside a terminal program.
 
-   xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
-
+A "lammps-shell.desktop" and suitable icon files are provided, so that
+it can be integrated into compatible desktop environments.
 

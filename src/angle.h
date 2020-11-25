@@ -30,6 +30,11 @@ class Angle : protected Pointers {
   double *eatom,**vatom;          // accumulated per-atom energy/virial
   double **cvatom;                // accumulated per-atom centroid virial
 
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;

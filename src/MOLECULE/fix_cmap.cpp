@@ -42,8 +42,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -74,6 +72,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peatom_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   peratom_freq = 1;
   scalar_flag = 1;

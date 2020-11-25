@@ -240,6 +240,7 @@ bigint
 Bij
 bilayer
 bilayers
+biquadratic
 binsize
 binstyle
 binutils
@@ -2619,7 +2620,6 @@ Ree
 refactored
 refactoring
 reflectionstyle
-regoin
 Reinders
 reinit
 relaxbox
@@ -2985,6 +2985,8 @@ Subclassed
 subcutoff
 subcycle
 subcycling
+subhi
+sublo
 Subramaniyan
 subscripted
 subscripting

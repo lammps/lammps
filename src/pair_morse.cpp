@@ -22,7 +22,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -30,7 +29,6 @@ using namespace LAMMPS_NS;
 PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

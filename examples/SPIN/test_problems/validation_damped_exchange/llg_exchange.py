@@ -6,9 +6,17 @@ import matplotlib.pyplot as plt
 import mpmath as mp
 
 hbar=0.658212           # Planck's constant (eV.fs/rad)
-J0=0.05                 # per-neighbor exchange interaction (eV)
+# J0=0.05                 # per-neighbor exchange interaction (eV)
+
+# exchange interaction parameters
+J1 = 11.254 # in eV 
+J2 = 0.0    # adim
+J3 = 1.0    # in Ang.
+
+# initial spins
 S1 = np.array([1.0, 0.0, 0.0])
 S2 = np.array([0.0, 1.0, 0.0])
+
 alpha=0.01              # damping coefficient
 pi=math.pi
 
@@ -29,6 +37,14 @@ def rotation_matrix(axis, theta):
   return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
       [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
       [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+#Definition of the Bethe-Slater function
+def func_BS(x,a,b,c):
+    return 4*a*((x/c)**2)*(1-b*(x/c)**2)*np.exp(-(x/c)**2)
+
+#Definition of the derivative of the Bethe-Slater function
+def func_dBS(x,a,b,c):
+    return 4*a*((x/c)**2)*(1-b*(x/c)**2)*np.exp(-(x/c)**2)
 
 # calculating precession field of spin Sr
 def calc_rot_vector(Sr,Sf):
@@ -65,6 +81,6 @@ for t in range (0,N):
   # calc. average magnetization
   Sm = (S1+S2)*0.5
   # calc. energy
-  en = -2.0*J0*(np.dot(S1,S2))
+  en = -J0*(np.dot(S1,S2))
   # print res. in ps for comparison with LAMMPS
   print(t*dt/1000.0,Sm[0],Sm[1],Sm[2],en)

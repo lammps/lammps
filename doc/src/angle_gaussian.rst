@@ -28,7 +28,7 @@ The *gaussian* angle style uses the potential:
    E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-(\theta-\theta_{i})^2}{w_i^2})\right) \right)
 
 This analytical form is a suitable potential for obtaining
-mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano0>`
+mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano1>`
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
@@ -64,6 +64,6 @@ none
 
 ----------
 
-.. _Milano0:
+.. _Milano1:
 
-**(Milano)** G. Milano, S. Goudeau, F. Müller-Plathe, J. Polym. Sci. B Polym. Phys. 43, 871 (2005).
+**(Milano)** G. Milano, S. Goudeau, F. Mueller-Plathe, J. Polym. Sci. B Polym. Phys. 43, 871 (2005).

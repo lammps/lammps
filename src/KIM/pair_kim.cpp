@@ -241,7 +241,7 @@ void PairKIM::compute(int eflag, int vflag)
     comm->reverse_comm_pair(this);
   }
 
-  if ((vflag_atom) &&
+  if ((vflag_atom != 0) &&
       KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                  KIM_SUPPORT_STATUS_notSupported)) {
     // flip sign and order of virial if KIM is computing it
@@ -632,31 +632,33 @@ double PairKIM::init_one(int i, int j)
 
 int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
-  double *fp;
-  fp = &(atom->f[0][0]);
-
-  m = 0;
-  last = first + n;
+  int m = 0;
+  int const last = first + n;
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                 KIM_SUPPORT_STATUS_notSupported)
-      &&
-      ((vflag_atom == 0) ||
-       KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                               KIM_SUPPORT_STATUS_notSupported))) {
-    for (i = first; i < last; i++) {
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                               KIM_SUPPORT_STATUS_notSupported) || 
+       (vflag_atom == 0))) {
+    const double *const fp = &(atom->f[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = fp[3*i+0];
       buf[m++] = fp[3*i+1];
       buf[m++] = fp[3*i+2];
     }
     return m;
-  } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                        KIM_SUPPORT_STATUS_notSupported) &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = first; i < last; i++) {
+  } 
+  // ----------------------------------------------------------------------
+  // see Pair::ev_setup & Integrate::ev_set() 
+  // for values of eflag (0-3) and vflag (0-14)
+  // -------------------------------------------------------------------------
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    const double *const fp = &(atom->f[0][0]);
+    const double *const va = &(vatom[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = fp[3*i+0];
       buf[m++] = fp[3*i+1];
       buf[m++] = fp[3*i+2];
@@ -669,14 +671,14 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       buf[m++] = va[6*i+5];
     }
     return m;
-  } else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                                     KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = first; i < last; i++) {
+  } 
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    const double *const va = &(vatom[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = va[6*i+0];
       buf[m++] = va[6*i+1];
       buf[m++] = va[6*i+2];
@@ -685,39 +687,38 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       buf[m++] = va[6*i+5];
     }
     return m;
-  } else return 0;
+  } 
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
-  double *fp;
-  fp = &(atom->f[0][0]);
-
-  m = 0;
+  int m = 0;
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                 KIM_SUPPORT_STATUS_notSupported)
-      &&
-      ((vflag_atom == 0) ||
-       KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                               KIM_SUPPORT_STATUS_notSupported))) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                               KIM_SUPPORT_STATUS_notSupported) ||
+       (vflag_atom == 0))) {
+    double *const fp = &(atom->f[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       fp[3*j+0]+= buf[m++];
       fp[3*j+1]+= buf[m++];
       fp[3*j+2]+= buf[m++];
     }
-  } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                        KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = 0; i < n; i++) {
-      j = list[i];
+    return;
+  }
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    double *const fp = &(atom->f[0][0]);
+    double *const va = &(vatom[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       fp[3*j+0]+= buf[m++];
       fp[3*j+1]+= buf[m++];
       fp[3*j+2]+= buf[m++];
@@ -729,15 +730,16 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
       va[j*6+4]+=buf[m++];
       va[j*6+5]+=buf[m++];
     }
-  } else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                                     KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = 0; i < n; i++) {
-      j = list[i];
+    return;
+  } 
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    double *const va=&(vatom[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       va[j*6+0]+=buf[m++];
       va[j*6+1]+=buf[m++];
       va[j*6+2]+=buf[m++];
@@ -745,9 +747,8 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
       va[j*6+4]+=buf[m++];
       va[j*6+5]+=buf[m++];
     }
-  } else {
-    ; // do nothing
   }
+  // do nothing
 }
 
 /* ----------------------------------------------------------------------
@@ -918,6 +919,7 @@ void PairKIM::set_argument_pointers()
       memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
     }
   }
+
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_optional)
       && (eflag_atom != 1)) {
@@ -944,19 +946,20 @@ void PairKIM::set_argument_pointers()
   }
 
   // Set KIM pointer appropriately for particleVirial
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_required)
-      && (vflag_atom != 1)) {
+  if ((vflag_atom == 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_required)) {
     // reallocate per-atom virial array if necessary
-    if (atom->nmax > maxeatom) {
+    if (atom->nmax > maxvatom) {
       maxvatom = atom->nmax;
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
     }
   }
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_optional)
-      && (vflag_atom != 1)) {
+
+  if ((vflag_atom == 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_optional)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,

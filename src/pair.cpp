@@ -782,11 +782,11 @@ void Pair::del_tally_callback(Compute *ptr)
      eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
      eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR bit of vflag set
-     vflag_global != 0 if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+                       if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
      vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
-     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
+                       if VIRIAL_CENTROID bit of vflag set
                        and centroidstressflag != CENTROID_AVAIL
      cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
                        and centroidstressflag = CENTROID_AVAIL
@@ -808,6 +808,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   
   vflag_global = vflag & VIRIAL_PAIR;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
+  vflag_fdotr = 0;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 0) vflag_fdotr = 1;
   vflag_atom = vflag & VIRIAL_ATOM;
   if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL) vflag_atom = 1;
@@ -816,7 +817,6 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   evflag = eflag_either || vflag_either;
-  if (!evflag) return;
   
   // reallocate per-atom arrays if necessary
 
@@ -847,7 +847,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
-  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (vflag_global || vflag_fdotr) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom && alloc) {
     n = atom->nlocal;
     if (force->newton) n += atom->nghost;
@@ -1563,8 +1563,6 @@ void Pair::virial_fdotr_compute()
 {
   double **x = atom->x;
   double **f = atom->f;
-
-  for (int i = 0; i < 6; i++) virial[i] = 0.0;
 
   // sum over force on all particles including ghosts
 

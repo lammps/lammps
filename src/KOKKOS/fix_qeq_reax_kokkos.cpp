@@ -47,6 +47,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
   kokkosable = 1;
+  forward_comm_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -262,19 +263,15 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 2;
-  k_s.template modify<DeviceType>();
-  k_s.template sync<LMPHostType>();
-  comm->forward_comm_fix(this);
-  k_s.template modify<LMPHostType>();
   k_s.template sync<DeviceType>();
+  comm->forward_comm_fix(this);
+  k_s.template modify<DeviceType>();
 
   // comm->forward_comm_fix(this); //Dist_vector( t );
   pack_flag = 3;
-  k_t.template modify<DeviceType>();
-  k_t.template sync<LMPHostType>();
-  comm->forward_comm_fix(this);
-  k_t.template modify<LMPHostType>();
   k_t.template sync<DeviceType>();
+  comm->forward_comm_fix(this);
+  k_t.template modify<DeviceType>();
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
 
@@ -784,11 +781,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
-    k_d.template modify<DeviceType>();
-    k_d.template sync<LMPHostType>();
-    comm->forward_comm_fix(this);
-    k_d.template modify<LMPHostType>();
     k_d.template sync<DeviceType>();
+    comm->forward_comm_fix(this);
+    k_d.template modify<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -922,11 +917,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
-    k_d.template modify<DeviceType>();
-    k_d.template sync<LMPHostType>();
-    comm->forward_comm_fix(this);
-    k_d.template modify<LMPHostType>();
     k_d.template sync<DeviceType>();
+    comm->forward_comm_fix(this);
+    k_d.template modify<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -1027,11 +1020,9 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );
-  atomKK->k_q.modify<DeviceType>();
-  atomKK->k_q.sync<LMPHostType>();
-  comm->forward_comm_fix(this);
-  atomKK->k_q.modify<LMPHostType>();
   atomKK->k_q.sync<DeviceType>();
+  comm->forward_comm_fix(this);
+  atomKK->k_q.modify<DeviceType>();
 
 }
 
@@ -1356,6 +1347,59 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q_item(int ii) const
     d_s_hist(i,0) = d_s[i];
     d_t_hist(i,0) = d_t[i];
   }
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixQEqReaxKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                        int iswap_in, DAT::tdual_xfloat_1d &k_buf,
+                                                        int /*pbc_flag*/, int * /*pbc*/)
+{
+  d_sendlist = k_sendlist.view<DeviceType>();
+  iswap = iswap_in;
+  d_buf = k_buf.view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxPackForwardComm>(0,n),*this);
+  return n;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxPackForwardComm, const int &i) const {
+  int j = d_sendlist(iswap, i);
+
+  if (pack_flag == 1)
+    d_buf[i] = d_d[j];
+  else if( pack_flag == 2 )
+    d_buf[i] = d_s[j];
+  else if( pack_flag == 3 )
+    d_buf[i] = d_t[j];
+  else if( pack_flag == 4 )
+    d_buf[i] = q[j];
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+{
+  first = first_in;
+  d_buf = buf.view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxUnpackForwardComm>(0,n),*this);
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxUnpackForwardComm, const int &i) const {
+  if (pack_flag == 1)
+    d_d[i + first] = d_buf[i];
+  else if( pack_flag == 2)
+    d_s[i + first] = d_buf[i];
+  else if( pack_flag == 3)
+    d_t[i + first] = d_buf[i];
+  else if( pack_flag == 4)
+    q[i + first] = d_buf[i];
 
 }
 

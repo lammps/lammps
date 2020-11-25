@@ -48,6 +48,8 @@ DihedralCharmmKokkos<DeviceType>::DihedralCharmmKokkos(LAMMPS *lmp) : DihedralCh
   k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +78,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (weightflag && vflag_global == 2)
+  if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   // reallocate per-atom arrays if necessary

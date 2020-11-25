@@ -32,9 +32,7 @@ using namespace PairLJCubicConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
-}
+PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

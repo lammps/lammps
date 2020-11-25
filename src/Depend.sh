@@ -107,6 +107,7 @@ if (test $1 = "PERI") then
 fi
 
 if (test $1 = "RIGID") then
+  depend KOKKOS
   depend USER-OMP
   depend USER-SDPD
 fi

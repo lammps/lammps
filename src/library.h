@@ -140,7 +140,7 @@ void  *lammps_extract_atom(void *handle, const char *name);
 
 void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
-void *lammps_extract_variable(void *handle, char *, char *);
+void *lammps_extract_variable(void *handle, const char *, const char *);
 int   lammps_set_variable(void *, char *, char *);
 
 /* ----------------------------------------------------------------------

@@ -3629,7 +3629,9 @@ void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i,
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for values of eflag and vflag
+   see pair::ev_setup() for values of eflag_* and vflag_*
+   VIRIAL_CENTROID bitflag is not yet supported by ReaxFF
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -3640,12 +3642,12 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
 
   // reallocate per-atom arrays if necessary
 
@@ -3673,11 +3675,11 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroVAtom>(0,maxvatom),*this);
   }
 
-  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
+  // if vflag_global = VIRIAL_FDOTR and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation
   // unset other flags as appropriate
 
-  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
+  if (vflag_global == VIRIAL_FDOTR && no_virial_fdotr_compute == 0) {
     vflag_fdotr = 1;
     vflag_global = 0;
     if (vflag_atom == 0) vflag_either = 0;

@@ -189,8 +189,15 @@ void Input::file()
     // if line ends in continuation char '&', concatenate next line
 
     if (me == 0) {
+
       m = 0;
       while (1) {
+
+        if (infile == nullptr) {
+          n = 0;
+          break;
+        }
+
         if (maxline-m < 2) reallocate(line,maxline,0);
 
         // end of file reached, so break

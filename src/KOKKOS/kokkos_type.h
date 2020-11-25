@@ -405,7 +405,7 @@ struct s_EV_FLOAT_REAX {
   E_FLOAT evdwl;
   E_FLOAT ecoul;
   E_FLOAT v[6];
-  E_FLOAT ereax[10];
+  E_FLOAT ereax[9];
   KOKKOS_INLINE_FUNCTION
   s_EV_FLOAT_REAX() {
     evdwl = 0;

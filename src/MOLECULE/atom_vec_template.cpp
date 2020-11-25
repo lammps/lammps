@@ -27,6 +27,8 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
+  atom->molindex_flag = 1;
+  atom->molatom_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings

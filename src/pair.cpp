@@ -74,9 +74,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   setflag = nullptr;
   cutsq = nullptr;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag =
+    tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
-  centroidstressflag = 4;
+  centroidstressflag = CENTROID_SAME;
 
   // pair_modify settings
 
@@ -776,35 +777,47 @@ void Pair::del_tally_callback(Compute *ptr)
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+                       if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
+     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
+                       if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag = CENTROID_AVAIL
+     vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
+     evflag       != 0 if eflag_either or vflag_either is set
+   centroidstressflag is set by the pair style to one of these values:
+     CENTROID_SAME = same as two-body stress
+     CENTROID_AVAIL = different and implemented
+     CENTROID_NOTAVAIL = different but not yet implemented
 ------------------------------------------------------------------------- */
 
 void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
-  evflag = 1;
-
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
-
-  vflag_global = vflag % 4;
-  vflag_atom = vflag & 4;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
+  
+  vflag_global = vflag & VIRIAL_PAIR;
+  if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
+  vflag_fdotr = 0;
+  if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 0) vflag_fdotr = 1;
+  vflag_atom = vflag & VIRIAL_ATOM;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL) vflag_atom = 1;
   cvflag_atom = 0;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL) cvflag_atom = 1;
+  vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
-  if (vflag & 8) {
-    if (centroidstressflag & 2) {
-      cvflag_atom = 1;
-    } else {
-      vflag_atom = 1;
-    }
-    // extra check, because both bits might be set
-    if (centroidstressflag & 1) vflag_atom = 1;
-  }
-
-  vflag_either = vflag_global || vflag_atom;
-
+  evflag = eflag_either || vflag_either;
+  
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {
@@ -834,7 +847,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
-  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (vflag_global || vflag_fdotr) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom && alloc) {
     n = atom->nlocal;
     if (force->newton) n += atom->nghost;
@@ -868,18 +881,6 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       cvatom[i][9] = 0.0;
     }
   }
-
-  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
-  // compute global virial via (F dot r) instead of via pairwise summation
-  // unset other flags as appropriate
-
-  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
-    vflag_fdotr = 1;
-    vflag_global = 0;
-    if (vflag_atom == 0 && cvflag_atom == 0) vflag_either = 0;
-    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
-  } else vflag_fdotr = 0;
-
 
   // run ev_setup option for USER-TALLY computes
 

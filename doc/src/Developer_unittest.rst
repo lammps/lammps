@@ -283,6 +283,16 @@ the C-style interface.  Instead it can focus on the more generic features
 that are used internally.  This part of the unit tests is currently still
 mostly in the planning stage.
 
+Tests for reading and writing file formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``unittest/formats`` folder contains test programs for reading and
+writing files like data files, restart files, potential files or dump files.
+This covers simple things like the file i/o convenience functions in the
+``utils::`` namespace to complex tests of atom styles where creating and
+deleting of atoms with different properties is tested in different ways
+and through script commands or reading and writing of data or restart files.
+
 Tests for styles computing or modifying forces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -423,6 +433,84 @@ The ``test_bond_style`` and ``test_angle_style`` are set up in a similar
 fashion and share support functions with the pair style tester.  The final
 group of tests in this section is for fix styles that add/manipulate forces
 and velocities, e.g. for time integration, thermostats and more.
+
+Adding a new test is easiest done by copying and modifying an existing test
+for a style that is similar to one to be tested.  The file name should follow
+the naming conventions described above and after copying the file, the first
+step is to replace the style names where needed.  The coefficient values
+do not have to be meaningful, just in a reasonable range for the given system.
+It does not matter if some forces are large, for as long as they do not diverge.
+
+The template input files define a large number of index variables at the top
+that can be modified inside the YAML file to control the behavior.  For example,
+if a pair style requires a "newton on" setting, the following can be used in
+as the "pre_commands" section:
+
+.. code-block:: yaml
+
+   pre_commands: ! |
+     variable newton_pair delete
+     variable newton_pair index on
+
+And for a pair style requiring a kspace solver the following would be used as
+the "post_commands" section:
+
+.. code-block:: yaml
+
+   post_commands: ! |
+     pair_modify table 0
+     kspace_style pppm/tip4p 1.0e-6
+     kspace_modify gewald 0.3
+     kspace_modify compute no
+
+Note that this disables computing the kspace contribution, but still will run
+the setup.  The "gewald" parameter should be set explicitly to speed up the run.
+For styles with long-range electrostatics, typically two tests are added one using
+the (slower) analytic approximation of the erfc() function and the other using
+the tabulated coulomb, to test both code paths. The reference results in the YAML
+files then should be compared manually, if they agree well enough within the limits
+of those two approximations.
+
+The ``test_pair_style`` and equivalent programs have special command line options
+to update the YAML files. Running a command like:
+
+.. code-block:: bash
+
+   $ test_pair_style mol-pair-lennard_mdf.yaml -g new.yaml
+
+Will read the settings from the ``mol-pair-lennard_mdf.yaml`` file and then compute
+the reference data and write a new file with to ``new.yaml``.  If this step fails,
+there are likely some (LAMMPS or YAML) syntax issues in the YAML file that need to
+be resolved and then one can compare the two files to see if the output is as expected.
+
+It is also possible to do an update in place with:
+
+.. code-block:: bash
+
+   $ test_pair_style mol-pair-lennard_mdf.yaml -u
+
+And one can finally run the full set of tests with:
+   
+.. code-block:: bash
+
+   $ test_pair_style mol-pair-lennard_mdf.yaml
+
+This will just print a summary of the groups of tests.  When using the "-v" flag
+the test will also keep any LAMMPS output and when using the "-s" flag, there
+will be some statistics reported on the relative errors for the individual checks
+which can help to figure out what would be a good choice of the epsilon parameter.
+It should be as small as possible to catch any unintended side effects from changes
+elsewhere, but large enough to accommodate the numerical noise due to the implementation
+of the potentials and differences in compilers.
+
+.. note::
+
+   These kinds of tests can be very sensitive to compiler optimization and
+   thus the expectation is that they pass with compiler optimization turned
+   off. When compiler optimization is enabled, there may be some failures, but
+   one has to carefully check whether those are acceptable due to the enhanced
+   numerical noise from reordering floating-point math operations or due to
+   the compiler mis-compiling the code. That is not always obvious.
 
 
 Tests for programs in the tools folder

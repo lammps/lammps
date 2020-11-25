@@ -148,6 +148,7 @@ athomps
 atm
 atomeye
 atomfile
+AtomicPairStyle
 atomID
 atomistic
 attogram
@@ -1545,6 +1546,7 @@ ksh
 kspace
 Kspace
 KSpace
+KSpaceStyle
 Kspring
 kT
 kTequil
@@ -1930,6 +1932,7 @@ mol
 Mol
 molfile
 Molfile
+MolPairStyle
 moltemplate
 momb
 Monaghan

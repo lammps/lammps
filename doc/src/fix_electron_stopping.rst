@@ -15,29 +15,27 @@ Syntax
    fix ID group-ID style args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style	= *electron/stopping* or *electron/stopping/fit*
+* style = *electron/stopping* or *electron/stopping/fit*
 
   .. parsed-literal::
 
-       *electron/stopping* args = Ecut file keyword value ...
-         Ecut = minimum kinetic energy for electronic stopping (energy units)
-         file = name of the file containing the electronic stopping power table
+   *electron/stopping* args = Ecut file keyword value ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     file  = name of the file containing the electronic stopping power table
 
-  .. parsed-literal::
-
-       *electron/stopping/fit* args = Ecut c1 c2 ...
-         Ecut =	minimum kinetic energy for electronic stopping (energy units) 
-         c1 c2 = linear and quadratic coefficients for the fitted quadratic polynomial
+   *electron/stopping/fit* args = Ecut c1 c2 ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     c1 c2 = linear and quadratic coefficients for the fitted quadratic polynomial
 
 * zero or more keyword/value pairs may be appended to args for style = *electron/stopping*
 
   .. parsed-literal::
 
-       keyword = *region* or *minneigh*
-         *region* value = region-ID
-           region-ID = region whose atoms will be affected by this fix
-         *minneigh* value = minneigh
-           minneigh = minimum number of neighbors an atom to have stopping applied
+    keyword = *region* or *minneigh*
+       *region* value = region-ID
+          region-ID = region whose atoms will be affected by this fix
+       *minneigh* value = minneigh
+          minneigh = minimum number of neighbors an atom to have stopping applied
 
 Examples
 """"""""

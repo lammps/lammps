@@ -12,7 +12,7 @@ to the integrated unit test facility are included.
 Given the complex nature of MD simulations where many operations can
 only be performed when suitable "real" simulation environment has been
 set up, not all tests will be unit tests in the strict definition of
-the term.  They are rather be executed on a more abstract level by issuing
+the term.  They are rather executed on a more abstract level by issuing
 LAMMPS script commands and then inspecting the changes to the internal
 data.  For some classes of tests, generic test programs have been
 written that can be applied to parts of LAMMPS that use the same
@@ -78,38 +78,38 @@ to the ``CMakeLists.txt`` file in the ``unittest/utils`` folder.  Example:
    add_test(Tokenizer test_tokenizer)
 
 This adds instructions to build the ``test_tokenizer`` executable from
-``test_tokenizer.cpp`` and links it with the googletest libraries and the
+``test_tokenizer.cpp`` and links it with the GoogleTest libraries and the
 LAMMPS library as well as it uses the ``main()`` function from the
-GMock library of googletest.  The third line registers the executable
+GoogleMock library of GoogleTest.  The third line registers the executable
 as a test program to be run from ``ctest`` under the name ``Tokenizer``.
 
 The test executable itself will execute multiple individual tests
-through the googletest framework. In this case each test consists of
+through the GoogleTest framework. In this case each test consists of
 creating a tokenizer class instance with a given string and explicit or
 default separator choice, and then executing member functions of the
 class and comparing their results with expected values. A few examples:
 
 .. code-block:: c++
 
-  TEST(Tokenizer, empty_string)
-  {
-      Tokenizer t("", " ");
-      ASSERT_EQ(t.count(), 0);
-  }
+   TEST(Tokenizer, empty_string)
+   {
+       Tokenizer t("", " ");
+       ASSERT_EQ(t.count(), 0);
+   }
 
-  TEST(Tokenizer, two_words)
-  {
-      Tokenizer t("test word", " ");
-      ASSERT_EQ(t.count(), 2);
-  }
+   TEST(Tokenizer, two_words)
+   {
+       Tokenizer t("test word", " ");
+       ASSERT_EQ(t.count(), 2);
+   }
 
-  TEST(Tokenizer, default_separators)
-  {
-      Tokenizer t(" \r\n test \t word \f");
-      ASSERT_THAT(t.next(), Eq("test"));
-      ASSERT_THAT(t.next(), Eq("word"));
-      ASSERT_EQ(t.count(), 2);
-  }
+   TEST(Tokenizer, default_separators)
+   {
+       Tokenizer t(" \r\n test \t word \f");
+       ASSERT_THAT(t.next(), Eq("test"));
+       ASSERT_THAT(t.next(), Eq("word"));
+       ASSERT_EQ(t.count(), 2);
+   }
 
 Each of these TEST functions will become an individual
 test run by the test program. When using the ``ctest``
@@ -130,7 +130,7 @@ above like the following:
    [...]
 
 The MathEigen test collection has been adapted from a standalone test
-and does not use the googletest framework and thus not representative.
+and does not use the GoogleTest framework and thus not representative.
 The other test sources, however, can serve as guiding examples for
 additional tests.
 
@@ -140,10 +140,10 @@ Tests for individual LAMMPS commands
 The tests ``unittest/commands`` are a bit more complex as they require
 to first create a :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance
 and then use the :doc:`C++ API <Cplusplus>` to pass individual commands
-to that LAMMPS instance.  For that reason these tests use a googletest
+to that LAMMPS instance.  For that reason these tests use a GoogleTest
 "test fixture", i.e. a class derived from ``testing::Test`` that will
 create (and delete) the required LAMMPS class instance for each set of
-tests in a TEST_F() function.  Please see the individual source files
+tests in a ``TEST_F()`` function.  Please see the individual source files
 for different examples of setting up suitable test fixtures.  Here is an
 example for implementing a test using a fixture by first checking the
 default value and then issuing LAMMPS commands and checking whether they
@@ -170,7 +170,7 @@ Please note the use of the (global) verbose variable to control whether
 the LAMMPS command will be silent by capturing the output or not.  In
 the default case, verbose == false, the test output will be compact and
 not mixed with LAMMPS output. However setting the verbose flag (via
-setting the TEST_ARGS environment variable, ``TEST_ARGS=-v``) can be
+setting the ``TEST_ARGS`` environment variable, ``TEST_ARGS=-v``) can be
 helpful to understand why tests fail unexpectedly.
 
 Another complexity of these tests stems from the need to capture
@@ -180,9 +180,9 @@ on whether it was configured to throw C++ exceptions on errors or call
 either ``exit()`` or ``MPI_Abort()``.  In the latter case, the test code
 also needs to detect whether LAMMPS was compiled with the OpenMPI
 library, as OpenMPI is **only** compatible the death test options of the
-googletest library when C++ exceptions are enabled; otherwise those
+GoogleTest library when C++ exceptions are enabled; otherwise those
 "death tests" must be skipped to avoid reporting bogus failures.  The
-specifics of this step are implemented in the TEST_FAILURE()
+specifics of this step are implemented in the ``TEST_FAILURE()``
 macro. These tests operate by capturing the screen output when executing
 the failing command and then comparing that with a provided regular
 expression string pattern.  Example:
@@ -258,7 +258,7 @@ prerequisites are detected or enabled during configuration and
 compilation of LAMMPS (shared library build enabled, Python interpreter
 found, Python development files found).
 
-The python tests are implemented using the ``unittest`` standard Python
+The Python tests are implemented using the ``unittest`` standard Python
 module and split into multiple files with similar categories as the
 tests for the C-style library interface.
 
@@ -266,7 +266,7 @@ Tests for the Fortran interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tests for using the Fortran module are in the ``unittest/fortran``
-folder.  Since they are also using the googletest library, they require
+folder.  Since they are also using the GoogleTest library, they require
 to also implement test wrappers in C++ that will call fortran functions
 which provide a C function interface through ISO_C_BINDINGS that will in
 turn call the functions in the LAMMPS Fortran module.  This part of the
@@ -472,13 +472,13 @@ files then should be compared manually, if they agree well enough within the lim
 of those two approximations.
 
 The ``test_pair_style`` and equivalent programs have special command line options
-to update the YAML files. Running a command like:
+to update the YAML files. Running a command like
 
 .. code-block:: bash
 
    $ test_pair_style mol-pair-lennard_mdf.yaml -g new.yaml
 
-Will read the settings from the ``mol-pair-lennard_mdf.yaml`` file and then compute
+will read the settings from the ``mol-pair-lennard_mdf.yaml`` file and then compute
 the reference data and write a new file with to ``new.yaml``.  If this step fails,
 there are likely some (LAMMPS or YAML) syntax issues in the YAML file that need to
 be resolved and then one can compare the two files to see if the output is as expected.

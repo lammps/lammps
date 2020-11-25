@@ -805,7 +805,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   eflag_either = eflag;
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
-  
+
   vflag_global = vflag & VIRIAL_PAIR;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
   vflag_fdotr = 0;
@@ -817,7 +817,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
   vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   evflag = eflag_either || vflag_either;
-  
+
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {

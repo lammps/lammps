@@ -182,14 +182,19 @@ void CommTiled::setup()
         double **cutneighsq = neighbor->cutneighsq;
         double *cuttypesq = neighbor->cuttypesq;
         for (i = 1; i <= ntypes; i++) {
-          cut = 0.0;
+
           if (cutusermulti) {
             cutghostmulti[i][0] = cutusermulti[i];
             cutghostmulti[i][1] = cutusermulti[i];
             cutghostmulti[i][2] = cutusermulti[i];
+          } else {
+            cutghostmulti[i][0] = 0.0;
+            cutghostmulti[i][1] = 0.0;
+            cutghostmulti[i][2] = 0.0;
           }
+          
           for (j = 1; j <= ntypes; j++){
-            if(cuttypesq[j] > cuttypesq[i]) continue;
+            if(cutneighsq[j][j] > cutneighsq[i][i]) continue;
             cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutneighsq[i][j]));
             cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutneighsq[i][j]));
             cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutneighsq[i][j]));

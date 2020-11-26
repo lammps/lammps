@@ -665,12 +665,16 @@ double ComputePropertyLocal::memory_usage()
 
 void ComputePropertyLocal::pack_patom1(int n)
 {
-  int i;
+  int i,j;
   tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
-    buf[n] = tag[i];
+    j = indices[m][1];
+    if(tag[i] < tag[j])
+      buf[n] = tag[i];
+    else 
+      buf[n] = tag[j];
     n += nvalues;
   }
 }
@@ -679,12 +683,16 @@ void ComputePropertyLocal::pack_patom1(int n)
 
 void ComputePropertyLocal::pack_patom2(int n)
 {
-  int i;
+  int i,j;
   tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
-    i = indices[m][1];
-    buf[n] = tag[i];
+    i = indices[m][0];
+    j = indices[m][1];
+    if(tag[i] > tag[j])
+      buf[n] = tag[i];
+    else 
+      buf[n] = tag[j];
     n += nvalues;
   }
 }
@@ -693,12 +701,17 @@ void ComputePropertyLocal::pack_patom2(int n)
 
 void ComputePropertyLocal::pack_ptype1(int n)
 {
-  int i;
+  int i,j;
   int *type = atom->type;
+  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
-    buf[n] = type[i];
+    j = indices[m][1];
+    if(tag[i] < tag[j])
+      buf[n] = type[i];
+    else 
+      buf[n] = type[j];
     n += nvalues;
   }
 }
@@ -707,12 +720,17 @@ void ComputePropertyLocal::pack_ptype1(int n)
 
 void ComputePropertyLocal::pack_ptype2(int n)
 {
-  int i;
+  int i,j;
   int *type = atom->type;
+  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
-    i = indices[m][1];
-    buf[n] = type[i];
+    i = indices[m][0];
+    j = indices[m][1];
+    if(tag[i] > tag[j])
+      buf[n] = type[i];
+    else 
+      buf[n] = type[j];
     n += nvalues;
   }
 }

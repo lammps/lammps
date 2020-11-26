@@ -1,0 +1,37 @@
+README for MLIAPPY source files.
+
+MLIAPPY requires python 3 with cython, numpy, and optionally pytorch installed.
+One could build compatible python models without pytorch, with a bit of work by hand.
+You can get these via standard procedures (pip, conda, or similar)
+
+MLIAPPY also requires the LAMMPS packages MLIAP and PYTHON be enabled.
+
+MLIAPPY can be built with cmake -- a pure make version is forthcoming.
+
+If you are building LAMMPS manually (no cmake/make), the process works roughly as possible:
+
+First run cythonize on mliap_model_python_couple.pyx. This will generate:
+
+(1) mliap_model_python_couple.h
+(2) mliap_model_python_couple.cpp
+
+File (1) is a roughly human readable header file, (2) is a large source file,
+and navigating it is not for the faint of heart. These files are used in mliap_model_python.cpp.
+
+Then use compiler options to define the macro LMP_MLIAPPY during compilation.
+
+Other information:
+
+The "mliap_model_python.cpp" files and "mliap_model_python.h" files cover the
+definitions of the LAMMPS object MLIAPModelPython.
+
+How does this all work?
+
+Roughly: A python extension module called "mliap_model_python_couple" is built in to LAMMPS. This holds a dictionary of currently defined MLIAPModelPython objects and
+the equivalent python models. It also converts the data needed by the model from
+C arrays to numpy arrays before passing them to the python model.
+
+The last file is mliappy_pytorch.py. This contains some simple utility classes
+for taking an energy model in pytorch, and wrapping it for compatibily with MLIAP.
+
+For more information on MLIAPPY, see the examples in examples/mliappy.

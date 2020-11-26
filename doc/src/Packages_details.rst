@@ -692,12 +692,10 @@ Extension to the MLIAP package for coupling with python models.
 
 To use this package, also the :ref:`MLIAP package <PKG-MLIAP>` needs to be installed.
 To use this package, also the :ref:`PYTHON package <PKG-PYTHON>` needs to be installed.
-The version of python must be >3.5, and has been tested only with 3.8.
-Compiling this package has only been tested using CMake, not with pure makefiles.s
-The python interpreter linked to LAMMPS will need cython and numpy installed. 
+The version of python must be >3.5.
 
-Before compiling, run cythonize on /src/MLIAPPY/mliap_model_python_couple.pyx.
-This will produce /src/MLIAPPY/mliap_model_python_couple.cpp and /src/MLIAPPY/mliap_model_python_couple.h files.
+The python interpreter linked to LAMMPS will need cython and numpy installed.
+The examples build models with pytorch, which would thus need to be installed.
 
 This package includes more options for the mliap compute and pair style.
 
@@ -706,6 +704,7 @@ This package includes more options for the mliap compute and pair style.
 **Supporting info:**
 
 * src/MLIAPPY: filenames -> commands
+* src/MLIAPPY/README
 * :doc:`pair_style mliap <pair_mliap>`
 * examples/mliappy (see README)
 ----------

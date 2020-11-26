@@ -29,28 +29,25 @@ using namespace LAMMPS_NS;
 MLIAPModelPython::MLIAPModelPython(LAMMPS* lmp, char* coefffilename) :
   MLIAPModel(lmp, coefffilename)
 {
-  int err;
-  
+  model_loaded = 0;
   python->init();
-
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   PyObject * pyMain = PyImport_AddModule("__main__");
 
-  PyImport_ImportModule("mliap_model_python_couple");
   if (!pyMain) {
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not initialize embedded Python");
   }
-
+  
   PyObject* coupling_module = PyImport_ImportModule("mliap_model_python_couple");
+  
   if (!coupling_module) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
     error->all(FLERR,"Loading MLIAPPY coupling module failure.");
   }
-
   // Recipe from lammps/src/pair_python.cpp :
   // add current directory to PYTHONPATH
   PyObject * py_path = PySys_GetObject((char *)"path");
@@ -61,7 +58,6 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS* lmp, char* coefffilename) :
   if (potentials_path != NULL) {
     PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
   }
-
   PyGILState_Release(gstate);
 
   if (coefffilename) read_coeffs(coefffilename);
@@ -82,28 +78,50 @@ MLIAPModelPython::~MLIAPModelPython(){
 
 int MLIAPModelPython::get_nparams()
 {
-  if (nparams == 0) {
-    if (ndescriptors == 0) error->all(FLERR,"ndescriptors not defined");
-    else nparams = ndescriptors + 1;
-  }
   return nparams;
 }
-
 
 void MLIAPModelPython::read_coeffs(char * fname)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  int err = MLIAPPY_load_model(this, fname);
-  if (err) {
+
+  int loaded = MLIAPPY_load_model(this, fname);
+  if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
     error->all(FLERR,"Loading python model failure.");
   }
+  PyGILState_Release(gstate);
+  
+  if (loaded) {
+    this->connect_param_counts();
+  }
+  else {
+    utils::logmesg(lmp,"Loading python model deferred.\n");
+  }
+}
+
+// Finalize loading of the model.
+void MLIAPModelPython::connect_param_counts()
+{
+  PyGILState_STATE gstate = PyGILState_Ensure();
   nelements = MLIAPPY_nelements(this);
   nparams = MLIAPPY_nparams(this);
   ndescriptors = MLIAPPY_ndescriptors(this);
+  
+  if (PyErr_Occurred()) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Loading python model failure.");
+  }
+  PyGILState_Release(gstate);
+  model_loaded = 1;
+  utils::logmesg(lmp,"Loading python model complete.\n");
+
 }
+
 
 /* ----------------------------------------------------------------------
    Calculate model gradients w.r.t descriptors
@@ -112,7 +130,20 @@ void MLIAPModelPython::read_coeffs(char * fname)
 
 void MLIAPModelPython::compute_gradients(MLIAPData* data)
 {
-  MLIAPPY_model_callback(this, data);
+  if (not model_loaded) {
+    error->all(FLERR,"Model not loaded.");
+  }
+  
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  MLIAPPY_compute_gradients(this, data);
+  if (PyErr_Occurred()) {
+    PyErr_Print();
+    PyErr_Clear();
+    PyGILState_Release(gstate);
+    error->all(FLERR,"Running python model failure.");
+  }
+  PyGILState_Release(gstate);
+
 }
 
 /* ----------------------------------------------------------------------

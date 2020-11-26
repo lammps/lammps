@@ -15,14 +15,14 @@ class TorchWrapper(torch.nn.Module):
         self.n_descriptors = n_descriptors
         self.n_elements = n_elements
 
-    def __call__(self, types, bispectrum, beta, energy):
+    def __call__(self, elems, bispectrum, beta, energy):
 
         bispectrum = torch.from_numpy(bispectrum).to(self.dtype).requires_grad_(True)
-        types = torch.from_numpy(types).to(torch.long) - 1
+        elems = torch.from_numpy(elems).to(torch.long) - 1
 
         with torch.autograd.enable_grad():
 
-            energy_nn = self.model(bispectrum, types)
+            energy_nn = self.model(bispectrum, elems)
             if energy_nn.ndim > 1:
                 energy_nn = energy_nn.flatten()
 
@@ -37,10 +37,10 @@ class TorchWrapper32(TorchWrapper):
 class TorchWrapper64(TorchWrapper):
     dtype = torch.float64
 
-class IgnoreTypes(torch.nn.Module):
+class IgnoreElems(torch.nn.Module):
     def __init__(self,subnet):
         super().__init__()
         self.subnet = subnet
 
-    def forward(self,bispectrum,types):
+    def forward(self,bispectrum,elems):
         return self.subnet(bispectrum)

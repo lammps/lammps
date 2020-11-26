@@ -66,12 +66,9 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 #include <cstdlib>
 #include <cstring>
-#include <string>
 #include <vector>
 
 using namespace LAMMPS_NS;

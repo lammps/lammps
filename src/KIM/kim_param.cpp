@@ -64,13 +64,10 @@
 #include "input.h"
 #include "modify.h"
 #include "pair_kim.h"
-#include "utils.h"
 #include "variable.h"
-#include "fmt/format.h"
 
 #include <cstdlib>
 #include <cstring>
-#include <string>
 #include <vector>
 
 extern "C"

@@ -67,12 +67,9 @@
 #include "input.h"
 #include "modify.h"
 #include "update.h"
-#include "fmt/format.h"
 
-#include <cstdio>
 #include <cstring>
 #include <vector>
-#include <string>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"

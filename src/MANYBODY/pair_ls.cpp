@@ -508,7 +508,7 @@ void PairLS::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "ls", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

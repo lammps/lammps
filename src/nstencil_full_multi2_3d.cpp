@@ -37,7 +37,7 @@ void NStencilFullMulti23d::set_stencil_properties()
     stencil_half[i][i] = 0;
     stencil_skip[i][i] = 0;
     stencil_bin_type[i][i] = i;
-    stencil_cut[i][i] = sqrt(cutneighsq[i][i]);
+    stencil_cutsq[i][i] = cutneighsq[i][i];
   }
 
   // smaller -> larger => use existing newtoff stencil in larger bin
@@ -52,10 +52,10 @@ void NStencilFullMulti23d::set_stencil_properties()
       stencil_skip[i][j] = 0;
       
       if(cutneighsq[i][i] <= cutneighsq[j][j]){
-        stencil_cut[i][j] = sqrt(cutneighsq[j][j]);   
+        stencil_cutsq[i][j] = cutneighsq[j][j];   
         stencil_bin_type[i][j] = j;
       } else {
-        stencil_cut[i][j] = sqrt(cutneighsq[i][j]);   
+        stencil_cutsq[i][j] = cutneighsq[i][j];   
         stencil_bin_type[i][j] = j;
       }
     }
@@ -89,7 +89,7 @@ void NStencilFullMulti23d::create()
       
       bin_type = stencil_bin_type[itype][jtype];
       
-      cutsq = stencil_cut[itype][jtype];
+      cutsq = stencil_cutsq[itype][jtype];
       
       for (k = -sz; k <= sz; k++)
         for (j = -sy; j <= sy; j++)

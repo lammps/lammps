@@ -38,7 +38,7 @@ void NStencilHalfMulti23d::set_stencil_properties()
     stencil_half[i][i] = 1;
     stencil_skip[i][i] = 0;
     stencil_bin_type[i][i] = i;
-    stencil_cut[i][i] = sqrt(cutneighsq[i][i]);
+    stencil_cutsq[i][i] = cutneighsq[i][i];
   }
 
   // Cross types: use full stencil, looking one way through hierarchy
@@ -52,7 +52,7 @@ void NStencilHalfMulti23d::set_stencil_properties()
       if(cutneighsq[i][i] > cutneighsq[j][j]) continue;
 
       stencil_skip[i][j] = 0;
-      stencil_cut[i][j] = sqrt(cutneighsq[i][j]);          
+      stencil_cutsq[i][j] = cutneighsq[i][j];          
       
       if(cutneighsq[i][i] == cutneighsq[j][j]){
         stencil_half[i][j] = 1;
@@ -92,7 +92,7 @@ void NStencilHalfMulti23d::create()
       
       bin_type = stencil_bin_type[itype][jtype];
       
-      cutsq = stencil_cut[itype][jtype];
+      cutsq = stencil_cutsq[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
         for (k = 0; k <= sz; k++)

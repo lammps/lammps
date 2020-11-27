@@ -490,7 +490,7 @@ It is also possible to do an update in place with:
    $ test_pair_style mol-pair-lennard_mdf.yaml -u
 
 And one can finally run the full set of tests with:
-   
+
 .. code-block:: bash
 
    $ test_pair_style mol-pair-lennard_mdf.yaml

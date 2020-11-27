@@ -1228,7 +1228,7 @@ void FixBondReact::superimpose_algorithm()
   memory->create(glove,max_natoms,2,"bond/react:glove");
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
-  memory->create(restore,max_natoms,MAXGUESS,"bond/react:restore");
+  memory->create(restore,max_natoms,MAXGUESS*4,"bond/react:restore");
   memory->create(local_mega_glove,max_natoms+1,allncreate,"bond/react:local_mega_glove");
   memory->create(ghostly_mega_glove,max_natoms+1,allncreate,"bond/react:ghostly_mega_glove");
 

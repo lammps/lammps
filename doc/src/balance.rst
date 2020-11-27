@@ -293,7 +293,7 @@ the balance procedure ends.
    *Niter* is specified as 10, the cutting plane will typically be
    positioned to 1 part in 1000 accuracy (relative to the perfect target
    position).  For *Niter* = 20, it will be accurate to 1 part in a
-   million.  Thus there is no need ot set *Niter* to a large value.
+   million.  Thus there is no need to set *Niter* to a large value.
    LAMMPS will check if the threshold accuracy is reached (in a
    dimension) is less iterations than *Niter* and exit early.  However,
    *Niter* should also not be set too small, since it will take roughly

@@ -36,7 +36,7 @@ polarizability :math:`\alpha` by
 
 Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
-particle remains close ot the core. The values of Drude mass, Drude
+particle remains close to the core. The values of Drude mass, Drude
 charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
 fields:

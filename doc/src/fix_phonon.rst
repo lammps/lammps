@@ -121,7 +121,7 @@ A detailed description of this method can be found in
 
 The *sysdim* keyword is optional.  If specified with a value smaller
 than the dimensionality of the LAMMPS simulation, its value is used
-for the dynamical matrix calculation.  For example, using LAMMPS ot
+for the dynamical matrix calculation.  For example, using LAMMPS to
 model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
 can be computed using *sysdim* = 1.
 

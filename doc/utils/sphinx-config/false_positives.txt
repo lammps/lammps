@@ -2307,7 +2307,6 @@ ortho
 orthonormal
 orthorhombic
 oso
-ot
 Otype
 Ouldridge
 outfile

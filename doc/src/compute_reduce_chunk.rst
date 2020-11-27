@@ -38,7 +38,7 @@ Description
 Define a calculation that reduces one or more per-atom vectors into
 per-chunk values.  This can be useful for diagnostic output.  Or when
 used in conjunction with the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` command it can be
-used ot create per-atom values that induce a new set of chunks with a
+used to create per-atom values that induce a new set of chunks with a
 second :doc:`compute chunk/atom <compute_chunk_atom>` command.  An
 example is given below.
 

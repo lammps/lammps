@@ -99,11 +99,10 @@ TEST_F(KimCommandsTest, kim_init)
                  lmp->input->one("kim_init Unknown_Model real"););
     TEST_FAILURE(".*ERROR: Incompatible units for KIM Simulator Model, required units = metal.*",
                  lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu real"););
-    TEST_FAILURE(".*ERROR: KIM Model does not support the requested unit system.*",
-                 lmp->input->one("kim_init ex_model_Ar_P_MLJ_Fortran real"););
+    // TEST_FAILURE(".*ERROR: KIM Model does not support the requested unit system.*",
+    //              lmp->input->one("kim_init ex_model_Ar_P_Morse real"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones_Ar real");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 

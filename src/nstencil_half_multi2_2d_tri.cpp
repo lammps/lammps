@@ -32,27 +32,17 @@ void NStencilHalfMulti22dTri::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
-  
-  // like -> like => use half stencil
-  for (i = 1; i <= n; i++) {
-    stencil_half[i][i] = 1;
-    stencil_skip[i][i] = 0;
-    stencil_bin_type[i][i] = i;
-    stencil_cutsq[i][i] = cutneighsq[i][i];
-  }
 
   // Cross types: use full stencil, looking one way through hierarchy
   // smaller -> larger => use full stencil in larger bin
-  // larger -> smaller => no nstecil required
-  // If cut offs are same, use existing type-type stencil
+  // larger -> smaller => no nstencil required
+  // If cut offs are same, use half stencil
 
   for (i = 1; i <= n; i++) {
     for (j = 1; j <= n; j++) {
-      if(i == j) continue;
       if(cutneighsq[i][i] > cutneighsq[j][j]) continue;
 
       stencil_skip[i][j] = 0;
-      stencil_cutsq[i][j] = cutneighsq[i][j];          
       
       if(cutneighsq[i][i] == cutneighsq[j][j]){
         stencil_half[i][j] = 1;
@@ -90,7 +80,7 @@ void NStencilHalfMulti22dTri::create()
       
       bin_type = stencil_bin_type[itype][jtype];
       
-      cutsq = stencil_cutsq[itype][jtype];
+      cutsq = cutneighsq[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
         for (j = 0; j <= sy; j++)

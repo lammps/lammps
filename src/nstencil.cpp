@@ -82,7 +82,6 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   stencil_half = nullptr;
   stencil_skip = nullptr;
   stencil_bin_type = nullptr;
-  stencil_cutsq = nullptr;
 
   dimension = domain->dimension;
 }
@@ -122,7 +121,6 @@ NStencil::~NStencil()
     memory->destroy(stencil_half);
     memory->destroy(stencil_skip);
     memory->destroy(stencil_bin_type);
-    memory->destroy(stencil_cutsq);
     
     memory->destroy(stencil_sx_multi2);
     memory->destroy(stencil_sy_multi2);
@@ -280,8 +278,6 @@ void NStencil::create_setup()
                    "neighstencil:stencil_skip");
     memory->create(stencil_bin_type, n+1, n+1, 
                    "neighstencil:stencil_bin_type");
-    memory->create(stencil_cutsq, n+1, n+1, 
-                   "neighstencil:stencil_cutsq");
 
     memory->create(stencil_sx_multi2, n+1, n+1, 
                    "neighstencil:stencil_sx_multi2");               
@@ -346,7 +342,7 @@ void NStencil::create_setup()
         stencil_mbiny_multi2[i][j] = mbiny_multi2[bin_type];
         stencil_mbinz_multi2[i][j] = mbinz_multi2[bin_type];
         
-        stencil_range = sqrt(stencil_cutsq[i][j]);
+        stencil_range = sqrt(cutneighsq[i][j]);
         
         sx = static_cast<int> (stencil_range*bininvx_multi2[bin_type]);
         if (sx*binsizex < stencil_range) sx++;

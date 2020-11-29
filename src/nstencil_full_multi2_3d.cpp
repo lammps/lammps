@@ -32,32 +32,14 @@ void NStencilFullMulti23d::set_stencil_properties()
   int n = atom->ntypes;
   int i, j;
   
-  // like -> like => use half stencil
-  for (i = 1; i <= n; i++) {
-    stencil_half[i][i] = 0;
-    stencil_skip[i][i] = 0;
-    stencil_bin_type[i][i] = i;
-    stencil_cutsq[i][i] = cutneighsq[i][i];
-  }
-
-  // smaller -> larger => use existing newtoff stencil in larger bin
-  // larger -> smaller => use multi-like stencil for small-large in smaller bin
-  // If types are same cutoff, use existing like-like stencil.
+  // Always look up neighbor using full stencil and neighbor's bin
+  // Stencil cutoff set by i-j cutoff
 
   for (i = 1; i <= n; i++) {
     for (j = 1; j <= n; j++) {
-      if(i == j) continue;
-
       stencil_half[i][j] = 0;
       stencil_skip[i][j] = 0;
-      
-      if(cutneighsq[i][i] <= cutneighsq[j][j]){
-        stencil_cutsq[i][j] = cutneighsq[j][j];   
-        stencil_bin_type[i][j] = j;
-      } else {
-        stencil_cutsq[i][j] = cutneighsq[i][j];   
-        stencil_bin_type[i][j] = j;
-      }
+      stencil_bin_type[i][j] = j;
     }
   }
 }
@@ -89,7 +71,7 @@ void NStencilFullMulti23d::create()
       
       bin_type = stencil_bin_type[itype][jtype];
       
-      cutsq = stencil_cutsq[itype][jtype];
+      cutsq = cutneighsq[itype][jtype];
       
       for (k = -sz; k <= sz; k++)
         for (j = -sy; j <= sy; j++)

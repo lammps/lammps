@@ -49,7 +49,6 @@ class NStencil : protected Pointers {
   bool **stencil_half;             // flag creation of a half stencil for itype-jtype
   bool **stencil_skip;             // skip creation of itype-jtype stencils (for newton on)  
   int **stencil_bin_type;          // what type to use for bin information
-  double **stencil_cutsq;          // cutoff used for stencil size
 
   NStencil(class LAMMPS *);
   virtual ~NStencil();

@@ -18,12 +18,13 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "2.1.3"
+version = "2.2.0"
 
 # known checksums for different KIM-API versions. used to validate the download.
 checksums = { \
         '2.1.2' : '6ac52e14ef52967fc7858220b208cba5', \
         '2.1.3' : '6ee829a1bbba5f8b9874c88c4c4ebff8', \
+        '2.2.0' : 'e7f944e1593cffd7444679a660607f6c', \
         }
 
 

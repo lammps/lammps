@@ -1115,7 +1115,7 @@ class lammps(object):
     The variable must be either an equal-style (or equivalent)
     variable or an atom-style variable. The variable type has to
     provided as ``vartype`` parameter which may be one of two constants:
-    ``LMP_VAR_EQUAL`` or ``LMP_VAR_STRING``; it defaults to
+    ``LMP_VAR_EQUAL`` or ``LMP_VAR_ATOM``; it defaults to
     equal-style variables.
     The group parameter is only used for atom-style variables and
     defaults to the group "all" if set to ``None``, which is the default.

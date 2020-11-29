@@ -67,8 +67,9 @@
 #include "neighbor.h"
 #include "update.h"
 
+#include <cstdlib>
 #include <cstring>
-#include <sstream>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -204,8 +205,8 @@ void PairKIM::compute(int eflag, int vflag)
                              KIM_COMPUTE_ARGUMENT_NAME_particleContributing,
                              kim_particleContributing);
     if (kimerror)
-      error->all(FLERR,
-                 "Unable to set KIM particle species codes and/or contributing");
+      error->all(FLERR,"Unable to set KIM particle species "
+                       "codes and/or contributing");
   }
 
   // kim_particleSpecies = KIM atom species for each LAMMPS atom
@@ -339,7 +340,9 @@ void PairKIM::coeff(int narg, char **arg)
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two "
+                     "arguments of pair_coeff command must be * * to span "
+                     "all LAMMPS atom types");
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
@@ -410,9 +413,8 @@ void PairKIM::coeff(int narg, char **arg)
     if (supported) {
       kim_particle_codes[i] = code;
     } else {
-      std::string msg("create_kim_particle_codes: symbol not found: ");
-      msg += lmps_unique_elements[i];
-      error->all(FLERR, msg);
+      error->all(FLERR,fmt::format("GetSpeciesSupportAndCode: symbol not "
+                                   "found: {}",lmps_unique_elements[i]));
     }
   }
   // Set the new values for PM parameters
@@ -421,11 +423,9 @@ void PairKIM::coeff(int narg, char **arg)
     int numberOfParameters(0);
     KIM_Model_GetNumberOfParameters(pkim, &numberOfParameters);
 
-    if (!numberOfParameters) {
-      std::string msg("Incorrect args for pair coefficients \n");
-      msg += "This model has No mutable parameters";
-      error->all(FLERR, msg);
-    }
+    if (!numberOfParameters)
+      error->all(FLERR,"Incorrect args for pair coefficients\n"
+                       "This model has No mutable parameters");
 
     int kimerror;
 
@@ -456,11 +456,10 @@ void PairKIM::coeff(int narg, char **arg)
       }
 
       if (param_index >= numberOfParameters) {
-        std::string msg("Wrong argument for pair coefficients.\n");
-        msg += "This Model does not have the requested '";
-        msg += paramname;
-        msg += "' parameter";
-        error->all(FLERR, msg);
+        auto msg = fmt::format("Wrong argument for pair coefficients.\n"
+                               "This Model does not have the requested "
+                               "'{}' parameter", paramname);
+        error->all(FLERR,msg);
       }
 
       // Get the index_range for the requested parameter
@@ -472,48 +471,41 @@ void PairKIM::coeff(int narg, char **arg)
 
         // Check to see if the indices range contains only integer numbers & :
         if (argtostr.find_first_not_of("0123456789:") != std::string::npos) {
-          std::string msg("Illegal index_range.\n");
-          msg += "Expected integer parameter(s) instead of '";
-          msg += argtostr;
-          msg += "' in index_range";
-          error->all(FLERR, msg);
+          auto msg = fmt::format("Illegal index_range.\nExpected integer "
+                                 "parameter(s) instead of '{}' in "
+                                 "index_range", argtostr);
+          error->all(FLERR,msg);
         }
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
           argtostr[npos] = ' ';
-          std::stringstream str(argtostr);
-          str >> nlbound >> nubound;
+          auto words = utils::split_words(argtostr);
+          nlbound = atoi(words[0].c_str());
+          nubound = atoi(words[1].c_str());
+
           if (nubound < 1 || nubound > extent ||
               nlbound < 1 || nlbound > nubound) {
-            std::string msg("Illegal index_range '");
-            msg += std::to_string(nlbound) + "-" ;
-            msg += std::to_string(nubound) + "' for '";
-            msg += paramname;
-            msg += "' parameter with the extent of '";
-            msg += std::to_string(extent);
-            msg += "'";
-            error->all(FLERR, msg);
+            auto msg = fmt::format("Illegal index_range '{}-{}' for '{}' "
+                                   "parameter with the extent of '{}'",
+                                   nlbound, nubound, paramname, extent);
+            error->all(FLERR,msg);
           }
         } else {
-          std::stringstream str(argtostr);
-          str >> nlbound;
+          nlbound = atoi(argtostr.c_str());
+
           if (nlbound < 1 || nlbound > extent) {
-            std::string msg("Illegal index '");
-            msg += std::to_string(nlbound) + "' for '";
-            msg += paramname;
-            msg += "' parameter with the extent of '";
-            msg += std::to_string(extent);
-            msg += "'";
-            error->all(FLERR, msg);
+            auto msg = fmt::format("Illegal index '{}' for '{}' parameter "
+                                   "with the extent of '{}'", nlbound,
+                                   paramname, extent);
+            error->all(FLERR,msg);
           }
+
           nubound = nlbound;
         }
       } else {
-        std::string msg =
-          "Wrong number of arguments for pair coefficients.\n";
-        msg += "Index range after parameter name is mandatory";
-        error->all(FLERR, msg);
+        error->all(FLERR,"Wrong number of arguments for pair coefficients.\n"
+                         "Index range after parameter name is mandatory");
       }
 
       // Parameter values
@@ -524,7 +516,7 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterDouble(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterDouble returned error");
+              error->all(FLERR,"KIM SetParameterDouble returned error");
           }
         } else if (KIM_DataType_Equal(kim_DataType, KIM_DATA_TYPE_Integer)) {
           for (int j = 0; j < nubound - nlbound + 1; ++j) {
@@ -532,25 +524,22 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterInteger(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterInteger returned error");
+              error->all(FLERR,"KIM SetParameterInteger returned error");
           }
         } else
-          error->all(FLERR, "Wrong parameter type to update");
+          error->all(FLERR,"Wrong parameter type to update");
       } else {
-        std::string msg =
-          "Wrong number of variable values for pair coefficients.\n";
-        msg += "'";
-        msg += std::to_string(nubound - nlbound + 1);
-        msg += "' values are requested for '";
-        msg += paramname;
-        msg += "' parameter.";
-        error->all(FLERR, msg);
+        auto msg = fmt::format("Wrong number of variable values for pair "
+                               "coefficients.\n'{}' values are requested "
+                               "for '{}' parameter", nubound - nlbound + 1,
+                               paramname);
+        error->all(FLERR,msg);
       }
     }
 
     kimerror = KIM_Model_ClearThenRefresh(pkim);
     if (kimerror)
-      error->all(FLERR, "KIM KIM_Model_ClearThenRefresh returned error");
+      error->all(FLERR,"KIM KIM_Model_ClearThenRefresh returned error");
   }
 }
 
@@ -842,17 +831,22 @@ void PairKIM::kim_init()
   else if (!requestedUnitsAccepted)
     error->all(FLERR,"KIM Model did not accept the requested unit system");
 
+  auto logID = fmt::format("{}_Model", comm->me);
+  KIM_Model_SetLogID(pkim, logID.c_str());
+
   // check that the model does not require unknown capabilities
   kimerror = check_for_routine_compatibility();
   if (kimerror)
-    error->all(FLERR,
-               "KIM Model requires unknown Routines.  Unable to proceed");
+    error->all(FLERR,"KIM Model requires unknown Routines. Unable to proceed");
 
   kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
   if (kimerror) {
     KIM_Model_Destroy(&pkim);
     error->all(FLERR,"KIM ComputeArgumentsCreate failed");
   } else kim_init_ok = true;
+
+  logID = fmt::format("{}_ComputeArguments", comm->me);
+  KIM_ComputeArguments_SetLogID(pargs, logID.c_str());
 
   // determine KIM Model capabilities (used in this function below)
   set_kim_model_has_flags();
@@ -985,43 +979,46 @@ void PairKIM::set_lmps_flags()
     error->all(FLERR,"pair_kim does not support hybrid");
 
   // determine unit system and set lmps_units flag
-  if ((strcmp(update->unit_style,"real")==0)) {
+  if (strcmp(update->unit_style,"real") == 0) {
     lmps_units = REAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(update->unit_style,"metal")==0)) {
+  } else if (strcmp(update->unit_style,"metal") == 0) {
     lmps_units = METAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if ((strcmp(update->unit_style,"si")==0)) {
+  } else if (strcmp(update->unit_style,"si") == 0) {
     lmps_units = SI;
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(update->unit_style,"cgs")==0)) {
+  } else if (strcmp(update->unit_style,"cgs") == 0) {
     lmps_units = CGS;
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(update->unit_style,"electron")==0)) {
+  } else if (strcmp(update->unit_style,"electron") == 0) {
     lmps_units = ELECTRON;
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(update->unit_style,"lj")==0)) {
-    error->all(FLERR,"LAMMPS unit_style lj not supported by KIM models");
+  } else if (strcmp(update->unit_style,"lj") == 0 ||
+             strcmp(update->unit_style,"micro") == 0 ||
+             strcmp(update->unit_style,"nano") == 0) {
+    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
+                                 "by KIM models", update->unit_style));
   } else {
     error->all(FLERR,"Unknown unit_style");
   }
@@ -1102,29 +1099,33 @@ void PairKIM::set_kim_model_has_flags()
                                      KIM_SUPPORT_STATUS_required)) {
       std::string msg("KIM Model requires unsupported compute argument: ");
       msg += KIM_ComputeArgumentName_ToString(computeArgumentName);
-      error->all(FLERR, msg);
+      error->all(FLERR,msg);
     }
   }
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialEnergy'; "
-                   "Potential energy will be zero");
+  if (comm->me == 0) {
+    if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; "
+                           "Potential energy will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialForce'; "
-                   "Forces will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialForce'; "
+                           "Forces will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleEnergy'; "
-                   "energy per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleEnergy'; "
+                           "energy per atom will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleVirial'; "
-                   "virial per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleVirial'; "
+                           "virial per atom will be zero");
+  }
 
   int numberOfComputeCallbackNames;
   KIM_COMPUTE_CALLBACK_NAME_GetNumberOfComputeCallbackNames(

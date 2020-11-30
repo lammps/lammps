@@ -755,7 +755,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
       const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);
       const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
       const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);
-      
+
       const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
                            rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
       const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +

@@ -243,6 +243,8 @@ void Comm::init()
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
   // Can't used multi2 communication with Newton off
+  // TODO: need to somehow restrict this option with full neighbor lists
+  // CANNOT use multi2 communication with full nlist 
   if (force->newton == 0 && multi2)
     error->all(FLERR,"Cannot use multi2 communication with Newton off");
 }

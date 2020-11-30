@@ -750,10 +750,16 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
       const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
                              d_rhor_spline(d_type2rhor_ji,m,2);
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
-      const F_FLOAT z2p = (d_z2r_spline(d_type2z2r_ij,m,0)*p + d_z2r_spline(d_type2z2r_ij,m,1))*p +
-                           d_z2r_spline(d_type2z2r_ij,m,2);
-      const F_FLOAT z2 = ((d_z2r_spline(d_type2z2r_ij,m,3)*p + d_z2r_spline(d_type2z2r_ij,m,4))*p +
-                           d_z2r_spline(d_type2z2r_ij,m,5))*p + d_z2r_spline(d_type2z2r_ij,m,6);
+
+      const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3); 
+      const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);
+      const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
+      const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);
+
+      const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
+                           rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
+      const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
+                           z2r_spline_5)*p + z2r_spline_6;
 
       const F_FLOAT recip = 1.0/r;
       const F_FLOAT phi = z2*recip;

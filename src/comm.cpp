@@ -245,6 +245,9 @@ void Comm::init()
   // Can't used multi2 communication with Newton off
   // TODO: need to somehow restrict this option with full neighbor lists
   // CANNOT use multi2 communication with full nlist 
+  // Could remove NP_NEWTON from npair_full_*multi2*, but could be cryptic
+  // Also could be cases where you want newton off (hybrid) but don't use multi2 comm
+  // Could add check on neighbor build, if full and comm->multi2 error...
   if (force->newton == 0 && multi2)
     error->all(FLERR,"Cannot use multi2 communication with Newton off");
 }

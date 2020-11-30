@@ -34,7 +34,7 @@ NPairHalfSizeMulti2Newton::NPairHalfSizeMulti2Newton(LAMMPS *lmp) : NPair(lmp) {
 
 void NPairHalfSizeMulti2Newton::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ktype,ibin,kbin,ns,js;
+  int i,j,k,n,itype,jtype,ibin,jbin,ns,js;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -74,9 +74,9 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 
     ibin = atom2bin_multi2[itype][i];
 
-    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
+    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
 
-      if (itype == ktype) {
+      if (itype == jtype) {
 
 	    // own bin ...
 	    js = bins_multi2[itype][i];
@@ -89,7 +89,6 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 	        }
 	      }
         
-	      jtype = type[j];
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	      delx = xtmp - x[j][0];
@@ -115,7 +114,6 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 	    for (k = 0; k < ns; k++) {
 	      js = binhead_multi2[itype][ibin + s[k]];
 	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
-	        jtype = type[j];
         
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
@@ -135,13 +133,13 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 	      }
 	    }
       } else {
-        // smaller -> larger: locate i in the ktype bin structure
-	    kbin = coord2bin(x[i], ktype);
+        // smaller -> larger: locate i in the jtype bin structure
+	    jbin = coord2bin(x[i], jtype);
         
         // if same size, use half list so check own bin
-        if(cutneighsq[itype][itype] == cutneighsq[ktype][ktype]){
-	      js = binhead_multi2[ktype][kbin];
-	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+        if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
+	      js = binhead_multi2[jtype][jbin];
+	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -150,7 +148,6 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 	          }
 	        }
           
-	        jtype = type[j];
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
 	        delx = xtmp - x[j][0];
@@ -171,14 +168,12 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
          
         // Check other stencils
         
-	    s = stencil_multi2[itype][ktype];
-	    ns = nstencil_multi2[itype][ktype];
+	    s = stencil_multi2[itype][jtype];
+	    ns = nstencil_multi2[itype][jtype];
 	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[ktype][kbin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
-        
-	        jtype = type[j];
-        
+	      js = binhead_multi2[jtype][jbin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+                
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	        delx = xtmp - x[j][0];

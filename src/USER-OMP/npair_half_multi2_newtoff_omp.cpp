@@ -48,7 +48,7 @@ void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ktype,ibin,kbin,which,ns,imol,iatom;
+  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
@@ -98,23 +98,21 @@ void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
     // stores own/ghost pairs on both procs
 
     ibin = atom2bin_multi2[itype][i];
-    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
-      if (itype == ktype) {
-	    kbin = ibin;
+    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
+      if (itype == jtype) {
+	    jbin = ibin;
       } else {
-	    // Locate i in ktype bin
-	    kbin = coord2bin(x[i], ktype);
+	    // Locate i in jtype bin
+	    jbin = coord2bin(x[i], jtype);
       }
       
-      s = stencil_multi2[itype][ktype];
-      ns = nstencil_multi2[itype][ktype];
+      s = stencil_multi2[itype][jtype];
+      ns = nstencil_multi2[itype][jtype];
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[ktype][kbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi2[ktype][j]) {
+	    js = binhead_multi2[jtype][jbin + s[k]];
+	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
 	      if (j <= i) continue;
-          
-	      jtype = type[j];
- 
+           
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
 	      delx = xtmp - x[j][0];

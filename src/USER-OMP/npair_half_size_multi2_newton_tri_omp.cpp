@@ -46,7 +46,7 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ktype,ibin,kbin,ns;
+  int i,j,k,n,itype,jtype,ibin,jbin,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -85,9 +85,9 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
 
     ibin = atom2bin_multi2[itype][i];
 
-    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
+    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
 
-      if (itype == ktype) {
+      if (itype == jtype) {
 
 	    // loop over all atoms in other bins in stencil, store every pair
 	    // skip if i,j neighbor cutoff is less than bin distance
@@ -105,7 +105,6 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
                 if (x[j][0] == xtmp && j <= i) continue;
               }
             }          
-	        jtype = type[j];
         
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
@@ -125,20 +124,18 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
 	      }
 	    }
       } else {
-        // smaller -> larger: locate i in the ktype bin structure
+        // smaller -> larger: locate i in the jtype bin structure
         
-	    kbin = coord2bin(x[i], ktype);
+	    jbin = coord2bin(x[i], jtype);
         
-	    s = stencil_multi2[itype][ktype];
-	    ns = nstencil_multi2[itype][ktype];
+	    s = stencil_multi2[itype][jtype];
+	    ns = nstencil_multi2[itype][jtype];
 	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[ktype][kbin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
-        
-	        jtype = type[j];
-            
+	      js = binhead_multi2[jtype][jbin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+                    
             // if same size, use half stencil            
-            if(cutneighsq[itype][itype] == cutneighsq[ktype][ktype]){
+            if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
               if (x[j][2] < ztmp) continue;
               if (x[j][2] == ztmp) {
                 if (x[j][1] < ytmp) continue;

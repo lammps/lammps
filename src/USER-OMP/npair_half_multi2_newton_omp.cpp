@@ -47,7 +47,7 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ktype,ibin,kbin,which,ns,imol,iatom;
+  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
@@ -96,8 +96,8 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 
     ibin = atom2bin_multi2[itype][i];
 
-    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
-      if (itype == ktype) {
+    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
+      if (itype == jtype) {
 
 	    // own bin ...
 	    js = bins_multi2[itype][i];
@@ -110,7 +110,6 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	        }
 	      }
         
-	      jtype = type[j];
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	      delx = xtmp - x[j][0];
@@ -144,7 +143,6 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	      js = binhead_multi2[itype][ibin + s[k]];
 	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
         
-	        jtype = type[j];
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	        delx = xtmp - x[j][0];
@@ -170,14 +168,14 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	      }
 	    }
       } else {
-        // smaller -> larger: locate i in the ktype bin structure
+        // smaller -> larger: locate i in the jtype bin structure
 
-	    kbin = coord2bin(x[i], ktype);
+	    jbin = coord2bin(x[i], jtype);
         
         // if same size, use half list so check own bin
-        if(cutneighsq[itype][itype] == cutneighsq[ktype][ktype]){
-	      js = binhead_multi2[ktype][kbin];
-	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+        if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
+	      js = binhead_multi2[jtype][jbin];
+	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -186,7 +184,6 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	          }
 	        }
           
-	        jtype = type[j];
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
 	        delx = xtmp - x[j][0];
@@ -212,14 +209,13 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	      }  
         }
          
-	    s = stencil_multi2[itype][ktype];
-	    ns = nstencil_multi2[itype][ktype];
+	    s = stencil_multi2[itype][jtype];
+	    ns = nstencil_multi2[itype][jtype];
         
 	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[ktype][kbin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[ktype][j]) {
+	      js = binhead_multi2[jtype][jbin + s[k]];
+	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
         
-	        jtype = type[j];
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	        delx = xtmp - x[j][0];

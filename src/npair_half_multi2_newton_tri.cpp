@@ -27,10 +27,9 @@ using namespace LAMMPS_NS;
 NPairHalfMulti2NewtonTri::NPairHalfMulti2NewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   KS REWRTIE
    binned neighbor list construction with Newton's 3rd law for triclinic
+   multi2-type stencil is itype-jtype dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
-   multi-type stencil is itype dependent and is distance checked
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
@@ -79,25 +78,34 @@ void NPairHalfMulti2NewtonTri::build(NeighList *list)
       iatom = molatom[i];
       tagprev = tag[i] - iatom - 1;
     }
-    
-    // own type: loop over atoms ahead in bin, including ghosts at end of list
-    // if j is owned atom, store by virtue of being ahead of i in list
-    // if j is ghost, store if x[j] "above and to right of" x[i]
 
     ibin = atom2bin_multi2[itype][i];
-
+    
+    // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
 
-      if (itype == jtype) {	
+      // if same type use own bin
+      if(itype == jtype) jbin = ibin;
+	  else jbin = coord2bin(x[i], jtype);
+      
+      // loop over all atoms in bins in stencil
+      // stencil is empty if i larger than j
+      // stencil is half if i same size as j
+      // stencil is full if i smaller than j
+      // if half: pairs for atoms j "below" i are excluded
+      // below = lower z or (equal z and lower y) or (equal zy and lower x)
+      //         (equal zyx and j <= i)
+      // latter excludes self-self interaction but allows superposed atoms
 
-	    // loop over all atoms in other bins in stencil, store every pair
-	    // skip if i,j neighbor cutoff is less than bin distance
-        
-	    s = stencil_multi2[itype][itype];
-	    ns = nstencil_multi2[itype][itype];
-	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[itype][ibin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
+	  s = stencil_multi2[itype][jtype];
+	  ns = nstencil_multi2[itype][jtype];
+      
+	  for (k = 0; k < ns; k++) {
+	    js = binhead_multi2[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+                  
+          // if same size (e.g. same type), use half stencil            
+          if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;
@@ -105,80 +113,33 @@ void NPairHalfMulti2NewtonTri::build(NeighList *list)
                 if (x[j][0] < xtmp) continue;
                 if (x[j][0] == xtmp && j <= i) continue;
               }
-            }
-
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-        
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	    	    if (!moltemplate)
-	    	      which = find_special(special[i],nspecial[i],tag[j]);
-	    	    else if (imol >= 0)
-	    	      which = find_special(onemols[imol]->special[iatom],
-	    	    		       onemols[imol]->nspecial[iatom],
-	    	    		       tag[j]-tagprev);
-	    	    else which = 0;
-	    	    if (which == 0) neighptr[n++] = j;
-	    	    else if (domain->minimum_image_check(delx,dely,delz))
-	    	      neighptr[n++] = j;
-	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
-	        }
+            }                
+          }            
+          
+	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+      
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+      
+	      if (rsq <= cutneighsq[itype][jtype]) {
+	        if (molecular != Atom::ATOMIC) {
+	  	    if (!moltemplate)
+	  	      which = find_special(special[i],nspecial[i],tag[j]);
+	  	    else if (imol >= 0)
+	  	      which = find_special(onemols[imol]->special[iatom],
+	  	    		       onemols[imol]->nspecial[iatom],
+	  	    		       tag[j]-tagprev);
+	  	    else which = 0;
+	  	    if (which == 0) neighptr[n++] = j;
+	  	    else if (domain->minimum_image_check(delx,dely,delz))
+	  	      neighptr[n++] = j;
+	  	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	        } else neighptr[n++] = j;
 	      }
 	    }
-      } else {
-        // smaller -> larger: locate i in the jtype bin structure
-
-	    jbin = coord2bin(x[i], jtype);
-	    s = stencil_multi2[itype][jtype];
-	    ns = nstencil_multi2[itype][jtype];
-        
-	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[jtype][jbin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
-                    
-            // if same size, use half stencil            
-            if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
-              if (x[j][2] < ztmp) continue;
-              if (x[j][2] == ztmp) {
-                if (x[j][1] < ytmp) continue;
-                if (x[j][1] == ytmp) {
-                  if (x[j][0] < xtmp) continue;
-                  if (x[j][0] == xtmp && j <= i) continue;
-                }
-              }                
-            }            
-            
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-        
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	    	    if (!moltemplate)
-	    	      which = find_special(special[i],nspecial[i],tag[j]);
-	    	    else if (imol >= 0)
-	    	      which = find_special(onemols[imol]->special[iatom],
-	    	    		       onemols[imol]->nspecial[iatom],
-	    	    		       tag[j]-tagprev);
-	    	    else which = 0;
-	    	    if (which == 0) neighptr[n++] = j;
-	    	    else if (domain->minimum_image_check(delx,dely,delz))
-	    	      neighptr[n++] = j;
-	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
-	        }
-	      }
-	    }
-      }
+	  }
     }
     
     ilist[inum++] = i;

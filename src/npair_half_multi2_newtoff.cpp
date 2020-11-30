@@ -27,17 +27,16 @@ using namespace LAMMPS_NS;
 NPairHalfMulti2Newtoff::NPairHalfMulti2Newtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   REWRITE
    binned neighbor list construction with partial Newton's 3rd law
+   multi2-type stencil is itype-jtype dependent      
    each owned atom i checks own bin and other bins in stencil
-   multi-type stencil is itype dependent and is distance checked
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
 void NPairHalfMulti2Newtoff::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ktype,ibin,kbin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
@@ -81,30 +80,29 @@ void NPairHalfMulti2Newtoff::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in other bins in stencil including self
-    // only store pair if i < j
-    // skip if i,j neighbor cutoff is less than bin distance
-    // stores own/own pairs only once
-    // stores own/ghost pairs on both procs
-
     ibin = atom2bin_multi2[itype][i];
-    for (ktype = 1; ktype <= atom->ntypes; ktype++) {
-      if (itype == ktype) {
-	    kbin = ibin;
-      } else {
-	    // Locate i in ktype bin
-	    kbin = coord2bin(x[i], ktype);
-      }
+    
+    // loop through stencils for all types    
+    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
+        
+      // if same type use own bin
+      if(itype == jtype) jbin = ibin;
+	  else jbin = coord2bin(x[i], jtype);
       
-      s = stencil_multi2[itype][ktype];
-      ns = nstencil_multi2[itype][ktype];
+      // loop over all atoms in other bins in stencil including self
+      // only store pair if i < j
+      // stores own/own pairs only once
+      // stores own/ghost pairs on both procs      
+      // use full stencil for all type combinations
+
+      s = stencil_multi2[itype][jtype];
+      ns = nstencil_multi2[itype][jtype];
+      
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[ktype][kbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi2[ktype][j]) {
+	    js = binhead_multi2[jtype][jbin + s[k]];
+	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
 	      if (j <= i) continue;
-          
-	      jtype = type[j];
- 
+           
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
 	      delx = xtmp - x[j][0];

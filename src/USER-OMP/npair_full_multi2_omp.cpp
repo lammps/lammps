@@ -30,7 +30,7 @@ NPairFullMulti2Omp::NPairFullMulti2Omp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   multi-type stencil is itype dependent and is distance checked
+   multi2-type stencil is itype-jtype dependent   
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -89,21 +89,22 @@ void NPairFullMulti2Omp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in other bins in stencil, including self
-    // skip if i,j neighbor cutoff is less than bin distance
-    // skip i = j
-
     ibin = atom2bin_multi2[itype][i];
+    
+    // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
-      if (itype == jtype) {
-	    jbin = ibin;
-      } else {
-	    // Locate i in jtype bin
-	    jbin = coord2bin(x[i], jtype);
-      }
+
+      // if same type use own bin
+      if(itype == jtype) jbin = ibin;
+	  else jbin = coord2bin(x[i], jtype);
+
+      // loop over all atoms in surrounding bins in stencil including self
+      // skip i = j
+      // use full stencil for all type combinations
 
       s = stencil_multi2[itype][jtype];
       ns = nstencil_multi2[itype][jtype];
+      
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi2[jtype][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {

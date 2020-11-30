@@ -28,9 +28,10 @@ NPairHalfSizeMulti2NewtonTriOmp::NPairHalfSizeMulti2NewtonTriOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
+   multi2-type stencil is itype-jtype dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
-   multi-type stencil is itype dependent and is distance checked
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
@@ -79,24 +80,34 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    // own type: loop over atoms ahead in bin, including ghosts at end of list
-    // if j is owned atom, store by virtue of being ahead of i in list
-    // if j is ghost, store if x[j] "above and to right of" x[i]
-
     ibin = atom2bin_multi2[itype][i];
 
+    // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
 
-      if (itype == jtype) {
+      // if same type use own bin
+      if(itype == jtype) jbin = ibin;
+	  else jbin = coord2bin(x[i], jtype);
 
-	    // loop over all atoms in other bins in stencil, store every pair
-	    // skip if i,j neighbor cutoff is less than bin distance
-        
-	    s = stencil_multi2[itype][itype];
-	    ns = nstencil_multi2[itype][itype];
-	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[itype][ibin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[itype][j]) {
+
+      // loop over all atoms in bins in stencil
+      // stencil is empty if i larger than j
+      // stencil is half if i same size as j
+      // stencil is full if i smaller than j
+      // if half: pairs for atoms j "below" i are excluded
+      // below = lower z or (equal z and lower y) or (equal zy and lower x)
+      //         (equal zyx and j <= i)
+      // latter excludes self-self interaction but allows superposed atoms
+
+	  s = stencil_multi2[itype][jtype];
+	  ns = nstencil_multi2[itype][jtype];
+      
+	  for (k = 0; k < ns; k++) {
+	    js = binhead_multi2[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+                  
+          // if same size (e.g. same type), use half stencil            
+          if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;
@@ -104,66 +115,26 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
                 if (x[j][0] < xtmp) continue;
                 if (x[j][0] == xtmp && j <= i) continue;
               }
-            }          
+            }                
+          }  
+          
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-	        radsum = radi + radius[j];
-	        cutdistsq = (radsum+skin) * (radsum+skin);
-        
-	        if (rsq <= cutdistsq) {
-	          if (history && rsq < radsum*radsum) 
-	    	    neighptr[n++] = j ^ mask_history;
-	          else
-	    	    neighptr[n++] = j;
-	        }
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
+      
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
+	  	    neighptr[n++] = j ^ mask_history;
+	        else
+	  	    neighptr[n++] = j;
 	      }
 	    }
-      } else {
-        // smaller -> larger: locate i in the jtype bin structure
-        
-	    jbin = coord2bin(x[i], jtype);
-        
-	    s = stencil_multi2[itype][jtype];
-	    ns = nstencil_multi2[itype][jtype];
-	    for (k = 0; k < ns; k++) {
-	      js = binhead_multi2[jtype][jbin + s[k]];
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
-                    
-            // if same size, use half stencil            
-            if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
-              if (x[j][2] < ztmp) continue;
-              if (x[j][2] == ztmp) {
-                if (x[j][1] < ytmp) continue;
-                if (x[j][1] == ytmp) {
-                  if (x[j][0] < xtmp) continue;
-                  if (x[j][0] == xtmp && j <= i) continue;
-                }
-              }                
-            }
-        
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-	        radsum = radi + radius[j];
-	        cutdistsq = (radsum+skin) * (radsum+skin);
-        
-	        if (rsq <= cutdistsq) {
-	          if (history && rsq < radsum*radsum) 
-	    	    neighptr[n++] = j ^ mask_history;
-	          else
-	    	    neighptr[n++] = j;
-	        }
-	      }
-	    }
-      }
+	  }
     }
 
     ilist[i] = i;

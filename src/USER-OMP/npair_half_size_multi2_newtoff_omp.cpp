@@ -27,9 +27,10 @@ using namespace LAMMPS_NS;
 NPairHalfSizeMulti2NewtoffOmp::NPairHalfSizeMulti2NewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   size particles
    binned neighbor list construction with partial Newton's 3rd law
+   multi2-type stencil is itype-jtype dependent      
    each owned atom i checks own bin and other bins in stencil
-   multi-type stencil is itype dependent and is distance checked
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
@@ -79,23 +80,24 @@ void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    // loop over all atoms in other bins in stencil including self
-    // only store pair if i < j
-    // skip if i,j neighbor cutoff is less than bin distance
-    // stores own/own pairs only once
-    // stores own/ghost pairs on both procs
-
     ibin = atom2bin_multi2[itype][i];
+    
+    // loop through stencils for all types    
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
-      if (itype == jtype) {
-	    jbin = ibin;
-      } else {
-	    // Locate i in jtype bin
-	    jbin = coord2bin(x[i], jtype);
-      }
+        
+      // if same type use own bin
+      if(itype == jtype) jbin = ibin;
+	  else jbin = coord2bin(x[i], jtype);
       
+      // loop over all atoms in other bins in stencil including self
+      // only store pair if i < j
+      // stores own/own pairs only once
+      // stores own/ghost pairs on both procs      
+      // use full stencil for all type combinations
+
       s = stencil_multi2[itype][jtype];
       ns = nstencil_multi2[itype][jtype];
+      
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi2[jtype][jbin + s[k]];
 	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
@@ -119,7 +121,6 @@ void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
 	    }
       }
     }
-
 
     ilist[i] = i;
     firstneigh[i] = neighptr;

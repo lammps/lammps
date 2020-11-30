@@ -505,6 +505,8 @@ class lammps(object):
     self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
     self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, py_object]
     self.lib.lammps_set_fix_external_callback.restype = None
+    
+    self.mliappy = MLIAPPY(self)
 
   # -------------------------------------------------------------------------
   # shut-down LAMMPS instance
@@ -2924,3 +2926,43 @@ class IPyLammps(PyLammps):
     """
     from IPython.display import HTML
     return HTML("<video controls><source src=\"" + filename + "\"></video>")
+
+class MLIAPPY():
+    def __init__(self,lammps):
+        self._module = None
+        self.lammps = lammps
+        
+    @property
+    def module(self):
+        if self._module:
+            return self._module
+            
+        try:
+            # Begin Importlib magic to find the embedded python module
+            # This is needed because the filename for liblammps does not
+            # match the spec for normal python modules, wherein
+            # file names match with PyInit function names.
+            # Also, python normally doesn't look for extensions besides '.so'
+            # We fix both of these problems by providing an explict
+            # path to the extension module 'mliap_model_python_couple' in
+            import sys
+            import importlib.util
+            import importlib.machinery
+
+            path = self.lammps.lib._name
+            loader = importlib.machinery.ExtensionFileLoader('mliap_model_python_couple',path)
+            spec = importlib.util.spec_from_loader('mliap_model_python_couple',loader)
+            module = importlib.util.module_from_spec(spec)
+            sys.modules['mliap_model_python_couple']=module
+            spec.loader.exec_module(module)
+            self._module = module
+            # End Importlib magic to find the embedded python module
+        except:
+            raise ImportError("Could not load MLIAPPY coupling module")
+    
+    def activate(self):
+        self.module
+        
+    def load_model(self,model):
+        self.module.load_from_python(model)
+            

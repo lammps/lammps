@@ -69,6 +69,17 @@ PairMLIAP::~PairMLIAP()
 
 void PairMLIAP::compute(int eflag, int vflag)
 {
+  
+  // consistency checks
+
+  if (data->ndescriptors != model->ndescriptors) {
+    error->all(FLERR,"Incompatible model and descriptor descriptor count");
+  };
+  
+  if (data->nelements != model->nelements) {
+    error->all(FLERR,"Incompatible model and descriptor element count");
+  };
+  
   ev_init(eflag,vflag);
 
   data->generate_neighdata(list, eflag, vflag);
@@ -137,9 +148,8 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
-      }
       #ifdef LMP_MLIAPPY
-      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+      } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
           if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
           model = new MLIAPModelPython(lmp,arg[iarg+2]);
           iarg += 3;
@@ -225,15 +235,7 @@ void PairMLIAP::coeff(int narg, char **arg)
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
   data->init();
 
-  // consistency checks
 
-  if (data->ndescriptors != model->ndescriptors) {
-    error->all(FLERR,"Incompatible model and descriptor definitions (different number of descriptors)");
-  };
-  
-  if (data->nelements != model->nelements) {
-    error->all(FLERR,"Incompatible model and descriptor definitions (different number of elements)");
-  };
 }
 
 /* ----------------------------------------------------------------------

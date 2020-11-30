@@ -148,6 +148,7 @@ athomps
 atm
 atomeye
 atomfile
+AtomicPairStyle
 atomID
 atomistic
 attogram
@@ -1119,11 +1120,13 @@ gmail
 gmake
 gmask
 Gmask
+GMock
 gneb
 GNEB
 Goldfarb
 Gonzalez-Melchor
 googlemail
+googletest
 Gordan
 Goudeau
 GPa
@@ -1544,6 +1547,7 @@ ksh
 kspace
 Kspace
 KSpace
+KSpaceStyle
 Kspring
 kT
 kTequil
@@ -1930,6 +1934,7 @@ mol
 Mol
 molfile
 Molfile
+MolPairStyle
 moltemplate
 momb
 Monaghan
@@ -2306,7 +2311,6 @@ ortho
 orthonormal
 orthorhombic
 oso
-ot
 Otype
 Ouldridge
 outfile
@@ -3295,6 +3299,7 @@ vdfmax
 vdim
 vdisplace
 vdW
+vdwl
 vec
 vectorial
 vectorization
@@ -3462,6 +3467,7 @@ xyz
 xz
 xzhou
 yaff
+yaml
 YAFF
 Yamada
 Yaser

@@ -37,14 +37,14 @@ tools                      pre- and post-processing tools
 
 Point your browser at any of these files to get started:
 
-https://lammps.sandia.gov/doc/Manual.html         LAMMPS user manual
+https://lammps.sandia.gov/doc/Manual.html         LAMMPS manual
 https://lammps.sandia.gov/doc/Intro.html          hi-level introduction
 https://lammps.sandia.gov/doc/Build.html          how to build LAMMPS
 https://lammps.sandia.gov/doc/Run_head.html       how to run LAMMPS
 https://lammps.sandia.gov/doc/Commands_all.html   Table of available commands
-https://lammps.sandia.gov/doc/pg_library.html     LAMMPS programmer guide
+https://lammps.sandia.gov/doc/Library.html        LAMMPS library interfaces
 https://lammps.sandia.gov/doc/Modify.html         how to modify and extend LAMMPS
-https://lammps.sandia.gov/doc/pg_developer.html   LAMMPS developer guide
+https://lammps.sandia.gov/doc/Developer.html      LAMMPS developer info
 
 You can also create these doc pages locally:
 

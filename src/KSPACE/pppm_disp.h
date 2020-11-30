@@ -292,9 +292,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                           double *, double *, double *,
                           double *, double *, double *,
                           FFT_SCALAR ***, FFT_SCALAR ***,
-			  FFT_SCALAR ***, double *, double **, double **,
+                          FFT_SCALAR ***, double *, double **, double **,
                           FFT_SCALAR ***, FFT_SCALAR ***,
-			  FFT_SCALAR ***, FFT_SCALAR ***,
+                          FFT_SCALAR ***, FFT_SCALAR ***,
                           FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_ad(FFT_SCALAR*, FFT_SCALAR*,
@@ -316,17 +316,17 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***,
+                             FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***,
+                             FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
   virtual void poisson_2s_ad(FFT_SCALAR *, FFT_SCALAR *,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***,
+                             FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-			     FFT_SCALAR ***,
+                             FFT_SCALAR ***,
                              FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
 
   virtual void poisson_2s_peratom(FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
@@ -342,10 +342,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
-			       FFT_SCALAR ****,
+                               FFT_SCALAR ****,
                                FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
   virtual void poisson_none_peratom(int, int,
-				    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+                                    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                     FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);

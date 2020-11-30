@@ -245,7 +245,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
       if (d_shake_flag[i]) {
         if (d_shake_flag[i] == 2) {
-          const int atom1 = map_array(d_shake_atom(i,0)); 
+          const int atom1 = map_array(d_shake_atom(i,0));
           const int atom2 = map_array(d_shake_atom(i,1));
           if (atom1 == -1 || atom2 == -1) {
             d_error_flag() = 1;
@@ -548,7 +548,7 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
 
       auto mass = this->d_mass;
       auto type = this->d_type;
-    
+
       Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
         if (d_shake_flag[i]) {
           const double dtfmsq = dtfsq / mass[type[i]];
@@ -568,7 +568,7 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const 
+void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -1644,7 +1644,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShakeKokkos<DeviceType>::post_force(vflag);
-  
+
   atomKK->sync(Host,X_MASK|F_MASK);
 
   // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force

@@ -89,7 +89,7 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   eatom = nullptr;
   vatom = nullptr;
   centroidstressflag = CENTROID_NOTAVAIL;
-  
+
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;

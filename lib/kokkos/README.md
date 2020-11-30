@@ -18,7 +18,7 @@ profiling and debugging tools (https://github.com/kokkos/kokkos-tools).
 
 A programming guide can be found on the Wiki, the API reference is under development.
 
-For questions find us on Slack: https://kokkosteam.slack.com or open a GitHub issue.
+For questions find us on Slack: https://kokkosteam.slack.com or open a github issue.
 
 For non-public questions send an email to
 crtrott(at)sandia.gov
@@ -44,7 +44,7 @@ To learn more about Kokkos consider watching one of our presentations:
 We are open and try to encourage contributions from external developers.
 To do so please first open an issue describing the contribution and then issue
 a pull request against the develop branch. For larger features it may be good
-to get guidance from the core development team first through the GitHub issue.
+to get guidance from the core development team first through the github issue.
 
 Note that Kokkos Core is licensed under standard 3-clause BSD terms of use.
 Which means contributing to Kokkos allows anyone else to use your contributions
@@ -108,6 +108,10 @@ For specifics see the LICENSE file contained in the repository or distribution.
 * ARM
     * Pthreads backend
 
+### Build system:
+* CMake >= 3.10: required
+* CMake >= 3.13: recommended
+* CMake >= 3.18: Fortran linkage. This does not affect most mixed Fortran/Kokkos builds. See [build issues](BUILD.md#KnownIssues).
 
 Primary tested compiler are passing in release mode
 with warnings as errors. They also are tested with a comprehensive set of

@@ -65,32 +65,6 @@ KOKKOS_ARCH_OPTION(VEGA900         GPU  "AMD GPU MI25 GFX900")
 KOKKOS_ARCH_OPTION(VEGA906         GPU  "AMD GPU MI50/MI60 GFX906")
 KOKKOS_ARCH_OPTION(INTEL_GEN       GPU  "Intel GPUs Gen9+")
 
-IF (KOKKOS_ENABLE_CUDA)
- #Regardless of version, make sure we define the general architecture name
- IF (KOKKOS_ARCH_KEPLER30 OR KOKKOS_ARCH_KEPLER32 OR KOKKOS_ARCH_KEPLER35 OR KOKKOS_ARCH_KEPLER37)
-   SET(KOKKOS_ARCH_KEPLER ON)
- ENDIF()
-
- #Regardless of version, make sure we define the general architecture name
- IF (KOKKOS_ARCH_MAXWELL50 OR KOKKOS_ARCH_MAXWELL52 OR KOKKOS_ARCH_MAXWELL53)
-   SET(KOKKOS_ARCH_MAXWELL ON)
- ENDIF()
-
- #Regardless of version, make sure we define the general architecture name
- IF (KOKKOS_ARCH_PASCAL60 OR KOKKOS_ARCH_PASCAL61)
-   SET(KOKKOS_ARCH_PASCAL ON)
- ENDIF()
-
-  #Regardless of version, make sure we define the general architecture name
-  IF (KOKKOS_ARCH_VOLTA70 OR KOKKOS_ARCH_VOLTA72)
-    SET(KOKKOS_ARCH_VOLTA ON)
-  ENDIF()
-
-  IF (KOKKOS_ARCH_AMPERE80)
-    SET(KOKKOS_ARCH_AMPERE ON)
-  ENDIF()
-ENDIF()
-
 
 
 IF(KOKKOS_ENABLE_COMPILER_WARNINGS)
@@ -472,6 +446,32 @@ IF(KOKKOS_ENABLE_CUDA AND NOT CUDA_ARCH_ALREADY_SPECIFIED)
                        "Please give one -DKokkos_ARCH_{..}=ON' to enable an NVIDIA GPU architecture.\n"
                        "You can yourself try to compile ${CMAKE_CURRENT_SOURCE_DIR}/cmake/compile_tests/cuda_compute_capability.cc and run the executable. "
                        "If you are cross-compiling, you should try to do this on a compute node.")
+  ENDIF()
+ENDIF()
+
+IF (KOKKOS_ENABLE_CUDA)
+ #Regardless of version, make sure we define the general architecture name
+ IF (KOKKOS_ARCH_KEPLER30 OR KOKKOS_ARCH_KEPLER32 OR KOKKOS_ARCH_KEPLER35 OR KOKKOS_ARCH_KEPLER37)
+   SET(KOKKOS_ARCH_KEPLER ON)
+ ENDIF()
+
+ #Regardless of version, make sure we define the general architecture name
+ IF (KOKKOS_ARCH_MAXWELL50 OR KOKKOS_ARCH_MAXWELL52 OR KOKKOS_ARCH_MAXWELL53)
+   SET(KOKKOS_ARCH_MAXWELL ON)
+ ENDIF()
+
+ #Regardless of version, make sure we define the general architecture name
+ IF (KOKKOS_ARCH_PASCAL60 OR KOKKOS_ARCH_PASCAL61)
+   SET(KOKKOS_ARCH_PASCAL ON)
+ ENDIF()
+
+  #Regardless of version, make sure we define the general architecture name
+  IF (KOKKOS_ARCH_VOLTA70 OR KOKKOS_ARCH_VOLTA72)
+    SET(KOKKOS_ARCH_VOLTA ON)
+  ENDIF()
+
+  IF (KOKKOS_ARCH_AMPERE80)
+    SET(KOKKOS_ARCH_AMPERE ON)
   ENDIF()
 ENDIF()
 

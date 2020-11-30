@@ -85,6 +85,9 @@ enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD};
 // keyword values that accept variables as input
 enum{NEVERY,RMIN,RMAX,PROB};
 
+// values for molecule_keyword
+enum{OFF,INTER,INTRA};
+
 /* ---------------------------------------------------------------------- */
 
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
@@ -202,6 +205,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
@@ -222,6 +226,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     max_rxn[i] = INT_MAX;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    molecule_keyword[i] = OFF;
     // set default limit duration to 60 timesteps
     limit_duration[i] = 60;
     reaction_count[i] = 0;
@@ -376,6 +381,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Bond/react: Molecule fragment for "
                                                          "'custom_charges' keyword does not exist");
         }
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"molecule") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'molecule' has too few arguments");
+        if (strcmp(arg[iarg+1],"off") == 0) molecule_keyword[rxn] = OFF; //default
+        else if (strcmp(arg[iarg+1],"inter") == 0) molecule_keyword[rxn] = INTER;
+        else if (strcmp(arg[iarg+1],"intra") == 0) molecule_keyword[rxn] = INTRA;
+        else error->one(FLERR,"Bond/react: Illegal option for 'molecule' keyword");
         iarg += 2;
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
@@ -548,6 +561,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(molecule_keyword);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -750,11 +764,12 @@ void FixBondReact::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // check cutoff for iatomtype,jatomtype
-  for (int i = 0; i < nreacts; i++) {
-    if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
-      error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
-  }
+    // check cutoff for iatomtype,jatomtype
+    for (int i = 0; i < nreacts; i++) {
+      if (closeneigh[i] == -1) // indicates will search for non-bonded bonding atoms
+        if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
+          error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
+    }
 
   // need a half neighbor list, built every Nevery steps
   int irequest = neighbor->request(this,instance_me);
@@ -1053,6 +1068,11 @@ void FixBondReact::far_partner()
         continue;
       }
 
+      if (molecule_keyword[rxnID] == INTER)
+        if (atom->molecule[i] == atom->molecule[j]) continue;
+      else if (molecule_keyword[rxnID] == INTRA)
+        if (atom->molecule[i] != atom->molecule[j]) continue;
+
       jtype = type[j];
       possible = 0;
       if (itype == iatomtype[rxnID] && jtype == jatomtype[rxnID]) {
@@ -1132,6 +1152,11 @@ void FixBondReact::close_partner()
       if (i_limit_tags[i2] != 0) continue;
       if (itype != iatomtype[rxnID] || jtype != jatomtype[rxnID]) continue;
 
+      if (molecule_keyword[rxnID] == INTER)
+        if (atom->molecule[i1] == atom->molecule[i2]) continue;
+      else if (molecule_keyword[rxnID] == INTRA)
+        if (atom->molecule[i1] != atom->molecule[i2]) continue;
+
       delx = x[i1][0] - x[i2][0];
       dely = x[i1][1] - x[i2][1];
       delz = x[i1][2] - x[i2][2];
@@ -1203,7 +1228,7 @@ void FixBondReact::superimpose_algorithm()
   memory->create(glove,max_natoms,2,"bond/react:glove");
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
-  memory->create(restore,max_natoms,MAXGUESS,"bond/react:restore");
+  memory->create(restore,max_natoms,MAXGUESS*4,"bond/react:restore");
   memory->create(local_mega_glove,max_natoms+1,allncreate,"bond/react:local_mega_glove");
   memory->create(ghostly_mega_glove,max_natoms+1,allncreate,"bond/react:ghostly_mega_glove");
 
@@ -1304,7 +1329,9 @@ void FixBondReact::superimpose_algorithm()
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
         if (hang_catch > atom->nlocal*30) {
-          error->one(FLERR,"Bond/react: Excessive iteration of superimpose algorithm");
+          error->one(FLERR,"Bond/react: Excessive iteration of superimpose algorithm. "
+              "Please check that all pre-reaction template atoms are linked to an initiator atom, "
+              "via at least one path that does not involve edge atoms.");
         }
       }
     }
@@ -1717,6 +1744,17 @@ void FixBondReact::ring_check()
 {
   // ring_check can be made more efficient by re-introducing 'frozen' atoms
   // 'frozen' atoms have been assigned and also are no longer pioneers
+
+  // double check the number of neighbors match for all non-edge atoms
+  // otherwise, atoms at 'end' of symmetric ring can behave like edge atoms
+  for (int i = 0; i < onemol->natoms; i++) {
+    if (edge[i][rxnID] == 0) {
+      if (onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0]) {
+        status = GUESSFAIL;
+        return;
+      }
+    }
+  }
 
   for (int i = 0; i < onemol->natoms; i++) {
     for (int j = 0; j < onemol_nxspecial[i][0]; j++) {
@@ -3131,6 +3169,12 @@ void FixBondReact::update_everything()
   int Tdelta_imprp;
   MPI_Allreduce(&delta_imprp,&Tdelta_imprp,1,MPI_INT,MPI_SUM,world);
   atom->nimpropers += Tdelta_imprp;
+
+  if (ndel && (atom->map_style != Atom::MAP_NONE)) {
+    atom->nghost = 0;
+    atom->map_init();
+    atom->map_set();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3184,7 +3228,9 @@ void FixBondReact::read(int myrxn)
 
   int equivflag = 0, bondflag = 0;
   while (strlen(keyword)) {
-    if (strcmp(keyword,"BondingIDs") == 0) {
+    if (strcmp(keyword,"InitiatorIDs") == 0 || strcmp(keyword,"BondingIDs") == 0) {
+      if (strcmp(keyword,"BondingIDs") == 0)
+        if (me == 0) error->warning(FLERR,"Bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
@@ -3213,7 +3259,7 @@ void FixBondReact::read(int myrxn)
 
   // error check
   if (bondflag == 0 || equivflag == 0)
-    error->all(FLERR,"Bond/react: Map file missing BondingIDs or Equivalences section\n");
+    error->all(FLERR,"Bond/react: Map file missing InitiatorIDs or Equivalences section\n");
 }
 
 void FixBondReact::EdgeIDs(char *line, int myrxn)

@@ -279,7 +279,6 @@ Boltzman
 BondAngle
 BondBond
 bondchk
-BondingIDs
 bondmax
 bondtype
 Bonet
@@ -1329,6 +1328,7 @@ inhomogeneous
 init
 initialdelay
 initializations
+InitiatorIDs
 initio
 InP
 inregion

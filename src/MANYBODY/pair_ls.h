@@ -55,61 +55,103 @@ class PairLS : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  // virtual int pack_forward_comm(int, int *, double *, int, int *);
+  // virtual void unpack_forward_comm(int, int, double *);
+  // int pack_reverse_comm(int, int, double *);
+  // void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
-  void swap_ls(double *, double **);
+  // void swap_ls(double *, double **);
 
  protected:
-  int nmax;                   // allocated size of per-atom arrays
-  double cutforcesq;
-  double **scale;
-  bigint embedstep;           // timestep, the embedding term was computed
+ 
+  const int  n_mark_at=10;
+  const int  max_at=100000;
+  const int  max_at_def=100;
+  const int  max_neighb=200;
+  const int  max_pair_at=max_at*max_neighb;
+  const int  max_pair_at_def=max_at_def*max_neighb;
+  const int  max_list=max_pair_at+max_at;
+  const int  max_cell=100000;
+  const int  max_at_group=max_at/5;
+  const int  max_group=10000;
+  const int  max_p=1;
+  const int  max_hole= max_p/100;
+  const int  max_seat= max_at;
 
-  // per-atom arrays
+  const int mf3=3;            // max_f3
+  const int mfi=30;           // max_sp_fi
+  const int mro=25;           // max_sp_ro
+  const int memb=10;          // max_sp_emb
+  const int mf=15;            // max_sp_f
+  const int mg=15;            // max_sp_g
+  const int mi=6;             // max_sort_at
+ 
+  bool*1 if_g3_pot, if_g4_pot, if_F2_pot, if_gp0_pot;
+  bool*1 if_diag;
+  int*4 n_f3, n_sort;
+  int*4 n_sp_fi, n_sp_ro, n_sp_emb, n_sp_f, n_sp_g;
 
-  double *rho,*fp;
-  int *numforce;
-
-  // potentials as file data
-
-  int *map;                   // which element each atom type maps to
-
-  struct Funcfl {
-    char *file;
-    int nrho,nr;
-    double drho,dr,cut,mass;
-    double *frho,*rhor,*zr;
-  };
-  Funcfl *funcfl;
-  int nfuncfl;
-
-  struct Setfl {
-    char **elements;
-    int nelements,nrho,nr;
-    double drho,dr,cut;
-    double *mass;
-    double **frho,**rhor,***z2r;
-  };
-  Setfl *setfl;
-
-  struct Fs {
-    char **elements;
-    int nelements,nrho,nr;
-    double drho,dr,cut;
-    double *mass;
-    double **frho,***rhor,***z2r;
-  };
-  Fs *fs;
-
-  virtual void allocate();
-  virtual void array2spline();
-  void interpolate(int, double, double *, double **);
+  // arrays are inverted in comparison as they declared in common blocks in pot_ls.h
+  double shag_sp_fi[mi][mi], shag_sp_ro[mi][mi], shag_sp_emb[mi], shag_sp_f[mi][mi], shag_sp_g;
+  
+  double R_sp_fi[mi][mi][mfi], R_sp_ro[mi][mi][mro], R_sp_emb[mi][memb], R_sp_f[mi][mi][mf], R_sp_g[mg]; 
+  double a_sp_fi[mi][mi][mfi], b_sp_fi[mi][mi][mfi], c_sp_fi[mi][mi][mfi], d_sp_fi[mi][mi][mfi];
+  double a_sp_ro, b_sp_ro, c_sp_ro, d_sp_ro, a_sp_emb, b_sp_emb, c_sp_emb, d_sp_emb, a_sp_f3, b_sp_f3, c_sp_f3, d_sp_f3,     a_sp_g3, b_sp_g3, c_sp_g3, d_sp_g3,       a_sp_f4, b_sp_f4, c_sp_f4, d_sp_f4,       a_sp_g4, b_sp_g4, c_sp_g4, d_sp_g4;
+  double fip_rmin;
+  double z_ion, c_ZBL, d_ZBL, zz_ZBL, a_ZBL, e0_ZBL;
+  double Rmin_fi_ZBL, c_fi_ZBL;
+  double Rc_fi, Rc_f;
 
   virtual void read_file(char *);
   virtual void file2array();
+
+  // int nmax;                   // allocated size of per-atom arrays
+  // double cutforcesq;
+  // double **scale;
+  // bigint embedstep;           // timestep, the embedding term was computed
+
+  // // per-atom arrays
+
+  // double *rho,*fp;
+  // int *numforce;
+
+  // // potentials as file data
+
+  // int *map;                   // which element each atom type maps to
+
+  // struct Funcfl {
+  //   char *file;
+  //   int nrho,nr;
+  //   double drho,dr,cut,mass;
+  //   double *frho,*rhor,*zr;
+  // };
+  // Funcfl *funcfl;
+  // int nfuncfl;
+
+  // struct Setfl {
+  //   char **elements;
+  //   int nelements,nrho,nr;
+  //   double drho,dr,cut;
+  //   double *mass;
+  //   double **frho,**rhor,***z2r;
+  // };
+  // Setfl *setfl;
+
+  // struct Fs {
+  //   char **elements;
+  //   int nelements,nrho,nr;
+  //   double drho,dr,cut;
+  //   double *mass;
+  //   double **frho,***rhor,***z2r;
+  // };
+  // Fs *fs;
+
+  // virtual void allocate();
+  // virtual void array2spline();
+  // void interpolate(int, double, double *, double **);
+
+  // virtual void read_file(char *);
+  // virtual void file2array();
 };
 
 }

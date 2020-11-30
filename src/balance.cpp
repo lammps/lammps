@@ -795,7 +795,7 @@ int Balance::shift()
   // loop over dimensions in balance string
 
   double *prd = domain->prd;
-  
+
   int niter = 0;
   for (int idim = 0; idim < ndim; idim++) {
 
@@ -917,7 +917,7 @@ int Balance::shift()
 
     // adjust adjacent splits that are too close (within neigh skin)
     // do this with minimal adjustment to splits
-    
+
     double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
     double delta,midpt,start,stop,lbound,ubound,spacing;
 
@@ -930,7 +930,7 @@ int Balance::shift()
 	// if can expand set and not become too close to splits I-1 or J+1, do it
 	// else add split I-1 or J+1 to set and try again
 	// delta = size of expanded split set that will satisy criterion
-      
+
 	while (1) {
 	  delta = (j-i) * close;
 	  midpt = 0.5 * (split[i]+split[j]);
@@ -943,12 +943,12 @@ int Balance::shift()
 	  else ubound = 1.0;
 
 	  // start/stop are within bounds, reset the splits
-	  
+
 	  if (start >= lbound && stop <= ubound) break;
 
 	  // try a shift to either bound, reset the splits if delta fits
 	  // these tests change start/stop
-	  
+
 	  if (start < lbound) {
 	    start = lbound;
 	    stop = start + delta;
@@ -963,7 +963,7 @@ int Balance::shift()
 	  // exit if can't expand set, else expand set
 	  // if can expand in either direction,
 	  //   pick new split closest to current midpt of set
-	  
+
 	  if (i == 0 && j == np) {
 	    start = 0.0; stop = 1.0;
 	    break;
@@ -980,13 +980,13 @@ int Balance::shift()
 	for (m = i; m <= j; m++)
 	  split[m] = start + (m-i)*spacing;
         if (j == np) split[np] = 1.0;
-	
+
 	// continue testing beyond the J split
-	
+
 	i = j+1;
       } else i++;
     }
-    
+
     // sanity check on bad duplicate or inverted splits
     // zero or negative width sub-domains will break Comm class
     // should never happen if recursive multisection algorithm is correct

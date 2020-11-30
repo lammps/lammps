@@ -128,14 +128,14 @@ void KimQuery::command(int narg, char **arg)
   if (strcmp("list",arg[1]) == 0) {
     if (narg == 2) error->all(FLERR,"Illegal kim_query command.\nThe 'list' "
                                     "keyword must be followed by ('split' "
-                                    "and) the name of the query function"); 
+                                    "and) the name of the query function");
     arg++;
     narg--;
   }
 
   char *function = arg[1];
   for (int i = 2; i < narg; ++i) {
-    if (strncmp("model=",arg[i],6) == 0) 
+    if (strncmp("model=",arg[i],6) == 0)
       error->all(FLERR,"Illegal 'model' key in kim_query command");
 
     if (!strchr(arg[i], '=') || !strchr(arg[i], '[') || !strchr(arg[i], ']'))
@@ -202,7 +202,7 @@ size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
   // copy chunks into the buffer for as long as there is space left
   if (buf->sizeleft) {
     const size_t buffer_size = size * nmemb;
-    const size_t copy_this_much = 
+    const size_t copy_this_much =
       buf->sizeleft > buffer_size ? buffer_size : buf->sizeleft;
 
     memcpy(buf->dataptr, data, copy_this_much);
@@ -242,9 +242,9 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
         std::string val = values.next_string();
         std::string::size_type n = val.find(",");
         if (n == std::string::npos) {
-          if (utils::is_integer(val) || 
+          if (utils::is_integer(val) ||
               utils::is_double(val) ||
-              (val.front() == '"' && 
+              (val.front() == '"' &&
                val.back() == '"')) {
             query += fmt::format("&{}", arg[i]);
           } else {
@@ -254,9 +254,9 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
           query += fmt::format("&{}=[", key);
           while (n != std::string::npos){
             std::string sval = val.substr(0, n);
-            if (utils::is_integer(sval) || 
+            if (utils::is_integer(sval) ||
                 utils::is_double(sval) ||
-                (val.front() == '"' && 
+                (val.front() == '"' &&
                  val.back() == '"')) {
               query += fmt::format("{},", sval);
             } else {
@@ -292,9 +292,9 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
         }
       }
 
-      std::string user_agent = fmt::format("kim_query--LAMMPS/{} ({})", 
+      std::string user_agent = fmt::format("kim_query--LAMMPS/{} ({})",
                                            LAMMPS_VERSION, Info::get_os_info());
-      
+
       curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());
       curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
       curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);

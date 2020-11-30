@@ -751,7 +751,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
                              d_rhor_spline(d_type2rhor_ji,m,2);
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
-      const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3); 
+      const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3);
       const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);
       const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
       const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);

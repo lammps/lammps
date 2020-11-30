@@ -168,18 +168,17 @@ void NPairHalfSizeMulti2Newton::build(NeighList *list)
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
           delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-	        radsum = radi + radius[j];
-	        cutdistsq = (radsum+skin) * (radsum+skin);
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
         
-	        if (rsq <= cutdistsq) {
-	          if (history && rsq < radsum*radsum) 
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
 	    	    neighptr[n++] = j ^ mask_history;
-	          else
+	        else
 	    	    neighptr[n++] = j;
-	        }
 	      }
 	    }
       }

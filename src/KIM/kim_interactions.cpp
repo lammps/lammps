@@ -103,7 +103,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     error->all(FLERR,fmt::format("Illegal kim_interactions command.\nThe "
                                  "LAMMPS simulation has {} atom type(s), but "
                                  "{} chemical species passed to the "
-                                 "kim_interactions command", 
+                                 "kim_interactions command",
                                  atom->ntypes, narg));
   } else {
     fixed_types = false;
@@ -128,10 +128,10 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   if (simulatorModel) {
     if (!fixed_types) {
-      std::string atom_type_sym_list = 
+      std::string atom_type_sym_list =
         fmt::format("{}", fmt::join(arg, arg + narg, " "));
-      
-      std::string atom_type_num_list = 
+
+      std::string atom_type_num_list =
         fmt::format("{}", species_to_atomic_no(arg[0]));
 
       for (int i = 1; i < narg; ++i)
@@ -192,11 +192,11 @@ void KimInteractions::do_setup(int narg, char **arg)
       if (strcmp(sim_field,"model-defn") == 0) {
         if (domain->periodicity[0]&&
             domain->periodicity[1]&&
-            domain->periodicity[2]) 
+            domain->periodicity[2])
           input->one("variable kim_periodic equal 1");
         else if (domain->periodicity[0]&&
                  domain->periodicity[1]&&
-                 !domain->periodicity[2]) 
+                 !domain->periodicity[2])
           input->one("variable kim_periodic equal 2");
         else input->one("variable kim_periodic equal 0");
 
@@ -242,7 +242,7 @@ void KimInteractions::do_setup(int narg, char **arg)
     // as that will reset the argument vector.
 
     auto cmd1 = fmt::format("pair_style kim {}", model_name);
-    auto cmd2 = 
+    auto cmd2 =
       fmt::format("pair_coeff * * {}", fmt::join(arg, arg + narg, " "));
 
     input->one(cmd1);

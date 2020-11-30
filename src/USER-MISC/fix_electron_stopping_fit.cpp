@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation. Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software. This software is distributed under 
+   certain rights in this software. This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -62,36 +62,36 @@ static const char cite_fix_electron_stopping_fit_c[] =
 // ---------------------------------------------------------------------
 
 FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp,narg,arg), energy_coh_in(nullptr), drag_fac_in_1(nullptr), 
-  drag_fac_in_2(nullptr), drag_fac_1(nullptr), drag_fac_2(nullptr), 
+  Fix(lmp,narg,arg), energy_coh_in(nullptr), drag_fac_in_1(nullptr),
+  drag_fac_in_2(nullptr), drag_fac_1(nullptr), drag_fac_2(nullptr),
   v_min_sq(nullptr), v_max_sq(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_electron_stopping_fit_c);
-  
+
   if (narg < 3 + 3*atom->ntypes) {
      error->all(FLERR,"Incorrect number of fix electron/stopping/fit arguments");
   }
-  
+
   scalar_flag = 1;
   global_freq = 1;
-  
+
   energy_coh_in = new double[atom->ntypes+1];
-  
+
   drag_fac_in_1 = new double[atom->ntypes+1];
   drag_fac_in_2 = new double[atom->ntypes+1];
-  
+
   for (int i = 1; i <= atom->ntypes; i++) {
      energy_coh_in[i] = utils::numeric(FLERR,arg[3*i],false,lmp);
      drag_fac_in_1[i] = utils::numeric(FLERR,arg[3*i+1],false,lmp);
      drag_fac_in_2[i] = utils::numeric(FLERR,arg[3*i+2],false,lmp);
   };
-  
+
   v_min_sq = new double[atom->ntypes+1];
   v_max_sq = new double[atom->ntypes+1];
-  
+
   drag_fac_1 = new double[atom->ntypes+1];
   drag_fac_2 = new double[atom->ntypes+1];
-  
+
   for (int i = 1; i <= atom->ntypes; i++) {
      double mvv;
      mvv = 2.0*energy_coh_in[i]/force->mvv2e;
@@ -157,7 +157,7 @@ void FixElectronStoppingFit::post_force(int vflag)
   double **f = atom->f;
   int *type  = atom->type;
   int nlocal = atom->nlocal;
-  
+
   f_dot_v_current = 0.0;
   for (int i = 0; i < nlocal; i++) {
      double vv = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
@@ -179,8 +179,8 @@ void FixElectronStoppingFit::post_force(int vflag)
         f[i][0] -= gamma_x*v[i][0];
         f[i][1] -= gamma_y*v[i][1];
         f[i][2] -= gamma_z*v[i][2];
-        f_dot_v_current += v_mag*sqrt( MathSpecial::square(gamma_x*v[i][0]) 
-                                     + MathSpecial::square(gamma_y*v[i][1]) 
+        f_dot_v_current += v_mag*sqrt( MathSpecial::square(gamma_x*v[i][0])
+                                     + MathSpecial::square(gamma_y*v[i][1])
                                      + MathSpecial::square(gamma_z*v[i][2]) );
      };
   };

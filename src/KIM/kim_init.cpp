@@ -92,7 +92,7 @@ void KimInit::command(int narg, char **arg)
   strcpy(user_units,arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2],"unit_conversion_mode")==0) unit_conversion_mode = true;
-    else { 
+    else {
       error->all(FLERR,fmt::format("Illegal kim_init command.\nThe argument "
                                    "followed by unit_style {} is an optional "
                                    "argument and when is used must "
@@ -161,7 +161,7 @@ void get_kim_unit_names(
              strcmp(system,"micro") ==0 ||
              strcmp(system,"nano")==0) {
     error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", system));   
+                                 "by KIM models", system));
   } else {
     error->all(FLERR,"Unknown unit_style");
   }
@@ -183,7 +183,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
   KIM_CollectionItemType itemType;
 
   int kim_error = KIM_Collections_Create(&collections);
-  if (kim_error) 
+  if (kim_error)
     error->all(FLERR,"Unable to access KIM Collections to find Model");
 
   auto logID = fmt::format("{}_Collections", comm->me);
@@ -508,7 +508,7 @@ void KimInit::write_log_cite(char *model_name)
     int availableAsString;
     char const * fileString;
     err = KIM_Collections_GetItemMetadataFile(
-        collections, i, &fileName, nullptr, nullptr, 
+        collections, i, &fileName, nullptr, nullptr,
         &availableAsString, &fileString);
     if (err) continue;
 

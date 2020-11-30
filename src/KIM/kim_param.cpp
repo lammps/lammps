@@ -321,7 +321,7 @@ void KimParam::command(int narg, char **arg)
             if (nubound < 1 || nubound > extent ||
                 nlbound < 1 || nlbound > nubound) {
               auto msg = fmt::format("Illegal index_range '{}-{}' for '{}' "
-                                     "parameter with the extent of '{}'", 
+                                     "parameter with the extent of '{}'",
                                      nlbound, nubound, paramname, extent);
               error->all(FLERR, msg);
             }
@@ -378,14 +378,14 @@ void KimParam::command(int narg, char **arg)
                 if (strcmp(arg[i], "explicit") == 0) ++i;
               }
             } else {
-              auto msg = 
+              auto msg =
                 fmt::format("Wrong number of arguments in 'kim_param get' "
                             "command.\nThe LAMMPS '{}' variable names or "
                             "'{} split' is mandatory", nvars, varname);
               error->all(FLERR, msg);
             }
           } else {
-            auto msg = 
+            auto msg =
               fmt::format("Wrong number of arguments in 'kim_param get' "
                           "command.\nThe LAMMPS '{}' variable names or "
                           "'{} split/list' is mandatory", nvars, varname);
@@ -399,7 +399,7 @@ void KimParam::command(int narg, char **arg)
               ++i;
             } else {
               if ((strcmp(arg[i], "list") == 0) ||
-                  (strcmp(arg[i], "explicit") == 0)) 
+                  (strcmp(arg[i], "explicit") == 0))
                 ++i;
 
               varsname[0] = varname;

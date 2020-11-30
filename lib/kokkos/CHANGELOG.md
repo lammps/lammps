@@ -1,5 +1,27 @@
 # Change Log
 
+## [3.2.01](https://github.com/kokkos/kokkos/tree/3.2.01) (2020-11-17)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.2.00...3.2.01)
+
+**Fixed bugs:**
+- Disallow KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE in shared library builds [\#3332](https://github.com/kokkos/kokkos/pull/3332)
+- Do not install libprinter-tool when testing is enabled [\#3313](https://github.com/kokkos/kokkos/pull/3313)
+- Fix restrict/alignment following refactor [\#3373](https://github.com/kokkos/kokkos/pull/3373)
+  - Intel fix: workaround compiler issue with using statement [\#3383](https://github.com/kokkos/kokkos/pull/3383)
+- Fix zero-length reductions [#\3364](https://github.com/kokkos/kokkos/pull/3364)
+  - Pthread zero-length reduction fix [\#3452](https://github.com/kokkos/kokkos/pull/3452)
+  - HPX zero-length reduction fix [\#3470](https://github.com/kokkos/kokkos/pull/3470)
+  - cuda/9.2 zero-length reduction fix [\#3580](https://github.com/kokkos/kokkos/pull/3580)
+- Fix multi-stream scratch [#\3269](https://github.com/kokkos/kokkos/pull/3269)
+- Guard KOKKOS_ALL_COMPILE_OPTIONS if Cuda is not enabled [\#3387](https://github.com/kokkos/kokkos/pull/3387)
+- Do not include link flags for Fortran linkage [\#3384](https://github.com/kokkos/kokkos/pull/3384)
+- Fix NVIDIA GPU arch macro with autodetection [\#3473](https://github.com/kokkos/kokkos/pull/3473)
+- Fix libdl/test issues with Trilinos [\#3543](https://github.com/kokkos/kokkos/pull/3543)
+  - Register Pthread as Tribits option to be enabled with Trilinos [\#3558](https://github.com/kokkos/kokkos/pull/3558)
+
+**Implemented enhancements:**
+- Separate Cuda timing-based tests into their own executable [\#3407](https://github.com/kokkos/kokkos/pull/3407)
+
 ## [3.2.00](https://github.com/kokkos/kokkos/tree/3.2.00) (2020-08-19)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.1.01...3.2.00)
 

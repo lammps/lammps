@@ -1126,9 +1126,9 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
-      if ((!domain->xperiodic) && (imx != 0)) flagx = 1;
-      if ((!domain->yperiodic) && (imy != 0)) flagy = 1;
-      if ((!domain->zperiodic) && (imz != 0)) flagz = 1;
+      if ((!domain->xperiodic) && (imx != 0)) { flagx = 1; imx = 0; }
+      if ((!domain->yperiodic) && (imy != 0)) { flagy = 1; imy = 0; }
+      if ((!domain->zperiodic) && (imz != 0)) { flagz = 1; imz = 0; }
     }
     imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
@@ -1171,11 +1171,14 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   if (comm->me == 0) {
     if (flagx)
-      error->warning(FLERR,"Non-zero imageflag(s) in x direction for non-periodic boundary");
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
     if (flagy)
-      error->warning(FLERR,"Non-zero imageflag(s) in y direction for non-periodic boundary");
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
     if (flagz)
-      error->warning(FLERR,"Non-zero imageflag(s) in z direction for non-periodic boundary");
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
   }
 
   delete [] values;

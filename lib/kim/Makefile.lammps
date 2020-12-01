@@ -23,6 +23,8 @@ kim_PREFIX  := $(if $(shell printf -- "$${PKG_CONFIG_PATH}"),$(kim_PREFIX):$(she
 
 # there is no usable libcurl installation
 ifeq ($(shell curl-config --version 2> /dev/null),)
+$(warning Could not find an installed CURL library.)
+$(warning Building without libcurl; Use of the 'kim_query' command will result in an error.)
 kim_SYSINC  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --cflags libkim-api 2> /dev/null)
 kim_SYSLIB  := $(shell export PKG_CONFIG_PATH="$(kim_PREFIX)"; pkg-config --libs   libkim-api 2> /dev/null)
 else

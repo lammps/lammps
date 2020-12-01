@@ -345,11 +345,11 @@ void NStencil::create_setup()
         stencil_range = sqrt(cutneighsq[i][j]);
         
         sx = static_cast<int> (stencil_range*bininvx_multi2[bin_type]);
-        if (sx*binsizex < stencil_range) sx++;
+        if (sx*binsizex_multi2[bin_type] < stencil_range) sx++;
         sy = static_cast<int> (stencil_range*bininvy_multi2[bin_type]);
-        if (sy*binsizey < stencil_range) sy++;
+        if (sy*binsizey_multi2[bin_type] < stencil_range) sy++;
         sz = static_cast<int> (stencil_range*bininvz_multi2[bin_type]);
-        if (sz*binsizez < stencil_range) sz++;
+        if (sz*binsizez_multi2[bin_type] < stencil_range) sz++;
         
         stencil_sx_multi2[i][j] = sx;
         stencil_sy_multi2[i][j] = sy;

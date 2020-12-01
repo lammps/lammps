@@ -92,7 +92,7 @@ void NStencilHalfMulti23d::create()
 	            if (bin_distance_multi2(i,j,k,bin_type) < cutsq)
 	              stencil_multi2[itype][jtype][ns++] = 
                           k*mbiny*mbinx + j*mbinx + i;
-	  }
+	          }
       } else {
         for (k = -sz; k <= sz; k++)
           for (j = -sy; j <= sy; j++)

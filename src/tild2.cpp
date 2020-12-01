@@ -420,6 +420,7 @@ void TILD::vir_func_init() {
         }
 
       }
+/*
       std::string fname = "vg_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
       std::ofstream file(fname);
       n = 0;
@@ -427,6 +428,7 @@ void TILD::vir_func_init() {
         file << j <<'\t'<< vg[loc][0][j]  <<'\t'<< vg[loc][1][j]  <<'\t'<< vg[loc][2][j]  <<'\t'<< vg[loc][3][j]  <<'\t'<< vg[loc][4][j] <<'\t'<< vg[loc][5][j] <<'\t'<< vg_hat[loc][0][n]  <<'\t'<< vg_hat[loc][1][n]  <<'\t'<< vg_hat[loc][2][n]  <<'\t'<< vg_hat[loc][3][n]  <<'\t'<< vg_hat[loc][4][n] <<'\t'<< vg_hat[loc][5][n] <<'\t'<< vg_hat[loc][0][n+1]  <<'\t'<< vg_hat[loc][1][n+1]  <<'\t'<< vg_hat[loc][2][n+1]  <<'\t'<< vg_hat[loc][3][n+1]  <<'\t'<< vg_hat[loc][4][n+1] <<'\t'<< vg_hat[loc][5][n+1] << endl;
         n += 2;
       }
+*/
       loc++;
     }
   }
@@ -497,6 +499,7 @@ void TILD::precompute_density_hat_fft() {
       density_hat_fft_types[ktype][k] = work1[k];
     }
 
+/*
     std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(ktype)+".txt";
     std::ofstream rhof(fname);
     n = 0;
@@ -504,6 +507,7 @@ void TILD::precompute_density_hat_fft() {
       rhof << k << '\t' << density_fft_types[ktype][k] << '\t' << density_hat_fft_types[ktype][n] << '\t' << density_hat_fft_types[ktype][n+1] << endl;
       n += 2;
     }
+*/
   }
 }
 
@@ -1072,6 +1076,7 @@ void TILD::init_cross_potentials(){
         for (int j = 0; j < 2*nfft; j++) {
           work1[j] = grad_potent_hat[loc][i][j];
         }
+        //fft2->compute(work1, work2, -1);
         fft1->compute(work1, work2, -1);
         n = 0;
         for (int j = 0; j < nfft; j++) {
@@ -1081,6 +1086,7 @@ void TILD::init_cross_potentials(){
       } 
 
       // output
+/*
       std::string fnameU = "U_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
       std::string fnamegradU = "gradU_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
       std::string fnamegradUhat = "gradUhat_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
@@ -1102,6 +1108,7 @@ void TILD::init_cross_potentials(){
       filegradU.close();
       filegradUhat.close();
       filegradUhatI.close();
+*/
       loc++;
     }
   }
@@ -1795,6 +1802,7 @@ void TILD::make_rho()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
+    //std::cout << "part2grid\t" << i << '\t' << x[i][0] << '\t' << x[i][1]  << '\t' << x[i][2] << '\t' << nz << '\t' << ny  << '\t' << nz << endl ;
     dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
@@ -1813,6 +1821,8 @@ void TILD::make_rho()
 
           density_brick_types[type[i]][mz][my][mx] += w;
           density_brick_types[0][mz][my][mx] += w;
+          //std::cout << "weights\t" << i << '\t' << mz << '\t' << my  << '\t' << mz << '\t' << w << endl ;
+          //std::cout << "weights\t" << i << '\t' << x[i][0] << '\t' << x[i][1]  << '\t' << x[i][2] << '\t' << w << endl ;
         }
       }
     }
@@ -1969,6 +1979,7 @@ void TILD::accumulate_gradient() {
       loc++;
     }
   }
+/*
   for (int itype = 1; itype <= ntypes; itype++) {
     std::string fname = "gradw_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+".txt";
     std::ofstream gradtype(fname);
@@ -1979,6 +1990,7 @@ void TILD::accumulate_gradient() {
           gradtype << n++ <<'\t'<< gradWtypex[itype][k][m][o] <<'\t'<< gradWtypey[itype][k][m][o] <<'\t'<<  gradWtypez[itype][k][m][o]<< endl;
           //gradtype << n++ <<'\t'<< gradWtype[itype][0][k][m][o] <<'\t'<< gradWtype[itype][1][k][m][o] <<'\t'<<  gradWtype[itype][2][k][m][o]<< endl;
   }
+*/
 }
 
 void TILD::fieldforce_param(){
@@ -1998,10 +2010,12 @@ void TILD::fieldforce_param(){
   int nlocal = atom->nlocal;
 
   // Convert field to force per particle
+/*
   std::string fname = "forces_lammps_"+std::to_string(comm->me)+".txt";
   ofstream delvolinv_forces(fname);
   std::string fname2 = "posgrid_"+std::to_string(comm->me)+".txt";
   ofstream posgrid(fname2);
+*/
   // ofstream grid_vol_forces("gridvol_forces_lammps.txt");
   // ofstream both_forces("delv_gridvol_forces_lammps.txt");
   int *type = atom->type;
@@ -2051,7 +2065,7 @@ void TILD::fieldforce_param(){
     // f[i][1] += grid_vol * eky;
     // f[i][2] += grid_vol * ekz;
     //delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
-    delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
+    //delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
     //posgrid << x[i][0] <<'\t'<< x[i][1] <<'\t'<<  x[i][2] << '\t'<< rho1d[0][0] << '\t'<< rho1d[1][0] << '\t'<< rho1d[2][0] << endl;
     // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
     // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;

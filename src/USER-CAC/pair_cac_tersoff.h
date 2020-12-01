@@ -68,6 +68,7 @@ class PairCACTersoff : public PairCAC {
   int add_ncluster;                 // number of additional sites to store neighbors around for the flux calculation
   int **add_cluster_neighbors;      // stores neighbors of neighbors for flux calculation around the quadrature point
   int *add_cluster_neighbor_counts; // stores neighbors of neighbors counts for flux calculation around the quadrature point
+  int origin_type;
  
   void allocate();
   void read_file(char *);
@@ -93,6 +94,7 @@ class PairCACTersoff : public PairCAC {
   void force_densities(int, double, double, double, double, double
     &fx, double &fy, double &fz);
   virtual void quad_neigh_flux();
+  virtual void plane_intersections(double *pi, double *pj, double, double, double, double, double, double);
 
   // inlined functions for efficiency
 

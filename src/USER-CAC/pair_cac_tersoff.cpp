@@ -635,7 +635,6 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
   double zeta_ij,prefactor,r_scan,fa_scan;
 
   rcut = cut_global_s;
-  int origin_type = type_array[poly_counter];
 
   int listtype;
   int scan_type, scan_type2, scan_type3;
@@ -919,12 +918,12 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
       current_quad_flux(short_scan,-delx*fpair,-dely*fpair,-delz*fpair);
     
     if(atom->CAC_virial){
-    virial_density[0] += 0.5*delx*delx*fpair;
-    virial_density[1] += 0.5*dely*dely*fpair;
-    virial_density[2] += 0.5*delz*delz*fpair;
-    virial_density[3] += 0.5*delx*dely*fpair;
-    virial_density[4] += 0.5*delx*delz*fpair;
-    virial_density[5] += 0.5*dely*delz*fpair;
+      virial_density[0] -= 0.5*delx*delx*fpair;
+      virial_density[1] -= 0.5*dely*dely*fpair;
+      virial_density[2] -= 0.5*delz*delz*fpair;
+      virial_density[3] -= 0.5*delx*dely*fpair;
+      virial_density[4] -= 0.5*delx*delz*fpair;
+      virial_density[5] -= 0.5*dely*delz*fpair;
     }
     
     //tally three body term for ijl and ilj permutations of triplets that contribute to i
@@ -962,12 +961,7 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
         flux_interaction[0] += fj[0];
         flux_interaction[1] += fj[1];
         flux_interaction[2] += fj[2];
-        ijkparam = elem2param[origin_type][scan_type2][scan_type];
-        attractive(&params[ijkparam],prefactor,
-                  rsq2,rsq1,delr2,delr1,fi,fk,fj);
-        flux_interaction[0] += fk[0];
-        flux_interaction[1] += fk[1];
-        flux_interaction[2] += fk[2];
+        current_quad_flux(short_scan2,fk[0],fk[1],fk[2]);
       }
     }
     
@@ -1001,7 +995,7 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
       if (rsq2 >= params[ijkparam].cutsq) continue;
       zeta_ij += zeta(&params[ijkparam],rsq1,rsq2,ndelr1,delr2);
     }
-    
+
     force_zeta(&params[ijparam],rsq1,zeta_ij,fpair,prefactor,quad_eflag, energy_contribution);
     quadrature_energy += energy_contribution/2;
     force_densityx += delr1[0]*fpair;
@@ -1042,6 +1036,17 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
         virial_density[3] += THIRD*(delr1[0]*fj[1] + delr2[0]*fk[1]);
         virial_density[4] += THIRD*(delr1[0]*fj[2] + delr2[0]*fk[2]);
         virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
+      }
+      if(quad_flux_flag){
+        flux_interaction[0] += fi[0];
+        flux_interaction[1] += fi[1];
+        flux_interaction[2] += fi[2];
+        ijkparam = elem2param[scan_type][scan_type2][origin_type];
+        attractive(&params[ijkparam],prefactor,
+                  rsq2,rsq1,delr2,ndelr1,fj,fk,fi);
+        flux_interaction[0] += fi[0];
+        flux_interaction[1] += fi[1];
+        flux_interaction[2] += fi[2];
       }
     }
 
@@ -1123,7 +1128,6 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
         virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
       }
     }
-    
   }
   //end of scanning loop
 
@@ -1131,7 +1135,7 @@ void PairCACTersoff::force_densities( int iii, double s,double t, double w, doub
   //  in the vicinity of this quadrature point
   if (quad_flux_flag) {
     //compute_intersections();
-    quad_neigh_flux();
+    //quad_neigh_flux();
   }
 }
 
@@ -1146,12 +1150,9 @@ void PairCACTersoff::quad_neigh_flux(){
   int ijparam, ijkparam;
   double m, fpair, interaction_forceij[3], interaction_forceji[3], delxa[3], energy_contribution;
   double scan_position1[3], scan_position2[3], scan_position3[3], delx, dely, delz, distancesq;  
-  double intersection_point[3], proj, lparam, planecoord, plane_limits[2][2];
   double rsq, rsq1, rsq2, prefactor, zeta_ij;
   double delr1[3], delr2[3], fi[3], fj[3], fk[3];
-  double vix, viy, viz, vjx, vjy, vjz, interactionx, interactiony, interactionz;
-  double *box_center = atom->box_center;
-  double *box_size = atom->box_size;
+  double vix, viy, viz, vjx, vjy, vjz, vkx, vky, vkz, interactionx, interactiony, interactionz;
   int neigh_max_inner = inner_quad_lists_counts[pqi];
   int neigh_max_outer;
   int neigh_add = add_quad_lists_counts[pqi];
@@ -1162,8 +1163,8 @@ void PairCACTersoff::quad_neigh_flux(){
   //determine which of the 6 planes of the atom box are intersected by a given i-j pair
   for(int ineigh=0; ineigh < all_neigh; ineigh++){
     if(ineigh<cluster_neighbor_counts[0]){
-      short_scan = cluster_neighbors[0][ineigh];
-      current_ncluster = cluster_neighbor_counts[ineigh+1];
+      short_scan_index = short_scan = cluster_neighbors[0][ineigh];
+      current_ncluster = cluster_neighbor_counts[ineigh+1]+1;
       current_cluster = cluster_neighbors[ineigh+1];
       scan_type1 = inner_neighbor_types[short_scan];
       scan_position1[0] = inner_neighbor_coords[short_scan][0];
@@ -1208,7 +1209,10 @@ void PairCACTersoff::quad_neigh_flux(){
       }
     }
     for(int jneigh=0; jneigh < current_ncluster; jneigh++){
-      intersection_count = 0;
+      
+      if(ineigh<cluster_neighbor_counts[0]&&jneigh==current_ncluster-1)
+      short_scan_index2 = short_scan2 = -11;
+      else
       short_scan_index2 = short_scan2 = current_cluster[jneigh];
       if(short_scan2 >= neigh_max_inner+neigh_max_outer){
         short_scan_index2 -= neigh_max_inner+neigh_max_outer;
@@ -1230,6 +1234,15 @@ void PairCACTersoff::quad_neigh_flux(){
         vjy = outer_neighbor_velocities[short_scan_index2][1];
         vjz = outer_neighbor_velocities[short_scan_index2][2];
       }
+      else if(ineigh<cluster_neighbor_counts[0]&&jneigh==current_ncluster-1){
+        scan_type2 = origin_type;
+        scan_position2[0] = current_position[0];
+        scan_position2[1] = current_position[1];
+        scan_position2[2] = current_position[2];
+        vjx = current_velocity[0];
+        vjy = current_velocity[1];
+        vjz = current_velocity[2];
+      }
       else{
         scan_type2 = inner_neighbor_types[short_scan_index2];
         scan_position2[0] = inner_neighbor_coords[short_scan_index2][0];
@@ -1243,6 +1256,9 @@ void PairCACTersoff::quad_neigh_flux(){
       delxa[0] = delx = scan_position1[0] - scan_position2[0];
       delxa[1] = dely = scan_position1[1] - scan_position2[1];
       delxa[2] = delz = scan_position1[2] - scan_position2[2];
+      delr1[0] = - delx;
+      delr1[1] = - dely;
+      delr1[2] = - delz;
       rsq1 = delx*delx + dely*dely + delz*delz;
 
       //compute pair interaction
@@ -1252,7 +1268,7 @@ void PairCACTersoff::quad_neigh_flux(){
       if (rsq1 >= params[ijparam].cutsq) continue;
       interaction_forceij[0] = interaction_forceij[1] = interaction_forceij[2] = 0;
 
-      if(short_scan_index3>short_scan_index2){
+      if(short_scan_index2>short_scan_index){
       repulsive(&params[ijparam], rsq1, fpair, 0, energy_contribution);
       interaction_forceij[0] -= delx*fpair;
       interaction_forceij[1] -= dely*fpair;
@@ -1264,7 +1280,10 @@ void PairCACTersoff::quad_neigh_flux(){
 
       for (int kneigh = 0; kneigh < current_ncluster; kneigh++) {
         if (jneigh==kneigh) continue;
-        short_scan_index3 = short_scan3 = current_cluster[kneigh];
+        if(ineigh<cluster_neighbor_counts[0]&&kneigh==current_ncluster-1)
+          short_scan_index3 = short_scan3 = -11;
+        else
+          short_scan_index3 = short_scan3 = current_cluster[kneigh];
         if(short_scan3 >= neigh_max_inner+neigh_max_outer){
           short_scan_index3 -= neigh_max_inner+neigh_max_outer;
           scan_type3 = add_neighbor_types[short_scan_index3];
@@ -1279,35 +1298,48 @@ void PairCACTersoff::quad_neigh_flux(){
           scan_position3[1] = outer_neighbor_coords[short_scan_index3][1];
           scan_position3[2] = outer_neighbor_coords[short_scan_index3][2];
         }
+        else if(ineigh<cluster_neighbor_counts[0]&&kneigh==current_ncluster-1){
+          scan_type3 = origin_type;
+          scan_position3[0] = current_position[0];
+          scan_position3[1] = current_position[1];
+          scan_position3[2] = current_position[2];
+        }
         else{
           scan_type3 = inner_neighbor_types[short_scan_index3];
           scan_position3[0] = inner_neighbor_coords[short_scan_index3][0];
           scan_position3[1] = inner_neighbor_coords[short_scan_index3][1];
           scan_position3[2] = inner_neighbor_coords[short_scan_index3][2];
         }
-        delr2[0] = scan_position1[0] - scan_position3[0];
-        delr2[1] = scan_position1[1] - scan_position3[1];
-        delr2[2] = scan_position1[2] - scan_position3[2];
+        delr2[0] = scan_position3[0] - scan_position1[0];
+        delr2[1] = scan_position3[1] - scan_position1[1];
+        delr2[2] = scan_position3[2] - scan_position1[2];
         rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
         ijkparam = elem2param[scan_type1][scan_type2][scan_type3];
         if (rsq2 >= params[ijkparam].cutsq) continue;
         zeta_ij += zeta(&params[ijkparam],rsq1,rsq2,delr1,delr2);
       }
+      
       force_zeta(&params[ijparam],rsq1,zeta_ij,fpair,prefactor,0, energy_contribution);
-      interaction_forceij[0] -= delx*fpair;
-      interaction_forceij[1] -= dely*fpair;
-      interaction_forceij[2] -= delz*fpair;
+      interaction_forceij[0] += delx*fpair;
+      interaction_forceij[1] += dely*fpair;
+      interaction_forceij[2] += delz*fpair;
 
-      //three body term due to site energy gradient w.r.t short_scan2
+      //three body term due to site energy gradient w.r.t short_scan2 position
       for (int kneigh = 0; kneigh < current_ncluster; kneigh++) {
         if (jneigh==kneigh) continue;
-        short_scan_index3 = short_scan3 = current_cluster[kneigh];
+        if(ineigh<cluster_neighbor_counts[0]&&kneigh==current_ncluster-1)
+          short_scan_index3 = short_scan3 = -11;
+        else
+          short_scan_index3 = short_scan3 = current_cluster[kneigh];
         if(short_scan3 >= neigh_max_inner+neigh_max_outer){
           short_scan_index3 -= neigh_max_inner+neigh_max_outer;
           scan_type3 = add_neighbor_types[short_scan_index3];
           scan_position3[0] = add_neighbor_coords[short_scan_index3][0];
           scan_position3[1] = add_neighbor_coords[short_scan_index3][1];
           scan_position3[2] = add_neighbor_coords[short_scan_index3][2];
+          vkx = add_neighbor_velocities[short_scan_index3][0];
+          vky = add_neighbor_velocities[short_scan_index3][1];
+          vkz = add_neighbor_velocities[short_scan_index3][2];
         }
         else if(short_scan3 >= neigh_max_inner){
           short_scan_index3 -= neigh_max_inner;
@@ -1315,16 +1347,31 @@ void PairCACTersoff::quad_neigh_flux(){
           scan_position3[0] = outer_neighbor_coords[short_scan_index3][0];
           scan_position3[1] = outer_neighbor_coords[short_scan_index3][1];
           scan_position3[2] = outer_neighbor_coords[short_scan_index3][2];
+          vkx = outer_neighbor_velocities[short_scan_index3][0];
+          vky = outer_neighbor_velocities[short_scan_index3][1];
+          vkz = outer_neighbor_velocities[short_scan_index3][2];
+        }
+        else if(ineigh<cluster_neighbor_counts[0]&&kneigh==current_ncluster-1){
+          scan_type3 = origin_type;
+          scan_position3[0] = current_position[0];
+          scan_position3[1] = current_position[1];
+          scan_position3[2] = current_position[2];
+          vkx = current_velocity[0];
+          vky = current_velocity[1];
+          vkz = current_velocity[2];
         }
         else{
           scan_type3 = inner_neighbor_types[short_scan_index3];
           scan_position3[0] = inner_neighbor_coords[short_scan_index3][0];
           scan_position3[1] = inner_neighbor_coords[short_scan_index3][1];
           scan_position3[2] = inner_neighbor_coords[short_scan_index3][2];
+          vkx = inner_neighbor_velocities[short_scan_index3][0];
+          vky = inner_neighbor_velocities[short_scan_index3][1];
+          vkz = inner_neighbor_velocities[short_scan_index3][2];
         }
-        delr2[0] = scan_position1[0] - scan_position3[0];
-        delr2[1] = scan_position1[1] - scan_position3[1];
-        delr2[2] = scan_position1[2] - scan_position3[2];
+        delr2[0] = scan_position3[0] - scan_position1[0];
+        delr2[1] = scan_position3[1] - scan_position1[1];
+        delr2[2] = scan_position3[2] - scan_position1[2];
         rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
         ijkparam = elem2param[scan_type1][scan_type2][scan_type3];
         if (rsq2 >= params[ijkparam].cutsq) continue;
@@ -1334,85 +1381,90 @@ void PairCACTersoff::quad_neigh_flux(){
         interaction_forceij[0] += fj[0];
         interaction_forceij[1] += fj[1];
         interaction_forceij[2] += fj[2];
-        ijkparam = elem2param[scan_type1][scan_type3][scan_type2];
-        attractive(&params[ijkparam], prefactor,
-          rsq2, rsq1, delr2, delr1, fi, fk, fj);
-        interaction_forceij[0] += fk[0];
-        interaction_forceij[1] += fk[1];
-        interaction_forceij[2] += fk[2];
+        plane_intersections(scan_position1, scan_position3, fk[0], fk[1], fk[2], vkx, vky, vkz);
       }
-      
-      for(int isl=0; isl < 2*domain->dimension; isl++){
-        is = isl/2;
-        if(is==0){
-          dim1 = 1;
-          dim2 = 2;
-        }
-        if(is==1){
-          dim1 = 0;
-          dim2 = 2;
-        }
-        if(is==2){
-          dim1 = 0;
-          dim2 = 1;
-        }
 
-        //test negative and positive sides of the box dimension
-        if(isl%2==0) planecoord = current_position[is]-box_size[is]/2 + box_center[is];
-        else planecoord = current_position[is]+box_size[is]/2 + box_center[is];
-        plane_limits[0][0] = current_position[dim1]-box_size[dim1]/2 + box_center[dim1]-PLANE_EPSILON;
-        plane_limits[0][1] = current_position[dim1]+box_size[dim1]/2 + box_center[dim1]+PLANE_EPSILON;
-        plane_limits[1][0] = current_position[dim2]-box_size[dim2]/2 + box_center[dim2]-PLANE_EPSILON;
-        plane_limits[1][1] = current_position[dim2]+box_size[dim2]/2 + box_center[dim2]+PLANE_EPSILON;
-
-        intersection_flag = 1;
-        //compute perpendicular projection of the line connecting i and j
-        proj = scan_position1[is]-planecoord;
-
-        //test if i-j normal coordinates are on opposing sides of the plane
-        if((proj<0&&scan_position2[is]<planecoord)||((proj>0)&&scan_position2[is]>planecoord)) intersection_flag = 0;
-
-        //use the ratio between this projection and the i-j displacement normal to the plane
-        //to define the line parameter (0-1) at the point of intersection
-        lparam = proj/(delxa[is]);
-        if(delxa[is]==0) intersection_flag = 0;
-
-        //use line parameter to extrapolate the possible intersection point between i-j
-        intersection_point[dim1] = scan_position2[dim1]+delxa[dim1]*(1-lparam);
-        intersection_point[dim2] = scan_position2[dim2]+delxa[dim2]*(1-lparam);
-
-        //test the tangential coordinates to determine if the line through i-j crosses the finite sized plane
-        if(intersection_point[dim1]<=plane_limits[0][0]||intersection_point[dim1]>plane_limits[0][1]) intersection_flag = 0;
-        if(intersection_point[dim2]<=plane_limits[1][0]||intersection_point[dim2]>plane_limits[1][1]) intersection_flag = 0;
-        if(intersection_flag){
-          intersection_count++;
-          if(isl%2==0) normal_flag = 1;
-          else normal_flag = -1;
-
-          if(scan_position1[is]<planecoord) sign=-normal_flag;
-          else sign=normal_flag;
-          //flux_enable is 1 in the case of pair forces, 2 in the case of many-body
-        if(flux_enable==1){
-          if(isl==0){
-            //flux_contrib[icontrib][0] = -interaction_forceij[0]*sign;
-            //flux_contrib[icontrib][1] = ineigh;
-            //flux_contrib[icontrib][2] = jneigh;
-            //flux_contrib[icontrib][3] = isl;
-            //icontrib++;
-          }
-          flux_density[4*isl] += (interaction_forceij[0]*(vix+vjx) + 
-          interaction_forceij[1]*(viy+vjy)+interaction_forceij[2]*(viz+vjz))*sign;
-          flux_density[4*isl+1] -= interaction_forceij[0]*sign;
-          flux_density[4*isl+2] -= interaction_forceij[1]*sign;
-          flux_density[4*isl+3] -= interaction_forceij[2]*sign;
-        }
-        }
-
-        //can intersect with box at most twice
-        if(intersection_count==2)
-          break;
-  
-      }
+      plane_intersections(scan_position1, scan_position2, interaction_forceij[0],
+                          interaction_forceij[1], interaction_forceij[2], vjx, vjy, vjz);
     }
+  }
+}
+
+/* ---------------------------------------------------------------------- 
+ Compute the cac flux density due to virtual neighbors around a quadrature point
+---------------------------------------------------------------------- */
+
+void PairCACTersoff::plane_intersections(double *pi, double *pj,
+double fx, double fy, double fz, double vx, double vy, double vz){
+  int is, isl, normal_flag, sign, index, jindex;
+  int dim1, dim2, intersection_flag, intersection_count;
+  double intersection_point[3], proj, lparam, planecoord, plane_limits[2][2], delp[3];
+  double *box_center = atom->box_center;
+  double *box_size = atom->box_size;
+  intersection_count = 0;
+  delp[0] = pi[0] - pj[0];
+  delp[1] = pi[1] - pj[1];
+  delp[2] = pi[2] - pj[2];
+
+  for(isl=0; isl < 2*domain->dimension; isl++){
+    is = isl/2;
+    if(is==0){
+      dim1 = 1;
+      dim2 = 2;
+    }
+    if(is==1){
+      dim1 = 0;
+      dim2 = 2;
+    }
+    if(is==2){
+      dim1 = 0;
+      dim2 = 1;
+    }
+
+    //test negative and positive sides of the box dimension
+    if(isl%2==0) planecoord = current_position[is]-box_size[is]/2 + box_center[is];
+    else planecoord = current_position[is]+box_size[is]/2 + box_center[is];
+    plane_limits[0][0] = current_position[dim1]-box_size[dim1]/2 + box_center[dim1]-PLANE_EPSILON;
+    plane_limits[0][1] = current_position[dim1]+box_size[dim1]/2 + box_center[dim1]+PLANE_EPSILON;
+    plane_limits[1][0] = current_position[dim2]-box_size[dim2]/2 + box_center[dim2]-PLANE_EPSILON;
+    plane_limits[1][1] = current_position[dim2]+box_size[dim2]/2 + box_center[dim2]+PLANE_EPSILON;
+
+    intersection_flag = 1;
+    //compute perpendicular projection of the line connecting i and j
+    proj = pi[is]-planecoord;
+
+    //test if i-j normal coordinates are on opposing sides of the plane
+    if((proj<0&&pj[is]<planecoord)||((proj>0)&&pj[is]>planecoord)) intersection_flag = 0;
+
+    //use the ratio between this projection and the i-j displacement normal to the plane
+    //to define the line parameter (0-1) at the point of intersection
+    lparam = proj/(delp[is]);
+    if(delp[is]==0) intersection_flag = 0;
+
+    //use line parameter to extrapolate the possible intersection point between i-j
+    intersection_point[dim1] = pj[dim1]+delp[dim1]*(1-lparam);
+    intersection_point[dim2] = pj[dim2]+delp[dim2]*(1-lparam);
+
+    //test the tangential coordinates to determine if the line through i-j crosses the finite sized plane
+    if(intersection_point[dim1]<=plane_limits[0][0]||intersection_point[dim1]>plane_limits[0][1]) intersection_flag = 0;
+    if(intersection_point[dim2]<=plane_limits[1][0]||intersection_point[dim2]>plane_limits[1][1]) intersection_flag = 0;
+    if(intersection_flag){
+    intersection_count++;
+    if(isl%2==0) normal_flag = 1;
+    else normal_flag = -1;
+
+    if(pi[is]<planecoord) sign=-normal_flag;
+    else sign=normal_flag;
+
+    flux_density[4*isl] += (fx*vx + 
+    fy*vy+fz*vz)*sign;
+    flux_density[4*isl+1] -= fx*sign;
+    flux_density[4*isl+2] -= fy*sign;
+    flux_density[4*isl+3] -= fz*sign;
+    }
+    //can intersect with box at most twice
+    if(intersection_count==2)
+    break;
+  
   }
 }

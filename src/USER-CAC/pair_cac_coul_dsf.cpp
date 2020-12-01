@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_cac_coul_wolf.h"
+#include "pair_cac_coul_dsf.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -34,12 +34,19 @@
 #define MAXNEIGHOUT  50
 #define MAXNEIGHIN  10
 #define EXPAND 10
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCACCoulWolf::PairCACCoulWolf(LAMMPS *lmp) : PairCAC(lmp)
+PairCACCoulDSF::PairCACCoulDSF(LAMMPS *lmp) : PairCAC(lmp)
 {
   restartinfo = 0;
   nmax = 0;
@@ -49,7 +56,7 @@ PairCACCoulWolf::PairCACCoulWolf(LAMMPS *lmp) : PairCAC(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairCACCoulWolf::~PairCACCoulWolf() {
+PairCACCoulDSF::~PairCACCoulDSF() {
   if (allocated) {
   memory->destroy(setflag);
   memory->destroy(cutsq);
@@ -65,7 +72,7 @@ PairCACCoulWolf::~PairCACCoulWolf() {
  allocate all arrays
  ------------------------------------------------------------------------- */
 
-void PairCACCoulWolf::allocate()
+void PairCACCoulDSF::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -88,7 +95,7 @@ void PairCACCoulWolf::allocate()
 /* ----------------------------------------------------------------------
 global settings
 ------------------------------------------------------------------------- */
-void PairCACCoulWolf::settings(int narg, char **arg) {
+void PairCACCoulDSF::settings(int narg, char **arg) {
   if (narg <2 || narg>3) error->all(FLERR, "Illegal pair_style command");
 
   force->newton_pair = 0;
@@ -97,7 +104,7 @@ void PairCACCoulWolf::settings(int narg, char **arg) {
   cut_global_s = force->numeric(FLERR, arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
-    else error->all(FLERR, "Unexpected argument in cac/coul/wolf invocation");
+    else error->all(FLERR, "Unexpected argument in cac/coul/dsf invocation");
   }
   cut_coul = cut_global_s;
 }
@@ -106,7 +113,7 @@ void PairCACCoulWolf::settings(int narg, char **arg) {
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
-void PairCACCoulWolf::coeff(int narg, char **arg) {
+void PairCACCoulDSF::coeff(int narg, char **arg) {
   if (narg != 2) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -129,34 +136,35 @@ void PairCACCoulWolf::coeff(int narg, char **arg) {
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
-double PairCACCoulWolf::init_one(int i, int j) {
+double PairCACCoulDSF::init_one(int i, int j) {
   return cut_global_s;
 }
 
 /* ---------------------------------------------------------------------- */
 
 
-void PairCACCoulWolf::init_style()
+void PairCACCoulDSF::init_style()
 {
   PairCAC::init_style();
   atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
   atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style cac/coul/wolf requires atom IDs");
+    error->all(FLERR,"Pair style cac/coul/DSF requires atom IDs");
   atom->max_neigh_inner_init = maxneigh_quad_inner = MAXNEIGHIN;
   atom->max_neigh_outer_init = maxneigh_quad_outer = MAXNEIGHOUT;
   if (!atom->q_flag)
-    error->all(FLERR, "Pair coul/wolf requires atom attribute q for charges");
+    error->all(FLERR, "Pair coul/DSF requires atom attribute q for charges");
   cut_coulsq = cut_coul*cut_coul;
-  e_shift = erfc(alf*cut_coul) / cut_coul;
-  f_shift = -(e_shift + 2.0*alf / MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
-  cut_coul;
+  double erfcc = erfc(alf*cut_coul);
+  double erfcd = exp(-alf*alf*cut_coul*cut_coul);
+  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alf*erfcd/cut_coul);
+  e_shift = erfcc/cut_coul - f_shift*cut_coul;
 }
 
 //-----------------------------------------------------------------------
 
 
-void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, double coefficients,
+void PairCACCoulDSF::force_densities(int iii, double s, double t, double w, double coefficients,
   double &force_densityx, double &force_densityy, double &force_densityz) {
 
   double delx,dely,delz;
@@ -191,8 +199,9 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
   int poly_index;
   int scan_type;
   int element_index;
-  int *ilist, *numneigh, **firstneigh;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   int neigh_max = inner_quad_lists_counts[pqi];
+  
   double ****nodal_positions = atom->nodal_positions;
   int **node_types = atom->node_types;
   double **node_charges = atom->node_charges;
@@ -202,8 +211,9 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  jlist = firstneigh[iii];
   qisq = origin_element_charge*origin_element_charge;
-  e_self = -(e_shift / 2.0 + alf / MY_PIS) * qisq*qqrd2e;
+  e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
   quadrature_energy += e_self;
 
   //allocate arrays that store neighbor information around just this quadrature point
@@ -241,7 +251,7 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
       virial_density[5] += 0.5*dely*delz*fpair;
       }
       if (quad_eflag)
-        quadrature_energy += v_sh/2;
+        quadrature_energy += ecoul/2;
       //cac flux contribution due to current quadrature point and neighbor pair interactions
       if(quad_flux_flag){
         current_quad_flux(l,delx*fpair,dely*fpair,delz*fpair);
@@ -260,23 +270,25 @@ void PairCACCoulWolf::force_densities(int iii, double s, double t, double w, dou
 
 /* ---------------------------------------------------------------------- */
 
-double PairCACCoulWolf::pair_interaction_q(double distancesq, int itype, int jtype
+double PairCACCoulDSF::pair_interaction_q(double distancesq, int itype, int jtype
                                           , double qi, double qj)
 {
   double fpair, forcecoul, prefactor, dvdrr;
-  double r, erfcc, erfcd;
+  double r, t, erfcc, erfcd;
   double qqrd2e = force->qqrd2e;
 
   r = sqrt(distancesq);
   prefactor = qqrd2e*qi*qj / r;
-  erfcc = erfc(alf*r);
-  erfcd = exp(-alf*alf*r*r);
-  v_sh = (erfcc - e_shift*r) * prefactor;
-  dvdrr = (erfcc / distancesq + 2.0*alf / MY_PIS * erfcd / r) + f_shift;
-  forcecoul = dvdrr*distancesq*prefactor;
-  if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul)*prefactor;
+  erfcd = exp(-alf*alf*distancesq);
+  t = 1.0 / (1.0 + EWALD_P*alf*r);
+  erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+  forcecoul = prefactor * (erfcc/r + 2.0*alf/MY_PIS * erfcd +
+                          r*f_shift) * r;
+  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   fpair = forcecoul / distancesq;
-  if(quad_eflag)
-    if (factor_coul < 1.0) v_sh -= (1.0-factor_coul)*prefactor;
+  if (quad_eflag){
+    ecoul = prefactor * (erfcc - r*e_shift - distancesq*f_shift);
+    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+  }
   return fpair;
 }

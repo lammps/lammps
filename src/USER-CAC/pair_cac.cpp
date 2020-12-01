@@ -159,6 +159,7 @@ void PairCAC::compute(int eflag, int vflag) {
   pqi = qi = 0;
   //compute forces
   for (i = 0; i < nlocal; i++) {
+    current_element_index = i;
     if(element_type[i]){
       //compute this element's mass matrix
       compute_mass_matrix();
@@ -1234,11 +1235,16 @@ void PairCAC::current_quad_flux(int jneigh, double interactionx, double interact
       sign=-normal_flag;
       else
       sign=normal_flag;
+      //debug statements
+      /*
+        if(isl==0&&(atom->tag[current_element_index]==889494||atom->tag[current_element_index]==1022329)){
+          char debug_string[100];
+          sprintf(debug_string, "atom %d is %d on task %d. It intersects with %d and %d. isl is %d. fpair is %20.10f", atom->tag[bi], bi, comm->me, atom->tag[i], atom->tag[j], isl, fpair);
+          error->message(FLERR,debug_string);
+        }
+      */
       //flux_enable is 1 in the case of pair forces, 2 in the case of many-body
       if(flux_enable==1){
-        if(isl==0){
-            //flux_contrib[jneigh] = -interaction_forceij[0]*sign;
-          }
         flux_density[4*isl] += (interaction_forceij[0]*(vix+vjx) + 
         interaction_forceij[1]*(viy+vjy)+interaction_forceij[2]*(viz+vjz))*sign;
         flux_density[4*isl+1] -= interaction_forceij[0]*sign;
@@ -1246,11 +1252,10 @@ void PairCAC::current_quad_flux(int jneigh, double interactionx, double interact
         flux_density[4*isl+3] -= interaction_forceij[2]*sign;
       }
       else{
-        flux_density[4*isl] += (interaction_forceij[0]*vix+interaction_forceij[1]*viy+interaction_forceij[2]*viz
-          -interaction_forceji[0]*vjx-interaction_forceji[1]*vjy-interaction_forceji[2]*vjz)*sign;
-        flux_density[4*isl+1] -= (interaction_forceij[0]-interaction_forceji[0])*sign;
-        flux_density[4*isl+2] -= (interaction_forceij[1]-interaction_forceji[1])*sign;
-        flux_density[4*isl+3] -= (interaction_forceij[2]-interaction_forceji[2])*sign;
+        flux_density[4*isl] += (interaction_forceij[0]*vix+interaction_forceij[1]*viy+interaction_forceij[2]*viz)*sign;
+        flux_density[4*isl+1] -= interaction_forceij[0]*sign;
+        flux_density[4*isl+2] -= interaction_forceij[1]*sign;
+        flux_density[4*isl+3] -= interaction_forceij[2]*sign;
       }
       break;
     }
@@ -1271,12 +1276,12 @@ void PairCAC::quad_neigh_flux(){
   double *box_center = atom->box_center;
   double *box_size = atom->box_size;
   int neigh_max = inner_quad_lists_counts[pqi];
-  int neigh_max_outer;
+  int neigh_max_outer = 0;
   int neigh_add = add_quad_lists_counts[pqi];
   double cut_add = atom->cut_add;
   double fluxcutsq = (cut_global_s+cut_add)*(cut_global_s+cut_add);
   if(outer_neighflag)
-    neigh_max_outer = inner_quad_lists_counts[pqi];
+    neigh_max_outer = outer_quad_lists_counts[pqi];
   if(outer_neighflag)
     all_neigh = neigh_max + neigh_max_outer + neigh_add;
   else
@@ -1436,7 +1441,7 @@ void PairCAC::quad_neigh_flux(){
             //icontrib++;
           }
           flux_density[4*isl] += (interaction_forceij[0]*(vix+vjx) + 
-          interaction_forceij[1]*(viy+vjy)+interaction_forceij[2]*(viz+vjz))*sign;
+          interaction_forceij[1]*(viy+vjy)+interaction_forceij[2]*(viz+vjz))*sign/2.0;
           flux_density[4*isl+1] -= interaction_forceij[0]*sign;
           flux_density[4*isl+2] -= interaction_forceij[1]*sign;
           flux_density[4*isl+3] -= interaction_forceij[2]*sign;

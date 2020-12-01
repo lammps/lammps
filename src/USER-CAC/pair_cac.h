@@ -54,7 +54,7 @@ class PairCAC : public Pair {
   virtual double memory_usage();
 
  protected:
-  int outer_neighflag;
+  int outer_neighflag, current_element_index;
   int sector_flag, flux_enable;
   int ghost_quad;
   double cutforcesq;

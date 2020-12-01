@@ -594,7 +594,7 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
 
     //cac flux contribution due to current quadrature point and neighbor pair interactions
     if(quad_flux_flag)
-      current_quad_flux(l,delx*fpair,dely*fpair,delz*fpair);
+      current_quad_flux(l,-delx*fpair,-dely*fpair,-delz*fpair);
   }
 
   //search lists for more add cluster sites for flux calculation
@@ -725,8 +725,11 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
     }
   }
 
+  int loop_limit = cluster_neighbor_counts[0] - 1;
+  if(quad_flux_flag) loop_limit = cluster_neighbor_counts[0];
+
   //ith three body contributions
-  for (int l = 0; l < cluster_neighbor_counts[0] - 1; l++) {
+  for (int l = 0; l < loop_limit; l++) {
     short_scan = cluster_neighbors[0][l];
     scan_type = inner_neighbor_types[short_scan];
     scan_position[0] = inner_neighbor_coords[short_scan][0];
@@ -736,11 +739,10 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
     delr1[1] = scan_position[1] - current_position[1];
     delr1[2] = scan_position[2] - current_position[2];
 
-    if(quad_flux_flag) flux_interaction[0] = flux_interaction[1] = flux_interaction[2] = 0;
-
     ijparam = elem2param[origin_type][scan_type][scan_type];
     rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
     if (rsq1 >= params[ijparam].cutsq) continue;
+    if(quad_flux_flag) flux_interaction[0] = flux_interaction[1] = flux_interaction[2] = 0;
 
     for (int k = l + 1; k < cluster_neighbor_counts[0]; k++) {
       short_scan2 = cluster_neighbors[0][k];
@@ -767,26 +769,44 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
       force_densityz -= fj[2] + fk[2];
 
       if(atom->CAC_virial){
-       virial_density[0] += THIRD*(delr1[0]*fj[0] + delr2[0]*fk[0]);
-      virial_density[1] += THIRD*(delr1[1]*fj[1] + delr2[1]*fk[1]);
-      virial_density[2] += THIRD*(delr1[2]*fj[2] + delr2[2]*fk[2]);
-      virial_density[3] += THIRD*(delr1[0]*fj[1] + delr2[0]*fk[1]);
-      virial_density[4] += THIRD*(delr1[0]*fj[2] + delr2[0]*fk[2]);
-      virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
+        virial_density[0] += THIRD*(delr1[0]*fj[0] + delr2[0]*fk[0]);
+        virial_density[1] += THIRD*(delr1[1]*fj[1] + delr2[1]*fk[1]);
+        virial_density[2] += THIRD*(delr1[2]*fj[2] + delr2[2]*fk[2]);
+        virial_density[3] += THIRD*(delr1[0]*fj[1] + delr2[0]*fk[1]);
+        virial_density[4] += THIRD*(delr1[0]*fj[2] + delr2[0]*fk[2]);
+        virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
       }
 
       if(quad_flux_flag){
         flux_interaction[0] += fj[0];
         flux_interaction[1] += fj[1];
         flux_interaction[2] += fj[2];
+      }
+    }
+
+    if(quad_flux_flag)
+      for(int k = 0; k < l; k++){
+        short_scan2 = cluster_neighbors[0][k];
+        scan_type2 = inner_neighbor_types[short_scan2];
+        scan_position2[0] = inner_neighbor_coords[short_scan2][0];
+        scan_position2[1] = inner_neighbor_coords[short_scan2][1];
+        scan_position2[2] = inner_neighbor_coords[short_scan2][2];
+
+        ikparam = elem2param[origin_type][scan_type2][scan_type2];
+        ijkparam = elem2param[origin_type][scan_type][scan_type2];
+
+        delr2[0] = scan_position2[0] - current_position[0];
+        delr2[1] = scan_position2[1] - current_position[1];
+        delr2[2] = scan_position2[2] - current_position[2];
+        rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
+        if (rsq2 >= params[ikparam].cutsq) continue;
         ijkparam = elem2param[origin_type][scan_type2][scan_type];
         threebody(&params[ikparam], &params[ijparam], &params[ijkparam],
         rsq2, rsq1, delr2, delr1, fk, fj, quad_eflag, energy_contribution);
-        flux_interaction[0] += fk[0];
-        flux_interaction[1] += fk[1];
-        flux_interaction[2] += fk[2];
+        flux_interaction[0] += fj[0];
+        flux_interaction[1] += fj[1];
+        flux_interaction[2] += fj[2];
       }
-    }
     //cac flux contribution due to current quadrature point and neighbor pair interactions
     if(quad_flux_flag)
       current_quad_flux(short_scan,flux_interaction[0],flux_interaction[1],flux_interaction[2]);
@@ -808,6 +828,7 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
 
     rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
     if (rsq1 >= params[ijparam].cutsq) continue;
+    if(quad_flux_flag) flux_interaction[0] = flux_interaction[1] = flux_interaction[2] = 0;
 
     for (int k = 0; k < cluster_neighbor_counts[l+1]; k++) {
       short_scan2 = cluster_neighbors[l+1][k];
@@ -849,7 +870,15 @@ void PairCACSW::force_densities( int iii, double s,double t, double w, double co
         virial_density[4] += THIRD*(delr1[0]*fj[2] + delr2[0]*fk[2]);
         virial_density[5] += THIRD*(delr1[1]*fj[2] + delr2[1]*fk[2]);
       }
+      if(quad_flux_flag){
+        flux_interaction[0] += fj[0];
+        flux_interaction[1] += fj[1];
+        flux_interaction[2] += fj[2];
+      }
     }
+    //cac flux contribution due to current quadrature point and neighbor pair interactions
+    if(quad_flux_flag)
+      current_quad_flux(short_scan,-flux_interaction[0],-flux_interaction[1],-flux_interaction[2]);
   }
   //end of scanning loop
  
@@ -888,7 +917,7 @@ void PairCACSW::quad_neigh_flux(){
   //determine which of the 6 planes of the atom box are intersected by a given i-j pair
   for(int ineigh=0; ineigh < all_neigh; ineigh++){
     if(ineigh<cluster_neighbor_counts[0]){
-      short_scan = cluster_neighbors[0][ineigh];
+      short_scan_index = short_scan = cluster_neighbors[0][ineigh];
       current_ncluster = cluster_neighbor_counts[ineigh+1];
       current_cluster = cluster_neighbors[ineigh+1];
       scan_type1 = inner_neighbor_types[short_scan];
@@ -969,6 +998,9 @@ void PairCACSW::quad_neigh_flux(){
       delxa[0] = delx = scan_position1[0] - scan_position2[0];
       delxa[1] = dely = scan_position1[1] - scan_position2[1];
       delxa[2] = delz = scan_position1[2] - scan_position2[2];
+      delr1[0] = - delx;
+      delr1[1] = - dely;
+      delr1[2] = - delz;
       rsq1 = delx*delx + dely*dely + delz*delz;
 
       //compute pair interaction
@@ -978,7 +1010,7 @@ void PairCACSW::quad_neigh_flux(){
       if (rsq1 >= params[ijparam].cutsq) continue;
       interaction_forceij[0] = interaction_forceij[1] = interaction_forceij[2] = 0;
       
-      if(short_scan_index3>short_scan_index2){
+      if(short_scan_index2>short_scan_index){
       twobody(&params[ijparam], rsq1, fpair, 0, energy_contribution);
       interaction_forceij[0] -= delx*fpair;
       interaction_forceij[1] -= dely*fpair;
@@ -987,7 +1019,8 @@ void PairCACSW::quad_neigh_flux(){
 
       //three body term
       //ith three body contributions
-      for (int kneigh = jneigh+1; kneigh < current_ncluster; kneigh++) {
+      for (int kneigh = 0; kneigh < current_ncluster; kneigh++) {
+        if (jneigh==kneigh) continue;
         short_scan_index3 = short_scan3 = current_cluster[kneigh];
         if(short_scan3 >= neigh_max_inner+neigh_max_outer){
           short_scan_index3 -= neigh_max_inner+neigh_max_outer;
@@ -1015,6 +1048,7 @@ void PairCACSW::quad_neigh_flux(){
         ikparam = elem2param[scan_type1][scan_type3][scan_type3];
         rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
         if (rsq2 >= params[ikparam].cutsq) continue;
+        if(kneigh > jneigh){
         ijkparam = elem2param[scan_type1][scan_type2][scan_type3];
         threebody(&params[ijparam], &params[ikparam], &params[ijkparam],
           rsq1, rsq2, delr1, delr2, fj, fk, 0, energy_contribution);
@@ -1022,12 +1056,15 @@ void PairCACSW::quad_neigh_flux(){
         interaction_forceij[0] += fj[0];
         interaction_forceij[1] += fj[1];
         interaction_forceij[2] += fj[2];
+        }
+        else{
         ijkparam = elem2param[scan_type1][scan_type3][scan_type2];
         threebody(&params[ikparam], &params[ijparam], &params[ijkparam],
           rsq2, rsq1, delr2, delr1, fk, fj, 0, energy_contribution);
-        interaction_forceij[0] += fk[0];
-        interaction_forceij[1] += fk[1];
-        interaction_forceij[2] += fk[2];
+        interaction_forceij[0] += fj[0];
+        interaction_forceij[1] += fj[1];
+        interaction_forceij[2] += fj[2];
+        }
       }
       
       for(int isl=0; isl < 2*domain->dimension; isl++){
@@ -1080,7 +1117,7 @@ void PairCACSW::quad_neigh_flux(){
           if(scan_position1[is]<planecoord) sign=-normal_flag;
           else sign=normal_flag;
           //flux_enable is 1 in the case of pair forces, 2 in the case of many-body
-        if(flux_enable==1){
+          if(flux_enable==1){
           if(isl==0){
             //flux_contrib[icontrib][0] = -interaction_forceij[0]*sign;
             //flux_contrib[icontrib][1] = ineigh;
@@ -1088,12 +1125,12 @@ void PairCACSW::quad_neigh_flux(){
             //flux_contrib[icontrib][3] = isl;
             //icontrib++;
           }
-          flux_density[4*isl] += (interaction_forceij[0]*(vix+vjx) + 
-          interaction_forceij[1]*(viy+vjy)+interaction_forceij[2]*(viz+vjz))*sign;
+          flux_density[4*isl] += (interaction_forceij[0]*vjx + 
+          interaction_forceij[1]*vjy+interaction_forceij[2]*vjz)*sign;
           flux_density[4*isl+1] -= interaction_forceij[0]*sign;
           flux_density[4*isl+2] -= interaction_forceij[1]*sign;
           flux_density[4*isl+3] -= interaction_forceij[2]*sign;
-        }
+          }
         }
 
         //can intersect with box at most twice

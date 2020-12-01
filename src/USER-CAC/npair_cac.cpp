@@ -869,7 +869,7 @@ void NPairCAC::quad_list_build(int iii, double s, double t, double w) {
                 }
               }
               else if ((distancesq < (2*cut_global + cutoff_skin + cut_add)  * (2*cut_global + cutoff_skin + cut_add)&&outer_neigh_flag)
-                        ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add))) {
+                        ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add)&&!outer_neigh_flag)) {
                 if (add_neigh_flag) {
                   if (add_neigh_index == add_quad_neigh_maxes[pqi]) {
                     add_quad_neigh_maxes[pqi] += EXPAND;
@@ -1543,7 +1543,7 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
                   }
                 }
                 else if ((distancesq < (2*cut_global + cutoff_skin + cut_add)  * (2*cut_global + cutoff_skin + cut_add)&&outer_neigh_flag)
-                          ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add))) {
+                          ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add)&&!outer_neigh_flag)) {
                   //complete = 1;
                   if (add_neigh_flag){
                     if (add_neigh_index == add_quad_neigh_maxes[pqi]) {
@@ -1624,7 +1624,7 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
         }
       }
       else if ((distancesq < (2*cut_global + cutoff_skin + cut_add)  * (2*cut_global + cutoff_skin + cut_add)&&outer_neigh_flag)
-                ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add))) {
+                ||(distancesq < (cut_global + cutoff_skin + cut_add)  * (cut_global + cutoff_skin + cut_add)&&!outer_neigh_flag)) {
         if (add_neigh_flag) {
           if (add_neigh_index == add_quad_neigh_maxes[pqi]) {
             add_quad_neigh_maxes[pqi] += EXPAND;

@@ -12,9 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Originally modified from USER-CGDNA/fix_nve_dotc_langevin.cpp. 
-
-   Contributing author: Majid Moseyabi (University of Bristol)
+   Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

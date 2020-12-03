@@ -22,20 +22,6 @@ create_atoms    1 box
 
 mass 1 180.88
 
-python          simple here """
-from __future__ import print_function
-
-def simple():
-  foo = 0
-  print("Inside simple function")
-  try:
-    foo += 1
-  except Exception as e:
-    print("FOO error:", e)
-"""
-
-python          simple invoke
-
 # choose potential
 
 include Ta06A.mliap.pytorch

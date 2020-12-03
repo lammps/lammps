@@ -51,6 +51,7 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
      FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A,
      FORWARD_IK_NONE, FORWARD_AD_NONE, FORWARD_IK_PERATOM_NONE,
      FORWARD_AD_PERATOM_NONE};
+enum{FORWARD=-1,BACKWARD=1};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -4555,7 +4556,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     wk1[n++] = ZEROF;
   }
 
-  ft1->compute(wk1,wk1,1);
+  ft1->compute(wk1,wk1,FORWARD);
 
   // if requested, compute energy and virial contribution
 
@@ -4600,12 +4601,12 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
   for (k = nzlo_ft; k <= nzhi_ft; k++)
     for (j = nylo_ft; j <= nyhi_ft; j++)
       for (i = nxlo_ft; i <= nxhi_ft; i++) {
-        wk2[n] = 0.5*(kx[i]-kx2[i])*wk1[n+1] + 0.5*(ky[j]-ky2[j])*wk1[n];
-        wk2[n+1] = -0.5*(kx[i]-kx2[i])*wk1[n] + 0.5*(ky[j]-ky2[j])*wk1[n+1];
+        wk2[n] = -0.5*(kx[i]-kx2[i])*wk1[n+1] + 0.5*(ky[j]-ky2[j])*wk1[n];
+        wk2[n+1] = 0.5*(kx[i]-kx2[i])*wk1[n] + 0.5*(ky[j]-ky2[j])*wk1[n+1];
         n += 2;
       }
 
-  ft2->compute(wk2,wk2,-1);
+  ft2->compute(wk2,wk2,BACKWARD);
 
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4622,13 +4623,12 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     for (k = nzlo_ft; k <= nzhi_ft; k++)
       for (j = nylo_ft; j <= nyhi_ft; j++)
         for (i = nxlo_ft; i <= nxhi_ft; i++) {
-          wk2[n] = kz[k]*wk1[n+1];
-          wk2[n+1] = -kz[k]*wk1[n];
+          wk2[n] = -kz[k]*wk1[n+1];
+          wk2[n+1] = kz[k]*wk1[n];
           n += 2;
         }
 
-    ft2->compute(wk2,wk2,-1);
-
+    ft2->compute(wk2,wk2,BACKWARD);
 
     n = 0;
     for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4647,12 +4647,12 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     for (k = nzlo_ft; k <= nzhi_ft; k++)
       for (j = nylo_ft; j <= nyhi_ft; j++)
         for (i = nxlo_ft; i <= nxhi_ft; i++) {
-          wk2[n] = 0.5*(kz[k]-kz2[k])*wk1[n+1] - wk1[n+1];
-          wk2[n+1] = -0.5*(kz[k]-kz2[k])*wk1[n] + wk1[n];
+          wk2[n] = -0.5*(kz[k]-kz2[k])*wk1[n+1] - wk1[n+1];
+          wk2[n+1] = 0.5*(kz[k]-kz2[k])*wk1[n] + wk1[n];
           n += 2;
         }
 
-    ft2->compute(wk2,wk2,-1);
+    ft2->compute(wk2,wk2,BACKWARD);
 
     n = 0;
     for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4696,7 +4696,7 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     wk1[n++] = ZEROF;
   }
 
-  ft1->compute(wk1,wk1,1);
+  ft1->compute(wk1,wk1,FORWARD);
 
   // if requested, compute energy and virial contribution
 
@@ -4739,10 +4739,9 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         wk2[n] = wk1[n];
         wk2[n+1] = wk1[n+1];
         n += 2;
-      }
+     }
 
-  ft2->compute(wk2,wk2,-1);
-
+  ft2->compute(wk2,wk2,BACKWARD);
 
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4781,7 +4780,7 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     n += 2;
   }
 
-  ft2->compute(wk2,wk2,-1);
+  ft2->compute(wk2,wk2,BACKWARD);
 
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4800,7 +4799,7 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     n += 2;
   }
 
-  ft2->compute(wk2,wk2,-1);
+  ft2->compute(wk2,wk2,BACKWARD);
 
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4819,7 +4818,7 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     n += 2;
   }
 
-  ft2->compute(wk2,wk2,-1);
+  ft2->compute(wk2,wk2,BACKWARD);
 
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
@@ -4863,7 +4862,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work1_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
   }
   // two transforms are required when energies and pressures are
   //   calculated
@@ -4876,8 +4875,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work2_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
-    fft1_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
+    fft1_6->compute(work2_6,work2_6,FORWARD);
 
     double s2 = scaleinv*scaleinv;
 
@@ -4927,7 +4926,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -4948,7 +4947,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -4969,7 +4968,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -4989,7 +4988,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n += 2;
     }
 
-    fft2_6->compute(work2_6,work2_6,-1);
+    fft2_6->compute(work2_6,work2_6,BACKWARD);
 
     n = 0;
     for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5037,7 +5036,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work1_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
   }
 
   // two transforms are required when energies and pressures are calculated
@@ -5052,8 +5051,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     }
 
 
-    fft1_6->compute(work1_6,work1_6,1);
-    fft1_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
+    fft1_6->compute(work2_6,work2_6,FORWARD);
 
     double s2 = scaleinv*scaleinv;
 
@@ -5106,7 +5105,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5127,7 +5126,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5148,7 +5147,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         n += 2;
       }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5168,7 +5167,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n += 2;
     }
 
-    fft2_6->compute(work2_6,work2_6,-1);
+    fft2_6->compute(work2_6,work2_6,BACKWARD);
 
     n = 0;
     for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5213,7 +5212,7 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work1_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
   }
 
   // two transforms are required when energies and pressures are calculated
@@ -5227,8 +5226,8 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work2_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
-    fft1_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
+    fft1_6->compute(work2_6,work2_6,FORWARD);
 
     double s2 = scaleinv*scaleinv;
 
@@ -5270,7 +5269,7 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5312,7 +5311,7 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work1_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
   }
 
   // two transforms are required when energies and pressures are calculated
@@ -5326,8 +5325,8 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work2_6[n++] = dfft_2[i];
     }
 
-    fft1_6->compute(work1_6,work1_6,1);
-    fft1_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work1_6,work1_6,FORWARD);
+    fft1_6->compute(work2_6,work2_6,FORWARD);
 
     double s2 = scaleinv*scaleinv;
 
@@ -5374,7 +5373,7 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5410,7 +5409,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5429,7 +5428,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5448,7 +5447,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5467,7 +5466,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5486,7 +5485,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5505,7 +5504,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5541,7 +5540,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5560,7 +5559,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5579,7 +5578,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5598,7 +5597,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5617,7 +5616,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -5636,7 +5635,7 @@ poisson_none_peratom(int n1, int n2,
     n += 2;
   }
 
-  fft2_6->compute(work2_6,work2_6,-1);
+  fft2_6->compute(work2_6,work2_6,BACKWARD);
 
   n = 0;
   for (k = nzlo_in_6; k <= nzhi_in_6; k++)
@@ -8153,11 +8152,11 @@ int PPPMDisp::timing_1d(int n, double &time1d)
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
-      fft1->timing1d(work1,nfft_both,1);
-      fft2->timing1d(work1,nfft_both,-1);
+      fft1->timing1d(work1,nfft_both,FORWARD);
+      fft2->timing1d(work1,nfft_both,BACKWARD);
       if (differentiation_flag != 1){
-        fft2->timing1d(work1,nfft_both,-1);
-        fft2->timing1d(work1,nfft_both,-1);
+        fft2->timing1d(work1,nfft_both,BACKWARD);
+        fft2->timing1d(work1,nfft_both,BACKWARD);
       }
     }
   }
@@ -8171,11 +8170,11 @@ int PPPMDisp::timing_1d(int n, double &time1d)
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
-      fft1_6->timing1d(work1_6,nfft_both_6,1);
-      fft2_6->timing1d(work1_6,nfft_both_6,-1);
+      fft1_6->timing1d(work1_6,nfft_both_6,FORWARD);
+      fft2_6->timing1d(work1_6,nfft_both_6,BACKWARD);
       if (differentiation_flag != 1){
-        fft2_6->timing1d(work1_6,nfft_both_6,-1);
-        fft2_6->timing1d(work1_6,nfft_both_6,-1);
+        fft2_6->timing1d(work1_6,nfft_both_6,BACKWARD);
+        fft2_6->timing1d(work1_6,nfft_both_6,BACKWARD);
       }
     }
   }
@@ -8203,18 +8202,16 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   if (function[1] + function[2] + function[3])
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
-
-
   MPI_Barrier(world);
   time1 = MPI_Wtime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
-      fft1->compute(work1,work1,1);
-      fft2->compute(work1,work1,-1);
+      fft1->compute(work1,work1,FORWARD);
+      fft2->compute(work1,work1,BACKWARD);
       if (differentiation_flag != 1) {
-        fft2->compute(work1,work1,-1);
-        fft2->compute(work1,work1,-1);
+        fft2->compute(work1,work1,BACKWARD);
+        fft2->compute(work1,work1,BACKWARD);
       }
     }
   }
@@ -8228,11 +8225,11 @@ int PPPMDisp::timing_3d(int n, double &time3d)
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
-      fft1_6->compute(work1_6,work1_6,1);
-      fft2_6->compute(work1_6,work1_6,-1);
+      fft1_6->compute(work1_6,work1_6,FORWARD);
+      fft2_6->compute(work1_6,work1_6,BACKWARD);
       if (differentiation_flag != 1) {
-        fft2_6->compute(work1_6,work1_6,-1);
-        fft2_6->compute(work1_6,work1_6,-1);
+        fft2_6->compute(work1_6,work1_6,BACKWARD);
+        fft2_6->compute(work1_6,work1_6,BACKWARD);
       }
     }
   }

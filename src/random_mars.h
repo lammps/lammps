@@ -23,6 +23,8 @@ class RanMars : protected Pointers {
   RanMars(class LAMMPS *, int);
   ~RanMars();
   double uniform();
+  double uniform_middle();
+  double zero_rng();
   double gaussian();
   double gaussian(double mu, double sigma);
   double rayleigh(double sigma);

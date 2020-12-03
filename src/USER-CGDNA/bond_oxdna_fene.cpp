@@ -173,6 +173,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -190,9 +191,9 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[b].quat;
+    qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b

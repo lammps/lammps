@@ -45,7 +45,6 @@ page gives those details.
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`MLIAP <PKG-MLIAP>`
-   * :ref:`MLIAPPY <PKG-MLIAPPY>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -663,50 +662,29 @@ MLIAP package
 
 **Contents:**
 
-A general interface for machine-learning interatomic potentials.
+A general interface for machine-learning interatomic potentials, including PyTorch.
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be installed.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` and 
+:ref:`PYTHON package <PKG-PYTHON>` packages need to be installed.
+The version of python must be >3.5.
 
-**Author:** Aidan Thompson (Sandia).
+**Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
 **Supporting info:**
 
 * src/MLIAP: filenames -> commands
-* :doc:`pair_style mliap <pair_mliap>`
-* examples/mliap
-
-----------
-
-.. _PKG-MLIAPPY:
-
-MLIAPPY package
--------------
-
-**Contents:**
-
-Extension to the MLIAP package for coupling with python models. 
-
-**Install:**
-
-To use this package, also the :ref:`MLIAP package <PKG-MLIAP>` needs to be installed.
-To use this package, also the :ref:`PYTHON package <PKG-PYTHON>` needs to be installed.
-The version of python must be >3.5.
-
-The python interpreter linked to LAMMPS will need cython and numpy installed.
-The examples build models with pytorch, which would thus need to be installed.
-
-This package includes more options for the mliap compute and pair style.
-
-**Author:** Nicholas Lubbers (LANL).
-
-**Supporting info:**
-
-* src/MLIAPPY: filenames -> commands
 * src/MLIAPPY/README
 * :doc:`pair_style mliap <pair_mliap>`
-* examples/mliappy (see README)
+* examples/mliap (see README)
+
+When compiled with the LMP_MLIAPPY option, this package
+includes an extension for coupling with python models, incuding PyTorch 
+
+The python interpreter linked to LAMMPS will need cython and numpy installed.
+The examples build models with PyTorch, which would thus need to be installed.
+
 ----------
 
 .. _PKG-MOLECULE:

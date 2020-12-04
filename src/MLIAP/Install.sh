@@ -26,10 +26,6 @@ action () {
   fi
 }
 
-# force rebuild of files using python header
-
-touch ../lmppython.h
-
 # all package files with no dependencies
 
 for file in *.cpp *.h; do
@@ -47,7 +43,7 @@ if (test $1 = 1) then
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*MLIAPPY[^ \t]* //g' ../Makefile.package
+    sed -i -e 's/[^ \t]*-DLMP_MLIAPPY[^ \t]* //g' ../Makefile.package
   fi
 
 fi

@@ -1,12 +1,11 @@
-
 # Demonstrate how to load a model from the python side.
-# This is essentially the same as in.mliap.pytorch.Ta06A--
+# This is essentially the same as in.mliap.pytorch.Ta06A
 # except that python is the driving program, and lammps
 # is in library mode.
 
 before_loading =\
 """
-  # Demonstrate MLIAP interface to linear SNAP potential
+  # Demonstrate MLIAP/PyTorch interface to linear SNAP potential
 
   # Initialize simulation
 
@@ -78,27 +77,30 @@ after_loading =\
   run             ${nsteps}
 """
 
-
 import lammps
 
 lmp = lammps.lammps(cmdargs=['-echo','both'])
-# This commmand must be run before the MLIAP object is declared in lammps.
+
+# this commmand must be run before the MLIAP object is declared in lammps.
+
 lmp.mliappy.activate()
+
+# setup the simulation and declare an empty model
+# by specifying model filename as "LATER"
 
 lmp.commands_string(before_loading)
 
-# Now the model is declared, but empty -- because the model filename
-# was given as "LATER".
+# define the PyTorch model by loading a pkl file.
+# this could also be done in other ways.
 
-# Load the python module, construct on the fly, do whatever, here:
 import pickle
 with open('Ta06A.mliap.pytorch.model.pkl','rb') as pfile:
   model = pickle.load(pfile)
   
-# Now that you have a model, connect it to the pairstyle
+# connect the PyTorch model to the mliap pair style
+
 lmp.mliappy.load_model(model)
 
-# Proceed with whatever calculations you like.
+# run the simulation with the mliap pair style
+
 lmp.commands_string(after_loading)
-
-

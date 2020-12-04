@@ -45,6 +45,7 @@ page gives those details.
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`MLIAP <PKG-MLIAP>`
+   * :ref:`MLIAPPY <PKG-MLIAPPY>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -676,6 +677,36 @@ To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be install
 * :doc:`pair_style mliap <pair_mliap>`
 * examples/mliap
 
+----------
+
+.. _PKG-MLIAPPY:
+
+MLIAPPY package
+-------------
+
+**Contents:**
+
+Extension to the MLIAP package for coupling with python models. 
+
+**Install:**
+
+To use this package, also the :ref:`MLIAP package <PKG-MLIAP>` needs to be installed.
+To use this package, also the :ref:`PYTHON package <PKG-PYTHON>` needs to be installed.
+The version of python must be >3.5.
+
+The python interpreter linked to LAMMPS will need cython and numpy installed.
+The examples build models with pytorch, which would thus need to be installed.
+
+This package includes more options for the mliap compute and pair style.
+
+**Author:** Nicholas Lubbers (LANL).
+
+**Supporting info:**
+
+* src/MLIAPPY: filenames -> commands
+* src/MLIAPPY/README
+* :doc:`pair_style mliap <pair_mliap>`
+* examples/mliappy (see README)
 ----------
 
 .. _PKG-MOLECULE:

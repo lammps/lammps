@@ -1,0 +1,26 @@
+README for MLIAPPY Example
+
+These examples run the Ta06 example from the MLIAP package, but using the python coupling.
+
+1: Running models using LAMMPS executable: in.mliap.snap.Ta06A.
+
+To run this, first run convert_mliap_Ta06A.py, which will convert the Ta06 potential into a pytorch model.
+It will be saved as "Ta06A.mliap.pytorch.model.pkl".
+
+It will also copy the "mliappy_pytorch.py" file into the current working directory. mliappy_pytorch.py contains
+class definitions suitable for wrapping an arbitrary energy model MLIAPPY. It must be available to python when
+creating or unpicking a pytorch model for MLIAPPY.
+
+From that point you can run the example lmp -in in.mliap.snap.Ta06A -echo both
+
+2: Running models from python with LAMMPS in library mode: load_external.py
+
+Before testing this, ensure that the first example (using LAMMPS executable) works.
+
+Not all python installations support this mode of operation. 
+Too test if your interpreter supports this, run:
+`python test_pylibs.py`
+ and examine the output.
+
+If this succeeds, you should be able to run:
+`python load_external.py`

@@ -675,11 +675,11 @@ The version of python must be >3.5.
 **Supporting info:**
 
 * src/MLIAP: filenames -> commands
-* src/MLIAPPY/README
+* src/MLIAP/README
 * :doc:`pair_style mliap <pair_mliap>`
 * examples/mliap (see README)
 
-When compiled with the LMP_MLIAPPY option, this package
+When compiled with the -DLMP_MLIAPPY flag, this package
 includes an extension for coupling with python models, incuding PyTorch 
 
 The python interpreter linked to LAMMPS will need cython and numpy installed.

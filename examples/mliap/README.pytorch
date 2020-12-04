@@ -1,6 +1,7 @@
 README for the PyTorch energy model example
 
-These examples run the Ta06 example from the MLIAP package, but using the python coupling.
+These two examples run the Ta06 example from the MLIAP package, but using the python coupling.
+The differ only in how the coupling is constructed.
 
 1: Running models using LAMMPS executable: in.mliap.pytorch.Ta06A
 
@@ -13,14 +14,22 @@ creating or unpicking a PyTorch energy model.
 
 From that point you can run the example lmp -in in.mliap.pytorch.Ta06A -echo both
 
-2: Running models from python with LAMMPS in library mode: load_external.py
+2: Running models from python with LAMMPS in library mode: mliap_pytorch_Ta06A.py
 
 Before testing this, ensure that the first example (using LAMMPS executable) works.
+Also, not all python installations support this mode of operation. 
+It requires that the Python interpreter be initialized. 
+To check this for your Python library,
+run the Py_IsInitialized() method.
+If the return value is True, you should be able to run the example,
+as follows:
 
-Not all python installations support this mode of operation. 
-Too test if your interpreter supports this, run:
-`python test_pylibs.py`
- and examine the output.
+`python mliap_pytorch_Ta06A.py`
 
-If this succeeds, you should be able to run:
-`python load_external.py`
+or
+
+`mpirun -np 4 python mliap_pytorch_Ta06A.py`
+
+The resultant log.lammps output should be identical to that generated
+by in.mliap.snap.Ta06A and in.mliap.pytorch.Ta06A
+

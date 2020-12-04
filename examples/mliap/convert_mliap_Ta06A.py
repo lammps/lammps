@@ -5,14 +5,14 @@ import pickle
 import os
 import shutil
 
-shutil.copyfile('../../src/MLIAPPY/mliappy_pytorch.py','./mliappy_pytorch.py')
+shutil.copyfile('../../src/MLIAP/mliappy_pytorch.py','./mliappy_pytorch.py')
 
 import mliappy_pytorch
 
 # Read coefficients
-coeffs = np.genfromtxt("../mliap/Ta06A.mliap.model",skip_header=6)
+coeffs = np.genfromtxt("Ta06A.mliap.model",skip_header=6)
 
-# Write coefficiets to a pytorch linear model
+# Write coefficients to a pytorch linear model
 bias = coeffs[0]
 weights = coeffs[1:]
 lin = torch.nn.Linear(weights.shape[0],1)

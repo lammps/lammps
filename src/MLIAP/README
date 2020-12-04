@@ -28,3 +28,18 @@ reference potential.
 To see how this command
 can be used within a Python workflow to train machine-learning interatomic
 potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP>.
+
+*Additional instructions for compiling PyTorch energy models*
+
+The *MLIAPPY* extension written by Nick Lubers (LANL)
+provides a coupling to PyTorch energy models.
+
+Before compiling LAMMPS with either make or cmake, you have
+to run cythonize to create the coupling source files
+in the src/MLIAP directory e.g.
+
+cd MLIAP
+cythonize mliap_model_python_couple.pyx
+
+After that, install the MLIAP package with make or cmake
+and build LAMMPS.

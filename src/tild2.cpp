@@ -241,6 +241,9 @@ void TILD::init()
 
   setup_grid();
 
+  // change number density to tild density 
+  double volume = domain->xprd * domain->yprd * domain->zprd;
+  force->nktv2p *= rho0 * volume / atom->natoms;
 }
 
 void TILD::setup(){
@@ -577,12 +580,16 @@ void TILD::compute(int eflag, int vflag){
     energy = energy_all; // * volume;
 
   }
-
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     //double volume = domain->xprd * domain->yprd * domain->zprd;
-    for (int i = 0; i < 6; i++) virial[i] = virial_all[i]; // * volume; // DOUBLE CHECK THIS CALCULATION
+    for (int i = 0; i < 6; i++) {
+        // change number density to tild density 
+        virial[i] = virial_all[i] / rho0 * atom->natoms; 
+        //Note that if there is a  NT/V term, it uses the number density, not the TILD density (?)
+        //virial[i] = virial_all[i] * volume; 
+    }
   }
   if (triclinic) domain->lamda2x(atom->nlocal);
   return;
@@ -2161,7 +2168,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   double type_factor = 1.0;
   if (itype == jtype) type_factor = 0.5;
 
-  double factor = scale_inv / tmp_rho_div * type_factor;
+  double factor = scale_inv / tmp_rho_div * type_factor * chi[itype][jtype];
 
   if (eflag_global) {
     // convolve itype-jtype interaction potential and itype density
@@ -2182,31 +2189,31 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       eng += ktmp2i[n] * density_fft_types[jtype][k];
       n += 2;
     }
-    energy += eng * factor * chi[itype][jtype] * V; 
+    energy += eng * factor * V; 
   }
 
   // pressure tensor calculation
   if (vflag_global) {
     // loop over stress tensor
     for (int i = 0; i < 6; i++) {
-      double factor2 = factor;//  * ( i/3 ? 2.0 : 1.0);
       n = 0;
       for (int k = 0; k < nfft; k++) {
-        complex_multiply(density_hat_fft_types[itype], vg_hat[loc][i], ktmp2i, n);
+        complex_multiply(density_hat_fft_types[itype], vg_hat[loc][i], ktmpi, n);
         n += 2;
       }
-      fft1->compute(ktmp2i, ktmpi, -1);
+      fft1->compute(ktmpi, ktmp2i, -1);
+      n=0;
       vtmp = 0.0;
       vtmpk = 0.0;
-      n=0;
       for (int k = 0; k < nfft; k++) {
-        vtmp += ktmpi[n] * density_fft_types[jtype][k];
+        vtmp += ktmp2i[n] * density_fft_types[jtype][k];
+        //fprintf(screen,"virial %d %f\n", k,  ktmp2i[n] * density_fft_types[jtype][k]);
         n += 2;
       }
-      virial[i] += vtmp * chi[itype][jtype] * factor2;
-  //    if ( i < 3 ) { // if diagonal member of the matrix, not sure why
-  //    }
+      virial[i] += vtmp * factor;
+      // diagonal IGEOS/chain-ruled on-diagonal part is called by including the kinetic energy term
     }
+    //fprintf(screen,"virial coeff %f", chi[itype][jtype] * vfactor);
     //fprintf(screen,"virial %d %d %f %f %f %f %f %f\n", itype, jtype, virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
   }
   

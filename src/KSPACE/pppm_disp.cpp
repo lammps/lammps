@@ -45,11 +45,11 @@ using namespace MathConst;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
-enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};
-enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
-     FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
-     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A,
-     FORWARD_IK_NONE, FORWARD_AD_NONE, FORWARD_IK_PERATOM_NONE,
+enum{REVERSE_RHO,REVERSE_RHO_G,REVERSE_RHO_A,REVERSE_RHO_NONE};
+enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
+     FORWARD_IK_G,FORWARD_AD_G,FORWARD_IK_PERATOM_G,FORWARD_AD_PERATOM_G,
+     FORWARD_IK_A,FORWARD_AD_A,FORWARD_IK_PERATOM_A,FORWARD_AD_PERATOM_A,
+     FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
      FORWARD_AD_PERATOM_NONE};
 enum{FORWARD=-1,BACKWARD=1};
 
@@ -305,13 +305,13 @@ void PPPMDisp::init()
   cutoff_lj = *p_cutoff_lj;
 
   double tmp2;
-  MPI_Allreduce(&cutoff, &tmp2,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&cutoff,&tmp2,1,MPI_DOUBLE,MPI_SUM,world);
 
   // check out which types of potentials will have to be calculated
 
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
   int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : Pair::GEOMETRIC;
-  memset(function, 0, EWALD_FUNCS*sizeof(int));
+  memset(function,0,EWALD_FUNCS*sizeof(int));
   for (int i=0; i<=EWALD_MAXORDER; ++i)                 // transcribe order
     if (ewald_order&(1<<i)) {                           // from pair_style
       int  k=0;
@@ -427,16 +427,16 @@ void PPPMDisp::init()
       if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
       error->all(FLERR,"PPPMDisp Coulomb grid is too large");
 
-      set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
-                         nxlo_fft, nylo_fft, nzlo_fft,
-                         nxhi_fft, nyhi_fft, nzhi_fft,
-                         nxlo_in, nylo_in, nzlo_in,
-                         nxhi_in, nyhi_in, nzhi_in,
-                         nxlo_out, nylo_out, nzlo_out,
-                         nxhi_out, nyhi_out, nzhi_out,
-                         nlower, nupper,
-                         ngrid, nfft, nfft_both,
-                         shift, shiftone, order);
+      set_fft_parameters(nx_pppm,ny_pppm,nz_pppm,
+                         nxlo_fft,nylo_fft,nzlo_fft,
+                         nxhi_fft,nyhi_fft,nzhi_fft,
+                         nxlo_in,nylo_in,nzlo_in,
+                         nxhi_in,nyhi_in,nzhi_in,
+                         nxlo_out,nylo_out,nzlo_out,
+                         nxhi_out,nyhi_out,nzhi_out,
+                         nlower,nupper,
+                         ngrid,nfft,nfft_both,
+                         shift,shiftone,order);
 
       if (overlap_allowed) break;
 
@@ -485,7 +485,7 @@ void PPPMDisp::init()
                           acc/two_charge_force);
       mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
       mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_max, nfft_both_max);
+                          ngrid_max,nfft_both_max);
       utils::logmesg(lmp,mesg);
     }
   }
@@ -506,16 +506,16 @@ void PPPMDisp::init()
       if (nx_pppm_6 >= OFFSET || ny_pppm_6 >= OFFSET || nz_pppm_6 >= OFFSET)
       error->all(FLERR,"PPPMDisp Dispersion grid is too large");
 
-      set_fft_parameters(nx_pppm_6, ny_pppm_6, nz_pppm_6,
-                         nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-                         nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                         nxlo_in_6, nylo_in_6, nzlo_in_6,
-                         nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                         nxlo_out_6, nylo_out_6, nzlo_out_6,
-                         nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                         nlower_6, nupper_6,
-                         ngrid_6, nfft_6, nfft_both_6,
-                         shift_6, shiftone_6, order_6);
+      set_fft_parameters(nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                         nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                         nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                         nxlo_in_6,nylo_in_6,nzlo_in_6,
+                         nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                         nxlo_out_6,nylo_out_6,nzlo_out_6,
+                         nxhi_out_6,nyhi_out_6,nzhi_out_6,
+                         nlower_6,nupper_6,
+                         ngrid_6,nfft_6,nfft_both_6,
+                         shift_6,shiftone_6,order_6);
 
       if (overlap_allowed) break;
 
@@ -548,8 +548,8 @@ void PPPMDisp::init()
 
     // calculate the final accuracy
 
-    double acc, acc_real, acc_kspace;
-    final_accuracy_6(acc, acc_real, acc_kspace);
+    double acc,acc_real,acc_kspace;
+    final_accuracy_6(acc,acc_real,acc_kspace);
 
     // print stats
 
@@ -559,7 +559,7 @@ void PPPMDisp::init()
 
     if (me == 0) {
       std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
-                                     "{:.8}\n", g_ewald_6);
+                                     "{:.8}\n",g_ewald_6);
       mesg += fmt::format("  Dispersion grid = {} {} {}\n",
                           nx_pppm_6,ny_pppm_6,nz_pppm_6);
       mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
@@ -569,7 +569,7 @@ void PPPMDisp::init()
                           "= {:.8}\n",acc/two_charge_force);
       mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
       mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_max, nfft_both_max);
+                          ngrid_max,nfft_both_max);
       utils::logmesg(lmp,mesg);
     }
   }
@@ -582,24 +582,24 @@ void PPPMDisp::init()
   // pre-compute 1d charge distribution coefficients
 
   if (function[0]) {
-    compute_gf_denom(gf_b, order);
-    compute_rho_coeff(rho_coeff, drho_coeff, order);
+    compute_gf_denom(gf_b,order);
+    compute_rho_coeff(rho_coeff,drho_coeff,order);
     if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
-                          nxlo_fft, nylo_fft, nzlo_fft,
-                          nxhi_fft, nyhi_fft, nzhi_fft,
-                          sf_precoeff1, sf_precoeff2, sf_precoeff3,
-                          sf_precoeff4, sf_precoeff5, sf_precoeff6);
+      compute_sf_precoeff(nx_pppm,ny_pppm,nz_pppm,order,
+                          nxlo_fft,nylo_fft,nzlo_fft,
+                          nxhi_fft,nyhi_fft,nzhi_fft,
+                          sf_precoeff1,sf_precoeff2,sf_precoeff3,
+                          sf_precoeff4,sf_precoeff5,sf_precoeff6);
   }
   if (function[1] + function[2] + function[3]) {
-    compute_gf_denom(gf_b_6, order_6);
-    compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+    compute_gf_denom(gf_b_6,order_6);
+    compute_rho_coeff(rho_coeff_6,drho_coeff_6,order_6);
     if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
-                          nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-                          nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                          sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
-                          sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
+      compute_sf_precoeff(nx_pppm_6,ny_pppm_6,nz_pppm_6,order_6,
+                          nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                          nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                          sf_precoeff1_6,sf_precoeff2_6,sf_precoeff3_6,
+                          sf_precoeff4_6,sf_precoeff5_6,sf_precoeff6_6);
   }
 }
 
@@ -649,7 +649,7 @@ void PPPMDisp::setup()
     delvolinv = delxinv*delyinv*delzinv;
 
     double per;
-    int i, j, k, n;
+    int i,j,k,n;
 
     for (i = nxlo_fft; i <= nxhi_fft; i++) {
       per = i - nx_pppm*(2*i/nx_pppm);
@@ -716,7 +716,7 @@ void PPPMDisp::setup()
     delvolinv_6 = delxinv_6*delyinv_6*delzinv_6;
 
     double per;
-    int i, j, k, n;
+    int i,j,k,n;
     for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
       per = i - nx_pppm_6*(2*i/nx_pppm_6);
       fkx_6[i] = unitkx*per;
@@ -739,8 +739,8 @@ void PPPMDisp::setup()
       fkz2_6[i] = unitkz*per;
     }
     double sqk,vterm;
-    long double erft, expt,nom, denom;
-    long double b, bs, bt;
+    long double erft,expt,nom,denom;
+    long double b,bs,bt;
     double rtpi = sqrt(MY_PI);
     double gewinv = 1/g_ewald_6;
     n = 0;
@@ -799,28 +799,28 @@ void PPPMDisp::setup_grid()
   // reset portion of global grid that each proc owns
 
   if (function[0])
-    set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
-                       nxlo_fft, nylo_fft, nzlo_fft,
-                       nxhi_fft, nyhi_fft, nzhi_fft,
-                       nxlo_in, nylo_in, nzlo_in,
-                       nxhi_in, nyhi_in, nzhi_in,
-                       nxlo_out, nylo_out, nzlo_out,
-                       nxhi_out, nyhi_out, nzhi_out,
-                       nlower, nupper,
-                       ngrid, nfft, nfft_both,
-                       shift, shiftone, order);
+    set_fft_parameters(nx_pppm,ny_pppm,nz_pppm,
+                       nxlo_fft,nylo_fft,nzlo_fft,
+                       nxhi_fft,nyhi_fft,nzhi_fft,
+                       nxlo_in,nylo_in,nzlo_in,
+                       nxhi_in,nyhi_in,nzhi_in,
+                       nxlo_out,nylo_out,nzlo_out,
+                       nxhi_out,nyhi_out,nzhi_out,
+                       nlower,nupper,
+                       ngrid,nfft,nfft_both,
+                       shift,shiftone,order);
 
   if (function[1] + function[2] + function[3])
-    set_fft_parameters(nx_pppm_6, ny_pppm_6, nz_pppm_6,
-                       nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-                       nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                       nxlo_in_6, nylo_in_6, nzlo_in_6,
-                       nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                       nxlo_out_6, nylo_out_6, nzlo_out_6,
-                       nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                       nlower_6, nupper_6,
-                       ngrid_6, nfft_6, nfft_both_6,
-                       shift_6, shiftone_6, order_6);
+    set_fft_parameters(nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                       nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                       nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                       nxlo_in_6,nylo_in_6,nzlo_in_6,
+                       nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                       nxlo_out_6,nylo_out_6,nzlo_out_6,
+                       nxhi_out_6,nyhi_out_6,nzhi_out_6,
+                       nlower_6,nupper_6,
+                       ngrid_6,nfft_6,nfft_both_6,
+                       shift_6,shiftone_6,order_6);
 
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
@@ -843,24 +843,24 @@ void PPPMDisp::setup_grid()
   // pre-compute 1d charge distribution coefficients
 
   if (function[0]) {
-    compute_gf_denom(gf_b, order);
-    compute_rho_coeff(rho_coeff, drho_coeff, order);
+    compute_gf_denom(gf_b,order);
+    compute_rho_coeff(rho_coeff,drho_coeff,order);
     if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
-                          nxlo_fft, nylo_fft, nzlo_fft,
-                          nxhi_fft, nyhi_fft, nzhi_fft,
-                          sf_precoeff1, sf_precoeff2, sf_precoeff3,
-                          sf_precoeff4, sf_precoeff5, sf_precoeff6);
+      compute_sf_precoeff(nx_pppm,ny_pppm,nz_pppm,order,
+                          nxlo_fft,nylo_fft,nzlo_fft,
+                          nxhi_fft,nyhi_fft,nzhi_fft,
+                          sf_precoeff1,sf_precoeff2,sf_precoeff3,
+                          sf_precoeff4,sf_precoeff5,sf_precoeff6);
   }
   if (function[1] + function[2] + function[3]) {
-    compute_gf_denom(gf_b_6, order_6);
-    compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+    compute_gf_denom(gf_b_6,order_6);
+    compute_rho_coeff(rho_coeff_6,drho_coeff_6,order_6);
     if (differentiation_flag == 1)
-      compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
-                          nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
-                          nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                          sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
-                          sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
+      compute_sf_precoeff(nx_pppm_6,ny_pppm_6,nz_pppm_6,order_6,
+                          nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                          nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                          sf_precoeff1_6,sf_precoeff2_6,sf_precoeff3_6,
+                          sf_precoeff4_6,sf_precoeff5_6,sf_precoeff6_6);
   }
 
   // pre-compute volume-dependent coeffs
@@ -918,25 +918,25 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     // perform calculations for coulomb interactions only
 
-    particle_map_c(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
-                   nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
+    particle_map_c(delxinv,delyinv,delzinv,shift,part2grid,nupper,nlower,
+                   nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out);
 
     make_rho_c();
 
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
-    brick2fft(nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-              density_brick, density_fft, work1,remap);
+    brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+              density_brick,density_fft,work1,remap);
 
     if (differentiation_flag == 1) {
-      poisson_ad(work1, work2, density_fft, fft1, fft2,
-                 nx_pppm, ny_pppm, nz_pppm, nfft,
-                 nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft,
-                 nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-                 energy_1, greensfn,
-                 virial_1, vg,vg2,
-                 u_brick, v0_brick, v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
+      poisson_ad(work1,work2,density_fft,fft1,fft2,
+                 nx_pppm,ny_pppm,nz_pppm,nfft,
+                 nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                 nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                 energy_1,greensfn,
+                 virial_1,vg,vg2,
+                 u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
       gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
@@ -948,14 +948,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
-      poisson_ik(work1, work2, density_fft, fft1, fft2,
-                 nx_pppm, ny_pppm, nz_pppm, nfft,
-                 nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft,
-                 nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-                 energy_1, greensfn,
-                 fkx, fky, fkz,fkx2, fky2, fkz2,
-                 vdx_brick, vdy_brick, vdz_brick, virial_1, vg,vg2,
-                 u_brick, v0_brick, v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
+      poisson_ik(work1,work2,density_fft,fft1,fft2,
+                 nx_pppm,ny_pppm,nz_pppm,nfft,
+                 nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                 nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                 energy_1,greensfn,
+                 fkx,fky,fkz,fkx2,fky2,fkz2,
+                 vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
+                 u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
       gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
@@ -974,28 +974,28 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     // perform calculations for geometric mixing
 
-    particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6,
-                 nupper_6, nlower_6,
-                 nxlo_out_6, nylo_out_6, nzlo_out_6,
-                 nxhi_out_6, nyhi_out_6, nzhi_out_6);
+    particle_map(delxinv_6,delyinv_6,delzinv_6,shift_6,part2grid_6,
+                 nupper_6,nlower_6,
+                 nxlo_out_6,nylo_out_6,nzlo_out_6,
+                 nxhi_out_6,nyhi_out_6,nzhi_out_6);
 
     make_rho_g();
 
     gc6->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_G,
                              gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
-    brick2fft(nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-              density_brick_g, density_fft_g, work1_6,remap_6);
+    brick2fft(nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
+              density_brick_g,density_fft_g,work1_6,remap_6);
 
     if (differentiation_flag == 1) {
-      poisson_ad(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
-                 nx_pppm_6, ny_pppm_6, nz_pppm_6, nfft_6,
-                 nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                 nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                 energy_6, greensfn_6,
-                 virial_6, vg_6, vg2_6,
-                 u_brick_g, v0_brick_g, v1_brick_g, v2_brick_g,
-                 v3_brick_g, v4_brick_g, v5_brick_g);
+      poisson_ad(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
+                 nx_pppm_6,ny_pppm_6,nz_pppm_6,nfft_6,
+                 nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                 nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                 energy_6,greensfn_6,
+                 virial_6,vg_6,vg2_6,
+                 u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
+                 v3_brick_g,v4_brick_g,v5_brick_g);
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_G,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
@@ -1007,15 +1007,15 @@ void PPPMDisp::compute(int eflag, int vflag)
                                  gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
-      poisson_ik(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
-                 nx_pppm_6, ny_pppm_6, nz_pppm_6, nfft_6,
-                 nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                 nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                 energy_6, greensfn_6,
-                 fkx_6, fky_6, fkz_6,fkx2_6, fky2_6, fkz2_6,
-                 vdx_brick_g, vdy_brick_g, vdz_brick_g, virial_6, vg_6, vg2_6,
-                 u_brick_g, v0_brick_g, v1_brick_g, v2_brick_g,
-                 v3_brick_g, v4_brick_g, v5_brick_g);
+      poisson_ik(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
+                 nx_pppm_6,ny_pppm_6,nz_pppm_6,nfft_6,
+                 nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                 nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                 energy_6,greensfn_6,
+                 fkx_6,fky_6,fkz_6,fkx2_6,fky2_6,fkz2_6,
+                 vdx_brick_g,vdy_brick_g,vdz_brick_g,virial_6,vg_6,vg2_6,
+                 u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
+                 v3_brick_g,v4_brick_g,v5_brick_g);
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_G,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
@@ -1034,10 +1034,10 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     // perform calculations for arithmetic mixing
 
-    particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6,
-                 nupper_6, nlower_6,
-                 nxlo_out_6, nylo_out_6, nzlo_out_6,
-                 nxhi_out_6, nyhi_out_6, nzhi_out_6);
+    particle_map(delxinv_6,delyinv_6,delzinv_6,shift_6,part2grid_6,
+                 nupper_6,nlower_6,
+                 nxlo_out_6,nylo_out_6,nzlo_out_6,
+                 nxhi_out_6,nyhi_out_6,nzhi_out_6);
 
     make_rho_a();
 
@@ -1047,29 +1047,29 @@ void PPPMDisp::compute(int eflag, int vflag)
     brick2fft_a();
 
     if (differentiation_flag == 1) {
-      poisson_ad(work1_6, work2_6, density_fft_a3, fft1_6, fft2_6,
-                 nx_pppm_6, ny_pppm_6, nz_pppm_6, nfft_6,
-                 nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                 nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                 energy_6, greensfn_6,
-                 virial_6, vg_6, vg2_6,
-                 u_brick_a3, v0_brick_a3, v1_brick_a3, v2_brick_a3,
-                 v3_brick_a3, v4_brick_a3, v5_brick_a3);
-      poisson_2s_ad(density_fft_a0, density_fft_a6,
-                    u_brick_a0, v0_brick_a0, v1_brick_a0, v2_brick_a0,
-                    v3_brick_a0, v4_brick_a0, v5_brick_a0,
-                    u_brick_a6, v0_brick_a6, v1_brick_a6, v2_brick_a6,
-                    v3_brick_a6, v4_brick_a6, v5_brick_a6);
-      poisson_2s_ad(density_fft_a1, density_fft_a5,
-                    u_brick_a1, v0_brick_a1, v1_brick_a1, v2_brick_a1,
-                    v3_brick_a1, v4_brick_a1, v5_brick_a1,
-                    u_brick_a5, v0_brick_a5, v1_brick_a5, v2_brick_a5,
-                    v3_brick_a5, v4_brick_a5, v5_brick_a5);
-      poisson_2s_ad(density_fft_a2, density_fft_a4,
-                    u_brick_a2, v0_brick_a2, v1_brick_a2, v2_brick_a2,
-                    v3_brick_a2, v4_brick_a2, v5_brick_a2,
-                    u_brick_a4, v0_brick_a4, v1_brick_a4, v2_brick_a4,
-                    v3_brick_a4, v4_brick_a4, v5_brick_a4);
+      poisson_ad(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
+                 nx_pppm_6,ny_pppm_6,nz_pppm_6,nfft_6,
+                 nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                 nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                 energy_6,greensfn_6,
+                 virial_6,vg_6,vg2_6,
+                 u_brick_a3,v0_brick_a3,v1_brick_a3,v2_brick_a3,
+                 v3_brick_a3,v4_brick_a3,v5_brick_a3);
+      poisson_2s_ad(density_fft_a0,density_fft_a6,
+                    u_brick_a0,v0_brick_a0,v1_brick_a0,v2_brick_a0,
+                    v3_brick_a0,v4_brick_a0,v5_brick_a0,
+                    u_brick_a6,v0_brick_a6,v1_brick_a6,v2_brick_a6,
+                    v3_brick_a6,v4_brick_a6,v5_brick_a6);
+      poisson_2s_ad(density_fft_a1,density_fft_a5,
+                    u_brick_a1,v0_brick_a1,v1_brick_a1,v2_brick_a1,
+                    v3_brick_a1,v4_brick_a1,v5_brick_a1,
+                    u_brick_a5,v0_brick_a5,v1_brick_a5,v2_brick_a5,
+                    v3_brick_a5,v4_brick_a5,v5_brick_a5);
+      poisson_2s_ad(density_fft_a2,density_fft_a4,
+                    u_brick_a2,v0_brick_a2,v1_brick_a2,v2_brick_a2,
+                    v3_brick_a2,v4_brick_a2,v5_brick_a2,
+                    u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
+                    v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
       gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_A,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
@@ -1081,36 +1081,36 @@ void PPPMDisp::compute(int eflag, int vflag)
                                  gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
-      poisson_ik(work1_6, work2_6, density_fft_a3, fft1_6, fft2_6,
-                 nx_pppm_6, ny_pppm_6, nz_pppm_6, nfft_6,
-                 nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
-                 nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                 energy_6, greensfn_6,
-                 fkx_6, fky_6, fkz_6,fkx2_6, fky2_6, fkz2_6,
-                 vdx_brick_a3, vdy_brick_a3, vdz_brick_a3, virial_6, vg_6, vg2_6,
-                 u_brick_a3, v0_brick_a3, v1_brick_a3, v2_brick_a3,
-                 v3_brick_a3, v4_brick_a3, v5_brick_a3);
-      poisson_2s_ik(density_fft_a0, density_fft_a6,
-                    vdx_brick_a0, vdy_brick_a0, vdz_brick_a0,
-                    vdx_brick_a6, vdy_brick_a6, vdz_brick_a6,
-                    u_brick_a0, v0_brick_a0, v1_brick_a0, v2_brick_a0,
-                    v3_brick_a0, v4_brick_a0, v5_brick_a0,
-                    u_brick_a6, v0_brick_a6, v1_brick_a6, v2_brick_a6,
-                    v3_brick_a6, v4_brick_a6, v5_brick_a6);
-      poisson_2s_ik(density_fft_a1, density_fft_a5,
-                    vdx_brick_a1, vdy_brick_a1, vdz_brick_a1,
-                    vdx_brick_a5, vdy_brick_a5, vdz_brick_a5,
-                    u_brick_a1, v0_brick_a1, v1_brick_a1, v2_brick_a1,
-                    v3_brick_a1, v4_brick_a1, v5_brick_a1,
-                    u_brick_a5, v0_brick_a5, v1_brick_a5, v2_brick_a5,
-                    v3_brick_a5, v4_brick_a5, v5_brick_a5);
-      poisson_2s_ik(density_fft_a2, density_fft_a4,
-                    vdx_brick_a2, vdy_brick_a2, vdz_brick_a2,
-                    vdx_brick_a4, vdy_brick_a4, vdz_brick_a4,
-                    u_brick_a2, v0_brick_a2, v1_brick_a2, v2_brick_a2,
-                    v3_brick_a2, v4_brick_a2, v5_brick_a2,
-                    u_brick_a4, v0_brick_a4, v1_brick_a4, v2_brick_a4,
-                    v3_brick_a4, v4_brick_a4, v5_brick_a4);
+      poisson_ik(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
+                 nx_pppm_6,ny_pppm_6,nz_pppm_6,nfft_6,
+                 nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
+                 nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
+                 energy_6,greensfn_6,
+                 fkx_6,fky_6,fkz_6,fkx2_6,fky2_6,fkz2_6,
+                 vdx_brick_a3,vdy_brick_a3,vdz_brick_a3,virial_6,vg_6,vg2_6,
+                 u_brick_a3,v0_brick_a3,v1_brick_a3,v2_brick_a3,
+                 v3_brick_a3,v4_brick_a3,v5_brick_a3);
+      poisson_2s_ik(density_fft_a0,density_fft_a6,
+                    vdx_brick_a0,vdy_brick_a0,vdz_brick_a0,
+                    vdx_brick_a6,vdy_brick_a6,vdz_brick_a6,
+                    u_brick_a0,v0_brick_a0,v1_brick_a0,v2_brick_a0,
+                    v3_brick_a0,v4_brick_a0,v5_brick_a0,
+                    u_brick_a6,v0_brick_a6,v1_brick_a6,v2_brick_a6,
+                    v3_brick_a6,v4_brick_a6,v5_brick_a6);
+      poisson_2s_ik(density_fft_a1,density_fft_a5,
+                    vdx_brick_a1,vdy_brick_a1,vdz_brick_a1,
+                    vdx_brick_a5,vdy_brick_a5,vdz_brick_a5,
+                    u_brick_a1,v0_brick_a1,v1_brick_a1,v2_brick_a1,
+                    v3_brick_a1,v4_brick_a1,v5_brick_a1,
+                    u_brick_a5,v0_brick_a5,v1_brick_a5,v2_brick_a5,
+                    v3_brick_a5,v4_brick_a5,v5_brick_a5);
+      poisson_2s_ik(density_fft_a2,density_fft_a4,
+                    vdx_brick_a2,vdy_brick_a2,vdz_brick_a2,
+                    vdx_brick_a4,vdy_brick_a4,vdz_brick_a4,
+                    u_brick_a2,v0_brick_a2,v1_brick_a2,v2_brick_a2,
+                    v3_brick_a2,v4_brick_a2,v5_brick_a2,
+                    u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
+                    v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
       gc6->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_IK_A,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
@@ -1129,10 +1129,10 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     // perform calculations if no mixing rule applies
 
-    particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6,
-                 nupper_6, nlower_6,
-                 nxlo_out_6, nylo_out_6, nzlo_out_6,
-                 nxhi_out_6, nyhi_out_6, nzhi_out_6);
+    particle_map(delxinv_6,delyinv_6,delzinv_6,shift_6,part2grid_6,
+                 nupper_6,nlower_6,
+                 nxlo_out_6,nylo_out_6,nzlo_out_6,
+                 nxhi_out_6,nyhi_out_6,nzhi_out_6);
 
     make_rho_none();
 
@@ -1146,8 +1146,8 @@ void PPPMDisp::compute(int eflag, int vflag)
       for (int k = 0; k<nsplit_alloc/2; k++) {
         poisson_none_ad(n,n+1,density_fft_none[n],density_fft_none[n+1],
                         u_brick_none[n],u_brick_none[n+1],
-                        v0_brick_none, v1_brick_none, v2_brick_none,
-                        v3_brick_none, v4_brick_none, v5_brick_none);
+                        v0_brick_none,v1_brick_none,v2_brick_none,
+                        v3_brick_none,v4_brick_none,v5_brick_none);
         n += 2;
       }
 
@@ -1164,11 +1164,11 @@ void PPPMDisp::compute(int eflag, int vflag)
       int n = 0;
       for (int k = 0; k<nsplit_alloc/2; k++) {
 
-        poisson_none_ik(n,n+1,density_fft_none[n], density_fft_none[n+1],
-                        vdx_brick_none[n], vdy_brick_none[n], vdz_brick_none[n],
-                        vdx_brick_none[n+1], vdy_brick_none[n+1], vdz_brick_none[n+1],
-                        u_brick_none, v0_brick_none, v1_brick_none, v2_brick_none,
-                        v3_brick_none, v4_brick_none, v5_brick_none);
+        poisson_none_ik(n,n+1,density_fft_none[n],density_fft_none[n+1],
+                        vdx_brick_none[n],vdy_brick_none[n],vdz_brick_none[n],
+                        vdx_brick_none[n+1],vdy_brick_none[n+1],vdz_brick_none[n+1],
+                        u_brick_none,v0_brick_none,v1_brick_none,v2_brick_none,
+                        v3_brick_none,v4_brick_none,v5_brick_none);
         n += 2;
       }
 
@@ -1185,7 +1185,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_none_peratom();
   }
 
-  // update qsum and qsqsum, if atom count has changed and energy needed
+  // update qsum and qsqsum,if atom count has changed and energy needed
 
   if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
     qsum_qsq();
@@ -1387,7 +1387,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
       if (me == 0)
         utils::logmesg(lmp,fmt::format("  Using {} structure factors\n",
                                        nsplit));
-      if (nsplit > 9) error->warning(FLERR, "Simulations might be very slow because of large number of structure factors");
+      if (nsplit > 9) error->warning(FLERR,"Simulations might be very slow because of large number of structure factors");
     }
 
     memory->destroy(A);
@@ -1400,15 +1400,15 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {                                    // arithmetic 1/r^6
-    //cannot use epsilon, because this has not been set yet
+    //cannot use epsilon,because this has not been set yet
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
-    //cannot use sigma, because this has not been set yet
+    //cannot use sigma,because this has not been set yet
     double **sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all(FLERR,"Epsilon or sigma reference not set by pair style in PPPMDisp");
-    double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
+    double eps_i,sigma_i,sigma_n,*bi = B = new double[7*n+7];
     double c[7] = {
-      1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};
+      1.0,sqrt(6.0),sqrt(15.0),sqrt(20.0),sqrt(15.0),sqrt(6.0),1.0};
     for (int i=0; i<=n; ++i) {
       eps_i = sqrt(epsilon[i][i]);
       sigma_i = sigma[i][i];
@@ -1422,7 +1422,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
 }
 
 /* ----------------------------------------------------------------------
-   Eigenvalue decomposition of a real, symmetric matrix with the QR
+   Eigenvalue decomposition of a real,symmetric matrix with the QR
    method (includes transpformation to Tridiagonal Matrix + Wilkinson
    shift)
 ------------------------------------------------------------------------- */
@@ -1430,7 +1430,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
 int PPPMDisp::qr_alg(double **A, double **Q, int n)
 {
   int converged = 0;
-  double an1, an, bn1, d, mue;
+  double an1,an,bn1,d,mue;
   // allocate some memory for the required operations
   double **A0,**Qi,**C,**D,**E;
   // make a copy of A for convergence check
@@ -1534,7 +1534,7 @@ void PPPMDisp::hessenberg(double **A, double **Q, int n)
    is stored in A and Qi
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::qr_tri(double** Qi,double** A,int n)
+void PPPMDisp::qr_tri(double** Qi, double** A, int n)
 {
   double r,a,b,c,s,x1,x2;
   int j,k,k0,kmax;
@@ -1544,16 +1544,22 @@ void PPPMDisp::qr_tri(double** Qi,double** A,int n)
       Qi[i][j] = 0.0;
   for (int i = 0; i < n; i++)
     Qi[i][i] = 1.0;
+  
   // loop over main diagonal and first of diagonal of A
+
   for (int i = 0; i < n-1; i++) {
     j = i+1;
+    
     // coefficients of the rotation matrix
+    
     a = A[i][i];
     b = A[j][i];
     r = sqrt(a*a + b*b);
     c = a/r;
     s = b/r;
+    
     // update the entries of A and Q
+    
     k0 = (i-1>0)?i-1:0;   //min(i-1,0);
     kmax = (i+3<n)?i+3:n;  //min(i+3,n);
     for (k = k0; k < kmax; k++) {
@@ -1583,11 +1589,14 @@ void PPPMDisp::mmult(double** A, double** B, double** C, int n)
       C[i][j] = 0.0;
 
   // perform matrix multiplication
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       for (int k = 0; k < n; k++)
         C[i][j] += A[i][k] * B[k][j];
+
   // copy the result back to matrix A
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       A[i][j] = C[i][j];
@@ -1598,15 +1607,17 @@ void PPPMDisp::mmult(double** A, double** B, double** C, int n)
    original matrix and the new matrix
 ------------------------------------------------------------------------- */
 
-int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
-                                double** C,double** D,double** E,int n)
+int PPPMDisp::check_convergence(double** A, double** Q, double** A0,
+                                double** C, double** D, double** E, int n)
 {
   double eps = 1.0e-8;
   int converged = 1;
   double epsmax = -1;
   double Bmax = 0.0;
   double diff;
+  
   // get the largest eigenvalue of the original matrix
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       Bmax = (Bmax>A0[i][j])?Bmax:A0[i][j];  //max(Bmax,A0[i][j]);
@@ -1614,25 +1625,36 @@ int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
 
   // reconstruct the original matrix
   // store the diagonal elements in D
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       D[i][j] = 0.0;
   for (int i = 0; i < n; i++)
     D[i][i] = A[i][i];
+  
   // store matrix Q in E
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       E[i][j] = Q[i][j];
+  
   // E = Q*A
+  
   mmult(E,D,C,n);
+  
   // store transpose of Q in D
+  
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
       D[i][j] = Q[j][i];
+
   // E = Q*A*Q.t
+  
   mmult(E,D,C,n);
 
+
   //compare the original matrix and the final matrix
+  
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       diff = A0[i][j] - E[i][j];
@@ -2646,16 +2668,16 @@ void PPPMDisp::set_grid()
    set the FFT parameters
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
-                                  int& nxlo_f,int& nylo_f,int& nzlo_f,
-                                  int& nxhi_f,int& nyhi_f,int& nzhi_f,
-                                  int& nxlo_i,int& nylo_i,int& nzlo_i,
-                                  int& nxhi_i,int& nyhi_i,int& nzhi_i,
-                                  int& nxlo_o,int& nylo_o,int& nzlo_o,
-                                  int& nxhi_o,int& nyhi_o,int& nzhi_o,
-                                  int& nlow, int& nupp,
-                                  int& ng, int& nf, int& nfb,
-                                  double& sft,double& sftone, int& ord)
+void PPPMDisp::set_fft_parameters(int& nx_p, int& ny_p, int& nz_p, 
+                                  int& nxlo_f, int& nylo_f, int& nzlo_f, 
+                                  int& nxhi_f, int& nyhi_f, int& nzhi_f, 
+                                  int& nxlo_i, int& nylo_i, int& nzlo_i, 
+                                  int& nxhi_i, int& nyhi_i, int& nzhi_i, 
+                                  int& nxlo_o, int& nylo_o, int& nzlo_o, 
+                                  int& nxhi_o, int& nyhi_o, int& nzhi_o, 
+                                  int& nlow,  int& nupp, 
+                                  int& ng,  int& nf,  int& nfb, 
+                                  double& sft, double& sftone, int& ord)
 {
   // global indices of PPPM grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -3986,6 +4008,7 @@ void PPPMDisp::compute_gf_6()
    compute self force coefficients for ad-differentiation scheme
    and Coulomb interaction
 ------------------------------------------------------------------------- */
+
 void PPPMDisp::compute_sf_coeff()
 {
   int i,k,l,m,n;
@@ -4280,6 +4303,8 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp");
 }
 
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
 
 void PPPMDisp::particle_map_c(double delx, double dely, double delz,
                                double sft, int** p2g, int nup, int nlow,
@@ -4550,6 +4575,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
   double eng;
 
   // transform charge/dispersion density (r -> k)
+  
   n = 0;
   for (i = 0; i < nft; i++) {
     wk1[n++] = dfft[i];
@@ -4616,9 +4642,9 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         vy_brick[k][j][i] = wk2[n++];
       }
 
-  if (!eflag_atom) {
-    // z direction gradient only
+  // z direction gradient only
 
+  if (!eflag_atom) {
     n = 0;
     for (k = nzlo_ft; k <= nzhi_ft; k++)
       for (j = nylo_ft; j <= nyhi_ft; j++)
@@ -4640,15 +4666,15 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   }
 
-  else {
-    // z direction gradient & per-atom energy
+  // z direction gradient & per-atom energy
 
+  else {
     n = 0;
     for (k = nzlo_ft; k <= nzhi_ft; k++)
       for (j = nylo_ft; j <= nyhi_ft; j++)
         for (i = nxlo_ft; i <= nxhi_ft; i++) {
-          wk2[n] = -0.5*(kz[k]-kz2[k])*wk1[n+1] - wk1[n+1];
-          wk2[n+1] = 0.5*(kz[k]-kz2[k])*wk1[n] + wk1[n];
+          wk2[n] = -0.5*(kz[k]-kz2[k])*wk1[n+1] + wk1[n+1];
+          wk2[n+1] = 0.5*(kz[k]-kz2[k])*wk1[n] - wk1[n];
           n += 2;
         }
 
@@ -4663,9 +4689,9 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         }
   }
 
-  if (vflag_atom) poisson_peratom(wk1, wk2, ft2, vcoeff, vcoeff2, nft,
-                                  nxlo_i, nylo_i, nzlo_i, nxhi_i, nyhi_i, nzhi_i,
-                                  v0_pa, v1_pa, v2_pa, v3_pa, v4_pa, v5_pa);
+  if (vflag_atom) poisson_peratom(wk1,wk2,ft2,vcoeff,vcoeff2,nft,
+                                  nxlo_i,nylo_i,nzlo_i,nxhi_i,nyhi_i,nzhi_i,
+                                  v0_pa,v1_pa,v2_pa,v3_pa,v4_pa,v5_pa);
 }
 
 /* ----------------------------------------------------------------------
@@ -4690,6 +4716,7 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
   double eng;
 
   // transform charge/dispersion density (r -> k)
+  
   n = 0;
   for (i = 0; i < nft; i++) {
     wk1[n++] = dfft[i];
@@ -4752,9 +4779,9 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
       }
 
 
-  if (vflag_atom) poisson_peratom(wk1, wk2, ft2, vcoeff, vcoeff2, nft,
-                                  nxlo_i, nylo_i, nzlo_i, nxhi_i, nyhi_i, nzhi_i,
-                                  v0_pa, v1_pa, v2_pa, v3_pa, v4_pa, v5_pa);
+  if (vflag_atom) poisson_peratom(wk1,wk2,ft2,vcoeff,vcoeff2,nft,
+                                  nxlo_i,nylo_i,nzlo_i,nxhi_i,nyhi_i,nzhi_i,
+                                  v0_pa,v1_pa,v2_pa,v3_pa,v4_pa,v5_pa);
 
 }
 
@@ -4762,21 +4789,22 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
    Fourier Transform for per atom virial calculations
 ------------------------------------------------------------------------- */
 
-void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT3d* ft2,
-                                double** vcoeff, double** vcoeff2, int nft,
-                                int nxlo_i, int nylo_i, int nzlo_i,
-                                int nxhi_i, int nyhi_i, int nzhi_i,
-                                FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa,
-                                FFT_SCALAR*** v2_pa,
-                                FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa,
-                                FFT_SCALAR*** v5_pa)
+void PPPMDisp::poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT3d* ft2,
+			       double** vcoeff, double** vcoeff2, int nft,
+			       int nxlo_i, int nylo_i, int nzlo_i,
+			       int nxhi_i, int nyhi_i, int nzhi_i,
+			       FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa,
+			       FFT_SCALAR*** v2_pa,
+			       FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa,
+			       FFT_SCALAR*** v5_pa)
 {
- //v0 & v1 term
+ // v0 & v1 term
+  
   int n, i, j, k;
   n = 0;
   for (i = 0; i < nft; i++) {
-    wk2[n] = wk1[n]*vcoeff[i][0] - wk1[n+1]*vcoeff[i][1];
-    wk2[n+1] = wk1[n+1]*vcoeff[i][0] +  wk1[n]*vcoeff[i][1];
+    wk2[n] = wk1[n]*vcoeff[i][0] + wk1[n+1]*vcoeff[i][1];
+    wk2[n+1] = wk1[n+1]*vcoeff[i][0] - wk1[n]*vcoeff[i][1];
     n += 2;
   }
 
@@ -4790,12 +4818,12 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
         v1_pa[k][j][i] = wk2[n++];
       }
 
-  //v2 & v3 term
-
+  // v2 & v3 term
+  
   n = 0;
   for (i = 0; i < nft; i++) {
-    wk2[n] = wk1[n]*vcoeff[i][2] - wk1[n+1]*vcoeff2[i][0];
-    wk2[n+1] = wk1[n+1]*vcoeff[i][2] + wk1[n]*vcoeff2[i][0];
+    wk2[n] = wk1[n]*vcoeff[i][2] + wk1[n+1]*vcoeff2[i][0];
+    wk2[n+1] = wk1[n+1]*vcoeff[i][2] - wk1[n]*vcoeff2[i][0];
     n += 2;
   }
 
@@ -4809,12 +4837,12 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
         v3_pa[k][j][i] = wk2[n++];
       }
 
-  //v4 & v5 term
+  // v4 & v5 term
 
   n = 0;
   for (i = 0; i < nft; i++) {
-    wk2[n] = wk1[n]*vcoeff2[i][1] - wk1[n+1]*vcoeff2[i][2];
-    wk2[n+1] = wk1[n+1]*vcoeff2[i][1] + wk1[n]*vcoeff2[i][2];
+    wk2[n] = wk1[n]*vcoeff2[i][1] + wk1[n+1]*vcoeff2[i][2];
+    wk2[n+1] = wk1[n+1]*vcoeff2[i][1] - wk1[n]*vcoeff2[i][2];
     n += 2;
   }
 
@@ -4853,8 +4881,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
 
   // transform charge/dispersion density (r -> k)
-  // only one tansform required when energies and pressures do not
-  //  need to be calculated
+  // only one transform when energies and pressures not calculated
+  
   if (eflag_global + vflag_global == 0) {
     n = 0;
     for (i = 0; i < nfft_6; i++) {
@@ -4864,8 +4892,9 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
 
     fft1_6->compute(work1_6,work1_6,FORWARD);
   }
-  // two transforms are required when energies and pressures are
-  //   calculated
+
+  // two transforms when energies and pressures are calculated
+  
   else {
     n = 0;
     for (i = 0; i < nfft_6; i++) {
@@ -4884,16 +4913,16 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n = 0;
       for (i = 0; i < nfft_6; i++) {
         eng = 2 * s2 * greensfn_6[i] *
-          (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
+          (-work1_6[n]*work2_6[n+1] + work1_6[n+1]*work2_6[n]);
         for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
-        if (eflag_global)energy_6 += eng;
+        if (eflag_global) energy_6 += eng;
         n += 2;
       }
     } else {
       n = 0;
       for (i = 0; i < nfft_6; i++) {
         energy_6 +=
-          2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
+          2 * s2 * greensfn_6[i] * (-work1_6[n]*work2_6[n+1] + work1_6[n+1]*work2_6[n]);
         n += 2;
       }
     }
@@ -4921,8 +4950,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n];
+        work2_6[n] = -0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n];
         n += 2;
       }
 
@@ -4942,8 +4971,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fky_6[j]-fky2_6[j])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fky_6[j]-fky2_6[j])*work1_6[n];
+        work2_6[n] = -0.5*(fky_6[j]-fky2_6[j])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fky_6[j]-fky2_6[j])*work1_6[n];
         n += 2;
       }
 
@@ -4963,8 +4992,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n];
+        work2_6[n] = -0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n];
         n += 2;
       }
 
@@ -4978,7 +5007,7 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         vzbrick_2[k][j][i] = work2_6[n++];
       }
 
-  //Per-atom energy
+  // per-atom energy
 
   if (eflag_atom) {
     n = 0;
@@ -4999,10 +5028,10 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         }
   }
 
-  if (vflag_atom) poisson_2s_peratom(v0_pa_1, v1_pa_1, v2_pa_1,
-                                     v3_pa_1, v4_pa_1, v5_pa_1,
-                                     v0_pa_2, v1_pa_2, v2_pa_2,
-                                     v3_pa_2, v4_pa_2, v5_pa_2);
+  if (vflag_atom) poisson_2s_peratom(v0_pa_1,v1_pa_1,v2_pa_1,
+                                     v3_pa_1,v4_pa_1,v5_pa_1,
+                                     v0_pa_2,v1_pa_2,v2_pa_2,
+                                     v3_pa_2,v4_pa_2,v5_pa_2);
 }
 
 
@@ -5063,7 +5092,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
           (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) +
            B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
         for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
-        if (eflag_global)energy_6 += eng;
+        if (eflag_global) energy_6 += eng;
         n += 2;
       }
     } else {
@@ -5100,8 +5129,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n];
+        work2_6[n] = -0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n];
         n += 2;
       }
 
@@ -5121,8 +5150,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fky_6[j]-fky2_6[j])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fky_6[j]-fky2_6[j])*work1_6[n];
+        work2_6[n] = -0.5*(fky_6[j]-fky2_6[j])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fky_6[j]-fky2_6[j])*work1_6[n];
         n += 2;
       }
 
@@ -5142,8 +5171,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
     for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
       for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
-        work2_6[n] = 0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n+1];
-        work2_6[n+1] = -0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n];
+        work2_6[n] = -0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n+1];
+        work2_6[n+1] = 0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n];
         n += 2;
       }
 
@@ -5157,7 +5186,7 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         vzbrick_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Per-atom energy
+  // per-atom energy
 
   if (eflag_atom) {
     n = 0;
@@ -5178,9 +5207,10 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         }
   }
 
-  if (vflag_atom) poisson_none_peratom(n1,n2,
-                                       v0_pa[n1], v1_pa[n1], v2_pa[n1], v3_pa[n1], v4_pa[n1], v5_pa[n1],
-                                       v0_pa[n2], v1_pa[n2], v2_pa[n2], v3_pa[n2], v4_pa[n2], v5_pa[n2]);
+  if (vflag_atom)
+    poisson_none_peratom(n1,n2,
+			 v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
+			 v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -5235,7 +5265,7 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n = 0;
       for (i = 0; i < nfft_6; i++) {
         eng = 2 * s2 * greensfn_6[i] *
-          (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
+          (-work1_6[n]*work2_6[n+1] + work1_6[n+1]*work2_6[n]);
         for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
         if (eflag_global)energy_6 += eng;
         n += 2;
@@ -5244,11 +5274,13 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n = 0;
       for (i = 0; i < nfft_6; i++) {
         energy_6 +=
-          2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
+          2 * s2 * greensfn_6[i] * (-work1_6[n]*work2_6[n+1] + work1_6[n+1]*work2_6[n]);
         n += 2;
       }
     }
+    
     // unify the two transformed vectors for efficient calculations later
+    
     for ( i = 0; i < 2*nfft_6; i++) {
       work1_6[i] += work2_6[i];
     }
@@ -5279,10 +5311,10 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         u_pa_2[k][j][i] = work2_6[n++];
       }
 
-  if (vflag_atom) poisson_2s_peratom(v0_pa_1, v1_pa_1, v2_pa_1,
-                                     v3_pa_1, v4_pa_1, v5_pa_1,
-                                     v0_pa_2, v1_pa_2, v2_pa_2,
-                                     v3_pa_2, v4_pa_2, v5_pa_2);
+  if (vflag_atom) poisson_2s_peratom(v0_pa_1,v1_pa_1,v2_pa_1,
+                                     v3_pa_1,v4_pa_1,v5_pa_1,
+                                     v0_pa_2,v1_pa_2,v2_pa_2,
+                                     v3_pa_2,v4_pa_2,v5_pa_2);
 }
 
 /* ----------------------------------------------------------------------
@@ -5383,9 +5415,10 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
         u_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  if (vflag_atom) poisson_none_peratom(n1,n2,
-                                       v0_pa[n1], v1_pa[n1], v2_pa[n1], v3_pa[n1], v4_pa[n1], v5_pa[n1],
-                                       v0_pa[n2], v1_pa[n2], v2_pa[n2], v3_pa[n2], v4_pa[n2], v5_pa[n2]);
+  if (vflag_atom)
+    poisson_none_peratom(n1,n2,
+			 v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
+			 v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -5398,7 +5431,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
                    FFT_SCALAR*** v0_pa_2, FFT_SCALAR*** v1_pa_2, FFT_SCALAR*** v2_pa_2,
                    FFT_SCALAR*** v3_pa_2, FFT_SCALAR*** v4_pa_2, FFT_SCALAR*** v5_pa_2)
 {
-  //Compute first virial term v0
+  // compute first virial term v0
 
   int n, i, j, k;
 
@@ -5419,7 +5452,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
         v0_pa_2[k][j][i] = work2_6[n++];
       }
 
-  //Compute second virial term v1
+  // compute second virial term v1
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5438,7 +5471,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
         v1_pa_2[k][j][i] = work2_6[n++];
       }
 
-  //Compute third virial term v2
+  // compute third virial term v2
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5457,7 +5490,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
         v2_pa_2[k][j][i] = work2_6[n++];
       }
 
-  //Compute fourth virial term v3
+  // compute fourth virial term v3
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5476,7 +5509,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
         v3_pa_2[k][j][i] = work2_6[n++];
       }
 
-  //Compute fifth virial term v4
+  // compute fifth virial term v4
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5495,7 +5528,7 @@ poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v
         v4_pa_2[k][j][i] = work2_6[n++];
       }
 
-  //Compute last virial term v5
+  // compute last virial term v5
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5530,7 +5563,8 @@ poisson_none_peratom(int n1, int n2,
                      FFT_SCALAR*** v3_pa_2, FFT_SCALAR*** v4_pa_2,
                      FFT_SCALAR*** v5_pa_2)
 {
-  //Compute first virial term v0
+  // compute first virial term v0
+  
   int n, i, j, k;
 
   n = 0;
@@ -5550,7 +5584,7 @@ poisson_none_peratom(int n1, int n2,
         v0_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Compute second virial term v1
+  // compute second virial term v1
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5569,7 +5603,7 @@ poisson_none_peratom(int n1, int n2,
         v1_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Compute third virial term v2
+  // compute third virial term v2
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5588,7 +5622,7 @@ poisson_none_peratom(int n1, int n2,
         v2_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Compute fourth virial term v3
+  // compute fourth virial term v3
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5607,7 +5641,7 @@ poisson_none_peratom(int n1, int n2,
         v3_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Compute fifth virial term v4
+  // compute fifth virial term v4
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5626,7 +5660,7 @@ poisson_none_peratom(int n1, int n2,
         v4_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 
-  //Compute last virial term v5
+  // compute last virial term v5
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {

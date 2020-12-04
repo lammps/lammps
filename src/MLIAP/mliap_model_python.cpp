@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Nicholas Lubbers (LANL)
+------------------------------------------------------------------------- */
+
 #include <Python.h>
 #include "mliap_model_python.h"
 #include "mliap_model_python_couple.h"

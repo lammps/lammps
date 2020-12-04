@@ -666,9 +666,10 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` and 
-:ref:`PYTHON package <PKG-PYTHON>` packages need to be installed.
-The version of python must be >3.5.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` 
+package needs to be installed. If building the *mliappy* model, 
+use -DLMP_MLIAPPY and the :ref:`PYTHON package <PKG-PYTHON>` 
+package needs to be installed. The version of python must be >3.5.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
@@ -677,12 +678,12 @@ The version of python must be >3.5.
 * src/MLIAP: filenames -> commands
 * src/MLIAP/README
 * :doc:`pair_style mliap <pair_mliap>`
+* :doc:`compute_style mliap <compute_mliap>`
 * examples/mliap (see README)
 
-When compiled with the -DLMP_MLIAPPY flag, this package
-includes an extension for coupling with python models, incuding PyTorch 
-
-The python interpreter linked to LAMMPS will need cython and numpy installed.
+When built with the *mliappy* model using -DLMP_MLIAPPY, this package
+includes an extension for coupling with python models, including PyTorch.
+In this case, the python interpreter linked to LAMMPS will need cython and numpy installed.
 The examples build models with PyTorch, which would thus need to be installed.
 
 ----------

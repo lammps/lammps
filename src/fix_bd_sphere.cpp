@@ -17,10 +17,10 @@
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 #include "fix_bd_sphere.h"
+
+#include <cmath>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -49,34 +49,34 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->mu_flag)
     error->all(FLERR,"Fix bd/sphere requires atom attribute mu");
 
-  gamma_t = force->numeric(FLERR,arg[3]);
+  gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
   if (gamma_t <= 0.0)
     error->all(FLERR,"Fix bd/sphere translational viscous drag "
 	       "coefficient must be > 0.");
 
-  gamma_r = force->numeric(FLERR,arg[4]);
+  gamma_r = utils::numeric(FLERR,arg[4],false,lmp);
   if (gamma_t <= 0.0)
     error->all(FLERR,"Fix bd/sphere rotational viscous drag "
 	       "coefficient must be > 0.");
 
-  diff_t = force->numeric(FLERR,arg[5]);
+  diff_t = utils::numeric(FLERR,arg[5],false,lmp);
   if (diff_t <= 0.0)
     error->all(FLERR,"Fix bd/sphere translational diffusion "
 	       "coefficient must be > 0.");
   
-  diff_r = force->numeric(FLERR,arg[6]);
+  diff_r = utils::numeric(FLERR,arg[6],false,lmp);
   if (diff_r <= 0.0)
     error->all(FLERR,"Fix bd/sphere rotational diffusion "
 	       "coefficient must be > 0.");
   
-  seed = force->inumeric(FLERR,arg[7]);
+  seed = utils::inumeric(FLERR,arg[7],false,lmp);
   if (seed <= 0) error->all(FLERR,"Fix bd/sphere seed must be > 0.");
 
   noise_flag = 1;
   gaussian_noise_flag = 0;
   rotate_planar_flag = 0;
 
-  int iarg == 8;
+  int iarg = 8;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"rng") == 0) {
@@ -174,6 +174,7 @@ void FixBdSphere::initial_integrate(int /* vflag */)
   double **mu = atom->mu;
   double **f = atom->f;
   double **omega = atom->omega;
+  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double dx,dy,dz;
@@ -221,7 +222,9 @@ void FixBdSphere::initial_integrate(int /* vflag */)
       omega[i][2] = (g3* torque[i][2]
 		     + g4 * (random->*rng_func)()/sqrtdt);
       
-      dtheta = sqrt((omega[i][0]*dt)**2+(omega[i][1]*dt)**2+(omega[i][2]*dt)**2);
+      dtheta = sqrt((omega[i][0]*dt)*(omega[i][0]*dt)
+		    +(omega[i][1]*dt)*(omega[i][1]*dt)
+		    +(omega[i][2]*dt)*(omega[i][2]*dt));
       
       if (abs(dtheta) < 1e-14) {
 	prefac_1 = dt;

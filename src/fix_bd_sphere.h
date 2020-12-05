@@ -33,8 +33,6 @@ class FixBdSphere : public Fix {
   int setmask();
 
  private:
-  typedef double (RanMars::*rng_member)();
-  rng_member rng_func;    // placeholder for RNG function
   int seed;               // RNG seed
   
   double dt, sqrtdt;      // time step interval and its sqrt
@@ -50,8 +48,9 @@ class FixBdSphere : public Fix {
   
 protected:
   class RanMars *random;
+  typedef double (RanMars::*rng_member)();
+  rng_member rng_func;    // placeholder for RNG function
 
-  int activity_flag;
 };
 
 }

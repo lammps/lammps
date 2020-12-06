@@ -17,7 +17,7 @@ Syntax
 * diff_t = translational diffusion coefficient
 * diff_r = rotational diffusion coefficient
 * zero or more keyword/value pairs may be appended
-* keyword = *rng* or *rotate_planar*
+* keyword = *rng*
 
   .. parsed-literal::
 
@@ -25,9 +25,6 @@ Syntax
          uniform = use uniform random number generator
 	 gaussian = use gaussian random number generator
 	 none = turn off noise 
-       *rotate_planar* arg = *yes* or *no*
-         yes = only allow rotations in 2D plane (2D simulation only)
-	 no = allow for full 3D rotations
 
 Examples
 """"""""
@@ -36,8 +33,8 @@ Examples
 
    fix 1 all bd/sphere 1.0 1.0 1.0 1.0 1294019
    fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng none
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rotate_planar yes
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rotate_planar no rng gaussian
+   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng uniform
+   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng gaussian
 
 
 Description
@@ -70,6 +67,12 @@ the :math:`\omega` axis, and
 infinitesimal rotation matrix (see e.g. :ref:`(Callegari1) <Callegari1>`,
 section 7.4).
 
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
+fix to add the contribution due to the added forces on atoms to the
+system's virial as part of :doc:`thermodynamic output <thermo_style>`.
+The default is *virial no*
+
+
 IMPORTANT NOTE: This integrator is designed for generic non-equilibrium
 simulations with additive noise. There are two important cases which
 (conceptually) reduce the number of free parameters in this fix.
@@ -84,6 +87,13 @@ accounted for (e.g. by setting *gamma_t* to 3 and *gamma_r* to 1) where
 If both (a) and (b) are true, then one must ensure this explicitly via
 the above relationships.
 
+IMPORTANT NOTE: The diffusion coefficient :math:`D_t` is measured
+in units of (length*length)/time and the diffusion coefficient
+:math:`D_r` is measured in units of 1/time, where time and length
+are in the units specified on the :doc:`units <units>` page. Similarly,
+:math:`\gamma_t` and :math:`\gamma_r` are measured in
+units of mass/time and (mass*length*length)/(time).
+
 If the *rng* keyword is used with the *uniform* value, then the noise
 is generated from a uniform distribution (see
 :ref:`(Dunweg) <Dunweg1>` for why this works). This is the same method
@@ -96,15 +106,6 @@ value for reasons argued in :ref:`(Dunweg) <Dunweg1>`.
 
 If the *rng* keyword is used with the *none* value, then the noise
 terms are set to zero.
-
-If the *rotate_planar* keyword is used with the *yes* value, then only
-two dimensional rotational diffusion occurs (i.e. only the z-component
-of the angular momentum is non-zero). This option is only available to
-2D simulations.
-
-If the *rotate_planar* keyword is used with the *no* value, then three
-dimensional rotational diffusion occurs regardless of the simulation
-dimension.
 
 ----------
 
@@ -143,8 +144,7 @@ Related commands
 Default
 """""""
 
-The default for *rng* is *uniform* and the default for *rotate_planar*
-is *no*.
+The default for *rng* is *uniform*.
 
 ----------
 

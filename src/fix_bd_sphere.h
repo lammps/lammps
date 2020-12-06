@@ -20,7 +20,7 @@ FixStyle(bd/sphere,FixBdSphere)
 #ifndef LMP_FIX_BD_SPHERE_H
 #define LMP_FIX_BD_SPHERE_H
 
-#include "fix_nve.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
@@ -30,6 +30,8 @@ class FixBdSphere : public Fix {
   virtual ~FixBdSphere();
   void init();
   void initial_integrate(int);
+  void setup(int);
+  void post_force(int);
   int setmask();
 
  private:
@@ -44,7 +46,6 @@ class FixBdSphere : public Fix {
   double g1,g2, g3, g4;    // prefactors in time stepping
   int noise_flag;          // 0/1 for noise off/on
   int gaussian_noise_flag; // 0/1 for uniform/gaussian noise
-  int rotate_planar_flag;  // 0/1 for 2D/3D rotational dof
   
 protected:
   class RanMars *random;

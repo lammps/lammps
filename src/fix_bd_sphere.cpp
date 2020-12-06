@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -39,9 +40,11 @@ using namespace FixConst;
 FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  virial_flag = 1;
+
   time_integrate = 1;
   
-  if (narg != 8 && narg != 10 && narg != 12)
+  if (narg != 8 && narg != 10)
     error->all(FLERR,"Illegal fix bd/sphere command.");
 
   if (!atom->sphere_flag)
@@ -59,6 +62,7 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix bd/sphere rotational viscous drag "
 	       "coefficient must be > 0.");
 
+  // note that diffusion is in units of epsilon**2*tau**3/(m**2*sigma**2)
   diff_t = utils::numeric(FLERR,arg[5],false,lmp);
   if (diff_t <= 0.0)
     error->all(FLERR,"Fix bd/sphere translational diffusion "
@@ -74,7 +78,6 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
 
   noise_flag = 1;
   gaussian_noise_flag = 0;
-  rotate_planar_flag = 0;
 
   int iarg = 8;
 
@@ -87,20 +90,6 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
 	gaussian_noise_flag = 1;
       } else if (strcmp(arg[iarg + 1],"none") == 0) {
 	noise_flag = 0;
-      } else {
-	error->all(FLERR,"Illegal fix/bd/sphere command.");
-      }
-    } else if (strcmp(arg[iarg],"rotate_planar") == 0) {
-
-      if (strcmp(arg[iarg + 1],"yes") == 0) {
-	rotate_planar_flag = 1;
-	if (domain->dimension != 2) {
-	  error->all(FLERR,"Cannot constrain rotational degrees of freedom "
-		     "to the xy plane if the simulation is in 3D "
-		     "(in fix/bd/sphere).");
-	}
-      } else if (strcmp(arg[iarg + 1],"no") == 0) {
-	rotate_planar_flag = 0;
       } else {
 	error->all(FLERR,"Illegal fix/bd/sphere command.");
       }
@@ -123,6 +112,7 @@ int FixBdSphere::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= POST_FORCE;
   return mask;
 }
 
@@ -136,10 +126,12 @@ FixBdSphere::~FixBdSphere()
 }
 
 
+
 /* ---------------------------------------------------------------------- */
 
 void FixBdSphere::init()
 {
+
 
   g1 =  force->ftm2v/gamma_t;
   g3 = force->ftm2v/gamma_r;
@@ -148,21 +140,22 @@ void FixBdSphere::init()
     g4 = 0;
     rng_func = &RanMars::zero_rng;
   } else if (gaussian_noise_flag == 1) {
-    g2 = sqrt(2 * diff_t);
-    g4 = sqrt(2 * diff_r);
+    g2 = gamma_t*sqrt(2 * diff_t)/force->ftm2v;
+    g4 = gamma_r*sqrt(2 * diff_r)/force->ftm2v;
     rng_func = &RanMars::gaussian;
   } else {
-    g2 = sqrt( 24 * diff_t);
-    g4 = sqrt( 24 * diff_r );
+    g2 = gamma_t*sqrt( 24 * diff_t)/force->ftm2v;
+    g4 = gamma_r*sqrt( 24 * diff_r )/force->ftm2v;
     rng_func = &RanMars::uniform_middle;
   }
 
-  if (domain->dimension == 2 && rotate_planar_flag == 0) {
-    error->warning(FLERR,"Using a 2D simulation, but allowing for "
-		   "full (3D) rotation (in fix/bd/sphere).");
-  }
+  dt = update->dt;
+  sqrtdt = sqrt(dt);
+}
 
-  
+void FixBdSphere::setup(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,16 +174,15 @@ void FixBdSphere::initial_integrate(int /* vflag */)
   double dtheta;
   double mux,muy,muz,mu_tmp,wx,wy,wz;
   double prefac_1, prefac_2;
-
+  
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // set timestep here since dt may have changed 
+  int d3rot;  // whether to compute angular momentum in xy plane
+
   dt = update->dt;
   sqrtdt = sqrt(dt);
-
-  int d3rot;  // whether to compute angular momentum in xy plane
   
-  if (rotate_planar_flag) {
+  if (domain->dimension==2) {
     d3rot = 0;
   } else {
     d3rot = 1;
@@ -200,27 +192,22 @@ void FixBdSphere::initial_integrate(int /* vflag */)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       
-      dx = (dt * g1 * f[i][0]
-	    +    sqrtdt * g2 * (random->*rng_func)());
+      dx = dt * g1 * f[i][0];
       x[i][0] +=  dx;
       v[i][0]  =  dx/dt;
-      dy = (dt * g1 * f[i][1] 
-	    +    sqrtdt * g2 * (random->*rng_func)());
+      
+      dy = dt * g1 * f[i][1];
       x[i][1] +=  dy;
       v[i][1]  =  dy/dt;
       
-      dz = (dt * g1 * f[i][2] 
-	    +    sqrtdt * g2 * (random->*rng_func)());
+      dz = dt * g1 * f[i][2];
       x[i][2] +=  dz;
       v[i][2]  =  dz/dt;
       
       
-      omega[i][0] = d3rot*(g3* torque[i][0]
-			   +  g4 * (random->*rng_func)()/sqrtdt);
-      omega[i][1] = d3rot*(g3* torque[i][1]
-			   +  g4 * (random->*rng_func)()/sqrtdt);
-      omega[i][2] = (g3* torque[i][2]
-		     + g4 * (random->*rng_func)()/sqrtdt);
+      omega[i][0] = d3rot * g3* torque[i][0];
+      omega[i][1] = d3rot * g3* torque[i][1];
+      omega[i][2] = g3* torque[i][2];
       
       dtheta = sqrt((omega[i][0]*dt)*(omega[i][0]*dt)
 		    +(omega[i][1]*dt)*(omega[i][1]*dt)
@@ -264,4 +251,53 @@ void FixBdSphere::initial_integrate(int /* vflag */)
   }
   
   return;
+}
+
+/* ----------------------------------------------------------------------
+   apply random force, stolen from MISC/fix_efield.cpp 
+------------------------------------------------------------------------- */
+
+void FixBdSphere::post_force(int vflag)
+{
+  double **f = atom->f;
+  double **x = atom->x;
+  double **torque = atom->torque;
+  int *mask = atom->mask;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+  
+  // virial setup
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
+
+
+
+  double fx,fy,fz;
+  double v[6];
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      
+      fx = g2 * (random->*rng_func)()/sqrtdt;
+      fy = g2 * (random->*rng_func)()/sqrtdt;
+      fz = g2 * (random->*rng_func)()/sqrtdt;
+      f[i][0] += fx;
+      f[i][1] += fy;
+      f[i][2] += fz;
+
+      torque[i][0] = g4*(random->*rng_func)()/sqrtdt;
+      torque[i][1] = g4*(random->*rng_func)()/sqrtdt;
+      torque[i][2] = g4*(random->*rng_func)()/sqrtdt;
+
+	if (evflag) {
+	  v[0] = fx*x[i][0];
+	  v[1] = fy*x[i][1];
+	  v[2] = fz*x[i][2];
+	  v[3] = fx*x[i][1];
+	  v[4] = fx*x[i][2];
+	  v[5] = fy*x[i][2];
+	  v_tally(i, v);
+	}
+    }
 }

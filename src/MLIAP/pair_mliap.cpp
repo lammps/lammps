@@ -21,7 +21,7 @@
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
-#ifdef LMP_MLIAPPY
+#ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
 
@@ -128,7 +128,7 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
-  
+
   if (narg < 4)
     error->all(FLERR,"Illegal pair_style command");
 
@@ -152,12 +152,12 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
-      #ifdef LMP_MLIAPPY
+#ifdef MLIAP_PYTHON
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
           if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
           model = new MLIAPModelPython(lmp,arg[iarg+2]);
           iarg += 3;
-      #endif
+#endif
       } else error->all(FLERR,"Illegal pair_style mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {

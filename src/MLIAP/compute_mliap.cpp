@@ -21,7 +21,7 @@
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
-#ifdef LMP_MLIAPPY
+#ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
 
@@ -74,12 +74,12 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
       }
-      #ifdef LMP_MLIAPPY
+#ifdef MLIAP_PYTHON
       else if (strcmp(arg[iarg+1],"mliappy") == 0) {
       model = new MLIAPModelPython(lmp);
       iarg += 2;
       }
-      #endif
+#endif
       else error->all(FLERR,"Illegal compute mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {

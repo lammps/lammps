@@ -26,24 +26,42 @@ action () {
   fi
 }
 
+# enforce package dependency
+if (test $1 = 1 || test $1 = 2) then
+  if (test ! -e ../sna.h) then
+     echo "Must install SNAP package to use MLIAP package"
+     exit 1
+  fi
+fi
+
 # all package files with no dependencies
 
-for file in *.cpp *.h; do
+for file in *.cpp *.h *.pyx; do
   test -f ${file} && action $file
 done
 
 # edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_MLIAPPY |' ../Makefile.package
+  if (test "$(type cythonize 2> /dev/null)" != "" && test -e ../python_impl.cpp) then
+    if (test -e ../Makefile.package) then
+      sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
+    fi
+    if (test -e ../Makefile.package.settings) then
+      sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+      # multiline form needed for BSD sed on Macs
+      sed -i -e '4 i \
+include ..\/..\/lib\/python\/Makefile.mliap_python
+' ../Makefile.package.settings
+    fi
+    cythonize -3 ../mliap_model_python_couple.pyx
   fi
 
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*-DLMP_MLIAPPY[^ \t]* //g' ../Makefile.package
+    sed -i -e 's/[^ \t]*-DMLIAP_PYTHON[^ \t]* //g' ../Makefile.package
   fi
-
+  rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
+  sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
 fi

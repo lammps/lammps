@@ -73,17 +73,17 @@ PairMLIAP::~PairMLIAP()
 
 void PairMLIAP::compute(int eflag, int vflag)
 {
-  
+
   // consistency checks
 
   if (data->ndescriptors != model->ndescriptors) {
     error->all(FLERR,"Incompatible model and descriptor descriptor count");
   };
-  
+
   if (data->nelements != model->nelements) {
     error->all(FLERR,"Incompatible model and descriptor element count");
   };
-  
+
   ev_init(eflag,vflag);
 
   data->generate_neighdata(list, eflag, vflag);
@@ -249,7 +249,7 @@ void PairMLIAP::coeff(int narg, char **arg)
 void PairMLIAP::e_tally(MLIAPData* data)
 {
   if (eflag_global) eng_vdwl += data->energy;
-  if (eflag_atom) 
+  if (eflag_atom)
     for (int ii = 0; ii < data->natoms; ii++) {
       const int i = data->iatoms[ii];
       eatom[i] += data->eatoms[ii];

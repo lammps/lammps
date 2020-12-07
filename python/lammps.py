@@ -505,7 +505,7 @@ class lammps(object):
     self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
     self.lib.lammps_set_fix_external_callback.argtypes = [c_void_p, c_char_p, self.FIX_EXTERNAL_CALLBACK_FUNC, py_object]
     self.lib.lammps_set_fix_external_callback.restype = None
-    
+
     self.mliappy = MLIAPPY(self)
 
   # -------------------------------------------------------------------------
@@ -2931,12 +2931,12 @@ class MLIAPPY():
     def __init__(self,lammps):
         self._module = None
         self.lammps = lammps
-        
+
     @property
     def module(self):
         if self._module:
             return self._module
-            
+
         try:
             # Begin Importlib magic to find the embedded python module
             # This is needed because the filename for liblammps does not
@@ -2959,10 +2959,10 @@ class MLIAPPY():
             # End Importlib magic to find the embedded python module
         except:
             raise ImportError("Could not load MLIAPPY coupling module")
-    
+
     def activate(self):
         self.module
-        
+
     def load_model(self,model):
         self.module.load_from_python(model)
-            
+

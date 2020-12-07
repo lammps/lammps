@@ -1,12 +1,5 @@
 # cython: language_level=3
 # distutils: language = c++
-# distutils: define_macros="LMP_MLIAPPY"
-# distutils: extra_compile_args= -stdlib=libc++ -std=c++11
-# distutils: include_dirs = ../STUBS .. ../MLIAP 
-# distutils: extra_link_args= -stdlib=libc++
-# Note: only the language_level and language commands are needed, the rest pertain
-# to building mliap_model_python_couple as a standalone python extension, which
-# is experimental.
 
 cimport cython
 
@@ -88,11 +81,11 @@ def load_from_python(model):
         LOADED_MODELS[c_id]=model
         lmp_model = <MLIAPModelPython *> <uintptr_t> c_id
         lmp_model.connect_param_counts()
-        
+
 
 cdef public void MLIAPPY_unload_model(MLIAPModelPython * c_model) with gil:
     del LOADED_MODELS[c_id(c_model)]
-    
+
 cdef public int MLIAPPY_nparams(MLIAPModelPython * c_model) with gil:
     return int(retrieve(c_model).n_params)
 
@@ -107,7 +100,7 @@ cdef public void MLIAPPY_compute_gradients(MLIAPModelPython * c_model, MLIAPData
 
     n_d = data.ndescriptors
     n_a = data.natoms
-    
+
     # Make numpy arrays from pointers
     beta_np = np.asarray(<double[:n_a,:n_d] > &data.betas[0][0])
     desc_np = np.asarray(<double[:n_a,:n_d]> &data.descriptors[0][0])
@@ -116,7 +109,7 @@ cdef public void MLIAPPY_compute_gradients(MLIAPModelPython * c_model, MLIAPData
 
     # Invoke python model on numpy arrays.
     model(elem_np,desc_np,beta_np,en_np)
-    
+
     # Get the total energy from the atom energy.
     energy = np.sum(en_np)
     data.energy = <double> energy

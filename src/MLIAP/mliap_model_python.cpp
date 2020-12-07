@@ -15,6 +15,8 @@
    Contributing author: Nicholas Lubbers (LANL)
 ------------------------------------------------------------------------- */
 
+#ifdef MLIAP_PYTHON
+
 #include <Python.h>
 #include "mliap_model_python.h"
 #include "mliap_model_python_couple.h"
@@ -43,9 +45,9 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS* lmp, char* coefffilename) :
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not initialize embedded Python");
   }
-  
+
   PyObject* coupling_module = PyImport_ImportModule("mliap_model_python_couple");
-  
+
   if (!coupling_module) {
     PyErr_Print();
     PyErr_Clear();
@@ -97,7 +99,7 @@ void MLIAPModelPython::read_coeffs(char * fname)
     error->all(FLERR,"Loading python model failure.");
   }
   PyGILState_Release(gstate);
-  
+
   if (loaded) {
     this->connect_param_counts();
   }
@@ -113,7 +115,7 @@ void MLIAPModelPython::connect_param_counts()
   nelements = MLIAPPY_nelements(this);
   nparams = MLIAPPY_nparams(this);
   ndescriptors = MLIAPPY_ndescriptors(this);
-  
+
   if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
@@ -137,7 +139,7 @@ void MLIAPModelPython::compute_gradients(MLIAPData* data)
   if (not model_loaded) {
     error->all(FLERR,"Model not loaded.");
   }
-  
+
   PyGILState_STATE gstate = PyGILState_Ensure();
   MLIAPPY_compute_gradients(this, data);
   if (PyErr_Occurred()) {
@@ -196,3 +198,5 @@ double MLIAPModelPython::memory_usage()
   // todo: get approximate memory usage in coupling code.
   return 0;
 }
+
+#endif

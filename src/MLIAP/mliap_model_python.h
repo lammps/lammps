@@ -38,7 +38,7 @@ protected:
   virtual void read_coeffs(char *);
 
 private:
-  
+
 };
 
 }

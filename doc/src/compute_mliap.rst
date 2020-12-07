@@ -56,14 +56,14 @@ and it is also straightforward to add new descriptor styles.
 The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
-The *model* keyword is followed by the model style (*linear*, *quadratic* or *mliappy*). 
+The *model* keyword is followed by the model style (*linear*, *quadratic* or *mliappy*).
 The *mliappy* model is only available
 if lammps is built with MLIAPPY package.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-The compute currently supports just one descriptor style, but it is 
+The compute currently supports just one descriptor style, but it is
 is straightforward to add new descriptor styles.
-The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`, 
+The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
 including the linear, quadratic, and chem variants.
 A single additional argument specifies the descriptor filename
 containing the parameters and setting used by the SNAP descriptor.

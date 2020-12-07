@@ -41,9 +41,9 @@ and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
 or many different descriptors with a given model. The
-pair style currently supports just one descriptor style, but it is 
+pair style currently supports just one descriptor style, but it is
 is straightforward to add new descriptor styles.
-The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`, 
+The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
 including the linear, quadratic, and chem variants.
 The available models are *linear*, *quadratic*, and *mliappy*.
 The *mliappy* style can be used to couple python models,
@@ -62,7 +62,7 @@ that specify the mapping of MLIAP
 element names to LAMMPS atom types,
 where N is the number of LAMMPS atom types.
 
-The *model* keyword is followed by the  model style. This is followed 
+The *model* keyword is followed by the  model style. This is followed
 by a single argument specifying the model filename containing the
 parameters for a set of elements.
 The model filename usually ends in the *.mliap.model* extension.

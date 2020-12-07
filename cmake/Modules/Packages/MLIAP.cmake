@@ -1,15 +1,15 @@
 # if PYTHON package is included we may also include Python support in MLIAP
-set(ENABLE_MLIAP_PYTHON_DEFAULT OFF)
+set(MLIAP_ENABLE_PYTHON_DEFAULT OFF)
 if(PKG_PYTHON)
   find_package(Cythonize)
   if(Cythonize_FOUND)
-    set(ENABLE_MLIAP_PYTHON_DEFAULT ON)
+    set(MLIAP_ENABLE_PYTHON_DEFAULT ON)
   endif()
 endif()
 
-option(ENABLE_MLIAP_PYTHON "Build MLIAP package with Python support" ${ENABLE_MLIAP_PYTHON_DEFAULT})
+option(MLIAP_ENABLE_PYTHON "Build MLIAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT})
 
-if(ENABLE_MLIAP_PYTHON)
+if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
   if(NOT_PKG_PYTHON)
     message(FATAL_ERROR "Must install PYTHON package for MLIAP_PYTHON")

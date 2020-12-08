@@ -1,0 +1,83 @@
+units           lj
+atom_style      dipole
+dimension       3
+newton off
+
+
+lattice         sc 0.4
+Lattice spacing in x,y,z = 1.3572088 1.3572088 1.3572088
+region          box block -8 8 -8 8 -8 8
+create_box      1 box
+Created orthogonal box = (-10.857670 -10.857670 -10.857670) to (10.857670 10.857670 10.857670)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 4096 atoms
+  create_atoms CPU = 0.002 seconds
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+set             type  * dipole/random 192019 1.0
+Setting atom values ...
+  4096 settings made for dipole/random
+velocity        all create 1.0 1 loop geom
+
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+
+
+#compute      d  all property/atom  mux muy muz
+
+fix         1 all abp ${fp}
+fix         1 all abp 10
+fix_modify  1 virial no
+
+compute press all pressure NULL virial
+
+thermo_style    custom step temp epair c_press
+
+# write trajectory and thermo in a log-scale frequency
+dump            1 all custom 1 dump_${params}_3d.lammpstrj id type 		x y z xu yu zu mux muy muz fx fy fz
+dump            1 all custom 1 dump_10_3d.lammpstrj id type 		x y z xu yu zu mux muy muz fx fy fz
+dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          1
+
+# main run
+run             0
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2118)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 5.272 | 5.272 | 5.272 Mbytes
+Step Temp E_pair c_press 
+       0            1            0            0 
+Loop time of 6.6e-07 on 1 procs for 0 steps with 4096 atoms
+
+2121.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 6.6e-07    |            |       |100.00
+
+Nlocal:        4096.00 ave        4096 max        4096 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        817.000 ave         817 max         817 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+Total wall time: 0:00:00

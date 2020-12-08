@@ -20,6 +20,7 @@ FixStyle(abp,FixABP)
 #ifndef LMP_FIX_ABP_H
 #define LMP_FIX_ABP_H
 
+#include "fix.h"
 namespace LAMMPS_NS {
 
 class FixABP : public Fix {

@@ -41,7 +41,7 @@ FixABP::FixABP(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4)
     error->all(FLERR,"Illegal fix bd/activity command");
 
-  selfpropulsionforce = force->numeric(FLERR,arg[3]);
+  selfpropulsionforce = utils::numeric(FLERR,arg[3],false,lmp);
 
 
 }
@@ -101,7 +101,7 @@ void FixABP::post_force(int vflag)
 
   double **x = atom->x;
   double **mu = atom->mu;
-  double fx,fy;
+  double fx,fy,fz;
   double v[6];
 
   // constant activity parameter
@@ -110,28 +110,26 @@ void FixABP::post_force(int vflag)
 
   // charge interactions
 
-  if (activity_flag) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
 
-	fx = selfpropulsionforce*mu[i][0];
-	fy = selfpropulsionforce*mu[i][1];
-	fz = selfpropulsionforce*mu[i][2];
-	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
-
-	domain->unmap(x[i],image[i],unwrap);
-
-	if (evflag) {
-	  v[0] = fx*unwrap[0];
-	  v[1] = fy*unwrap[1];
-	  v[2] = fz*unwrap[2];
-	  v[3] = fx*unwrap[1];
-	  v[4] = fx*unwrap[2];
-	  v[5] = fy*unwrap[2];
-	  v_tally(i, v);
-	}
+      fx = selfpropulsionforce*mu[i][0];
+      fy = selfpropulsionforce*mu[i][1];
+      fz = selfpropulsionforce*mu[i][2];
+      f[i][0] += fx;
+      f[i][1] += fy;
+      f[i][2] += fz;
+      
+      domain->unmap(x[i],image[i],unwrap);
+      
+      if (evflag) {
+	v[0] = fx*unwrap[0];
+	v[1] = fy*unwrap[1];
+	v[2] = fz*unwrap[2];
+	v[3] = fx*unwrap[1];
+	v[4] = fx*unwrap[2];
+	v[5] = fy*unwrap[2];
+	v_tally(i, v);
       }
-  }
+    }
 }

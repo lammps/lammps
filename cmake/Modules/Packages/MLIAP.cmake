@@ -11,8 +11,8 @@ option(MLIAP_ENABLE_PYTHON "Build MLIAP package with Python support" ${MLIAP_ENA
 
 if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
-  if(NOT_PKG_PYTHON)
-    message(FATAL_ERROR "Must install PYTHON package for MLIAP_PYTHON")
+  if(NOT PKG_PYTHON)
+    message(FATAL_ERROR "Must install PYTHON package for MLIAP with Python support")
   endif()
 
   set(MLIAP_CYTHON_DIR ${CMAKE_BINARY_DIR}/cython)

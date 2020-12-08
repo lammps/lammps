@@ -53,6 +53,7 @@ class KokkosLMP {
   int nthreads;
   int ngpus;
   int numa;
+  int pair_only_flag;
 
   KokkosLMP(class LAMMPS *, int, char **) {kokkos_exists = 0;}
   ~KokkosLMP() {}

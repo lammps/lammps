@@ -239,7 +239,7 @@ void Force::create_pair(const std::string &style, int trysuffix)
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
-  store_style(pair_style,style,sflag);
+  store_style(pair_style,style,sflag,1);
 }
 
 /* ----------------------------------------------------------------------
@@ -254,6 +254,8 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
+      if (lmp->kokkos && lmp->kokkos->pair_only_flag)
+        estyle = style + "/kk";
       if (pair_map->find(estyle) != pair_map->end()) {
         PairCreator &pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
@@ -730,11 +732,16 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
    if sflag = 1/2, append suffix or suffix2 to style
 ------------------------------------------------------------------------- */
 
-void Force::store_style(char *&str, const std::string &style, int sflag)
+void Force::store_style(char *&str, const std::string &style, int sflag, int pair_flag)
 {
   std::string estyle = style;
 
-  if (sflag == 1) estyle += std::string("/") + lmp->suffix;
+  if (sflag == 1) {
+    if (pair_flag && lmp->kokkos && lmp->kokkos->pair_only_flag)
+      estyle += std::string("/kk");
+    else
+      estyle += std::string("/") + lmp->suffix;
+  }
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
 
   str = new char[estyle.size()+1];

@@ -39,6 +39,7 @@ class KokkosLMP : protected Pointers {
   int numa;
   int auto_sync;
   int gpu_aware_flag;
+  int pair_only_flag;
   int neigh_thread;
   int neigh_thread_set;
   int newtonflag;

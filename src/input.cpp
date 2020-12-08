@@ -1715,8 +1715,12 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffix)
-        if (style + "/" + lmp->suffix == force->pair_style) match = 1;
+      if (lmp->suffix) {
+        if (lmp->kokkos && lmp->kokkos->pair_only_flag)
+          if (style + "/kk" == force->pair_style) match = 1;
+        else
+          if (style + "/" + lmp->suffix == force->pair_style) match = 1;
+      }
 
       if (lmp->suffix2)
         if (style + "/" + lmp->suffix2 == force->pair_style) match = 1;

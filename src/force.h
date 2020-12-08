@@ -152,7 +152,7 @@ class Force : protected Pointers {
   KSpace *new_kspace(const std::string &, int, int &);
   KSpace *kspace_match(const std::string &, int);
 
-  void store_style(char *&, const std::string &, int);
+  void store_style(char *&, const std::string &, int, int pair_flag = 0);
   void set_special(int, char **);
 
   double memory_usage();

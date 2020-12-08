@@ -19,6 +19,7 @@
 #include "force.h"
 #include "pair.h"
 #include "error.h"
+#include "accelerator_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -67,8 +68,12 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   pair = force->pair_match(pstyle,1,nsub);
   if (!pair && lmp->suffix) {
-    strcat(pstyle,"/");
-    strcat(pstyle,lmp->suffix);
+    if (lmp->kokkos && lmp->kokkos->pair_only_flag) {
+      strcat(pstyle,"/kk");
+    } else {
+      strcat(pstyle,"/");
+      strcat(pstyle,lmp->suffix);
+    }
     pair = force->pair_match(pstyle,1,nsub);
   }
 

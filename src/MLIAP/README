@@ -32,14 +32,17 @@ potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP>.
 *Additional instructions for compiling PyTorch energy models*
 
 The *MLIAPPY* extension written by Nick Lubbers (LANL)
-provides a coupling to PyTorch energy models.
+provides a coupling to PyTorch energy models. This should be automatically
+enabled by default if the prerequisite software is installed.  It can be
+enforced during CMake configuration by setting the variable
+MLIAP_ENABLE_PYTHON=yes or for conventional build by adding -DMLIAP_PYTHON
+to the LMP_INC variable in your makefile and running the cythonize script
+on the .pyx file(s) copied to the src folder.
 
-Before compiling LAMMPS with either make or cmake, you have
-to run cythonize to create the coupling source files
-in the src/MLIAP directory e.g.
+This requires to also install the PYTHON package and have the cython
+(https://cython.org) software installed.  During configuration/compilation
+the cythonize script will be used to convert the provided .pyx file(s)
+to C++ code.  Please do not run the cythonize script in the src/MLIAP folder.
+If you have done so by accident, you need to delete the generated .cpp and .h
+file(s) in the src/MLIAP folder or there may be problems during compilation.
 
-cd src/MLIAP
-cythonize mliap_model_python_couple.pyx
-
-After that, install the MLIAP package with make or cmake
-and build LAMMPS.

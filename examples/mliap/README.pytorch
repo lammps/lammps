@@ -17,8 +17,8 @@ From that point you can run the example lmp -in in.mliap.pytorch.Ta06A -echo bot
 2: Running models from python with LAMMPS in library mode: mliap_pytorch_Ta06A.py
 
 Before testing this, ensure that the first example (using LAMMPS executable) works.
-Also, not all python installations support this mode of operation. 
-It requires that the Python interpreter be initialized. 
+Also, not all python installations support this mode of operation.
+It requires that the Python interpreter be initialized.
 To check this for your Python library,
 run the Py_IsInitialized() method.
 If the return value is True, you should be able to run the example,

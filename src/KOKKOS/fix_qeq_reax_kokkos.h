@@ -241,7 +241,7 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
 
 template <class DeviceType>
 struct FixQEqReaxKokkosNumNeighFunctor  {
-  typedef DeviceType  device_type ;
+  typedef DeviceType device_type;
   typedef int value_type ;
   FixQEqReaxKokkos<DeviceType> c;
   FixQEqReaxKokkosNumNeighFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
@@ -269,6 +269,7 @@ struct FixQEqReaxKokkosMatVecFunctor  {
 template <class DeviceType, int NEIGHFLAG>
 struct FixQEqReaxKokkosComputeHFunctor {
   int atoms_per_team, vector_length;
+  typedef DeviceType device_type;
   typedef int value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
   FixQEqReaxKokkos<DeviceType> c;

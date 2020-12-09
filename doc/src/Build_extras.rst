@@ -738,12 +738,12 @@ be installed on your system.
 MLIAP package
 ---------------------------
 
-Building the MLIAP package requires also enabling the SNAP package.
-There will be an error message if this requirement is not satisfied.
-Using the *mliappy* model also requires enabling the PYTHON package
-**and** requires you have the `cython <https://ctyhon.org>`_ software
-installed and a working ``cythonize`` command.  This requires Python
-version 3.6 or later.
+Building the MLIAP package requires including the :ref:`SNAP <PKG-SNAP>`
+package.  There will be an error message if this requirement is not satisfied.
+Using the *mliappy* model also requires enabling the :ref:`PYTHON <PKG-PYTHON>`
+package **and** requires you have the `cython <https://ctyhon.org>`_ software
+installed and with it a working ``cythonize`` command.  This feature requires
+compiling LAMMPS with Python version 3.6 or later.
 
 .. tabs::
 
@@ -755,7 +755,11 @@ version 3.6 or later.
 
       Without this setting, CMake will check whether it can find a
       suitable Python version and the ``cythonize`` command and choose
-      the default accordingly.
+      the default accordingly.  During the build procedure the provided
+      .pyx file(s) will be automatically translated to C++ code and compiled.
+      Please do **not** run ``cythonize`` manually in the ``src/MLIAP`` folder,
+      as that can lead to compilation errors if PYTHON support is not included.
+      If you did by accident, please remove the generated .cpp and .h files.
 
    .. tab:: Traditional make
 
@@ -764,6 +768,14 @@ version 3.6 or later.
       the ``cythonize`` command in case the corresponding .pyx file was
       modified.  You may need to need to modify ``lib/python/Makefile.lammps``
       if the LAMMPS build fails.
+      To manually enforce building MLIAP with Python support, you can add
+      ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in your machine makefile.
+      You may have to manually run the cythonize command on .pyx file(s)
+      in the ``src`` folder, if this is not automatically done during
+      installing the MLIAP package.  Please do **not** run ``cythonize``
+      in the ``src/MLIAP`` folder, as that can lead to compilation errors
+      if PYTHON support is not included.
+      If you did by accident, please remove the generated .cpp and .h files.
 
 ----------
 

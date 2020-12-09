@@ -668,8 +668,9 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
-:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed and the version of
-python must be 3.5 or later.
+:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version of
+Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
+must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
@@ -682,9 +683,10 @@ python must be 3.5 or later.
 * examples/mliap (see README)
 
 When built with the *mliappy* model this package includes an extension for
-coupling with python models, including PyTorch.
-In this case, the python interpreter linked to LAMMPS will need cython and numpy installed.
-The examples build models with PyTorch, which would thus need to be installed.
+coupling with Python models, including PyTorch. In this case, the Python
+interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
+installed.  The provided examples build models with PyTorch, which would
+therefore also needs to be installed to run those examples.
 
 ----------
 

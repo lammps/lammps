@@ -21,7 +21,7 @@ with torch.autograd.no_grad():
     lin.weight.set_(torch.from_numpy(weights).unsqueeze(0))
     lin.bias.set_(torch.as_tensor(bias,dtype=torch.float64).unsqueeze(0))
 
-# Wrap the pytorch model for usage with MLIAPPY
+# Wrap the pytorch model for usage with mliappy energy model
 model = mliappy_pytorch.IgnoreElems(lin)
 n_descriptors = lin.weight.shape[1]
 n_params = mliappy_pytorch.calc_n_params(model)

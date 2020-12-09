@@ -15,15 +15,17 @@ if(MLIAP_ENABLE_PYTHON)
     message(FATAL_ERROR "Must enable PYTHON package for including Python support in MLIAP")
   endif()
 
-  set(MLIAP_CYTHON_DIR ${CMAKE_BINARY_DIR}/cython)
-  file(MAKE_DIRECTORY ${MLIAP_CYTHON_DIR})
-  add_custom_command(OUTPUT  ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.cpp ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.h
-            COMMAND            ${CMAKE_COMMAND} -E copy ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.pyx
-            COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.pyx
-            WORKING_DIRECTORY  ${MLIAP_CYTHON_DIR}
-            MAIN_DEPENDENCY    ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx
-            COMMENT "Generating C++ sources with cythonize...")
+  set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)
+  set(MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx)
+  get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_SRC} NAME_WE)
+  file(MAKE_DIRECTORY ${MLIAP_BINARY_DIR})
+  add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
+          COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_SRC} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+          COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+          WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
+          MAIN_DEPENDENCY    ${MLIAP_CYTHON_SRC}
+          COMMENT "Generating C++ sources with cythonize...")
   target_compile_definitions(lammps PRIVATE -DMLIAP_PYTHON)
-  target_sources(lammps PRIVATE ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.cpp)
-  target_include_directories(lammps PRIVATE ${MLIAP_CYTHON_DIR})
+  target_sources(lammps PRIVATE ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
+  target_include_directories(lammps PRIVATE ${MLIAP_BINARY_DIR})
 endif()

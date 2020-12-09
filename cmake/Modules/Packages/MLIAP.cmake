@@ -12,14 +12,14 @@ option(MLIAP_ENABLE_PYTHON "Build MLIAP package with Python support" ${MLIAP_ENA
 if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
   if(NOT PKG_PYTHON)
-    message(FATAL_ERROR "Must install PYTHON package for MLIAP with Python support")
+    message(FATAL_ERROR "Must enable PYTHON package for including Python support in MLIAP")
   endif()
 
   set(MLIAP_CYTHON_DIR ${CMAKE_BINARY_DIR}/cython)
   file(MAKE_DIRECTORY ${MLIAP_CYTHON_DIR})
   add_custom_command(OUTPUT  ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.cpp ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.h
             COMMAND            ${CMAKE_COMMAND} -E copy ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.pyx
-            COMMAND            ${Cythonize_EXECUTABLE} ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.pyx -3
+            COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_CYTHON_DIR}/mliap_model_python_couple.pyx
             WORKING_DIRECTORY  ${MLIAP_CYTHON_DIR}
             MAIN_DEPENDENCY    ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx
             COMMENT "Generating C++ sources with cythonize...")

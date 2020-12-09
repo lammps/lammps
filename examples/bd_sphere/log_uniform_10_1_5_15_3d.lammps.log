@@ -1,6 +1,5 @@
 units           lj
-atom_style      hybrid dipole sphere
-WARNING: Atom_style hybrid defines both pertype and peratom masses - both must be set, only peratom masses will be used (src/atom_vec_hybrid.cpp:157)
+atom_style      sphere
 dimension       3
 newton off
 
@@ -13,25 +12,16 @@ Created orthogonal box = (-10.857670 -10.857670 -10.857670) to (10.857670 10.857
   1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 4096 atoms
-  create_atoms CPU = 0.003 seconds
-mass            * 1.0
-set             type  * dipole/random ${seed} 1.0
-set             type  * dipole/random 553910 1.0
-Setting atom values ...
-  4096 settings made for dipole/random
+  create_atoms CPU = 0.001 seconds
+#mass            * 1.0
 velocity        all create 1.0 1 loop geom
 
 
 neighbor        1.0 bin
 neigh_modify    every 1 delay 1 check yes
 
-
-
 pair_style none
 
-
-
-#compute      d  all property/atom  mux muy muz
 
 fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
 fix         1 all bd/sphere 10 ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
@@ -52,13 +42,13 @@ thermo          50001
 run             50000
 WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2118)
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
-Per MPI rank memory allocation (min/avg/max) = 4.362 | 4.362 | 4.362 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.581 | 3.581 | 3.581 Mbytes
 Step Temp E_pair c_press 
        0            1            0   -32553.271 
    50000 5.2351457e+10            0    -15026.42 
-Loop time of 18.6303 on 1 procs for 50000 steps with 4096 atoms
+Loop time of 16.0183 on 1 procs for 50000 steps with 4096 atoms
 
-Performance: 0.023 tau/day, 2683.804 timesteps/s
+Performance: 0.027 tau/day, 3121.426 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
@@ -66,10 +56,10 @@ Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.31439    | 0.31439    | 0.31439    |   0.0 |  1.69
-Output  | 5.5046e-05 | 5.5046e-05 | 5.5046e-05 |   0.0 |  0.00
-Modify  | 17.718     | 17.718     | 17.718     |   0.0 | 95.11
-Other   |            | 0.5974     |            |       |  3.21
+Comm    | 0.074984   | 0.074984   | 0.074984   |   0.0 |  0.47
+Output  | 3.0041e-05 | 3.0041e-05 | 3.0041e-05 |   0.0 |  0.00
+Modify  | 15.366     | 15.366     | 15.366     |   0.0 | 95.93
+Other   |            | 0.5772     |            |       |  3.60
 
 Nlocal:        4096.00 ave        4096 max        4096 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -96,7 +86,7 @@ thermo_style    custom step temp epair c_msd[*] c_press
 
 # write trajectory and thermo in a log-scale frequency
 # uncomment the next three lines for dump file
-#dump            1 all custom 10000 dump_${params}_3d.lammpstrj id type #		x y xu yu mux muy muz fx fy fz
+#dump            1 all custom 10000 dump_${params}_3d.lammpstrj id type #		x y xu yu fx fy fz
 #dump_modify     1 first yes sort id
 
 timestep        0.00001
@@ -105,7 +95,7 @@ thermo          1000
 # main run
 run             120000
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
-Per MPI rank memory allocation (min/avg/max) = 4.737 | 4.737 | 4.737 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.956 | 3.956 | 3.956 Mbytes
 Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press 
        0 5.2351457e+10            0            0            0            0            0   -233.83012 
     1000    522590.88            0   0.10259269   0.10487519   0.10391005   0.31137793   -13.730626 
@@ -228,20 +218,20 @@ Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press
   118000    524075.83            0    11.441416    11.597533    11.783056    34.822005   -350.05313 
   119000    533816.71            0     11.52766    11.681986    11.917713    35.127359   -521.58975 
   120000    524509.31            0     11.63865    11.792667    12.080379    35.511696    273.09647 
-Loop time of 46.6725 on 1 procs for 120000 steps with 4096 atoms
+Loop time of 39.6359 on 1 procs for 120000 steps with 4096 atoms
 
-Performance: 2221.438 tau/day, 2571.109 timesteps/s
+Performance: 2615.809 tau/day, 3027.557 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Neigh   | 0.0063169  | 0.0063169  | 0.0063169  |   0.0 |  0.01
-Comm    | 0.057082   | 0.057082   | 0.057082   |   0.0 |  0.12
-Output  | 0.0068489  | 0.0068489  | 0.0068489  |   0.0 |  0.01
-Modify  | 44.98      | 44.98      | 44.98      |   0.0 | 96.37
-Other   |            | 1.622      |            |       |  3.48
+Neigh   | 0.0059817  | 0.0059817  | 0.0059817  |   0.0 |  0.02
+Comm    | 0.039473   | 0.039473   | 0.039473   |   0.0 |  0.10
+Output  | 0.0063653  | 0.0063653  | 0.0063653  |   0.0 |  0.02
+Modify  | 38.085     | 38.085     | 38.085     |   0.0 | 96.09
+Other   |            | 1.499      |            |       |  3.78
 
 Nlocal:        4096.00 ave        4096 max        4096 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -256,4 +246,4 @@ Neighbor list builds = 992
 Dangerous builds = 0
 
 
-Total wall time: 0:01:05
+Total wall time: 0:00:55

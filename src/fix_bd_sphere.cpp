@@ -35,6 +35,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+#define SMALL 1e-14
+
+enum{NONE,DIPOLE};
+
 /* ---------------------------------------------------------------------- */
 
 FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
@@ -43,14 +47,14 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
 
   time_integrate = 1;
-  
-  if (narg != 8 && narg != 10)
+
+  extra = NONE;
+
+  if (narg > 11 || narg < 8 )
     error->all(FLERR,"Illegal fix bd/sphere command.");
 
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix bd/sphere requires atom style sphere");
-  if (!atom->mu_flag)
-    error->all(FLERR,"Fix bd/sphere requires atom attribute mu");
 
   gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
   if (gamma_t <= 0.0)
@@ -62,7 +66,7 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix bd/sphere rotational viscous drag "
 	       "coefficient must be > 0.");
 
-  // note that diffusion is in units of epsilon**2*tau**3/(m**2*sigma**2)
+
   diff_t = utils::numeric(FLERR,arg[5],false,lmp);
   if (diff_t <= 0.0)
     error->all(FLERR,"Fix bd/sphere translational diffusion "
@@ -83,6 +87,9 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"rng") == 0) {
+      if (narg == iarg + 1) {
+	error->all(FLERR,"Illegal fix/bd/sphere command.");
+      }
       if (strcmp(arg[iarg + 1],"uniform") == 0) {
 	noise_flag = 1;
       } else if (strcmp(arg[iarg + 1],"gaussian") == 0) {
@@ -93,16 +100,20 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
       } else {
 	error->all(FLERR,"Illegal fix/bd/sphere command.");
       }
+      iarg = iarg + 2;
+    } else if (strcmp(arg[iarg],"dipole") == 0) {
+      extra = DIPOLE;
+      iarg = iarg + 1;
     } else {
       error->all(FLERR,"Illegal fix/bd/sphere command.");
     }
-    iarg = iarg + 2;
   }
-
   
+  if (extra == DIPOLE && !atom->mu_flag)
+    error->all(FLERR,"Fix bd/sphere update dipole requires atom attribute mu");
+
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
-
 
 }
 
@@ -120,9 +131,7 @@ int FixBdSphere::setmask()
 
 FixBdSphere::~FixBdSphere()
 {
-
   delete random;
-
 }
 
 
@@ -131,8 +140,7 @@ FixBdSphere::~FixBdSphere()
 
 void FixBdSphere::init()
 {
-
-
+  
   g1 =  force->ftm2v/gamma_t;
   g3 = force->ftm2v/gamma_r;
   if (noise_flag == 0) {
@@ -164,16 +172,12 @@ void FixBdSphere::initial_integrate(int /* vflag */)
 {
   double **x = atom->x;
   double **v = atom->v;
-  double **mu = atom->mu;
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double dx,dy,dz;
-  double dtheta;
-  double mux,muy,muz,mu_tmp,wx,wy,wz;
-  double prefac_1, prefac_2;
   
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -188,7 +192,6 @@ void FixBdSphere::initial_integrate(int /* vflag */)
     d3rot = 1;
   }
 
-  
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       
@@ -204,49 +207,62 @@ void FixBdSphere::initial_integrate(int /* vflag */)
       x[i][2] +=  dz;
       v[i][2]  =  dz/dt;
       
-      
       omega[i][0] = d3rot * g3* torque[i][0];
       omega[i][1] = d3rot * g3* torque[i][1];
       omega[i][2] = g3* torque[i][2];
-      
-      dtheta = sqrt((omega[i][0]*dt)*(omega[i][0]*dt)
-		    +(omega[i][1]*dt)*(omega[i][1]*dt)
-		    +(omega[i][2]*dt)*(omega[i][2]*dt));
-      
-      if (abs(dtheta) < 1e-14) {
-	prefac_1 = dt;
-	prefac_2 = 0.5*dt*dt;
-      } else {
-	prefac_1 = dt*sin(dtheta)/dtheta;
-	prefac_2 = dt*dt*(1-cos(dtheta))/(dtheta*dtheta);
+            
+    }
+  }
+  
+  if (extra == DIPOLE) {
+    
+    double **mu = atom->mu;
+    double dtheta;
+    double mux,muy,muz,mu_tmp,wx,wy,wz;
+    double prefac_1, prefac_2;
+    
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	
+	dtheta = sqrt((omega[i][0]*dt)*(omega[i][0]*dt)
+		      +(omega[i][1]*dt)*(omega[i][1]*dt)
+		      +(omega[i][2]*dt)*(omega[i][2]*dt));
+	
+	
+	if (fabs(dtheta) < SMALL) {
+	  prefac_1 = dt;
+	  prefac_2 = 0.5*dt*dt;
+	} else {
+	  prefac_1 = dt*sin(dtheta)/dtheta;
+	  prefac_2 = dt*dt*(1-cos(dtheta))/(dtheta*dtheta);
+	}
+	
+	mux = mu[i][0];
+	muy = mu[i][1];
+	muz = mu[i][2];
+	
+	wx = omega[i][0];
+	wy = omega[i][1];
+	wz = omega[i][2];
+	
+	mu[i][0] = (mux + prefac_1 * ( -wz*muy + wy*muz )
+		    + prefac_2 * ( -1*( wz*wz + wy*wy ) * mux
+				   + ( wz*muz + wy*muy ) * wx));
+	
+	mu[i][1] = (muy + prefac_1 * ( wz*mux - wx*muz )
+		    + prefac_2 * ( -1*(wz*wz + wx*wx) * muy
+				   + ( wz*muz + wx*mux ) * wy));
+	
+	mu[i][2] = (muz + prefac_1 * ( -wy*mux + wx*muy )
+		    + prefac_2 * ( -1*( wx*wx + wy*wy ) * muz
+				   + ( wy*muy + wx*mux ) * wz));
+	
+	mu_tmp = sqrt(mu[i][0]*mu[i][0]+mu[i][1]*mu[i][1]+mu[i][2]*mu[i][2]);
+	
+	mu[i][0] = mu[i][0]/mu_tmp;
+	mu[i][1] = mu[i][1]/mu_tmp;
+	mu[i][2] = mu[i][2]/mu_tmp;
       }
-      
-      mux = mu[i][0];
-      muy = mu[i][1];
-      muz = mu[i][2];
-      
-      wx = omega[i][0];
-      wy = omega[i][1];
-      wz = omega[i][2];
-      
-      mu[i][0] = (mux + prefac_1 * ( -wz*muy + wy*muz )
-		  + prefac_2 * ( -1*( wz*wz + wy*wy ) * mux
-				 + ( wz*muz + wy*muy ) * wx));
-      
-      mu[i][1] = (muy + prefac_1 * ( wz*mux - wx*muz )
-		  + prefac_2 * ( -1*(wz*wz + wx*wx) * muy
-				 + ( wz*muz + wx*mux ) * wy));
-      
-      mu[i][2] = (muz + prefac_1 * ( -wy*mux + wx*muy )
-		  + prefac_2 * ( -1*( wx*wx + wy*wy ) * muz
-				 + ( wy*muy + wx*mux ) * wz));
-
-      mu_tmp = sqrt(mu[i][0]*mu[i][0]+mu[i][1]*mu[i][1]+mu[i][2]*mu[i][2]);
-
-      mu[i][0] = mu[i][0]/mu_tmp;
-      mu[i][1] = mu[i][1]/mu_tmp;
-      mu[i][2] = mu[i][2]/mu_tmp;
-      
     }
   }
   
@@ -270,8 +286,6 @@ void FixBdSphere::post_force(int vflag)
 
   if (vflag) v_setup(vflag);
   else evflag = 0;
-
-
 
   double fx,fy,fz;
   double v[6];

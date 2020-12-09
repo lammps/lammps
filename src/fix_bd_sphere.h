@@ -36,7 +36,7 @@ class FixBdSphere : public Fix {
 
  private:
   int seed;               // RNG seed
-  
+  int extra;              // set if dipole is used
   double dt, sqrtdt;      // time step interval and its sqrt
 
 
@@ -89,16 +89,5 @@ E: Fix bd/sphere rotational diffusion coefficient must be > 0.
 Self-explanatory.
 
 E: Fix bd/sphere seed must be > 0.
-
-E: Cannot constrain rotational degrees of freedom 
-   to the xy plane if the simulation is in 3D (in fix/bd/sphere).
-
-Self-explanatory.
-
-W: Using a 2D simulation, but allowing for full (3D) rotation
-   (in fix/bd/sphere).
-
-Self-explanatory.
-
 
 */

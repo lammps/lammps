@@ -181,6 +181,7 @@ accelerated styles exist.
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
+* :doc:`bd/sphere <fix_bd_sphere>` - overdamped translational and rotational brownian dynamics
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
 * :doc:`bocs <fix_bocs>` - NPT style time integration with pressure correction
 * :doc:`bond/break <fix_bond_break>` - break bonds on the fly

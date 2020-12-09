@@ -17,14 +17,15 @@ Syntax
 * diff_t = translational diffusion coefficient
 * diff_r = rotational diffusion coefficient
 * zero or more keyword/value pairs may be appended
-* keyword = *rng*
+* keyword = *rng* or *dipole*
 
   .. parsed-literal::
 
-       *rng* arg = *uniform* or *gaussian* or *none*
-         uniform = use uniform random number generator
-	 gaussian = use gaussian random number generator
-	 none = turn off noise 
+        *rng* value = *uniform* or *gaussian* or *none*
+         *uniform* = use uniform random number generator
+         *gaussian* = use gaussian random number generator
+         *none* = turn off noise
+       *dipole* value = none = update orientation of dipoles during integration
 
 Examples
 """"""""
@@ -32,9 +33,9 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all bd/sphere 1.0 1.0 1.0 1.0 1294019
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng none
+   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng none dipole
    fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng uniform
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng gaussian
+   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 dipole rng gaussian
 
 
 Description
@@ -52,8 +53,8 @@ viscous forces. The stochastic equations of motion are
    d\Omega = \frac{T}{\gamma_r}dt + \sqrt{2D_r}dW_r,
 
 where :math:`d\Omega` is an infinitesimal rotation vector (see e.g.
-Chapter 4 of :ref:`(GoldsteinCM) <GoldsteinCM>`), :math:`dW_t` and
-:math:`dW_r` are Wiener processes (see e.g. :ref:`(GardinerC) <GardinerC>`).
+Chapter 4 of :ref:`(Goldstein) <GoldsteinCM>`), :math:`dW_t` and
+:math:`dW_r` are Wiener processes (see e.g. :ref:`(Gardiner) <GardinerC>`).
 The dipole vectors :math:`e_i` are updated using the rotation matrix
 
 .. math::
@@ -64,13 +65,13 @@ where :math:`\omega=d\Omega/dt` is the angular velocity,
 :math:`\Delta\theta=|\omega|dt` is the rotation angle about
 the :math:`\omega` axis, and
 :math:`(\theta_X)_{ij}=-\epsilon_{ijk}d\Omega_k` is the
-infinitesimal rotation matrix (see e.g. :ref:`(Callegari1) <Callegari1>`,
+infinitesimal rotation matrix (see e.g. :ref:`(Callegari) <Callegari1>`,
 section 7.4).
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the added forces on atoms to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial no*
+The default is *virial no*.
 
 
 IMPORTANT NOTE: This integrator is designed for generic non-equilibrium
@@ -96,16 +97,19 @@ units of mass/time and (mass*length*length)/(time).
 
 If the *rng* keyword is used with the *uniform* value, then the noise
 is generated from a uniform distribution (see
-:ref:`(Dunweg) <Dunweg1>` for why this works). This is the same method
+:ref:`(Dunweg) <Dunweg6>` for why this works). This is the same method
 of noise generation as used in :doc:`fix_langevin <fix_langevin>`.
 
 If the *rng* keyword is used with the *gaussian* value, then the noise
 is generated from a gaussian distribution. Typically this added
 complexity is unnecessary, and one should be fine using the *uniform*
-value for reasons argued in :ref:`(Dunweg) <Dunweg1>`.
+value for reasons argued in :ref:`(Dunweg) <Dunweg6>`.
 
 If the *rng* keyword is used with the *none* value, then the noise
 terms are set to zero.
+
+If the *dipole* keyword is used, then the dipole moments of the particles
+are updated as described above.
 
 ----------
 
@@ -150,18 +154,18 @@ The default for *rng* is *uniform*.
 
 .. _GoldsteinCM:
 
-**(GoldsteinCM)** Goldstein, Poole, and Safko, Classical Mechanics, 3rd Ed. (2001).
+**(Goldstein)** Goldstein, Poole, and Safko, Classical Mechanics, 3rd Ed. (2001).
 
 .. _GardinerC:
 
-**(GardinerC)** Gardiner, A Handbook for the Natural and Social Sciences 4th Ed. (2009).
+**(Gardiner)** Gardiner, A Handbook for the Natural and Social Sciences 4th Ed. (2009).
 
 .. _Callegari1:
 
-**(Callegari1)** Callegari and Volpe, *Numerical Simulations of Active Brownian
+**(Callegari)** Callegari and Volpe, *Numerical Simulations of Active Brownian
 Particles*, Flowing Matter, 211-238 (2019).
 
-.. _Dunweg1:
+.. _Dunweg6:
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 

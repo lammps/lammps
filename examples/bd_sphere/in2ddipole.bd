@@ -38,7 +38,7 @@ pair_style none
 
 #compute      d  all property/atom  mux muy muz
 
-fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
+fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
 fix         2 all enforce2d
 
 compute press all pressure NULL virial

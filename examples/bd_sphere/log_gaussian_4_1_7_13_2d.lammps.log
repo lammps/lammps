@@ -13,7 +13,7 @@ Created orthogonal box = (-25.298221 -25.298221 -0.31622777) to (25.298221 25.29
   1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 1024 atoms
-  create_atoms CPU = 0.002 seconds
+  create_atoms CPU = 0.001 seconds
 mass            * 1.0
 set             type  * dipole/random ${seed} 1.0
 set             type  * dipole/random 1974019 1.0
@@ -33,13 +33,13 @@ pair_style none
 
 #compute      d  all property/atom  mux muy muz
 
-fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
-fix         1 all bd/sphere 4 ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
-fix         1 all bd/sphere 4 1 ${D_t} ${D_r} ${seed} rng ${rng}
-fix         1 all bd/sphere 4 1 7 ${D_r} ${seed} rng ${rng}
-fix         1 all bd/sphere 4 1 7 13 ${seed} rng ${rng}
-fix         1 all bd/sphere 4 1 7 13 1974019 rng ${rng}
-fix         1 all bd/sphere 4 1 7 13 1974019 rng gaussian
+fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all bd/sphere 4 ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all bd/sphere 4 1 ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all bd/sphere 4 1 7 ${D_r} ${seed} rng ${rng} dipole
+fix         1 all bd/sphere 4 1 7 13 ${seed} rng ${rng} dipole
+fix         1 all bd/sphere 4 1 7 13 1974019 rng ${rng} dipole
+fix         1 all bd/sphere 4 1 7 13 1974019 rng gaussian dipole
 fix         2 all enforce2d
 
 compute press all pressure NULL virial
@@ -56,9 +56,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.289 | 4.289 | 4.289 Mbytes
 Step Temp E_pair c_press 
        0            1            0            0 
    50000 7.3671759e+10            0            0 
-Loop time of 10.2295 on 1 procs for 50000 steps with 1024 atoms
+Loop time of 11.2219 on 1 procs for 50000 steps with 1024 atoms
 
-Performance: 0.042 tau/day, 4887.825 timesteps/s
+Performance: 0.038 tau/day, 4455.573 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
@@ -66,10 +66,10 @@ Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.033217   | 0.033217   | 0.033217   |   0.0 |  0.32
-Output  | 2.1435e-05 | 2.1435e-05 | 2.1435e-05 |   0.0 |  0.00
-Modify  | 10.047     | 10.047     | 10.047     |   0.0 | 98.21
-Other   |            | 0.1497     |            |       |  1.46
+Comm    | 0.028513   | 0.028513   | 0.028513   |   0.0 |  0.25
+Output  | 2.0981e-05 | 2.0981e-05 | 2.0981e-05 |   0.0 |  0.00
+Modify  | 11.048     | 11.048     | 11.048     |   0.0 | 98.45
+Other   |            | 0.1458     |            |       |  1.30
 
 Nlocal:        1024.00 ave        1024 max        1024 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -228,20 +228,20 @@ Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press
   118000    745594.37            0    16.838659    17.585392            0    34.424052            0 
   119000    714487.42            0    17.064214    17.743478            0    34.807692            0 
   120000    716557.14            0    17.105558    17.845925            0    34.951483            0 
-Loop time of 25.2131 on 1 procs for 120000 steps with 1024 atoms
+Loop time of 27.2068 on 1 procs for 120000 steps with 1024 atoms
 
-Performance: 4112.144 tau/day, 4759.427 timesteps/s
-99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 3810.806 tau/day, 4410.656 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Neigh   | 0.0016123  | 0.0016123  | 0.0016123  |   0.0 |  0.01
-Comm    | 0.025898   | 0.025898   | 0.025898   |   0.0 |  0.10
-Output  | 0.0037882  | 0.0037882  | 0.0037882  |   0.0 |  0.02
-Modify  | 24.767     | 24.767     | 24.767     |   0.0 | 98.23
-Other   |            | 0.4146     |            |       |  1.64
+Neigh   | 0.0015633  | 0.0015633  | 0.0015633  |   0.0 |  0.01
+Comm    | 0.021682   | 0.021682   | 0.021682   |   0.0 |  0.08
+Output  | 0.0032539  | 0.0032539  | 0.0032539  |   0.0 |  0.01
+Modify  | 26.802     | 26.802     | 26.802     |   0.0 | 98.51
+Other   |            | 0.3781     |            |       |  1.39
 
 Nlocal:        1024.00 ave        1024 max        1024 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -256,4 +256,4 @@ Neighbor list builds = 1049
 Dangerous builds = 0
 
 
-Total wall time: 0:00:35
+Total wall time: 0:00:38

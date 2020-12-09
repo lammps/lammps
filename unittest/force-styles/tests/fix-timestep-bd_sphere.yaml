@@ -7,7 +7,7 @@ prerequisites: ! |
   fix bd_sphere
 pre_commands: ! ""
 post_commands: ! |
-  fix test solute bd_sphere 1.0 1.0 1.0 1.0 1049270
+  fix test solute bd_sphere 1.0 1.0 1.0 1.0 1049270 dipole
   fix_modify test virial yes
 input_file: in.bdsphere
 natoms: 32

@@ -46,3 +46,7 @@ to C++ code.  Please do not run the cythonize script in the src/MLIAP folder.
 If you have done so by accident, you need to delete the generated .cpp and .h
 file(s) in the src/MLIAP folder or there may be problems during compilation.
 
+More information on building LAMMPS with this package is here:
+
+https://lammps.sandia.gov/doc/html/Build_extras.html#mliap
+

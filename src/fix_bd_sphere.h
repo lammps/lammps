@@ -33,6 +33,7 @@ class FixBdSphere : public Fix {
   void setup(int);
   void post_force(int);
   int setmask();
+  void reset_dt();
 
  private:
   int seed;               // RNG seed

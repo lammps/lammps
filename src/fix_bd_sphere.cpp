@@ -182,9 +182,6 @@ void FixBdSphere::initial_integrate(int /* vflag */)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   int d3rot;  // whether to compute angular momentum in xy plane
-
-  dt = update->dt;
-  sqrtdt = sqrt(dt);
   
   if (domain->dimension==2) {
     d3rot = 0;
@@ -314,4 +311,11 @@ void FixBdSphere::post_force(int vflag)
 	  v_tally(i, v);
 	}
     }
+}
+
+void FixBdSphere::reset_dt()
+{
+
+  dt = update->dt;
+  sqrtdt = sqrt(dt);
 }

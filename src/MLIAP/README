@@ -29,10 +29,13 @@ To see how this command
 can be used within a Python workflow to train machine-learning interatomic
 potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP>.
 
-*Additional instructions for compiling PyTorch energy models*
+*Additional instructions for building MLIAP with Python support enabled*
 
-The *MLIAPPY* extension written by Nick Lubbers (LANL)
-provides a coupling to PyTorch energy models. This should be automatically
+The *mliappy* energy model requires that the MLIAP package
+be compiled with Python support enabled.
+This extension written by Nick Lubbers (LANL)
+provides a coupling to PyTorch and other Python modules. 
+This should be automatically
 enabled by default if the prerequisite software is installed.  It can be
 enforced during CMake configuration by setting the variable
 MLIAP_ENABLE_PYTHON=yes or for conventional build by adding -DMLIAP_PYTHON

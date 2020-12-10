@@ -124,6 +124,19 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
+An important feature of these thermostats is that they have an 
+associated effective energy that is a contant of the motion.
+The effective energy is the total energy (kinetic + potential) plus 
+the accumulated kinetic energy changes due to the thermostat. The 
+latter quantity is the global scalar computed by these fixes. This 
+feature is useful to check the integration of the equations of motion 
+against discretization errors. In other words, the conservation of 
+the effective energy can be used to choose an appropriate integration 
+:doc:`timestep <timestep>`. This is similar to the usual paradigm of 
+checking the conservation of the total energy in the microcanonical 
+ensemble.
+
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -153,7 +166,7 @@ These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
 These fixes compute a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to the fix.  The scalar value calculated by this fix
+kinetic energy change due to the fix.  The scalar value calculated by this fix
 is "extensive".
 
 Restrictions

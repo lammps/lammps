@@ -1,17 +1,17 @@
-.. index:: fix efield
+.. index:: fix selfpropel
 
-fix abp command
-==================
+fix selfpropel command
+======================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID abp selfpropulsionforce
+   fix ID group-ID selfpropel selfpropulsionforce
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* abp = style name of this fix command
+* selfpropel = style name of this fix command
 
 
 
@@ -20,7 +20,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix active all 40.0
+   fix selfpropel all 40.0
 
 Description
 """""""""""
@@ -33,8 +33,8 @@ force is given by
    F_i = f_P e_i
 
 where *i* is the particle the force is being applied to, :math:`f_P`
-is the self-propulsion force, and :math:`e_i` is the dipole orientation
-(unit vector) of particle *i*.
+is the self-propulsion force (selfpropulsionforce), and :math:`e_i`
+is the dipole orientation (unit vector) of particle *i*.
 
 ----------
 
@@ -56,7 +56,7 @@ the :doc:`run <run>` command.
 Restrictions
 """"""""""""
 
-This fix is only works when the DIPOLE package is enabled.
+This fix only works when the DIPOLE package is enabled.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

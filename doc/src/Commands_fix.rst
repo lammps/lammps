@@ -194,6 +194,7 @@ OPT.
    * :doc:`rigid/small (o) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
+   * :doc:`selfpropel <fix_selfpropel>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
    * :doc:`shake (k) <fix_shake>`

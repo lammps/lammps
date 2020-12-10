@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(abp,FixABP)
+FixStyle(selfpropel,FixSelfPropel)
 
 #else
 
-#ifndef LMP_FIX_ABP_H
-#define LMP_FIX_ABP_H
+#ifndef LMP_FIX_SELFPROPEL_H
+#define LMP_FIX_SELFPROPEL_H
 
 #include "fix.h"
 namespace LAMMPS_NS {
 
-class FixABP : public Fix {
+class FixSelfPropel : public Fix {
  public:
-  FixABP(class LAMMPS *, int, char **);
-  virtual ~FixABP();
+  FixSelfPropel(class LAMMPS *, int, char **);
+  virtual ~FixSelfPropel();
   void init();
   void post_force(int);
   void setup(int);
@@ -43,7 +43,7 @@ class FixABP : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Fix abp requires atom attribute mu
+E: Fix selfpropel requires atom attribute mu
 
 Self-explanatory.
 

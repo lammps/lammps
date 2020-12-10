@@ -18,7 +18,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "fix_abp.h"
+#include "fix_selfpropel.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -32,14 +32,14 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixABP::FixABP(LAMMPS *lmp, int narg, char **arg) :
+FixSelfPropel::FixSelfPropel(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   thermo_virial = 1;
   virial_flag = 1;
   
   if (narg != 4)
-    error->all(FLERR,"Illegal fix bd/activity command");
+    error->all(FLERR,"Illegal fix selfpropel command");
 
   selfpropulsionforce = utils::numeric(FLERR,arg[3],false,lmp);
 
@@ -48,7 +48,7 @@ FixABP::FixABP(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixABP::setmask()
+int FixSelfPropel::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -57,7 +57,7 @@ int FixABP::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-FixABP::~FixABP()
+FixSelfPropel::~FixSelfPropel()
 {
 
 }
@@ -65,24 +65,24 @@ FixABP::~FixABP()
 
 /* ---------------------------------------------------------------------- */
 
-void FixABP::init()
+void FixSelfPropel::init()
 {
 
   if (!atom->mu_flag)
-    error->all(FLERR,"Fix abp requires atom attributes mu");
+    error->all(FLERR,"Fix selfpropel requires atom attributes mu");
 }
 
-void FixABP::setup(int vflag)
+void FixSelfPropel::setup(int vflag)
 {
   post_force(vflag);
 }
 
 
 /* ----------------------------------------------------------------------
-   apply active force, stolen from MISC/fix_efield.cpp 
+   apply self-propulsion force, stolen from MISC/fix_efield.cpp 
 ------------------------------------------------------------------------- */
 
-void FixABP::post_force(int vflag)
+void FixSelfPropel::post_force(int vflag)
 {
   double **f = atom->f;
   int *mask = atom->mask;

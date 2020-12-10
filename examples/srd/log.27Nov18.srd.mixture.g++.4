@@ -1,0 +1,292 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# 2d SRD test: big + small particles
+
+units		lj
+atom_style	sphere
+atom_modify	first big
+dimension	2
+
+# create big particles with sigma 1.0
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		box block 0 10 0 10 -0.5 0.5
+create_box	2 box
+Created orthogonal box = (0 0 -0.790569) to (15.8114 15.8114 0.790569)
+  2 by 2 by 1 MPI processor grid
+create_atoms	1 region box
+Created 100 atoms
+  Time spent = 0.000455379 secs
+set		type 1 mass 1.0
+  100 settings made for mass
+set		type 1 diameter 1.0
+  100 settings made for diameter
+
+group		big type 1
+100 atoms in group big
+velocity	big create 1.44 87287 loop geom
+
+# equilibrate big particles
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 big nve
+fix		2 all enforce2d
+
+run		1000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.171 | 4.171 | 4.171 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44     -0.54272            0      0.88288    -0.041088 
+    1000    1.8791467  -0.97185784            0    0.8884974   0.61487657 
+Loop time of 0.0164104 on 4 procs for 1000 steps with 100 atoms
+
+Performance: 26324848.583 tau/day, 60937.149 timesteps/s
+94.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0017555  | 0.0019422  | 0.0022526  |   0.4 | 11.84
+Neigh   | 0.00085735 | 0.00090593 | 0.00096583 |   0.0 |  5.52
+Comm    | 0.0088477  | 0.0094896  | 0.0098495  |   0.4 | 57.83
+Output  | 2.1935e-05 | 2.3127e-05 | 2.6226e-05 |   0.0 |  0.14
+Modify  | 0.00074744 | 0.00088817 | 0.0012014  |   0.0 |  5.41
+Other   |            | 0.003161   |            |       | 19.26
+
+Nlocal:    25 ave 26 max 23 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    47 ave 48 max 46 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:    114.75 ave 124 max 100 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+
+Total # of neighbors = 459
+Ave neighs/atom = 4.59
+Neighbor list builds = 129
+Dangerous builds = 0
+
+unfix		1
+unfix		2
+
+# add small particles as hi density lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		plane block 0 10 0 10 -0.001 0.001
+lattice		sq 85.0
+Lattice spacing in x,y,z = 0.108465 0.108465 0.108465
+create_atoms	2 region plane
+Created 21316 atoms
+  Time spent = 0.00417233 secs
+set		type 2 mass 0.01
+  21316 settings made for mass
+set		type 2 diameter 0.0
+  21316 settings made for diameter
+
+group		small type 2
+21316 atoms in group small
+
+velocity	small create 1.0 593849 loop geom
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.5
+
+delete_atoms	overlap 0.5 small big
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 2
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+  (2) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+WARNING: Delete_atoms cutoff > minimum neighbor cutoff (src/delete_atoms.cpp:305)
+Deleted 6700 atoms, new total = 14716
+
+# SRD run
+
+reset_timestep	0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+comm_modify	mode multi group big vel yes
+neigh_modify	include big
+
+# no pairwise interactions with small particles
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+
+timestep	0.001
+
+fix		1 big nve
+fix	        2 small srd 20 big 1.0 0.25 49894 		  radius 0.88 search 0.2 collision slip
+fix		3 all enforce2d
+
+# diagnostics
+
+compute		tbig big temp
+variable	pebig equal pe*atoms/count(big)
+variable	ebig equal etotal*atoms/count(big)
+thermo_style	custom step temp f_2[7] etotal v_pebig v_ebig press 		f_2[1] f_2[2] f_2[3] f_2[4] f_2[5] 		f_2[6] f_2[8] f_2[9] f_2[10]
+
+thermo_modify	temp tbig
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:488)
+thermo		100
+
+#dump		1 all atom 250 dump.srd.mixture
+
+#dump		2 all image 250 image.*.jpg type type zoom 1.6
+#dump_modify	2 pad 4 adiam 1 1 adiam 2 0.2
+
+#dump		3 all movie 250 movie.mpg type type zoom 1.6
+#dump_modify	3 pad 4 adiam 1 1 adiam 2 0.2
+
+run		5000
+SRD info:
+  SRD/big particles = 14616 100
+  big particle diameter max/min = 0.88 0.88
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 63 63 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.250974 0.250974 1.58114
+  SRD per actual grid cell = 4.86648
+  SRD viscosity = 0.463448
+  big/SRD mass density ratio = 2.12808
+WARNING: Fix srd grid size > 1/4 of big particle diameter (src/SRD/fix_srd.cpp:2888)
+  # of rescaled SRD velocities = 0
+  ave/max small velocity = 13.2944 24.262
+  ave/max big velocity = 1.69284 5.10989
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.921 | 5.925 | 5.93 Mbytes
+Step Temp f_2[7] TotEng v_pebig v_ebig Press f_2[1] f_2[2] f_2[3] f_2[4] f_2[5] f_2[6] f_2[8] f_2[9] f_2[10] 
+       0    1.8791467            0 0.0060376284  -0.97185784    0.8884974   0.61487657            0            0            0            0            0            0            0            0            0 
+     100    1.4044369         3969 0.0030633093  -0.93959598    0.4507966   0.78900119         7464           99           99            0           17        22500         3005     1.028131            0 
+     200    1.1569383         3969 0.0010543995  -0.99020352   0.15516543   0.50132981         7393           82           82            0           43        22500         2996     1.014347            0 
+     300   0.97802835         3969 -0.00019991154  -0.99766705 -0.029418982   0.35789515         7411           90           90            0           84        22500         3001    1.0213725            0 
+     400    1.0992982         3969 0.00055034756    -1.007316  0.080989146   0.35177983         7443           78           78            0          107        22500         2993    1.0451641            0 
+     500    1.0436705         3969 -7.4779704e-05   -1.0442384 -0.011004581   0.15132448         7504           94           94            0          141        22500         3007    1.0236992            0 
+     600    1.0216461         3969 -0.00032426678   -1.0591487 -0.047719099    0.2200765         7508          111          111            0          179        22500         3007    1.0304838            0 
+     700    1.1491339         3969 0.0012328743  -0.95621278   0.18142978   0.80670059         7448           95           95            0          201        22500         2978    1.0099113            0 
+     800    1.0332166         3969 -0.00040684239   -1.0827554 -0.059870926   0.35939225         7453          113          113            0          235        22500         3024    1.0141565            0 
+     900    1.0652211         3969 -6.1337025e-06   -1.0554715 -0.00090263566   0.51460169         7447           97           97            0          259        22500         2982    1.0192735            0 
+    1000   0.92834993         3969 -0.00067681883   -1.0186671  -0.09960066     0.738738         7328           78           78            0          286        22500         2999     1.023841            0 
+    1100    1.0386338         3969 -0.00018904027   -1.0560666 -0.027819166   0.57129719         7449           96           96            0          325        22500         3012    1.0373885            0 
+    1200   0.92218024         3969 -0.00077989365   -1.0277276  -0.11476915   0.48613467         7507          100          100            0          355        22500         3003    1.0254889            0 
+    1300    1.1835318         3969 0.00096836748   -1.0291915   0.14250496   0.62935386         7439           92           92            0          384        22500         2993    1.0289037            0 
+    1400    1.0895805         3969 0.00022072203   -1.0462033  0.032481455   0.49130771         7492           80           80            0          426        22500         3005    1.0083895            0 
+    1500    1.0713283         3969 0.00042008247  -0.99879571  0.061819337   0.63979877         7498           87           87            0          457        22500         3000    1.0009934            0 
+    1600   0.97815063         3969 -0.0005425653    -1.048213 -0.079843909    0.3604669         7533          105          105            0          492        22500         3004    1.0375508            0 
+    1700    1.1626991         3969 0.00048969595   -1.0790084  0.072063656   0.36261544         7493           87           87            0          519        22500         3014    1.0151507            0 
+    1800   0.91077627         3969 -0.0012059339   -1.0791337  -0.17746523   0.14204134         7553           77           77            0          554        22500         3001    1.0393648            0 
+    1900    1.0736324         3969 0.00048053532  -0.99218049  0.070715578   0.56468307         7660           96           96            0          579        22500         2990    1.0071005            0 
+    2000    1.0529119         3969 -0.00019827686   -1.0715612 -0.029178422   0.28111275         7561           93           93            0          630        22500         3020    1.0201426            0 
+    2100    0.9995282         3969 -0.00066769217   -1.0877905  -0.09825758   0.22578496         7488           83           83            0          671        22500         2993    1.0246877            0 
+    2200    1.1492521         3969 0.00093648659  -0.99994625   0.13781337   0.66214341         7481           97           97            0          699        22500         2999    1.0420787            0 
+    2300     1.174939         3969 0.00098605988   -1.0180811   0.14510857   0.57783443         7414           83           83            0          723        22500         2989     1.004816            0 
+    2400    1.1382223         3969 0.00050867975   -1.0519828  0.074857312   0.41119597         7601           77           77            0          754        22500         2996     1.007891            0 
+    2500   0.96793374         3969 -0.00075093709   -1.0687623   -0.1105079   0.12887172         7444           88           88            0          789        22500         2984    1.0268818            0 
+    2600    1.0064799         3969 -0.00023588466   -1.0311279 -0.034712786   0.38564304         7483           83           83            0          831        22500         3047    1.0199727            0 
+    2700    1.1198694         3969 0.00019125912    -1.080525  0.028145692   0.35649192         7372           72           72            0          863        22500         2991   0.99989809            0 
+    2800     1.130996         3969 0.00083301498  -0.99709952   0.12258648   0.76321666         7293           95           95            0          895        22500         2997    1.0077098            0 
+    2900     1.069281         3969 0.00033771134   -1.0088906  0.049697601   0.60669604         7485           86           86            0          929        22500         3004    1.0105564            0 
+    3000    1.0864905         3969 5.9065123e-05   -1.0669336 0.0086920235    0.2448914         7367           88           88            0          965        22500         3018    1.0256143            0 
+    3100    1.2930036         3969 0.0016599457    -1.035796   0.24427761    0.4417485         7502          103          103            0         1002        22500         2996    1.0207648            0 
+    3200   0.99779215         3969 0.00017970488  -0.96136886   0.02644537   0.48688189         7463           89           89            0         1040        22500         2975    1.0226074            0 
+    3300    1.1649719         3969 0.00083129956   -1.0309882   0.12233404   0.32895722         7504           92           92            0         1072        22500         2984     1.016696            0 
+    3400    1.1428122         3969 0.00094373594  -0.99250387   0.13888018   0.62272115         7519          103          103            0         1092        22500         3005    1.0177259            0 
+    3500    1.1207278         3969 0.00052216214   -1.0326791  0.076841381   0.51325294         7456           71           71            0         1127        22500         2986    1.0290334            0 
+    3600   0.97869243         3969 -0.00058219044   -1.0545807 -0.085675146   0.44258567         7321           72           72            0         1164        22500         2976     1.031506            0 
+    3700    1.0853936         3969 -4.3134698e-06   -1.0751745 -0.00063477022   0.37380213         7444           80           80            0         1194        22500         2985    1.0445746            0 
+    3800    1.0351364         3969 -0.00012682002   -1.0434479 -0.018662834   0.42474168         7503           76           76            0         1226        22500         2986    1.0260769            0 
+    3900   0.96833719         3969 -0.00039514299   -1.0168031 -0.058149242   0.42237112         7423           79           79            0         1276        22500         3014    1.0160914            0 
+    4000    1.0465724         3969 0.00016394266   -1.0119808  0.024125802   0.46524856         7502           97           97            0         1299        22500         2984    1.0159361            0 
+    4100    1.2417361         3969 0.0011421943   -1.0612334   0.16808531   0.39684717         7633           83           83            0         1328        22500         3015    1.0264492            0 
+    4200    1.0974708         3969 0.00053755453   -1.0073895  0.079106524   0.52996179         7347           86           86            0         1363        22500         3020    1.0215105            0 
+    4300    1.1082592         3969 0.00034118461   -1.0469679  0.050208728   0.40630088         7470           94           94            0         1400        22500         3012    1.0278618            0 
+    4400    1.0021274         3969 -0.00027032597   -1.0318873 -0.039781169   0.50493986         7643           77           77            0         1434        22500         3006    1.0236688            0 
+    4500   0.97643527         3969 -0.00024256014   -1.0023661  -0.03569515   0.55193268         7488           75           75            0         1476        22500         2998    1.0281645            0 
+    4600    1.0333058         3969 -9.5227766e-05   -1.0369865 -0.014013718   0.37752045         7455           86           86            0         1507        22500         3003    1.0419695            0 
+    4700    1.1320717         3969 0.00069912511   -1.0178677   0.10288325   0.42203645         7594           80           80            0         1531        22500         2989    1.0343185            0 
+    4800    1.1326193         3969 0.0010771417  -0.96278098   0.15851217   0.59591984         7504          101          101            0         1560        22500         2998    1.0182951            0 
+    4900    1.1174294         3969 0.00044360443   -1.0409743  0.065280828   0.30043772         7611           96           96            0         1590        22500         2996    1.0255445            0 
+    5000   0.93845577         3969  -0.00055722   -1.0110717 -0.082000495   0.41966034         7582           83           83            0         1632        22500         2990    1.0290121            0 
+Loop time of 1.15581 on 4 procs for 5000 steps with 14716 atoms
+
+Performance: 373763.989 tau/day, 4325.972 timesteps/s
+95.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0088997  | 0.011787   | 0.01474    |   1.9 |  1.02
+Neigh   | 0.00226    | 0.0025237  | 0.002775   |   0.4 |  0.22
+Comm    | 0.077973   | 0.084049   | 0.088172   |   1.3 |  7.27
+Output  | 0.0065994  | 0.007837   | 0.011406   |   2.3 |  0.68
+Modify  | 0.99157    | 0.99959    | 1.0146     |   0.9 | 86.48
+Other   |            | 0.05002    |            |       |  4.33
+
+Nlocal:    3679 ave 3871 max 3455 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Nghost:    46.5 ave 49 max 43 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:    118.25 ave 151 max 84 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 473
+Ave neighs/atom = 0.0321419
+Neighbor list builds = 250
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:01

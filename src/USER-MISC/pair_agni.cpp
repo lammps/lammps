@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,24 +15,22 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_agni.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
-#include "math_special.h"
+#include "comm.h"
+#include "force.h"
+#include "error.h"
 #include "math_const.h"
+#include "math_special.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -84,15 +82,16 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   no_virial_fdotr_compute = 1;
 
   nelements = 0;
-  elements = NULL;
-  elem2param = NULL;
+  elements = nullptr;
+  elem2param = nullptr;
   nparams = 0;
-  params = NULL;
-  map = NULL;
+  params = nullptr;
+  map = nullptr;
   cutmax = 0.0;
 }
 
@@ -117,7 +116,7 @@ PairAGNI::~PairAGNI()
       delete [] params[i].yU;
     }
     memory->destroy(params);
-    params = NULL;
+    params = nullptr;
   }
 
   if (allocated) {
@@ -136,8 +135,7 @@ void PairAGNI::compute(int eflag, int vflag)
   double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -246,7 +244,7 @@ void PairAGNI::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairAGNI::settings(int narg, char **/*arg*/)
+void PairAGNI::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -270,7 +268,7 @@ void PairAGNI::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -279,7 +277,7 @@ void PairAGNI::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -352,7 +350,7 @@ double PairAGNI::init_one(int i, int j)
 void PairAGNI::read_file(char *file)
 {
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
 
   // open file on proc 0 only
@@ -360,8 +358,8 @@ void PairAGNI::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open AGNI potential file %s",file);
       error->one(FLERR,str);
@@ -377,7 +375,7 @@ void PairAGNI::read_file(char *file)
     n = 0;
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -390,7 +388,7 @@ void PairAGNI::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords > MAXWORD)
@@ -400,7 +398,7 @@ void PairAGNI::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
     --nwords;
 
     if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {

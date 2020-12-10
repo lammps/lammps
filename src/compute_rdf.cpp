@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,10 @@
    Contributing authors: Paul Crozier (SNL), Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "compute_rdf.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -34,6 +33,7 @@
 #include "error.h"
 #include "comm.h"
 
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -41,16 +41,16 @@ using namespace MathConst;
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
-  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL),
-  duplicates(NULL)
+  rdfpair(nullptr), nrdfpair(nullptr), ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr),
+  hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
+  duplicates(nullptr)
 {
-  if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
+  if (narg < 4) error->all(FLERR,"Illegal compute rdf command");
 
   array_flag = 1;
   extarray = 0;
 
-  nbin = force->inumeric(FLERR,arg[3]);
+  nbin = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
 
   // optional args
@@ -67,7 +67,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
-      cutoff_user = force->numeric(FLERR,arg[iarg+1]);
+      cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;
@@ -77,7 +77,10 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   // pairwise args
 
   if (nargpair == 0) npairs = 1;
-  else npairs = nargpair/2;
+  else {
+    if (nargpair % 2) error->all(FLERR,"Illegal compute rdf command");
+    npairs = nargpair/2;
+  }
 
   size_array_rows = nbin;
   size_array_cols = 1 + 2*npairs;
@@ -93,17 +96,13 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   if (nargpair == 0) {
     ilo[0] = 1; ihi[0] = ntypes;
     jlo[0] = 1; jhi[0] = ntypes;
-    npairs = 1;
-
   } else {
-    npairs = 0;
     iarg = 4;
-    while (iarg < 4+nargpair) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
-      if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
+    for (int ipair = 0; ipair < npairs; ipair++) {
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[ipair],ihi[ipair],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[ipair],jhi[ipair],error);
+      if (ilo[ipair] > ihi[ipair] || jlo[ipair] > jhi[ipair])
         error->all(FLERR,"Illegal compute rdf command");
-      npairs++;
       iarg += 2;
     }
   }
@@ -113,10 +112,13 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
     for (j = 1; j <= ntypes; j++)
       nrdfpair[i][j] = 0;
 
+  int ihisto;
   for (int m = 0; m < npairs; m++)
     for (i = ilo[m]; i <= ihi[m]; i++)
-      for (j = jlo[m]; j <= jhi[m]; j++)
-        rdfpair[nrdfpair[i][j]++][i][j] = m;
+      for (j = jlo[m]; j <= jhi[m]; j++) {
+        ihisto = nrdfpair[i][j]++;
+        rdfpair[ihisto][i][j] = m;
+      }
 
   memory->create(hist,npairs,nbin,"rdf:hist");
   memory->create(histall,npairs,nbin,"rdf:histall");
@@ -347,13 +349,15 @@ void ComputeRDF::compute_array()
       ibin = static_cast<int> (r*delrinv);
       if (ibin >= nbin) continue;
 
-      if (ipair)
-        for (ihisto = 0; ihisto < ipair; ihisto++)
-          hist[rdfpair[ihisto][itype][jtype]][ibin] += 1.0;
+      for (ihisto = 0; ihisto < ipair; ihisto++) {
+        m = rdfpair[ihisto][itype][jtype];
+        hist[m][ibin] += 1.0;
+      }
       if (newton_pair || j < nlocal) {
-        if (jpair)
-          for (ihisto = 0; ihisto < jpair; ihisto++)
-            hist[rdfpair[ihisto][jtype][itype]][ibin] += 1.0;
+        for (ihisto = 0; ihisto < jpair; ihisto++) {
+          m = rdfpair[ihisto][jtype][itype];
+          hist[m][ibin] += 1.0;
+        }
       }
     }
   }

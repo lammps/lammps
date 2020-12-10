@@ -16,9 +16,9 @@ class DenseVector : public Vector<T>
 {
 public:
   explicit DenseVector(INDEX n=0, bool z=1)          { _create(n,z); }
-  DenseVector(const DenseVector<T> &c) : Vector<T>(), _data(NULL) { _copy(c); }
-  DenseVector(const Vector<T> &c)      : Vector<T>(), _data(NULL) { _copy(c); }
-  DenseVector(const T * ptr, INDEX nrows) : Vector<T>(), _data(NULL) { copy(ptr,nrows); }
+  DenseVector(const DenseVector<T> &c) : Vector<T>(), _data(nullptr) { _copy(c); }
+  DenseVector(const Vector<T> &c)      : Vector<T>(), _data(nullptr) { _copy(c); }
+  DenseVector(const T * ptr, INDEX nrows) : Vector<T>(), _data(nullptr) { copy(ptr,nrows); }
   virtual ~DenseVector()               { _delete();    }
   
   //* resizes the Vector, ignores nCols, optionally copys what fits
@@ -31,8 +31,10 @@ public:
   // overloaded inline virtual functions
   T  operator[](INDEX i) const { VICK(i) return _data[i]; }
   T& operator[](INDEX i)       { VICK(i) return _data[i]; }
-  T  operator()(INDEX i, INDEX j=0) const { VICK(i) return _data[i]; }
-  T& operator()(INDEX i, INDEX j=0)       { VICK(i) return _data[i]; }
+  T  operator()(INDEX i, INDEX /* j */) const { VICK(i) return _data[i]; }
+  T& operator()(INDEX i, INDEX /* j */)       { VICK(i) return _data[i]; }
+  T  operator()(INDEX i) const { VICK(i) return _data[i]; }
+  T& operator()(INDEX i)       { VICK(i) return _data[i]; }
   void set_all_elements_to(const T &v)    { 
                                             int sz = this->size();
                                             for (INDEX i = 0; i < sz; i++) _data[i] = v;
@@ -62,7 +64,7 @@ private:
 // resizes the matrix and optionally copies over what still fits, ignores cols
 //-----------------------------------------------------------------------------
 template <typename T>
-void DenseVector<T>::resize(INDEX rows, INDEX cols, bool copy)
+  void DenseVector<T>::resize(INDEX rows, INDEX /* cols */, bool copy)
 {
   if (_size==rows) return;  // if is correct size, done
   if (!copy)
@@ -82,7 +84,7 @@ void DenseVector<T>::resize(INDEX rows, INDEX cols, bool copy)
 ///////////////////////////////////////////////////////////////////////////////
 //* resizes the matrix and optionally zeros it out
 template <typename T>
-void DenseVector<T>::reset(INDEX rows, INDEX cols, bool zero)
+void DenseVector<T>::reset(INDEX rows, INDEX /* cols */, bool zero)
 {
   if (_size!=rows)
   {
@@ -94,7 +96,7 @@ void DenseVector<T>::reset(INDEX rows, INDEX cols, bool zero)
 ///////////////////////////////////////////////////////////////////////////////
 //* resizes the matrix and optionally zeros it out
 template <typename T>
-void DenseVector<T>::copy(const T * ptr, INDEX rows, INDEX cols)
+void DenseVector<T>::copy(const T * ptr, INDEX rows, INDEX /* cols */)
 {
   resize(rows, 1, false);
   memcpy(_data, ptr, this->size()*sizeof(T));
@@ -121,7 +123,7 @@ template <typename T>
 inline void DenseVector<T>::_create(INDEX n, bool zero)
 {
   _size=n;
-  _data = _size ? new T [_size] : NULL ;
+  _data = _size ? new T [_size] : nullptr ;
   if (zero) this->zero();
 }
 ///////////////////////////////////////////////////////////////////////////////

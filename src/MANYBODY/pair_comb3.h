@@ -21,7 +21,6 @@ PairStyle(comb3,PairComb3)
 #define LMP_PAIR_COMB3_H
 
 #include "pair.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 
@@ -38,8 +37,10 @@ class PairComb3 : public Pair {
   virtual double combqeq(double *, int &);
   double enegtot;
 
- // general potential parameters
+  static const int NPARAMS_PER_LINE = 74;
+
  protected:
+ // general potential parameters
   struct Param {
     int ielement,jelement,kelement,powermint;
     int ielementgp,jelementgp,kelementgp;       //element group

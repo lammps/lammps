@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_client_md.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_client_md.h"
 #include "update.h"
 #include "atom.h"
 #include "comm.h"
@@ -40,12 +40,12 @@ enum{FORCES=1,ENERGY,PRESSURE,ERROR};
 FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->clientserver != 1) 
+  if (lmp->clientserver != 1)
     error->all(FLERR,"Fix client/md requires LAMMPS be running as a client");
-  if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Fix client/md requires atom map");
 
-  if (sizeof(tagint) != 4) 
-    error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
+  if (sizeof(tagint) != 4)
+    error->all(FLERR,"Fix client/md only supports 32-bit atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
@@ -62,7 +62,7 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
     box[0][2] = box[1][2] = box[2][0] = box[2][1] = box[2][2] = 0.0;
 
   maxatom = 0;
-  xpbc = NULL;
+  xpbc = nullptr;
 
   // unit conversion factors for REAL
   // otherwise not needed
@@ -80,21 +80,6 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 FixClientMD::~FixClientMD()
 {
   memory->destroy(xpbc);
-
-  CSlib *cs = (CSlib *) lmp->cslib;
-
-  // all-done message to server
-
-  cs->send(-1,0);
-
-  int nfield;
-  int *fieldID,*fieldtype,*fieldlen;
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
-
-  // clean-up
-
-  delete cs;
-  lmp->cslib = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,8 +158,6 @@ void FixClientMD::min_setup(int vflag)
 
 void FixClientMD::post_force(int vflag)
 {
-  int i,j,m;
-
   // energy and virial setup
 
   if (vflag) v_setup(vflag);
@@ -286,7 +269,7 @@ void FixClientMD::receive_fev(int vflag)
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
 
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   double *forces = (double *) cs->unpack(FORCES);
   double **f = atom->f;
@@ -306,7 +289,7 @@ void FixClientMD::receive_fev(int vflag)
   }
 
   eng = econvert * cs->unpack_double(ENERGY);
-  
+
   if (vflag) {
     double *v = (double *) cs->unpack(PRESSURE);
 

@@ -2,6 +2,8 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.9 AK- Teach msi2lmp to not generate dihedrals with identical 1-4 atoms
+*
 *   v3.9.8 AK- Improved whitespace handling in parsing topology and force
 *              field files to avoid bogus warnings about type name truncation
 *
@@ -149,7 +151,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
 #include <ctype.h>
+#endif
 
 /* global variables */
 

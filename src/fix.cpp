@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix.h"
+
+#include "atom.h"
+#include "atom_masks.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+
 #include <cstring>
 #include <cctype>
-#include "fix.h"
-#include "atom.h"
-#include "group.h"
-#include "force.h"
-#include "comm.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,8 +34,8 @@ int Fix::instance_total = 0;
 
 Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
-  vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
+  id(nullptr), style(nullptr), extlist(nullptr), vector_atom(nullptr), array_atom(nullptr),
+  vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr)
 {
   instance_me = instance_total++;
 
@@ -59,7 +60,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
 
   restart_global = restart_peratom = restart_file = 0;
   force_reneighbor = 0;
-  box_change_size = box_change_shape = box_change_domain = 0;
+  box_change = NO_BOX_CHANGE;
   thermo_energy = 0;
   thermo_virial = 0;
   rigid_flag = 0;
@@ -78,6 +79,10 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   enforce2d_flag = 0;
   respa_level_support = 0;
   respa_level = -1;
+  maxexchange = 0;
+  maxexchange_dynamic = 0;
+  pre_exchange_migrate = 0;
+  stores_ids = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
@@ -99,6 +104,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
 
   maxeatom = maxvatom = 0;
   vflag_atom = 0;
+  centroidstressflag = CENTROID_SAME;
 
   // KOKKOS per-fix data masks
 
@@ -107,6 +113,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
+  forward_comm_device = 0;
   copymode = 0;
 }
 
@@ -160,7 +167,7 @@ void Fix::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
-      int lvl = force->inumeric(FLERR,arg[iarg+1]);
+      int lvl = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
       respa_level = lvl-1;
       iarg += 2;
@@ -185,12 +192,12 @@ void Fix::ev_setup(int eflag, int vflag)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -230,7 +237,7 @@ void Fix::ev_setup(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    if thermo_virial is on:
      setup for virial computation
-     see integrate::ev_set() for values of vflag (0-6)
+     see integrate::ev_set() for values of vflag
      fixes call this if use v_tally()
    else: set evflag=0
 ------------------------------------------------------------------------- */
@@ -246,8 +253,8 @@ void Fix::v_setup(int vflag)
 
   evflag = 1;
 
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom array if necessary
 

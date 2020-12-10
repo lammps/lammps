@@ -24,7 +24,6 @@ BondStyle(harmonic/intel,BondHarmonicIntel)
 #ifndef LMP_BOND_HARMONIC_INTEL_H
 #define LMP_BOND_HARMONIC_INTEL_H
 
-#include <cstdio>
 #include "bond_harmonic.h"
 #include "fix_intel.h"
 
@@ -62,7 +61,7 @@ class BondHarmonicIntel : public BondHarmonic {
     fc_packed1 *fc;
 
     ForceConst() : _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
 

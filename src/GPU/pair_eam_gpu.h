@@ -20,7 +20,6 @@ PairStyle(eam/gpu,PairEAMGPU)
 #ifndef LMP_PAIR_EAM_GPU_H
 #define LMP_PAIR_EAM_GPU_H
 
-#include <cstdio>
 #include "pair_eam.h"
 
 namespace LAMMPS_NS {
@@ -34,7 +33,7 @@ class PairEAMGPU : public PairEAM {
   void init_style();
   double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
-  void *extract(const char *, int &) { return NULL; }
+  void *extract(const char *, int &) { return nullptr; }
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);

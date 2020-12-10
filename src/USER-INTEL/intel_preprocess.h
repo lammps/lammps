@@ -20,6 +20,9 @@
 #if (__INTEL_COMPILER_BUILD_DATE > 20160720)
 #define LMP_INTEL_USE_SIMDOFF
 #endif
+#pragma warning (disable:3948)
+#pragma warning (disable:3949)
+#pragma warning (disable:13200)
 #endif
 
 #ifdef __INTEL_OFFLOAD
@@ -143,7 +146,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   }
 
 #else
-  
+
 #define IP_PRE_edge_align(n, esize)                                     \
 
 #endif
@@ -499,7 +502,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   acc_t *f_scalar = &f_start[0].x;                                      \
   int f_stride4 = f_stride * 4;                                         \
   int t;                                                                \
-  if (vflag == 2) t = 4; else t = 1;                                    \
+  if (vflag == VIRIAL_FDOTR) t = 4; else t = 1;                         \
   acc_t *f_scalar2 = f_scalar + f_stride4 * t;                          \
   for ( ; t < nthreads; t++) {                                          \
     _use_simd_pragma("vector aligned")                                  \
@@ -509,7 +512,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     f_scalar2 += f_stride4;                                             \
   }                                                                     \
                                                                         \
-  if (vflag == 2) {                                                     \
+  if (vflag == VIRIAL_FDOTR) {                                          \
     int nt_min = MIN(4,nthreads);                                       \
     IP_PRE_fdotr_acc_force_l5(iifrom, iito, minlocal, nt_min, f_start,  \
                               f_stride, pos, ov0, ov1, ov2, ov3, ov4,   \
@@ -525,7 +528,7 @@ inline double MIC_Wtime() {
   double time;
   struct timeval tv;
 
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
 }
@@ -606,7 +609,7 @@ inline double MIC_Wtime() {
   if (newton)                                                           \
     f_stride = buffers->get_stride(nall);                               \
   else                                                                  \
-    f_stride = buffers->get_stride(inum);                               \
+    f_stride = buffers->get_stride(nlocal);                             \
 }
 
 #define IP_PRE_get_buffers(offload, buffers, fix, tc, f_start,          \

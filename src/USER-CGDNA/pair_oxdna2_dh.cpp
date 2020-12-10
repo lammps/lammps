@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,29 +14,21 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna2_dh.h"
-#include "mf_oxdna.h"
+
 #include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
 #include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,7 +63,7 @@ PairOxdna2Dh::~PairOxdna2Dh()
     compute vector COM-sugar-phosphate backbone interaction site in oxDNA2
 ------------------------------------------------------------------------- */
 void PairOxdna2Dh::compute_interaction_sites(double e1[3],
-  double e2[3], double r[3])
+  double e2[3], double /*e3*/[3], double r[3])
 {
   double d_cs_x=-0.34, d_cs_y=+0.3408;
 
@@ -110,12 +102,12 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;
@@ -129,11 +121,11 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     // vector COM-backbone site a
-    compute_interaction_sites(ax,ay,ra_cs);
+    compute_interaction_sites(ax,ay,az,ra_cs);
 
     rtmp_s[0] = x[a][0] + ra_cs[0];
     rtmp_s[1] = x[a][1] + ra_cs[1];
@@ -149,11 +141,11 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
       b &= NEIGHMASK;
       btype = type[b];
 
-      qb=bonus[b].quat;
+      qb=bonus[ellipsoid[b]].quat;
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       // vector COM-backbone site b
-      compute_interaction_sites(bx,by,rb_cs);
+      compute_interaction_sites(bx,by,bz,rb_cs);
 
       // vector backbone site b to a
       delr[0] = rtmp_s[0] - x[b][0] - rb_cs[0];
@@ -224,10 +216,14 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
 
         }
 
-        // increment energy and virial
 
-          if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                  evdwl,0.0,fpair,delr[0],delr[1],delr[2]);
+        // increment energy and virial
+        // NOTE: The virial is calculated on the 'molecular' basis.
+        // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
+
       }
 
     }
@@ -281,16 +277,16 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   count = 0;
 
   double T, rhos_dh_one, qeff_dh_one;
 
-  T = force->numeric(FLERR,arg[2]);
-  rhos_dh_one = force->numeric(FLERR,arg[3]);
-  qeff_dh_one  = force->numeric(FLERR,arg[4]);
+  T = utils::numeric(FLERR,arg[2],false,lmp);
+  rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  qeff_dh_one  = utils::numeric(FLERR,arg[4],false,lmp);
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
   double b_dh_one, cut_dh_ast_one, cut_dh_c_one;
@@ -361,19 +357,6 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/dh");
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdna2Dh::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------
@@ -455,16 +438,16 @@ void PairOxdna2Dh::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          fread(&kappa_dh[i][j],sizeof(double),1,fp);
-          fread(&qeff_dh_pf[i][j],sizeof(double),1,fp);
-          fread(&b_dh[i][j],sizeof(double),1,fp);
-          fread(&cut_dh_ast[i][j],sizeof(double),1,fp);
-          fread(&cut_dh_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&kappa_dh[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&qeff_dh_pf[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_dh[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_dh_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_dh_c[i][j],sizeof(double),1,fp,nullptr,error);
 
         }
 
@@ -497,9 +480,9 @@ void PairOxdna2Dh::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -549,5 +532,5 @@ void *PairOxdna2Dh::extract(const char *str, int &dim)
   if (strcmp(str,"cut_dh_ast") == 0) return (void *) cut_dh_ast;
   if (strcmp(str,"cut_dh_c") == 0) return (void *) cut_dh_c;
 
-  return NULL;
+  return nullptr;
 }

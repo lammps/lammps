@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,22 +13,22 @@
    Contributing author: Ulf R. Pedersen, ulf@urp.dk
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-
 #include "fix_rhok.h"
+
 #include "atom.h"
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "math_const.h"
 #include "respa.h"
 #include "update.h"
-#include "citeme.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 static const char cite_fix_rhok[] =
   "Bias on the collective density field (fix rhok):\n\n"
@@ -36,7 +36,7 @@ static const char cite_fix_rhok[] =
   "title = {Direct calculation of the solid-liquid Gibbs free energy difference in a single equilibrium simulation},\n"
   "volume = {139},\n"
   "number = {10},\n"
-  "url = {http://aip.scitation.org/doi/10.1063/1.4818747},\n"
+  "url = {https://aip.scitation.org/doi/10.1063/1.4818747},\n"
   "doi = {10.1063/1.4818747},\n"
   "urldate = {2017-10-03},\n"
   "journal = {J. Chem. Phys.},\n"
@@ -52,7 +52,7 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   if (lmp->citeme) lmp->citeme->add(cite_fix_rhok);
 
   // Check arguments
-  if( inArgc != 8 )
+  if (inArgc != 8)
     error->all(FLERR,"Illegal fix rhoKUmbrella command" );
 
   // Set up fix flags
@@ -67,16 +67,16 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   // Parse fix options
   int n[3];
 
-  n[0]   = force->inumeric(FLERR,inArgv[3]);
-  n[1]   = force->inumeric(FLERR,inArgv[4]);
-  n[2]   = force->inumeric(FLERR,inArgv[5]);
+  n[0]   = utils::inumeric(FLERR,inArgv[3],false,lmp);
+  n[1]   = utils::inumeric(FLERR,inArgv[4],false,lmp);
+  n[2]   = utils::inumeric(FLERR,inArgv[5],false,lmp);
 
-  mK[0] = n[0]*(2*M_PI / (domain->boxhi[0] - domain->boxlo[0]));
-  mK[1] = n[1]*(2*M_PI / (domain->boxhi[1] - domain->boxlo[1]));
-  mK[2] = n[2]*(2*M_PI / (domain->boxhi[2] - domain->boxlo[2]));
+  mK[0] = n[0]*(2*MY_PI / (domain->boxhi[0] - domain->boxlo[0]));
+  mK[1] = n[1]*(2*MY_PI / (domain->boxhi[1] - domain->boxlo[1]));
+  mK[2] = n[2]*(2*MY_PI / (domain->boxhi[2] - domain->boxlo[2]));
 
-  mKappa = force->numeric(FLERR,inArgv[6]);
-  mRhoK0 = force->numeric(FLERR,inArgv[7]);
+  mKappa = utils::numeric(FLERR,inArgv[6],false,lmp);
+  mRhoK0 = utils::numeric(FLERR,inArgv[7],false,lmp);
 }
 
 // Methods that this fix implements
@@ -104,7 +104,7 @@ void
 FixRhok::init()
 {
   // RESPA boilerplate
-  if( strcmp( update->integrate_style, "respa" ) == 0 )
+  if (strcmp( update->integrate_style, "respa" ) == 0)
     mNLevelsRESPA = ((Respa *) update->integrate)->nlevels;
 
   // Count the number of affected particles
@@ -112,7 +112,7 @@ FixRhok::init()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
       nThisLocal++;
     }
   }
@@ -125,7 +125,7 @@ FixRhok::init()
 void
 FixRhok::setup( int inVFlag )
 {
-  if( strcmp( update->integrate_style, "verlet" ) == 0 )
+  if (strcmp( update->integrate_style, "verlet" ) == 0)
     post_force( inVFlag );
   else
     {
@@ -157,7 +157,7 @@ FixRhok::post_force( int /*inVFlag*/ )
   mRhoKLocal[1] = 0.0;
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // rho_k = sum_i exp( - i k.r_i )
       mRhoKLocal[0] += cos( mK[0]*x[i][0] + mK[1]*x[i][1] + mK[2]*x[i][2] );
@@ -180,7 +180,7 @@ FixRhok::post_force( int /*inVFlag*/ )
                       + mRhoKGlobal[1]*mRhoKGlobal[1] );
 
   for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
-    if( mask[i] & groupbit ) {          // ...only those affected by this fix
+    if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // Calculate forces
       // U = kappa/2 ( |rho_k| - rho_k^0 )^2
@@ -208,7 +208,7 @@ FixRhok::post_force( int /*inVFlag*/ )
 void
 FixRhok::post_force_respa( int inVFlag, int inILevel, int /*inILoop*/ )
 {
-  if( inILevel == mNLevelsRESPA - 1 )
+  if (inILevel == mNLevelsRESPA - 1)
     post_force( inVFlag );
 }
 
@@ -233,7 +233,7 @@ FixRhok::compute_scalar()
 double
 FixRhok::compute_vector( int inI )
 {
-  if( inI == 0 )
+  if (inI == 0)
     return mRhoKGlobal[0];   // Real part
   else if( inI == 1 )
     return mRhoKGlobal[1];   // Imagniary part

@@ -34,9 +34,9 @@
 * compatibility with the obsolete LAMMPS version written in Fortran 90.
 */
 
-# include <stdio.h>
+#include <stdio.h>              /* IWYU pragma: export */
 
-#define MSI2LMP_VERSION "v3.9.8 / 06 Oct 2016"
+#define MSI2LMP_VERSION "v3.9.9 / 05 Nov 2018"
 
 #define PI_180  0.01745329251994329576
 

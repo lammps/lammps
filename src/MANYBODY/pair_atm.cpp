@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,8 +15,9 @@
    Contributing author: Sergey Lishchuk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_atm.h"
+
+#include <cmath>
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -26,6 +27,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -50,6 +52,7 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 1;
   one_coeff = 0;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------
@@ -82,8 +85,7 @@ void PairATM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -209,8 +211,8 @@ void PairATM::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  cut_triple = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_triple = utils::numeric(FLERR,arg[1],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -223,11 +225,11 @@ void PairATM::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
-  double nu_one = force->numeric(FLERR,arg[3]);
+  double nu_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -272,7 +274,7 @@ double PairATM::init_one(int i, int j)
 
   int ntypes = atom->ntypes;
   for (int k = j; k <= ntypes; k++)
-    nu[i][k][j] = nu[j][i][k] = nu[j][k][i] = nu[k][i][j] = nu[k][j][i] = 
+    nu[i][k][j] = nu[j][i][k] = nu[j][k][i] = nu[k][i][j] = nu[k][j][i] =
       nu[i][j][k];
 
   return cut_global;
@@ -290,8 +292,8 @@ void PairATM::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) 
-        for (k = j; k <= atom->ntypes; k++) 
+      if (setflag[i][j])
+        for (k = j; k <= atom->ntypes; k++)
           fwrite(&nu[i][j][k],sizeof(double),1,fp);
     }
   }
@@ -310,10 +312,10 @@ void PairATM::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) for (k = j; k <= atom->ntypes; k++) {
-        if (me == 0) fread(&nu[i][j][k],sizeof(double),1,fp);
+          if (me == 0) utils::sfread(FLERR,&nu[i][j][k],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&nu[i][j][k],1,MPI_DOUBLE,0,world);
       }
     }
@@ -338,8 +340,8 @@ void PairATM::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&cut_triple,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_triple,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_triple,1,MPI_DOUBLE,0,world);
@@ -361,12 +363,12 @@ void PairATM::interaction_ddd(double nu, double r6,
   rrk = rjk[0]*rik[0] + rjk[1]*rik[1] + rjk[2]*rik[2];
   rrr = 5.0*rri*rrj*rrk;
   for (int i = 0; i < 3; i++) {
-    fj[i] = rrj*(rrk - rri)*rik[i] - 
-      (rrk*rri - rjk2*rik2 + rrr/rij2) * rij[i] + 
+    fj[i] = rrj*(rrk - rri)*rik[i] -
+      (rrk*rri - rjk2*rik2 + rrr/rij2) * rij[i] +
       (rrk*rri - rik2*rij2 + rrr/rjk2) * rjk[i];
     fj[i] *= 3.0*r5inv;
-    fk[i] = rrk*(rri + rrj)*rij[i] + 
-      (rri*rrj + rik2*rij2 - rrr/rjk2) * rjk[i] + 
+    fk[i] = rrk*(rri + rrj)*rij[i] +
+      (rri*rrj + rik2*rij2 - rrr/rjk2) * rjk[i] +
       (rri*rrj + rij2*rjk2 - rrr/rik2) * rik[i];
     fk[i] *= 3.0*r5inv;
   }

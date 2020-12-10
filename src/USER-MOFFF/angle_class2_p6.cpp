@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,10 +16,10 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
+#include "angle_class2_p6.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "angle_class2_p6.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -28,6 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,8 +80,7 @@ void AngleClass2P6::compute(int eflag, int vflag)
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -280,16 +280,16 @@ void AngleClass2P6::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int count = 0;
 
   if (strcmp(arg[1],"bb") == 0) {
     if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double bb_k_one = force->numeric(FLERR,arg[2]);
-    double bb_r1_one = force->numeric(FLERR,arg[3]);
-    double bb_r2_one = force->numeric(FLERR,arg[4]);
+    double bb_k_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double bb_r1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double bb_r2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       bb_k[i] = bb_k_one;
@@ -302,10 +302,10 @@ void AngleClass2P6::coeff(int narg, char **arg)
   } else if (strcmp(arg[1],"ba") == 0) {
     if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double ba_k1_one = force->numeric(FLERR,arg[2]);
-    double ba_k2_one = force->numeric(FLERR,arg[3]);
-    double ba_r1_one = force->numeric(FLERR,arg[4]);
-    double ba_r2_one = force->numeric(FLERR,arg[5]);
+    double ba_k1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double ba_k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double ba_r1_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double ba_r2_one = utils::numeric(FLERR,arg[5],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       ba_k1[i] = ba_k1_one;
@@ -319,12 +319,12 @@ void AngleClass2P6::coeff(int narg, char **arg)
   } else {
     if (narg != 7) error->all(FLERR,"Incorrect args for angle coefficients");
 
-    double theta0_one = force->numeric(FLERR,arg[1]);
-    double k2_one = force->numeric(FLERR,arg[2]);
-    double k3_one = force->numeric(FLERR,arg[3]);
-    double k4_one = force->numeric(FLERR,arg[4]);
-    double k5_one = force->numeric(FLERR,arg[5]);
-    double k6_one = force->numeric(FLERR,arg[6]);
+    double theta0_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double k4_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double k5_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double k6_one = utils::numeric(FLERR,arg[6],false,lmp);
 
     // convert theta0 from degrees to radians
 
@@ -386,21 +386,21 @@ void AngleClass2P6::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k2[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k3[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k4[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k5[1],sizeof(double),atom->nangletypes,fp);
-    fread(&k6[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k5[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k6[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    fread(&bb_k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&bb_r1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&bb_r2[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    fread(&ba_k1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_k2[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_r1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&ba_r2[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
@@ -429,7 +429,7 @@ void AngleClass2P6::read_restart(FILE *fp)
 void AngleClass2P6::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
             i,theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i],k5[i],k6[i]);
 
   fprintf(fp,"\nBondBond Coeffs\n\n");

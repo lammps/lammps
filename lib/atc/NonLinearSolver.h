@@ -20,7 +20,7 @@ class TangentOperator {
  public:
   TangentOperator(){};
   virtual ~TangentOperator(){};
-  virtual void function(const VECTOR & x, DENS_VEC & f) {}; // =0;
+  virtual void function(const VECTOR & /* x */, DENS_VEC & /* f */) {}; // =0;
   virtual void tangent(const VECTOR & x, DENS_VEC & f, MATRIX & dfdx) =0;
   //virtual void function(const VECTOR & x, VECTOR & f) {}; // =0;
   //virtual void tangent(const VECTOR & x, VECTOR & f, MATRIX & dfdx) {}; // =0;
@@ -43,7 +43,7 @@ class NonLinearSolver {
   /** Constructor */
   NonLinearSolver( 
     TangentOperator * f, // provides f and f' at x, pointer for polymorphism
-    const BC_SET * bcs = NULL,
+    const BC_SET * bcs = nullptr,
     const int dof = 0,
     bool parallel = false
   );

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_dipole_chunk.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -31,9 +34,9 @@ enum { MASSCENTER, GEOMCENTER };
 
 ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), chrgproc(NULL),
-  chrgtotal(NULL), com(NULL),
-  comall(NULL), dipole(NULL), dipoleall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), chrgproc(nullptr),
+  chrgtotal(nullptr), com(nullptr),
+  comall(nullptr), dipole(nullptr), dipoleall(nullptr)
 {
   if ((narg != 4) && (narg != 5))
     error->all(FLERR,"Illegal compute dipole/chunk command");

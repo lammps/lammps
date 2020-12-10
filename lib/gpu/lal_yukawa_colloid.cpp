@@ -23,7 +23,7 @@ const char *yukawa_colloid=0;
 
 #include "lal_yukawa_colloid.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define YukawaColloidT YukawaColloid<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -213,7 +213,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   // load balance, returning the atom count on the device (inum)
@@ -227,7 +227,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                           sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     this->cast_rad_data(rad);
     this->hd_balancer.start_timer();
   } else {
@@ -289,3 +289,4 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class YukawaColloid<PRECISION,ACC_PRECISION>;
+}

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,25 +17,24 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include "workspace.h"
 #include "fix_poems.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "workspace.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
 #include "force.h"
-#include "output.h"
 #include "group.h"
 #include "comm.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "math_eigen.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,7 +43,6 @@ using namespace FixConst;
 #define DELTA 128
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
-#define MAXJACOBI 50
 
 static const char cite_fix_poems[] =
   "fix poems command:\n\n"
@@ -62,12 +60,12 @@ static const char cite_fix_poems[] =
 ------------------------------------------------------------------------- */
 
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(NULL), natom2body(NULL),
-  atom2body(NULL), displace(NULL), nrigid(NULL), masstotal(NULL),
-  xcm(NULL), vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL),
-  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL),
-  torque(NULL), sum(NULL), all(NULL), jointbody(NULL),
-  xjoint(NULL), freelist(NULL), poems(NULL)
+  Fix(lmp, narg, arg), step_respa(nullptr), natom2body(nullptr),
+  atom2body(nullptr), displace(nullptr), nrigid(nullptr), masstotal(nullptr),
+  xcm(nullptr), vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr),
+  ey_space(nullptr), ez_space(nullptr), angmom(nullptr), omega(nullptr),
+  torque(nullptr), sum(nullptr), all(nullptr), jointbody(nullptr),
+  xjoint(nullptr), freelist(nullptr), poems(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_poems);
 
@@ -76,6 +74,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
 
@@ -84,11 +83,11 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  natom2body = NULL;
-  atom2body = NULL;
-  displace = NULL;
+  natom2body = nullptr;
+  atom2body = nullptr;
+  displace = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // initialize each atom to belong to no rigid bodies
 
@@ -99,7 +98,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // readfile() and jointbuild() use global atom IDs
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -157,7 +156,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     if (narg != 4) error->all(FLERR,"Illegal fix poems command");
-    if (atom->molecular == 0)
+    if (atom->molecular == Atom::ATOMIC)
       error->all(FLERR,
                  "Must use a molecular atom style with fix poems molecule");
 
@@ -260,7 +259,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   // create POEMS instance
@@ -277,14 +276,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
   nsum -= njoint;
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d clusters, %d bodies, %d joints, %d atoms\n",
-              ncluster,nbody,njoint,nsum);
-    if (logfile)
-      fprintf(logfile,"%d clusters, %d bodies, %d joints, %d atoms\n",
-              ncluster,nbody,njoint,nsum);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
+                                   ncluster,nbody,njoint,nsum));
 }
 
 /* ----------------------------------------------------------------------
@@ -296,7 +290,7 @@ FixPOEMS::~FixPOEMS()
   // if atom class still exists:
   //   unregister this fix so atom class doesn't invoke it any more
 
-  if (atom) atom->delete_callback(id,0);
+  if (atom) atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -366,11 +360,11 @@ void FixPOEMS::init()
     int pflag = 0;
     for (i = 0; i < modify->nfix; i++) {
       if (strcmp(modify->fix[i]->style,"poems") == 0) pflag = 1;
-      if (pflag && (modify->fmask[i] & POST_FORCE) && 
+      if (pflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
-        char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix poems",modify->fix[i]->id);
-        error->warning(FLERR,str);
+        if (comm->me == 0)
+          error->warning(FLERR,std::string("Fix ") + modify->fix[i]->id
+                         + std::string(" alters forces after fix poems"));
       }
     }
   }
@@ -497,7 +491,7 @@ void FixPOEMS::init()
     tensor[1][2] = tensor[2][1] = all[ibody][4];
     tensor[0][2] = tensor[2][0] = all[ibody][5];
 
-    ierror = jacobi(tensor,inertia[ibody],evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia[ibody],evectors);
     if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for POEMS body");
 
     ex_space[ibody][0] = evectors[0][0];
@@ -748,19 +742,9 @@ void FixPOEMS::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::post_force(int vflag)
+void FixPOEMS::post_force(int /* vflag */)
 {
   if (earlyflag) compute_forces_and_torques();
-
-  /*
-  for (int ibody = 0; ibody < nbody; ibody++) {
-    if (ibody == 0) {
-    printf("PFF %d %g %g %g\n",ibody,fcm[ibody][0],fcm[ibody][1],fcm[ibody][2]);
-    printf("PFT %d %g %g %g\n",ibody,
-           torque[ibody][0],torque[ibody][1],torque[ibody][2]);
-    }
-  }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -850,7 +834,7 @@ void FixPOEMS::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixPOEMS::initial_integrate_respa(int vflag, int ilevel, int /* iloop */)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -862,14 +846,14 @@ void FixPOEMS::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPOEMS::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::final_integrate_respa(int ilevel, int iloop)
+void FixPOEMS::final_integrate_respa(int ilevel, int /* iloop */)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();
@@ -949,7 +933,7 @@ int FixPOEMS::dof(int igroup)
          thus this routine does nothing for now
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::deform(int flag) {}
+void FixPOEMS::deform(int /* flag */) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -959,7 +943,7 @@ void FixPOEMS::readfile(char *file)
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix poems file %s",file);
       error->one(FLERR,str);
@@ -967,7 +951,7 @@ void FixPOEMS::readfile(char *file)
   }
 
   nbody = 0;
-  char *line = NULL;
+  char *line = nullptr;
   int maxline = 0;
   char *ptr;
   int nlocal = atom->nlocal;
@@ -980,10 +964,10 @@ void FixPOEMS::readfile(char *file)
     MPI_Bcast(line,nlen,MPI_CHAR,0,world);
 
     ptr = strtok(line," ,\t\n\0");
-    if (ptr == NULL || ptr[0] == '#') continue;
-    ptr = strtok(NULL," ,\t\n\0");
+    if (ptr == nullptr || ptr[0] == '#') continue;
+    ptr = strtok(nullptr," ,\t\n\0");
 
-    while ((ptr = strtok(NULL," ,\t\n\0"))) {
+    while ((ptr = strtok(nullptr," ,\t\n\0"))) {
       id = atoi(ptr);
       i = atom->map(id);
       if (i < 0 || i >= nlocal) continue;
@@ -1010,7 +994,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
       maxline += DELTA;
       memory->grow(line,maxline,"fix_poems:line");
     }
-    if (fgets(&line[n],maxline-n,fp) == NULL) {
+    if (fgets(&line[n],maxline-n,fp) == nullptr) {
       n = 0;
       break;
     }
@@ -1045,7 +1029,7 @@ void FixPOEMS::jointbuild()
     mjoint += natom2body[i]-1;
   }
 
-  tagint **mylist = NULL;
+  tagint **mylist = nullptr;
   if (mjoint) memory->create(mylist,mjoint,3,"poems:mylist");
 
   mjoint = 0;
@@ -1062,7 +1046,7 @@ void FixPOEMS::jointbuild()
   // jlist = mylist concatenated across all procs via MPI_Allgatherv
 
   MPI_Allreduce(&mjoint,&njoint,1,MPI_INT,MPI_SUM,world);
-  tagint **jlist = NULL;
+  tagint **jlist = nullptr;
   if (njoint) memory->create(jlist,njoint,3,"poems:jlist");
 
   int nprocs;
@@ -1084,7 +1068,7 @@ void FixPOEMS::jointbuild()
       MPI_Allgatherv(mylist[0],3*mjoint,MPI_LMP_TAGINT,jlist[0],
                      recvcounts,displs,MPI_LMP_TAGINT,world);
     else
-      MPI_Allgatherv(NULL,3*mjoint,MPI_LMP_TAGINT,jlist[0],
+      MPI_Allgatherv(nullptr,3*mjoint,MPI_LMP_TAGINT,jlist[0],
                      recvcounts,displs,MPI_LMP_TAGINT,world);
   }
 
@@ -1122,9 +1106,9 @@ void FixPOEMS::jointbuild()
   // each proc sets myjoint if it owns joint atom
   // MPI_Allreduce gives all procs the xjoint coords
 
-  jointbody = NULL;
-  xjoint = NULL;
-  double **myjoint = NULL;
+  jointbody = nullptr;
+  xjoint = nullptr;
+  double **myjoint = nullptr;
   if (njoint) {
     memory->create(jointbody,njoint,2,"poems:jointbody");
     memory->create(xjoint,njoint,3,"poems:xjoint");
@@ -1161,7 +1145,7 @@ void FixPOEMS::jointbuild()
   for (i = 0; i < nbody; i++)
     if (mark[i]) nfree++;
   if (nfree) freelist = new int[nfree];
-  else freelist = NULL;
+  else freelist = nullptr;
   nfree = 0;
   for (i = 0; i < nbody; i++)
     if (mark[i]) freelist[nfree++] = i + 1;
@@ -1296,88 +1280,6 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
   delete [] stack;
 
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   compute evalues and evectors of 3x3 real symmetric matrix
-   based on Jacobi rotations
-   adapted from Numerical Recipes jacobi() function
-------------------------------------------------------------------------- */
-
-int FixPOEMS::jacobi(double **matrix, double *evalues, double **evectors)
-{
-  int i,j,k;
-  double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
-
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) evectors[i][j] = 0.0;
-    evectors[i][i] = 1.0;
-  }
-  for (i = 0; i < 3; i++) {
-    b[i] = evalues[i] = matrix[i][i];
-    z[i] = 0.0;
-  }
-
-  for (int iter = 1; iter <= MAXJACOBI; iter++) {
-    sm = 0.0;
-    for (i = 0; i < 2; i++)
-      for (j = i+1; j < 3; j++)
-        sm += fabs(matrix[i][j]);
-    if (sm == 0.0) return 0;
-
-    if (iter < 4) tresh = 0.2*sm/(3*3);
-    else tresh = 0.0;
-
-    for (i = 0; i < 2; i++) {
-      for (j = i+1; j < 3; j++) {
-        g = 100.0*fabs(matrix[i][j]);
-        if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
-            && fabs(evalues[j])+g == fabs(evalues[j]))
-          matrix[i][j] = 0.0;
-        else if (fabs(matrix[i][j]) > tresh) {
-          h = evalues[j]-evalues[i];
-          if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
-          else {
-            theta = 0.5*h/(matrix[i][j]);
-            t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-            if (theta < 0.0) t = -t;
-          }
-          c = 1.0/sqrt(1.0+t*t);
-          s = t*c;
-          tau = s/(1.0+c);
-          h = t*matrix[i][j];
-          z[i] -= h;
-          z[j] += h;
-          evalues[i] -= h;
-          evalues[j] += h;
-          matrix[i][j] = 0.0;
-          for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
-          for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
-          for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
-          for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
-        }
-      }
-    }
-
-    for (i = 0; i < 3; i++) {
-      evalues[i] = b[i] += z[i];
-      z[i] = 0.0;
-    }
-  }
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   perform a single Jacobi rotation
-------------------------------------------------------------------------- */
-
-void FixPOEMS::rotate(double **matrix, int i, int j, int k, int l,
-                      double s, double tau)
-{
-  double g = matrix[i][j];
-  double h = matrix[k][l];
-  matrix[i][j] = g-s*(h+g*tau);
-  matrix[k][l] = h+s*(g-h*tau);
 }
 
 /* ----------------------------------------------------------------------
@@ -1607,7 +1509,7 @@ void FixPOEMS::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::copy_arrays(int i, int j, int delflag)
+void FixPOEMS::copy_arrays(int i, int j, int /* delflag */)
 {
   natom2body[j] = natom2body[i];
   for (int k = 0; k < natom2body[j]; k++) atom2body[j][k] = atom2body[i][k];

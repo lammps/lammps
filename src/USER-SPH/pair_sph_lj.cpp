@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,15 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_lj.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -53,18 +52,15 @@ void PairSPHLJ::compute(int eflag, int vflag) {
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc, h, ih, ihsq, ihcub;
   double rsq, wfd, delVdotDelR, mu, deltaE, ci, cj, lrc;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double *de = atom->de;
-  double *e = atom->e;
+  double *desph = atom->desph;
+  double *esph = atom->esph;
   double *cv = atom->cv;
   double *drho = atom->drho;
   int *type = atom->type;
@@ -93,7 +89,7 @@ void PairSPHLJ::compute(int eflag, int vflag) {
     imass = mass[itype];
 
     // compute pressure of particle i with LJ EOS
-    LJEOS2(rho[i], e[i], cv[i], &fi, &ci);
+    LJEOS2(rho[i], esph[i], cv[i], &fi, &ci);
     fi /= (rho[i] * rho[i]);
     //printf("fi = %f\n", fi);
 
@@ -129,7 +125,7 @@ void PairSPHLJ::compute(int eflag, int vflag) {
         }
 
         // function call to LJ EOS
-        LJEOS2(rho[j], e[j], cv[j], &fj, &cj);
+        LJEOS2(rho[j], esph[j], cv[j], &fj, &cj);
         fj /= (rho[j] * rho[j]);
 
         // apply long-range correction to model a LJ fluid with cutoff
@@ -162,13 +158,13 @@ void PairSPHLJ::compute(int eflag, int vflag) {
         drho[i] += jmass * delVdotDelR * wfd;
 
         // change in thermal energy
-        de[i] += deltaE;
+        desph[i] += deltaE;
 
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx * fpair;
           f[j][1] -= dely * fpair;
           f[j][2] -= delz * fpair;
-          de[j] += deltaE;
+          desph[j] += deltaE;
           drho[j] += imass * delVdotDelR * wfd;
         }
 
@@ -207,7 +203,7 @@ void PairSPHLJ::allocate() {
 void PairSPHLJ::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/lj");
+        "Illegal number of arguments for pair_style sph/lj");
 }
 
 /* ----------------------------------------------------------------------
@@ -222,11 +218,11 @@ void PairSPHLJ::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double viscosity_one = force->numeric(FLERR,arg[2]);
-  double cut_one = force->numeric(FLERR,arg[3]);
+  double viscosity_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

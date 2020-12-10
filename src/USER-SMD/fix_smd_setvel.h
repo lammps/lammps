@@ -24,12 +24,12 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(smd/setvelocity,FixSMDSetVel)
+FixStyle(smd/setvel,FixSMDSetVel)
 
 #else
 
-#ifndef LMP_FIX_SMD_SET_VELOCITY_H
-#define LMP_FIX_SMD_SET_VELOCITY_H
+#ifndef LMP_FIX_SMD_SETVEL_H
+#define LMP_FIX_SMD_SETVEL_H
 
 #include "fix.h"
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <string.h>
 #include "compute_reduce_chunk.h"
+
+#include <cstring>
+
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,10 +26,11 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 
 enum{SUM,MINN,MAXX};
-enum{COMPUTE,FIX,VARIABLE};
+enum{UNKNOWN=-1,COMPUTE,FIX,VARIABLE};
 
 #define INVOKED_PERATOM 8
 
@@ -38,8 +40,8 @@ enum{COMPUTE,FIX,VARIABLE};
 
 ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), argindex(NULL), value2index(NULL), idchunk(NULL), ids(NULL),
-  vlocal(NULL), vglobal(NULL), alocal(NULL), aglobal(NULL), varatom(NULL)
+  which(nullptr), argindex(nullptr), value2index(nullptr), idchunk(nullptr), ids(nullptr),
+  vlocal(nullptr), vglobal(nullptr), alocal(nullptr), aglobal(nullptr), varatom(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute reduce/chunk command");
 
@@ -51,7 +53,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   init_chunk();
 
   // mode
-  
+
   if (strcmp(arg[4],"sum") == 0) mode = SUM;
   else if (strcmp(arg[4],"min") == 0) mode = MINN;
   else if (strcmp(arg[4],"max") == 0) mode = MAXX;
@@ -63,7 +65,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -74,11 +76,15 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   argindex = new int[nargnew];
   ids = new char*[nargnew];
   value2index = new int[nargnew];
+  for (int i=0; i < nargnew; ++i) {
+    which[i] = argindex[i] = value2index[i] = UNKNOWN;
+    ids[i] = nullptr;
+  }
   nvalues = 0;
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strncmp(arg[iarg],"c_",2) == 0 ||
                strncmp(arg[iarg],"f_",2) == 0 ||
@@ -118,51 +124,51 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // error check
-  
+
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute reduce/chunk does not exist");
+        error->all(FLERR,"Compute ID for compute reduce/chunk does not exist");
       if (!modify->compute[icompute]->peratom_flag)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate per-atom values");
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate per-atom values");
       if (argindex[i] == 0 &&
-	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate a per-atom vector");
+          modify->compute[icompute]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute reduce/chunk compute does not "
-		   "calculate a per-atom array");
-      if (argindex[i] && 
+        error->all(FLERR,"Compute reduce/chunk compute does not "
+                   "calculate a per-atom array");
+      if (argindex[i] &&
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,
-		   "Compute reduce/chunk compute array is accessed out-of-range");
-      
+        error->all(FLERR,
+                   "Compute reduce/chunk compute array is accessed out-of-range");
+
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for compute reduce/chunk does not exist");
+        error->all(FLERR,"Fix ID for compute reduce/chunk does not exist");
       if (!modify->fix[ifix]->peratom_flag)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate per-atom values");
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate per-atom values");
       if (argindex[i] == 0 &&
-	  modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate a per-atom vector");
+          modify->fix[ifix]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute reduce/chunk fix does not "
-		   "calculate a per-atom array");
+        error->all(FLERR,"Compute reduce/chunk fix does not "
+                   "calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all(FLERR,"Compute reduce/chunk fix array is "
+        error->all(FLERR,"Compute reduce/chunk fix array is "
                    "accessed out-of-range");
-      
+
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for compute reduce/chunk does not exist");
+        error->all(FLERR,"Variable name for compute reduce/chunk does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Compute reduce/chunk variable is "
+        error->all(FLERR,"Compute reduce/chunk variable is "
                    "not atom-style variable");
     }
   }
@@ -181,17 +187,17 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // setup
-  
+
   if (mode == SUM) initvalue = 0.0;
   else if (mode == MINN) initvalue = BIG;
   else if (mode == MAXX) initvalue = -BIG;
 
   maxchunk = 0;
-  vlocal = vglobal = NULL;
-  alocal = aglobal = NULL;
+  vlocal = vglobal = nullptr;
+  alocal = aglobal = nullptr;
 
   maxatom = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,7 +205,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
 ComputeReduceChunk::~ComputeReduceChunk()
 {
   delete [] idchunk;
-  
+
   delete [] which;
   delete [] argindex;
   for (int m = 0; m < nvalues; m++) delete [] ids[m];
@@ -210,7 +216,7 @@ ComputeReduceChunk::~ComputeReduceChunk()
   memory->destroy(vglobal);
   memory->destroy(alocal);
   memory->destroy(aglobal);
-  
+
   memory->destroy(varatom);
 }
 
@@ -284,11 +290,11 @@ void ComputeReduceChunk::compute_vector()
   }
 
   // perform local reduction of single peratom value
-  
+
   compute_one(0,vlocal,1);
-  
+
   // reduce the per-chunk values across all procs
-  
+
   if (mode == SUM)
     MPI_Allreduce(vlocal,vglobal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   else if (mode == MINN)
@@ -296,7 +302,7 @@ void ComputeReduceChunk::compute_vector()
   else if (mode == MAXX)
     MPI_Allreduce(vlocal,vglobal,nchunk,MPI_DOUBLE,MPI_MAX,world);
 }
- 
+
 /* ---------------------------------------------------------------------- */
 
 void ComputeReduceChunk::compute_array()
@@ -324,11 +330,11 @@ void ComputeReduceChunk::compute_array()
   }
 
   // perform local reduction of all peratom values
-  
+
   for (int m = 0; m < nvalues; m++) compute_one(m,&alocal[0][m],nvalues);
 
   // reduce the per-chunk values across all procs
-  
+
   if (mode == SUM)
     MPI_Allreduce(&alocal[0][0],&aglobal[0][0],nchunk*nvalues,
                   MPI_DOUBLE,MPI_SUM,world);
@@ -339,13 +345,13 @@ void ComputeReduceChunk::compute_array()
     MPI_Allreduce(&alocal[0][0],&aglobal[0][0],nchunk*nvalues,
                   MPI_DOUBLE,MPI_MAX,world);
 }
- 
+
 /* ---------------------------------------------------------------------- */
 
 void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
 {
   // initialize per-chunk values in accumulation vector
-  
+
   for (int i = 0; i < nchunk; i += nstride) vchunk[i] = initvalue;
 
   // loop over my atoms
@@ -354,10 +360,19 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int index;
+  int index = -1;
+  int vidx = value2index[m];
+
+  // initialization in case it has not yet been run, e.g. when
+  // the compute was invoked right after it has been created
+
+  if (vidx == UNKNOWN) {
+    init();
+    vidx = value2index[m];
+  }
 
   if (which[m] == COMPUTE) {
-    Compute *compute = modify->compute[value2index[m]];
+    Compute *compute = modify->compute[vidx];
 
     if (!(compute->invoked_flag & INVOKED_PERATOM)) {
       compute->compute_peratom();
@@ -367,26 +382,26 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
     if (argindex[m] == 0) {
       double *vcompute = compute->vector_atom;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],vcompute[i]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],vcompute[i]);
       }
     } else {
       double **acompute = compute->array_atom;
       int argindexm1 = argindex[m] - 1;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],acompute[i][argindexm1]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],acompute[i][argindexm1]);
       }
     }
-    
+
   // access fix fields, check if fix frequency is a match
 
   } else if (which[m] == FIX) {
-    Fix *fix = modify->fix[value2index[m]];
+    Fix *fix = modify->fix[vidx];
     if (update->ntimestep % fix->peratom_freq)
       error->all(FLERR,"Fix used in compute reduce/chunk not "
                  "computed at compatible time");
@@ -394,19 +409,19 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
     if (argindex[m] == 0) {
       double *vfix = fix->vector_atom;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],vfix[i]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],vfix[i]);
       }
     } else {
       double **afix = fix->array_atom;
       int argindexm1 = argindex[m] - 1;
       for (int i = 0; i < nlocal; i++) {
-	if (!(mask[i] & groupbit)) continue;
-	index = ichunk[i]-1;
-	if (index < 0) continue;
-	combine(vchunk[index*nstride],afix[i][argindexm1]);
+        if (!(mask[i] & groupbit)) continue;
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        combine(vchunk[index*nstride],afix[i][argindexm1]);
       }
     }
 
@@ -419,7 +434,7 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
       memory->create(varatom,maxatom,"reduce/chunk:varatom");
     }
 
-    input->variable->compute_atom(value2index[m],igroup,varatom,1,0);
+    input->variable->compute_atom(vidx,igroup,varatom,1,0);
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       index = ichunk[i]-1;

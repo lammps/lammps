@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,19 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_drude.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
-#include "group.h"
 #include "modify.h"
-#include "fix.h"
+#include "fix_drude.h"
 #include "domain.h"
-#include "lattice.h"
-#include "memory.h"
 #include "error.h"
 #include "comm.h"
 
@@ -46,10 +42,10 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   extlist[2] = extlist[3] = extlist[4] = extlist[5] = 1;
   tempflag = 0; // because does not compute a single temperature (scalar and vector)
 
-  vector = new double[6];
-  fix_drude = NULL;
-  id_temp = NULL;
-  temperature = NULL;
+  vector = new double[size_vector];
+  fix_drude = nullptr;
+  id_temp = nullptr;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

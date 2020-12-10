@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_mod_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include "pair_tersoff_mod_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,6 +32,7 @@
 #include "error.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,9 +70,10 @@ PairTersoffMODGPU::PairTersoffMODGPU(LAMMPS *lmp) : PairTersoffMOD(lmp),
   gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -90,8 +92,7 @@ PairTersoffMODGPU::~PairTersoffMODGPU()
 
 void PairTersoffMODGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -99,10 +100,21 @@ void PairTersoffMODGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = tersoff_mod_gpu_compute_n(neighbor->ago, inum, nall,
-                                  atom->x, atom->type, domain->sublo,
-                                  domain->subhi, atom->tag, atom->nspecial,
+                                  atom->x, atom->type, sublo,
+                                  subhi, atom->tag, atom->nspecial,
                                   atom->special, eflag, vflag, eflag_atom,
                                   vflag_atom, host_start,
                                   &ilist, &numneigh, cpu_time, success);
@@ -148,11 +160,11 @@ void PairTersoffMODGPU::init_style()
   double *biga, *bigb, *bigr, *bigd;
   double *c1, *c2, *c3, *c4, *c5, *h;
   double *beta, *powern, *ca1, *powern_del, *_cutsq;
-  lam1 = lam2 = lam3 = powermint = NULL;
-  biga = bigb = bigr = bigd = NULL;
-  powern_del = ca1 = NULL;
-  c1 = c2 = c3 = c4 = c5 = h = NULL;
-  beta = powern = _cutsq = NULL;
+  lam1 = lam2 = lam3 = powermint = nullptr;
+  biga = bigb = bigr = bigd = nullptr;
+  powern_del = ca1 = nullptr;
+  c1 = c2 = c3 = c4 = c5 = h = nullptr;
+  beta = powern = _cutsq = nullptr;
 
   memory->create(lam1,nparams,"pair:lam1");
   memory->create(lam2,nparams,"pair:lam2");
@@ -233,8 +245,11 @@ void PairTersoffMODGPU::init_style()
     neighbor->requests[irequest]->ghost = 1;
   }
 
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
+  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
+    if (comm->me == 0)
+       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  }
 }
 
 /* ----------------------------------------------------------------------

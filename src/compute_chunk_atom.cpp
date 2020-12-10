@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,27 +13,28 @@
 
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "compute_chunk_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "region.h"
-#include "lattice.h"
-#include "modify.h"
-#include "fix_store.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "fix_store.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 #include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -53,24 +54,26 @@ enum{LIMITMAX,LIMITEXACT};
 
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  chunk_volume_vec(NULL), coord(NULL), ichunk(NULL), chunkID(NULL),
-  cfvid(NULL), idregion(NULL), region(NULL), cchunk(NULL), fchunk(NULL),
-  varatom(NULL), id_fix(NULL), fixstore(NULL), lockfix(NULL), chunk(NULL),
-  exclude(NULL), hash(NULL)
+  chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr), chunkID(nullptr),
+  cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr), fchunk(nullptr),
+  varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr), chunk(nullptr),
+  exclude(nullptr), hash(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 
   peratom_flag = 1;
+  scalar_flag = 1;
+  extscalar = 0;
   size_peratom_cols = 0;
   create_attribute = 1;
 
   // chunk style and its args
 
-  int iarg;
+  int iarg = 0;
 
   binflag = 0;
   ncoord = 0;
-  cfvid = NULL;
+  cfvid = nullptr;
 
   if (strcmp(arg[3],"bin/1d") == 0) {
     binflag = 1;
@@ -103,12 +106,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     ncoord = 1;
     iarg = 4;
     if (iarg+6 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-    sorigin_user[0] = force->numeric(FLERR,arg[iarg]);
-    sorigin_user[1] = force->numeric(FLERR,arg[iarg+1]);
-    sorigin_user[2] = force->numeric(FLERR,arg[iarg+2]);
-    sradmin_user = force->numeric(FLERR,arg[iarg+3]);
-    sradmax_user = force->numeric(FLERR,arg[iarg+4]);
-    nsbin = force->inumeric(FLERR,arg[iarg+5]);
+    sorigin_user[0] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    sorigin_user[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    sorigin_user[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    sradmin_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    sradmax_user = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+    nsbin = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
     iarg += 6;
   } else if (strcmp(arg[3],"bin/cylinder") == 0) {
     binflag = 1;
@@ -129,12 +132,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     }
     if (iarg+5 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
     corigin_user[dim[0]] = 0.0;
-    corigin_user[cdim1] = force->numeric(FLERR,arg[iarg]);
-    corigin_user[cdim2] = force->numeric(FLERR,arg[iarg+1]);
-    cradmin_user = force->numeric(FLERR,arg[iarg+2]);
-    cradmax_user = force->numeric(FLERR,arg[iarg+3]);
+    corigin_user[cdim1] = utils::numeric(FLERR,arg[iarg],false,lmp);
+    corigin_user[cdim2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    cradmin_user = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    cradmax_user = utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
-    ncbin = force->inumeric(FLERR,arg[iarg+4]);
+    ncbin = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
     iarg += 5;
 
   } else if (strcmp(arg[3],"type") == 0) {
@@ -174,7 +177,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   regionflag = 0;
-  idregion = NULL;
+  idregion = nullptr;
   nchunksetflag = 0;
   nchunkflag = EVERY;
   limit = 0;
@@ -213,7 +216,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"limit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      limit = force->inumeric(FLERR,arg[iarg+1]);
+      limit = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (limit < 0) error->all(FLERR,"Illegal compute chunk/atom command");
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
@@ -248,7 +251,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"bound") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      int idim;
+      int idim = 0;
       if (strcmp(arg[iarg+1],"x") == 0) idim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;
@@ -256,11 +259,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
       if (minflag[idim] == COORD)
-        minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
+        minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
       if (maxflag[idim] == COORD)
-        maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
+        maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
@@ -445,16 +448,16 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // initialize chunk vector and per-chunk info
 
   nmax = 0;
-  chunk = NULL;
+  chunk = nullptr;
   nmaxint = -1;
-  ichunk = NULL;
-  exclude = NULL;
+  ichunk = nullptr;
+  exclude = nullptr;
 
   nchunk = 0;
   chunk_volume_scalar = 1.0;
-  chunk_volume_vec = NULL;
-  coord = NULL;
-  chunkID = NULL;
+  chunk_volume_vec = nullptr;
+  coord = nullptr;
+  chunkID = nullptr;
 
   // computeflag = 1 if this compute might invoke another compute
   // during assign_chunk_ids()
@@ -467,17 +470,17 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   invoked_setup = -1;
   invoked_ichunk = -1;
 
-  id_fix = NULL;
-  fixstore = NULL;
+  id_fix = nullptr;
+  fixstore = nullptr;
 
   if (compress) hash = new std::map<tagint,int>();
-  else hash = NULL;
+  else hash = nullptr;
 
   maxvar = 0;
-  varatom = NULL;
+  varatom = nullptr;
 
   lockcount = 0;
-  lockfix = NULL;
+  lockfix = nullptr;
 
   if (which == MOLECULE) molcheck = 1;
   else molcheck = 0;
@@ -579,26 +582,18 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,id);
-    strcat(id_fix,"_COMPUTE_STORE");
+    std::string cmd = id + std::string("_COMPUTE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
 
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = group->names[igroup];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    cmd += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
     modify->delete_fix(id_fix);
-    fixstore = NULL;
+    fixstore = nullptr;
   }
 }
 
@@ -644,6 +639,20 @@ void ComputeChunkAtom::compute_peratom()
   for (int i = 0; i < nlocal; i++) chunk[i] = ichunk[i];
 }
 
+
+/* ----------------------------------------------------------------------
+   to return the number of chunks, we first need to make certain
+   that compute_peratom() has been called.
+------------------------------------------------------------------------- */
+double ComputeChunkAtom::compute_scalar()
+{
+  if (invoked_peratom != update->ntimestep)
+    compute_peratom();
+  invoked_scalar = update->ntimestep;
+
+  return (scalar = nchunk);
+}
+
 /* ----------------------------------------------------------------------
    set lock, so that nchunk will not change from startstep to stopstep
    called by fix for duration of time it requires lock
@@ -656,7 +665,7 @@ void ComputeChunkAtom::compute_peratom()
 
 void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 {
-  if (lockfix == NULL) {
+  if (lockfix == nullptr) {
     lockfix = fixptr;
     lockstart = startstep;
     lockstop = stopstep;
@@ -680,7 +689,7 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 void ComputeChunkAtom::unlock(Fix *fixptr)
 {
   if (fixptr != lockfix) return;
-  lockfix = NULL;
+  lockfix = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1040,7 +1049,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 
   // create my list of populated IDs
 
-  int *list = NULL;
+  int *list = nullptr;
   memory->create(list,n,"chunk/atom:list");
 
   n = 0;
@@ -1085,7 +1094,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     memory->destroy(listall);
 
   } else {
-    comm->ring(n,sizeof(int),list,1,idring,NULL,(void *)this,0);
+    comm->ring(n,sizeof(int),list,1,idring,nullptr,(void *)this,0);
   }
 
   memory->destroy(list);
@@ -1972,9 +1981,9 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg+1],"upper") == 0) originflag[idim] = UPPER;
   else originflag[idim] = COORD;
   if (originflag[idim] == COORD)
-    origin[idim] = force->numeric(FLERR,arg[iarg+1]);
+    origin[idim] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
-  delta[idim] = force->numeric(FLERR,arg[iarg+2]);
+  delta[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------

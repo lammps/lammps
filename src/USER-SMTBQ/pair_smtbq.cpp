@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    The SMTBQ code has been developed with the financial support of  CNRS and
-   of the Regional Council of Burgundy (Convention n¡ 2010-9201AAO037S03129)
+   of the Regional Council of Burgundy (Convention nÂ¡ 2010-9201AAO037S03129)
 
    Copyright (2015)
    Universite de Bourgogne : Nicolas SALLES, Olivier POLITANO
@@ -35,27 +35,27 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
    See the GNU General Public License for more details:
-   <http://www.gnu.org/licenses/>.
+   <https://www.gnu.org/licenses/>.
    ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_smtbq.h"
+
+#include <cmath>
+
+#include <cstring>
+#include <algorithm>
+#include <vector>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
 #include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 #include <fstream>
 #include <iomanip>
@@ -101,51 +101,50 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   kmax = 0;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  intparams = NULL;
+  params = nullptr;
+  intparams = nullptr;
 
-  intype = NULL;
-  coultype = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  potqn = NULL;
-  dpotqn = NULL;
+  intype = nullptr;
+  coultype = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  potqn = nullptr;
+  dpotqn = nullptr;
   Vself = 0.0;
-  tabsmb = NULL;
-  tabsmr = NULL;
-  dtabsmb = NULL;
-  dtabsmr = NULL;
+  tabsmb = nullptr;
+  tabsmr = nullptr;
+  dtabsmb = nullptr;
+  dtabsmr = nullptr;
 
-  sbcov = NULL;
-  coord = NULL;
-  sbmet = NULL;
-  chimet = NULL;
-  ecov = NULL;
+  sbcov = nullptr;
+  coord = nullptr;
+  sbmet = nullptr;
+  ecov = nullptr;
 
-  potmad = NULL;
-  potself = NULL;
-  potcov = NULL;
-  qf = NULL;
-  q1 = NULL;
-  q2 = NULL;
-  tab_comm = NULL;
+  potmad = nullptr;
+  potself = nullptr;
+  potcov = nullptr;
+  qf = nullptr;
+  q1 = nullptr;
+  q2 = nullptr;
+  tab_comm = nullptr;
 
-  nvsm = NULL;
-  vsm = NULL;
-  flag_QEq = NULL;
-  nQEqaall = NULL;
-  nQEqcall = NULL;
-  nQEqall = NULL;
+  nvsm = nullptr;
+  vsm = nullptr;
+  flag_QEq = nullptr;
+  nQEqaall = nullptr;
+  nQEqcall = nullptr;
+  nQEqall = nullptr;
   nteam = 0;
   cluster = 0;
 
   Nevery = 0.0;
   Neverypot = 0.0;
 
-  fct = NULL;
+  fct = nullptr;
 
   maxpage = 0;
 
@@ -187,6 +186,16 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potqn);
   memory->destroy(dpotqn);
 
+  memory->destroy(fafbOxOxSurf);
+  memory->destroy(dfafbOxOxSurf);
+  memory->destroy(fafbTiOxSurf);
+  memory->destroy(dfafbTiOxSurf);
+
+  memory->destroy(fafbOxOxBB);
+  memory->destroy(dfafbOxOxBB);
+  memory->destroy(fafbTiOxBB);
+  memory->destroy(dfafbTiOxBB);
+
   memory->destroy(ecov);
   memory->destroy(sbcov);
   memory->destroy(coord);
@@ -199,7 +208,6 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potmad);
   memory->destroy(potself);
   memory->destroy(potcov);
-  memory->destroy(chimet);
 
   memory->destroy(nvsm);
   memory->destroy(vsm);;
@@ -242,7 +250,7 @@ void PairSMTBQ::allocate()
    global settings
    ------------------------------------------------------------------------- */
 
-void PairSMTBQ::settings(int narg, char **/*arg*/)
+void PairSMTBQ::settings(int narg, char ** /* arg */)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -269,7 +277,7 @@ void PairSMTBQ::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -278,7 +286,7 @@ void PairSMTBQ::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -384,9 +392,9 @@ void PairSMTBQ::read_file(char *file)
   char **words;
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   memory->sfree(intparams);
-  intparams = NULL;
+  intparams = nullptr;
   nparams = 0;
   maxparam = 0;
   maxintparam = 0;
@@ -394,10 +402,16 @@ void PairSMTBQ::read_file(char *file)
   verbose = 1;
   verbose = 0;
 
-  // open file on all processors
+  coordOxBB = 0.0;
+  coordOxBulk = 0.0;
+  coordOxSurf = 0.0;
+  ROxBB = 0.0;
+  ROxSurf = 0.0;
+
+      // open file on all processors
   FILE *fp;
-  fp = force->open_potential(file);
-  if ( fp  == NULL ) {
+  fp = utils::open_potential(file,lmp,nullptr);
+  if ( fp  == nullptr ) {
     char str[128];
     snprintf(str,128,"Cannot open SMTBQ potential file %s",file);
     error->one(FLERR,str);
@@ -444,14 +458,12 @@ void PairSMTBQ::read_file(char *file)
 
   // load up parameter settings and error check their values
 
-  if (nparams == maxparam) {
-    maxparam += DELTA;
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+  nparams = maxparam = num_atom_types;
+  params = (Param *) memory->create(params,maxparam*sizeof(Param),
                                         "pair:params");
-    maxintparam += m;
-    intparams = (Intparam *) memory->srealloc(intparams,(maxintparam+1)*sizeof(Intparam),
+  maxintparam = m;
+  intparams = (Intparam *) memory->create(intparams,(maxintparam+1)*sizeof(Intparam),
                                               "pair:intparams");
-  }
 
   for (i=0; i < num_atom_types; i++)
     params[i].nom = (char*) malloc(sizeof(char)*3);
@@ -828,7 +840,8 @@ void PairSMTBQ::read_file(char *file)
   }
 
   //A adapter au STO
-  ncov = min((params[0].sto)*(params[0].n0),(params[1].sto)*(params[1].n0));
+  for (i=1,ncov=params[0].sto*params[0].n0; i < nparams; ++i)
+    ncov = min(ncov,(params[1].sto)*(params[1].n0));
 
   if (verbose) printf (" Parametre ncov = %f\n",ncov);
   if (verbose) printf (" ********************************************* \n");
@@ -859,7 +872,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     memory->destroy(sbcov);
     memory->destroy(coord);
     memory->destroy(sbmet);
-    memory->destroy(chimet);
     memory->destroy(flag_QEq);
     memory->destroy(qf);
     memory->destroy(q1);
@@ -875,7 +887,6 @@ void PairSMTBQ::compute(int eflag, int vflag)
     memory->create(sbcov,nmax,"pair:sbcov");
     memory->create(coord,nmax,"pair:coord");
     memory->create(sbmet,nmax,"pair:sbmet");
-    memory->create(chimet,nmax,"pair:chimet");
     memory->create(flag_QEq,nmax,"pair:flag_QEq");
     memory->create(qf,nmax,"pair:qf");
     memory->create(q1,nmax,"pair:q1");
@@ -887,8 +898,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   evdwl = ecoul = ecovtot = ErepOO = ErepMO = Eion = 0.0;
   Eself = 0.0;
 
-  if (eflag || vflag) { ev_setup(eflag,vflag); }
-  else { evflag = vflag_fdotr = vflag_atom = 0; }
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -933,7 +943,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
      3 -> Short int. Ox-Ox
      4 -> Short int. SMTB (repulsion)
      5 -> Covalent energy SMTB
-     6 -> Somme des Q(i)²
+     6 -> Somme des Q(i)Â²
      ------------------------------------------------------------------------- */
 
   /* -------------- N-body forces Calcul --------------- */
@@ -1312,10 +1322,7 @@ void PairSMTBQ::tabqeq()
   memory->create(sbcov,nmax,"pair:sbcov");
   memory->create(coord,nmax,"pair:coord");
   memory->create(sbmet,nmax,"pair:sbmet");
-  memory->create(chimet,nmax,"pair:chimet");
 
-  //  memory->create(nvsm,nmax,"pair:nvsm");
-  //  memory->create(vsm,nmax,nmax,"pair:vsm");
   memory->create(flag_QEq,nmax,"pair:flag_QEq");
 
   memory->create(qf,nmax,"pair:qf");
@@ -2529,10 +2536,10 @@ void PairSMTBQ::Charge()
   // ---------------------------
 
 
-  double enegtotall[nteam+1],enegchkall[nteam+1],enegmaxall[nteam+1],qtota[nteam+1],qtotc[nteam+1];
-  double qtotcll[nteam+1],qtotall[nteam+1];
-  double sigmaa[nteam+1],sigmac[nteam+1],sigmaall[nteam+1],sigmacll[nteam+1];
-  int end[nteam+1], nQEq[nteam+1],nQEqc[nteam+1],nQEqa[nteam+1];
+  std::vector<double> enegtotall(nteam+1),enegchkall(nteam+1),enegmaxall(nteam+1);
+  std::vector<double> qtotcll(nteam+1),qtotall(nteam+1),qtota(nteam+1),qtotc(nteam+1);
+  std::vector<double> sigmaa(nteam+1),sigmac(nteam+1),sigmaall(nteam+1),sigmacll(nteam+1);
+  std::vector<int> end(nteam+1), nQEq(nteam+1),nQEqc(nteam+1),nQEqa(nteam+1);
 
 
   iloop = 0;
@@ -2543,9 +2550,7 @@ void PairSMTBQ::Charge()
   dtq    = 0.0006; // 0.0006
   dtq2   = 0.5*dtq*dtq/qmass;
 
-  double enegchk[nteam+1];
-  double enegtot[nteam+1];
-  double enegmax[nteam+1];
+  std::vector<double> enegchk(nteam+1),enegtot(nteam+1),enegmax(nteam+1);
 
 
 
@@ -2570,12 +2575,12 @@ void PairSMTBQ::Charge()
     if (itype == 0) { qtota[gp] += q[i]; nQEqa[gp] += 1; }
   }
 
-  MPI_Allreduce(nQEq,nQEqall,nteam+1,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(nQEqc,nQEqcall,nteam+1,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(nQEqa,nQEqaall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEq.data(),nQEqall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEqc.data(),nQEqcall,nteam+1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(nQEqa.data(),nQEqaall,nteam+1,MPI_INT,MPI_SUM,world);
 
-  MPI_Allreduce(qtotc,qtotcll,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(qtota,qtotall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(qtotc.data(),qtotcll.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(qtota.data(),qtotall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qtot,&qtotll,1,MPI_DOUBLE,MPI_SUM,world);
 
 
@@ -2667,7 +2672,8 @@ void PairSMTBQ::Charge()
         gp = flag_QEq[i];
 
         qf[i] = 0.0;
-        qf[i] = potself[i]+potmad[i]+potcov[i]+chimet[i] ;
+        //  AK: chimet is not set anywhere
+        qf[i] = potself[i]+potmad[i]+potcov[i]; // +chimet[i];
         Transf[gp] += qf[i];
       }
 
@@ -2694,8 +2700,8 @@ void PairSMTBQ::Charge()
 
     } // Boucle local
 
-    MPI_Allreduce(enegchk,enegchkall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(enegmax,enegmaxall,nteam+1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(enegchk.data(),enegchkall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(enegmax.data(),enegmaxall.data(),nteam+1,MPI_DOUBLE,MPI_MAX,world);
 
 
     for (gp = 0; gp < nteam+1; gp++) {
@@ -2783,8 +2789,8 @@ void PairSMTBQ::Charge()
       if (itype == 1) sigmac[gp] += (q[i]-TransfAll[gp+cluster])*(q[i]-TransfAll[gp+cluster]);
     }
 
-  MPI_Allreduce(sigmaa,sigmaall,nteam+1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(sigmac,sigmacll,nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sigmaa.data(),sigmaall.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sigmac.data(),sigmacll.data(),nteam+1,MPI_DOUBLE,MPI_SUM,world);
 
   for (gp = 1; gp < nteam+1; gp++) {
     sigmaall[gp] = sqrt(sigmaall[gp]/static_cast<double>(nQEqaall[gp])) ;
@@ -2886,11 +2892,12 @@ void PairSMTBQ::groupSurface_QEq()
 void PairSMTBQ::groupQEqAllParallel_QEq()
 {
   int ii,i,jj,j,kk,k,itype,jtype,ktype,jnum,m,gp,zz,z,kgp;
-  int iproc,team_elt[10][nproc],team_QEq[10][nproc][5];
+  int iproc; // ,team_elt[10][nproc],team_QEq[10][nproc][5];
+  int **team_elt,***team_QEq;
   int *ilist,*jlist,*numneigh,**firstneigh,ngp,igp;
   double delr[3],xtmp,ytmp,ztmp,rsq;
   int **flag_gp, *nelt, **tab_gp;
-  int QEq,QEqall[nproc];
+  int QEq,*QEqall;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -2918,6 +2925,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->create(nelt,nall,"pair:nelt");
   memory->create(tab_gp,10,nall,"pair:flag_gp");
 
+  memory->create(team_elt,10,nproc,"pair:team_elt");
+  memory->create(team_QEq,10,nproc,5,"pair:team_QEq");
+  memory->create(QEqall,nproc,"pair:QEqall");
 
   for (i = 0; i < nall ; i++) { flag_QEq[i] = 0; }
   for (i = 0; i < 10*nproc; i++) {
@@ -2993,6 +3003,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
     memory->destroy(tab_gp);
     memory->destroy(nelt);
 
+    memory->destroy(team_elt);
+    memory->destroy(team_QEq);
+    memory->destroy(QEqall);
     return;
   }
   // :::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -3009,7 +3022,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 
   ngp = igp = 0; nelt[ngp] = 0;
 
-  // On prend un oxygène
+  // On prend un oxygÃ¨ne
   //   printf ("[me %d] On prend un oxygene\n",me);
 
   for (ii = 0; ii < inum; ii++) {
@@ -3330,6 +3343,9 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
   memory->destroy(tab_gp);
   memory->destroy(nelt);
 
+  memory->destroy(team_elt);
+  memory->destroy(team_QEq);
+  memory->destroy(QEqall);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3337,7 +3353,8 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
 void PairSMTBQ::Init_charge(int * /*nQEq*/, int * /*nQEqa*/, int * /*nQEqc*/)
 {
   int ii,i,gp,itype;
-  int *ilist,test[nteam],init[nteam];
+  int *ilist;
+  std::vector<int> test(cluster),init(cluster);
   double bound,tot,totll;
 
   int inum = list->inum;
@@ -3367,7 +3384,8 @@ void PairSMTBQ::Init_charge(int * /*nQEq*/, int * /*nQEqa*/, int * /*nQEqc*/)
     }
   }
 
-  MPI_Allreduce(test,init,nteam+1,MPI_INT,MPI_SUM,world);
+  // TODO
+  MPI_Allreduce(test.data(),init.data(),cluster,MPI_INT,MPI_SUM,world);
 
   //  On fait que sur les atomes hybrides!!!
   // ----------------------------------------
@@ -3544,12 +3562,12 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
   const char *sep = "' ";
   char *mot;
   int count=0;
-  mot = NULL;
+  mot = nullptr;
 
 
   strncpy( test, s, MAXLINE-1 );
 
-  for( mot = strtok(test, sep); mot; mot = strtok(NULL, sep) ) {
+  for( mot = strtok(test, sep); mot; mot = strtok(nullptr, sep) ) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }

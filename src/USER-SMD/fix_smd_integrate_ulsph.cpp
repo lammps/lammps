@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,25 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "fix_smd_integrate_ulsph.h"
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "fix_smd_integrate_ulsph.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
 #include "pair.h"
-#include "domain.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -51,7 +42,7 @@ using namespace FixConst;
 FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                 Fix(lmp, narg, arg) {
 
-        if ((atom->e_flag != 1) || (atom->vfrac_flag != 1))
+        if ((atom->esph_flag != 1) || (atom->vfrac_flag != 1))
                 error->all(FLERR, "fix smd/integrate_ulsph command requires atom_style with both energy and volume");
 
         if (narg < 3)
@@ -86,21 +77,21 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        adjust_radius_factor = force->numeric(FLERR, arg[iarg]);
+                        adjust_radius_factor = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        min_nn = force->inumeric(FLERR, arg[iarg]);
+                        min_nn = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
                         iarg++;
                         if (iarg == narg) {
                                 error->all(FLERR, "expected three numbers following adjust_radius: factor, min, max");
                         }
 
-                        max_nn = force->inumeric(FLERR, arg[iarg]);
+                        max_nn = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("... will adjust smoothing length dynamically with factor %g to achieve %d to %d neighbors per particle.\n ",
@@ -112,7 +103,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                         if (iarg == narg) {
                                 error->all(FLERR, "expected number following limit_velocity");
                         }
-                        vlimit = force->numeric(FLERR, arg[iarg]);
+                        vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("... will limit velocities to <= %g\n", vlimit);
@@ -132,7 +123,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
         }
 
         // set comm sizes needed by this fix
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
         time_integrate = 1;
 }
@@ -180,7 +171,7 @@ void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
         Vector3d *smoothVel = (Vector3d *) force->pair->extract("smd/ulsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
-                if (smoothVel == NULL) {
+                if (smoothVel == nullptr) {
                         error->one(FLERR, "fix smd/integrate_ulsph failed to access smoothVel array");
                 }
         }
@@ -248,8 +239,8 @@ void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
 void FixSMDIntegrateUlsph::final_integrate() {
         double **v = atom->v;
         double **f = atom->f;
-        double *e = atom->e;
-        double *de = atom->de;
+        double *esph = atom->esph;
+        double *desph = atom->desph;
         double *vfrac = atom->vfrac;
         double *radius = atom->radius;
         double *contact_radius = atom->contact_radius;
@@ -268,12 +259,12 @@ void FixSMDIntegrateUlsph::final_integrate() {
 
         int itmp;
         int *nn = (int *) force->pair->extract("smd/ulsph/numNeighs_ptr", itmp);
-        if (nn == NULL) {
+        if (nn == nullptr) {
                 error->one(FLERR, "fix smd/integrate_ulsph failed to accesss num_neighs array");
         }
 
         Matrix3d *L = (Matrix3d *) force->pair->extract("smd/ulsph/velocityGradient_ptr", itmp);
-        if (L == NULL) {
+        if (L == nullptr) {
                 error->one(FLERR, "fix smd/integrate_ulsph failed to accesss velocityGradient array");
         }
 
@@ -295,7 +286,7 @@ void FixSMDIntegrateUlsph::final_integrate() {
                                 }
                         }
 
-                        e[i] += dtf * de[i];
+                        esph[i] += dtf * desph[i];
 
                         if (adjust_radius_flag) {
                                 if (nn[i] < min_nn) {

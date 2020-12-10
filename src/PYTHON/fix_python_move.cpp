@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,19 +15,14 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_python_move.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "neigh_list.h"
-#include "python.h"
+
 #include "error.h"
+#include "lmppython.h"
 #include "python_compat.h"
+
+#include <cstring>
+#include <Python.h>   // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,7 +37,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
 
   python->init();
 
-  py_move = NULL;
+  py_move = nullptr;
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -55,7 +50,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   char * full_cls_name = arg[3];
   char * lastpos = strrchr(full_cls_name, '.');
 
-  if (lastpos == NULL) {
+  if (lastpos == nullptr) {
     error->all(FLERR,"Fix python/integrate requires fully qualified class name");
   }
 
@@ -143,7 +138,7 @@ void FixPythonMove::init()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'init' method'");
   }
-  PyObject * result = PyEval_CallObject(py_init, NULL);
+  PyObject * result = PyEval_CallObject(py_init, nullptr);
   PyGILState_Release(gstate);
 }
 
@@ -179,7 +174,7 @@ void FixPythonMove::final_integrate()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'final_integrate' method'");
   }
-  PyObject * result = PyEval_CallObject(py_final_integrate, NULL);
+  PyObject * result = PyEval_CallObject(py_final_integrate, nullptr);
   PyGILState_Release(gstate);
 }
 
@@ -234,6 +229,6 @@ void FixPythonMove::reset_dt()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'reset_dt' method'");
   }
-  PyObject * result = PyEval_CallObject(py_reset_dt, NULL);
+  PyObject * result = PyEval_CallObject(py_reset_dt, nullptr);
   PyGILState_Release(gstate);
 }

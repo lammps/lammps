@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_dpd_energy.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "error.h"
 #include "pair_dpd_fdt_energy.h"
 
@@ -32,12 +28,12 @@ FixDPDenergy::FixDPDenergy(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3 ) error->all(FLERR,"Illegal fix dpd/energy command");
 
-  pairDPDE = NULL;
+  pairDPDE = nullptr;
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix dpd/energy");
   if (!(atom->dpd_flag))
     error->all(FLERR,"Must use atom_style dpd/fdt/energy with fix dpd/energy");

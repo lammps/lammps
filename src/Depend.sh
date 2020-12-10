@@ -69,6 +69,7 @@ if (test $1 = "DIPOLE") then
 fi
 
 if (test $1 = "GRANULAR") then
+  depend KOKKOS
   depend USER-OMP
 fi
 
@@ -106,7 +107,9 @@ if (test $1 = "PERI") then
 fi
 
 if (test $1 = "RIGID") then
+  depend KOKKOS
   depend USER-OMP
+  depend USER-SDPD
 fi
 
 if (test $1 = "SNAP") then

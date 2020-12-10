@@ -23,7 +23,7 @@ const char *soft=0;
 
 #include "lal_soft.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define SoftT Soft<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -158,3 +158,4 @@ void SoftT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Soft<PRECISION,ACC_PRECISION>;
+}

@@ -41,7 +41,7 @@ class SchrodingerSolver {
   virtual ~SchrodingerSolver(){};
 
   /** parser */
-  bool modify(int narg, char **arg){ return false;}
+  bool modify(int /* narg */, char ** /* arg */){ return false;}
 
   /** initialize */
   void initialize(void);
@@ -103,7 +103,7 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
   virtual ~SliceSchrodingerSolver(){};
 
   /** parser */
-  bool modify(int narg, char **arg){return false;}
+  bool modify(int /* narg */, char ** /* arg */){return false;}
 
   /** initialize */
   void initialize(void);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
      LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-     http://lammps.sandia.gov, Sandia National Laboratories
+     https://lammps.sandia.gov/, Sandia National Laboratories
      Steve Plimpton, sjplimp@sandia.gov
 
      Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,30 +16,25 @@
      some subroutines are from fix_shake.cpp
    ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "fix_filter_corotate.h"
+
+#include <cctype>
+#include <cmath>
+#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "bond.h"
+#include "comm.h"
+#include "domain.h"
 #include "angle.h"
+#include "bond.h"
 #include "math_const.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
-#include "region.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
-#include "error.h"
-#include "memory.h"
-#include "domain.h"
-#include "integrate.h"
 #include "respa.h"
-#include "neighbor.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -59,10 +54,10 @@ static const char cite_filter_corotate[] =
   " Year = {2017},\n"
   " Pages = {180 - 198},\n"
   " Volume = {333},\n\n"
-  " Doi = {http://dx.doi.org/10.1016/j.jcp.2016.12.024},\n"
+  " Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},\n"
   " ISSN = {0021-9991},\n"
   " Keywords = {Mollified impulse method},\n"
-  " Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
+  " Url = {https://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -76,10 +71,10 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix filter/corotate "
       "with non-molecular system");
-  if (molecular == 2)
+  if (molecular == Atom::TEMPLATE)
     error->all(FLERR,"Cannot use fix filter/corotate "
       "with molecular template system");
 
@@ -115,25 +110,25 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
     // read numeric args of b,a,t,m
 
     else if (mode == 'b') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix filter/corotate");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type index for fix filter/corotate");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type index for fix filter/corotate");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = force->numeric(FLERR,arg[next]);
+      double massone = utils::numeric(FLERR,arg[next],false,lmp);
       if (massone == 0.0)
         error->all(FLERR,"Invalid atom mass for fix filter/corotate");
       if (nmass == atom->ntypes)
@@ -154,22 +149,22 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   angle_distance = new double[atom->nangletypes+1];
 
   //grow_arrays
-  array_atom = NULL;
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
+  array_atom = nullptr;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);    //calls grow_arrays
+  atom->add_callback(Atom::GROW);    //calls grow_arrays
 
-  x_store = NULL;
+  x_store = nullptr;
 
   //STUFF
-  g = NULL;
-  help2 = NULL;
+  g = nullptr;
+  help2 = nullptr;
 
-  dn1dx = dn2dx = dn3dx = NULL;
-  n1 = n2 = n3 = del1 = del2 = del3 = NULL;
+  dn1dx = dn2dx = dn3dx = nullptr;
+  n1 = n2 = n3 = del1 = del2 = del3 = nullptr;
 
   memory->grow(help2,15,15,"FilterCorotate:help2");
   memory->grow(n1,3,"FilterCorotate:n1");
@@ -193,11 +188,11 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   // initialize list of clusters to constrain
 
   maxlist = 0;
-  list = NULL;
-  clist_derv = NULL;
-  clist_q0 = NULL;    //list for derivative and ref. config
-  clist_nselect1 = clist_nselect2 = NULL;
-  clist_select1 = clist_select2 = NULL;
+  list = nullptr;
+  clist_derv = nullptr;
+  clist_q0 = nullptr;    //list for derivative and ref. config
+  clist_nselect1 = clist_nselect2 = nullptr;
+  clist_select1 = clist_select2 = nullptr;
 
 }
 
@@ -217,8 +212,7 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,2);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -290,7 +284,7 @@ void FixFilterCorotate::init()
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for fix filter/corotate");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -592,14 +586,13 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum) != 1)
         error->all(FLERR,"Wrong orientation in cluster of size 4"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
 
-    } else if (N == 5)
-    {
+    } else if (N == 5) {
       oxy = atom->map(shake_atom[m][0]);
       atom1 = atom->map(shake_atom[m][1]);
       atom2 = atom->map(shake_atom[m][2]);
@@ -666,14 +659,12 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum)!= 1)
         error->all(FLERR,"Wrong orientation in cluster of size 5"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
-    }
-    else
-    {
+    } else {
       error->all(FLERR,"Fix filter/corotate cluster with size > 5"
         "not yet configured...");
     }
@@ -1234,7 +1225,7 @@ void FixFilterCorotate::find_clusters()
 
   // cycle buffer around ring of procs back to self
 
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,nullptr,(void *)this);
 
   memory->destroy(buf);
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,12 +20,10 @@
          the contact history for friction forces.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_body_rounded_polyhedron.h"
-#include "math_extra.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
@@ -40,8 +38,8 @@
 #include "math_extra.h"
 #include "math_const.h"
 
+
 using namespace LAMMPS_NS;
-using namespace MathExtra;
 using namespace MathConst;
 
 #define DELTA 10000
@@ -60,20 +58,20 @@ enum {EF_INVALID=0,EF_NONE,EF_PARALLEL,EF_SAME_SIDE_OF_FACE,
 PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
   facmax = facnummax = 0;
-  face = NULL;
-  facnum = facfirst = NULL;
+  face = nullptr;
+  facnum = facfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
-  maxerad = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
+  maxerad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -83,8 +81,8 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
   mu = 0.0;
   A_ua = 1.0;
 
-  k_n = NULL;
-  k_na = NULL;
+  k_n = nullptr;
+  k_na = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,8 +125,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -275,7 +272,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
         continue;
       }
 
-      int interact, num_contacts;
+      int num_contacts;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
@@ -283,23 +280,23 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       // check interaction between i's edges and j' faces
       #ifdef _POLYHEDRON_DEBUG
       printf("INTERACTION between edges of %d vs. faces of %d:\n", i, j);
-      #endif 
-      interact = edge_against_face(i, j, itype, jtype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      #endif
+      edge_against_face(i, j, itype, jtype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // check interaction between j's edges and i' faces
       #ifdef _POLYHEDRON_DEBUG
       printf("\nINTERACTION between edges of %d vs. faces of %d:\n", j, i);
       #endif
-      interact = edge_against_face(j, i, jtype, itype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      edge_against_face(j, i, jtype, itype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // check interaction between i's edges and j' edges
       #ifdef _POLYHEDRON_DEBUG
       printf("INTERACTION between edges of %d vs. edges of %d:\n", i, j);
-      #endif 
-      interact = edge_against_edge(i, j, itype, jtype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      #endif
+      edge_against_edge(i, j, itype, jtype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // estimate the contact area
       // also consider point contacts and line contacts
@@ -347,11 +344,11 @@ void PairBodyRoundedPolyhedron::settings(int narg, char **arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal pair_style command");
 
-  c_n = force->numeric(FLERR,arg[0]);
-  c_t = force->numeric(FLERR,arg[1]);
-  mu = force->numeric(FLERR,arg[2]);
-  A_ua = force->numeric(FLERR,arg[3]);
-  cut_inner = force->numeric(FLERR,arg[4]);
+  c_n = utils::numeric(FLERR,arg[0],false,lmp);
+  c_t = utils::numeric(FLERR,arg[1],false,lmp);
+  mu = utils::numeric(FLERR,arg[2],false,lmp);
+  A_ua = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_inner = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (A_ua < 0) A_ua = 1;
 }
@@ -367,11 +364,11 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double k_n_one = force->numeric(FLERR,arg[2]);
-  double k_na_one = force->numeric(FLERR,arg[3]);
+  double k_n_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_na_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -443,7 +440,7 @@ void PairBodyRoundedPolyhedron::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = facnum[i] = 0;
 
-  double *merad = NULL;
+  double *merad = nullptr;
   memory->create(merad,ntypes+1,"pair:merad");
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
@@ -478,7 +475,7 @@ void PairBodyRoundedPolyhedron::init_style()
       if (dnum[i] == 0) body2space(i);
       eradi = enclosing_radius[i];
       if (eradi > merad[itype]) merad[itype] = eradi;
-    } else 
+    } else
       merad[itype] = 0;
   }
 
@@ -630,7 +627,7 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
     vr3 = v[ibody][2] - v[jbody][2];
 
     // normal component
-    
+
     rsqinv = 1.0/rsq;
     vnnr = vr1*delx + vr2*dely + vr3*delz;
     vn1 = delx*vnnr * rsqinv;
@@ -664,7 +661,7 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
   f[ibody][0] += fx;
   f[ibody][1] += fy;
   f[ibody][2] += fz;
-  
+
   if (newton_pair || jbody < nlocal) {
     f[jbody][0] -= fx;
     f[jbody][1] -= fy;
@@ -797,7 +794,7 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
       fn[1] = -c_n * vn2;
       fn[2] = -c_n * vn3;
 
-      // tangential friction term at contact, 
+      // tangential friction term at contact,
       // excluding the tangential deformation term
 
       ft[0] = -c_t * vt1;
@@ -873,7 +870,7 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
     xi3[2] = x[ibody][2] + discrete[ifirst+npi3][2];
 
     // find the normal unit vector of the face
-  
+
     MathExtra::sub3(xi2, xi1, ui);
     MathExtra::sub3(xi3, xi1, vi);
     MathExtra::cross3(ui, vi, n);
@@ -887,7 +884,7 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 
     project_pt_plane(x[jbody], xi1, xi2, xi3, h, d, inside);
 
-    inside_polygon(ibody, ni, x[ibody], h, NULL, inside, tmp);
+    inside_polygon(ibody, ni, x[ibody], h, nullptr, inside, tmp);
     if (inside == 0) continue;
 
     delx = h[0] - x[jbody][0];
@@ -1076,7 +1073,7 @@ int PairBodyRoundedPolyhedron::edge_against_face(int ibody, int jbody,
                                           itype, jtype, cut_inner,
                                           contact_list, num_contacts,
                                           energy, facc);
-    } 
+    }
 
   } // end for looping through the edges of body i
 
@@ -1171,7 +1168,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
   printf("  edge npi1 = %d (%f %f %f); npi2 = %d (%f %f %f) vs."
          "  edge npj1 = %d (%f %f %f); npj2 = %d (%f %f %f): "
          "t1 = %f; t2 = %f; r = %f; dot = %f\n",
-    npi1, xi1[0], xi1[1], xi1[2], npi2, xi2[0], xi2[1], xi2[2], 
+    npi1, xi1[0], xi1[1], xi1[2], npi2, xi2[0], xi2[1], xi2[2],
     npj1, xpj1[0], xpj1[1], xpj1[2], npj2, xpj2[0], xpj2[1], xpj2[2],
     t1, t2, r, dot);
   #endif
@@ -1276,7 +1273,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
   xi3[2] = xmi[2] + discrete[ifirst+npi3][2];
 
   // find the normal unit vector of the face, ensure it point outward of the body
-  
+
   MathExtra::sub3(xi2, xi1, ui);
   MathExtra::sub3(xi3, xi1, vi);
   MathExtra::cross3(ui, vi, n);
@@ -1305,7 +1302,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
   xpj2[1] = xmj[1] + discrete[jfirst+npj2][1];
   xpj2[2] = xmj[2] + discrete[jfirst+npj2][2];
 
-  // no interaction if two ends of the edge 
+  // no interaction if two ends of the edge
   // are on the same side with the COM wrt the face
 
   if (opposite_sides(n, xi1, xmi, xpj1) == 0 &&
@@ -1340,9 +1337,9 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
     int jflag = 1;
 
     #ifdef _POLYHEDRON_DEBUG
-    if (interact == EF_SAME_SIDE_OF_FACE) 
+    if (interact == EF_SAME_SIDE_OF_FACE)
       printf(" - same side of face\n");
-    else if (interact == EF_PARALLEL) 
+    else if (interact == EF_PARALLEL)
       printf(" - parallel\n");
     printf("     face: xi1 (%f %f %f) xi2 (%f %f %f) xi3 (%f %f %f)\n",
       xi1[0], xi1[1], xi1[2], xi2[0], xi2[1], xi2[2], xi3[0], xi3[1], xi3[2]);
@@ -1387,9 +1384,9 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
       } else {
         num_outside++;
       }
-    } 
+    }
 
-    // xpj2 is in the interaction zone 
+    // xpj2 is in the interaction zone
     // and its projection on the face is inside the triangle
     // compute vertex-face interaction and accumulate force/torque to both bodies
 
@@ -1401,7 +1398,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
                                 jflag, energy, facc);
           #ifdef _POLYHEDRON_DEBUG
           printf(" - compute pair force between vertex %d from edge %d of body %d "
-                 "with face %d of body %d: d2 = %f\n", 
+                 "with face %d of body %d: d2 = %f\n",
                  npj2, edge_index, jbody, face_index, ibody, d2);
           #endif
 
@@ -1448,7 +1445,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
     // compute interaction between the edge with the three edges of the face
 
     #ifdef _POLYHEDRON_DEBUG
-    printf(" - intersect outside triangle\n"); 
+    printf(" - intersect outside triangle\n");
     printf(" - compute pair force between edge %d of body %d "
            "with face %d of body %d\n", edge_index, jbody, face_index, ibody);
     printf("     face: xi1 (%f %f %f) xi2 (%f %f %f) xi3 (%f %f %f)\n",
@@ -1693,7 +1690,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     xc[0] /= (double)num_unique_contacts;
     xc[1] /= (double)num_unique_contacts;
     xc[2] /= (double)num_unique_contacts;
-    
+
     contact_area = 0.0;
     for (int m = 0; m < num_contacts; m++) {
       if (contact_list[m].unique == 0) continue;
@@ -1847,12 +1844,12 @@ int PairBodyRoundedPolyhedron::edge_face_intersect(double* x1, double* x2,
   if (t < 0 || t > 1) {
     interact = EF_SAME_SIDE_OF_FACE;
   } else {
-    if (inside == 1) 
+    if (inside == 1)
       interact = EF_INTERSECT_INSIDE;
     else
       interact = EF_INTERSECT_OUTSIDE;
   }
-  
+
   return interact;
 }
 
@@ -1883,7 +1880,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
     face_index  = face index of the body
     xmi         = atom i's coordinates
     q1          = tested point on the face (e.g. the projection of a point)
-    q2          = another point (can be NULL) for face-edge intersection
+    q2          = another point (can be a null pointer) for face-edge intersection
   Output:
     inside1     = 1 if q1 is inside the polygon, 0 otherwise
     inside2     = 1 if q2 is inside the polygon, 0 otherwise
@@ -1932,7 +1929,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
       anglesum1 += acos(costheta);
     }
 
-    if (q2 != NULL) {
+    if (q2 != nullptr) {
       MathExtra::sub3(xi1,q2,u);
       MathExtra::sub3(xi2,q2,v);
       magu = MathExtra::len3(u);
@@ -1948,7 +1945,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
   if (fabs(anglesum1 - MY_2PI) < EPSILON) inside1 = 1;
   else inside1 = 0;
 
-  if (q2 != NULL) {
+  if (q2 != nullptr) {
     if (fabs(anglesum2 - MY_2PI) < EPSILON) inside2 = 1;
     else inside2 = 0;
   }
@@ -1998,7 +1995,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
   q_proj[2] = q[2] + n[2] * t;
 
   // check if the projection point is inside the triangle
-  // exclude the edges and vertices 
+  // exclude the edges and vertices
   // edge-sphere and sphere-sphere interactions are handled separately
 
   inside = 0;
@@ -2022,7 +2019,7 @@ void PairBodyRoundedPolyhedron::project_pt_line(const double* q,
   MathExtra::sub3(xi2, xi1, u);
   MathExtra::norm3(u);
   MathExtra::sub3(q, xi1, v);
-  
+
   s = MathExtra::dot3(u, v);
   h[0] = xi1[0] + s * u[0];
   h[1] = xi1[1] + s * u[1];
@@ -2039,13 +2036,13 @@ void PairBodyRoundedPolyhedron::project_pt_line(const double* q,
     t = (h[2] - xi1[2])/(xi2[2] - xi1[2]);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   compute the shortest distance between two edges (line segments)
   x1, x2: two endpoints of the first edge
   x3, x4: two endpoints of the second edge
-  h1: the end point of the shortest segment perpendicular to both edges 
+  h1: the end point of the shortest segment perpendicular to both edges
       on the line (x1;x2)
-  h2: the end point of the shortest segment perpendicular to both edges 
+  h2: the end point of the shortest segment perpendicular to both edges
       on the line (x3;x4)
   t1: fraction of h1 in the segment (x1,x2)
   t2: fraction of h2 in the segment (x3,x4)
@@ -2080,7 +2077,7 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
     double s1,s2,x13[3],x23[3],x13h[3];
     double t13,t23,t31,t41,x31[3],x41[3];
     t13=t23=t31=t41=0.0;
-    
+
     MathExtra::sub3(x1,x3,x13); // x13 = x1 - x3
     MathExtra::sub3(x2,x3,x23); // x23 = x2 - x3
 
@@ -2089,7 +2086,7 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
     x13h[1] = x13[1] - s1*v[1];
     x13h[2] = x13[2] - s1*v[2];
     r = MathExtra::len3(x13h);
-    
+
     // x13 is the projection of x1 on x3-x4
 
     x13[0] = x3[0] + s1*v[0];
@@ -2102,7 +2099,7 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
     x23[0] = x3[0] + s2*v[0];
     x23[1] = x3[1] + s2*v[1];
     x23[2] = x3[2] + s2*v[2];
-    
+
     // find the fraction of the projection points on the edges
 
     if (fabs(x4[0] - x3[0]) > 0)
@@ -2177,8 +2174,8 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
         h1[0] = (x1[0]+x2[0])/2;
         h1[1] = (x1[1]+x2[1])/2;
         h1[2] = (x1[2]+x2[2])/2;
-        h2[0] = (x13[0]+x23[0])/2; 
-        h2[1] = (x13[1]+x23[1])/2; 
+        h2[0] = (x13[0]+x23[0])/2;
+        h2[1] = (x13[1]+x23[1])/2;
         h2[2] = (x13[2]+x23[2])/2;
         t1 = 0.5;
         t2 = (t13+t23)/2;
@@ -2216,8 +2213,8 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
           h1[0] = (x31[0]+x41[0])/2;
           h1[1] = (x31[1]+x41[1])/2;
           h1[2] = (x31[2]+x41[2])/2;
-          h2[0] = (x3[0]+x4[0])/2; 
-          h2[1] = (x3[1]+x4[1])/2; 
+          h2[0] = (x3[0]+x4[0])/2;
+          h2[1] = (x3[1]+x4[1])/2;
           h2[2] = (x3[2]+x4[2])/2;
           t1 = (t31+t41)/2;
           t2 = 0.5;
@@ -2225,7 +2222,7 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
           n2++;
         }
       }
-    }   
+    }
 
     // if n1 == 0 and n2 == 0 at this point,
     // which means no overlapping segments bt two parallel edges,
@@ -2233,10 +2230,10 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
 
     return;
 
-  } 
+  }
 
   // find the vector n perpendicular to both edges
- 
+
   MathExtra::cross3(u, v, n);
   MathExtra::norm3(n);
 
@@ -2326,7 +2323,7 @@ double PairBodyRoundedPolyhedron::contact_separation(const Contact& c1,
    find the number of unique contacts
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list, 
+void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list,
                                                      int& num_contacts)
 {
   int n = num_contacts;
@@ -2345,13 +2342,11 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list,
 void PairBodyRoundedPolyhedron::sanity_check()
 {
 
-  double x1[3],x2[3],x3[3],x4[3],h_a[3],h_b[3],d_a,d_b;
+  double x1[3],x2[3],h_a[3],h_b[3],d_a,d_b;
   double a[3],b[3],t_a,t_b;
 
   x1[0] = 0; x1[1] = 3; x1[2] = 0;
   x2[0] = 3; x2[1] = 0; x2[2] = 0;
-  x3[0] = 4; x3[1] = 3; x3[2] = 0;
-  x4[0] = 5; x4[1] = 3; x4[2] = 0;
 
   a[0] = 0; a[1] = 0; a[2] = 0;
   b[0] = 4; b[1] = 0; b[2] = 0;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +16,10 @@
         Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "dump_cfg.h"
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "fix.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
 
@@ -40,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), auxname(NULL)
+  DumpCustom(lmp, narg, arg), auxname(nullptr)
 {
   multifile_override = 0;
 
@@ -71,7 +63,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
   if (nfield > 5) auxname = new char*[nfield];
-  else auxname = NULL;
+  else auxname = nullptr;
 
   int i = 0;
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
@@ -134,9 +126,7 @@ void DumpCFG::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  char str[64];
-  sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-  fprintf(fp,str,n);
+  fprintf(fp,"Number of particles = " BIGINT_FORMAT "\n", n);
   fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
   fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
   fprintf(fp,"H0(1,2) = 0 A \n");

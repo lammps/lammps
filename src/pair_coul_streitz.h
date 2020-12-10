@@ -36,6 +36,8 @@ class PairCoulStreitz : public Pair {
   double memory_usage();
   virtual void *extract(const char *, int &);
 
+  static const int NPARAMS_PER_LINE = 6;
+
  protected:
   struct Param {
     double chi, eta, gamma, zeta, zcore;
@@ -55,7 +57,6 @@ class PairCoulStreitz : public Pair {
   // Kspace parameters
   int kspacetype;
   double cut_coul, cut_coulsq;
-  double *cut_respa;
   double **scale;
 
   // Wolf

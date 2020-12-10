@@ -122,11 +122,8 @@
 # define PAIRHASH_H
 
 /*e @file pairhash.h @brief pair hash table
-*/ 
+*/
 
-
-/*r @file pairhash.h @brief работа с хеш-таблицами парных величин 
-*/ 
 
 # include "refobj.h"
 
@@ -146,10 +143,10 @@ public:
       incr=inc_first ? parent->sizex : 1 ;
     };
     iterator(T *ptr_,size_t incr_):ptr(ptr_),incr(incr_){}
-  public: 
+  public:
     iterator(const iterator &other):ptr(other.ptr),incr(other.incr){
     }
-    iterator():ptr(NULL),incr(0){}
+    iterator():ptr(nullptr),incr(0){}
     iterator &operator++(){ // prefix
       ptr+=incr;
       return *this;
@@ -159,7 +156,7 @@ public:
       ++*this;
       return tmp;
     }
-    iterator operator+(int delta) const { 
+    iterator operator+(int delta) const {
       return iterator(ptr+delta*incr,incr);
     }
     bool operator!=(const iterator &other) const {
@@ -176,13 +173,13 @@ public:
   size_t sizex, sizey;
 
   //e default constructor
-  recmatrix(): parr(NULL,1) {
+  recmatrix(): parr(nullptr,1) {
     sizey=sizex=0;
-    arr=NULL;
+    arr=nullptr;
   }
 
   //e copy constructor: makes a managed copy
-  recmatrix(const recmatrix &other):sizex(0),sizey(0),arr(NULL){
+  recmatrix(const recmatrix &other):sizex(0),sizey(0),arr(nullptr){
     *this=other;
   }
 
@@ -194,7 +191,7 @@ public:
         init(other.sizex,other.sizey,1);
       size_t n=get_datasize(sizex,sizey);
       for(size_t i=0;i<n;i++)
-        arr[i]=other.arr[i];  
+        arr[i]=other.arr[i];
     }
     return *this;
   }
@@ -224,8 +221,8 @@ public:
 
   virtual int init(size_t nx, size_t ny, int smanaged=-1){
     int managed=parr.managed();
-    if(managed && (sizex!=nx || sizey!=ny)){  
-      parr.reset(NULL,0);
+    if(managed && (sizex!=nx || sizey!=ny)){
+      parr.reset(nullptr,0);
     }
     if(smanaged>=0){ // for changing the managed flag?
       parr.reset(parr.ptr(),smanaged ? smanaged|0x8 : 0  );
@@ -241,14 +238,14 @@ public:
       arr=parr.ptr();
     }
     return 1;
-  } 
+  }
 
-  recmatrix(size_t nx, size_t ny):sizex(0), sizey(0){ 
+  recmatrix(size_t nx, size_t ny):sizex(0), sizey(0){
     init(nx,ny,1);
   }
 
   //e initializes by unmanaged pointer
-  recmatrix(size_t nx, size_t ny , T *ptr):parr(ptr,0),sizex(nx), sizey(ny) { 
+  recmatrix(size_t nx, size_t ny , T *ptr):parr(ptr,0),sizex(nx), sizey(ny) {
     init(nx,ny);
   }
 
@@ -264,14 +261,14 @@ public:
     size_t i, n=get_datasize(sizex,sizey);
     for(i=0;i<n;i++)arr[i]=val;
   }
-  
+
   void SetDiag(const T &val){
     size_t i, size=(sizex>sizey? sizey: sizex);
     for(i=0;i<size;i++){
       (*this)(i,i)=val;
     }
   }
- 
+
   /// returns iterator with fixed first index to iterate through matrix line elements
   iterator fix_first(size_t first, size_t second) const {
     return iterator(this,first,second,false);
@@ -281,14 +278,14 @@ public:
   iterator fix_second(size_t first, size_t second) const {
     return iterator(this,first,second, true);
   }
- 
+
 };
 
 
 //e square matrix
 template <class T>
 class sqmatrix: public recmatrix<T> {
-  
+
 public:
 
   size_t size;
@@ -313,18 +310,18 @@ public:
     return n*n;
   }
 
- 
+
   virtual int init(size_t n, int smanaged=-1){
     size=n;
     return recmatrix<T>::init(n,n,smanaged);
-  } 
+  }
 
-  sqmatrix(size_t n):size(0){ 
+  sqmatrix(size_t n):size(0){
     init(n,1);
   }
 
   //e initializes by unmanaged pointer
-  sqmatrix(size_t n, T *ptr):size(n){ 
+  sqmatrix(size_t n, T * /* ptr */):size(n){
     init(n);
   }
 
@@ -335,7 +332,7 @@ public:
     recmatrix<T>::parr.reset(ptr,0);
   }
 
- 
+
 };
 
 
@@ -355,10 +352,10 @@ public:
       incr=inc_first ? parent->size : 1 ;
     };
     iterator(T *ptr_,size_t incr_):ptr(ptr_),incr(incr_){}
-  public: 
+  public:
     iterator(const iterator &other):ptr(other.ptr),incr(other.incr){
     }
-    iterator():ptr(NULL),incr(0){}
+    iterator():ptr(nullptr),incr(0){}
     iterator &operator++(){ // prefix
       ptr+=incr;
       return *this;
@@ -368,7 +365,7 @@ public:
       ++*this;
       return tmp;
     }
-    iterator operator+(int delta) const { 
+    iterator operator+(int delta) const {
       return iterator(ptr+delta*incr,incr);
     }
     bool operator!=(const iterator &other) const {
@@ -385,13 +382,13 @@ public:
   size_t size;
 
   //e default constructor
-  sqmatrix(): parr(NULL,1) {
+  sqmatrix(): parr(nullptr,1) {
     size=0;
-    arr=NULL;
+    arr=nullptr;
   }
 
   //e copy constructor: makes a managed copy
-  sqmatrix(const sqmatrix &other):size(0),arr(NULL){
+  sqmatrix(const sqmatrix &other):size(0),arr(nullptr){
     *this=other;
   }
 
@@ -403,7 +400,7 @@ public:
         init(other.size,1);
       size_t n=get_datasize(size);
       for(size_t i=0;i<n;i++)
-        arr[i]=other.arr[i];  
+        arr[i]=other.arr[i];
     }
     return *this;
   }
@@ -432,8 +429,8 @@ public:
 
   virtual int init(size_t n, int smanaged=-1){
     int managed=parr.managed();
-    if(managed && size!=n){  
-      parr.reset(NULL,0);
+    if(managed && size!=n){
+      parr.reset(nullptr,0);
     }
     if(smanaged>=0){ // for changing the managed flag?
       parr.reset(parr.ptr(),smanaged ? smanaged|0x8 : 0  );
@@ -448,14 +445,14 @@ public:
       arr=parr.ptr();
     }
     return 1;
-  } 
+  }
 
-  sqmatrix(size_t n):size(0){ 
+  sqmatrix(size_t n):size(0){
     init(n,1);
   }
 
   //e initializes by unmanaged pointer
-  sqmatrix(size_t n, T *ptr):parr(ptr,0),size(n){ 
+  sqmatrix(size_t n, T *ptr):parr(ptr,0),size(n){
     init(n);
   }
 
@@ -470,14 +467,14 @@ public:
     size_t i, n=get_datasize(size);
     for(i=0;i<n;i++)arr[i]=val;
   }
-  
+
   void SetDiag(const T &val){
     size_t i;
     for(i=0;i<size;i++){
       (*this)(i,i)=val;
     }
   }
- 
+
   /// returns iterator with fixed first index to iterate through matrix line elements
   iterator fix_first(size_t first, size_t second) const {
     return iterator(this,first,second,false);
@@ -487,15 +484,15 @@ public:
   iterator fix_second(size_t first, size_t second) const {
     return iterator(this,first,second, true);
   }
- 
+
 };
 
-# endif 
+# endif
 
  //e prints the matrix into a file
 template< class matrix_t>
 int fileout(FILE *f, const matrix_t &matr, const char *elm_fmt, const char *elm_sep=" ", const char *line_sep="\n"){
-  size_t i, j; 
+  size_t i, j;
   int res=0;
   for(i=0;i<matr.size;i++){
     for(j=0;j<matr.size;j++){
@@ -513,15 +510,15 @@ template <class T>
 class smatrix: public sqmatrix<T>{
   typedef  sqmatrix<T> base_t;
 public:
- 
+
   virtual size_t get_datasize(size_t n) const{
     return n*(n+1)/2;
   }
-  
+
   size_t index(size_t i, size_t j) const {
     if(i>=j)
       return (2*base_t::size-j-1)*j/2+i;
-    else 
+    else
       return (2*base_t::size-i-1)*i/2+j;
   }
 
@@ -572,7 +569,7 @@ public:
   hmatrix() : smatrix<T>() {}
 
   hmatrix(const smatrix<T> &other) : smatrix<T>(other) {}
-  
+
   //e copy constructor: makes a managed copy
   hmatrix(const hmatrix &other): smatrix<T>(other){}
 
@@ -603,9 +600,9 @@ class PairHash{
 public:
   //e find the value with indexes i, j
   //e @return 0 if not found, 1 otherwise
-  //e if retval is not NULL, puts the found value there
-  virtual int Find(long i, long j, T *retval=NULL)=0;
-  virtual int Find(long i, long j, T **retval=NULL)=0;
+  //e if retval is not a null pointer, puts the found value there
+  virtual int Find(long i, long j, T *retval=nullptr)=0;
+  virtual int Find(long i, long j, T **retval=nullptr)=0;
   virtual int Del(long i, long j)=0;
   virtual int Put(long i, long j, const T *value)=0;
   virtual int Put(long i, long j, const T& value)=0;
@@ -624,7 +621,7 @@ public:
     indm.Set(-1);
     arr= new T[n*(n+1)/2];
   }
-  int Find(long i, long j, T *retval=NULL){
+  int Find(long i, long j, T *retval=nullptr){
     long ind=indm(i,j);
     if(ind>=0){
       if(retval){
@@ -671,7 +668,7 @@ public:
     indm.Set(-1);
     return 1;
   }
-  
+
   virtual ~PairHashM(){
     delete [] arr;
   }

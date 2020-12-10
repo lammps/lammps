@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,23 +15,26 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_table.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
 
+#include "tokenizer.h"
+#include "table_file_reader.h"
+
+
 using namespace LAMMPS_NS;
 
 enum{NONE,LINEAR,SPLINE};
 
-#define MAXLINE 1024
 #define BIGNUM 1.0e300
 
 /* ---------------------------------------------------------------------- */
@@ -40,7 +43,7 @@ BondTable::BondTable(LAMMPS *lmp) : Bond(lmp)
 {
   writedata = 0;
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,8 +70,7 @@ void BondTable::compute(int eflag, int vflag)
   double u,mdu;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -140,7 +142,7 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of bond table entries");
 
   // delete old tables, since cannot just change settings
@@ -155,7 +157,7 @@ void BondTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -168,7 +170,7 @@ void BondTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -222,8 +224,7 @@ double BondTable::equilibrium_distance(int i)
 
 void BondTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -232,14 +233,32 @@ void BondTable::write_restart(FILE *fp)
 
 void BondTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void BondTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void BondTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -259,10 +278,10 @@ double BondTable::single(int type, double rsq, int /*i*/, int /*j*/,
 
 void BondTable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->r = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->rfile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->r = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -290,37 +309,19 @@ void BondTable::free_table(Table *tb)
 
 void BondTable::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  TableFileReader reader(lmp, file, "bond");
   double emin = BIGNUM;
 
-  // open file
+  char * line = reader.find_section_start(keyword);
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
-
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
-    param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+  if (!line) {
+    error->one(FLERR,"Did not find keyword in table file");
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  line = reader.next_line();
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"bond:rfile");
   memory->create(tb->efile,tb->ninput,"bond:efile");
@@ -328,22 +329,27 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   // read r,e,f table values from file
 
-  int itmp;
   int cerror = 0;
   int r0idx = -1;
 
-  fgets(line,MAXLINE,fp);
+  reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    if (NULL == fgets(line,MAXLINE,fp))
-      error->one(FLERR,"Premature end of file in bond table");
-    if (4 != sscanf(line,"%d %lg %lg %lg",
-                    &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
+    line = reader.next_line(4);
+    try {
+      ValueTokenizer values(line);
+      values.next_int();
+      tb->rfile[i] = values.next_double();
+      tb->efile[i] = values.next_double();
+      tb->ffile[i] = values.next_double();
+    } catch (TokenizerException &e) {
+      ++cerror;
+    }
+
     if (tb->efile[i] < emin) {
       emin = tb->efile[i];
       r0idx = i;
     }
   }
-  fclose(fp);
 
   // infer r0 from minimum of potential, if not given explicitly
 
@@ -369,24 +375,18 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     fright = - (enext-e) / (rnext-r);
     if (f < fleft && f < fright) ferror++;
     if (f > fleft && f > fright) ferror++;
-    //printf("Values %d: %g %g %g\n",i,r,e,f);
-    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
   }
 
   if (ferror) {
-    char str[128];
-    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
-            "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR,str);
+    error->warning(FLERR, fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
+                                      "  Should only be flagged at inflection points",ferror,tb->ninput));
   }
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
-    char str[128];
-    sprintf(str,"%d of %d lines in table were incomplete or could not be"
-            " parsed completely",cerror,tb->ninput);
-    error->warning(FLERR,str);
+    error->warning(FLERR, fmt::format("{} of {} lines in table were incomplete or could not be"
+                                      " parsed completely",cerror,tb->ninput));
   }
 }
 
@@ -473,24 +473,26 @@ void BondTable::param_extract(Table *tb, char *line)
   tb->fpflag = 0;
   tb->r0 = 0.0;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
-    } else if (strcmp(word,"FP") == 0) {
-      tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
-      tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->fphi = atof(word);
-    } else if (strcmp(word,"EQ") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->r0 = atof(word);
-    } else {
-      error->one(FLERR,"Invalid keyword in bond table parameters");
+  try {
+    ValueTokenizer values(line);
+
+    while (values.has_next()) {
+      std::string word = values.next_string();
+
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      } else if (word == "FP") {
+        tb->fpflag = 1;
+        tb->fplo = values.next_double();
+        tb->fphi = values.next_double();
+      } else if (word == "EQ") {
+        tb->r0 = values.next_double();
+      } else {
+        error->one(FLERR,"Invalid keyword in bond table parameters");
+      }
     }
-    word = strtok(NULL," \t\n\r\f");
+  } catch(TokenizerException &e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Bond table parameters did not set N");
@@ -505,7 +507,7 @@ void BondTable::param_extract(Table *tb, char *line)
 void BondTable::bcast_table(Table *tb)
 {
   MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
+  MPI_Bcast(&tb->r0,1,MPI_DOUBLE,0,world);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -524,7 +526,6 @@ void BondTable::bcast_table(Table *tb)
     MPI_Bcast(&tb->fplo,1,MPI_DOUBLE,0,world);
     MPI_Bcast(&tb->fphi,1,MPI_DOUBLE,0,world);
   }
-  MPI_Bcast(&tb->r0,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -622,45 +623,6 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
       tb->deltasq6;
     f = a * tb->f[itable] + b * tb->f[itable+1] +
       ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-      tb->deltasq6;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   calculate potential u at distance x
-   insure x is between bond min/max
-------------------------------------------------------------------------- */
-
-void BondTable::u_lookup(int type, double x, double &u)
-{
-  if (!std::isfinite(x)) {
-    error->one(FLERR,"Illegal bond in bond style table");
-  }
-
-  double fraction,a,b;
-  char estr[128];
-  const Table *tb = &tables[tabindex[type]];
-  const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
-  if (itable < 0) {
-    sprintf(estr,"Bond length < table inner cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  } else if (itable >= tablength) {
-    sprintf(estr,"Bond length > table outer cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  }
-
-  if (tabstyle == LINEAR) {
-    fraction = (x - tb->r[itable]) * tb->invdelta;
-    u = tb->e[itable] + fraction*tb->de[itable];
-  } else if (tabstyle == SPLINE) {
-    fraction = (x - tb->r[itable]) * tb->invdelta;
-
-    b = (x - tb->r[itable]) * tb->invdelta;
-    a = 1.0 - b;
-    u = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
       tb->deltasq6;
   }
 }

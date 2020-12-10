@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,13 +17,11 @@
                          Dave Heine (Corning), polydispersity
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lubricate_poly.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -33,8 +31,6 @@
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "memory.h"
-#include "random_mars.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
@@ -72,8 +68,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
   double vxmu2f = force->vxmu2f;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -473,7 +468,7 @@ void PairLubricatePoly::init_style()
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
-    if (strstr(modify->fix[i]->style,"wall") != NULL) {
+    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with "
@@ -483,7 +478,7 @@ void PairLubricatePoly::init_style()
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
 
-    if (strstr(modify->fix[i]->style,"wall") != NULL){
+    if (strstr(modify->fix[i]->style,"wall") != nullptr){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->xflag ) {
         flagwall = 2; // Moving walls exist

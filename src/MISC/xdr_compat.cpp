@@ -1,7 +1,6 @@
-#include <cstdlib>
-#include <climits>
-#include <cstring>
 #include "xdr_compat.h"
+#include <cstdlib>
+#include <cstring>
 
 /* This file is needed for systems, that do not provide XDR support
  * in their system libraries. It was written for windows, but will
@@ -70,7 +69,7 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
 static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -82,7 +81,7 @@ static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 static xdr_uint32_t xdr_ntohl(xdr_uint32_t x)
 {
   short s=0x0F00;
-  if( *((char *)&s)==(char)0x0F) {
+  if (*((char *)&s)==(char)0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -353,7 +352,7 @@ xdr_opaque (XDR *xdrs, char *cp, unsigned int cnt)
 /*
  * XDR null terminated ASCII strings
  * xdr_string deals with "C strings" - arrays of bytes that are
- * terminated by a NULL character.  The parameter cpp references a
+ * terminated by a nullptr character.  The parameter cpp references a
  * pointer to storage; If the pointer is null, then the necessary
  * storage is allocated.  The last parameter is the max allowed length
  * of the string as specified by a protocol.
@@ -371,13 +370,13 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
   switch (xdrs->x_op)
     {
     case XDR_FREE:
-      if (sp == NULL)
+      if (sp == nullptr)
         {
           return TRUE;                /* already free */
         }
       /* fall through... */
     case XDR_ENCODE:
-      if (sp == NULL)
+      if (sp == nullptr)
             return FALSE;
       size = strlen (sp);
       break;
@@ -405,9 +404,9 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
         {
           return TRUE;
         }
-      if (sp == NULL)
+      if (sp == nullptr)
         *cpp = sp = (char *) malloc (nodesize);
-      if (sp == NULL)
+      if (sp == nullptr)
         {
           (void) fputs ("xdr_string: out of memory\n", stderr);
           return FALSE;
@@ -420,7 +419,7 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
 
     case XDR_FREE:
       free (sp);
-      *cpp = NULL;
+      *cpp = nullptr;
       return TRUE;
     }
   return FALSE;
@@ -661,7 +660,7 @@ xdrstdio_inline (XDR * /*xdrs*/, int /*len*/)
    * most of the gains to be had here and require storage
    * management on this buffer, so we don't do this.
    */
-  return NULL;
+  return nullptr;
 }
 
 static bool_t

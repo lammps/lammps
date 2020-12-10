@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
   class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
  public:
-  PPPMDispTIP4POMP(class LAMMPS *, int, char **);
+  PPPMDispTIP4POMP(class LAMMPS *);
   virtual ~PPPMDispTIP4POMP ();
 
  protected:

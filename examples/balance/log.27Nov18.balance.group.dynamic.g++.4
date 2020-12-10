@@ -1,0 +1,110 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+processors      * 1 1
+
+variable	factor index 1.0
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	3 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+  Time spent = 0.000427008 secs
+mass		* 1.0
+
+region		long block 3 6 0 10 0 10
+set             region long type 2
+  1400 settings made for type
+
+velocity	all create 1.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 4 check yes
+
+group		fast type 1
+2600 atoms in group fast
+group		slow type 2
+1400 atoms in group slow
+balance		1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow ${factor} # out weighted.txt
+balance		1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow 1.0 
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  rebalancing time: 0.000735044 seconds
+  iteration count = 2
+  group weights: fast=1 slow=1
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.6875 1
+  y cuts: 0 1
+  z cuts: 0 1
+fix		0 all balance 10 1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow ${factor}
+fix		0 all balance 10 1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow 1.0
+
+fix		1 all nve
+
+#dump		id all atom 50 dump.melt
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		250
+Per MPI rank memory allocation (min/avg/max) = 3.566 | 3.947 | 4.329 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            1   -6.9453205            0   -5.4456955   -5.6812358    4738.2137 
+      50   0.48653399   -6.1788509            0   -5.4492324   -1.6017778    4738.2137 
+     100   0.53411175    -6.249885            0   -5.4489177   -1.9317606    4738.2137 
+     150   0.53646658   -6.2527206            0   -5.4482219   -1.9689568    4738.2137 
+     200   0.54551611   -6.2656326            0   -5.4475631   -2.0042104    4738.2137 
+     250   0.54677719   -6.2671162            0   -5.4471555   -2.0015995    4738.2137 
+Loop time of 1.48981 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 72492.623 tau/day, 167.807 timesteps/s
+96.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.22803    | 0.67101    | 1.1622     |  43.7 | 45.04
+Neigh   | 0.20611    | 0.2259     | 0.23756    |   2.5 | 15.16
+Comm    | 0.085412   | 0.58198    | 1.045      |  47.7 | 39.06
+Output  | 0.00016332 | 0.00028861 | 0.0006516  |   0.0 |  0.02
+Modify  | 0.0069213  | 0.0070978  | 0.0072331  |   0.1 |  0.48
+Other   |            | 0.003534   |            |       |  0.24
+
+Nlocal:    1000 ave 1001 max 999 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:    8727 ave 8761 max 8674 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+Neighs:    149349 ave 260848 max 51191 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+
+Total # of neighbors = 597396
+Ave neighs/atom = 149.349
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:01

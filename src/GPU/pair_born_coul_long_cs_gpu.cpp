@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
+#include "pair_born_coul_long_cs_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include "pair_born_coul_long_cs_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -36,6 +36,7 @@
 #include "domain.h"
 #include "kspace.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -90,6 +91,7 @@ PairBornCoulLongCSGPU::PairBornCoulLongCSGPU(LAMMPS *lmp) :
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -106,8 +108,7 @@ PairBornCoulLongCSGPU::~PairBornCoulLongCSGPU()
 
 void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -115,9 +116,20 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = bornclcs_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                      atom->type, domain->sublo, domain->subhi,
+                                      atom->type, sublo, subhi,
                                       atom->tag, atom->nspecial, atom->special,
                                       eflag, vflag, eflag_atom, vflag_atom,
                                       host_start, &ilist, &numneigh, cpu_time,
@@ -177,7 +189,7 @@ void PairBornCoulLongCSGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -212,8 +224,8 @@ double PairBornCoulLongCSGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairBornCoulLongCSGPU::cpu_compute(int start, int inum, int eflag,
-                                      int vflag, int *ilist, int *numneigh,
-                                      int **firstneigh)
+                                      int /* vflag */, int *ilist,
+                                      int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itable,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

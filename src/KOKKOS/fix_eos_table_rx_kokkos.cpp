@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,8 +15,6 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_eos_table_rx_kokkos.h"
 #include "atom_kokkos.h"
 #include "error.h"
@@ -24,7 +22,6 @@
 #include "memory_kokkos.h"
 #include "comm.h"
 #include <cmath>
-#include "modify.h"
 #include "atom_masks.h"
 
 #define MAXLINE 1024
@@ -101,7 +98,7 @@ FixEOStableRXKokkos<DeviceType>::~FixEOStableRXKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
+void FixEOStableRXKokkos<DeviceType>::setup(int /*vflag*/)
 {
   if (update_table)
     create_kokkos_tables();
@@ -414,7 +411,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   HAT::t_efloat_1d h_uChem = atomKK->k_uChem.h_view;
@@ -563,7 +560,7 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
 
 namespace LAMMPS_NS {
 template class FixEOStableRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixEOStableRXKokkos<LMPHostType>;
 #endif
 }

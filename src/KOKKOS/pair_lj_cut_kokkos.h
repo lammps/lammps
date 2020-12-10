@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairLJCutKokkos : public PairLJCut {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -48,7 +48,7 @@ class PairLJCutKokkos : public PairLJCut {
     KOKKOS_INLINE_FUNCTION
     params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(int /*i*/){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
 
@@ -65,10 +65,8 @@ class PairLJCutKokkos : public PairLJCut {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
-
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -96,18 +94,15 @@ class PairLJCutKokkos : public PairLJCut {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,false>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,FULL,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALF,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALFTHREAD,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,N2,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJCutKokkos,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJCutKokkos>(PairLJCutKokkos*);
 };

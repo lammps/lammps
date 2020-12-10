@@ -21,7 +21,6 @@ PairStyle(comb,PairComb)
 #define LMP_PAIR_COMB_H
 
 #include "pair.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 
@@ -38,6 +37,8 @@ class PairComb : public Pair {
 
   virtual double yasu_char(double *, int &);
   double enegtot;
+
+  static const int NPARAMS_PER_LINE = 49;
 
  protected:
   struct Param {

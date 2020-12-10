@@ -58,7 +58,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
-       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
+       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o $(OBJ_DIR)/lal_dpd_tstat_ext.o \
        $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
        $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
        $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
@@ -71,7 +71,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_lj_expand_coul_long.o $(OBJ_DIR)/lal_lj_expand_coul_long_ext.o \
        $(OBJ_DIR)/lal_coul_long_cs.o $(OBJ_DIR)/lal_coul_long_cs_ext.o \
        $(OBJ_DIR)/lal_born_coul_long_cs.o $(OBJ_DIR)/lal_born_coul_long_cs_ext.o \
-       $(OBJ_DIR)/lal_born_coul_wolf_cs.o $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o
+       $(OBJ_DIR)/lal_born_coul_wolf_cs.o $(OBJ_DIR)/lal_born_coul_wolf_cs_ext.o \
+       $(OBJ_DIR)/lal_lj_tip4p_long.o $(OBJ_DIR)/lal_lj_tip4p_long_ext.o
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -102,7 +103,8 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_cubic_cl.h $(OBJ_DIR)/vashishta_cl.h \
        $(OBJ_DIR)/ufm_cl.h  $(OBJ_DIR)/dipole_long_lj_cl.h \
        $(OBJ_DIR)/lj_expand_coul_long_cl.h $(OBJ_DIR)/coul_long_cs_cl.h \
-       $(OBJ_DIR)/born_coul_long_cs_cl.h $(OBJ_DIR)/born_coul_wolf_cs_cl.h
+       $(OBJ_DIR)/born_coul_long_cs_cl.h $(OBJ_DIR)/born_coul_wolf_cs_cl.h \
+       $(OBJ_DIR)/lj_tip4p_long_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -201,6 +203,15 @@ $(OBJ_DIR)/lal_lj.o: $(ALL_H) lal_lj.h lal_lj.cpp  $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)
 
 $(OBJ_DIR)/lal_lj_ext.o: $(ALL_H) lal_lj.h lal_lj_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_lj_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_tip4p_long_cl.h: lal_lj_tip4p_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_tip4p_long $(PRE1_H) lal_lj_tip4p_long.cu $(OBJ_DIR)/lj_tip4p_long_cl.h;
+
+$(OBJ_DIR)/lal_lj_tip4p_long.o: $(ALL_H) lal_lj_tip4p_long.h lal_lj_tip4p_long.cpp  $(OBJ_DIR)/lj_tip4p_long_cl.h $(OBJ_DIR)/lj_tip4p_long_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_lj_tip4p_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_tip4p_long_ext.o: $(ALL_H) lal_lj_tip4p_long.h lal_lj_tip4p_long_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_lj_tip4p_long_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_coul_cl.h: lal_lj_coul.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh lj_coul $(PRE1_H) lal_lj_coul.cu $(OBJ_DIR)/lj_coul_cl.h;
@@ -522,6 +533,9 @@ $(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp  $(OBJ_DIR)/dpd_cl.h $(OBJ_
 
 $(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
 	$(OCL) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_tstat_ext.o: $(ALL_H) lal_dpd.h lal_dpd_tstat_ext.cpp lal_base_dpd.h
+	$(OCL) -o $@ -c lal_dpd_tstat_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/tersoff_cl.h: lal_tersoff.cu lal_tersoff_extra.h $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh tersoff $(PRE1_H) lal_tersoff_extra.h lal_tersoff.cu $(OBJ_DIR)/tersoff_cl.h;

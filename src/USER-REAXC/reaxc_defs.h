@@ -75,37 +75,32 @@
 #define MAX_TOKENS          1024
 #define MAX_TOKEN_LEN       1024
 
-#define MAX_ATOM_ID         100000
-#define MAX_RESTRICT        15
-#define MAX_MOLECULE_SIZE   20
-#define MAX_ATOM_TYPES      25
-
 #define NUM_INTRS      10
 #define ALMOST_ZERO    1e-10
 #define NEG_INF       -1e10
 #define NO_BOND        1e-3  // 0.001
 #define HB_THRESHOLD   1e-2  // 0.01
 
-#define MIN_CAP        50
-#define MIN_NBRS       100
-#define MIN_HENTRIES   100
-#define MAX_BONDS      30
-#define MIN_BONDS      25
-#define MIN_HBONDS     25
-#define MIN_3BODIES    1000
-#define MIN_GCELL_POPL 50
-#define MIN_SEND       100
-#define SAFE_ZONE      1.2
-#define SAFER_ZONE     1.4
-#define DANGER_ZONE    0.90
-#define LOOSE_ZONE     0.75
-#define MAX_3BODY_PARAM     5
-#define MAX_4BODY_PARAM     5
+#define REAX_MIN_CAP    50
+#define REAX_MIN_NBRS   100
+#define MIN_HENTRIES    100
+#define MAX_BONDS       30
+#define MIN_BONDS       25
+#define REAX_MIN_HBONDS 25
+#define MIN_3BODIES     1000
+#define MIN_GCELL_POPL  50
+#define MIN_SEND        100
+#define REAX_SAFE_ZONE  1.2
+#define REAX_SAFER_ZONE 1.4
+#define DANGER_ZONE     0.90
+#define LOOSE_ZONE      0.75
+#define MAX_3BODY_PARAM 5
+#define MAX_4BODY_PARAM 5
 
-#define MAX_dV              1.01
-#define MIN_dV              0.99
-#define MAX_dT              4.00
-#define MIN_dT              0.00
+#define MAX_dV          1.01
+#define MIN_dV          0.99
+#define MAX_dT          4.00
+#define MIN_dT          0.00
 
 #define MASTER_NODE 0
 #define MAX_NBRS 6 //27

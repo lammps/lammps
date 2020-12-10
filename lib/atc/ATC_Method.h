@@ -140,9 +140,9 @@ namespace ATC {
     /** compute scalar for output */
     virtual double compute_scalar() {return 0.;}
     /** compute vector for output */
-    virtual double compute_vector(int n) {return 0.;}
+    virtual double compute_vector(int /* n */) {return 0.;}
     /** compute vector for output */
-    virtual double compute_array(int irow, int icol) {return 0.;}; 
+    virtual double compute_array(int /* irow */, int /* icol */) {return 0.;}; 
     int scalar_flag() const {return scalarFlag_;}
     int vector_flag() const {return vectorFlag_;}
     int size_vector() const {return sizeVector_;}
@@ -398,8 +398,8 @@ namespace ATC {
 //    /** determine weighting method for atomic integration */
 //    void compute_consistent_md_mass_matrix(const SPAR_MAT & shapeFunctionMatrix,
  //                                          SPAR_MAT & mdMassMatrix);
-    virtual void compute_md_mass_matrix(FieldName thisField,
-                                        DIAG_MAT & massMat) {};
+    virtual void compute_md_mass_matrix(FieldName /* thisField */,
+                                        DIAG_MAT & /* massMat */) {};
 /** access to md mass matrices */
 
     DIAG_MAN &mass_mat_md_inv(FieldName thisField)
@@ -423,7 +423,7 @@ namespace ATC {
     bool use_md_mass_normalization() const { return mdMassNormalization_;}  
     bool kernel_based() { return kernelBased_; }
     bool kernel_on_the_fly() const { return kernelOnTheFly_;}
-    bool has_kernel_function() { return kernelFunction_ != NULL; }
+    bool has_kernel_function() { return kernelFunction_ != nullptr; }
     KernelFunction * kernel_function() { return kernelFunction_; }
     std::vector<int> & type_list() { return typeList_; }
     std::vector<int> & group_list() { return groupList_; }

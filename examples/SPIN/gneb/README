@@ -1,0 +1,13 @@
+Perform geodesic NEB calculations for spin configurations.
+The two examples are:
+- the magnetic switching of an iron nanoisland
+- the collapse of a magnetic skyrmion
+
+Run those examples as:
+
+mpirun -np 3 lmp_mpi -in in.gneb.iron -partition 3x1
+
+You should be able to use any number of replicas >= 3.
+
+In the interpolate/ directory, a c routine is provided to
+interpolate the MEP. 

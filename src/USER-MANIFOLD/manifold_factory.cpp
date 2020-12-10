@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -54,7 +54,7 @@ manifold* LAMMPS_NS::user_manifold::create_manifold(const char *mname,
                                                     LAMMPS *lmp,
                                                     int narg, char **arg )
 {
-  manifold *man = NULL;
+  manifold *man = nullptr;
   make_manifold_if<manifold_cylinder>       ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_cylinder_dent>  ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_dumbbell>       ( &man, mname, lmp, narg, arg );

@@ -23,7 +23,7 @@ const char *morse=0;
 
 #include "lal_morse.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define MorseT Morse<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -150,4 +150,4 @@ void MorseT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Morse<PRECISION,ACC_PRECISION>;
-
+}

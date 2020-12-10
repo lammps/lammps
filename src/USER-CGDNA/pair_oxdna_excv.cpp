@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,28 +14,22 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_oxdna_excv.h"
-#include "mf_oxdna.h"
+
 #include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
 #include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
+#include "memory.h"
+#include "mf_oxdna.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
@@ -91,8 +85,8 @@ PairOxdnaExcv::~PairOxdnaExcv()
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxDNA
 ------------------------------------------------------------------------- */
-void PairOxdnaExcv::compute_interaction_sites(double e1[3],
-  double /*e2*/[3], double rs[3], double rb[3])
+void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3],
+    double /*e3*/[3], double rs[3], double rb[3])
 {
   double d_cs=-0.4, d_cb=+0.4;
 
@@ -140,12 +134,12 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   anum = list->inum;
   alist = list->ilist;
@@ -159,11 +153,11 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     // vector COM - backbone and base site a
-    compute_interaction_sites(ax,ay,ra_cs,ra_cb);
+    compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);
 
     rtmp_s[0] = x[a][0] + ra_cs[0];
     rtmp_s[1] = x[a][1] + ra_cs[1];
@@ -184,11 +178,11 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[b].quat;
+      qb=bonus[ellipsoid[b]].quat;
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       // vector COM - backbone and base site b
-      compute_interaction_sites(bx,by,rb_cs,rb_cb);
+      compute_interaction_sites(bx,by,bz,rb_cs,rb_cb);
 
       // vector backbone site b to a
       delr_ss[0] = rtmp_s[0] - (x[b][0] + rb_cs[0]);
@@ -226,13 +220,16 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         fpair *= factor_lj;
         evdwl *= factor_lj;
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_ss[0],delr_ss[1],delr_ss[2]);
-
         delf[0] = delr_ss[0]*fpair;
         delf[1] = delr_ss[1]*fpair;
         delf[2] = delr_ss[2]*fpair;
+
+        // increment energy and virial
+        // NOTE: The virial is calculated on the 'molecular' basis.
+        // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -260,20 +257,19 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
       }
 
-
       // backbone-base
       if (rsq_sb < cutsq_sb_c[atype][btype]) {
 
         evdwl = F3(rsq_sb,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
                         lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_sb[0],delr_sb[1],delr_sb[2]);
-
         delf[0] = delr_sb[0]*fpair;
         delf[1] = delr_sb[1]*fpair;
         delf[2] = delr_sb[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -307,13 +303,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         evdwl = F3(rsq_bs,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
                         lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_bs[0],delr_bs[1],delr_bs[2]);
-
         delf[0] = delr_bs[0]*fpair;
         delf[1] = delr_bs[1]*fpair;
         delf[2] = delr_bs[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -347,13 +343,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         evdwl = F3(rsq_bb,cutsq_bb_ast[atype][btype],cut_bb_c[atype][btype],lj1_bb[atype][btype],
                         lj2_bb[atype][btype],epsilon_bb[atype][btype],b_bb[atype][btype],fpair);
 
-        // increment energy and virial
-        if (evflag) ev_tally(a,b,nlocal,newton_pair,
-                evdwl,0.0,fpair,delr_bb[0],delr_bb[1],delr_bb[2]);
-
         delf[0] = delr_bb[0]*fpair;
         delf[1] = delr_bb[1]*fpair;
         delf[2] = delr_bb[2]*fpair;
+
+        // increment energy and virial
+        if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
+            delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
         f[a][0] += delf[0];
         f[a][1] += delf[1];
@@ -459,8 +455,8 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   count = 0;
 
@@ -475,9 +471,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 
   // Excluded volume interaction
   // LJ parameters
-  epsilon_ss_one = force->numeric(FLERR,arg[2]);
-  sigma_ss_one = force->numeric(FLERR,arg[3]);
-  cut_ss_ast_one = force->numeric(FLERR,arg[4]);
+  epsilon_ss_one = utils::numeric(FLERR,arg[2],false,lmp);
+  sigma_ss_one = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_ss_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_ss_one = 4.0/sigma_ss_one
@@ -506,9 +502,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   count = 0;
 
   // LJ parameters
-  epsilon_sb_one = force->numeric(FLERR,arg[5]);
-  sigma_sb_one = force->numeric(FLERR,arg[6]);
-  cut_sb_ast_one = force->numeric(FLERR,arg[7]);
+  epsilon_sb_one = utils::numeric(FLERR,arg[5],false,lmp);
+  sigma_sb_one = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_sb_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_sb_one = 4.0/sigma_sb_one
@@ -537,9 +533,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   count = 0;
 
   // LJ parameters
-  epsilon_bb_one = force->numeric(FLERR,arg[8]);
-  sigma_bb_one = force->numeric(FLERR,arg[9]);
-  cut_bb_ast_one = force->numeric(FLERR,arg[10]);
+  epsilon_bb_one = utils::numeric(FLERR,arg[8],false,lmp);
+  sigma_bb_one = utils::numeric(FLERR,arg[9],false,lmp);
+  cut_bb_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_bb_one = 4.0/sigma_bb_one
@@ -564,20 +560,6 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
-
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdnaExcv::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
 
 }
 
@@ -715,26 +697,26 @@ void PairOxdnaExcv::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          fread(&epsilon_ss[i][j],sizeof(double),1,fp);
-          fread(&sigma_ss[i][j],sizeof(double),1,fp);
-          fread(&cut_ss_ast[i][j],sizeof(double),1,fp);
-          fread(&b_ss[i][j],sizeof(double),1,fp);
-          fread(&cut_ss_c[i][j],sizeof(double),1,fp);
-          fread(&epsilon_sb[i][j],sizeof(double),1,fp);
-          fread(&sigma_sb[i][j],sizeof(double),1,fp);
-          fread(&cut_sb_ast[i][j],sizeof(double),1,fp);
-          fread(&b_sb[i][j],sizeof(double),1,fp);
-          fread(&cut_sb_c[i][j],sizeof(double),1,fp);
-          fread(&epsilon_bb[i][j],sizeof(double),1,fp);
-          fread(&sigma_bb[i][j],sizeof(double),1,fp);
-          fread(&cut_bb_ast[i][j],sizeof(double),1,fp);
-          fread(&b_bb[i][j],sizeof(double),1,fp);
-          fread(&cut_bb_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon_ss[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_ss[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_ss_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_ss[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_ss_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon_sb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_sb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_sb_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_sb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_sb_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon_bb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_bb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bb_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_bb[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bb_c[i][j],sizeof(double),1,fp,nullptr,error);
 
          }
 
@@ -777,9 +759,9 @@ void PairOxdnaExcv::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -843,5 +825,5 @@ void *PairOxdnaExcv::extract(const char *str, int &dim)
   if (strcmp(str,"b_bb") == 0) return (void *) b_bb;
   if (strcmp(str,"cut_bb_c") == 0) return (void *) cut_bb_c;
 
-  return NULL;
+  return nullptr;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include <cstring>
-#include <cstdlib>
+
 #include <cmath>
 #include "fix_temp_rescale_eff.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
 #include "update.h"
-#include "domain.h"
-#include "region.h"
 #include "comm.h"
 #include "modify.h"
 #include "compute.h"
@@ -42,17 +40,17 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
 
-  t_start = force->numeric(FLERR,arg[4]);
-  t_stop = force->numeric(FLERR,arg[5]);
-  t_window = force->numeric(FLERR,arg[6]);
-  fraction = force->numeric(FLERR,arg[7]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
+  t_window = utils::numeric(FLERR,arg[6],false,lmp);
+  fraction = utils::numeric(FLERR,arg[7],false,lmp);
 
   // create a new compute temp/eff
   // id = fix-ID + temp, compute group = fix group

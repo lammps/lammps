@@ -2,10 +2,12 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
+
+#include <algorithm>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -15,53 +17,70 @@
 
 
 colvar::cvc::cvc()
-  : sup_coeff(1.0),
-    sup_np(1),
-    b_periodic(false),
-    b_try_scalable(true)
 {
-  init_cvc_requires();
+  description = "uninitialized colvar component";
+  b_try_scalable = true;
   sup_coeff = 1.0;
+  sup_np = 1;
   period = 0.0;
   wrap_center = 0.0;
+  width = 0.0;
+  init_dependencies();
 }
 
 
 colvar::cvc::cvc(std::string const &conf)
-  : sup_coeff(1.0),
-    sup_np(1),
-    b_periodic(false),
-    b_try_scalable(true)
 {
-  init_cvc_requires();
+  description = "uninitialized colvar component";
+  b_try_scalable = true;
   sup_coeff = 1.0;
+  sup_np = 1;
   period = 0.0;
   wrap_center = 0.0;
+  width = 0.0;
+  init_dependencies();
   init(conf);
 }
 
 
 int colvar::cvc::init(std::string const &conf)
 {
-  int error_code = COLVARS_OK;
   if (cvm::debug())
     cvm::log("Initializing cvc base object.\n");
 
-  get_keyval(conf, "name", this->name, this->name);
+  std::string const old_name(name);
+
   if (name.size() > 0) {
-    // Temporary description until child object is initialized
-    description = "cvc " + name;
-  } else {
-    description = "uninitialized cvc";
+    cvm::log("Updating configuration for component \""+name+"\"");
+  }
+
+  if (get_keyval(conf, "name", name, name)) {
+    if (name.size() > 0) {
+      description = "cvc \"" + name + "\" of type " + function_type;
+    } else {
+      description = "unnamed cvc";
+    }
+    if ((name != old_name) && (old_name.size() > 0)) {
+      cvm::error("Error: cannot rename component \""+old_name+
+                 "\" after initialization (new name = \""+name+"\")",
+                 INPUT_ERROR);
+      name = old_name;
+    }
   }
 
   get_keyval(conf, "componentCoeff", sup_coeff, sup_coeff);
   get_keyval(conf, "componentExp", sup_np, sup_np);
+  // TODO these could be condensed into get_keyval()
+  register_param("componentCoeff", reinterpret_cast<void *>(&sup_coeff));
+  register_param("componentExp", reinterpret_cast<void *>(&sup_np));
 
   get_keyval(conf, "period", period, period);
   get_keyval(conf, "wrapAround", wrap_center, wrap_center);
+  // TODO when init() is called after all constructors, check periodic flag
+  register_param("period", reinterpret_cast<void *>(&period));
+  register_param("wrapAround", reinterpret_cast<void *>(&wrap_center));
 
-  get_keyval_feature(dynamic_cast<colvarparse *>(this), conf, "debugGradients",
+  get_keyval_feature(this, conf, "debugGradients",
                      f_cvc_debug_gradient, false, parse_silent);
 
   bool b_no_PBC = !is_enabled(f_cvc_pbc_minimum_image); // Enabled by default
@@ -78,7 +97,7 @@ int colvar::cvc::init(std::string const &conf)
   if (cvm::debug())
     cvm::log("Done initializing cvc base object.\n");
 
-  return error_code;
+  return cvm::get_error();
 }
 
 
@@ -150,7 +169,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     group->check_keywords(group_conf, group_key);
     if (cvm::get_error()) {
       cvm::error("Error parsing definition for atom group \""+
-                 std::string(group_key)+"\"\n.", INPUT_ERROR);
+                 std::string(group_key)+"\".", INPUT_ERROR);
     }
     cvm::decrease_depth();
 
@@ -162,6 +181,108 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
   }
 
   return group;
+}
+
+
+int colvar::cvc::init_dependencies() {
+  size_t i;
+  // Initialize static array once and for all
+  if (features().size() == 0) {
+    for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
+      modify_features().push_back(new feature);
+    }
+
+    init_feature(f_cvc_active, "active", f_type_dynamic);
+//     The dependency below may become useful if we use dynamic atom groups
+//     require_feature_children(f_cvc_active, f_ag_active);
+
+    init_feature(f_cvc_scalar, "scalar", f_type_static);
+
+    init_feature(f_cvc_periodic, "periodic", f_type_static);
+
+    init_feature(f_cvc_width, "defined_width", f_type_static);
+
+    init_feature(f_cvc_lower_boundary, "defined_lower_boundary", f_type_static);
+
+    init_feature(f_cvc_upper_boundary, "defined_upper_boundary", f_type_static);
+
+    init_feature(f_cvc_gradient, "gradient", f_type_dynamic);
+
+    init_feature(f_cvc_explicit_gradient, "explicit_gradient", f_type_static);
+    require_feature_children(f_cvc_explicit_gradient, f_ag_explicit_gradient);
+
+    init_feature(f_cvc_inv_gradient, "inverse_gradient", f_type_dynamic);
+    require_feature_self(f_cvc_inv_gradient, f_cvc_gradient);
+
+    init_feature(f_cvc_debug_gradient, "debug_gradient", f_type_user);
+    require_feature_self(f_cvc_debug_gradient, f_cvc_gradient);
+    require_feature_self(f_cvc_debug_gradient, f_cvc_explicit_gradient);
+
+    init_feature(f_cvc_Jacobian, "Jacobian_derivative", f_type_dynamic);
+    require_feature_self(f_cvc_Jacobian, f_cvc_inv_gradient);
+
+    // Compute total force on first site only to avoid unwanted
+    // coupling to other colvars (see e.g. Ciccotti et al., 2005)
+    init_feature(f_cvc_one_site_total_force, "total_force_from_one_group", f_type_user);
+    require_feature_self(f_cvc_one_site_total_force, f_cvc_com_based);
+
+    init_feature(f_cvc_com_based, "function_of_centers_of_mass", f_type_static);
+
+    init_feature(f_cvc_pbc_minimum_image, "use_minimum-image_with_PBCs", f_type_user);
+
+    init_feature(f_cvc_scalable, "scalable_calculation", f_type_static);
+    require_feature_self(f_cvc_scalable, f_cvc_scalable_com);
+
+    init_feature(f_cvc_scalable_com, "scalable_calculation_of_centers_of_mass", f_type_static);
+    require_feature_self(f_cvc_scalable_com, f_cvc_com_based);
+
+
+    // TODO only enable this when f_ag_scalable can be turned on for a pre-initialized group
+    // require_feature_children(f_cvc_scalable, f_ag_scalable);
+    // require_feature_children(f_cvc_scalable_com, f_ag_scalable_com);
+
+    // check that everything is initialized
+    for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
+      if (is_not_set(i)) {
+        cvm::error("Uninitialized feature " + cvm::to_str(i) + " in " + description);
+      }
+    }
+  }
+
+  // Initialize feature_states for each instance
+  // default as available, not enabled
+  // except dynamic features which default as unavailable
+  feature_states.reserve(f_cvc_ntot);
+  for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
+    bool avail = is_dynamic(i) ? false : true;
+    feature_states.push_back(feature_state(avail, false));
+  }
+
+  // Features that are implemented by all cvcs by default
+  // Each cvc specifies what other features are available
+  feature_states[f_cvc_active].available = true;
+  feature_states[f_cvc_gradient].available = true;
+
+  // CVCs are enabled from the start - get disabled based on flags
+  enable(f_cvc_active);
+  // feature_states[f_cvc_active].enabled = true;
+
+  // Explicit gradients are implemented in mosts CVCs. Exceptions must be specified explicitly.
+  // feature_states[f_cvc_explicit_gradient].enabled = true;
+  enable(f_cvc_explicit_gradient);
+
+  // Use minimum-image distances by default
+  // feature_states[f_cvc_pbc_minimum_image].enabled = true;
+  enable(f_cvc_pbc_minimum_image);
+
+  // Features that are implemented by default if their requirements are
+  feature_states[f_cvc_one_site_total_force].available = true;
+
+  // Features That are implemented only for certain simulation engine configurations
+  feature_states[f_cvc_scalable_com].available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
+  feature_states[f_cvc_scalable].available = feature_states[f_cvc_scalable_com].available;
+
+  return COLVARS_OK;
 }
 
 
@@ -180,6 +301,78 @@ colvar::cvc::~cvc()
     if (atom_groups[i] != NULL) delete atom_groups[i];
   }
 }
+
+
+void colvar::cvc::init_as_distance()
+{
+  x.type(colvarvalue::type_scalar);
+  enable(f_cvc_lower_boundary);
+  lower_boundary.type(colvarvalue::type_scalar);
+  lower_boundary.real_value = 0.0;
+  register_param("lowerBoundary", reinterpret_cast<void *>(&lower_boundary));
+}
+
+
+void colvar::cvc::init_as_angle()
+{
+  x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, 180);
+}
+
+
+void colvar::cvc::init_scalar_boundaries(cvm::real lb, cvm::real ub)
+{
+  enable(f_cvc_lower_boundary);
+  lower_boundary.type(colvarvalue::type_scalar);
+  lower_boundary.real_value = lb;
+  enable(f_cvc_upper_boundary);
+  upper_boundary.type(colvarvalue::type_scalar);
+  upper_boundary.real_value = ub;
+  register_param("lowerBoundary", reinterpret_cast<void *>(&lower_boundary));
+  register_param("upperBoundary", reinterpret_cast<void *>(&upper_boundary));
+}
+
+
+void colvar::cvc::register_atom_group(cvm::atom_group *ag)
+{
+  atom_groups.push_back(ag);
+  add_child(ag);
+}
+
+
+colvarvalue const *colvar::cvc::get_param_grad(std::string const &param_name)
+{
+  colvarvalue const *ptr =
+    reinterpret_cast<colvarvalue const *>(get_param_grad_ptr(param_name));
+  return ptr != NULL ? ptr : NULL;
+}
+
+
+int colvar::cvc::set_param(std::string const &param_name,
+                           void const *new_value)
+{
+  if (param_map.count(param_name) > 0) {
+
+    // TODO When we can use C++11, make this a proper function map
+    if (param_name.compare("componentCoeff") == 0) {
+      sup_coeff = *(reinterpret_cast<cvm::real const *>(new_value));
+    }
+    if (param_name.compare("componentExp") == 0) {
+      sup_np = *(reinterpret_cast<int const *>(new_value));
+    }
+    if (is_enabled(f_cvc_periodic)) {
+      if (param_name.compare("period") == 0) {
+        period = *(reinterpret_cast<cvm::real const *>(new_value));
+      }
+      if (param_name.compare("wrapAround") == 0) {
+        wrap_center = *(reinterpret_cast<cvm::real const *>(new_value));
+      }
+    }
+  }
+
+  return colvarparams::set_param(param_name, new_value);
+}
+
 
 void colvar::cvc::read_data()
 {
@@ -200,6 +393,66 @@ void colvar::cvc::read_data()
 //       }
 //     }
 //   }
+}
+
+
+std::vector<std::vector<int> > colvar::cvc::get_atom_lists()
+{
+  std::vector<std::vector<int> > lists;
+
+  std::vector<cvm::atom_group *>::iterator agi = atom_groups.begin();
+  for ( ; agi != atom_groups.end(); ++agi) {
+    (*agi)->create_sorted_ids();
+    lists.push_back((*agi)->sorted_ids());
+    if ((*agi)->is_enabled(f_ag_fitting_group) && (*agi)->is_enabled(f_ag_fit_gradients)) {
+      cvm::atom_group &fg = *((*agi)->fitting_group);
+      fg.create_sorted_ids();
+      lists.push_back(fg.sorted_ids());
+    }
+  }
+  return lists;
+}
+
+
+void colvar::cvc::collect_gradients(std::vector<int> const &atom_ids, std::vector<cvm::rvector> &atomic_gradients)
+{
+  // Coefficient: d(a * x^n) = a * n * x^(n-1) * dx
+  cvm::real coeff = sup_coeff * cvm::real(sup_np) *
+    cvm::integer_power(value().real_value, sup_np-1);
+
+  for (size_t j = 0; j < atom_groups.size(); j++) {
+
+    cvm::atom_group &ag = *(atom_groups[j]);
+
+    // If necessary, apply inverse rotation to get atomic
+    // gradient in the laboratory frame
+    if (ag.b_rotate) {
+      cvm::rotation const rot_inv = ag.rot.inverse();
+
+      for (size_t k = 0; k < ag.size(); k++) {
+        size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                    ag[k].id) - atom_ids.begin();
+        atomic_gradients[a] += coeff * rot_inv.rotate(ag[k].grad);
+      }
+
+    } else {
+
+      for (size_t k = 0; k < ag.size(); k++) {
+        size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                    ag[k].id) - atom_ids.begin();
+        atomic_gradients[a] += coeff * ag[k].grad;
+      }
+    }
+    if (ag.is_enabled(f_ag_fitting_group) && ag.is_enabled(f_ag_fit_gradients)) {
+      cvm::atom_group const &fg = *(ag.fitting_group);
+      for (size_t k = 0; k < fg.size(); k++) {
+        size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
+                                    fg[k].id) - atom_ids.begin();
+        // fit gradients are in the unrotated (simulation) frame
+        atomic_gradients[a] += coeff * fg.fit_gradients[k];
+      }
+    }
+  }
 }
 
 
@@ -295,8 +548,8 @@ void colvar::cvc::debug_gradients()
         cvm::log("dx(interp) = "+cvm::to_str(dx_pred,
                               21, 14)+"\n");
         cvm::log("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                  cvm::to_str(std::fabs(x_1 - x_0 - dx_pred) /
-                              std::fabs(x_1 - x_0), 12, 5)+"\n");
+                  cvm::to_str(cvm::fabs(x_1 - x_0 - dx_pred) /
+                              cvm::fabs(x_1 - x_0), 12, 5)+"\n");
       }
     }
 
@@ -330,8 +583,8 @@ void colvar::cvc::debug_gradients()
           cvm::log("dx(interp) = "+cvm::to_str (dx_pred,
                                 21, 14)+"\n");
           cvm::log ("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                    cvm::to_str(std::fabs (x_1 - x_0 - dx_pred) /
-                                std::fabs (x_1 - x_0),
+                    cvm::to_str(cvm::fabs (x_1 - x_0 - dx_pred) /
+                                cvm::fabs (x_1 - x_0),
                                 12, 5)+
                     ".\n");
         }
@@ -367,10 +620,11 @@ colvarvalue colvar::cvc::dist2_rgrad(colvarvalue const &x1,
 }
 
 
-void colvar::cvc::wrap(colvarvalue &x) const
+void colvar::cvc::wrap(colvarvalue & /* x_unwrapped */) const
 {
   return;
 }
+
 
 
 // Static members

@@ -165,7 +165,7 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   SmallMoleculeSet::SmallMoleculeSet(ATC_Method * atc, int groupBit,
-                                     PerAtomQuantity<int> * bondList, PerAtomQuantity<int> * numBond) :
+                                     PerAtomQuantity<int> * bondList, PerAtomQuantity<int> * /* numBond */) :
     MoleculeSet(atc,groupBit),
     bondList_(bondList)
   {

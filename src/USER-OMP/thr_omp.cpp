@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,10 +22,9 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "timer.h"
+
 
 #include "thr_omp.h"
 
@@ -34,7 +33,6 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
-#include "kspace.h"
 #include "compute.h"
 
 #include "math_const.h"
@@ -45,7 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ThrOMP::ThrOMP(LAMMPS *ptr, int style)
-  : lmp(ptr), fix(NULL), thr_style(style), thr_error(0)
+  : lmp(ptr), fix(nullptr), thr_style(style), thr_error(0)
 {
   // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
@@ -66,31 +64,43 @@ ThrOMP::~ThrOMP()
    ---------------------------------------------------------------------- */
 
 void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
-                          double **vatom, ThrData *thr)
+                          double **vatom, double **cvatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
   if (tid == 0) thr_error = 0;
 
   if (thr_style & THR_PAIR) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_pair = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    // per-atom virial and per-atom centroid virial are the same for two-body
+    // many-body pair styles not yet implemented
+    if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
       thr->vatom_pair = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
     }
+    // check cvatom_pair, because can't access centroidstressflag
+    if ((vflag & VIRIAL_CENTROID) && cvatom) {
+      thr->cvatom_pair = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_pair[0][0]),0,nall*9*sizeof(double));
+    } else {
+      thr->cvatom_pair = nullptr;
+    }
+
   }
 
   if (thr_style & THR_BOND) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_bond = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    // per-atom virial and per-atom centroid virial are the same for bonds
+    if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
       thr->vatom_bond = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
@@ -98,41 +108,56 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   }
 
   if (thr_style & THR_ANGLE) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_angle = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_angle[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_angle = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
     }
+    if (vflag & VIRIAL_CENTROID) {
+      thr->cvatom_angle = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_angle[0][0]),0,nall*9*sizeof(double));
+    }
   }
 
   if (thr_style & THR_DIHEDRAL) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_dihed = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_dihed[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_dihed = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
     }
+    if (vflag & VIRIAL_CENTROID) {
+      thr->cvatom_dihed = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_dihed[0][0]),0,nall*9*sizeof(double));
+    }
   }
 
   if (thr_style & THR_IMPROPER) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_imprp = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_imprp[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_imprp = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
+    }
+    if (vflag & VIRIAL_CENTROID) {
+      thr->cvatom_imprp = cvatom + tid*nall;
+      if (nall > 0)
+        memset(&(thr->cvatom_imprp[0][0]),0,nall*9*sizeof(double));
     }
   }
 
@@ -174,7 +199,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->force->pair->vflag_fdotr) {
 
       // this is a non-hybrid pair style. compute per thread fdotr
-      if (fix->last_pair_hybrid == NULL) {
+      if (fix->last_pair_hybrid == nullptr) {
         if (lmp->neighbor->includegroup == 0)
           thr->virial_fdotr_compute(x, nlocal, nghost, -1);
         else
@@ -197,24 +222,30 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           pair->eng_vdwl += thr->eng_vdwl;
           pair->eng_coul += thr->eng_coul;
           thr->eng_vdwl = 0.0;
           thr->eng_coul = 0.0;
         }
-        if (vflag & 3)
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR))
           for (int i=0; i < 6; ++i) {
             pair->virial[i] += thr->virial_pair[i];
             thr->virial_pair[i] = 0.0;
           }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      // per-atom virial and per-atom centroid virial are the same for two-body
+      // many-body pair styles not yet implemented
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      // check cvatom_pair, because can't access centroidstressflag
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
       }
     }
   }
@@ -228,12 +259,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           bond->energy += thr->eng_bond;
           thr->eng_bond = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             bond->virial[i] += thr->virial_bond[i];
             thr->virial_bond[i] = 0.0;
@@ -241,10 +272,11 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      // per-atom virial and per-atom centroid virial are the same for bonds
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
       }
 
@@ -259,12 +291,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           angle->energy += thr->eng_angle;
           thr->eng_angle = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             angle->virial[i] += thr->virial_angle[i];
             thr->virial_angle[i] = 0.0;
@@ -272,11 +304,14 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(angle->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -290,12 +325,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           dihedral->energy += thr->eng_dihed;
           thr->eng_dihed = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             dihedral->virial[i] += thr->virial_dihed[i];
             thr->virial_dihed[i] = 0.0;
@@ -303,11 +338,14 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(dihedral->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -322,7 +360,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           dihedral->energy += thr->eng_dihed;
           pair->eng_vdwl += thr->eng_vdwl;
           pair->eng_coul += thr->eng_coul;
@@ -331,7 +369,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           thr->eng_coul = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             dihedral->virial[i] += thr->virial_dihed[i];
             pair->virial[i] += thr->virial_pair[i];
@@ -341,13 +379,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(dihedral->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+      // per-atom virial and per-atom centroid virial are the same for two-body
+      // many-body pair styles not yet implemented
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      // check cvatom_pair, because can't access centroidstressflag
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
       }
     }
     break;
@@ -360,12 +409,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           improper->energy += thr->eng_imprp;
           thr->eng_imprp = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             improper->virial[i] += thr->virial_imprp[i];
             thr->virial_imprp[i] = 0.0;
@@ -373,11 +422,14 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(improper->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
     }
@@ -433,7 +485,7 @@ void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
       }
     }
   }
-  if (pair->eflag_atom) {
+  if (pair->eflag_atom && thr->eatom_pair) {
     const double epairhalf = 0.5 * (evdwl + ecoul);
     if (newton_pair || i < nlocal) thr->eatom_pair[i] += epairhalf;
     if (newton_pair || j < nlocal) thr->eatom_pair[j] += epairhalf;
@@ -449,6 +501,19 @@ static void v_tally(double * const vout, const double * const vin)
   vout[3] += vin[3];
   vout[4] += vin[4];
   vout[5] += vin[5];
+}
+
+static void v_tally9(double * const vout, const double * const vin)
+{
+  vout[0] += vin[0];
+  vout[1] += vin[1];
+  vout[2] += vin[2];
+  vout[3] += vin[3];
+  vout[4] += vin[4];
+  vout[5] += vin[5];
+  vout[6] += vin[6];
+  vout[7] += vin[7];
+  vout[8] += vin[8];
 }
 
 static void v_tally(double * const vout, const double scale, const double * const vin)
@@ -900,6 +965,77 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
       }
     }
   }
+
+  // per-atom centroid virial
+  if (angle->cvflag_atom) {
+    double f2[3], v1[9], v2[9], v3[9];
+    double a1[3], a2[3], a3[3];
+
+    // r0 = (r1+r2+r3)/3
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3
+    // del1: r12
+    // del2: r32
+
+    // a1 = r10 = (2*r12 -   r32)/3
+    a1[0] = THIRD*(2*delx1-delx2);
+    a1[1] = THIRD*(2*dely1-dely2);
+    a1[2] = THIRD*(2*delz1-delz2);
+
+    // a2 = r20 = ( -r12 -   r32)/3
+    a2[0] = THIRD*(-delx1-delx2);
+    a2[1] = THIRD*(-dely1-dely2);
+    a2[2] = THIRD*(-delz1-delz2);
+
+    // a3 = r30 = ( -r12 + 2*r32)/3
+    a3[0] = THIRD*(-delx1+2*delx2);
+    a3[1] = THIRD*(-dely1+2*dely2);
+    a3[2] = THIRD*(-delz1+2*delz2);
+
+    f2[0] = - f1[0] - f3[0];
+    f2[1] = - f1[1] - f3[1];
+    f2[2] = - f1[2] - f3[2];
+
+    v1[0] = a1[0]*f1[0];
+    v1[1] = a1[1]*f1[1];
+    v1[2] = a1[2]*f1[2];
+    v1[3] = a1[0]*f1[1];
+    v1[4] = a1[0]*f1[2];
+    v1[5] = a1[1]*f1[2];
+    v1[6] = a1[1]*f1[0];
+    v1[7] = a1[2]*f1[0];
+    v1[8] = a1[2]*f1[1];
+
+    v2[0] = a2[0]*f2[0];
+    v2[1] = a2[1]*f2[1];
+    v2[2] = a2[2]*f2[2];
+    v2[3] = a2[0]*f2[1];
+    v2[4] = a2[0]*f2[2];
+    v2[5] = a2[1]*f2[2];
+    v2[6] = a2[1]*f2[0];
+    v2[7] = a2[2]*f2[0];
+    v2[8] = a2[2]*f2[1];
+
+    v3[0] = a3[0]*f3[0];
+    v3[1] = a3[1]*f3[1];
+    v3[2] = a3[2]*f3[2];
+    v3[3] = a3[0]*f3[1];
+    v3[4] = a3[0]*f3[2];
+    v3[5] = a3[1]*f3[2];
+    v3[6] = a3[1]*f3[0];
+    v3[7] = a3[2]*f3[0];
+    v3[8] = a3[2]*f3[1];
+
+    if (newton_bond) {
+      v_tally9(thr->cvatom_angle[i],v1);
+      v_tally9(thr->cvatom_angle[j],v2);
+      v_tally9(thr->cvatom_angle[k],v3);
+    } else {
+      if (i < nlocal) v_tally9(thr->cvatom_angle[i],v1);
+      if (j < nlocal) v_tally9(thr->cvatom_angle[j],v2);
+      if (k < nlocal) v_tally9(thr->cvatom_angle[k],v3);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1048,6 +1184,96 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
       }
     }
   }
+
+  // per-atom centroid virial
+  if (dihed->cvflag_atom) {
+    double f2[3], v1[9], v2[9], v3[9], v4[9];
+    double a1[3], a2[3], a3[3], a4[3];
+
+    // r0 = (r1+r2+r3+r4)/4
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3 + r40*f4
+    // vb1: r12
+    // vb2: r32
+    // vb3: r43
+
+    // a1 = r10 = (3*r12 - 2*r32 -   r43)/4
+    a1[0] = 0.25*(3*vb1x - 2*vb2x - vb3x);
+    a1[1] = 0.25*(3*vb1y - 2*vb2y - vb3y);
+    a1[2] = 0.25*(3*vb1z - 2*vb2z - vb3z);
+
+    // a2 = r20 = ( -r12 - 2*r32 -   r43)/4
+    a2[0] = 0.25*(-vb1x - 2*vb2x - vb3x);
+    a2[1] = 0.25*(-vb1y - 2*vb2y - vb3y);
+    a2[2] = 0.25*(-vb1z - 2*vb2z - vb3z);
+
+    // a3 = r30 = ( -r12 + 2*r32 -   r43)/4
+    a3[0] = 0.25*(-vb1x + 2*vb2x - vb3x);
+    a3[1] = 0.25*(-vb1y + 2*vb2y - vb3y);
+    a3[2] = 0.25*(-vb1z + 2*vb2z - vb3z);
+
+    // a4 = r40 = ( -r12 + 2*r32 + 3*r43)/4
+    a4[0] = 0.25*(-vb1x + 2*vb2x + 3*vb3x);
+    a4[1] = 0.25*(-vb1y + 2*vb2y + 3*vb3y);
+    a4[2] = 0.25*(-vb1z + 2*vb2z + 3*vb3z);
+
+    f2[0] = - f1[0] - f3[0] - f4[0];
+    f2[1] = - f1[1] - f3[1] - f4[1];
+    f2[2] = - f1[2] - f3[2] - f4[2];
+
+    v1[0] = a1[0]*f1[0];
+    v1[1] = a1[1]*f1[1];
+    v1[2] = a1[2]*f1[2];
+    v1[3] = a1[0]*f1[1];
+    v1[4] = a1[0]*f1[2];
+    v1[5] = a1[1]*f1[2];
+    v1[6] = a1[1]*f1[0];
+    v1[7] = a1[2]*f1[0];
+    v1[8] = a1[2]*f1[1];
+
+    v2[0] = a2[0]*f2[0];
+    v2[1] = a2[1]*f2[1];
+    v2[2] = a2[2]*f2[2];
+    v2[3] = a2[0]*f2[1];
+    v2[4] = a2[0]*f2[2];
+    v2[5] = a2[1]*f2[2];
+    v2[6] = a2[1]*f2[0];
+    v2[7] = a2[2]*f2[0];
+    v2[8] = a2[2]*f2[1];
+
+    v3[0] = a3[0]*f3[0];
+    v3[1] = a3[1]*f3[1];
+    v3[2] = a3[2]*f3[2];
+    v3[3] = a3[0]*f3[1];
+    v3[4] = a3[0]*f3[2];
+    v3[5] = a3[1]*f3[2];
+    v3[6] = a3[1]*f3[0];
+    v3[7] = a3[2]*f3[0];
+    v3[8] = a3[2]*f3[1];
+
+    v4[0] = a4[0]*f4[0];
+    v4[1] = a4[1]*f4[1];
+    v4[2] = a4[2]*f4[2];
+    v4[3] = a4[0]*f4[1];
+    v4[4] = a4[0]*f4[2];
+    v4[5] = a4[1]*f4[2];
+    v4[6] = a4[1]*f4[0];
+    v4[7] = a4[2]*f4[0];
+    v4[8] = a4[2]*f4[1];
+
+    if (newton_bond) {
+      v_tally9(thr->cvatom_dihed[i1],v1);
+      v_tally9(thr->cvatom_dihed[i2],v2);
+      v_tally9(thr->cvatom_dihed[i3],v3);
+      v_tally9(thr->cvatom_dihed[i4],v4);
+    } else {
+      if (i1 < nlocal) v_tally9(thr->cvatom_dihed[i1],v1);
+      if (i2 < nlocal) v_tally9(thr->cvatom_dihed[i2],v2);
+      if (i3 < nlocal) v_tally9(thr->cvatom_dihed[i3],v3);
+      if (i4 < nlocal) v_tally9(thr->cvatom_dihed[i4],v4);
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1140,6 +1366,96 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
       }
     }
   }
+
+  // per-atom centroid virial
+  if (imprp->cvflag_atom) {
+    double f2[3], v1[9], v2[9], v3[9], v4[9];
+    double a1[3], a2[3], a3[3], a4[3];
+
+    // r0 = (r1+r2+r3+r4)/4
+    // rij = ri-rj
+    // total virial = r10*f1 + r20*f2 + r30*f3 + r40*f4
+    // vb1: r12
+    // vb2: r32
+    // vb3: r43
+
+    // a1 = r10 = (3*r12 - 2*r32 -   r43)/4
+    a1[0] = 0.25*(3*vb1x - 2*vb2x - vb3x);
+    a1[1] = 0.25*(3*vb1y - 2*vb2y - vb3y);
+    a1[2] = 0.25*(3*vb1z - 2*vb2z - vb3z);
+
+    // a2 = r20 = ( -r12 - 2*r32 -   r43)/4
+    a2[0] = 0.25*(-vb1x - 2*vb2x - vb3x);
+    a2[1] = 0.25*(-vb1y - 2*vb2y - vb3y);
+    a2[2] = 0.25*(-vb1z - 2*vb2z - vb3z);
+
+    // a3 = r30 = ( -r12 + 2*r32 -   r43)/4
+    a3[0] = 0.25*(-vb1x + 2*vb2x - vb3x);
+    a3[1] = 0.25*(-vb1y + 2*vb2y - vb3y);
+    a3[2] = 0.25*(-vb1z + 2*vb2z - vb3z);
+
+    // a4 = r40 = ( -r12 + 2*r32 + 3*r43)/4
+    a4[0] = 0.25*(-vb1x + 2*vb2x + 3*vb3x);
+    a4[1] = 0.25*(-vb1y + 2*vb2y + 3*vb3y);
+    a4[2] = 0.25*(-vb1z + 2*vb2z + 3*vb3z);
+
+    f2[0] = - f1[0] - f3[0] - f4[0];
+    f2[1] = - f1[1] - f3[1] - f4[1];
+    f2[2] = - f1[2] - f3[2] - f4[2];
+
+    v1[0] = a1[0]*f1[0];
+    v1[1] = a1[1]*f1[1];
+    v1[2] = a1[2]*f1[2];
+    v1[3] = a1[0]*f1[1];
+    v1[4] = a1[0]*f1[2];
+    v1[5] = a1[1]*f1[2];
+    v1[6] = a1[1]*f1[0];
+    v1[7] = a1[2]*f1[0];
+    v1[8] = a1[2]*f1[1];
+
+    v2[0] = a2[0]*f2[0];
+    v2[1] = a2[1]*f2[1];
+    v2[2] = a2[2]*f2[2];
+    v2[3] = a2[0]*f2[1];
+    v2[4] = a2[0]*f2[2];
+    v2[5] = a2[1]*f2[2];
+    v2[6] = a2[1]*f2[0];
+    v2[7] = a2[2]*f2[0];
+    v2[8] = a2[2]*f2[1];
+
+    v3[0] = a3[0]*f3[0];
+    v3[1] = a3[1]*f3[1];
+    v3[2] = a3[2]*f3[2];
+    v3[3] = a3[0]*f3[1];
+    v3[4] = a3[0]*f3[2];
+    v3[5] = a3[1]*f3[2];
+    v3[6] = a3[1]*f3[0];
+    v3[7] = a3[2]*f3[0];
+    v3[8] = a3[2]*f3[1];
+
+    v4[0] = a4[0]*f4[0];
+    v4[1] = a4[1]*f4[1];
+    v4[2] = a4[2]*f4[2];
+    v4[3] = a4[0]*f4[1];
+    v4[4] = a4[0]*f4[2];
+    v4[5] = a4[1]*f4[2];
+    v4[6] = a4[1]*f4[0];
+    v4[7] = a4[2]*f4[0];
+    v4[8] = a4[2]*f4[1];
+
+    if (newton_bond) {
+      v_tally9(thr->cvatom_imprp[i1],v1);
+      v_tally9(thr->cvatom_imprp[i2],v2);
+      v_tally9(thr->cvatom_imprp[i3],v3);
+      v_tally9(thr->cvatom_imprp[i4],v4);
+    } else {
+      if (i1 < nlocal) v_tally9(thr->cvatom_imprp[i1],v1);
+      if (i2 < nlocal) v_tally9(thr->cvatom_imprp[i2],v2);
+      if (i3 < nlocal) v_tally9(thr->cvatom_imprp[i3],v3);
+      if (i4 < nlocal) v_tally9(thr->cvatom_imprp[i4],v4);
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------

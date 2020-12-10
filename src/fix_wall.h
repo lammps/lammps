@@ -45,12 +45,12 @@ class FixWall : public Fix {
   virtual void wall_particle(int, int, double) = 0;
 
  protected:
-  double epsilon[6],sigma[6],cutoff[6];
+  double epsilon[6],sigma[6],alpha[6],cutoff[6];
   double ewall[7],ewall_all[7];
   double xscale,yscale,zscale;
-  int estyle[6],sstyle[6],wstyle[6];
+  int estyle[6],sstyle[6],astyle[6],wstyle[6];
   int eindex[6],sindex[6];
-  char *estr[6],*sstr[6];
+  char *estr[6],*sstr[6],*astr[6];
   int varflag;                // 1 if any wall position,epsilon,sigma is a var
   int eflag;                  // per-wall flag for energy summation
   int ilevel_respa;

@@ -24,6 +24,8 @@
 #include "geryon/ocl_texture.h"
 #elif defined(USE_CUDART)
 #include "geryon/nvc_texture.h"
+#elif defined(USE_HIP)
+#include "geryon/hip_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -46,7 +48,7 @@ class BaseThree {
     * \param k_three name for the kernel for 3-body force calculation
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -57,7 +59,7 @@ class BaseThree {
                  const double gpu_split, FILE *screen,
                  const void *pair_program, const char *k_two,
                  const char *k_three_center, const char *k_three_end,
-                 const char *k_short_nbor=NULL);
+                 const char *k_short_nbor=nullptr);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();

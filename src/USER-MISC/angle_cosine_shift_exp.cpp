@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_shift_exp.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,13 +37,13 @@ using namespace MathConst;
 
 AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp)
 {
-  doExpansion = NULL;
-  umin = NULL;
-  a = NULL;
-  opt1 = NULL;
-  theta0 = NULL;
-  sint = NULL;
-  cost = NULL;
+  doExpansion = nullptr;
+  umin = nullptr;
+  a = nullptr;
+  opt1 = nullptr;
+  theta0 = nullptr;
+  sint = nullptr;
+  cost = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,8 +73,7 @@ void AngleCosineShiftExp::compute(int eflag, int vflag)
   double exp2,aa,uumin,cccpsss,cssmscc;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -203,11 +203,11 @@ void AngleCosineShiftExp::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double umin_   = force->numeric(FLERR,arg[1]);
-  double theta0_ = force->numeric(FLERR,arg[2]);
-  double a_      = force->numeric(FLERR,arg[3]);
+  double umin_   = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0_ = utils::numeric(FLERR,arg[2],false,lmp);
+  double a_      = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -257,11 +257,11 @@ void AngleCosineShiftExp::read_restart(FILE *fp)
 
   if (comm->me == 0)
       {
-         fread(&umin[1],sizeof(double),atom->nangletypes,fp);
-         fread(&a[1],sizeof(double),atom->nangletypes,fp);
-         fread(&cost[1],sizeof(double),atom->nangletypes,fp);
-         fread(&sint[1],sizeof(double),atom->nangletypes,fp);
-         fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+        utils::sfread(FLERR,&umin[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&a[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&cost[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&sint[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
       }
   MPI_Bcast(&umin[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a[1],atom->nangletypes,MPI_DOUBLE,0,world);

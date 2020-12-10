@@ -52,7 +52,7 @@ class ComputeReduceChunk : public Compute {
   double *vlocal,*vglobal;
   double **alocal,**aglobal;
   double *varatom;
-  
+
   class ComputeChunkAtom *cchunk;
   int *ichunk;
 

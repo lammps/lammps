@@ -14,7 +14,7 @@
 #ifndef LMP_FIX_H
 #define LMP_FIX_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -30,9 +30,14 @@ class Fix : protected Pointers {
   int restart_file;              // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
 
-  int box_change_size;           // 1 if Fix changes box size, 0 if not
-  int box_change_shape;          // 1 if Fix changes box shape, 0 if not
-  int box_change_domain;         // 1 if Fix changes proc sub-domains, 0 if not
+  int box_change;                // >0 if Fix changes box size, shape, or sub-domains, 0 if not
+  enum {
+    NO_BOX_CHANGE = 0,    BOX_CHANGE_ANY = 1<<0, BOX_CHANGE_DOMAIN = 1<<1,
+    BOX_CHANGE_X  = 1<<2, BOX_CHANGE_Y   = 1<<3, BOX_CHANGE_Z      = 1<<4,
+    BOX_CHANGE_YZ = 1<<5, BOX_CHANGE_XZ  = 1<<6, BOX_CHANGE_XY     = 1<<7,
+    BOX_CHANGE_SIZE  = BOX_CHANGE_X  | BOX_CHANGE_Y  | BOX_CHANGE_Z,
+    BOX_CHANGE_SHAPE = BOX_CHANGE_YZ | BOX_CHANGE_XZ | BOX_CHANGE_XY
+  };
 
   bigint next_reneighbor;        // next timestep to force a reneighboring
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
@@ -56,6 +61,10 @@ class Fix : protected Pointers {
   int enforce2d_flag;            // 1 if has enforce2d method
   int respa_level_support;       // 1 if fix supports fix_modify respa
   int respa_level;               // which respa level to apply fix (1-Nrespa)
+  int maxexchange;               // max # of per-atom values for Comm::exchange()
+  int maxexchange_dynamic;       // 1 if fix sets maxexchange dynamically
+  int pre_exchange_migrate;      // 1 if fix migrates atoms in pre_exchange()
+  int stores_ids;                 // 1 if fix stores atom IDs
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
@@ -93,11 +102,17 @@ class Fix : protected Pointers {
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
+
   int restart_reset;             // 1 if restart just re-initialized fix
 
   // KOKKOS host/device flag and data masks
 
   int kokkosable;                // 1 if Kokkos fix
+  int forward_comm_device;                // 1 if forward comm on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 
@@ -129,7 +144,7 @@ class Fix : protected Pointers {
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}
-  virtual void write_restart_file(char *) {}
+  virtual void write_restart_file(const char *) {}
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}
@@ -206,7 +221,7 @@ class Fix : protected Pointers {
   virtual int image(int *&, double **&) {return 0;}
 
   virtual int modify_param(int, char **) {return 0;}
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
 
   virtual double memory_usage() {return 0.0;}
 
@@ -223,23 +238,16 @@ class Fix : protected Pointers {
 
   int dynamic;    // recount atoms for temperature computes
 
+  void ev_init(int eflag, int vflag) {
+    if (eflag||vflag) ev_setup(eflag, vflag);
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
   void v_setup(int);
   void v_tally(int, int *, double, double *);
   void v_tally(int, double *);
   void v_tally(int, int, double);
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 };
 
 namespace FixConst {

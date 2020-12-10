@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_temp_sphere.h"
+
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 
@@ -34,7 +32,7 @@ enum{ROTATE,ALL};
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_bias(NULL)
+  id_bias(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
 
@@ -72,7 +70,7 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == ROTATE) extra_dof = 0;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
   // error checks
 

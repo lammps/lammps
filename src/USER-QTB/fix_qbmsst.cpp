@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,34 +16,30 @@
    Implementation of the Multi-Scale Shock Method with quantum nuclear effects
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "fix_qbmsst.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_qbmsst.h"
-#include "math_extra.h"
+
+
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "output.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
 #include "kspace.h"
-#include "thermo.h"
+#include "math_const.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 /* ----------------------------------------------------------------------
    read parameters
@@ -53,13 +49,16 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
 
-  if ( strcmp(arg[3],"x") == 0 )
+  if ( strcmp(arg[3],"x") == 0 ) {
     direction = 0;
-  else if ( strcmp(arg[3],"y") == 0 )
+    box_change |= BOX_CHANGE_X;
+  } else if ( strcmp(arg[3],"y") == 0 ) {
     direction = 1;
-  else if ( strcmp(arg[3],"z") == 0 )
+    box_change |= BOX_CHANGE_Y;
+  } else if ( strcmp(arg[3],"z") == 0 ) {
     direction = 2;
-  else {
+    box_change |= BOX_CHANGE_Z;
+  } else {
     error->all(FLERR,"Illegal fix qbmsst command");
   }
   velocity = atof(arg[4]);
@@ -72,7 +71,6 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   nevery = 1;
   restart_global = 1;
-  box_change_size = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -102,58 +100,71 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      qmass = atof(arg[iarg+1]); if (qmass < 0.0) error->all(FLERR,"Fix qbmsst qmass must be >= 0.0");
+      qmass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (qmass < 0.0) error->all(FLERR,"Fix qbmsst qmass must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      mu = atof(arg[iarg+1]); if (mu < 0.0) error->all(FLERR,"Fix qbmsst mu must be >= 0.0");
+      mu = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (mu < 0.0) error->all(FLERR,"Fix qbmsst mu must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"p0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      p0 = atof(arg[iarg+1]); if (p0 < 0.0) error->all(FLERR,"Fix qbmsst p0 must be >= 0.0");
+      p0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (p0 < 0.0) error->all(FLERR,"Fix qbmsst p0 must be >= 0.0");
       p0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"v0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      v0 = atof(arg[iarg+1]); if (v0 < 0.0) error->all(FLERR,"Fix qbmsst v0 must be >= 0.0");
+      v0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (v0 < 0.0) error->all(FLERR,"Fix qbmsst v0 must be >= 0.0");
       v0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"e0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      e0 = atof(arg[iarg+1]);
+      e0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       e0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tscale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      tscale = atof(arg[iarg+1]); if (tscale < 0.0 || tscale > 1.0) error->all(FLERR,"Fix qbmsst tscale must satisfy 0 <= tscale < 1");
+      tscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (tscale < 0.0 || tscale > 1.0) error->all(FLERR,"Fix qbmsst tscale must satisfy 0 <= tscale < 1");
       iarg += 2;
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      t_period = atof(arg[iarg+1]); if (t_period <= 0.0) error->all(FLERR,"Fix qbmsst damp must be > 0.0"); fric_coef = 1/t_period;
+      t_period = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (t_period <= 0.0) error->all(FLERR,"Fix qbmsst damp must be > 0.0");
+      fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      seed = atof(arg[iarg+1]); if (seed <= 0) error->all(FLERR,"Fix qbmsst seed must be a positive integer");
+      seed = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (seed <= 0) error->all(FLERR,"Fix qbmsst seed must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"f_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      f_max = atof(arg[iarg+1]); if (f_max <= 0) error->all(FLERR,"Fix qbmsst f_max must be > 0.0");
+      f_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (f_max <= 0) error->all(FLERR,"Fix qbmsst f_max must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"N_f") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      N_f = atof(arg[iarg+1]); if (N_f <= 0) error->all(FLERR,"Fix qbmsst N_f must be a positive integer");
+      N_f = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (N_f <= 0) error->all(FLERR,"Fix qbmsst N_f must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"eta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      eta = atof(arg[iarg+1]); if (eta <= 0) error->all(FLERR,"Fix qbmsst eta must be >= 0.0");
+      eta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (eta <= 0) error->all(FLERR,"Fix qbmsst eta must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      beta = atof(arg[iarg+1]); if (beta <= 0) error->all(FLERR,"Fix qbmsst beta must be a positive integer");
+      beta = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (beta <= 0) error->all(FLERR,"Fix qbmsst beta must be a positive integer");
       iarg += 2;
     } else if (strcmp(arg[iarg],"T_init") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qbmsst command");
-      t_init = atof(arg[iarg+1]); if (t_init <= 0) error->all(FLERR,"Fix qbmsst T_init must be >= 0.0");
+      t_init = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (t_init <= 0) error->all(FLERR,"Fix qbmsst T_init must be >= 0.0");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qbmsst command");
   }
@@ -161,48 +172,32 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   // check for periodicity in controlled dimensions
   if (domain->nonperiodic) error->all(FLERR,"Fix qbmsst requires a periodic box");
 
+  maxexchange = 6*N_f+3;
+
   // comments
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"QBMSST parameters:\n");
-      if (direction == 0) fprintf(screen,"  Shock in x direction\n");
-      else if (direction == 1) fprintf(screen,"  Shock in y direction\n");
-      else if (direction == 2) fprintf(screen,"  Shock in z direction\n");
+    std::string msg = "QBMSST parameters:\n";
 
-      fprintf(screen,"  Cell mass-like parameter qmass (units of mass^2/length^4) = %12.5e\n", qmass);
-      fprintf(screen,"  Shock velocity = %12.5e\n", velocity);
-      fprintf(screen,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
+    if (direction == 0)      msg += "  Shock in x direction\n";
+    else if (direction == 1) msg += "  Shock in y direction\n";
+    else if (direction == 2) msg += "  Shock in z direction\n";
 
-      if (p0_set)
-        fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
-      else fprintf(screen,"  Initial pressure calculated on first step\n");
-      if (v0_set)
-        fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
-      else fprintf(screen,"  Initial volume calculated on first step\n");
-      if (e0_set)
-        fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
-      else fprintf(screen,"  Initial energy calculated on first step\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"QBMSST parameters:\n");
-      if (direction == 0) fprintf(logfile,"  Shock in x direction\n");
-      else if (direction == 1) fprintf(logfile,"  Shock in y direction\n");
-      else if (direction == 2) fprintf(logfile,"  Shock in z direction\n");
+    msg += fmt::format("  Cell mass-like parameter qmass "
+                       "(units of mass^2/length^4) = {:12.5e}\n", qmass);
+    msg += fmt::format("  Shock velocity = {:12.5e}\n", velocity);
+    msg += fmt::format("  Artificial viscosity (units of "
+                       "mass/length/time) = {:12.5e}\n", mu);
 
-      fprintf(logfile,"  Cell mass-like parameter qmass (units of mass^2/length^4) = %12.5e\n", qmass);
-      fprintf(logfile,"  Shock velocity = %12.5e\n", velocity);
-      fprintf(logfile,"  Artificial viscosity (units of mass/length/time) = %12.5e\n", mu);
-
-      if (p0_set)
-        fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
-      else fprintf(logfile,"  Initial pressure calculated on first step\n");
-      if (v0_set)
-        fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
-      else fprintf(logfile,"  Initial volume calculated on first step\n");
-      if (e0_set)
-        fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
-      else fprintf(logfile,"  Initial energy calculated on first step\n");
-    }
+    if (p0_set)
+      msg += fmt::format("  Initial pressure specified to be {:12.5e}\n", p0);
+    else msg += "  Initial pressure calculated on first step\n";
+    if (v0_set)
+      msg += fmt::format("  Initial volume specified to be {:12.5e}\n", v0);
+    else msg += "  Initial volume calculated on first step\n";
+    if (e0_set)
+      msg += fmt::format("  Initial energy specified to be {:12.5e}\n", e0);
+    else msg += "  Initial energy calculated on first step\n";
+    utils::logmesg(lmp,msg);
   }
 
   // create a new compute temp style
@@ -251,19 +246,19 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
 
   // allocate qbmsst
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
-  old_velocity = NULL;
-  rfix = NULL;
-  gfactor = NULL;
-  random = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
+  old_velocity = nullptr;
+  rfix = nullptr;
+  gfactor = nullptr;
+  random = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
 
   // initialize Marsagxlia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -273,7 +268,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qbmsst:omega_H");
@@ -308,7 +303,7 @@ FixQBMSST::~FixQBMSST()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
@@ -336,7 +331,7 @@ void FixQBMSST::init()
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix qbmsst without per-type mass defined");
 
   // set compute ptrs
@@ -367,14 +362,17 @@ void FixQBMSST::init()
 
   //set up the h time step for updating the random force \delta{}h=\frac{\pi}{\Omega_{max}}
   if (int(1.0/(2*f_max*dtv)) == 0) {
-    if (comm->me == 0) printf ("Warning: Either f_max is too high or the time step is too big, setting f_max to be 1/timestep!\n");
+    if (comm->me == 0) error->warning(FLERR,"Either f_max is too high or the time step "
+                                      "is too big, setting f_max to be 1/timestep!\n");
     h_timestep=dtv;
     alpha=1;
   } else {
     alpha=int(1.0/(2*f_max*dtv));
     h_timestep=alpha*dtv;
   }
-  if (comm->me == 0) printf ("The effective maximum frequncy is now %f inverse time unit with alpha value as %d!\n", 0.5/h_timestep, alpha);
+  if (comm->me == 0 && screen)
+    fmt::print(screen,"The effective maximum frequency is now {} inverse time unit "
+               "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   //gfactor is the random force \sqrt{\frac{2\gamma{}m_{i}}{\alpha*\delta{}t}}, \sqrt{12} makes the random array variance equal to unit.
   for (int i = 1; i <= atom->ntypes; i++) {
@@ -410,14 +408,14 @@ void FixQBMSST::init()
   // rfix[] = indices to each fix rigid
   nrigid = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-        strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
-  if (nrigid) {
+    if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+        (strcmp(modify->fix[i]->style,"poems") == 0)) nrigid++;
+  if (nrigid > 0) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-          strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+      if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
+          (strcmp(modify->fix[i]->style,"poems") == 0)) rfix[nrigid++] = i;
   }
 }
 
@@ -436,20 +434,16 @@ void FixQBMSST::setup(int /*vflag*/)
   if ( v0_set == 0 ) {
     v0 = compute_vol();
     v0_set = 1;
-    if (comm->me == 0) {
-      if ( screen ) fprintf(screen,"Fix QBMSST v0 = %12.5e\n", v0);
-      if ( logfile ) fprintf(logfile,"Fix QBMSST v0 = %12.5e\n", v0);
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp,fmt::format("Fix QBMSST v0 = {:12.5e}\n", v0));
   }
 
   if ( p0_set == 0 ) {
     p0 = p_current[direction];
     p0_set = 1;
 
-    if ( comm->me == 0 ) {
-      if ( screen ) fprintf(screen,"Fix QBMSST p0 = %12.5e\n", p0);
-      if ( logfile ) fprintf(logfile,"Fix QBMSST p0 = %12.5e\n", p0);
-    }
+    if ( comm->me == 0 )
+      utils::logmesg(lmp,fmt::format("Fix QBMSST p0 = {:12.5e}\n", p0));
   }
 
   if ( e0_set == 0 ) {
@@ -457,11 +451,8 @@ void FixQBMSST::setup(int /*vflag*/)
     e0_set = 1;
     old_eavg = e0;
 
-    if ( comm->me == 0 ) {
-      if ( screen ) fprintf(screen,"Fix QBMSST e0 = to be %12.5e\n",e0);
-      if ( logfile ) fprintf(logfile,"Fix QBMSST e0 = to be %12.5e\n",e0);
-    }
-
+    if ( comm->me == 0 )
+      utils::logmesg(lmp,fmt::format("Fix QBMSST e0 = to be {:12.5e}\n",e0));
   }
 
   temperature->compute_vector();
@@ -480,16 +471,10 @@ void FixQBMSST::setup(int /*vflag*/)
     omega[direction]=-1*sqrt(fac1);
     double fac2 = omega[direction]/v0;
 
-    if ( comm->me == 0 && tscale != 1.0) {
-      if ( screen )
-        fprintf(screen,"Fix QBMSST initial strain rate of %12.5e established "
-                "by reducing temperature by factor of %12.5e\n",
-                fac2,tscale);
-      if ( logfile )
-        fprintf(logfile,"Fix QBMSST initial strain rate of %12.5e established "
-                "by reducing temperature by factor of %12.5e\n",
-                fac2,tscale);
-    }
+    if ( comm->me == 0 && tscale != 1.0)
+      utils::logmesg(lmp,fmt::format("Fix QBMSST initial strain rate of {:12.5e} "
+                                 "established by reducing temperature by "
+                                 "factor of {:12.5e}\n",fac2,tscale));
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++ ) {
@@ -535,30 +520,31 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   // decide if the qtb temperature need to be updated or not
   if (counter_l == 0) {
     t_current -= dtv*fric_coef*eta*beta*(old_eavg-e0)/(3*ntotal*boltz);
-    old_eavg = 0;//clear old energy average
-    if (t_current < 0.0) t_current=0;
+    if (t_current > 0.0) {
+      old_eavg = 0;//clear old energy average
 
-    // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
-    for (int k = 0; k < 2*N_f; k++) {
-      double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
-      if(k == N_f) {
-        omega_H[k]=sqrt(force->boltz * t_current);
-      } else {
-      double energy_k= force->hplanck * fabs(f_k);
-        omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
-        omega_H[k]*=alpha*sin((k-N_f)*M_PI/(2*alpha*N_f))/sin((k-N_f)*M_PI/(2*N_f));
-      }
-    }
-
-    // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
-    for (int n = 0; n < 2*N_f; n++) {
-      time_H[n] = 0;
-      double t_n=(n-N_f);
+      // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
       for (int k = 0; k < 2*N_f; k++) {
-        double omega_k=(k-N_f)*M_PI/N_f;
-        time_H[n] += omega_H[k]*(cos(omega_k*t_n));
+        double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
+        if(k == N_f) {
+          omega_H[k]=sqrt(force->boltz * t_current);
+        } else {
+          double energy_k= force->hplanck * fabs(f_k);
+          omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
+          omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
+        }
       }
-      time_H[n]/=(2.0*N_f);
+
+      // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
+      for (int n = 0; n < 2*N_f; n++) {
+        time_H[n] = 0;
+        double t_n=(n-N_f);
+        for (int k = 0; k < 2*N_f; k++) {
+          double omega_k=(k-N_f)*MY_PI/N_f;
+          time_H[n] += omega_H[k]*(cos(omega_k*t_n));
+        }
+        time_H[n]/=(2.0*N_f);
+      }
     }
   }
 
@@ -1174,11 +1160,12 @@ void FixQBMSST::copy_arrays(int i, int j, int /*delflag*/)
 ------------------------------------------------------------------------- */
 int FixQBMSST::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) buf[m] = random_array_0[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+2*N_f] = random_array_1[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+4*N_f] = random_array_2[i][m];
-  for (int m = 0; m < 3; m++) buf[m+6*N_f] = fran[i][m];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_0[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_1[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_2[i][m];
+  for (int m = 0; m < 3; m++) buf[n++] = fran[i][m];
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1186,9 +1173,10 @@ int FixQBMSST::pack_exchange(int i, double *buf)
 ------------------------------------------------------------------------- */
 int FixQBMSST::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[m];
-  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[m+2*N_f];
-  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[m+4*N_f];
-  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[m+6*N_f];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[n++];
+  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[n++];
+  return n;
 }

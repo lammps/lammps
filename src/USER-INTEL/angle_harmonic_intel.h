@@ -24,7 +24,6 @@ AngleStyle(harmonic/intel,AngleHarmonicIntel)
 #ifndef LMP_ANGLE_HARMONIC_INTEL_H
 #define LMP_ANGLE_HARMONIC_INTEL_H
 
-#include <cstdio>
 #include "angle_harmonic.h"
 #include "fix_intel.h"
 
@@ -62,7 +61,7 @@ class AngleHarmonicIntel : public AngleHarmonic {
 
     fc_packed1 *fc;
     ForceConst() : _nangletypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nangletypes, Memory *memory);
 

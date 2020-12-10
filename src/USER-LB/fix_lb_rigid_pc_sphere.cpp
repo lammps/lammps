@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,24 +16,22 @@
    Based on fix_rigid (version from 2008).
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_lb_rigid_pc_sphere.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "update.h"
-#include "respa.h"
 #include "modify.h"
 #include "group.h"
 #include "comm.h"
 #include "force.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -56,10 +54,10 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  body = NULL;
-  up = NULL;
+  body = nullptr;
+  up = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // by default assume all of the particles interact with the fluid.
   inner_nodes = 0;
@@ -95,7 +93,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"molecule") == 0) {
     iarg = 4;
-    if (atom->molecular == 0)
+    if (atom->molecular == Atom::ATOMIC)
       error->all(FLERR,"Must use a molecular atom style with "
                  "fix lb/rigid/pc/sphere molecule");
 
@@ -178,7 +176,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
 
     delete [] igroups;
 
-  }else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
+  } else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
   // error check on nbody
 
@@ -236,7 +234,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
       int mlo,mhi;
-      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
+      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -263,7 +261,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
 
       int mlo,mhi;
-      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
+      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -328,7 +326,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(ncount,nrigid,nbody,MPI_INT,MPI_SUM,world);
 
   //count the number of atoms in the shell.
-  if(inner_nodes == 1){
+  if (inner_nodes == 1) {
     int *mask = atom->mask;
     for(ibody=0; ibody<nbody; ibody++) ncount[ibody] = 0;
     for(i=0; i<nlocal; i++){
@@ -338,7 +336,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     }
 
     MPI_Allreduce(ncount,nrigid_shell,nbody,MPI_INT,MPI_SUM,world);
-  }else {
+  } else {
     for(ibody=0; ibody < nbody; ibody++) nrigid_shell[ibody]=nrigid[ibody];
   }
 
@@ -387,7 +385,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
        if((mask[j] & groupbit) && (mask[j] & groupbit_lb_fluid) && (mask[j] & group->bitmask[igroupinner]))
          error->one(FLERR,"the inner nodes specified in lb/rigid/pc/sphere should not be included in the lb/fluid fix");
      }
-   }else{
+   } else {
      for(int j=0; j<nlocal; j++){
        if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
          error->one(FLERR,"use the innerNodes keyword in the lb/rigid/pc/sphere fix for atoms which do not interact with the lb/fluid");
@@ -402,7 +400,7 @@ FixLbRigidPCSphere::~FixLbRigidPCSphere()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -536,7 +534,7 @@ void FixLbRigidPCSphere::init()
       if(!(mask[i] & group->bitmask[igroupinner])){
         sum[ibody][4] += massone;
       }
-    }else{
+    } else {
       sum[ibody][4] += massone;
     }
   }
@@ -581,7 +579,7 @@ void FixLbRigidPCSphere::init()
         sum[ibody][0] += dx*dx + dy*dy + dz*dz;
         sum[ibody][1] += Gamma[type[i]];
       }
-    }else{
+    } else {
       ibody = body[i];
 
       xbox = (image[i] & IMGMASK) - IMGMAX;
@@ -619,7 +617,7 @@ void FixLbRigidPCSphere::init()
         if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
           error->one(FLERR,"All atoms in a rigid body must have the same gamma value");
       }
-    }else{
+    } else {
       ibody = body[i];
 
         if(Gamma_MD[ibody]*dt_lb/dm_lb - Gamma[type[i]] > eps)
@@ -798,7 +796,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
         sum[ibody][1] += up[i][1]*massone;
         sum[ibody][2] += up[i][2]*massone;
       }
-    }else{
+    } else {
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
@@ -841,7 +839,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
         sum[ibody][4] += -Gamma_MD[ibody]*(v[i][1]-up[i][1]);
         sum[ibody][5] += -Gamma_MD[ibody]*(v[i][2]-up[i][2]);
       }
-    }else{
+    } else {
       sum[ibody][0] += Gamma_MD[ibody]*(dy * ((up[i][2]-vcm[ibody][2])) -
                                         dz * ((up[i][1]-vcm[ibody][1])));
       sum[ibody][1] += Gamma_MD[ibody]*(dz * ((up[i][0]-vcm[ibody][0])) -
@@ -1054,7 +1052,7 @@ void FixLbRigidPCSphere::final_integrate()
         sum[ibody][5] += Gamma_MD[ibody]*(dx * ((up[i][1]-vcm[ibody][1])) -
                                           dy * ((up[i][0]-vcm[ibody][0])));
       }
-    }else{
+    } else {
       sum[ibody][0] += up[i][0]*massone;
       sum[ibody][1] += up[i][1]*massone;
       sum[ibody][2] += up[i][2]*massone;
@@ -1336,8 +1334,9 @@ void FixLbRigidPCSphere::pre_neighbor()
     original = imagebody[ibody];
     domain->remap(xcm[ibody],imagebody[ibody]);
 
-    if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
-    else {
+    if (original == imagebody[ibody]) {
+      remapflag[ibody][3] = 0;
+    } else {
       oldimage = original & IMGMASK;
       newimage = imagebody[ibody] & IMGMASK;
       remapflag[ibody][0] = newimage - oldimage;
@@ -1608,37 +1607,37 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
         for(ii=-1; ii<3; ii++){
           rsq=(-dx1+ii)*(-dx1+ii);
 
-          if(rsq>=4)
+          if(rsq>=4) {
             weightx=0.0;
-          else{
+          } else {
             r=sqrt(rsq);
             if(rsq>1){
               weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-            } else{
+            } else {
               weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
             }
           }
           for(jj=-1; jj<3; jj++){
             rsq=(-dy1+jj)*(-dy1+jj);
-            if(rsq>=4)
+            if(rsq>=4) {
               weighty=0.0;
-            else{
+            } else {
               r=sqrt(rsq);
               if(rsq>1){
                 weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-              } else{
+              } else {
                 weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
               }
             }
             for(kk=-1; kk<3; kk++){
               rsq=(-dz1+kk)*(-dz1+kk);
-              if(rsq>=4)
+              if(rsq>=4) {
                 weightz=0.0;
-              else{
+              } else {
                 r=sqrt(rsq);
                 if(rsq>1){
                   weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-                } else{
+                } else {
                   weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
                 }
               }
@@ -1659,7 +1658,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
             }
           }
         }
-      }else{
+      } else {
         FfP[0] = (1.-dx1)*(1.-dy1)*(1.-dz1);
         FfP[1] = (1.-dx1)*(1.-dy1)*dz1;
         FfP[2] = (1.-dx1)*dy1*(1.-dz1);

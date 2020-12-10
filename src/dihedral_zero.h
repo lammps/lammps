@@ -24,7 +24,6 @@ DihedralStyle(zero,DihedralZero)
 #ifndef LMP_DIHEDRAL_ZERO_H
 #define LMP_DIHEDRAL_ZERO_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {

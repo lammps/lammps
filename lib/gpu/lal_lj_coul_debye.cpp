@@ -23,7 +23,7 @@ const char *lj_coul_debye=0;
 
 #include "lal_lj_coul_debye.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJCoulDebyeT LJCoulDebye<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -166,3 +166,4 @@ void LJCoulDebyeT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJCoulDebye<PRECISION,ACC_PRECISION>;
+}

@@ -21,9 +21,14 @@
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H
 
-#include "lmptype.h"
-#include <mpi.h>
-#include "lammps.h"
+#include "lmptype.h"    // IWYU pragma: export
+#include <mpi.h>        // IWYU pragma: export
+#include <cstddef>      // IWYU pragme: export
+#include <cstdio>       // IWYU pragma: export
+#include <string>       // IWYU pragma: export
+#include "lammps.h"     // IWYU pragma: export
+#include "utils.h"      // IWYU pragma: export
+#include "fmt/format.h" // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -33,6 +38,29 @@ namespace LAMMPS_NS {
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+
+// enum used for KOKKOS host/device flags
+
+enum ExecutionSpace{Host,Device};
+
+// global forward declarations
+
+template <class T> class MyPoolChunk;
+template <class T> class MyPage;
+
+/** \class LAMMPS_NS::Pointers
+ * \brief Base class for LAMMPS features
+ *
+ * The Pointers class contains references to many of the pointers
+ * and members of the LAMMPS_NS::LAMMPS class. Derived classes thus
+ * gain access to the constituent class instances in the LAMMPS
+ * composite class and thus to the core functionality of LAMMPS.
+ *
+ * This kind of construct is needed, since the LAMMPS constructor
+ * should only be run once per LAMMPS instance and thus classes
+ * cannot be derived from LAMMPS itself. The Pointers class
+ * constructor instead only initializes C++ references to component
+ * pointer in the LAMMPS class. */
 
 class Pointers {
  public:

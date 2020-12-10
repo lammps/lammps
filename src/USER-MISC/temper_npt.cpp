@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,26 +17,24 @@
    Contact Email: amulyapervaje@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "temper_npt.h"
-#include "universe.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
-#include "compute.h"
-#include "force.h"
-#include "output.h"
-#include "thermo.h"
-#include "fix.h"
 #include "random_park.h"
-#include "finish.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -72,21 +70,25 @@ void TemperNPT::command(int narg, char **arg)
   if (narg != 7 && narg != 8)
     error->universe_all(FLERR,"Illegal temper/npt command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  nevery = force->inumeric(FLERR,arg[1]);
-  double temp = force->numeric(FLERR,arg[2]);
-  double press_set = force->numeric(FLERR,arg[6]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+  double temp = utils::numeric(FLERR,arg[2],false,lmp);
+  double press_set = utils::numeric(FLERR,arg[6],false,lmp);
+
+  // ignore temper command, if walltime limit was already reached
+
+  if (timer->is_timeout()) return;
 
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
-  seed_swap = force->inumeric(FLERR,arg[4]);
-  seed_boltz = force->inumeric(FLERR,arg[5]);
+  seed_swap = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
 
   my_set_temp = universe->iworld;
-  if (narg == 8) my_set_temp = force->inumeric(FLERR,arg[6]);
+  if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // swap frequency must evenly divide total # of timesteps
 
@@ -101,13 +103,15 @@ void TemperNPT::command(int narg, char **arg)
   // change the volume. This currently only applies to fix npt and
   // fix rigid/npt variants
 
-  if ((strncmp(modify->fix[whichfix]->style,"npt",3) != 0)
-      && (strncmp(modify->fix[whichfix]->style,"rigid/npt",9) != 0))
+  if ( (!utils::strmatch(modify->fix[whichfix]->style,"^npt")) &&
+       (!utils::strmatch(modify->fix[whichfix]->style,"^rigid/npt")) )
     error->universe_all(FLERR,"Tempering temperature and pressure fix is not supported");
 
   // setup for long tempering run
 
   update->whichflag = 1;
+  timer->init_timeout();
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
@@ -144,7 +148,7 @@ void TemperNPT::command(int narg, char **arg)
   // warm up Boltzmann RNG
 
   if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
-  else ranswap = NULL;
+  else ranswap = nullptr;
   ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 
@@ -215,7 +219,19 @@ void TemperNPT::command(int narg, char **arg)
 
     // run for nevery timesteps
 
+    timer->init_timeout();
     update->integrate->run(nevery);
+
+    // check for timeout across all procs
+
+    int my_timeout=0;
+    int any_timeout=0;
+    if (timer->is_timeout()) my_timeout=1;
+    MPI_Allreduce(&my_timeout, &any_timeout, 1, MPI_INT, MPI_SUM, universe->uworld);
+    if (any_timeout) {
+      timer->force_timeout();
+      break;
+    }
 
     // compute PE
     // notify compute it will be called at next swap

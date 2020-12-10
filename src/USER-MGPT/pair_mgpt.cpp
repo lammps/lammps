@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,17 +21,16 @@
    (2011).  See LLNL copyright notice at bottom of this file.
 ------------------------------------------------------------------------- */
 
+#include "pair_mgpt.h"
+
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include <cassert>
 
-#include "pair_mgpt.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -55,7 +54,7 @@ static double gettime(int x = 0) {
   if(1) {
     /*
       struct timeval tv;
-      gettimeofday(&tv,NULL);
+      gettimeofday(&tv,nullptr);
       return tv.tv_sec + 1e-6 * tv.tv_usec;
     */
     /*
@@ -119,7 +118,7 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
 
   double t0,t1;
 
-  /* Check that alignment requirements for SIMD code are fullfilled */
+  /* Check that alignment requirements for SIMD code are fulfilled */
   assert( (((unsigned long long int) (bptr->H.m )) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hx.m)) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hy.m)) & 31) == 0 );
@@ -1673,8 +1672,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
 void PairMGPT::compute(int eflag, int vflag)
 {
-  if(eflag || vflag) ev_setup(eflag, vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag, vflag);
 
   int newton_pair = force->newton_pair;
   double e_s,e_p,e_t,e_q;
@@ -1861,7 +1859,7 @@ void PairMGPT::coeff(int narg, char **arg)
 	if(strspn(arg[iarg+1],"1234") == strlen(arg[iarg+1])) {
 	  nbody_flag = 0;
 	  for(int i = 0; i<4; i++)
-	    if(strchr(arg[iarg+1],'1'+i) != NULL) {
+	    if(strchr(arg[iarg+1],'1'+i) != nullptr) {
 	      nbody_flag = nbody_flag + (1<<i);
 	      if(comm->me == 0) printf("Explicitly adding %d-tuple forces.\n",i+1);
 	    }
@@ -1906,9 +1904,9 @@ void PairMGPT::coeff(int narg, char **arg)
       printf("Volumetric pressure is %s.\n",volpres_flag ? "on" : "off");
 
     if(comm->me == 0) {
-      FILE *parmin_fp = force->open_potential(arg[2]);
-      FILE *potin_fp = force->open_potential(arg[3]);
-      if (parmin_fp == NULL || potin_fp == NULL) {
+      FILE *parmin_fp = utils::open_potential(arg[2],lmp,nullptr);
+      FILE *potin_fp = utils::open_potential(arg[3],lmp,nullptr);
+      if (parmin_fp == nullptr || potin_fp == nullptr) {
         char str[128];
         sprintf(str,"Cannot open MGPT potential files %s %s",arg[2],arg[3]);
         error->one(FLERR,str);

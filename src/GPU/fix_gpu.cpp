@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_gpu.h"
+#include <cstring>
+
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "citeme.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -87,6 +88,12 @@ static const char cite_gpu_package[] =
   " year =    2017,\n"
   " volume =  212,\n"
   " pages =   {113--122}\n"
+  "}\n\n"
+  "@Article{Nikolskiy19,\n"
+  " author = {V. Nikolskiy, V. Stegailov},\n"
+  " title = {GPU acceleration of four-site water models in LAMMPS},\n"
+  " journal = {Proceeding of the International Conference on Parallel Computing (ParCo 2019), Prague, Czech Republic},\n"
+  " year =    2019\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -111,7 +118,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int newtonflag = 0;
   int threads_per_atom = -1;
   double binsize = 0.0;
-  char *opencl_flags = NULL;
+  char *opencl_flags = nullptr;
   int block_pair = -1;
 
   int iarg = 4;
@@ -131,27 +138,27 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      binsize = force->numeric(FLERR,arg[iarg+1]);
+      binsize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      _particle_split = force->numeric(FLERR,arg[iarg+1]);
+      _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,"Illegal package GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
-      first_gpu = force->inumeric(FLERR,arg[iarg+1]);
-      last_gpu = force->inumeric(FLERR,arg[iarg+2]);
+      first_gpu = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      last_gpu = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"tpa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      threads_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nthreads") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      nthreads = force->inumeric(FLERR,arg[iarg+1]);
+      nthreads = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"device") == 0) {
@@ -160,7 +167,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"blocksize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      block_pair = force->inumeric(FLERR,arg[iarg+1]);
+      block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal package gpu command");
   }
@@ -214,27 +221,9 @@ void FixGPU::init()
 {
   // GPU package cannot be used with atom_style template
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
-
-  // hybrid cannot be used with force/neigh option
-
-  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
-    if (force->pair_match("hybrid",1) != NULL ||
-        force->pair_match("hybrid/overlay",1) != NULL)
-      error->all(FLERR,"Cannot use pair hybrid with GPU neighbor list builds");
-  if (_particle_split < 0)
-    if (force->pair_match("hybrid",1) != NULL ||
-        force->pair_match("hybrid/overlay",1) != NULL)
-      error->all(FLERR,"GPU split param must be positive "
-                 "for hybrid pair styles");
-
-  // neighbor list builds on the GPU with triclinic box is not yet supported
-
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) &&
-      domain->triclinic)
-    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
 
   // give a warning if no pair style is defined
 
@@ -243,21 +232,16 @@ void FixGPU::init()
 
   // make sure fdotr virial is not accumulated multiple times
 
-  if (force->pair_match("hybrid",1) != NULL) {
+  if (force->pair_match("^hybrid",0) != nullptr) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
-        force->pair->no_virial_fdotr_compute = 1;
-  } else if (force->pair_match("hybrid/overlay",1) != NULL) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
+      if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
   }
 
   // rRESPA support
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -288,7 +272,7 @@ void FixGPU::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force(int vflag)
+void FixGPU::post_force(int /* vflag */)
 {
   if (!force->pair) return;
 
@@ -320,7 +304,7 @@ void FixGPU::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGPU::post_force_respa(int vflag, int ilevel, int iloop)
+void FixGPU::post_force_respa(int vflag, int /* ilevel */, int /* iloop */)
 {
   post_force(vflag);
 }

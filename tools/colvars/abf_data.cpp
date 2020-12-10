@@ -82,7 +82,7 @@ ABFdata::ABFdata(const char *gradFileName)
         pos[i] = 0;
 
     for (unsigned int i = 0; i < scalar_dim; i++) {
-        // Here we do the Euclidian division iteratively
+        // Here we do the Euclidean division iteratively
         for (int k = Nvars - 1; k > 0; k--) {
             if (pos[k] == sizes[k]) {
                 pos[k] = 0;
@@ -213,7 +213,7 @@ void ABFdata::write_histogram(const char *fileName)
         pos[i] = 0;
 
     for (index = 0; index < scalar_dim; index++) {
-        // Here we do the Euclidian division iteratively
+        // Here we do the Euclidean division iteratively
         for (i = Nvars - 1; i > 0; i--) {
             if (pos[i] == sizes[i]) {
                 pos[i] = 0;
@@ -271,7 +271,7 @@ void ABFdata::write_bias(const char *fileName)
     }
 
     for (index = 0; index < scalar_dim; index++) {
-        // Here we do the Euclidian division iteratively
+        // Here we do the Euclidean division iteratively
         for (i = Nvars - 1; i > 0; i--) {
             if (pos[i] == sizes[i]) {
                 pos[i] = 0;
@@ -316,7 +316,7 @@ void ABFdata::write_field(double *field, const char *fileName)
     f = field;
 
     for (index = 0; index < scalar_dim; index++) {
-        // Here we do the Euclidian division iteratively
+        // Here we do the Euclidean division iteratively
         for (i = Nvars - 1; i > 0; i--) {
             if (pos[i] == sizes[i]) {
                 pos[i] = 0;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://lammps.sandia.gov/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,19 +13,16 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nh_uef.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "citeme.h"
 #include "irregular.h"
 #include "modify.h"
 #include "compute.h"
-#include "kspace.h"
 #include "update.h"
 #include "domain.h"
 #include "error.h"
@@ -56,11 +53,11 @@ static const char cite_user_uef_package[] =
   "}\n\n";
 
 /* ----------------------------------------------------------------------
- * Parse fix specific keywords, do some error checking, and initalize
+ * Parse fix specific keywords, do some error checking, and initialize
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), uefbox(NULL)
+  FixNH(lmp, narg, arg), uefbox(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 
@@ -85,14 +82,14 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   while (iarg <narg) {
     if (strcmp(arg[iarg],"erate")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      erate[0] = force->numeric(FLERR,arg[iarg+1]);
-      erate[1] = force->numeric(FLERR,arg[iarg+2]);
+      erate[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      erate[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       erate_flag = true;
       iarg += 3;
     } else if (strcmp(arg[iarg],"strain")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      strain[0] = force->numeric(FLERR,arg[iarg+1]);
-      strain[1] = force->numeric(FLERR,arg[iarg+2]);
+      strain[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      strain[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"ext")==0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
@@ -166,7 +163,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
   // flag that I change the box here (in case of nvt)
 
-  box_change_shape = 1;
+  box_change |= BOX_CHANGE_SHAPE;
 
   // initialize the UEFBox class which computes the box at each step
 
@@ -247,7 +244,7 @@ void FixNHUef::init()
   for (int i=0; i < modify->nfix; i++)
   {
     if (strcmp(modify->fix[i]->id,id) != 0)
-      if (modify->fix[i]->box_change_shape != 0)
+      if ((modify->fix[i]->box_change & BOX_CHANGE_SHAPE) != 0)
         error->all(FLERR,"Can't use another fix which changes box shape with fix/nvt/npt/uef");
   }
 

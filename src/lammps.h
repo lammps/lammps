@@ -14,6 +14,7 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
+#include <mpi.h>
 #include <cstdio>
 
 namespace LAMMPS_NS {
@@ -36,6 +37,12 @@ class LAMMPS {
   class Group *group;            // groups of atoms
   class Output *output;          // thermo/dump/restart
   class Timer *timer;            // CPU timing info
+
+  const char *version;           // LAMMPS version string = date
+  int num_ver;                   // numeric version id derived from *version*
+                                 // that is constructed so that will be greater
+                                 // for newer versions in numeric or string
+                                 // value comparisons
 
   MPI_Comm world;                // MPI communicator
   FILE *infile;                  // infile
@@ -63,7 +70,14 @@ class LAMMPS {
 
   class CiteMe *citeme;          // citation info
 
+  const char *match_style(const char *style, const char *name);
   static const char * installed_packages[];
+  static bool is_installed_pkg(const char *pkg);
+
+  static const bool has_git_info;
+  static const char git_commit[];
+  static const char git_branch[];
+  static const char git_descriptor[];
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
@@ -74,9 +88,13 @@ class LAMMPS {
   void print_config(FILE *);    // print compile time settings
 
  private:
+  struct package_styles_lists *pkg_lists;
+  void init_pkg_lists();
   void help();
-  LAMMPS() {};                   // prohibit using the default constructor
-  LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
+  /// Default constructor. Declared private to prohibit its use
+  LAMMPS() {};
+  /// Copy constructor. Declared private to prohibit its use
+  LAMMPS(const LAMMPS &) {};
 };
 
 }
@@ -170,7 +188,7 @@ The size of the MPI datatype does not match the size of a bigint.
 
 E: Small to big integers are not sized correctly
 
-This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+This error occurs when the sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 

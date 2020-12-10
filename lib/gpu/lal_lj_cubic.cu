@@ -11,14 +11,14 @@
 //
 //    begin                :
 //    email                : ndactrung@gmail.com
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
+_texture( pos_tex,float4);
 #else
-texture<int4,1> pos_tex;
+_texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_
@@ -27,9 +27,9 @@ texture<int4,1> pos_tex;
 // LJ quantities scaled by epsilon and rmin = sigma*2^1/6 (see src/pair_lj_cubic.h)
 
 #define _RT6TWO (numtyp)1.1224621
-#define _PHIS (numtyp)-0.7869823   // energy at s
-#define _DPHIDS (numtyp)2.6899009  // gradient at s
-#define _A3 (numtyp)27.93357       // cubic coefficient
+#define _PHIS (numtyp)-0.7869823  /* energy at s */
+#define _DPHIDS (numtyp)2.6899009 /* gradient at s */
+#define _A3 (numtyp)27.93357 /* cubic coefficient */
 
 __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict lj1,

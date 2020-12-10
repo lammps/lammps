@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +15,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "omp_compat.h"
+
 #include <cmath>
 #include "dihedral_charmm_intel.h"
 #include "atom.h"
@@ -84,13 +85,13 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
                                   IntelBuffers<flt_t,acc_t> *buffers,
                                   const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (weightflag && vflag_global == 2)
+  if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   if (evflag) {
@@ -148,7 +149,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
               opv0,opv1,opv2,opv3,opv4,opv5)
@@ -522,7 +523,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oevdwl,oecoul,oedihedral,ov0,ov1,ov2,ov3,ov4,ov5, \
               opv0,opv1,opv2,opv3,opv4,opv5)

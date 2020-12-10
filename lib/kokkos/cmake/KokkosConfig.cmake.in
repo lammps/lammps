@@ -1,18 +1,14 @@
-# - Config file for the Kokkos package
-# It defines the following variables
-#  Kokkos_INCLUDE_DIRS - include directories for Kokkos
-#  Kokkos_LIBRARIES    - libraries to link against
-
 # Compute paths
+@PACKAGE_INIT@
+
+#Find dependencies
+INCLUDE(CMakeFindDependencyMacro)
+
+#This needs to go above the KokkosTargets in case
+#the Kokkos targets depend in some way on the TPL imports
+@KOKKOS_TPL_EXPORTS@
+
 GET_FILENAME_COMPONENT(Kokkos_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-SET(Kokkos_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
-
-# Our library dependencies (contains definitions for IMPORTED targets)
-IF(NOT TARGET kokkos AND NOT Kokkos_BINARY_DIR)
-  INCLUDE("${Kokkos_CMAKE_DIR}/KokkosTargets.cmake")
-ENDIF()
-
-# These are IMPORTED targets created by KokkosTargets.cmake
-SET(Kokkos_LIBRARY_DIRS @INSTALL_LIB_DIR@)
-SET(Kokkos_LIBRARIES @Kokkos_LIBRARIES_NAMES@)
-SET(Kokkos_TPL_LIBRARIES @KOKKOS_LIBS@)
+INCLUDE("${Kokkos_CMAKE_DIR}/KokkosTargets.cmake")
+INCLUDE("${Kokkos_CMAKE_DIR}/KokkosConfigCommon.cmake")
+UNSET(Kokkos_CMAKE_DIR)

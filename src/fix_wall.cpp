@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,20 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall.h"
-#include "atom.h"
-#include "input.h"
-#include "variable.h"
+
 #include "domain.h"
+#include "error.h"
+#include "input.h"
 #include "lattice.h"
-#include "update.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-#include "force.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,7 +51,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = NULL;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -88,7 +86,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(xstr[nwall],&arg[iarg+1][2]);
       } else {
         xstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
@@ -97,8 +95,21 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(estr[nwall],&arg[iarg+2][2]);
         estyle[nwall] = VARIABLE;
       } else {
-        epsilon[nwall] = force->numeric(FLERR,arg[iarg+2]);
+        epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         estyle[nwall] = CONSTANT;
+      }
+
+      if (utils::strmatch(style,"^wall/morse")) {
+        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+          int n = strlen(&arg[iarg+3][2]) + 1;
+          astr[nwall] = new char[n];
+          strcpy(astr[nwall],&arg[iarg+3][2]);
+          astyle[nwall] = VARIABLE;
+        } else {
+          alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+          astyle[nwall] = CONSTANT;
+        }
+        ++iarg;
       }
 
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
@@ -107,11 +118,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(sstr[nwall],&arg[iarg+3][2]);
         sstyle[nwall] = VARIABLE;
       } else {
-        sigma[nwall] = force->numeric(FLERR,arg[iarg+3]);
+        sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         sstyle[nwall] = CONSTANT;
       }
 
-      cutoff[nwall] = force->numeric(FLERR,arg[iarg+4]);
+      cutoff[nwall] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       nwall++;
       iarg += 5;
 

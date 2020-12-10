@@ -23,7 +23,7 @@ const char *tersoff_zbl=0;
 
 #include "lal_tersoff_zbl.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define TersoffZT TersoffZBL<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -275,11 +275,10 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &cutsq, &map,
-                 &elem2param, &_nelements, &_nparams,
-                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
-                 &nbor_pitch, &this->_threads_per_atom);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &_cutshortsq, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
 
   // re-allocate zetaij if necessary
   int nall = this->_nall;
@@ -355,4 +354,4 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 }
 
 template class TersoffZBL<PRECISION,ACC_PRECISION>;
-
+}

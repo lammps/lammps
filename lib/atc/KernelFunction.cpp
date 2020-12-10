@@ -20,13 +20,13 @@ namespace ATC {
   //========================================================================
   //  KernelFunctionMgr
   //========================================================================
-  KernelFunctionMgr * KernelFunctionMgr::myInstance_ = NULL;
+  KernelFunctionMgr * KernelFunctionMgr::myInstance_ = nullptr;
   //------------------------------------------------------------------------
   //  instance
   //------------------------------------------------------------------------
   KernelFunctionMgr * KernelFunctionMgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new KernelFunctionMgr();
     }
     return myInstance_;
@@ -65,7 +65,7 @@ namespace ATC {
       No default
     */
     int argIdx = 0;
-    KernelFunction * ptr = NULL;
+    KernelFunction * ptr = nullptr;
     char* type = arg[argIdx++];
     if (strcmp(type,"step")==0) {
       double parameters[1] = {atof(arg[argIdx])}; // cutoff radius
@@ -123,7 +123,7 @@ namespace ATC {
   //  KernelFunction
   //------------------------------------------------------------------------
   // constructor
-  KernelFunction::KernelFunction(int nparameters, double* parameters):
+  KernelFunction::KernelFunction(int /* nparameters */, double* parameters):
     Rc_(0),invRc_(0),nsd_(3),
     lammpsInterface_(LammpsInterface::instance())
   { 
@@ -286,7 +286,7 @@ namespace ATC {
   }
   
   // function derivative value
-  void KernelFunctionStep::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionStep::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -378,7 +378,7 @@ namespace ATC {
   }
 
   // function derivative value
-  void KernelFunctionCell::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionCell::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -518,7 +518,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionCubicSphere::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionCubicSphere::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -548,7 +548,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionQuarticSphere::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionQuarticSphere::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -581,7 +581,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionCubicCyl::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionCubicCyl::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -614,7 +614,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionQuarticCyl::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionQuarticCyl::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -646,7 +646,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionCubicBar::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionCubicBar::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }
@@ -719,7 +719,7 @@ namespace ATC {
   } 
 
   // function derivative value
-  void KernelFunctionQuarticBar::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
+  void KernelFunctionQuarticBar::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
      deriv.reset(nsd_);
   }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,14 +15,12 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "dump_movie.h"
+
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -37,7 +35,7 @@ DumpMovie::DumpMovie(LAMMPS *lmp, int narg, char **arg) :
   filetype = PPM;
   bitrate = 2000;
   framerate = 24;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -46,7 +44,7 @@ void DumpMovie::openfile()
 {
   char moviecmd[1024];
 
-  if ((comm->me == 0) && (fp == NULL)) {
+  if ((comm->me == 0) && (fp == nullptr)) {
 
 #ifdef LAMMPS_FFMPEG
     sprintf(moviecmd,"ffmpeg -v error -y -r %.2f -f image2pipe -c:v ppm -i - "
@@ -61,11 +59,9 @@ void DumpMovie::openfile()
     fp = popen(moviecmd,"w");
 #endif
 
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Failed to open FFmpeg pipeline to file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Failed to open FFmpeg pipeline to "
+                                   "file {}",filename));
   }
 }
 /* ---------------------------------------------------------------------- */
@@ -88,14 +84,14 @@ int DumpMovie::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"bitrate") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    bitrate = force->inumeric(FLERR,arg[1]);
+    bitrate = utils::inumeric(FLERR,arg[1],false,lmp);
     if (bitrate <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
 
   if (strcmp(arg[0],"framerate") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    framerate = force->numeric(FLERR,arg[1]);
+    framerate = utils::numeric(FLERR,arg[1],false,lmp);
     if ((framerate <= 0.1) || (framerate > 24.0))
       error->all(FLERR,"Illegal dump_modify framerate command");
     return 2;

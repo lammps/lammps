@@ -7,7 +7,7 @@ users have asked for such a facility over time.
 The currently provided compute styles are mostly meant as a
 demonstration for how to use this facility and provide an
 alternative approach to using features like compute group/group
-or compute heat/flux. Its application is limited to pairwise 
+or compute heat/flux. Its application is limited to pairwise
 additive potentials that use the standard Pair::ev_tally()
 method to accumulate energy (and virial).
 
@@ -21,7 +21,6 @@ The person who created this package is Axel Kohlmeyer (akohlmey@gmail.com)
 at Temple University with a little help and inspiration from
 Loris Ercole (SISSA/ISAS Trieste), who contributed compute heat/flux/tally.
 
-Additional contributed compute style for this package are welcome.
-Please contact Axel, if you have questions about the implementation.
+Additional contributed compute styles for this package are welcome.
 
 

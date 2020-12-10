@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,15 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_heatconduction.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "memory.h"
 #include "error.h"
 #include "neigh_list.h"
 #include "domain.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -52,14 +51,11 @@ void PairSPHHeatConduction::compute(int eflag, int vflag) {
   double imass, jmass, h, ih, ihsq;
   double rsq, wfd, D, deltaE;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *mass = atom->mass;
   double *rho = atom->rho;
   int *type = atom->type;
@@ -121,11 +117,11 @@ void PairSPHHeatConduction::compute(int eflag, int vflag) {
 
         deltaE = 2.0 * imass * jmass / (imass+jmass);
         deltaE *= (rho[i] + rho[j]) / (rho[i] * rho[j]);
-        deltaE *= D * (e[i] - e[j]) * wfd;
+        deltaE *= D * (esph[i] - esph[j]) * wfd;
 
-        de[i] += deltaE;
+        desph[i] += deltaE;
         if (newton_pair || j < nlocal) {
-          de[j] -= deltaE;
+          desph[j] -= deltaE;
         }
 
       }
@@ -158,7 +154,7 @@ void PairSPHHeatConduction::allocate() {
 void PairSPHHeatConduction::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/heatconduction");
+        "Illegal number of arguments for pair_style sph/heatconduction");
 }
 
 /* ----------------------------------------------------------------------
@@ -172,11 +168,11 @@ void PairSPHHeatConduction::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double alpha_one = force->numeric(FLERR,arg[2]);
-  double cut_one   = force->numeric(FLERR,arg[3]);
+  double alpha_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one   = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

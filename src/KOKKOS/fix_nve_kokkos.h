@@ -31,9 +31,10 @@ template<class DeviceType>
 class FixNVEKokkos;
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosInitialIntegrateFunctor;
+struct FixNVEKokkosInitialIntegrateFunctor;
+
 template <class DeviceType, int RMass>
-class FixNVEKokkosFinalIntegrateFunctor;
+struct FixNVEKokkosFinalIntegrateFunctor;
 
 template<class DeviceType>
 class FixNVEKokkos : public FixNVE {
@@ -60,8 +61,8 @@ class FixNVEKokkos : public FixNVE {
   typename ArrayTypes<DeviceType>::t_x_array x;
   typename ArrayTypes<DeviceType>::t_v_array v;
   typename ArrayTypes<DeviceType>::t_f_array_const f;
-  double *rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d mass;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 };

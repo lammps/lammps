@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,20 +15,25 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cmath>
 #include "pppm_tip4p_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_omp.h"
 #include "force.h"
-#include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
-
 #include "suffix.h"
+
+#include <cstring>
+#include <cmath>
+
+#include "omp_compat.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -44,8 +49,8 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
-  PPPMTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp) :
+  PPPMTIP4P(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
@@ -58,7 +63,7 @@ PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
 PPPMTIP4POMP::~PPPMTIP4POMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -80,7 +85,7 @@ void PPPMTIP4POMP::allocate()
   PPPMTIP4P::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -121,7 +126,7 @@ void PPPMTIP4POMP::compute_gf_ik()
   const int twoorder = 2*order;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double snx,sny,snz;
@@ -215,7 +220,7 @@ void PPPMTIP4POMP::compute_gf_ad()
   double sf0=0.0,sf1=0.0,sf2=0.0,sf3=0.0,sf4=0.0,sf5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
 #endif
   {
     double snx,sny,snz,sqk;
@@ -280,7 +285,7 @@ void PPPMTIP4POMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -313,7 +318,7 @@ void PPPMTIP4POMP::compute(int eflag, int vflag)
   PPPMTIP4P::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -347,14 +352,14 @@ void PPPMTIP4POMP::particle_map()
   const double boxloz = boxlo[2];
   const int nlocal = atom->nlocal;
 
-  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+  if (!std::isfinite(boxlox) || !std::isfinite(boxloy) || !std::isfinite(boxloz))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
-  int i, flag = 0;
+  int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:flag) schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
     int iH1,iH2;
 
@@ -413,7 +418,7 @@ void PPPMTIP4POMP::make_rho()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -518,7 +523,7 @@ void PPPMTIP4POMP::fieldforce_ik()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     dbl3_t xM;
@@ -629,7 +634,7 @@ void PPPMTIP4POMP::fieldforce_ad()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double s1,s2,s3,sf;
@@ -678,24 +683,24 @@ void PPPMTIP4POMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
 
-      s1 = x[i].x*hx_inv;
+      s1 = xM.x*hx_inv;
       sf = sf_coeff[0]*sin(MY_2PI*s1);
       sf += sf_coeff[1]*sin(MY_4PI*s1);
       sf *= 2.0*qi;
       const double fx = qfactor*(ekx - sf);
 
-      s2 = x[i].y*hy_inv;
+      s2 = xM.y*hy_inv;
       sf = sf_coeff[2]*sin(MY_2PI*s2);
       sf += sf_coeff[3]*sin(MY_4PI*s2);
       sf *= 2.0*qi;
       const double fy = qfactor*(eky - sf);
 
-      s3 = x[i].z*hz_inv;
+      s3 = xM.z*hz_inv;
       sf = sf_coeff[4]*sin(MY_2PI*s3);
       sf += sf_coeff[5]*sin(MY_4PI*s3);
       sf *= 2.0*qi;
@@ -747,11 +752,18 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     // since local atoms are in lambda coordinates, but ghosts are not.
 
     int *sametag = atom->sametag;
-    double xo[3],xh1[3],xh2[3];
+    double xo[3],xh1[3],xh2[3],xm[3];
+    const int nlocal = atom->nlocal;
 
-    domain->lamda2x(x[i],xo);
-    domain->lamda2x(x[iH1],xh1);
-    domain->lamda2x(x[iH2],xh2);
+    for (int ii = 0; ii < 3; ++ii) {
+      xo[ii] = x[i][ii];
+      xh1[ii] = x[iH1][ii];
+      xh2[ii] = x[iH2][ii];
+    }
+
+    if (i < nlocal) domain->lamda2x(x[i],xo);
+    if (iH1 < nlocal) domain->lamda2x(x[iH1],xh1);
+    if (iH2 < nlocal) domain->lamda2x(x[iH2],xh2);
 
     double delx = xo[0] - xh1[0];
     double dely = xo[1] - xh1[1];
@@ -760,6 +772,7 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     double rsq;
     int closest = iH1;
 
+    // no need to run lamda2x here -> ghost atoms
     while (sametag[iH1] >= 0) {
       iH1 = sametag[iH1];
       delx = xo[0] - x[iH1][0];
@@ -808,13 +821,13 @@ void PPPMTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
     double dely2 = xh2[1] - xo[1];
     double delz2 = xh2[2] - xo[2];
 
-    xM.x = xo[0] + alpha * 0.5 * (delx1 + delx2);
-    xM.y = xo[1] + alpha * 0.5 * (dely1 + dely2);
-    xM.z = xo[2] + alpha * 0.5 * (delz1 + delz2);
+    xm[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xm[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xm[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
 
     // ... and convert M to lamda space for PPPM
 
-    domain->x2lamda((double *)&xM,(double *)&xM);
+    domain->x2lamda(xm,(double *)&xM);
 
   } else {
 

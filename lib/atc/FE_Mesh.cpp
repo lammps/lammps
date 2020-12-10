@@ -46,7 +46,7 @@ namespace ATC {
     partitioned_(false),
     nNodes_(0), 
     nNodesUnique_(0),
-    feElement_(NULL),
+    feElement_(nullptr),
     twoDimensional_(false),
     hasPlanarFaces_(false)
 
@@ -797,7 +797,7 @@ namespace ATC {
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.insert(node);
-          inode++;
+          inode++; // XXX: is this correct?
         }
       }
     }
@@ -832,7 +832,7 @@ namespace ATC {
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.erase(node);
-          inode++;
+          inode++; // XXX: is this correct?
         }
       }
     }
@@ -1708,7 +1708,7 @@ namespace ATC {
                        const Array< pair< string, set<int> > > *nodeSets):
     FE_Mesh(),
     minEltSize_(0),
-    tree_(NULL)
+    tree_(nullptr)
   {
     // Pick which element class to make
     if (elementType == "HEX8") {
@@ -1774,7 +1774,7 @@ namespace ATC {
     }
     
     // Insert nodes and elements into KD-tree for PIE search.
-    if (tree_ == NULL) {
+    if (tree_ == nullptr) {
       tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), nNodes_, 
         &nodalCoords_, nElts_, connectivity_);
     }
@@ -1788,7 +1788,7 @@ namespace ATC {
   // -------------------------------------------------------------
   //  setup_periodicity
   // -------------------------------------------------------------
-  void FE_3DMesh::setup_periodicity(double tol)
+  void FE_3DMesh::setup_periodicity(double /* tol */)
   {
     // unique <-> global id maps
     globalToUniqueMap_.reset(nNodes_);
@@ -2107,7 +2107,7 @@ namespace ATC {
 
     // use the KD tree for partitioning, getting more blocks than
     // processors
-    if (tree_ == NULL) {
+    if (tree_ == nullptr) {
       tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), 
                                       nNodes_, &nodalCoords_, 
                                       nElts_, connectivity_);
@@ -2119,10 +2119,9 @@ namespace ATC {
       // divide between all processors, we get the next-highest
       // power of 2.
     vector<vector<int> > procEltLists = tree_->getElemIDs(depth);
-    int numEltLists = procEltLists.size();
     
     // Make sure the KD tree is behaving as expected.
-    assert(numEltLists >= nProcs);
+    assert(procEltLists.size() >= nProcs);
  
     // If the KD-tree was not able to return enough divisions,
     // duplicate the largest list.
@@ -2520,7 +2519,7 @@ namespace ATC {
                                      const double zscale)
     : hx_(hx), hy_(hy), hz_(hz)
   {
-    tree_ = NULL;
+    tree_ = nullptr;
     hasPlanarFaces_ = true;
     xscale_ = xscale;
     yscale_ = yscale;
@@ -2821,7 +2820,7 @@ namespace ATC {
                                      const double zscale)
   {
     hasPlanarFaces_ = true;
-    tree_ = NULL;
+    tree_ = nullptr;
     xscale_ = xscale;
     yscale_ = yscale;
     zscale_ = zscale;

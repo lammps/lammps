@@ -17,11 +17,11 @@ namespace ATC {
   class ElectronHeatFlux
   {
     public:
-      ElectronHeatFlux(/*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
+      ElectronHeatFlux(/*const*/ ElectronHeatCapacity * electronHeatCapacity = nullptr);
       virtual ~ElectronHeatFlux() {};
       /** computes heat flux */
       virtual void electron_heat_flux(const FIELD_MATS &fields,
-                                      const GRAD_FIELD_MATS &gradFields,
+                                      const GRAD_FIELD_MATS & /* gradFields */,
                                             DENS_MAT_VEC &flux)
       {
          
@@ -68,9 +68,9 @@ namespace ATC {
   {
     public:
     ElectronHeatFluxLinear(std::fstream &matfile,std::map<std::string,double> & parameters,
-                           /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
+                           /*const*/ ElectronHeatCapacity * electronHeatCapacity = nullptr);
       virtual ~ElectronHeatFluxLinear() {};
-      virtual void electron_heat_flux(const FIELD_MATS &fields,
+      virtual void electron_heat_flux(const FIELD_MATS & /* fields */,
                                       const GRAD_FIELD_MATS &gradFields,
                                             DENS_MAT_VEC &flux)
       {
@@ -95,7 +95,7 @@ namespace ATC {
   {
     public:
     ElectronHeatFluxPowerLaw(std::fstream &matfile,std::map<std::string,double> &parameters,
-                             /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
+                             /*const*/ ElectronHeatCapacity * electronHeatCapacity = nullptr);
       virtual ~ElectronHeatFluxPowerLaw() {};
       virtual void electron_heat_flux(const FIELD_MATS &fields,
                                       const GRAD_FIELD_MATS &gradFields,
@@ -126,7 +126,7 @@ namespace ATC {
   /**
    *  @class  ElectronHeatFluxThermopower
    *  @brief  Class for an electron heat flux proportional to the temperature gradient but with a condu
-ctivity proportional to the ratio of the electron and phonon temperatures with the thermopower from teh electric current included
+ctivity proportional to the ratio of the electron and phonon temperatures with the thermopower from the electric current included
    */  
   
   class ElectronHeatFluxThermopower : public ElectronHeatFlux
@@ -134,8 +134,8 @@ ctivity proportional to the ratio of the electron and phonon temperatures with t
     public:
       ElectronHeatFluxThermopower(std::fstream &matfile, 
                                   std::map<std::string,double> & parameters,
-                                  /*const*/ ElectronFlux * electronFlux = NULL,
-                                  /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
+                                  /*const*/ ElectronFlux * electronFlux = nullptr,
+                                  /*const*/ ElectronHeatCapacity * electronHeatCapacity = nullptr);
       virtual ~ElectronHeatFluxThermopower() {};
       virtual void electron_heat_flux(const FIELD_MATS &fields,
                                       const GRAD_FIELD_MATS &gradFields,

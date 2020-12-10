@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,14 +19,15 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_eam_opt.h"
+#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,8 +39,7 @@ PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}
 
 void PairEAMOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {
@@ -81,11 +81,13 @@ void PairEAMOpt::eval()
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double** _noalias x = atom->x;
@@ -175,8 +177,6 @@ void PairEAMOpt::eval()
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-  // loop over neighbors of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     double xtmp = xx[i].x;
@@ -233,10 +233,11 @@ void PairEAMOpt::eval()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    double p = rho[i]*rdrho;
-    int m = MIN((int)p,nrho-2);
-    p -= (double)m;
-    ++m;
+    double p = rho[i]*rdrho + 1.0;
+    int m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
@@ -251,6 +252,7 @@ void PairEAMOpt::eval()
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -270,6 +272,7 @@ void PairEAMOpt::eval()
 
     fast_gamma_t* _noalias tabssi = &tabss[itype1*ntypes*nr];
     double* _noalias scale_i = scale[itype1+1]+1;
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -281,13 +284,16 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < tmp_cutforcesq) {
+        ++numforce[i];
         jtype = type[j] - 1;
         double r = sqrt(rsq);
         double rhoip,rhojp,z2,z2p;
         double p = r*tmp_rdr;
         if ( (int)p <= nr2 ) {
           int m = (int) p + 1;
+          m = MIN(m,nr-1);
           p -= (double)((int) p);
+          p = MIN(p,1.0);
 
           fast_gamma_t& a = tabssi[jtype*nr+m];
           rhoip = (a.rhor6i*p + a.rhor5i)*p + a.rhor4i;

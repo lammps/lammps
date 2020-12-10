@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,21 +13,14 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_uef.h"
+#include <cstring>
 #include "fix_nh_uef.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
 #include "kspace.h"
 #include "error.h"
 
@@ -85,7 +78,7 @@ double ComputePressureUef::compute_scalar()
   addstep(update->ntimestep+1);
 
   int k =0;
-  scalar = 0;
+  scalar = 0.0;
   if (ext_flags[0]) {
     scalar += vector[0];
     k++;
@@ -99,7 +92,7 @@ double ComputePressureUef::compute_scalar()
     k++;
   }
 
-  scalar /= k;
+  if (k > 1) scalar /= k;
   return scalar;
 }
 

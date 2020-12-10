@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,8 +12,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "omp_compat.h"
 #include "pair_lj_cut_tip4p_long_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -41,8 +42,8 @@ PairLJCutTIP4PLongOMP::PairLJCutTIP4PLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  newsite_thr = NULL;
-  hneigh_thr = NULL;
+  newsite_thr = nullptr;
+  hneigh_thr = nullptr;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -62,8 +63,7 @@ PairLJCutTIP4PLongOMP::~PairLJCutTIP4PLongOMP()
 
 void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -94,7 +94,7 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -102,7 +102,7 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
   if (ncoultablebits) {
     if (evflag) {
@@ -146,7 +146,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t x1,x2,xH1,xH2;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int i,j,ii,jj,jnum,itype,jtype,itable, key;
+  int i,j,ii,jj,jnum,itype,jtype,itable, key=0;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
 

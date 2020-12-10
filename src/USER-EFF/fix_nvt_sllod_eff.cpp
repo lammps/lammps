@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+#include <cstring>
+
 #include "fix_nvt_sllod_eff.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -75,7 +76,7 @@ void FixNVTSllodEff::init()
 
   int i;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/eff with inconsistent fix deform "
                    "remap option");

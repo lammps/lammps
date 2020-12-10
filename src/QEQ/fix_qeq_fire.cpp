@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,26 +15,23 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_fire.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
 #include "kspace.h"
 #include "respa.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -69,8 +66,8 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
 
-  comb = NULL;
-  comb3 = NULL;
+  comb = nullptr;
+  comb3 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,7 +119,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
   if (ntimestep % nevery) return;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
   inum = list->inum;
   ilist = list->ilist;
@@ -315,7 +312,7 @@ int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
 {
   int m = 0;
 
-  if( pack_flag == 1 )
+  if (pack_flag == 1)
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = qf[list[m]];
@@ -329,7 +326,7 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
-  if( pack_flag == 1)
+  if (pack_flag == 1)
     for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
   else if( pack_flag == 2)
     for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];

@@ -245,19 +245,19 @@ namespace ATC {
     /** container for molecule sets */
     std::map<std::string, SmallMoleculeSet * > smallMoleculeSets_;
 
-    /** container for atomic quantities which must be transfered when atoms cross processors */
+    /** container for atomic quantities which must be transferred when atoms cross processors */
     std::set<PerAtomQuantity<double> *> exchangeList_;
 
-    /** container for atomic quantities which must be transfered to ghost atoms on other processors */
+    /** container for atomic quantities which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomQuantity<double> *> commList_;
 
-    /** container for integer atomic quantities which must be transfered to ghost atoms on other processors */
+    /** container for integer atomic quantities which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomQuantity<int> *> commIntList_;
 
-    /** container for atomic diagonal matrices which must be transfered to ghost atoms on other processors */
+    /** container for atomic diagonal matrices which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomDiagonalMatrix<double> *> commDmList_;
 
-    /** container for atomic sparse matrices which must be transfered to ghost atoms on other processors */
+    /** container for atomic sparse matrices which must be transferred to ghost atoms on other processors */
     std::vector<PerAtomSparseMatrix<double> *> commSmList_;
 
     /** prefix for labeling associated lammps arrays */
@@ -277,7 +277,7 @@ namespace ATC {
     data * return_quantity(std::map<std::string,data * > & list, const std::string & tag)
     {
       typename std::map<std::string,data * >::iterator it = list.find(tag);
-      if (it==list.end()) return NULL;
+      if (it==list.end()) return nullptr;
       return it->second;
     }
 
@@ -310,7 +310,7 @@ namespace ATC {
     {
       typename std::map<std::string,data * >::iterator it = list.find(tag);
       if (it!=list.end()) return it->second;
-      return NULL;
+      return nullptr;
     }
 
     /** helper function to force the reset of all data in a list */
@@ -329,7 +329,7 @@ namespace ATC {
         (it->second)->set_memory_type(TEMPORARY);
     }
 
-    /** helper function to perform intialization for dfs of a list */
+    /** helper function to perform initialization for dfs of a list */
     template <typename data>
     void dfs_prepare_loop(std::map<std::string,data * > & list)
     {

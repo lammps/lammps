@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,22 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_hybrid_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp) {}
+AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp) {
+  no_comm_vel_flag = 1;
+  no_border_vel_flag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -85,7 +89,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimal values plus extra values for each sub-style
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   comm_x_only = comm_f_only = 1;
 
   size_forward = 3;
@@ -96,8 +100,8 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   xcol_data = 3;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,"Cannot mix molecular and molecule template "
                  "atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -110,7 +114,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
@@ -160,7 +164,7 @@ void AtomVecHybridKokkos::grow(int n)
   // for sub-styles, do this in case
   //   multiple sub-style reallocs of same array occurred
 
-  grow_reset();
+  grow_pointers();
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -171,7 +175,7 @@ void AtomVecHybridKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::grow_reset()
+void AtomVecHybridKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -213,7 +217,7 @@ void AtomVecHybridKokkos::grow_reset()
   d_angmom = atomKK->k_angmom.d_view;
   h_angmom = atomKK->k_angmom.h_view;
 
-  for (int k = 0; k < nstyles; k++) styles[k]->grow_reset();
+  for (int k = 0; k < nstyles; k++) styles[k]->grow_pointers();
 }
 
 /* ----------------------------------------------------------------------
@@ -249,51 +253,51 @@ void AtomVecHybridKokkos::force_clear(int n, size_t nbytes)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecHybridKokkos::pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
-                     const int & iswap,
-                     const DAT::tdual_xfloat_2d &buf,
-                     const int &pbc_flag, const int pbc[])
+int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_2d &/*k_sendlist*/,
+                                          const int & /*iswap*/,
+                                          const DAT::tdual_xfloat_2d &/*buf*/,
+                                          const int &/*pbc_flag*/, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-void AtomVecHybridKokkos::unpack_comm_kokkos(const int &n, const int &nfirst,
-                        const DAT::tdual_xfloat_2d &buf)
+void AtomVecHybridKokkos::unpack_comm_kokkos(const int &/*n*/, const int &/*nfirst*/,
+                                             const DAT::tdual_xfloat_2d &/*buf*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
 }
-int AtomVecHybridKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-                   const int & iswap, const int nfirst,
-                   const int &pbc_flag, const int pbc[])
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-int AtomVecHybridKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                       DAT::tdual_xfloat_2d buf,int iswap,
-                       int pbc_flag, int *pbc, ExecutionSpace space)
+int AtomVecHybridKokkos::pack_comm_self(const int &/*n*/, const DAT::tdual_int_2d &/*list*/,
+                                        const int & /*iswap*/, const int /*nfirst*/,
+                                        const int &/*pbc_flag*/, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-void AtomVecHybridKokkos::unpack_border_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf,
-                          ExecutionSpace space)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-}
-int AtomVecHybridKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
-                         DAT::tdual_int_1d k_sendlist,
-                         DAT::tdual_int_1d k_copylist,
-                         ExecutionSpace space, int dim,
-                         X_FLOAT lo, X_FLOAT hi)
+int AtomVecHybridKokkos::pack_border_kokkos(int /*n*/, DAT::tdual_int_2d /*k_sendlist*/,
+                                            DAT::tdual_xfloat_2d /*buf*/,int /*iswap*/,
+                                            int /*pbc_flag*/, int * /*pbc*/, ExecutionSpace /*space*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
-                           int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                           ExecutionSpace space)
+void AtomVecHybridKokkos::unpack_border_kokkos(const int &/*n*/, const int &/*nfirst*/,
+                                               const DAT::tdual_xfloat_2d &/*buf*/,
+                                               ExecutionSpace /*space*/)
+{
+  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
+}
+int AtomVecHybridKokkos::pack_exchange_kokkos(const int &/*nsend*/,DAT::tdual_xfloat_2d &/*buf*/,
+                                              DAT::tdual_int_1d /*k_sendlist*/,
+                                              DAT::tdual_int_1d /*k_copylist*/,
+                                              ExecutionSpace /*space*/, int /*dim*/,
+                                              X_FLOAT /*lo*/, X_FLOAT /*hi*/)
+{
+  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
+  return 0;
+}
+int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/, int /*nrecv*/,
+                                                int /*nlocal*/, int /*dim*/, X_FLOAT /*lo*/,
+                                                X_FLOAT /*hi*/, ExecutionSpace /*space*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
@@ -304,7 +308,7 @@ int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
 int AtomVecHybridKokkos::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK);
+  atomKK->sync(Host,X_MASK);
 
   int i,j,k,m;
   double dx,dy,dz;
@@ -348,7 +352,7 @@ int AtomVecHybridKokkos::pack_comm(int n, int *list, double *buf,
 int AtomVecHybridKokkos::pack_comm_vel(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   int i,j,k,m;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -460,7 +464,7 @@ void AtomVecHybridKokkos::unpack_comm(int n, int first, double *buf)
     h_x(i,2) = buf[m++];
   }
 
-  modified(Host,X_MASK);
+  atomKK->modified(Host,X_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -497,7 +501,7 @@ void AtomVecHybridKokkos::unpack_comm_vel(int n, int first, double *buf)
     }
   }
 
-  modified(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -509,7 +513,7 @@ void AtomVecHybridKokkos::unpack_comm_vel(int n, int first, double *buf)
 
 int AtomVecHybridKokkos::pack_reverse(int n, int first, double *buf)
 {
-  sync(Host,F_MASK);
+  atomKK->sync(Host,F_MASK);
 
   int i,k,m,last;
 
@@ -543,7 +547,7 @@ void AtomVecHybridKokkos::unpack_reverse(int n, int *list, double *buf)
     h_f(j,2) += buf[m++];
   }
 
-  modified(Host,F_MASK);
+  atomKK->modified(Host,F_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -556,7 +560,7 @@ void AtomVecHybridKokkos::unpack_reverse(int n, int *list, double *buf)
 int AtomVecHybridKokkos::pack_border(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   int i,j,k,m;
   double dx,dy,dz;
@@ -610,7 +614,7 @@ int AtomVecHybridKokkos::pack_border(int n, int *list, double *buf,
 int AtomVecHybridKokkos::pack_border_vel(int n, int *list, double *buf,
                                    int pbc_flag, int *pbc)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
   int i,j,k,m;
   double dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
@@ -738,7 +742,7 @@ void AtomVecHybridKokkos::unpack_border(int n, int first, double *buf)
     h_mask[i] = (int) ubuf(buf[m++]).i;
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -784,7 +788,7 @@ void AtomVecHybridKokkos::unpack_border_vel(int n, int first, double *buf)
     }
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // unpack sub-style contributions as contiguous chunks
 
@@ -966,13 +970,13 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
 
 void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
 {
-  sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");
 
@@ -997,7 +1001,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
     h_angmom(nlocal,2) = 0.0;
   }
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   // each sub-style parses sub-style specific values
 
@@ -1014,13 +1018,13 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
 void AtomVecHybridKokkos::data_vel(int m, char **values)
 {
-  sync(Host,V_MASK);
+  atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = atof(values[0]);
-  h_v(m,1) = atof(values[1]);
-  h_v(m,2) = atof(values[2]);
+  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
 
-  modified(Host,V_MASK);
+  atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
@@ -1035,7 +1039,7 @@ void AtomVecHybridKokkos::data_vel(int m, char **values)
 
 void AtomVecHybridKokkos::pack_data(double **buf)
 {
-  sync(Host,TAG_MASK|TYPE_MASK|X_MASK);
+  atomKK->sync(Host,TAG_MASK|TYPE_MASK|X_MASK);
 
   int k,m;
 
@@ -1086,7 +1090,7 @@ void AtomVecHybridKokkos::write_data(FILE *fp, int n, double **buf)
 
 void AtomVecHybridKokkos::pack_vel(double **buf)
 {
-  sync(Host,V_MASK);
+  atomKK->sync(Host,V_MASK);
 
   int k,m;
 
@@ -1174,7 +1178,7 @@ void AtomVecHybridKokkos::build_styles()
   allstyles[nallstyles] = new char[n];      \
   strcpy(allstyles[nallstyles],#key);       \
   nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"         // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }
@@ -1194,9 +1198,9 @@ int AtomVecHybridKokkos::known_style(char *str)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecHybridKokkos::memory_usage()
+double AtomVecHybridKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

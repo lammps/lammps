@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,24 +15,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "fix_qeq_comb_omp.h"
+
 #include <cmath>
 #include <cstring>
-#include "fix_qeq_comb_omp.h"
-#include "fix_omp.h"
+#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "modify.h"
 #include "error.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "respa.h"
 #include "update.h"
-#include "pair_comb_omp.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -52,13 +48,13 @@ void FixQEQCombOMP::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb/omp requires atom attribute q");
 
-  if (NULL != force->pair_match("comb3",0))
+  if (nullptr != force->pair_match("comb3",0))
     error->all(FLERR,"No support for comb3 currently available in USER-OMP");
 
   comb = (PairComb *) force->pair_match("comb/omp",1);
-  if (comb == NULL)
+  if (comb == nullptr)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL)
+  if (comb == nullptr)
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 
@@ -73,7 +69,7 @@ void FixQEQCombOMP::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQCombOMP::post_force(int vflag)
+void FixQEQCombOMP::post_force(int /* vflag */)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;

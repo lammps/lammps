@@ -15,12 +15,12 @@
 
 #include "lal_answer.h"
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define AnswerT Answer<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
 AnswerT::Answer() : _allocated(false),_eflag(false),_vflag(false),
-                            _inum(0),_ilist(NULL),_newton(false) {
+                            _inum(0),_ilist(nullptr),_newton(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -119,7 +119,7 @@ void AnswerT::clear() {
   engv.clear();
   time_answer.clear();
   _inum=0;
-  _ilist=NULL;
+  _ilist=nullptr;
   _eflag=false;
   _vflag=false;
 }
@@ -179,13 +179,15 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
   if (_eflag) {
     for (int i=0; i<_inum; i++)
       evdwl+=engv[i];
-    if (_ef_atom)
-      if (_ilist==NULL)
+    if (_ef_atom) {
+      if (_ilist==nullptr) {
         for (int i=0; i<_inum; i++)
           eatom[i]+=engv[i];
-      else
+      } else {
         for (int i=0; i<_inum; i++)
           eatom[_ilist[i]]+=engv[i];
+      }
+    }
     vstart=_inum;
   }
   if (_vflag) {
@@ -193,8 +195,8 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     for (int j=0; j<6; j++) {
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
-      if (_vf_atom)
-        if (_ilist==NULL) {
+      if (_vf_atom){
+        if (_ilist==nullptr) {
           int ii=0;
           for (int i=vstart; i<iend; i++)
             vatom[ii++][j]+=engv[i];
@@ -203,6 +205,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
           for (int i=vstart; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];
         }
+      }
       vstart+=_inum;
       iend+=_inum;
     }
@@ -228,8 +231,8 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       evdwl+=engv[i];
     for (int i=_inum; i<iend; i++)
       ecoul+=engv[i];
-    if (_ef_atom)
-      if (_ilist==NULL) {
+    if (_ef_atom) {
+      if (_ilist==nullptr) {
         for (int i=0; i<_inum; i++)
           eatom[i]+=engv[i];
         for (int i=_inum; i<iend; i++)
@@ -240,6 +243,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
         for (int i=_inum, ii=0; i<iend; i++)
           eatom[_ilist[ii++]]+=engv[i];
       }
+    }
     vstart=iend;
     iend+=_inum;
   }
@@ -247,14 +251,15 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     for (int j=0; j<6; j++) {
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
-      if (_vf_atom)
-        if (_ilist==NULL) {
+      if (_vf_atom) {
+        if (_ilist==nullptr) {
           for (int i=vstart, ii=0; i<iend; i++)
             vatom[ii++][j]+=engv[i];
         } else {
           for (int i=vstart, ii=0; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];
         }
+      }
       vstart+=_inum;
       iend+=_inum;
     }
@@ -266,7 +271,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
 template <class numtyp, class acctyp>
 void AnswerT::get_answers(double **f, double **tor) {
   int fl=0;
-  if (_ilist==NULL) {
+  if (_ilist==nullptr) {
     for (int i=0; i<_inum; i++) {
       f[i][0]+=force[fl];
       f[i][1]+=force[fl+1];
@@ -311,4 +316,4 @@ void AnswerT::cq(const int cq_index) {
 }
 
 template class Answer<PRECISION,ACC_PRECISION>;
-
+}

@@ -11,16 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
-
-PairStyle(pair/spin,PairSpin)
-
-#else
-
 #ifndef LMP_PAIR_SPIN_H
 #define LMP_PAIR_SPIN_H
 
-#include "pair.h"
+#include "pair.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -33,20 +27,25 @@ friend class FixNVESpin;
   virtual void coeff(int, char **) {}
   virtual void init_style();
   virtual double init_one(int, int) {return 0.0;}
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
 
   virtual void compute(int, int) {}
   virtual void compute_single_pair(int, double *) {}
 
+  // storing magnetic energies
+
+  int nlocal_max;                       // max nlocal (for list size)
+  double *emag;                         // energy list
+
  protected:
-  double hbar;				// Planck constant (eV.ps.rad-1)
+  double hbar;                          // Planck constant (eV.ps.rad-1)
+  int lattice_flag;                     // flag for mech force computation
 
   virtual void allocate() {}
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

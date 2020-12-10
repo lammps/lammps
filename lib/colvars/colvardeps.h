@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -21,9 +21,13 @@
 /// system. They may be enabled or disabled depending on dependencies.
 /// 2. User features may be enabled based on user input (they may trigger a failure upon dependency resolution, though)
 /// 3. Static features are static properties of the object, determined
-///   programatically at initialization time.
+///   programmatically at initialization time.
 ///
-/// In all classes, feature 0 is active. When an object is inactivated
+/// The following diagram summarizes the dependency tree at the bias, colvar, and colvarcomp levels.
+/// Isolated and atom group features are not shown to save space.
+/// @image html deps_2019.svg
+///
+/// In all classes, feature 0 is `active`. When an object is inactivated
 /// all its children dependencies are dereferenced (free_children_deps)
 /// While the object is inactive, no dependency solving is done on children
 /// it is done when the object is activated back (restore_children_deps)
@@ -72,7 +76,6 @@ protected:
   /// Unused by lower-level objects (cvcs and atom groups)
   int   time_step_factor;
 
-private:
   /// List of the states of all features
   std::vector<feature_state> feature_states;
 
@@ -89,14 +92,14 @@ public:
   inline int get_time_step_factor() const {return time_step_factor;}
 
   /// Pair a numerical feature ID with a description and type
-  void init_feature(int feature_id, const char *description, feature_type type = f_type_not_set);
+  void init_feature(int feature_id, const char *description, feature_type type);
 
   /// Describes a feature and its dependencies
   /// used in a static array within each subclass
   class feature {
 
   public:
-    feature() {}
+    feature() : type(f_type_not_set) {}
     ~feature() {}
 
     std::string description; // Set by derived object initializer
@@ -126,6 +129,7 @@ public:
     feature_type type;
   };
 
+  inline bool is_not_set(int id) { return features()[id]->type == f_type_not_set; }
   inline bool is_dynamic(int id) { return features()[id]->type == f_type_dynamic; }
   inline bool is_static(int id) { return features()[id]->type == f_type_static; }
   inline bool is_user(int id) { return features()[id]->type == f_type_user; }
@@ -135,7 +139,7 @@ public:
   // with a non-static array
   // Intermediate classes (colvarbias and colvarcomp, which are also base classes)
   // implement this as virtual to allow overriding
-  virtual const std::vector<feature *>&features() = 0;
+  virtual const std::vector<feature *> &features() const = 0;
   virtual std::vector<feature *>&modify_features() = 0;
 
   void add_child(colvardeps *child);
@@ -188,10 +192,12 @@ protected:
 
 public:
 
-  /// enable a feature and recursively solve its dependencies
-  /// for proper reference counting, one should not add
-  /// spurious calls to enable()
-  /// dry_run is set to true to recursively test if a feature is available, without enabling it
+  /// Enable a feature and recursively solve its dependencies.
+  /// For accurate reference counting, do not add spurious calls to enable()
+  /// \param dry_run Recursively test if a feature is available, without enabling it
+  /// \param toplevel False if this is called as part of a chain of dependency resolution.
+  /// This is used to diagnose failed dependencies by displaying the full stack:
+  /// only the toplevel dependency will throw a fatal error.
   int enable(int f, bool dry_run = false, bool toplevel = true);
 
   /// Disable a feature, decrease the reference count of its dependencies
@@ -213,7 +219,7 @@ public:
   /// Implements possible actions to be carried out
   /// when a given feature is enabled
   /// Base function does nothing, can be overloaded
-  virtual void do_feature_side_effects(int id) {}
+  virtual void do_feature_side_effects(int /* id */) {}
 
   // NOTE that all feature enums should start with f_*_active
   enum features_biases {
@@ -221,8 +227,12 @@ public:
     f_cvb_active,
     /// \brief Bias is awake (active on its own accord) this timestep
     f_cvb_awake,
+    /// Accumulates data starting from step 0 of a simulation run
+    f_cvb_step_zero_data,
     /// \brief will apply forces
     f_cvb_apply_force,
+    /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
+    f_cvb_bypass_ext_lagrangian,
     /// \brief requires total forces
     f_cvb_get_total_force,
     /// \brief whether this bias should record the accumulated work
@@ -290,6 +300,14 @@ public:
     f_cv_lower_boundary,
     /// \brief An upper boundary is defined
     f_cv_upper_boundary,
+    /// \brief The lower boundary is not defined from user's choice
+    f_cv_hard_lower_boundary,
+    /// \brief The upper boundary is not defined from user's choice
+    f_cv_hard_upper_boundary,
+    /// \brief Reflecting lower boundary condition
+    f_cv_reflecting_lower_boundary,
+    /// \brief Reflecting upper boundary condition
+    f_cv_reflecting_upper_boundary,
     /// \brief Provide a discretization of the values of the colvar to
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)
@@ -304,6 +322,8 @@ public:
     f_cv_custom_function,
     /// \brief Colvar is periodic
     f_cv_periodic,
+    /// \brief The colvar has only one component
+    f_cv_single_cvc,
     /// \brief is scalar
     f_cv_scalar,
     f_cv_linear,
@@ -315,20 +335,40 @@ public:
   };
 
   enum features_cvc {
+    /// Computation of this CVC is enabled
     f_cvc_active,
+    /// This CVC computes a scalar value
     f_cvc_scalar,
+    /// Values of this CVC lie in a periodic interval
+    f_cvc_periodic,
+    /// This CVC provides a default value for the colvar's width
+    f_cvc_width,
+    /// This CVC provides a default value for the colvar's lower boundary
+    f_cvc_lower_boundary,
+    /// This CVC provides a default value for the colvar's upper boundary
+    f_cvc_upper_boundary,
+    /// CVC calculates atom gradients
     f_cvc_gradient,
-    /// \brief CVC doesn't calculate and store explicit atom gradients
-    f_cvc_implicit_gradient,
+    /// CVC calculates and stores explicit atom gradients
+    f_cvc_explicit_gradient,
+    /// CVC calculates and stores inverse atom gradients (used for total force)
     f_cvc_inv_gradient,
-    /// \brief If enabled, calc_gradients() will call debug_gradients() for every group needed
-    f_cvc_debug_gradient,
+    /// CVC calculates the Jacobian term of the total-force expression
     f_cvc_Jacobian,
-    f_cvc_pbc_minimum_image,
+    /// The total force for this CVC will be computed from one group only
     f_cvc_one_site_total_force,
+    /// calc_gradients() will call debug_gradients() for every group needed
+    f_cvc_debug_gradient,
+    /// With PBCs, minimum-image convention will be used for distances
+    /// (does not affect the periodicity of CVC values, e.g. angles)
+    f_cvc_pbc_minimum_image,
+    /// This CVC is a function of centers of mass
     f_cvc_com_based,
+    /// This CVC can be computed in parallel
     f_cvc_scalable,
+    /// Centers-of-mass used in this CVC can be computed in parallel
     f_cvc_scalable_com,
+    /// Number of CVC features
     f_cvc_ntot
   };
 
@@ -341,7 +381,7 @@ public:
     /// ie. not using refpositionsgroup
 //     f_ag_min_msd_fit,
     /// \brief Does not have explicit atom gradients from parent CVC
-    f_ag_implicit_gradient,
+    f_ag_explicit_gradient,
     f_ag_fit_gradients,
     f_ag_atom_forces,
     f_ag_scalable,
@@ -349,13 +389,39 @@ public:
     f_ag_ntot
   };
 
-  void init_cvb_requires();
-  void init_cv_requires();
-  void init_cvc_requires();
-  void init_ag_requires();
+  /// Initialize dependency tree for object of a derived class
+  virtual int init_dependencies() = 0;
+
+  /// Make feature f require feature g within the same object
+  void require_feature_self(int f, int g);
+
+  /// Make features f and g mutually exclusive within the same object
+  void exclude_feature_self(int f, int g);
+
+  /// Make feature f require feature g within children
+  void require_feature_children(int f, int g);
+
+  /// Make feature f require either g or h within the same object
+  void require_feature_alt(int f, int g, int h);
+
+  /// Make feature f require any of g, h, or i within the same object
+  void require_feature_alt(int f, int g, int h, int i);
+
+  /// Make feature f require any of g, h, i, or j within the same object
+  void require_feature_alt(int f, int g, int h, int i, int j);
 
   /// \brief print all enabled features and those of children, for debugging
   void print_state();
+
+  /// \brief Check that a feature is enabled, raising BUG_ERROR if not
+  inline void check_enabled(int f, std::string const &reason) const
+  {
+    if (! is_enabled(f)) {
+      cvm::error("Error: "+reason+" requires that the feature \""+
+                 features()[f]->description+"\" is active.\n", BUG_ERROR);
+    }
+  }
+
 };
 
 #endif

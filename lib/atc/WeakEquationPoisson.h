@@ -98,10 +98,10 @@ class WeakEquationPoissonConstantRHS : public WeakEquationPoisson {
 
   /** rhs is constant */
   virtual bool has_NN_tangent_coefficients(void) const {return false;}
-  virtual void NN_tangent_coefficients(const FieldName field,
-                                       const FIELD_MATS &fields,
-                                       const Material * material,
-                                       DENS_MAT &coefs) const {};
+  virtual void NN_tangent_coefficients(const FieldName /* field */,
+                                       const FIELD_MATS & /* fields */,
+                                       const Material * /* material */,
+                                       DENS_MAT & /* coefs */) const {};
 
   virtual std::set<std::string> needs_material_functions(void) const
   {

@@ -15,7 +15,7 @@
 
 #include "lal_base_ellipsoid.h"
 #include <cstdlib>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #if defined(USE_OPENCL)
 #include "ellipsoid_nbor_cl.h"
@@ -33,12 +33,26 @@ BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
+  nbor_program=nullptr;
+  ellipsoid_program=nullptr;
+  lj_program=nullptr;
+  ucl_device=nullptr;
 }
 
 template <class numtyp, class acctyp>
 BaseEllipsoidT::~BaseEllipsoid() {
   delete ans;
   delete nbor;
+  k_nbor_fast.clear();
+  k_nbor.clear();
+  k_ellipsoid.clear();
+  k_ellipsoid_sphere.clear();
+  k_sphere_ellipsoid.clear();
+  k_lj_fast.clear();
+  k_lj.clear();
+  if (nbor_program) delete nbor_program;
+  if (ellipsoid_program) delete ellipsoid_program;
+  if (lj_program) delete lj_program;
 }
 
 template <class numtyp, class acctyp>
@@ -71,11 +85,16 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,true,
-                           1);
+  int success=device->init(*ans,false,true,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,true,1);
+  if (success!=0)
+    return success;
+
+  if (ucl_device!=device->gpu) _compiled=false;
 
   ucl_device=device->gpu;
   atom=&device->atom;
@@ -143,20 +162,6 @@ void BaseEllipsoidT::clear_base() {
   output_times();
   host_olist.clear();
 
-  if (_compiled) {
-    k_nbor_fast.clear();
-    k_nbor.clear();
-    k_ellipsoid.clear();
-    k_ellipsoid_sphere.clear();
-    k_sphere_ellipsoid.clear();
-    k_lj_fast.clear();
-    k_lj.clear();
-    delete nbor_program;
-    delete ellipsoid_program;
-    delete lj_program;
-    _compiled=false;
-  }
-
   time_nbor1.clear();
   time_ellipsoid.clear();
   time_nbor2.clear();
@@ -168,7 +173,6 @@ void BaseEllipsoidT::clear_base() {
 
   nbor->clear();
   ans->clear();
-  device->clear();
 }
 
 template <class numtyp, class acctyp>
@@ -352,7 +356,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
   if (inum_full==0) {
     host_start=0;
     zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   int ago=hd_balancer.ago_first(f_ago);
@@ -365,7 +369,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
     reset_nbors(nall, inum, inum_full, ilist, numj, host_type, firstneigh,
                 success);
     if (!success)
-      return NULL;
+      return nullptr;
   }
   int *list;
   if (_multiple_forms)
@@ -402,7 +406,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
   if (inum_full==0) {
     host_start=0;
     zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   hd_balancer.balance(cpu_time);
@@ -416,7 +420,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     atom->cast_quat_data(host_quat[0]);
     hd_balancer.start_timer();
   } else {
@@ -434,6 +438,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
   ans->copy_answers(eflag,vflag,eatom,vatom);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
+
   return nbor->host_jlist.begin()-host_start;
 }
 
@@ -459,18 +464,21 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 
   std::string flags=device->compile_string();
 
+  if (nbor_program) delete nbor_program;
   nbor_program=new UCL_Program(dev);
   nbor_program->load_string(ellipsoid_nbor,flags.c_str());
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
   neigh_tex.get_texture(*nbor_program,"pos_tex");
 
+  if (ellipsoid_program) delete ellipsoid_program;
   ellipsoid_program=new UCL_Program(dev);
   ellipsoid_program->load_string(ellipsoid_string,flags.c_str());
   k_ellipsoid.set_function(*ellipsoid_program,kname);
   pos_tex.get_texture(*ellipsoid_program,"pos_tex");
   quat_tex.get_texture(*ellipsoid_program,"quat_tex");
 
+  if (lj_program) delete lj_program;
   lj_program=new UCL_Program(dev);
   lj_program->load_string(lj_string,flags.c_str());
   k_sphere_ellipsoid.set_function(*lj_program,s_sphere_ellipsoid.c_str());
@@ -485,4 +493,4 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 }
 
 template class BaseEllipsoid<PRECISION,ACC_PRECISION>;
-
+}

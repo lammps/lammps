@@ -32,7 +32,6 @@ class PairOxdnaHbond : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);
@@ -45,6 +44,7 @@ class PairOxdnaHbond : public Pair {
 
  protected:
   // h-bonding interaction
+  double alpha_hb[4][4];
   double **epsilon_hb, **a_hb, **cut_hb_0, **cut_hb_c, **cut_hb_lo, **cut_hb_hi;
   double **cut_hb_lc, **cut_hb_hc, **b_hb_lo, **b_hb_hi, **shift_hb;
   double **cutsq_hb_hc;

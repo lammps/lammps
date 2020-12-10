@@ -1027,7 +1027,7 @@ VEC_INLINE inline __m256 _mm256_compress_ps(__m256 mask, __m256 a) {
   _mm256_store_ps(a_buf, a);
   int k = 0;
   for (int i = 0; i < 8; i++) {
-    if (mask[i]) {
+    if (mask_buf[i]) {
       dst_buf[k++] = a_buf[i];
     }
   }
@@ -1052,7 +1052,7 @@ VEC_INLINE inline __m256 _mm256_expand_ps(__m256 mask, __m256 a) {
   _mm256_store_ps(a_buf, a);
   int k = 0;
   for (int i = 0; i < 8; i++) {
-    if (mask[i]) {
+    if (mask_buf[i]) {
       dst_buf[i] = a_buf[k++];
     }
   }
@@ -2223,7 +2223,9 @@ public:
   }
 
   VEC_INLINE static ivec unpackloepi32(const fvec &a) {
-    return reinterpret_cast<const int*>(&a.val_)[0];
+    union { int i; flt_t f; } atype;
+    atype.f = a.val_;
+    return ivec(atype.i);
   }
 
   VEC_INLINE static fvec mask_sincos(

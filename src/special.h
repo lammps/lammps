@@ -26,29 +26,43 @@ class Special : protected Pointers {
 
  private:
   int me,nprocs;
+  int maxall;
   tagint **onetwo,**onethree,**onefour;
 
-  // data used by ring callback methods
+  // data used by rendezvous callback methods
 
-  int *count;
-  int **dflag;
+  int nrvous;
+  tagint *atomIDs;
+  int *procowner;
+
+  struct IDRvous {
+    int me;
+    tagint atomID;
+  };
+
+  struct PairRvous {
+    tagint atomID,partnerID;
+  };
+
+  // private methods
+
+  void atom_owners();
+  void onetwo_build_newton();
+  void onetwo_build_newton_off();
+  void onethree_build();
+  void onefour_build();
 
   void dedup();
   void angle_trim();
   void dihedral_trim();
   void combine();
   void fix_alteration();
+  void timer_output(double);
 
-  // callback functions for ring communication
+  // callback functions for rendezvous communication
 
-  static void ring_one(int, char *, void *);
-  static void ring_two(int, char *, void *);
-  static void ring_three(int, char *, void *);
-  static void ring_four(int, char *, void *);
-  static void ring_five(int, char *, void *);
-  static void ring_six(int, char *, void *);
-  static void ring_seven(int, char *, void *);
-  static void ring_eight(int, char *, void *);
+  static int rendezvous_ids(int, char *, int &, int *&, char *&, void *);
+  static int rendezvous_pairs(int, char *, int &, int *&, char *&, void *);
 };
 
 }

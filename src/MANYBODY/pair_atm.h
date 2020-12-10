@@ -43,7 +43,7 @@ class PairATM : public Pair {
   double ***nu;
 
   void allocate();
-  void interaction_ddd(double, double, double, double, double, double *, 
+  void interaction_ddd(double, double, double, double, double, double *,
                        double *, double *, double *, double *, int, double &);
 };
 

@@ -76,19 +76,18 @@ CLANG_BUILD_LIST="Pthread,Serial,Pthread_Serial"
 CUDA_BUILD_LIST="Cuda_OpenMP,Cuda_Pthread,Cuda_Serial"
 CUDA_IBM_BUILD_LIST="Cuda_OpenMP,Cuda_Serial"
 
-GCC_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wignored-qualifiers,-Wempty-body,-Wclobbered,-Wuninitialized"
-IBM_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
-CLANG_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
-INTEL_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
-#CUDA_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
-CUDA_WARNING_FLAGS="-Wall,-Wshadow,-pedantic,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+GCC_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wignored-qualifiers,-Wempty-body,-Wclobbered,-Wuninitialized"
+IBM_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+CLANG_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+INTEL_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+#CUDA_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Werror,-Wsign-compare,-Wtype-limits,-Wuninitialized"
+CUDA_WARNING_FLAGS="-Wall,-Wunused-parameter,-Wshadow,-pedantic,-Wsign-compare,-Wtype-limits,-Wuninitialized"
 PGI_WARNING_FLAGS=""
 
 # Default. Machine specific can override.
 DEBUG=False
 ARGS=""
 CUSTOM_BUILD_LIST=""
-QTHREADS_PATH=""
 DRYRUN=False
 BUILD_ONLY=False
 declare -i NUM_JOBS_TO_RUN_IN_PARALLEL=1
@@ -113,9 +112,6 @@ do
   case $key in
     --kokkos-path*)
       KOKKOS_PATH="${key#*=}"
-      ;;
-    --qthreads-path*)
-      QTHREADS_PATH="${key#*=}"
       ;;
     --build-list*)
       CUSTOM_BUILD_LIST="${key#*=}"
@@ -241,17 +237,16 @@ elif [ "$MACHINE" = "white" ]; then
 
   BASE_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>"
   IBM_MODULE_LIST="<COMPILER_NAME>/xl/<COMPILER_VERSION>"
-  CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/5.4.0"
-  CUDA_MODULE_LIST2="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/6.3.0,ibm/xl/13.1.6"
+  CUDA_MODULE_LIST="<COMPILER_NAME>/<COMPILER_VERSION>,gcc/6.4.0,ibm/xl/16.1.0"
 
   # Don't do pthread on white.
   GCC_BUILD_LIST="OpenMP,Serial,OpenMP_Serial"
 
   # Format: (compiler module-list build-list exe-name warning-flag)
   COMPILERS=("gcc/5.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
-             "ibm/13.1.6 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
-             "cuda/8.0.44 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
-             "cuda/9.0.103 $CUDA_MODULE_LIST2 $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
+             "gcc/6.4.0 $BASE_MODULE_LIST $IBM_BUILD_LIST g++ $GCC_WARNING_FLAGS"
+             "ibm/16.1.0 $IBM_MODULE_LIST $IBM_BUILD_LIST xlC $IBM_WARNING_FLAGS"
+             "cuda/9.0.103 $CUDA_MODULE_LIST $CUDA_IBM_BUILD_LIST ${KOKKOS_PATH}/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
   )
 
   if [ -z "$ARCH_FLAG" ]; then
@@ -362,7 +357,7 @@ elif [ "$MACHINE" = "apollo" ]; then
                "gcc/5.3.0 $BASE_MODULE_LIST "Serial" g++ $GCC_WARNING_FLAGS"
                "intel/16.0.1 $BASE_MODULE_LIST "OpenMP" icpc $INTEL_WARNING_FLAGS"
                "clang/3.9.0 $BASE_MODULE_LIST "Pthread_Serial" clang++ $CLANG_WARNING_FLAGS"
-               "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread" clang++ $CUDA_WARNING_FLAGS"
+               "clang/6.0 $CLANG_MODULE_LIST "Cuda_Pthread,OpenMP" clang++ $CUDA_WARNING_FLAGS"
                "cuda/9.1 $CUDA_MODULE_LIST "Cuda_OpenMP" $KOKKOS_PATH/bin/nvcc_wrapper $CUDA_WARNING_FLAGS"
     )
   else
@@ -418,8 +413,8 @@ if [ "$PRINT_HELP" = "True" ]; then
   echo "--build-list=BUILD,BUILD,BUILD..."
   echo "    Provide a comma-separated list of builds instead of running all builds"
   echo "    Valid items:"
-  echo "      OpenMP, Pthread, Qthreads, Serial, OpenMP_Serial, Pthread_Serial"
-  echo "      Qthreads_Serial, Cuda_OpenMP, Cuda_Pthread, Cuda_Serial"
+  echo "      OpenMP, Pthread, Serial, OpenMP_Serial, Pthread_Serial"
+  echo "      Cuda_OpenMP, Cuda_Pthread, Cuda_Serial"
   echo ""
 
   echo "ARGS: list of expressions matching compilers to test"
@@ -483,33 +478,6 @@ for ARG in $ARGS; do
     fi
   done
 done
-
-# Check if Qthreads build requested.
-HAVE_QTHREADS_BUILD="False"
-if [ -n "$CUSTOM_BUILD_LIST" ]; then
-  if [[ "$CUSTOM_BUILD_LIST" = *Qthreads* ]]; then
-    HAVE_QTHREADS_BUILD="True"
-  fi
-else
-  for COMPILER_DATA in "${COMPILERS[@]}"; do
-    ARR=($COMPILER_DATA)
-    BUILD_LIST=${ARR[2]}
-    if [[ "$BUILD_LIST" = *Qthreads* ]]; then
-      HAVE_QTHREADS_BUILD="True"
-    fi
-  done
-fi
-
-# Ensure Qthreads path is set if Qthreads build is requested.
-if [ "$HAVE_QTHREADS_BUILD" = "True" ]; then
-  if [ -z "$QTHREADS_PATH" ]; then
-    echo "Need to supply Qthreads path (--qthreads-path) when testing Qthreads backend." >&2
-    exit 1
-  else
-    # Strip trailing slashes from path.
-    QTHREADS_PATH=$(echo $QTHREADS_PATH | sed 's/\/*$//')
-  fi
-fi
 
 #
 # Functions.
@@ -626,14 +594,6 @@ single_build_and_test() {
 
   if [[ "$build_type" = hwloc* ]]; then
     local extra_args=--with-hwloc=$(dirname $(dirname $(which hwloc-info)))
-  fi
-
-  if [[ "$build" = *Qthreads* ]]; then
-    if [[ "$build_type" = hwloc* ]]; then
-      local extra_args="$extra_args --qthreads-path=${QTHREADS_PATH}_hwloc"
-    else
-      local extra_args="$extra_args --qthreads-path=$QTHREADS_PATH"
-    fi
   fi
 
   if [[ "$OPT_FLAG" = "" ]]; then

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,21 +14,18 @@
 /* ----------------------------------------------------------------------
    Contributing author: Shawn Coleman (ARL)
 ------------------------------------------------------------------------- */
-
-#include <cstdlib>
-#include <cstring>
-#include <unistd.h>
 #include "fix_ave_histo_weight.h"
+
+#include <unistd.h>
+#include "fix.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -36,7 +33,7 @@ using namespace FixConst;
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 enum{SINGLE,VALUE};
 
@@ -129,7 +126,7 @@ void FixAveHistoWeight::end_of_step()
   // calculate weight factors which are 2nd value (i = 1)
 
   double weight = 0.0;
-  double *weights = NULL;
+  double *weights = nullptr;
   int stride = 0;
   i = 1;
 
@@ -273,11 +270,11 @@ void FixAveHistoWeight::end_of_step()
 
   // atom attributes
 
-  if (which[i] == X && weights != NULL)
+  if (which[i] == X && weights != nullptr)
     bin_atoms_weights(&atom->x[0][j],3,weights,stride);
-  else if (which[i] == V && weights != NULL)
+  else if (which[i] == V && weights != nullptr)
     bin_atoms_weights(&atom->v[0][j],3,weights,stride);
-  else if (which[i] == F && weights != NULL)
+  else if (which[i] == F && weights != nullptr)
     bin_atoms_weights(&atom->f[0][j],3,weights,stride);
 
   // invoke compute if not previously invoked
@@ -406,7 +403,7 @@ void FixAveHistoWeight::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // merge histogram stats across procs if necessary
@@ -496,7 +493,8 @@ void FixAveHistoWeight::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }

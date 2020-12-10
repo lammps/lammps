@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -36,7 +36,7 @@ PairLJCutIntel::PairLJCutIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,9 +62,9 @@ void PairLJCutIntel::compute(int eflag, int vflag,
                              IntelBuffers<flt_t,acc_t> *buffers,
                              const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -150,8 +150,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
   const flt_t * _noalias const special_lj = fc.special_lj;
   const FC_PACKED1_T * _noalias const ljc12o = fc.ljc12o[0];
   const FC_PACKED2_T * _noalias const lj34 = fc.lj34[0];
@@ -180,8 +179,10 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
                               f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -201,12 +202,12 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 
       flt_t cutsq, lj1, lj2, lj3, lj4, offset;
       if (ONETYPE) {
-        cutsq = ljc12o[3].cutsq;
-        lj1 = ljc12o[3].lj1;
-        lj2 = ljc12o[3].lj2;
-        lj3 = lj34[3].lj3;
-        lj4 = lj34[3].lj4;
-        offset = ljc12o[3].offset;
+        cutsq = ljc12o[_onetype].cutsq;
+        lj1 = ljc12o[_onetype].lj1;
+        lj2 = ljc12o[_onetype].lj2;
+        lj3 = lj34[_onetype].lj3;
+        lj4 = lj34[_onetype].lj4;
+        offset = ljc12o[_onetype].offset;
       }
       for (int ii = iifrom; ii < iito; ii += iip) {
         const int i = ilist[ii];
@@ -219,8 +220,8 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           ljc12oi = ljc12o + ptr_off;
           lj34i = lj34 + ptr_off;
         }
-        const int * _noalias const jlist = firstneigh + cnumneigh[ii];
-        int jnum = numneigh[ii];
+        const int * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
         IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
@@ -232,10 +233,10 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
@@ -338,13 +339,9 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
-      if (NEWTON_PAIR == 0) oevdwl *= (acc_t)0.5;
-      ev_global[0] = oevdwl;
-      ev_global[1] = (acc_t)0.0;
-    }
-    if (vflag) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
+        oevdwl *= (acc_t)0.5;
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
         ov2 *= (acc_t)0.5;
@@ -352,6 +349,8 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = (acc_t)0.0;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -414,25 +413,26 @@ void PairLJCutIntel::pack_force_const(ForceConst<flt_t> &fc,
                                       IntelBuffers<flt_t,acc_t> *buffers)
 {
   _onetype = 0;
-  if (atom->ntypes == 1 && !atom->molecular) _onetype = 1;
 
   int tp1 = atom->ntypes + 1;
   fc.set_ntypes(tp1,memory,_cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
+  int mytypes = 0;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
+      double cut;
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
         cut = init_one(i,j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
+        mytypes++;
+        _onetype = i * tp1 + j;
+      } else {
+        cut = 0.0;
       }
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
+  if (mytypes > 1 || atom->molecular) _onetype = 0;
 
   for (int i = 0; i < 4; i++) {
     fc.special_lj[i] = force->special_lj[i];
@@ -459,11 +459,8 @@ void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                    const int cop) {
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
-      fc_packed1 *oljc12o = ljc12o[0];
-      fc_packed2 *olj34 = lj34[0];
-
-      _memory->destroy(oljc12o);
-      _memory->destroy(olj34);
+      _memory->destroy(ljc12o);
+      _memory->destroy(lj34);
     }
     if (ntypes > 0) {
       _cop = cop;

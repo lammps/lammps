@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,14 @@
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
   --------------------------------------------------------------------------*/
 
-#include <mpi.h>
+#include "compute_stress_mop_profile.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 
-#include "compute_stress_mop_profile.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -69,8 +65,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
   if (originflag == COORD)
-    origin = force->numeric(FLERR,arg[4]);
-  delta = force->numeric(FLERR,arg[5]);
+    origin = utils::numeric(FLERR,arg[4],false,lmp);
+  delta = utils::numeric(FLERR,arg[5],false,lmp);
   invdelta = 1.0/delta;
 
   // parse values until one isn't recognized
@@ -116,8 +112,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   // initialize some variables
 
   nbins = 0;
-  coord = coordp = NULL;
-  values_local = values_global = array = NULL;
+  coord = coordp = nullptr;
+  values_local = values_global = array = nullptr;
 
   // bin setup
 
@@ -168,20 +164,20 @@ void ComputeStressMopProfile::init()
   // timestep Value
 
   dt = update->dt;
-  
+
   // Error check
   // Compute stress/mop/profile requires fixed simulation box
-  
+
   if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
     error->all(FLERR, "Compute stress/mop/profile requires a fixed simulation box");
-        
+
   //This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute stress/mop/profile");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
-    
+
   // Warnings
 
   if (me==0){
@@ -189,15 +185,15 @@ void ComputeStressMopProfile::init()
     //Compute stress/mop/profile only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=NULL)
+    if (force->bond!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for bond potentials");
-    if (force->angle!=NULL)
+    if (force->angle!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for angle potentials");
-    if (force->dihedral!=NULL)
+    if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
-    if (force->improper!=NULL)
+    if (force->improper!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for improper potentials");
-    if (force->kspace!=NULL)
+    if (force->kspace!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 
@@ -211,7 +207,7 @@ void ComputeStressMopProfile::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressMopProfile::init_list(int id, NeighList *ptr)
+void ComputeStressMopProfile::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -232,7 +228,7 @@ void ComputeStressMopProfile::compute_array()
   MPI_Allreduce(&values_local[0][0],&values_global[0][0],nbins*nvalues,
                 MPI_DOUBLE,MPI_SUM,world);
 
-  int ibin,m,mo; 
+  int ibin,m,mo;
   for (ibin=0; ibin<nbins; ibin++) {
     array[ibin][0] = coord[ibin][0];
     mo=1;
@@ -253,13 +249,14 @@ void ComputeStressMopProfile::compute_array()
 void ComputeStressMopProfile::compute_pairs()
 
 {
-  int i,j,m,n,ii,jj,inum,jnum,itype,jtype,ibin;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype,ibin;
   double delx,dely,delz;
-  double rsq,eng,fpair,factor_coul,factor_lj;
+  double rsq,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double pos,pos1,pos_temp;    
+  double pos,pos1;
 
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -336,7 +333,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
@@ -363,7 +360,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
@@ -385,8 +382,7 @@ void ComputeStressMopProfile::compute_pairs()
 
     if (which[m] == KIN || which[m] == TOTAL){
 
-      double vcm[3];
-      double masstotal,sgn;
+      double sgn;
 
       for (int i = 0; i < nlocal; i++){
 
@@ -412,9 +408,15 @@ void ComputeStressMopProfile::compute_pairs()
           fi[2] = atom->f[i][2];
 
           //coordinates at t-dt (based on Velocity-Verlet alg.)
-          xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
-          xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
-          xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          if (rmass) {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/rmass[i]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/rmass[i]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/rmass[i]*dt*dt*ftm2v;
+          } else {
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+          }
 
           for (ibin=0;ibin<nbins;ibin++) {
             pos = coord[ibin][0];
@@ -422,17 +424,28 @@ void ComputeStressMopProfile::compute_pairs()
 
             if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)){
 
-              sgn = copysign(1,vi[dir]);
+              sgn = copysign(1.0,vi[dir]);
 
               //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
-              double vcross[3];
-              vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+              if (rmass) {
+                double vcross[3];
+                vcross[0] = vi[0]-fi[0]/rmass[i]/2*ftm2v*dt;
+                vcross[1] = vi[1]-fi[1]/rmass[i]/2*ftm2v*dt;
+                vcross[2] = vi[2]-fi[2]/rmass[i]/2*ftm2v*dt;
 
-              values_local[ibin][m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
-              values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
-              values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m] += rmass[i]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+1] += rmass[i]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+2] += rmass[i]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+              } else {
+                double vcross[3];
+                vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
+                vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
+                vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+
+                values_local[ibin][m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+                values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+              }
             }
           }
         }
@@ -449,13 +462,12 @@ void ComputeStressMopProfile::compute_pairs()
 
 void ComputeStressMopProfile::setup_bins()
 {
-  int i,j,k,m,n;
-  double lo,hi,coord1,coord2;
+  int i,n;
+  double lo = 0.0, hi = 0.0;
 
-  double *boxlo,*boxhi,*prd;
+  double *boxlo,*boxhi;
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
-  prd = domain->prd;
 
   if (originflag == LOWER) origin = boxlo[dir];
   else if (originflag == UPPER) origin = boxhi[dir];

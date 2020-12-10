@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +16,23 @@
    Updated: 06/17/2015-2
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include "math_const.h"
 #include "compute_xrd.h"
 #include "compute_xrd_consts.h"
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "domain.h"
-#include "group.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -50,7 +50,7 @@ static const char cite_compute_xrd_c[] =
 /* ---------------------------------------------------------------------- */
 
 ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), ztype(NULL), store_tmp(NULL)
+  Compute(lmp, narg, arg), ztype(nullptr), store_tmp(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 
@@ -247,7 +247,7 @@ ComputeXRD::~ComputeXRD()
 {
   memory->destroy(array);
   memory->destroy(store_tmp);
-  delete ztype;
+  delete[] ztype;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -354,7 +354,7 @@ void ComputeXRD::compute_array()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(typelocal,xlocal,Fvec,m,frac,ASFXRD)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(typelocal,xlocal,Fvec,m,frac,ASFXRD)
 #endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type
@@ -514,7 +514,7 @@ void ComputeXRD::compute_array()
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
   }
 
   delete [] scratch;

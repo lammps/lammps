@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing authors: Mario Orsi & Wei Ding (QMUL), m.orsi@qmul.ac.uk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_dipole.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -34,8 +35,8 @@ using namespace MathConst;
 
 AngleDipole::AngleDipole(LAMMPS *lmp) : Angle(lmp)
 {
-  k = NULL;
-  gamma0 = NULL;
+  k = nullptr;
+  gamma0 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,8 +60,7 @@ void AngleDipole::compute(int eflag, int vflag)
   double r,cosGamma,deltaGamma,kdg,rmu;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x; // position vector
   double **mu = atom->mu; // point-dipole components and moment magnitude
@@ -160,10 +160,10 @@ void AngleDipole::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double gamma0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double gamma0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   // convert gamma0 from degrees to radians
 
@@ -206,8 +206,8 @@ void AngleDipole::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&gamma0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&gamma0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&gamma0[1],atom->nangletypes,MPI_DOUBLE,0,world);

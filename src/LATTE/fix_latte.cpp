@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing author: Christian Negre (LANL)
 ------------------------------------------------------------------------- */
 
+#include "fix_latte.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_latte.h"
 #include "atom.h"
 #include "comm.h"
 #include "update.h"
@@ -74,10 +74,10 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
-  // NULL means LATTE will compute Coulombic potential
+  // null pointer means LATTE will compute Coulombic potential
 
   coulomb = 0;
-  id_pe = NULL;
+  id_pe = nullptr;
 
   if (strcmp(arg[3],"NULL") != 0) {
     coulomb = 1;
@@ -97,8 +97,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   nmax = 0;
-  qpotential = NULL;
-  flatte = NULL;
+  qpotential = nullptr;
+  flatte = nullptr;
 
   latte_energy = 0.0;
 }
@@ -136,7 +136,7 @@ void FixLatte::init()
     error->all(FLERR,"Fix latte requires 3d problem");
 
   if (coulomb) {
-    if (atom->q_flag == 0 || force->pair == NULL || force->kspace == NULL)
+    if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
 
     int ipe = modify->find_compute(id_pe);
@@ -154,7 +154,7 @@ void FixLatte::init()
   // create qpotential & flatte if needed
   // for now, assume nlocal will never change
 
-  if (coulomb && qpotential == NULL) {
+  if (coulomb && qpotential == nullptr) {
     memory->create(qpotential,atom->nlocal,"latte:qpotential");
     memory->create(flatte,atom->nlocal,3,"latte:flatte");
   }
@@ -239,8 +239,7 @@ void FixLatte::pre_reverse(int eflag, int /*vflag*/)
 void FixLatte::post_force(int vflag)
 {
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute Coulombic potential = pe[i]/q[i]
   // invoke compute pe/atom
@@ -299,7 +298,7 @@ void FixLatte::post_force(int vflag)
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;
-  
+
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
         &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);

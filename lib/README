@@ -33,8 +33,6 @@ kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
 linalg        set of BLAS and LAPACK routines needed by USER-ATC package
 	        from Axel Kohlmeyer (Temple U)
-meam	      modified embedded atom method (MEAM) potential, MEAM package
-                from Greg Wagner (Sandia)
 message       client/server communication library via MPI, sockets, files
 	        from Steve Plimpton (Sandia)
 molfile       hooks to VMD molfile plugins, used by the USER-MOLFILE package
@@ -51,8 +49,6 @@ qmmm	      quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
 quip          interface to QUIP/libAtoms framework, USER-QUIP package
                 from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
-reax          ReaxFF potential, REAX package
-	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
 smd           hooks to Eigen library, used by USER-SMD package
                 from Georg Ganzenmueller (Ernst Mach Institute, Germany)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command

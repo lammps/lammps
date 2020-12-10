@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,7 +23,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "dump_vtk.h"
 #include "atom.h"
@@ -93,10 +93,10 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if VTK_MAJOR_VERSION == 7
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
+#error This code has only been tested with VTK 5, 6, 7, and 8
+#elif VTK_MAJOR_VERSION > 6
 #define InsertNextTupleValue InsertNextTypedTuple
-#elif VTK_MAJOR_VERSION > 7
-#error This code has only been tested with VTK 5, 6, and 7
 #endif
 
 /* ---------------------------------------------------------------------- */
@@ -128,11 +128,11 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   if (filewriter) reset_vtk_data_containers();
 
 
-  label = NULL;
+  label = nullptr;
 
   {
     // parallel vtp/vtu requires proc number to be preceded by underscore '_'
-    multiname_ex = NULL;
+    multiname_ex = nullptr;
     char *ptr = strchr(filename,'%');
     if (ptr) {
       multiname_ex = new char[strlen(filename) + 16];
@@ -160,19 +160,12 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
     nclusterprocs = nprocs;
   }
 
-  filecurrent = NULL;
-  domainfilecurrent = NULL;
-  parallelfilecurrent = NULL;
-  header_choice = NULL;
-  write_choice = NULL;
-  boxcorners = NULL;
-
-  // unsupported feature by dump vtk
-  delete [] vformat;
-  vformat = NULL;
-
-  delete [] format_column_user;
-  format_column_user = NULL;
+  filecurrent = nullptr;
+  domainfilecurrent = nullptr;
+  parallelfilecurrent = nullptr;
+  header_choice = nullptr;
+  write_choice = nullptr;
+  boxcorners = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,7 +185,7 @@ void DumpVTK::init_style()
 {
   // default for element names = C
 
-  if (typenames == NULL) {
+  if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[2];
@@ -887,7 +880,7 @@ void DumpVTK::write()
   // sort buf as needed
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // filewriter = 1 = this proc writes to file
@@ -946,13 +939,13 @@ void DumpVTK::write_data(int n, double *mybuf)
 
 void DumpVTK::setFileCurrent() {
   delete [] filecurrent;
-  filecurrent = NULL;
+  filecurrent = nullptr;
 
   char *filestar = filename;
   if (multiproc) {
     if (multiproc > 1) { // if dump_modify fileper or nfile was used
       delete [] multiname_ex;
-      multiname_ex = NULL;
+      multiname_ex = nullptr;
       char *ptr = strchr(filename,'%');
       if (ptr) {
         int id;
@@ -990,7 +983,7 @@ void DumpVTK::setFileCurrent() {
 
   // filename of domain box data file
   delete [] domainfilecurrent;
-  domainfilecurrent = NULL;
+  domainfilecurrent = nullptr;
   if (multiproc) {
     // remove '%' character
     char *ptr = strchr(filename,'%');
@@ -1004,7 +997,7 @@ void DumpVTK::setFileCurrent() {
     *ptr = '\0';
     sprintf(filestar,"%s_boundingBox.%s",domainfilecurrent,ptr+1);
     delete [] domainfilecurrent;
-    domainfilecurrent = NULL;
+    domainfilecurrent = nullptr;
 
     if (multifile == 0) {
       domainfilecurrent = new char[strlen(filestar) + 1];
@@ -1025,7 +1018,7 @@ void DumpVTK::setFileCurrent() {
       *ptr = '*';
     }
     delete [] filestar;
-    filestar = NULL;
+    filestar = nullptr;
   } else {
     domainfilecurrent = new char[strlen(filecurrent) + 16];
     char *ptr = strrchr(filecurrent,'.');
@@ -1037,7 +1030,7 @@ void DumpVTK::setFileCurrent() {
   // filename of parallel file
   if (multiproc && me == 0) {
     delete [] parallelfilecurrent;
-    parallelfilecurrent = NULL;
+    parallelfilecurrent = nullptr;
 
     // remove '%' character and add 'p' to file extension
     // -> string length stays the same
@@ -1073,7 +1066,7 @@ void DumpVTK::setFileCurrent() {
       *ptr = '*';
     }
     delete [] filestar;
-    filestar = NULL;
+    filestar = nullptr;
   }
 }
 
@@ -2002,7 +1995,7 @@ int DumpVTK::add_variable(char *id)
   variable = new int[nvariable+1];
   delete [] vbuf;
   vbuf = new double*[nvariable+1];
-  for (int i = 0; i <= nvariable; i++) vbuf[i] = NULL;
+  for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
   int n = strlen(id) + 1;
   id_variable[nvariable] = new char[n];
@@ -2082,7 +2075,7 @@ int DumpVTK::modify_param(int narg, char **arg)
     if (typenames) {
       for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
       delete [] typenames;
-      typenames = NULL;
+      typenames = nullptr;
     }
 
     typenames = new char*[ntypes+1];
@@ -2101,9 +2094,9 @@ int DumpVTK::modify_param(int narg, char **arg)
         memory->destroy(thresh_array);
         memory->destroy(thresh_op);
         memory->destroy(thresh_value);
-        thresh_array = NULL;
-        thresh_op = NULL;
-        thresh_value = NULL;
+        thresh_array = nullptr;
+        thresh_op = nullptr;
+        thresh_value = nullptr;
       }
       nthresh = 0;
       return 2;
@@ -2303,7 +2296,7 @@ int DumpVTK::modify_param(int narg, char **arg)
 
     // set threshold value
 
-    thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
+    thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
 
     nthresh++;
     return 4;
@@ -2316,9 +2309,9 @@ int DumpVTK::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
-bigint DumpVTK::memory_usage()
+double DumpVTK::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
   bytes += memory->usage(dchoose,maxlocal);
   bytes += memory->usage(clist,maxlocal);

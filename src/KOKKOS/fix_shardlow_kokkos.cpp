@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,31 +33,23 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_shardlow_kokkos.h"
+#include <cmath>
+
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include <cmath>
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-// #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
-#include "pair.h"
 #include "npair_ssa_kokkos.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -71,7 +63,7 @@ using namespace random_external_state;
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(nullptr), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -82,8 +74,8 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 
   if (narg != 3) error->all(FLERR,"Illegal fix shardlow command");
 
-//  k_pairDPD = NULL;
-  k_pairDPDE = NULL;
+//  k_pairDPD = nullptr;
+  k_pairDPDE = nullptr;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
   k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
 
@@ -96,7 +88,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   }
 
 
-  if(/* k_pairDPD == NULL &&*/ k_pairDPDE == NULL)
+  if(/* k_pairDPD == nullptr &&*/ k_pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style "/*"dpd/fdt/kk or "*/"dpd/fdt/energy/kk with fix shardlow/kk");
 
 #ifdef DEBUG_SSA_PAIR_CT
@@ -140,10 +132,10 @@ void FixShardlowKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
 //  neighbor->requests[irequest]->pair = 0;
 //  neighbor->requests[irequest]->fix  = 1;
@@ -570,7 +562,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 
 
 template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
+void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -724,7 +716,7 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
 
@@ -808,7 +800,7 @@ double FixShardlowKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixShardlowKokkos<LMPHostType>;
 #endif
 }

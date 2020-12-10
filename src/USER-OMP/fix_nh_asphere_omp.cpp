@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,15 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "math_extra.h"
 #include "fix_nh_asphere_omp.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "compute.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
+#include "math_extra.h"
 
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -77,15 +74,14 @@ void FixNHAsphereOMP::nve_v()
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   // standard nve_v velocity update. for efficiency the loop is
   // merged with FixNHOMP instead of calling it for the COM update.
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       const double dtfm = dtf / rmass[i];
       v[i].x += dtfm*f[i].x;
@@ -112,7 +108,6 @@ void FixNHAsphereOMP::nve_x()
   AtomVecEllipsoid::Bonus * _noalias const bonus = avec->bonus;
   const int * _noalias const ellipsoid = atom->ellipsoid;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   // set timestep here since dt may have changed or come via rRESPA
 
@@ -124,9 +119,9 @@ void FixNHAsphereOMP::nve_x()
   // principal moments of inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       double omega[3], inertia[3];
 
@@ -162,13 +157,12 @@ void FixNHAsphereOMP::nh_v_temp()
   dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i].x *= factor_eta;
         v[i].y *= factor_eta;
@@ -180,9 +174,9 @@ void FixNHAsphereOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
+    for (int i = 0; i < nlocal; i++) {
       double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias_thr(i,&v[i].x,buf);

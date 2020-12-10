@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,19 +11,17 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_rhosum.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,10 +70,7 @@ void PairSPHRhoSum::compute(int eflag, int vflag) {
   // neighbor list variables
   int inum, *ilist, *numneigh, **firstneigh;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double *rho = atom->rho;
@@ -228,8 +223,8 @@ void PairSPHRhoSum::allocate() {
 void PairSPHRhoSum::settings(int narg, char **arg) {
   if (narg != 1)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/rhosum");
-  nstep = force->inumeric(FLERR,arg[0]);
+        "Illegal number of arguments for pair_style sph/rhosum");
+  nstep = utils::inumeric(FLERR,arg[0],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -243,10 +238,10 @@ void PairSPHRhoSum::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double cut_one = force->numeric(FLERR,arg[2]);
+  double cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

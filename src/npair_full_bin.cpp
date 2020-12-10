@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bin.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -52,7 +51,7 @@ void NPairFullBin::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
 
   int *ilist = list->ilist;
@@ -95,7 +94,7 @@ void NPairFullBin::build(NeighList *list)
         rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
             else if (imol >= 0)

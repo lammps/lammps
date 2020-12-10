@@ -29,6 +29,11 @@ using namespace ucl_opencl;
 #include "geryon/nvc_mat.h"
 #include "geryon/nvc_kernel.h"
 using namespace ucl_cudart;
+#elif defined(USE_HIP)
+#include "geryon/hip_timer.h"
+#include "geryon/hip_mat.h"
+#include "geryon/hip_kernel.h"
+using namespace ucl_hip;
 #else
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
@@ -476,6 +481,14 @@ class Atom {
   #ifdef USE_CUDPP
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;
+  #endif
+
+  #ifdef USE_HIP_DEVICE_SORT
+  unsigned* sort_out_keys = nullptr;
+  int* sort_out_values = nullptr;
+  void* sort_temp_storage = nullptr;
+  size_t sort_temp_storage_size = 0;
+  size_t sort_out_size = 0;
   #endif
 };
 

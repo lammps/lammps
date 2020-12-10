@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +15,14 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+#include "omp_compat.h"
 #include "dump_xyz_mpiio.h"
-#include "atom.h"
-#include "force.h"
+#include <cmath>
+
+#include <cstring>
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -205,7 +198,7 @@ void DumpXYZMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing
@@ -246,7 +239,7 @@ void DumpXYZMPIIO::init_style()
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
-  if (typenames == NULL) {
+  if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[12];
@@ -358,7 +351,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none) shared(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -389,7 +382,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';

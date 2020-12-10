@@ -90,7 +90,7 @@ namespace ATC {
   
     /** write data: data is arrayed over _unique_ nodes 
                     and then mapped by the engine */
-    void write_data(double time, FIELDS &soln, OUTPUT_LIST *data=NULL);
+    void write_data(double time, FIELDS &soln, OUTPUT_LIST *data=nullptr);
     void write_data(double time, OUTPUT_LIST *data);
 
     void write_restart_file(std::string fileName, RESTART_LIST *data)
@@ -150,7 +150,7 @@ namespace ATC {
                 const PhysicsModel      *physicsModel,
                 const Array<int>        &elementMaterials,
                 SPAR_MAT                &tangent,
-                const DenseMatrix<bool> *elementMask=NULL) const;
+                const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute tangent matrix for a pair of fields - given quadrature */
     void compute_tangent_matrix(const RHS_MASK &rhsMask,
@@ -162,7 +162,7 @@ namespace ATC {
                 const SPAR_MAT          &N,
                 const SPAR_MAT_VEC      &dN,
                 SPAR_MAT                &tangent,
-                const DenseMatrix<bool> *elementMask=NULL) const;
+                const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute a consistent mass matrix for a field */
     void compute_mass_matrix(
@@ -171,7 +171,7 @@ namespace ATC {
                 const PhysicsModel      *physicsModel,
                 const Array<int>        &elementMaterials,
                 CON_MASS_MATS           &mass_matrix,
-                const DenseMatrix<bool> *elementMask=NULL) const;
+                const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute a dimensionless mass matrix */
     void compute_mass_matrix(SPAR_MAT &mass_matrix) const;
@@ -191,7 +191,7 @@ namespace ATC {
                 const PhysicsModel      *physicsModel,
                 const Array<int>        &elementMaterials,
                 MASS_MATS               &mass_matrix,
-                const DenseMatrix<bool> *elementMask=NULL) const;
+                const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute dimensional lumped mass matrix using given quadrature */
     void compute_lumped_mass_matrix(
@@ -212,7 +212,7 @@ namespace ATC {
                         const PhysicsModel      *physicsModel,
                         const Array<int>        &elementMaterials,
                         FIELD_MATS              &energy, 
-                        const DenseMatrix<bool> *elementMask=NULL,
+                        const DenseMatrix<bool> *elementMask=nullptr,
                         const IntegrationDomainType domain=FULL_DOMAIN) const;
 
     /** compute residual or RHS of the dynamic weak eqn */
@@ -223,7 +223,7 @@ namespace ATC {
                     const Array<int>        &elementMaterials,
                     FIELDS                  &rhs,
                     bool                     freeOnly=false,
-                    const DenseMatrix<bool> *elementMask=NULL) const;
+                    const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute RHS for given quadrature */
     void compute_rhs_vector(const RHS_MASK         &rhsMask,
@@ -251,7 +251,7 @@ namespace ATC {
                       const PhysicsModel      *physicsModel,
                       const Array<int>        &elementMaterials,
                       GRAD_FIELD_MATS         &flux, 
-                      const DenseMatrix<bool> *elementMask=NULL) const;
+                      const DenseMatrix<bool> *elementMask=nullptr) const;
 
     /** compute the flux on the MD/FE boundary */
     void compute_boundary_flux(const RHS_MASK     &rhsMask, 
@@ -272,8 +272,8 @@ namespace ATC {
                                const SPAR_MAT_VEC     &dN,
                                const DIAG_MAT         &flux_mask,
                                FIELDS                 &rhs,
-                               const DenseMatrix<bool> *elementMask=NULL,
-                               const std::set<int>          *nodeSet=NULL) const;
+                               const DenseMatrix<bool> *elementMask=nullptr,
+                               const std::set<int>          *nodeSet=nullptr) const;
 
     /** compute prescribed flux given an array of functions of x & t */
     void add_fluxes(const Array<bool>    &fieldMask,  
@@ -345,7 +345,7 @@ namespace ATC {
 
 
     /** integrate a nodal field over an face set */
-    DENS_VEC integrate(const DENS_MAT  &field, const FSET & fset) const
+    DENS_VEC integrate(const DENS_MAT  & /* field */, const FSET & /* fset */) const
     { throw ATC_Error(FILELINE,"unimplemented function"); }
 
     /*@}*/
@@ -465,7 +465,7 @@ namespace ATC {
     int nsd() const { return feMesh_->num_spatial_dimensions(); }
   
     /** return if the FE mesh has been created */
-    int has_mesh() const { return feMesh_!=NULL; }
+    int has_mesh() const { return feMesh_!=nullptr; }
   
     /** get nodal coordinates for a given element */
     void element_coordinates(const int eltIdx, DENS_MAT &coords)
@@ -496,7 +496,8 @@ namespace ATC {
     /** set kernel */
     
     void set_kernel(KernelFunction* ptr);
-    KernelFunction *kernel(int i=0) { return kernelFunction_; }
+    KernelFunction *kernel(int /* i */) { return kernelFunction_; }
+    KernelFunction *kernel() { return kernelFunction_; }
 
   private:
     //----------------------------------------------------------------
@@ -509,7 +510,7 @@ namespace ATC {
     /** finite element mesh */
     FE_Mesh *feMesh_;
 
-    /** auxillary kernel function */
+    /** auxiliary kernel function */
     KernelFunction *kernelFunction_;
  
     /** initialized flag */ 

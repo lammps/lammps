@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -17,6 +17,7 @@ colvarbias_histogram::colvarbias_histogram(char const *key)
   : colvarbias(key),
     grid(NULL), out_name("")
 {
+  provide(f_cvb_bypass_ext_lagrangian); // Allow histograms of actual cv for extended-Lagrangian
 }
 
 
@@ -29,9 +30,10 @@ int colvarbias_histogram::init(std::string const &conf)
 
   size_t i;
 
-  get_keyval(conf, "outputFile", out_name, std::string(""));
-  get_keyval(conf, "outputFileDX", out_name_dx, std::string(""));
-  get_keyval(conf, "outputFreq", output_freq, cvm::restart_out_freq);
+  get_keyval(conf, "outputFile", out_name, "");
+  // Write DX file by default only in dimension >= 3
+  std::string default_name_dx = this->num_variables() > 2 ? "" : "none";
+  get_keyval(conf, "outputFileDX", out_name_dx, default_name_dx);
 
   /// with VMD, this may not be an error
   // if ( output_freq == 0 ) {
@@ -78,11 +80,15 @@ int colvarbias_histogram::init(std::string const &conf)
   }
 
   for (i = 0; i < num_variables(); i++) {
-    colvars[i]->enable(f_cv_grid);
+    colvars[i]->enable(f_cv_grid); // Could be a child dependency of a f_cvb_use_grids feature
   }
 
   grid = new colvar_grid_scalar();
   grid->init_from_colvars(colvars);
+
+  if (is_enabled(f_cvb_bypass_ext_lagrangian)) {
+    grid->request_actual_value();
+  }
 
   {
     std::string grid_conf;
@@ -141,8 +147,10 @@ int colvarbias_histogram::update()
       bin[i] = grid->current_bin_scalar(i);
     }
 
-    if (grid->index_ok(bin)) {
-      grid->acc_value(bin, 1.0);
+    if (can_accumulate_data()) {
+      if (grid->index_ok(bin)) {
+        grid->acc_value(bin, 1.0);
+      }
     }
   } else {
     // update indices for vector/array values
@@ -158,10 +166,6 @@ int colvarbias_histogram::update()
     }
   }
 
-  if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
-    write_output_files();
-  }
-
   error_code |= cvm::get_error();
   return error_code;
 }
@@ -174,7 +178,7 @@ int colvarbias_histogram::write_output_files()
     return COLVARS_OK;
   }
 
-  if (out_name.size()) {
+  if (out_name.size() && out_name != "none") {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
     cvm::backup_file(out_name.c_str());
     std::ostream *grid_os = cvm::proxy->output_stream(out_name);
@@ -186,7 +190,7 @@ int colvarbias_histogram::write_output_files()
     cvm::proxy->close_output_stream(out_name);
   }
 
-  if (out_name_dx.size()) {
+  if (out_name_dx.size() && out_name_dx != "none") {
     cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
     cvm::backup_file(out_name_dx.c_str());
     std::ostream *grid_os = cvm::proxy->output_stream(out_name_dx);

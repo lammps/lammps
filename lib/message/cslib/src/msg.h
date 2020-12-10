@@ -15,7 +15,11 @@
 #ifndef MSG_H
 #define MSG_H
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 
 namespace CSLIB_NS {
 
@@ -37,7 +41,7 @@ class Msg {
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
   int lengths[2];
-  
+
   void init(int);
   void allocate(int, int &, int *&, int, int &, char *&);
   void *smalloc(int);

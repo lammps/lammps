@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,20 +12,21 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_coul_long_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define C_FORCE_T typename ForceConst<flt_t>::c_force_t
@@ -39,7 +40,7 @@ PairLJCutCoulLongIntel::PairLJCutCoulLongIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,9 +72,9 @@ void PairLJCutCoulLongIntel::compute(int eflag, int vflag,
                                      IntelBuffers<flt_t,acc_t> *buffers,
                                      const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -141,8 +142,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
-  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
 
   const flt_t * _noalias const special_coul = fc.special_coul;
   const flt_t * _noalias const special_lj = fc.special_lj;
@@ -201,7 +201,6 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(x:length(x_size) alloc_if(0) free_if(0)) \
     in(q:length(q_size) alloc_if(0) free_if(0)) \
@@ -225,8 +224,10 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
                               f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
-    if (EFLAG) oevdwl = oecoul = (acc_t)0;
-    if (vflag) ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (EFLAG || vflag)
+      oevdwl = oecoul = ov0 = ov1 = ov2 = ov3 = ov4 = ov5 = (acc_t)0;
+    if (NEWTON_PAIR == 0 && inum != nlocal)
+      memset(f_start, 0, f_stride * sizeof(FORCE_T));
 
     // loop over neighbors of my atoms
     #if defined(_OPENMP)
@@ -260,8 +261,8 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
         const C_FORCE_T * _noalias const c_forcei = c_force + ptr_off;
         const C_ENERGY_T * _noalias const c_energyi = c_energy + ptr_off;
 
-        const int   * _noalias const jlist = firstneigh + cnumneigh[ii];
-        int jnum = numneigh[ii];
+        const int   * _noalias const jlist = firstneigh[i];
+        int jnum = numneigh[i];
         IP_PRE_neighbor_pad(jnum, offload);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
@@ -274,7 +275,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
@@ -433,16 +434,10 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
     IP_PRE_fdotr_reduce(NEWTON_PAIR, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
 
-    if (EFLAG) {
+    if (EFLAG || vflag) {
       if (NEWTON_PAIR == 0) {
         oevdwl *= (acc_t)0.5;
         oecoul *= (acc_t)0.5;
-      }
-      ev_global[0] = oevdwl;
-      ev_global[1] = oecoul;
-    }
-    if (vflag) {
-      if (NEWTON_PAIR == 0) {
         ov0 *= (acc_t)0.5;
         ov1 *= (acc_t)0.5;
         ov2 *= (acc_t)0.5;
@@ -450,6 +445,8 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
         ov4 *= (acc_t)0.5;
         ov5 *= (acc_t)0.5;
       }
+      ev_global[0] = oevdwl;
+      ev_global[1] = oecoul;
       ev_global[2] = ov0;
       ev_global[3] = ov1;
       ev_global[4] = ov2;
@@ -522,19 +519,18 @@ void PairLJCutCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
     for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
 
   fc.set_ntypes(tp1, ntable, memory, _cop);
-  buffers->set_ntypes(tp1);
-  flt_t **cutneighsq = buffers->get_cutneighsq();
 
   // Repeat cutsq calculation because done after call to init_style
-  double cut, cutneigh;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      double cut;
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
         cut = init_one(i, j);
-        cutneigh = cut + neighbor->skin;
-        cutsq[i][j] = cutsq[j][i] = cut*cut;
-        cutneighsq[i][j] = cutneighsq[j][i] = cutneigh * cutneigh;
+      else { // need to set cutsq and cut_ljsq for hybrid pair_style
+        cut = 0.0;
+        cut_ljsq[i][j] = cut_ljsq[j][i] = 0.0;
       }
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
 
@@ -587,14 +583,12 @@ void PairLJCutCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
   flt_t * detable = fc.detable;
   flt_t * ctable = fc.ctable;
   flt_t * dctable = fc.dctable;
-  flt_t * ocutneighsq = cutneighsq[0];
   int tp1sq = tp1 * tp1;
   #pragma offload_transfer target(mic:_cop) \
     in(special_lj, special_coul: length(4) alloc_if(0) free_if(0)) \
     in(c_force, c_energy: length(tp1sq) alloc_if(0) free_if(0)) \
     in(table: length(ntable) alloc_if(0) free_if(0)) \
-    in(etable,detable,ctable,dctable: length(ntable) alloc_if(0) free_if(0)) \
-    in(ocutneighsq: length(tp1sq) alloc_if(0) free_if(0))
+    in(etable,detable,ctable,dctable: length(ntable) alloc_if(0) free_if(0))
   #endif
 }
 
@@ -617,10 +611,10 @@ void PairLJCutCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * odetable = detable;
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL && otable != NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && _cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr && otable != nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
           nocopy(oc_force, oc_energy: alloc_if(0) free_if(1)) \
@@ -658,10 +652,10 @@ void PairLJCutCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL &&
-          oc_energy != NULL && otable !=NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr &&
+          oc_energy != nullptr && otable !=nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \

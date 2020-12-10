@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,12 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_extep.h"
+
+#include <cmath>
+
+#include <cstring>
+#include <cctype>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -29,6 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+
 
 #include "math_const.h"
 
@@ -47,23 +49,24 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
   maxlocal = 0;
-  SR_numneigh = NULL;
-  SR_firstneigh = NULL;
-  ipage = NULL;
+  SR_numneigh = nullptr;
+  SR_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
-  map = NULL;
+  map = nullptr;
 
-  Nt = NULL;
-  Nd = NULL;
+  Nt = nullptr;
+  Nd = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -190,8 +193,7 @@ void PairExTeP::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   SR_neigh();
 
@@ -466,7 +468,7 @@ void PairExTeP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -475,7 +477,7 @@ void PairExTeP::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -543,7 +545,7 @@ void PairExTeP::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -581,15 +583,15 @@ void PairExTeP::read_file(char *file)
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
+    fp = utils::open_potential(file,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open ExTeP potential file %s",file);
       error->one(FLERR,str);
@@ -606,7 +608,7 @@ void PairExTeP::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -619,7 +621,7 @@ void PairExTeP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -628,7 +630,7 @@ void PairExTeP::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -638,7 +640,7 @@ void PairExTeP::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -648,7 +650,7 @@ void PairExTeP::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -670,6 +672,11 @@ void PairExTeP::read_file(char *file)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -706,7 +713,7 @@ void PairExTeP::read_file(char *file)
       error->all(FLERR,"Illegal ExTeP parameter");
 
     nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(nelements,3)) break;
   }
 
   // deallocate words array
@@ -718,9 +725,9 @@ void PairExTeP::read_file(char *file)
   // reallocate with new size
   words = new char*[params_per_line+1];
 
-  // intialize F_corr_data to all zeros
-  for (int iel=0;iel<atom->ntypes;iel++)
-    for (int jel=0;jel<atom->ntypes;jel++)
+  // initialize F_corr_data to all zeros
+  for (int iel=0;iel<nelements;iel++)
+    for (int jel=0;jel<nelements;jel++)
       for (int in=0;in<4;in++)
         for (int jn=0;jn<4;jn++)
           for (int ivar=0;ivar<3;ivar++)
@@ -731,7 +738,7 @@ void PairExTeP::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       //fputs(line,stdout);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -744,17 +751,27 @@ void PairExTeP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in ExTeP potential file");
 
     // words = ptrs to all words in line
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((nwords < params_per_line)
+           && (words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
+
+    // skip line if it is a leftover from the previous section,
+    // which can be identified by having 3 elements (instead of 2)
+    // as first words.
+
+    if (isupper(words[0][0]) && isupper(words[1][0]) && isupper(words[2][0]))
+      continue;
+
+    // need to have two elements followed by a number in each line
+    if (!(isupper(words[0][0]) && isupper(words[1][0])
+        && !isupper(words[2][0])))
+      error->all(FLERR,"Incorrect format in ExTeP potential file");
 
     // ielement,jelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -1075,10 +1092,10 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 // initialize spline for F_corr (based on PairLCBOP::F_conj)
 
 void PairExTeP::spline_init() {
-  for ( size_t iel=0; iel<atom->ntypes; iel++) {
-    for ( size_t jel=0; jel<atom->ntypes; jel++) {
-      for ( size_t N_ij=0; N_ij<4; N_ij++ ) {
-        for ( size_t N_ji=0; N_ji<4; N_ji++ ) {
+  for ( int iel=0; iel<nelements; iel++) {
+    for ( int jel=0; jel<nelements; jel++) {
+      for ( int N_ij=0; N_ij<4; N_ij++ ) {
+        for ( int N_ji=0; N_ji<4; N_ji++ ) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1150,8 +1167,8 @@ double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN
 
   // compute F_XY
 
-  size_t Ndij_int         = static_cast<size_t>( floor( Ndij ) );
-  size_t Ndji_int         = static_cast<size_t>( floor( Ndji ) );
+  int Ndij_int         = static_cast<int>( floor( Ndij ) );
+  int Ndji_int         = static_cast<int>( floor( Ndji ) );
   double x                = Ndij - Ndij_int;
   double y                = Ndji - Ndji_int;
   TF_corr_param &f  = F_corr_param[iel][jel][Ndij_int][Ndji_int];

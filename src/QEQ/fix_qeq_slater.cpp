@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,14 +15,12 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_slater.h"
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,7 +31,6 @@
 #include "kspace.h"
 #include "respa.h"
 #include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -91,15 +88,15 @@ void FixQEqSlater::init()
 void FixQEqSlater::extract_streitz()
 {
   Pair *pair = force->pair_match("coul/streitz",1);
-  if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
+  if (pair == nullptr) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
   zeta = (double *) pair->extract("zeta",tmp);
   zcore = (double *) pair->extract("zcore",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL
-                  || zeta == NULL || zcore == NULL)
+  if (chi == nullptr || eta == nullptr || gamma == nullptr
+                  || zeta == nullptr || zcore == nullptr)
     error->all(FLERR,
         "Fix qeq/slater could not extract params from pair coul/streitz");
 
@@ -114,9 +111,9 @@ void FixQEqSlater::pre_force(int /*vflag*/)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
-  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();

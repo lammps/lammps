@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,18 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "reader.h"
+
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
+
+// only proc 0 calls methods of this class, except for constructor/destructor
 
 /* ---------------------------------------------------------------------- */
 
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -32,7 +35,7 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 
 void Reader::open_file(const char *file)
 {
-  if (fp != NULL) close_file();
+  if (fp != nullptr) close_file();
 
   compressed = 0;
   const char *suffix = file + strlen(file) - 3;
@@ -40,25 +43,21 @@ void Reader::open_file(const char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[1024];
-    snprintf(gunzip,1024,"gzip -c -d %s",file);
-
+    std::string gunzip = fmt::format("gzip -c -d {}",file);
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file: " + utils::getsyserror());
 #endif
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,fmt::format("Cannot open file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------
@@ -68,8 +67,18 @@ void Reader::open_file(const char *file)
 
 void Reader::close_file()
 {
-  if (fp == NULL) return;
+  if (fp == nullptr) return;
   if (compressed) pclose(fp);
   else fclose(fp);
-  fp = NULL;
+  fp = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   detect unused arguments
+------------------------------------------------------------------------- */
+
+void Reader::settings(int narg, char** /*args*/)
+{
+  if (narg > 0)
+    error->all(FLERR,"Illegal read_dump command");
 }

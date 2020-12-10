@@ -17,6 +17,7 @@
 #include "lal_precision.h"
 #include <map>
 #include <cmath>
+#include <cstdlib>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -29,7 +30,7 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
@@ -71,7 +72,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   // "0:generic" will select platform 0 and tune for generic device
   // "1:fermi" will select platform 1 and tune for Nvidia Fermi gpu
   if (ocl_vendor) {
-    char *sep = NULL;
+    char *sep = nullptr;
     if ((sep = strstr(ocl_vendor,":"))) {
       *sep = '\0';
       _platform_id = atoi(ocl_vendor);
@@ -181,7 +182,7 @@ template <class numtyp, class acctyp>
 int DeviceT::set_ocl_params(char *ocl_vendor) {
   #ifdef USE_OPENCL
   std::string s_vendor=OCL_DEFAULT_VENDOR;
-  if (ocl_vendor!=NULL)
+  if (ocl_vendor!=nullptr)
     s_vendor=ocl_vendor;
   if (s_vendor=="none")
     s_vendor="generic";
@@ -214,14 +215,14 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
     int token_count=0;
     std::string params[13];
     char *pch = strtok(ocl_vendor,",");
-    pch = strtok(NULL,",");
-    if (pch == NULL) return -11;
-    while (pch != NULL) {
+    pch = strtok(nullptr,",");
+    if (pch == nullptr) return -11;
+    while (pch != nullptr) {
       if (token_count==13)
         return -11;
       params[token_count]=pch;
       token_count++;
-      pch = strtok(NULL,",");
+      pch = strtok(nullptr,",");
     }
     _ocl_vendor_string+=" -DMEM_THREADS="+params[0]+
                         " -DTHREADS_PER_ATOM="+params[1]+
@@ -237,7 +238,7 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
                         " -DBLOCK_CELL_ID="+params[11]+
                         " -DMAX_BIO_SHARED_TYPES="+params[12];
   }
-  _ocl_compile_string="-cl-fast-relaxed-math -cl-mad-enable "+std::string(OCL_INT_TYPE)+" "+
+  _ocl_compile_string="-cl-std=CL1.2 -cl-fast-relaxed-math -cl-mad-enable "+std::string(OCL_INT_TYPE)+" "+
                       std::string(OCL_PRECISION_COMPILE)+" "+_ocl_vendor_string;
   #endif
   return 0;
@@ -246,11 +247,8 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
 template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool rot, const int nlocal,
-                  const int host_nlocal, const int nall,
-                  Neighbor *nbor, const int maxspecial,
-                  const int gpu_host, const int max_nbors,
-                  const double cell_size, const bool pre_cut,
-                  const int threads_per_atom, const bool vel) {
+                  const int nall, const int maxspecial,
+                  const bool vel) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
@@ -270,7 +268,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifndef USE_CUDPP
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif
@@ -301,16 +299,6 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   if (!ans.init(ef_nlocal,charge,rot,*gpu))
     return -3;
 
-  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
-                  *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d,
-                  _block_cell_id, _block_nbor_build, threads_per_atom,
-                  _warp_size, _time_device, compile_string()))
-    return -3;
-  if (_cell_size<0.0)
-    nbor->cell_size(cell_size,cell_size);
-  else
-    nbor->cell_size(_cell_size,cell_size);
-
   _init_count++;
   return 0;
 }
@@ -335,6 +323,39 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
     return -3;
 
   _init_count++;
+  return 0;
+}
+
+template <class numtyp, class acctyp>
+int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
+                  const int host_nlocal, const int nall,
+                  const int maxspecial, const int gpu_host,
+                  const int max_nbors, const double cell_size,
+                  const bool pre_cut, const int threads_per_atom) {
+  int ef_nlocal=nlocal;
+  if (_particle_split<1.0 && _particle_split>0.0)
+    ef_nlocal=static_cast<int>(_particle_split*nlocal);
+ 
+  int gpu_nbor=0;
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
+    gpu_nbor=1;
+  else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+    gpu_nbor=2;
+  #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
+  if (gpu_nbor==1)
+    gpu_nbor=2;
+  #endif
+
+  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+                  *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
+                  _block_cell_id, _block_nbor_build, threads_per_atom,
+                  _warp_size, _time_device, compile_string()))
+    return -3;
+  if (_cell_size<0.0)
+    nbor->cell_size(cell_size,cell_size);
+  else
+    nbor->cell_size(_cell_size,cell_size);
+
   return 0;
 }
 
@@ -409,9 +430,9 @@ template <class numtyp, class acctyp>
 void DeviceT::estimate_gpu_overhead(const int kernel_calls,
                                     double &gpu_overhead,
                                     double &gpu_driver_overhead) {
-  UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
-  UCL_D_Vec<int> *dev_data_in=NULL, *dev_data_out=NULL, *kernel_data=NULL;
-  UCL_Timer *timers_in=NULL, *timers_out=NULL, *timers_kernel=NULL;
+  UCL_H_Vec<int> *host_data_in=nullptr, *host_data_out=nullptr;
+  UCL_D_Vec<int> *dev_data_in=nullptr, *dev_data_out=nullptr, *kernel_data=nullptr;
+  UCL_Timer *timers_in=nullptr, *timers_out=nullptr, *timers_kernel=nullptr;
   UCL_Timer over_timer(*gpu);
 
   if (_data_in_estimate>0) {
@@ -614,7 +635,7 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
     if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"    Device Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average) for kspace: ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
@@ -691,7 +712,7 @@ int DeviceT::compile_kernels() {
   gpu_lib_data.update_host(false);
 
   _ptx_arch=static_cast<double>(gpu_lib_data[0])/100.0;
-  #ifndef USE_OPENCL
+  #if !(defined(USE_OPENCL) || defined(USE_HIP))
   if (_ptx_arch>gpu->arch() || floor(_ptx_arch)<floor(gpu->arch()))
     return -4;
   #endif
@@ -741,7 +762,9 @@ double DeviceT::host_memory_usage() const {
 
 template class Device<PRECISION,ACC_PRECISION>;
 Device<PRECISION,ACC_PRECISION> global_device;
+}
 
+using namespace LAMMPS_AL;
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode,
                     const double particle_split, const int nthreads,
@@ -760,4 +783,3 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
-

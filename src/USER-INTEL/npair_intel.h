@@ -15,6 +15,7 @@
 #define LMP_NPAIR_INTEL_H
 
 #include "npair.h"
+#include "domain.h"
 #include "fix_intel.h"
 
 #if defined(_OPENMP)
@@ -75,6 +76,7 @@ class NPairIntel : public NPair {
  public:
   NPairIntel(class LAMMPS *);
   ~NPairIntel();
+  virtual void copy_neighbor_info();
 
   #ifdef _LMP_INTEL_OFFLOAD
   void grow_stencil();
@@ -82,6 +84,9 @@ class NPairIntel : public NPair {
 
  protected:
   FixIntel *_fix;
+
+  template <class flt_t, class acc_t>
+  void copy_cutsq_info(IntelBuffers<flt_t,acc_t> *);
 
   template <class flt_t, class acc_t, int, int, int, int, int>
   void bin_newton(const int, NeighList *, IntelBuffers<flt_t,acc_t> *,

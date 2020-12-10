@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,20 +31,19 @@
                        conform with pairing, updated to LAMMPS style
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_meam_spline.h"
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -57,15 +56,24 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
+  map = nullptr;
 
-  Uprime_values = NULL;
+  Uprime_values = nullptr;
   nmax = 0;
   maxNeighbors = 0;
-  twoBodyInfo = NULL;
+  twoBodyInfo = nullptr;
 
   comm_forward = 1;
   comm_reverse = 0;
+
+  phis = nullptr;
+  Us = nullptr;
+  rhos = nullptr;
+  fs = nullptr;
+  gs = nullptr;
+
+  zero_atom_energies = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,12 +111,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   double* const * const forces = atom->f;
   const int ntypes = atom->ntypes;
 
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else {
-    evflag = vflag_fdotr = eflag_global = 0;
-    vflag_global = eflag_atom = vflag_atom = 0;
-  }
+  ev_init(eflag, vflag);
 
   // Grow per-atom array if necessary
 
@@ -338,6 +341,8 @@ void PairMEAMSpline::allocate()
   allocated = 1;
   int n = nelements;
 
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
@@ -345,15 +350,23 @@ void PairMEAMSpline::allocate()
   //Change the functional form
   //f_ij->f_i
   //g_i(cos\theta_ijk)->g_jk(cos\theta_ijk)
+  delete[] phis;
+  delete[] Us;
+  delete[] rhos;
+  delete[] fs;
+  delete[] gs;
   phis = new SplineFunction[nmultichoose2];
   Us = new SplineFunction[n];
   rhos = new SplineFunction[n];
   fs = new SplineFunction[n];
   gs = new SplineFunction[nmultichoose2];
 
+  delete[] zero_atom_energies;
   zero_atom_energies = new double[n];
 
+  delete[] map;
   map = new int[n+1];
+  for (int i=0; i <= n; ++i) map[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -385,7 +398,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -406,7 +419,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         if (strcmp(arg[i],elements[j]) == 0)
           break;
       if (j < nelements) map[i-2] = j;
-      else error->all(FLERR,"No matching element in EAM potential file");
+      else error->all(FLERR,"No matching element in meam/spline potential file");
     }
   }
   // clear setflag since coeff() called once with I,J = * *
@@ -425,8 +438,17 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         setflag[i][j] = 1;
         count++;
       }
-
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // check that each element is mapped to exactly one atom type
+
+  for (int i = 0; i < nelements; i++) {
+    count = 0;
+    for (int j = 1; j <= n; j++)
+      if (map[j] == i) count++;
+    if (count != 1)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+  }
 }
 
 #define MAXLINE 1024
@@ -436,8 +458,8 @@ void PairMEAMSpline::read_file(const char* filename)
   int nmultichoose2; // = (n+1)*n/2;
 
   if(comm->me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if(fp == NULL) {
+    FILE *fp = utils::open_potential(filename,lmp,nullptr);
+    if(fp == nullptr) {
       char str[1024];
       snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
@@ -446,30 +468,33 @@ void PairMEAMSpline::read_file(const char* filename)
     // Skip first line of file. It's a comment.
     char line[MAXLINE];
     char *ptr;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
     // Second line holds potential type ("meam/spline")
     // in new potential format.
 
     bool isNewFormat = false;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     ptr = strtok(line, " \t\n\r\f");
 
     if (strcmp(ptr, "meam/spline") == 0) {
       isNewFormat = true;
       // parse the rest of the line!
-      ptr = strtok(NULL," \t\n\r\f");
-      if (ptr == NULL)
+      ptr = strtok(nullptr," \t\n\r\f");
+      if (ptr == nullptr)
         error->one(FLERR,"Need to include number of atomic species on"
                    " meam/spline line in multi-element potential file");
       nelements = atoi(ptr);
       if (nelements < 1)
         error->one(FLERR, "Invalid number of atomic species on"
                    " meam/spline line in potential file");
+      if (elements)
+        for (int i = 0; i < nelements; i++) delete [] elements[i];
+      delete [] elements;
       elements = new char*[nelements];
       for (int i=0; i<nelements; ++i) {
-        ptr = strtok(NULL," \t\n\r\f");
-        if (ptr == NULL)
+        ptr = strtok(nullptr," \t\n\r\f");
+        if (ptr == nullptr)
           error->one(FLERR, "Not enough atomic species in meam/spline"
                      " line of multi-element potential file");
         elements[i] = new char[strlen(ptr)+1];
@@ -482,11 +507,14 @@ void PairMEAMSpline::read_file(const char* filename)
       elements[0] = new char[1];
       strcpy(elements[0], "");
       rewind(fp);
-      fgets(line, MAXLINE, fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     }
 
     nmultichoose2 = ((nelements+1)*nelements)/2;
-    // allocate!!
+
+    if (nelements != atom->ntypes)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+
     allocate();
 
     // Parse spline functions.
@@ -646,27 +674,27 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
 
   // If new format, read the spline format.  Should always be "spline3eq" for now.
   if (isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
 
   // Parse number of spline knots.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
   int n = atoi(line);
   if(n < 2)
     error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
   // Parse first derivatives at beginning and end of spline.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
   double d0 = atof(strtok(line, " \t\n\r\f"));
-  double dN = atof(strtok(NULL, " \t\n\r\f"));
+  double dN = atof(strtok(nullptr, " \t\n\r\f"));
   init(n, d0, dN);
 
   // Skip line in old format
   if (!isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
 
   // Parse knot coordinates.
   for(int i=0; i<n; i++) {
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
     double x, y, y2;
     if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
       error->one(FLERR,"Invalid knot line in MEAM potential file");
@@ -723,6 +751,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
     Y2[i] /= h*6.0;
 #endif
   }
+  inv_h = (1/h);
   xmax_shifted = xmax - xmin;
 }
 
@@ -738,6 +767,7 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
   MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
   MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
   if(me != 0) {
     X = new double[N];
     Xs = new double[N];

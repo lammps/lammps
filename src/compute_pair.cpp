@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_pair.h"
+
+#include <cstring>
+#include <cctype>
 #include "update.h"
 #include "force.h"
 #include "pair.h"
@@ -27,9 +28,9 @@ enum{EPAIR,EVDWL,ECOUL};
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pair(NULL), one(NULL)
+  pstyle(nullptr), pair(nullptr), one(nullptr)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal compute pair command");
+  if (narg < 4) error->all(FLERR,"Illegal compute pair command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -41,19 +42,34 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   pstyle = new char[n];
   strcpy(pstyle,arg[3]);
 
-  if (narg == 5) {
-    if (strcmp(arg[4],"epair") == 0) evalue = EPAIR;
-    if (strcmp(arg[4],"evdwl") == 0) evalue = EVDWL;
-    if (strcmp(arg[4],"ecoul") == 0) evalue = ECOUL;
-  } else evalue = EPAIR;
+  int iarg = 4;
+  nsub = 0;
+  evalue = EPAIR;
+
+  if (narg > iarg) {
+    if (isdigit(arg[iarg][0])) {
+      nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
+      ++iarg;
+      if (nsub <= 0)
+        error->all(FLERR,"Illegal compute pair command");
+    }
+  }
+
+  if  (narg > iarg) {
+    if (strcmp(arg[iarg],"epair") == 0) evalue = EPAIR;
+    else if (strcmp(arg[iarg],"evdwl") == 0) evalue = EVDWL;
+    else if (strcmp(arg[iarg],"ecoul") == 0) evalue = ECOUL;
+    else error->all(FLERR, "Illegal compute pair command");
+    ++iarg;
+  }
 
   // check if pair style with and without suffix exists
 
-  pair = force->pair_match(pstyle,1);
+  pair = force->pair_match(pstyle,1,nsub);
   if (!pair && lmp->suffix) {
     strcat(pstyle,"/");
     strcat(pstyle,lmp->suffix);
-    pair = force->pair_match(pstyle,1);
+    pair = force->pair_match(pstyle,1,nsub);
   }
 
   if (!pair)
@@ -66,7 +82,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     extvector = 1;
     one = new double[npair];
     vector = new double[npair];
-  } else one = vector = NULL;
+  } else one = vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,7 +100,7 @@ void ComputePair::init()
 {
   // recheck for pair style in case it has been deleted
 
-  pair = force->pair_match(pstyle,1);
+  pair = force->pair_match(pstyle,1,nsub);
   if (!pair)
     error->all(FLERR,"Unrecognized pair style in compute pair command");
 }

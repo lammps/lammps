@@ -49,13 +49,13 @@ class PairSWIntel : public PairSW {
   template <int SPQ, int ONETYPE, int EFLAG, class flt_t, class acc_t>
   void eval(const int offload, const int vflag,
             IntelBuffers<flt_t,acc_t> * buffers, const ForceConst<flt_t> &fc,
-            const int astart, const int aend, const int pad_width);
+            const int astart, const int aend);
 
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
 
-  int _ccache_stride, _host_pad, _offload_pad, _spq, _onetype;
+  int _ccache_stride, _spq, _onetype, _onetype3;
   #ifdef LMP_USE_AVXCD
   int _ccache_stride3;
   #endif
@@ -75,7 +75,7 @@ class PairSWIntel : public PairSW {
       flt_t c1, c2, c3, c4;
     } fc_packed1p2;
     typedef struct {
-      flt_t c5, c6;
+      flt_t c5, c6, d1, d2;
     } fc_packed2;
     typedef struct {
       flt_t costheta, lambda_epsilon, lambda_epsilon2, pad;
@@ -87,8 +87,8 @@ class PairSWIntel : public PairSW {
     fc_packed2 **p2e;
     fc_packed3 ***p3;
 
-    ForceConst() : _ntypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL, _cop); }
+    ForceConst() : p2(0), p2f(0), p2f2(0), p2e(0), p3(0), _ntypes(0)  {}
+    ~ForceConst() { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +15,14 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_vashishta_table.h"
+#include <cstdio>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,8 +30,8 @@ using namespace LAMMPS_NS;
 
 PairVashishtaTable::PairVashishtaTable(LAMMPS *lmp) : PairVashishta(lmp)
 {
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -64,8 +57,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -238,8 +230,8 @@ void PairVashishtaTable::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  ntable = force->inumeric(FLERR,arg[0]);
-  tabinner = force->numeric(FLERR,arg[1]);
+  ntable = utils::inumeric(FLERR,arg[0],false,lmp);
+  tabinner = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (tabinner <= 0.0)
     error->all(FLERR,"Illegal inner cutoff for tabulation");
@@ -260,8 +252,8 @@ void PairVashishtaTable::create_tables()
 {
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 
   tabinnersq = tabinner*tabinner;
 

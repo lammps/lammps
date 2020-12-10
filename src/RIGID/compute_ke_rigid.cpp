@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_ke_rigid.h"
+#include <cstring>
 #include "update.h"
 #include "force.h"
 #include "modify.h"
@@ -27,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeKERigid::ComputeKERigid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), rfix(NULL)
+  Compute(lmp, narg, arg), rfix(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute ke/rigid command");
 

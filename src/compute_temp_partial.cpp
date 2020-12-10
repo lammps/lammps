@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
 #include "compute_temp_partial.h"
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -38,9 +37,9 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
   tempbias = 1;
 
-  xflag = force->inumeric(FLERR,arg[3]);
-  yflag = force->inumeric(FLERR,arg[4]);
-  zflag = force->inumeric(FLERR,arg[5]);
+  xflag = utils::inumeric(FLERR,arg[3],false,lmp);
+  yflag = utils::inumeric(FLERR,arg[4],false,lmp);
+  zflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if ((xflag != 0 && xflag != 1) || (yflag != 0 && yflag != 1)
       || (zflag != 0 && zflag != 1))
     error->all(FLERR,"Illegal compute temp/partial command");
@@ -48,8 +47,8 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
   maxbias = 0;
-  vbiasall = NULL;
-  vector = new double[6];
+  vbiasall = nullptr;
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

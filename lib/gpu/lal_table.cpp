@@ -23,7 +23,7 @@ const char *table=0;
 
 #include "lal_table.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define TableT Table<numtyp, acctyp>
 
 #define LOOKUP 0
@@ -337,3 +337,4 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Table<PRECISION,ACC_PRECISION>;
+}

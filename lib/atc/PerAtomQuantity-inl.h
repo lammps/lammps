@@ -24,8 +24,8 @@ namespace ATC {
     atomType_(atomType),
     nCols_(nCols),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsScalar_(NULL),
-    lammpsVector_(NULL)
+    lammpsScalar_(nullptr),
+    lammpsVector_(nullptr)
   {
     // do nothing
   }
@@ -177,7 +177,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomQuantity<T>::pack_comm(int index, double *buf, 
-                                    int pbc_flag, int *pbc)
+                                    int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     DenseMatrix<T> & myQuantity(this->quantity_);
@@ -256,7 +256,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int LammpsAtomQuantity<T>::pack_comm(int index, double *buf, 
-                                       int pbc_flag, int *pbc)
+                                       int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     int bufIdx = 0;
@@ -452,7 +452,7 @@ namespace ATC {
     lammpsInterface_(LammpsInterface::instance()),
     atomType_(atomType),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsScalar_(NULL)
+    lammpsScalar_(nullptr)
   {
     // do nothing
   }
@@ -550,7 +550,7 @@ namespace ATC {
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomDiagonalMatrix<T>::pack_comm(int index, double *buf, 
-                                          int pbc_flag, int *pbc)
+                                          int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
     DiagonalMatrix<T> & myQuantity(this->quantity_);
@@ -610,8 +610,8 @@ namespace ATC {
     nCols_(nCols),
     maxEntriesPerRow_(maxEntriesPerRow),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsVector_(NULL),
-    lammpsColIndices_(NULL)
+    lammpsVector_(nullptr),
+    lammpsColIndices_(nullptr)
   {
     // do nothing
   }
@@ -756,8 +756,8 @@ namespace ATC {
   // pack values in local atom-based arrays for passing to ghosts on another proc 
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomSparseMatrix<T>::pack_comm(int index, double *buf, 
-                                        int pbc_flag, int *pbc)
+    int PerAtomSparseMatrix<T>::pack_comm(int /* index */, double * /* buf */, 
+                                          int /* pbc_flag */, int */* pbc */)
   {
     return 0;
   }
@@ -766,7 +766,7 @@ namespace ATC {
   // unpack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomSparseMatrix<T>::unpack_comm(int index, double *buf)
+    int PerAtomSparseMatrix<T>::unpack_comm(int /* index */, double * /* buf */)
   {
     return 0;
   }

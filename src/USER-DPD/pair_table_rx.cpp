@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,19 +15,18 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_table_rx.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -47,8 +46,8 @@ enum{NONE,RLINEAR,RSQ,BMP};
 PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 {
   fractionalWeighting = true;
-  site1 = NULL;
-  site2 = NULL;
+  site1 = nullptr;
+  site2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,8 +77,7 @@ void PairTableRX::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -95,10 +93,10 @@ void PairTableRX::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  double *mixWtSite1old = NULL;
-  double *mixWtSite2old = NULL;
-  double *mixWtSite1 = NULL;
-  double *mixWtSite2 = NULL;
+  double *mixWtSite1old = nullptr;
+  double *mixWtSite2old = nullptr;
+  double *mixWtSite1 = nullptr;
+  double *mixWtSite2 = nullptr;
 
   {
     const int ntotal = atom->nlocal + atom->nghost;
@@ -260,7 +258,7 @@ void PairTableRX::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -292,7 +290,7 @@ void PairTableRX::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -306,12 +304,12 @@ void PairTableRX::coeff(int narg, char **arg)
 
   bool rx_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
+  if (!rx_flag) error->all(FLERR,"Pair style table/rx requires a fix rx command.");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -348,7 +346,7 @@ void PairTableRX::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 7) tb->cut = force->numeric(FLERR,arg[6]);
+  if (narg == 7) tb->cut = utils::numeric(FLERR,arg[6],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 

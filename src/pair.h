@@ -14,7 +14,7 @@
 #ifndef LMP_PAIR_H
 #define LMP_PAIR_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixIntel;
   friend class FixOMP;
   friend class ThrOMP;
   friend class Info;
@@ -36,6 +37,7 @@ class Pair : protected Pointers {
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
+  double **cvatom;               // accumulated per-atom centroid virial
 
   double cutforce;               // max cutoff for all atom pairs
   double **cutsq;                // cutoff sq for each atom pair
@@ -46,10 +48,12 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
+  int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int manybody_flag;             // 1 if a manybody potential
+  int unit_convert_flag;         // value != 0 indicates support for unit conversion.
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
   int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
@@ -61,7 +65,13 @@ class Pair : protected Pointers {
   int dispersionflag;            // 1 if compatible with LJ/dispersion solver
   int tip4pflag;                 // 1 if compatible with TIP4P solver
   int dipoleflag;                // 1 if compatible with dipole solver
+  int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
+
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
@@ -69,7 +79,7 @@ class Pair : protected Pointers {
 
   int evflag;                    // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
+  int vflag_either,vflag_global,vflag_atom,cvflag_atom;
 
   int ncoultablebits;            // size of Coulomb table, accessed by KSpace
   int ndisptablebits;            // size of dispersion table
@@ -95,8 +105,11 @@ class Pair : protected Pointers {
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
+  int mixed_flag;                // 1 if all itype != jtype coeffs are from mixing
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
+
+  int beyond_contact, nondefault_history_transfer;   // for granular styles
 
   // KOKKOS host/device flag and data masks
 
@@ -145,6 +158,16 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  void hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]);
+
+  virtual double single_hessian(int, int, int, int,
+                        double, double[3], double, double,
+                        double& fforce, double d2u[6]) {
+    fforce = 0.0;
+    for (int i=0; i<6; i++) d2u[i] = 0;
+    return 0.0;
+  }
+
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -174,12 +197,13 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
 
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
+  virtual void transfer_history(double *, double*) {}
 
   // management of callbacks to be run from ev_tally()
 
@@ -202,18 +226,27 @@ class Pair : protected Pointers {
   double tabinner;                     // inner cutoff for Coulomb table
   double tabinner_disp;                 // inner cutoff for dispersion table
 
+
  public:
   // custom data type for accessing Coulomb tables
 
   typedef union {int i; float f;} union_int_float_t;
 
+  // Accessor for the user-intel package to determine virial calc for hybrid
+
+  inline int fdotr_is_set() const { return vflag_fdotr; }
+
  protected:
   int vflag_fdotr;
-  int maxeatom,maxvatom;
+  int maxeatom,maxvatom,maxcvatom;
 
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else ev_unset();
+  }
   virtual void ev_setup(int, int, int alloc = 1);
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);
@@ -226,17 +259,6 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 
   inline int sbmask(int j) const {
     return j >> SBBITS & 3;
@@ -268,7 +290,7 @@ E: Cannot use pair tail corrections with 2d simulations
 
 The correction factors are only currently defined for 3d systems.
 
-W: Using pair tail corrections with nonperiodic system
+W: Using pair tail corrections with non-periodic system
 
 This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to

@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
+   Contributing authors: Wengen Ouyang (Tel Aviv University)
+   and Davide Mandelli (Istituto Italiano di Tecnologia)
    e-mail: w.g.ouyang at gmail dot com
 ------------------------------------------------------------------------- */
 

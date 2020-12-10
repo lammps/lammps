@@ -1,0 +1,111 @@
+LAMMPS (30 Nov 2020)
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use different molecule ids for each layer of hBN
+# so that inter- and intra-layer
+# interactions can be specified separately
+read_data       hBN-momolayer-5nm.data
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (46.152980 48.443364 100.00000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  880 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.009 seconds
+mass            1 10.8110   # boron mass (g/mole) | membrane
+mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
+
+######################## Potential defition ########################
+pair_style  tersoff/shift 0.0
+pair_coeff  * * BNC.tersoff B N
+Reading tersoff potential file BNC.tersoff with DATE: 2013-03-21
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+#### Simulation settings ####
+timestep  	0.001
+#velocity  	all create 300.0 12345 dist gaussian mom yes rot yes
+fix       	thermostat all nve
+
+############# Output ###############
+thermo          100
+thermo_style    custom step etotal pe ke temp
+thermo_modify   lost warn
+
+###### Run molecular dynamics ######
+run 		1000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.1
+  ghost atom cutoff = 4.1
+  binsize = 2.05, bins = 23 24 49
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/shift, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.651 | 6.651 | 6.651 Mbytes
+Step TotEng PotEng KinEng Temp 
+       0   -6551.8376   -6551.8376            0            0 
+     100   -6551.8404    -6552.045   0.20459665    1.8007151 
+     200   -6551.8415   -6552.0901   0.24854441    2.1875122 
+     300   -6551.8417   -6552.0785   0.23679696    2.0841195 
+     400   -6551.8417   -6552.0803   0.23866698    2.1005781 
+     500   -6551.8415   -6552.0561   0.21461008    1.8888462 
+     600   -6551.8414   -6552.0933   0.25192103    2.2172309 
+     700   -6551.8418    -6552.085   0.24321116    2.1405727 
+     800   -6551.8421   -6552.0818   0.23974657    2.1100799 
+     900   -6551.8417   -6552.0803   0.23863749    2.1003185 
+    1000   -6551.8407   -6552.0573    0.2165681    1.9060793 
+Loop time of 2.01887 on 1 procs for 1000 steps with 880 atoms
+
+Performance: 42.796 ns/day, 0.561 hours/ns, 495.328 timesteps/s
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.9692     | 1.9692     | 1.9692     |   0.0 | 97.54
+Bond    | 0.00080803 | 0.00080803 | 0.00080803 |   0.0 |  0.04
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.017753   | 0.017753   | 0.017753   |   0.0 |  0.88
+Output  | 0.00098974 | 0.00098974 | 0.00098974 |   0.0 |  0.05
+Modify  | 0.017247   | 0.017247   | 0.017247   |   0.0 |  0.85
+Other   |            | 0.01289    |            |       |  0.64
+
+Nlocal:        880.000 ave         880 max         880 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        1518.00 ave        1518 max        1518 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      15840.0 ave       15840 max       15840 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15840
+Ave neighs/atom = 18.000000
+Ave special neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:02

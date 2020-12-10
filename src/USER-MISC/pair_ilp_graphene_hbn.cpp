@@ -18,6 +18,7 @@
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
    The definition of normals are the same as that in
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
+   The paramters are refined in [Nano Lett. 18, 6009 (2018)]
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"
@@ -34,6 +35,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 
 using namespace LAMMPS_NS;
@@ -42,12 +44,32 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 #define PGDELTA 1
 
+static const char cite_ilp[] =
+  "@Article{Ouyang2018\n"
+  " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+  " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
+  " journal = {Nano Letters},\n"
+  " volume =  18,\n"
+  " pages =   {6009}\n"
+  " year =    2018,\n"
+  "}\n\n"
+  "@Article{Ouyang2020\n"
+  " author = {W. Ouyang, I. Azuri, D. Mandelli, A. Tkatchenko, L. Kronik, M. Urbakh, and O. Hod},\n"
+  " title = {Mechanical and Tribological Properties of Layered Materials under High Pressure: Assessing the Importance of Many-Body Dispersion Effects},\n"
+  " journal = {J. Chem. Theory Comput.},\n"
+  " volume =  16,\n"
+  " pages =   {666}\n"
+  " year =    2020,\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   one_coeff = 1;
+
+  if (lmp->citeme) lmp->citeme->add(cite_ilp);
 
   nextra = 2;
   pvector = new double[nextra];

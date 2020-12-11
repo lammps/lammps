@@ -136,6 +136,10 @@ as defined by the :doc:`atom_style sphere <atom_style>` command.
 They must also store a dipole moment as defined by the
 :doc:`atom_style dipole <atom_style>` command.
 
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
+
 All particles in the group must be finite-size spheres.  They cannot
 be point particles.
 

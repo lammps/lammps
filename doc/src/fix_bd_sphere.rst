@@ -25,7 +25,7 @@ Syntax
          *uniform* = use uniform random number generator
          *gaussian* = use gaussian random number generator
          *none* = turn off noise
-       *dipole* value = none = update orientation of dipoles during integration
+        *dipole* value = none = update orientation of dipoles during integration
 
 Examples
 """"""""
@@ -68,32 +68,32 @@ the :math:`\omega` axis, and
 infinitesimal rotation matrix (see e.g. :ref:`(Callegari) <Callegari1>`,
 section 7.4).
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the added forces on atoms to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial no*.
+.. note::
+   This integrator is designed for generic non-equilibrium
+   simulations with additive noise. There are two important cases which
+   (conceptually) reduce the number of free parameters in this fix.
+   (a) In equilibrium simulations
+   (where fluctuation dissipation theorems are obeyed), one can define
+   the thermal energy :math:`k_bT=D_t\gamma_t=D_r\gamma_r`.
+   (b) When a no-slip boundary condition is expected between the spheres and
+   the surrounding medium, the condition
+   :math:`\gamma_t=3\gamma_r/\sigma^2` must be explicitly
+   accounted for (e.g. by setting *gamma_t* to 3 and *gamma_r* to 1) where
+   :math:`sigma` is the particle diameter.
+   If both (a) and (b) are true, then one must ensure this explicitly via
+   the above relationships.
 
+---------
 
-IMPORTANT NOTE: This integrator is designed for generic non-equilibrium
-simulations with additive noise. There are two important cases which
-(conceptually) reduce the number of free parameters in this fix.
-(a) In equilibrium simulations
-(where fluctuation dissipation theorems are obeyed), one can define
-the thermal energy :math:`k_bT=D_t\gamma_t=D_r\gamma_r`.
-(b) When a no-slip boundary condition is expected between the spheres and
-the surrounding medium, the condition
-:math:`\gamma_t=3\gamma_r/\sigma^2` must be explicitly
-accounted for (e.g. by setting *gamma_t* to 3 and *gamma_r* to 1) where
-:math:`sigma` is the particle diameter.
-If both (a) and (b) are true, then one must ensure this explicitly via
-the above relationships.
+.. note::
+   The diffusion coefficient :math:`D_t` is measured
+   in units of (length*length)/time and the diffusion coefficient
+   :math:`D_r` is measured in units of 1/time, where time and length
+   are in the units specified on the :doc:`units <units>` page. Similarly,
+   :math:`\gamma_t` and :math:`\gamma_r` are measured in
+   units of mass/time and (mass*length*length)/(time).
 
-IMPORTANT NOTE: The diffusion coefficient :math:`D_t` is measured
-in units of (length*length)/time and the diffusion coefficient
-:math:`D_r` is measured in units of 1/time, where time and length
-are in the units specified on the :doc:`units <units>` page. Similarly,
-:math:`\gamma_t` and :math:`\gamma_r` are measured in
-units of mass/time and (mass*length*length)/(time).
+---------
 
 If the *rng* keyword is used with the *uniform* value, then the noise
 is generated from a uniform distribution (see
@@ -121,9 +121,14 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
-None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
+No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
+fix to add the contribution due to the added forces on atoms to the
+system's virial as part of :doc:`thermodynamic output <thermo_style>`.
+The default is *virial no*.
+
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
 :doc:`energy minimization <minimize>`.
@@ -133,15 +138,13 @@ Restrictions
 
 This fix requires that atoms store torque and angular velocity (omega)
 as defined by the :doc:`atom_style sphere <atom_style>` command.
-They must also store a dipole moment as defined by the
-:doc:`atom_style dipole <atom_style>` command.
+If the *dipole* keyword is used, they must also store a dipole moment
+as defined by the :doc:`atom_style dipole <atom_style>` command.
 
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-All particles in the group must be finite-size spheres.  They cannot
-be point particles.
 
 Related commands
 """"""""""""""""

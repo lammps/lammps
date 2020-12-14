@@ -268,19 +268,26 @@ void ComputeCentroidStressAtom::compute_peratom()
   // possible during setup phase if fix has not initialized its vatom yet
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input
-  // fix styles are CENTROID_SAME or CENTROID_NOTAVAIL
+  // fix styles are CENTROID_SAME, CENTROID_AVAIL or CENTROID_NOTAVAIL
 
   if (fixflag) {
     Fix **fix = modify->fix;
     int nfix = modify->nfix;
     for (int ifix = 0; ifix < nfix; ifix++)
       if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
-        double **vatom = fix[ifix]->vatom;
-        if (vatom)
-          for (i = 0; i < nlocal; i++) {
-            for (j = 0; j < 6; j++) stress[i][j] += vatom[i][j];
-            for (j = 6; j < 9; j++) stress[i][j] += vatom[i][j - 3];
-          }
+        if (modify->fix[ifix]->centroidstressflag == CENTROID_AVAIL) {
+          double **cvatom = modify->fix[ifix]->cvatom;
+          if (cvatom)
+            for (i = 0; i < nlocal; i++)
+              for (j = 0; j < 9; j++) stress[i][j] += cvatom[i][j];
+        } else {
+          double **vatom = modify->fix[ifix]->vatom;
+          if (vatom)
+            for (i = 0; i < nlocal; i++) {
+              for (j = 0; j < 6; j++) stress[i][j] += vatom[i][j];
+              for (j = 6; j < 9; j++) stress[i][j] += vatom[i][j - 3];
+            }
+        }
       }
   }
 

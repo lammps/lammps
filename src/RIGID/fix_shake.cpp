@@ -66,6 +66,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   // error check
 
@@ -1764,7 +1765,10 @@ void FixShake::shake(int m)
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally(nlist,list,2.0,v);
+    double fpairlist[] = {lamda};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
+    int pairlist[][2] = {{i0,i1}};
+    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1937,7 +1941,11 @@ void FixShake::shake3(int m)
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2189,7 +2197,12 @@ void FixShake::shake4(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally(nlist,list,4.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda03};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r03[0], r03[1], r03[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
+    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2432,7 +2445,12 @@ void FixShake::shake3angle(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda12};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r12[0], r12[1], r12[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 

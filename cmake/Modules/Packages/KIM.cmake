@@ -34,8 +34,8 @@ if(DOWNLOAD_KIM)
   enable_language(C)
   enable_language(Fortran)
   ExternalProject_Add(kim_build
-    URL https://s3.openkim.org/kim-api/kim-api-2.2.0.txz
-    URL_MD5 e7f944e1593cffd7444679a660607f6c
+    URL https://s3.openkim.org/kim-api/kim-api-2.2.1.txz
+    URL_MD5 ae1ddda2ef7017ea07934e519d023dca
     BINARY_DIR build
     CMAKE_ARGS ${CMAKE_REQUEST_PIC}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}

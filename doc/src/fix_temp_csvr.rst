@@ -166,7 +166,7 @@ These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
 These fixes compute a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the cumulative
-kinetic energy change due to the fix.  The scalar value calculated by this fix
+energy change due to the fix.  The scalar value calculated by this fix
 is "extensive".
 
 Restrictions

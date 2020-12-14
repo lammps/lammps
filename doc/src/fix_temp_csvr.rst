@@ -125,7 +125,7 @@ removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
 An important feature of these thermostats is that they have an 
-associated effective energy that is a contant of the motion.
+associated effective energy that is a constant of motion.
 The effective energy is the total energy (kinetic + potential) plus 
 the accumulated kinetic energy changes due to the thermostat. The 
 latter quantity is the global scalar computed by these fixes. This 

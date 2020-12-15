@@ -19,7 +19,6 @@
 import warnings
 from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
 
-import numpy as np
 
 from .constants import *
 from .data import NeighList
@@ -46,6 +45,7 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def _ctype_to_numpy_int(self, ctype_int):
+    import numpy as np
     if ctype_int == c_int32:
       return np.int32
     elif ctype_int == c_int64:
@@ -240,6 +240,7 @@ class numpy_wrapper:
     :return: the requested data or None
     :rtype: c_double, numpy.array, or NoneType
     """
+    import numpy as np
     value = self.lmp.extract_variable(name, group, vartype)
     if vartype == LMP_VAR_ATOM:
       return np.ctypeslib.as_array(value)
@@ -283,6 +284,7 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
+    import numpy as np
     np_int_type = self._ctype_to_numpy_int(c_int_type)
 
     if dim == 1:
@@ -297,6 +299,7 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
+    import numpy as np
     if dim == 1:
       ptr = cast(raw_ptr, POINTER(c_double * nelem))
     else:

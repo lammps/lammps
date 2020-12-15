@@ -72,3 +72,11 @@ or
 
 The resultant log.lammps output should be identical to that generated
 by in.mliap.snap.Ta06A and in.mliap.pytorch.Ta06A.
+
+in.mliap.pytorch.relu1hidden
+----------------------------
+This example demonstrates a simple neural network potential
+using PyTorch and SNAP descriptors. It uses a ReLU activation
+function with just 1 hidden layer.
+  
+`lmp -in in.mliap.pytorch.relu1hidden -echo both`

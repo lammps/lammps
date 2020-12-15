@@ -1,44 +1,3 @@
-// /* ----------------------------------------------------------------------
-//    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-//    http://lammps.sandia.gov, Sandia National Laboratories
-//    Steve Plimpton, sjplimp@sandia.gov
-//    Copyright (2003) Sandia Corporation.  Under the terms of Contract
-//    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-//    certain rights in this software.  This software is distributed under
-//    the GNU General Public License.
-//    See the README file in the top-level LAMMPS directory.
-// ------------------------------------------------------------------------- */
-
-// /* ----------------------------------------------------------------------
-//    Contributing authors: Alexey Lipnitskiy (BSU), Daniil Poletaev (BSU) 
-// ------------------------------------------------------------------------- */
-
-// #include "pair_ls.h"
-
-
-// #include <cstring>
-
-// #include "atom.h"
-// #include "force.h"
-// #include "comm.h"
-// #include "neighbor.h"
-// #include "neigh_list.h"
-// #include "neigh_request.h"
-// #include "memory.h"
-// #include "error.h"
-
-
-
-// using namespace LAMMPS_NS;
-
-// // Fortran function
-// // extern void e_force_(double e_sum, double pressure, double sxx, double syy, double szz, double e_at, double f_at, double px_at, double py_at, double pz_at,
-// //   double r_at, int i_sort_at, int n_at, double sizex, double sizey, double sizez);
-// extern void e_force_(double *e_sum, double *pressure, double *sxx, double *syy, double *szz, double *e_at, double *f_at[], double *px_at, double *py_at, double pz_at,
-//   double *r_at[], int *i_sort_at, int *n_at, double *sizex, double *sizey, double *sizez);
-
-// /////////////////////////////////////////////////////////
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
@@ -61,6 +20,9 @@
 #include <cmath>
 
 #include <cstring>
+#include <iostream>
+#include <fstream>
+#include <stdio.h>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -81,32 +43,165 @@ using namespace LAMMPS_NS;
 
 PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 {
-  restartinfo = 0;
-  manybody_flag = 1;
-  embedstep = -1;
-  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  nmax = 0;
-  rho = nullptr;
-  fp = nullptr;
-  numforce = nullptr;
-  map = nullptr;
-  type2frho = nullptr;
+  shag_sp_fi  = nullptr;
+  shag_sp_ro  = nullptr;
+  shag_sp_emb = nullptr;
+  shag_sp_f   = nullptr;
 
-  nfuncfl = 0;
-  funcfl = nullptr;
+  R_sp_fi  = nullptr; 
+  R_sp_ro  = nullptr;
+  R_sp_emb = nullptr;
+  R_sp_f   = nullptr;
+  R_sp_g   = nullptr;
+  
+  a_sp_fi = nullptr;
+  b_sp_fi = nullptr;
+  c_sp_fi = nullptr;
+  d_sp_fi = nullptr;
 
-  setfl = nullptr;
-  fs = nullptr;
+  a_sp_ro = nullptr;
+  b_sp_ro = nullptr;
+  c_sp_ro = nullptr;
+  d_sp_ro = nullptr;
 
-  frho = nullptr;
-  rhor = nullptr;
-  z2r = nullptr;
-  scale = nullptr;
+  a_sp_emb = nullptr;
+  b_sp_emb = nullptr;
+  c_sp_emb = nullptr;
+  d_sp_emb = nullptr;
 
-  frho_spline = nullptr;
-  rhor_spline = nullptr;
-  z2r_spline = nullptr;
+  a_sp_f3 = nullptr;
+  b_sp_f3 = nullptr;
+  c_sp_f3 = nullptr;
+  d_sp_f3 = nullptr;
+
+  a_sp_g3 = nullptr;
+  b_sp_g3 = nullptr;
+  c_sp_g3 = nullptr;
+  d_sp_g3 = nullptr; 
+
+  a_sp_f4 = nullptr;
+  b_sp_f4 = nullptr;
+  c_sp_f4 = nullptr;
+  d_sp_f4 = nullptr;
+
+  a_sp_g4 = nullptr;
+  b_sp_g4 = nullptr;
+  c_sp_g4 = nullptr;
+  d_sp_g4 = nullptr;
+
+  fip_rmin = nullptr;
+
+  z_ion  = nullptr;
+  c_ZBL  = nullptr;
+  d_ZBL  = nullptr;
+  zz_ZBL = nullptr;
+  a_ZBL  = nullptr;
+  e0_ZBL = nullptr;
+
+  n_sp_fi  = nullptr;
+  n_sp_ro  = nullptr;
+  n_sp_emb = nullptr;
+  n_sp_f   = nullptr;
+  n_sp_g   = nullptr;
+
+  // memory allocation in heap for arrays with variables and spline coefficients
+  // maybe it is not nessessary to allocate all this memory
+  // shag_sp_fi  = new double[mi][mi];
+  // shag_sp_ro  = new double[mi][mi];
+  // shag_sp_emb = new double[mi]; 
+  // shag_sp_f   = new double[mi][mi];
+  // shag_sp_g   = new double; 
+
+  // R_sp_fi  = new double[mfi][mi][mi]; 
+  // R_sp_ro  = new double[mfi][mi][mi]; 
+  // R_sp_emb = new double[memb][mi]; 
+  // R_sp_f   = new double[mf][mi][mi]; 
+  // R_sp_g   = new double[mg];
+
+  // a_sp_fi = new double[mfi][mi][mi]; 
+  // b_sp_fi = new double[mfi][mi][mi];
+  // c_sp_fi = new double[mfi][mi][mi]; 
+  // d_sp_fi = new double[mfi][mi][mi];
+
+  // a_sp_ro = new double[mro][mi][mi];
+  // b_sp_ro = new double[mro][mi][mi];
+  // c_sp_ro = new double[mro][mi][mi];
+  // d_sp_ro = new double[mro][mi][mi];
+  
+  // a_sp_emb = new double[memb][mi];
+  // b_sp_emb = new double[memb][mi];
+  // c_sp_emb = new double[memb][mi];
+  // d_sp_emb = new double[memb][mi];
+  
+  // a_sp_f3 = new double[mf][mf3][mi][mi];
+  // b_sp_f3 = new double[mf][mf3][mi][mi];
+  // c_sp_f3 = new double[mf][mf3][mi][mi];
+  // d_sp_f3 = new double[mf][mf3][mi][mi];
+  
+  // a_sp_g3 = new double[mg][mf3][mf3][mi];
+  // b_sp_g3 = new double[mg][mf3][mf3][mi];
+  // c_sp_g3 = new double[mg][mf3][mf3][mi];
+  // d_sp_g3 = new double[mg][mf3][mf3][mi]; 
+  
+  // a_sp_f4 = new double[mf][mi][mi];
+  // b_sp_f4 = new double[mf][mi][mi];
+  // c_sp_f4 = new double[mf][mi][mi];
+  // d_sp_f4 = new double[mf][mi][mi];
+  
+  // a_sp_g4 = new double[mi][mi];
+  // b_sp_g4 = new double[mi][mi];
+  // c_sp_g4 = new double[mi][mi];
+  // d_sp_g4 = new double[mi][mi];
+  
+  
+  // fip_rmin = new double[mi][mi];
+  
+  
+  // z_ion  = new double[mi]; 
+  // c_ZBL  = new double[4]; 
+  // d_ZBL  = new double[4]; 
+  // zz_ZBL = new double[mi][mi]; 
+  // a_ZBL  = new double[mi][mi]; 
+  // e0_ZBL = new double[mi][mi];
+  
+  
+  // Rmin_fi_ZBL = new double[mi][mi]; 
+  // c_fi_ZBL    = new double[6][mi][mi];
+  
+  // Rc_fi = new double; 
+  // Rc_f  = new double;
+
+  n_sort = atom->ntypes;
+
+
+  // EAM inheritance
+  // restartinfo = 0;
+  // manybody_flag = 1;
+  // embedstep = -1;
+  // unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+
+  // nmax = 0;
+  // rho = nullptr;
+  // fp = nullptr;
+  // numforce = nullptr;
+  // map = nullptr;
+  // type2frho = nullptr;
+
+  // nfuncfl = 0;
+  // funcfl = nullptr;
+
+  // setfl = nullptr;
+  // fs = nullptr;
+
+  // frho = nullptr;
+  // rhor = nullptr;
+  // z2r = nullptr;
+  // scale = nullptr;
+
+  // frho_spline = nullptr;
+  // rhor_spline = nullptr;
+  // z2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -120,64 +215,76 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 
 PairLS::~PairLS()
 {
-  if (copymode) return;
-
-  memory->destroy(rho);
-  memory->destroy(fp);
-  memory->destroy(numforce);
-
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
-    delete [] type2frho;
-    map = nullptr;
-    type2frho = nullptr;
-    memory->destroy(type2rhor);
-    memory->destroy(type2z2r);
-    memory->destroy(scale);
+
+    memory->destroy(shag_sp_fi);
+    memory->destroy(shag_sp_ro);
+    memory->destroy(shag_sp_emb);
+    memory->destroy(shag_sp_f);
+
+    memory->destroy(R_sp_fi);
+    memory->destroy(R_sp_ro);
+    memory->destroy(R_sp_emb);
+    memory->destroy(R_sp_f);
+    memory->destroy(R_sp_g);
+
+    memory->destroy(a_sp_fi);
+    memory->destroy(b_sp_fi);
+    memory->destroy(c_sp_fi);
+    memory->destroy(d_sp_fi);
+
+    memory->destroy(a_sp_ro);
+    memory->destroy(b_sp_ro);
+    memory->destroy(c_sp_ro);
+    memory->destroy(d_sp_ro);
+
+    memory->destroy(a_sp_emb);
+    memory->destroy(b_sp_emb);
+    memory->destroy(c_sp_emb);
+    memory->destroy(d_sp_emb);
+
+    memory->destroy(a_sp_f3);
+    memory->destroy(b_sp_f3);
+    memory->destroy(c_sp_f3);
+    memory->destroy(d_sp_f3);
+
+    memory->destroy(a_sp_g3);
+    memory->destroy(b_sp_g3);
+    memory->destroy(c_sp_g3);
+    memory->destroy(d_sp_g3);
+
+    memory->destroy(a_sp_f4);
+    memory->destroy(b_sp_f4);
+    memory->destroy(c_sp_f4);
+    memory->destroy(d_sp_f4);
+
+    memory->destroy(a_sp_g4);
+    memory->destroy(b_sp_g4);
+    memory->destroy(c_sp_g4);
+    memory->destroy(d_sp_g4);
+
+    memory->destroy(fip_rmin);
+
+    memory->destroy(z_ion);
+    memory->destroy(c_ZBL);
+    memory->destroy(d_ZBL);
+    memory->destroy(zz_ZBL);
+    memory->destroy(a_ZBL);
+    memory->destroy(e0_ZBL);
+
+    memory->destroy(Rmin_fi_ZBL);
+    memory->destroy(c_fi_ZBL);
+
+    memory->destroy(n_sp_fi);
+    memory->destroy(n_sp_ro);
+    memory->destroy(n_sp_emb);
+    memory->destroy(n_sp_f);
+    memory->destroy(n_sp_g);
   }
 
-  if (funcfl) {
-    for (int i = 0; i < nfuncfl; i++) {
-      delete [] funcfl[i].file;
-      memory->destroy(funcfl[i].frho);
-      memory->destroy(funcfl[i].rhor);
-      memory->destroy(funcfl[i].zr);
-    }
-    memory->sfree(funcfl);
-    funcfl = nullptr;
-  }
 
-  if (setfl) {
-    for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    memory->destroy(setfl->mass);
-    memory->destroy(setfl->frho);
-    memory->destroy(setfl->rhor);
-    memory->destroy(setfl->z2r);
-    delete setfl;
-    setfl = nullptr;
-  }
-
-  if (fs) {
-    for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    memory->destroy(fs->mass);
-    memory->destroy(fs->frho);
-    memory->destroy(fs->rhor);
-    memory->destroy(fs->z2r);
-    delete fs;
-    fs = nullptr;
-  }
-
-  memory->destroy(frho);
-  memory->destroy(rhor);
-  memory->destroy(z2r);
-
-  memory->destroy(frho_spline);
-  memory->destroy(rhor_spline);
-  memory->destroy(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,24 +297,12 @@ void PairLS::compute(int eflag, int vflag)
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
   ev_init(eflag,vflag);
 
-  // grow energy and fp arrays if necessary
-  // need to be atom->nmax in length
-
-  if (atom->nmax > nmax) {
-    memory->destroy(rho);
-    memory->destroy(fp);
-    memory->destroy(numforce);
-    nmax = atom->nmax;
-    memory->create(rho,nmax,"pair:rho");
-    memory->create(fp,nmax,"pair:fp");
-    memory->create(numforce,nmax,"pair:numforce");
-  }
 
   double **x = atom->x;
   double **f = atom->f;
+  double **v = atom->v;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -218,155 +313,8 @@ void PairLS::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // zero out density
 
-  if (newton_pair) {
-    for (i = 0; i < nall; i++) rho[i] = 0.0;
-  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
 
-  // rho = density at each atom
-  // loop over neighbors of my atoms
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < cutforcesq) {
-        jtype = type[j];
-        p = sqrt(rsq)*rdr + 1.0;
-        m = static_cast<int> (p);
-        m = MIN(m,nr-1);
-        p -= m;
-        p = MIN(p,1.0);
-        coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-        if (newton_pair || j < nlocal) {
-          coeff = rhor_spline[type2rhor[itype][jtype]][m];
-          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-        }
-      }
-    }
-  }
-
-  // communicate and sum densities
-
-  if (newton_pair) comm->reverse_comm_pair(this);
-
-  // fp = derivative of embedding energy at each atom
-  // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int> (p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
-    coeff = frho_spline[type2frho[type[i]]][m];
-    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    if (eflag) {
-      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-      phi *= scale[type[i]][type[i]];
-      if (eflag_global) eng_vdwl += phi;
-      if (eflag_atom) eatom[i] += phi;
-    }
-  }
-
-  // communicate derivative of embedding function
-
-  comm->forward_comm_pair(this);
-  embedstep = update->ntimestep;
-
-  // compute forces on each atom
-  // loop over neighbors of my atoms
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    numforce[i] = 0;
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < cutforcesq) {
-        ++numforce[i];
-        jtype = type[j];
-        r = sqrt(rsq);
-        p = r*rdr + 1.0;
-        m = static_cast<int> (p);
-        m = MIN(m,nr-1);
-        p -= m;
-        p = MIN(p,1.0);
-
-        // rhoip = derivative of (density at atom j due to atom i)
-        // rhojp = derivative of (density at atom i due to atom j)
-        // phi = pair potential energy
-        // phip = phi'
-        // z2 = phi * r
-        // z2p = (phi * r)' = (phi' r) + phi
-        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
-        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
-        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
-        // scale factor can be applied by thermodynamic integration
-
-        coeff = rhor_spline[type2rhor[itype][jtype]][m];
-        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
-        coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
-        coeff = z2r_spline[type2z2r[itype][jtype]][m];
-        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-
-        recip = 1.0/r;
-        phi = z2*recip;
-        phip = z2p*recip - phi*recip;
-        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip;
-
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
-        }
-
-        if (eflag) evdwl = scale[itype][jtype]*phi;
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
-      }
-    }
-  }
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -377,8 +325,9 @@ void PairLS::compute(int eflag, int vflag)
 
 void PairLS::allocate()
 {
-  allocated = 1;
   int n = atom->ntypes;
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " Start allocating memory"  << std::endl;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
@@ -387,13 +336,74 @@ void PairLS::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  map = new int[n+1];
-  for (int i = 1; i <= n; i++) map[i] = -1;
+  memory->create(shag_sp_fi,mi,mi,"PairLS:shag_sp_fi");
+  memory->create(shag_sp_ro,mi,mi,"PairLS:shag_sp_ro");
+  memory->create(shag_sp_emb,mi,"PairLS:shag_sp_emb");
+  memory->create(shag_sp_f,mi,mi,"PairLS:shag_sp_f");
 
-  type2frho = new int[n+1];
-  memory->create(type2rhor,n+1,n+1,"pair:type2rhor");
-  memory->create(type2z2r,n+1,n+1,"pair:type2z2r");
-  memory->create(scale,n+1,n+1,"pair:scale");
+  memory->create(R_sp_fi,mfi,mi,mi,"PairLS:R_sp_fi");
+  memory->create(R_sp_ro,mfi,mi,mi,"PairLS:R_sp_ro");
+  memory->create(R_sp_emb,memb,mi,"PairLS:R_sp_emb");
+  memory->create(R_sp_f,mf,mi,mi,"PairLS:R_sp_f");
+  memory->create(R_sp_g,mg,"PairLS:R_sp_g");
+
+  memory->create(a_sp_fi,mfi,mi,mi,"PairLS:a_sp_fi");
+  memory->create(b_sp_fi,mfi,mi,mi,"PairLS:b_sp_fi");
+  memory->create(c_sp_fi,mfi,mi,mi,"PairLS:c_sp_fi");
+  memory->create(d_sp_fi,mfi,mi,mi,"PairLS:d_sp_fi");
+
+  memory->create(a_sp_ro,mro,mi,mi,"PairLS:a_sp_ro");
+  memory->create(b_sp_ro,mro,mi,mi,"PairLS:b_sp_ro");
+  memory->create(c_sp_ro,mro,mi,mi,"PairLS:c_sp_ro");
+  memory->create(d_sp_ro,mro,mi,mi,"PairLS:d_sp_ro");
+
+  memory->create(a_sp_emb,memb,mi,"PairLS:a_sp_emb");
+  memory->create(b_sp_emb,memb,mi,"PairLS:b_sp_emb");
+  memory->create(c_sp_emb,memb,mi,"PairLS:c_sp_emb");
+  memory->create(d_sp_emb,memb,mi,"PairLS:d_sp_emb");
+
+  memory->create(a_sp_f3,mf,mf3,mi,mi,"PairLS:a_sp_f3");
+  memory->create(b_sp_f3,mf,mf3,mi,mi,"PairLS:b_sp_f3");
+  memory->create(c_sp_f3,mf,mf3,mi,mi,"PairLS:c_sp_f3");
+  memory->create(d_sp_f3,mf,mf3,mi,mi,"PairLS:d_sp_f3");
+
+  memory->create(a_sp_g3,mg,mf3,mf3,mi,"PairLS:a_sp_g3");
+  memory->create(b_sp_g3,mg,mf3,mf3,mi,"PairLS:b_sp_g3");
+  memory->create(c_sp_g3,mg,mf3,mf3,mi,"PairLS:c_sp_g3");
+  memory->create(d_sp_g3,mg,mf3,mf3,mi,"PairLS:d_sp_g3");
+
+  memory->create(a_sp_f4,mf,mi,mi,"PairLS:a_sp_f4");
+  memory->create(b_sp_f4,mf,mi,mi,"PairLS:b_sp_f4");
+  memory->create(c_sp_f4,mf,mi,mi,"PairLS:c_sp_f4");
+  memory->create(d_sp_f4,mf,mi,mi,"PairLS:d_sp_f4");
+
+  memory->create(a_sp_g4,mi,mi,"PairLS:a_sp_g4");
+  memory->create(b_sp_g4,mi,mi,"PairLS:b_sp_g4");
+  memory->create(c_sp_g4,mi,mi,"PairLS:c_sp_g4");
+  memory->create(d_sp_g4,mi,mi,"PairLS:d_sp_g4");
+
+  memory->create(fip_rmin,mi,mi,"PairLS:fip_rmin");
+
+  memory->create(z_ion,mi,"PairLS:z_ion");
+  memory->create(c_ZBL,4,"PairLS:c_ZBL");
+  memory->create(d_ZBL,4,"PairLS:d_ZBL");
+  memory->create(zz_ZBL,mi,mi,"PairLS:zz_ZBL");
+  memory->create(a_ZBL,mi,mi,"PairLS:a_ZBL");
+  memory->create(e0_ZBL,mi,mi,"PairLS:e0_ZBL");
+
+  memory->create(Rmin_fi_ZBL,mi,mi,"PairLS:Rmin_fi_ZBL");
+  memory->create(c_fi_ZBL,6,mi,mi,"PairLS:c_fi_ZBL");
+
+  memory->create(n_sp_fi,mi,mi,"PairLS:n_sp_fi");
+  memory->create(n_sp_ro,mi,mi,"PairLS:n_sp_ro");
+  memory->create(n_sp_emb,mi,mi,"PairLS:n_sp_emb");
+  memory->create(n_sp_f,mi,mi,"PairLS:n_sp_f");
+  memory->create(n_sp_g,mi,mi,"PairLS:n_sp_g");
+  memory->create(n_f3,mi,"PairLS:n_f3");
+
+  allocated = 1;
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " End allocating memory"  << std::endl;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -406,57 +416,139 @@ void PairLS::settings(int narg, char **/*arg*/)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-   read DYNAMO funcfl file
+   (For future implementations. Coeffs for each pair of atoms are the names of files with potential functions should be written separately (example for 3-component system):
+   pair_coeff 1 1 pot_1
+   pair_coeff 2 2 pot_2
+   pair_coeff 3 3 pot_3
+   pair_coeff 1 2 pot_1_2
+   pair_coeff 1 3 pot_1_3
+   pair_coeff 2 3 pot_2_3)
+
+  coeffs for each pair of atoms are the names of files with potential functions should be in a row in the following order (example for 3-component system):
+  pair_coeff pot_1 pot_2 pot_3 pot_1_2 pot_1_3 pot_2_3
+
+  Here pot_i are the names of files containing potential functions for one sort of atom i,
+  pot_i_j are the names of files containing cross potential functions for pair of atoms i and j.
+   
+  The total number of potential files should be equal to N(N+1)/2 where N is a number of the atom types in the system
 ------------------------------------------------------------------------- */
 
 void PairLS::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  // int n_sort = atom->ntypes;
+  int n_pot = n_sort*(n_sort+1)/2;
+  double r_pot, w;
+  int i, j;
+  char name_32;
 
-  // parse pair of atom types
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " Number of atomtypes is " << n_sort << std::endl;
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  // spelling that the number of arguments (files with potentials) is correspond to the number of atom types in the system
+  if (narg != n_pot) error->all(FLERR,"Incorrect number of args for pair coefficients");
 
-  // read funcfl file if hasn't already been read
-  // store filename in Funcfl data struct
+  // Start reading monoatomic potentials
 
-  int ifuncfl;
-  for (ifuncfl = 0; ifuncfl < nfuncfl; ifuncfl++)
-    if (strcmp(arg[2],funcfl[ifuncfl].file) == 0) break;
+  // read_pot_ls.f (14-18):
+  // do i=1,n_sort
+  //   name_32=name_pot_is(i)
+  //   call wr_pot_ls_is(-1,name_32,i,info_pot)
+  //   call par2pot_is(i)
+  // enddo
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " Number of potentials is " << n_pot << std::endl;
 
-  if (ifuncfl == nfuncfl) {
-    nfuncfl++;
-    funcfl = (Funcfl *)
-      memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
-    read_file(arg[2]);
-    int n = strlen(arg[2]) + 1;
-    funcfl[ifuncfl].file = new char[n];
-    strcpy(funcfl[ifuncfl].file,arg[2]);
-  }
-
-  // set setflag and map only for i,i type pairs
-  // set mass of atom type if i = j
-
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      if (i == j) {
-        setflag[i][i] = 1;
-        map[i] = ifuncfl;
-        atom->set_mass(FLERR,i,funcfl[ifuncfl].mass);
-        count++;
-      }
-      scale[i][j] = 1.0;
+  for (i = 1; i <= (n_sort); i++)
+    {
+      std::cout << "!!!!! PairLS debug mode !!!!! " << " Start reading potential for atom " << i << std::endl;
+      // name_32 = arg[i];
+      // r_pot_ls_is(name_32, i);
+      std::cout << "!!!!! PairLS debug mode !!!!! " << " The arg with potential name is " << arg[i-1] << std::endl;
+      r_pot_ls_is(arg[i-1], i);
+      std::cout << "!!!!! PairLS debug mode !!!!! " << " End reading potential for atom " << i << std::endl;
+      setflag[i][i] = 1;
+      // print_pot_arrays_is(i); // check if potential was correctly read
+      // par2pot_is(i);
     }
-  }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  // read_pot_ls.f (20-25):
+	// w=R_sp_fi(n_sp_fi,1,1)
+	// do i=1,n_sort
+	// 	if(R_sp_fi(n_sp_fi,i,i) > w) w=R_sp_fi(n_sp_fi,i,i)
+	// enddo
+	// Rc_fi=w
+	// r_pot=Rc_fi
+
+	w = R_sp_fi[n_sp_fi[1][1]-1][1][1];
+	for (i = 1; i <= n_sort; i++)
+    {
+      if (R_sp_fi[n_sp_fi[i][i]-1][i][i] > w) w = R_sp_fi[n_sp_f[i][i]-1][i][i];
+    }
+	Rc_fi = w;
+	r_pot = Rc_fi;
+
+  // read_pot_ls.f (27-32):
+	// w=R_sp_f(n_sp_f,1,1)
+	// do i=1,n_sort
+	// 	if(R_sp_f(n_sp_f,i,i) > w) w=R_sp_f(n_sp_f,i,i)
+	// enddo
+	// Rc_f=w
+
+	w = R_sp_f[n_sp_f[1][1]-1][1][1];
+	for (i = 1; i <= n_sort; i++)
+    {
+      if (R_sp_f[n_sp_f[i][i]-1][i][i] > w) w = R_sp_f[n_sp_f[i][i]-1][i][i];
+    }
+	Rc_f = w;
+
+  // End reading monoatomic potentials
+
+  // Start reading cross-potentials
+
+  // read_pot_ls.f (35-44):
+	// if(n_sort>1) then
+	// 	do i=1,n_sort-1
+	// 		do j=i+1,n_sort
+	// 			name_32=name_pot_is1_is2(i,j)
+	// 			call wr_pot_ls_is1_is2(-1,name_32,i,j,info_pot)
+	// 			call par2pot_is1_is2(i,j)
+	// 			call par2pot_is1_is2(j,i)
+	// 		enddo
+	// 	enddo
+	// endif
+
+
+  if (n_sort > 1)
+    {
+      int ij = n_sort+1;
+      for (i = 1; i <= n_sort-1; i++)
+      {
+        for (j = i + 1; j <= n_sort; j++)
+        {
+          // name_32 = arg[ij];
+          // r_pot_ls_is1_is2(name_32, i, j);
+          // par2pot_is1_is2(i,j);
+          // par2pot_is1_is2(j,i);
+          std::cout << "!!!!! PairLS debug mode !!!!! " << " Start reading cross potential for atoms " << i << " and " << j << std::endl;
+          std::cout << "!!!!! PairLS debug mode !!!!! " << " The arg with potential name is " << arg[ij-1] << std::endl;
+          r_pot_ls_is1_is2(arg[ij-1], i, j);
+          std::cout << "!!!!! PairLS debug mode !!!!! " << " End reading cross potential for atoms " << i << " and " << j << std::endl;
+          setflag[i][j] = 1;
+          ij++;
+        }
+      }
+    }
+
+
+
+
+
+
+
+
 }
+
+ 
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -466,11 +558,11 @@ void PairLS::init_style()
 {
   // convert read-in file(s) to arrays and spline them
 
-  file2array();
-  array2spline();
+  // file2array();
+  // array2spline();
 
   neighbor->request(this,instance_me);
-  embedstep = -1;
+  // embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -483,500 +575,409 @@ double PairLS::init_one(int i, int j)
   // for funcfl could be multiple files
   // for setfl or fs, just one file
 
-  if (setflag[i][j] == 0) scale[i][j] = 1.0;
-  scale[j][i] = scale[i][j];
+  // if (setflag[i][j] == 0) scale[i][j] = 1.0;
+  // scale[j][i] = scale[i][j];
 
-  if (funcfl) {
-    cutmax = 0.0;
-    for (int m = 0; m < nfuncfl; m++)
-      cutmax = MAX(cutmax,funcfl[m].cut);
-  } else if (setfl) cutmax = setfl->cut;
-  else if (fs) cutmax = fs->cut;
+  // if (funcfl) {
+  //   cutmax = 0.0;
+  //   for (int m = 0; m < nfuncfl; m++)
+  //     cutmax = MAX(cutmax,funcfl[m].cut);
+  // } else if (setfl) cutmax = setfl->cut;
+  // else if (fs) cutmax = fs->cut;
 
-  cutforcesq = cutmax*cutmax;
+  // cutforcesq = cutmax*cutmax;
 
-  return cutmax;
+  // return cutmax;
+  return 3.14;
 }
 
-/* ----------------------------------------------------------------------
-   read potential values from a DYNAMO single element funcfl file
-------------------------------------------------------------------------- */
 
-void PairLS::read_file(char *filename)
+// Specific functions for this pair style
+
+void PairLS::r_pot_ls_is(char *name_32, int is)
 {
-  Funcfl *file = &funcfl[nfuncfl-1];
+  // FILE *potfile;
 
-  // read potential file
+  // potfile = fopen(name_32, "r")
+
+  // char info_pot;
+  // getline(potfile, info_pot);
+  // getline(potfile, if_g3_pot);
+  // getline(potfile, if_g4_pot);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " I am in a void PairLS::r_pot_ls_is" << std::endl;
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " name_32 is " << name_32 << std::endl;
+
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
+  //  {
+    std::cout << "!!!!! PairLS debug mode !!!!! " << " if(comm->me == 0) condition is valid " << std::endl;
+    PotentialFileReader reader(lmp, name_32, "ls");
+    std::cout << "!!!!! PairLS debug mode !!!!! " << " PotentialFileReader instance is created" << std::endl;
 
-    // transparently convert units for supported conversions
-
-    int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
     try {
-      reader.skip_line();
+
+      // wr_pot_ls_is.f (75):
+      // read(23,'(A128)') info_pot
+
+      reader.skip_line();  // the unnessessary information in the 1st line
+      std::cout << " The 1st line is skipped" << std::endl;
+
+      // wr_pot_ls_is.f (76-78):
+      // read(23,*) if_g3_pot
+      // read(23,*) if_g4_pot
+      // read(23,*) if_gp0_pot(is)
+
+
+      if_g3_pot = strcmp(reader.next_string().c_str(),".true.") == 0;
+      std::cout << " if_g3_pot = " << if_g3_pot << std::endl;
+      if_g4_pot = strcmp(reader.next_string().c_str(),".true.") == 0;
+      std::cout << " if_g4_pot = " << if_g4_pot << std::endl;
+      reader.skip_line(); // the unnessessary information in the 4th line
+      std::cout << " The 4th line is skipped" << std::endl;
+
+      // wr_pot_ls_is.f (80-83):
+      // read(23,*) n_sp_fi
+      // do i=1,n_sp_fi
+      // read(23,*) R_sp_fi(i,is,is),a_sp_fi(i,is,is)
+      // enddo
+
+      n_sp_fi[is][is] = reader.next_int();
+      std::cout << " n_sp_fi[" << is << "][" << is << "] = " << n_sp_fi[is][is] << std::endl;
+      for (int n = 0; n < n_sp_fi[is][is]; n++)
+      {
+        ValueTokenizer sp_fi_values = reader.next_values(2);
+        R_sp_fi[n][is][is] = sp_fi_values.next_double();
+        a_sp_fi[n][is][is] = sp_fi_values.next_double();
+        std::cout << " R_sp_fi[" << n << "][" << is << "][" << is << "] = " << R_sp_fi[n][is][is] << "   ";
+        std::cout << " a_sp_fi[" << n << "][" << is << "][" << is << "] = " << a_sp_fi[n][is][is] << std::endl;
+      }
+
+      // wr_pot_ls_is.f (84-86):
+      // read(23,*) fip_Rmin(is,is)
+      // read(23,*) Rmin_fi_ZBL(is,is)
+      // read(23,*) e0_ZBL(is,is)
+
+      fip_rmin[is][is] = reader.next_double();
+      std::cout << " fip_rmin[" << is << "][" << is << "] = " << fip_rmin[is][is] << std::endl;
+      Rmin_fi_ZBL[is][is] = reader.next_double();
+      std::cout << " Rmin_fi_ZBL[" << is << "][" << is << "] = " << Rmin_fi_ZBL[is][is] << std::endl;
+      e0_ZBL[is][is] = reader.next_double();
+      std::cout << " e0_ZBL[" << is << "][" << is << "] = " << e0_ZBL[is][is] << std::endl;
+
+
+      // wr_pot_ls_is.f (88-91):
+      // read(23,*) n_sp_ro
+      // do i=1,n_sp_ro
+      // read(23,*) R_sp_ro(i,is,is),a_sp_ro(i,is,is)
+      // enddo
+
+      n_sp_ro[is][is] = reader.next_int();
+      std::cout << " n_sp_ro[" << is << "][" << is << "] = " << n_sp_ro[is][is] << std::endl;
+      for (int n = 0; n < n_sp_ro[is][is]; n++)
+      {
+        ValueTokenizer sp_ro_values = reader.next_values(2);
+        R_sp_ro[n][is][is] = sp_ro_values.next_double();
+        a_sp_ro[n][is][is] = sp_ro_values.next_double();
+        std::cout << " R_sp_ro[" << n << "][" << is << "][" << is << "] = " << R_sp_ro[n][is][is] << "   ";
+        std::cout << " a_sp_ro[" << n << "][" << is << "][" << is << "] = " << a_sp_ro[n][is][is] << std::endl;
+      }    
+
+      // wr_pot_ls_is.f (92-95):
+      // read(23,*) n_sp_emb
+      // do i=1,n_sp_emb
+      // read(23,*) R_sp_emb(i,is),a_sp_emb(i,is)
+      // enddo
+
+      n_sp_emb[is][is] = reader.next_int();
+      std::cout << " n_sp_emb[" << is << "][" << is << "] = " << n_sp_emb[is][is] << std::endl;
+      for (int n = 0; n < n_sp_emb[is][is]; n++)
+      {
+        ValueTokenizer sp_emb_values = reader.next_values(2);
+        R_sp_emb[n][is] = sp_emb_values.next_double();
+        a_sp_emb[n][is] = sp_emb_values.next_double();
+        std::cout << " R_sp_emb[" << n << "][" << is << "] = " << R_sp_emb[n][is] << "   ";
+        std::cout << " a_sp_emb[" << n << "][" << is << "] = " << a_sp_emb[n][is] << std::endl;
+      }         
+
+      // wr_pot_ls_is.f (97-101):
+      // read(23,*) n_sp_f,n_f3(is)
+      // do i=1,n_sp_f
+      // read(23,*) R_sp_f(i,is,is),(a_sp_f3(i,i1,is,is),i1=1,n_f3(is))
+      // enddo
 
       ValueTokenizer values = reader.next_values(2);
-      values.next_int(); // ignore
-      file->mass = values.next_double();
+      n_sp_f[is][is] = values.next_int();
+      std::cout << " n_sp_f[" << is << "][" << is << "] = " << n_sp_f[is][is] << std::endl;
+      n_f3[is] = values.next_int();
+      std::cout << " n_f3[" << is << "] = " << n_f3[is] << std::endl;
+      for (int n = 0; n < n_sp_f[is][is]; n++)
+      {
+        ValueTokenizer sp_f_values = reader.next_values(n_f3[is]+1);
+        R_sp_f[n][is][is] = sp_f_values.next_double();
+        std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[n][is][is] << "   ";
+        for (int n1 = 0; n1 < n_f3[is]; n1++)
+        {
+          a_sp_f3[n][n1][is][is] = sp_f_values.next_double();
+          std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[n][n1][is][is] << "  ";
+        }
+        std::cout << std::endl;
 
-      values = reader.next_values(5);
-      file->nrho = values.next_int();
-      file->drho = values.next_double();
-      file->nr   = values.next_int();
-      file->dr   = values.next_double();
-      file->cut  = values.next_double();
-
-      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-        error->one(FLERR,"Invalid LS potential file");
-
-      memory->create(file->frho, (file->nrho+1), "pair:frho");
-      memory->create(file->rhor, (file->nr+1), "pair:rhor");
-      memory->create(file->zr, (file->nr+1), "pair:zr");
-
-      reader.next_dvector(&file->frho[1], file->nrho);
-      reader.next_dvector(&file->zr[1], file->nr);
-      reader.next_dvector(&file->rhor[1], file->nr);
-
-      if (unit_convert) {
-        const double sqrt_conv = sqrt(conversion_factor);
-        for (int i = 1; i <= file->nrho; ++i)
-          file->frho[i] *= conversion_factor;
-        for (int j = 1; j <= file->nr; ++j)
-          file->zr[j] *= sqrt_conv;
       }
-    } catch (TokenizerException &e) {
+
+      // wr_pot_ls_is.f (102-108):
+      // read(23,*) n_sp_g
+      // read(23,*) (R_sp_g(i),i=1,n_sp_g)
+      // do i1=1,n_f3(is)
+      // do i2=1,i1
+      // read(23,*) (a_sp_g3(i,i1,i2,is),i=1,n_sp_g)
+      // enddo
+      // enddo
+
+      n_sp_g[is][is] = reader.next_int();
+      std::cout << " n_sp_g[" << is << "][" << is << "] = " << n_sp_g[is][is] << "   ";
+      values = reader.next_values(n_sp_g[is][is]);
+      for (int n = 0; n < n_sp_g[is][is]; n++)
+      {
+        R_sp_g[n] = values.next_double();  // R_sp_g actually are the values of cos(ijk) from -1 (180 grad) to 1 (0 grad)
+        std::cout << " R_sp_g[" << n << "] = " << R_sp_g[n]<< "   ";
+      }
+      std::cout << std::endl;
+      
+      for (int n = 0; n < n_f3[is]; n++)
+      {
+        for (int n1 = 0; n1 <= n; n1++)
+        {
+          ValueTokenizer sp_g_values = reader.next_values(n_sp_g[is][is]);
+          for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
+          {
+            a_sp_g3[n2][n][n1][is] = sp_g_values.next_double();
+            std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[n2][n][n1][is] << "  ";
+          }
+          std::cout << std::endl;
+        }
+      }
+
+      // wr_pot_ls_is.f (120-126):
+      // read(23,*) z_ion(is)
+      // do i=1,4
+      // read(23,*) c_ZBL(i)
+      // enddo
+      // do i=1,4
+      // read(23,*) d_ZBL(i)
+      // enddo
+
+      z_ion[is] = reader.next_double();
+      std::cout << " z_ion[" << is << "] = " << z_ion[is]<< std::endl;
+      for (int n = 0; n < 4; n++)
+      {
+        c_ZBL[n] = reader.next_double();
+        std::cout << " c_ZBL[" << n << "] = " << c_ZBL[n]<< std::endl;
+      }
+
+      for (int n = 0; n < 4; n++)
+      {
+        d_ZBL[n] = reader.next_double();
+        std::cout << " d_ZBL[" << n << "] = " << d_ZBL[n]<< std::endl;
+      }
+    }
+    catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
-
-  MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
-  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
-  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
-
-  if(comm->me != 0) {
-    memory->create(file->frho, (file->nrho+1), "pair:frho");
-    memory->create(file->rhor, (file->nr+1), "pair:rhor");
-    memory->create(file->zr, (file->nr+1), "pair:zr");
-  }
-
-  MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
 }
 
-/* ----------------------------------------------------------------------
-   convert read-in funcfl potential(s) to standard array format
-   interpolate all file values to a single grid and cutoff
-------------------------------------------------------------------------- */
 
-void PairLS::file2array()
+
+void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
 {
-  int i,j,k,m,n;
-  int ntypes = atom->ntypes;
-  double sixth = 1.0/6.0;
+  // FILE *potfile;
 
-  // determine max function params from all active funcfl files
-  // active means some element is pointing at it via map
+  // potfile = fopen(name_32, "r")
 
-  int active;
-  double rmax;
-  dr = drho = rmax = rhomax = 0.0;
+  // char info_pot;
+  // getline(potfile, info_pot);
+  // getline(potfile, if_g3_pot);
+  // getline(potfile, if_g4_pot);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " I am in a void PairLS::r_pot_ls_is1_is2" << std::endl;
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " name_32 is " << name_32 << std::endl;
 
-  for (int i = 0; i < nfuncfl; i++) {
-    active = 0;
-    for (j = 1; j <= ntypes; j++)
-      if (map[j] == i) active = 1;
-    if (active == 0) continue;
-    Funcfl *file = &funcfl[i];
-    dr = MAX(dr,file->dr);
-    drho = MAX(drho,file->drho);
-    rmax = MAX(rmax,(file->nr-1) * file->dr);
-    rhomax = MAX(rhomax,(file->nrho-1) * file->drho);
-  }
+  if(comm->me == 0) {
+  //  {
+    std::cout << "!!!!! PairLS debug mode !!!!! " << " if(comm->me == 0) condition is valid " << std::endl;
+    PotentialFileReader reader(lmp, name_32, "ls");
+    std::cout << "!!!!! PairLS debug mode !!!!! " << " PotentialFileReader instance is created" << std::endl;
 
-  // set nr,nrho from cutoff and spacings
-  // 0.5 is for round-off in divide
+    try {
 
-  nr = static_cast<int> (rmax/dr + 0.5);
-  nrho = static_cast<int> (rhomax/drho + 0.5);
+      // wr_pot_ls_is1_is2.f (54):
+      // read(23,'(A128)') info_pot
 
-  // ------------------------------------------------------------------
-  // setup frho arrays
-  // ------------------------------------------------------------------
+      reader.skip_line();  // the unnessessary information in the 1st line
+      std::cout << " The 1st line is skipped" << std::endl;
 
-  // allocate frho arrays
-  // nfrho = # of funcfl files + 1 for zero array
+      // wr_pot_ls_is1_is2.f (57-60):
+      // read(23,*) n_sp_fi
+      // do i=1,n_sp_fi
+      // read(23,*) R_sp_fi(i,is1,is2),a_sp_fi(i,is1,is2)
+      // enddo
 
-  nfrho = nfuncfl + 1;
-  memory->destroy(frho);
-  memory->create(frho,nfrho,nrho+1,"pair:frho");
-
-  // interpolate each file's frho to a single grid and cutoff
-
-  double r,p,cof1,cof2,cof3,cof4;
-
-  n = 0;
-  for (i = 0; i < nfuncfl; i++) {
-    Funcfl *file = &funcfl[i];
-    for (m = 1; m <= nrho; m++) {
-      r = (m-1)*drho;
-      p = r/file->drho + 1.0;
-      k = static_cast<int> (p);
-      k = MIN(k,file->nrho-2);
-      k = MAX(k,2);
-      p -= k;
-      p = MIN(p,2.0);
-      cof1 = -sixth*p*(p-1.0)*(p-2.0);
-      cof2 = 0.5*(p*p-1.0)*(p-2.0);
-      cof3 = -0.5*p*(p+1.0)*(p-2.0);
-      cof4 = sixth*p*(p*p-1.0);
-      frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] +
-        cof3*file->frho[k+1] + cof4*file->frho[k+2];
-    }
-    n++;
-  }
-
-  // add extra frho of zeroes for non-LS types to point to (pair hybrid)
-  // this is necessary b/c fp is still computed for non-LS atoms
-
-  for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
-
-  // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
-  // if atom type doesn't point to file (non-LS atom in pair hybrid)
-  // then map it to last frho array of zeroes
-
-  for (i = 1; i <= ntypes; i++)
-    if (map[i] >= 0) type2frho[i] = map[i];
-    else type2frho[i] = nfrho-1;
-
-  // ------------------------------------------------------------------
-  // setup rhor arrays
-  // ------------------------------------------------------------------
-
-  // allocate rhor arrays
-  // nrhor = # of funcfl files
-
-  nrhor = nfuncfl;
-  memory->destroy(rhor);
-  memory->create(rhor,nrhor,nr+1,"pair:rhor");
-
-  // interpolate each file's rhor to a single grid and cutoff
-
-  n = 0;
-  for (i = 0; i < nfuncfl; i++) {
-    Funcfl *file = &funcfl[i];
-    for (m = 1; m <= nr; m++) {
-      r = (m-1)*dr;
-      p = r/file->dr + 1.0;
-      k = static_cast<int> (p);
-      k = MIN(k,file->nr-2);
-      k = MAX(k,2);
-      p -= k;
-      p = MIN(p,2.0);
-      cof1 = -sixth*p*(p-1.0)*(p-2.0);
-      cof2 = 0.5*(p*p-1.0)*(p-2.0);
-      cof3 = -0.5*p*(p+1.0)*(p-2.0);
-      cof4 = sixth*p*(p*p-1.0);
-      rhor[n][m] = cof1*file->rhor[k-1] + cof2*file->rhor[k] +
-        cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
-    }
-    n++;
-  }
-
-  // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
-  // for funcfl files, I,J mapping only depends on I
-  // OK if map = -1 (non-LS atom in pair hybrid) b/c type2rhor not used
-
-  for (i = 1; i <= ntypes; i++)
-    for (j = 1; j <= ntypes; j++)
-      type2rhor[i][j] = map[i];
-
-  // ------------------------------------------------------------------
-  // setup z2r arrays
-  // ------------------------------------------------------------------
-
-  // allocate z2r arrays
-  // nz2r = N*(N+1)/2 where N = # of funcfl files
-
-  nz2r = nfuncfl*(nfuncfl+1)/2;
-  memory->destroy(z2r);
-  memory->create(z2r,nz2r,nr+1,"pair:z2r");
-
-  // create a z2r array for each file against other files, only for I >= J
-  // interpolate zri and zrj to a single grid and cutoff
-  // final z2r includes unit conversion of 27.2 eV/Hartree and 0.529 Ang/Bohr
-
-  double zri,zrj;
-
-  n = 0;
-  for (i = 0; i < nfuncfl; i++) {
-    Funcfl *ifile = &funcfl[i];
-    for (j = 0; j <= i; j++) {
-      Funcfl *jfile = &funcfl[j];
-
-      for (m = 1; m <= nr; m++) {
-        r = (m-1)*dr;
-
-        p = r/ifile->dr + 1.0;
-        k = static_cast<int> (p);
-        k = MIN(k,ifile->nr-2);
-        k = MAX(k,2);
-        p -= k;
-        p = MIN(p,2.0);
-        cof1 = -sixth*p*(p-1.0)*(p-2.0);
-        cof2 = 0.5*(p*p-1.0)*(p-2.0);
-        cof3 = -0.5*p*(p+1.0)*(p-2.0);
-        cof4 = sixth*p*(p*p-1.0);
-        zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
-          cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
-
-        p = r/jfile->dr + 1.0;
-        k = static_cast<int> (p);
-        k = MIN(k,jfile->nr-2);
-        k = MAX(k,2);
-        p -= k;
-        p = MIN(p,2.0);
-        cof1 = -sixth*p*(p-1.0)*(p-2.0);
-        cof2 = 0.5*(p*p-1.0)*(p-2.0);
-        cof3 = -0.5*p*(p+1.0)*(p-2.0);
-        cof4 = sixth*p*(p*p-1.0);
-        zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
-          cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
-
-        z2r[n][m] = 27.2*0.529 * zri*zrj;
+      n_sp_fi[is1][is2] = reader.next_int();
+      std::cout << " n_sp_fi[" << is1 << "][" << is2 << "] = " << n_sp_fi[is1][is2] << std::endl;
+      for (int n = 0; n < n_sp_fi[is1][is2]; n++)
+      {
+        ValueTokenizer sp_fi_values = reader.next_values(2);
+        R_sp_fi[n][is1][is2] = sp_fi_values.next_double();
+        a_sp_fi[n][is1][is2] = sp_fi_values.next_double();
+        std::cout << " R_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[n][is1][is2] << "   ";
+        std::cout << " a_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[n][is1][is2] << std::endl;
       }
-      n++;
+
+      // wr_pot_ls_is1_is2.f (61-63):
+      // read(23,*) fip_Rmin(is1,is2)
+      // read(23,*) Rmin_fi_ZBL(is1,is2)
+      // read(23,*) e0_ZBL(is1,is2)
+
+      fip_rmin[is1][is2] = reader.next_double();
+      std::cout << " fip_rmin[" << is1 << "][" << is2 << "] = " << fip_rmin[is1][is2] << std::endl;
+      Rmin_fi_ZBL[is1][is2] = reader.next_double();
+      std::cout << " Rmin_fi_ZBL[" << is1 << "][" << is2 << "] = " << Rmin_fi_ZBL[is1][is2] << std::endl;
+      e0_ZBL[is1][is2] = reader.next_double();
+      std::cout << " e0_ZBL[" << is1 << "][" << is2 << "] = " << e0_ZBL[is1][is2] << std::endl;
+
+      // wr_pot_ls_is1_is2.f (65-73):
+      // do i=1,n_sp_fi
+      // R_sp_fi(i,is2,is1)=R_sp_fi(i,is1,is2)
+      // enddo
+      // do i=1,n_sp_fi
+      // a_sp_fi(i,is2,is1)=a_sp_fi(i,is1,is2)
+      // enddo
+      // fip_Rmin(is2,is1)=fip_Rmin(is1,is2)
+      // Rmin_fi_ZBL(is2,is1)=Rmin_fi_ZBL(is1,is2)
+      // e0_ZBL(is2,is1)=e0_ZBL(is1,is2)
+
+      n_sp_fi[is2][is1] = n_sp_fi[is1][is2];
+      for (int n = 0; n < n_sp_fi[is1][is2]; n++)
+      {
+        R_sp_fi[n][is2][is1] = R_sp_fi[n][is1][is2];
+        a_sp_fi[n][is2][is1] = a_sp_fi[n][is1][is2];
+        std::cout << " R_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_fi[n][is2][is1] << "   ";
+        std::cout << " a_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_fi[n][is2][is1] << std::endl;
+      }
+
+      fip_rmin[is2][is1] = fip_rmin[is1][is2];
+      std::cout << " fip_rmin[" << is2 << "][" << is1 << "] = " << fip_rmin[is2][is1] << std::endl;
+      Rmin_fi_ZBL[is2][is1] = Rmin_fi_ZBL[is1][is2];
+      std::cout << " Rmin_fi_ZBL[" << is2 << "][" << is1 << "] = " << Rmin_fi_ZBL[is2][is1] << std::endl;
+      e0_ZBL[is2][is1] = e0_ZBL[is1][is2];
+      std::cout << " e0_ZBL[" << is2 << "][" << is1 << "] = " << e0_ZBL[is2][is1] << std::endl;
+
+      // wr_pot_ls_is1_is2.f (76-82):
+      // read(23,*) n_sp_ro
+      // do i=1,n_sp_ro
+      // read(23,*) R_sp_ro(i,is1,is2),a_sp_ro(i,is1,is2)
+      // enddo
+      // do i=1,n_sp_ro
+      // read(23,*) R_sp_ro(i,is2,is1),a_sp_ro(i,is2,is1)
+      // enddo
+
+      n_sp_ro[is1][is2] = reader.next_int();
+      n_sp_ro[is2][is1] = n_sp_ro[is1][is2];
+      std::cout << " n_sp_ro[" << is1 << "][" << is2 << "] = " << n_sp_ro[is1][is2] << std::endl;
+      for (int n = 0; n < n_sp_ro[is1][is2]; n++)
+      {
+        ValueTokenizer sp_ro_is1_values = reader.next_values(2);
+        R_sp_ro[n][is1][is2] = sp_ro_is1_values.next_double();
+        a_sp_ro[n][is1][is2] = sp_ro_is1_values.next_double();
+        std::cout << " R_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[n][is1][is2] << "   ";
+        std::cout << " a_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[n][is1][is2] << std::endl;
+      }    
+
+      for (int n = 0; n < n_sp_ro[is2][is1]; n++)
+      {
+        ValueTokenizer sp_ro_is2_values = reader.next_values(2);
+        R_sp_ro[n][is2][is1] = sp_ro_is2_values.next_double();
+        a_sp_ro[n][is2][is1] = sp_ro_is2_values.next_double();
+        std::cout << " R_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_ro[n][is2][is1] << "   ";
+        std::cout << " a_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_ro[n][is2][is1] << std::endl;
+      }   
+
+      // wr_pot_ls_is1_is2.f (85-88):
+      // read(23,*) n_sp_f,n_f3(is1)
+      // do i=1,n_sp_f
+      // read(23,*) R_sp_f(i,is2,is1),(a_sp_f3(i,i1,is2,is1),i1=1,n_f3(is1))
+      // enddo
+
+      ValueTokenizer n_sp_f_is1_values = reader.next_values(2);
+      n_sp_f[is2][is1] = n_sp_f_is1_values.next_int();
+      std::cout << " n_sp_f[" << is2 << "][" << is1 << "] = " << n_sp_f[is2][is1] << std::endl;
+      n_f3[is1] = n_sp_f_is1_values.next_int();
+      std::cout << " n_f3[" << is1 << "] = " << n_f3[is1] << std::endl;
+      for (int n = 0; n < n_sp_f[is2][is1]; n++)
+      {
+        ValueTokenizer sp_f_is1_values = reader.next_values(n_f3[is1]+1);
+        R_sp_f[n][is2][is1] = sp_f_is1_values.next_double();
+        std::cout << " R_sp_f[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_f[n][is2][is1] << "   ";
+        for (int n1 = 0; n1 < n_f3[is1]; n1++)
+        {
+          a_sp_f3[n][n1][is2][is1] = sp_f_is1_values.next_double();
+          std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is2 << "][" << is1 << "] = " << a_sp_f3[n][n1][is2][is1] << "  ";
+        }
+        std::cout << std::endl;
+
+      }
+
+      // wr_pot_ls_is1_is2.f (89-92):
+      // read(23,*) n_sp_f,n_f3(is2)
+      // do i=1,n_sp_f
+      // read(23,*) R_sp_f(i,is1,is2),(a_sp_f3(i,i1,is1,is2),i1=1,n_f3(is2))
+      // enddo
+
+      ValueTokenizer n_sp_f_is2_values = reader.next_values(2);
+      n_sp_f[is1][is2] = n_sp_f_is2_values.next_int();
+      std::cout << " n_sp_f[" << is1 << "][" << is2 << "] = " << n_sp_f[is1][is2] << std::endl;
+      n_f3[is2] = n_sp_f_is2_values.next_int();
+      std::cout << " n_f3[" << is2 << "] = " << n_f3[is2] << std::endl;
+      for (int n = 0; n < n_sp_f[is1][is2]; n++)
+      {
+        ValueTokenizer sp_f_is2_values = reader.next_values(n_f3[is2]+1);
+        R_sp_f[n][is1][is2] = sp_f_is2_values.next_double();
+        std::cout << " R_sp_f[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_f[n][is1][is2] << "   ";
+        for (int n1 = 0; n1 < n_f3[is2]; n1++)
+        {
+          a_sp_f3[n][n1][is1][is2] = sp_f_is2_values.next_double();
+          std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is1 << "][" << is2 << "] = " << a_sp_f3[n][n1][is1][is2] << "  ";
+        }
+        std::cout << std::endl;
+
+      }
+
+    }
+    catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
-
-  // type2z2r[i][j] = which z2r array (0 to nz2r-1) each type pair maps to
-  // set of z2r arrays only fill lower triangular Nelement matrix
-  // value = n = sum over rows of lower-triangular matrix until reach irow,icol
-  // swap indices when irow < icol to stay lower triangular
-  // if map = -1 (non-LS atom in pair hybrid):
-  //   type2z2r is not used by non-opt
-  //   but set type2z2r to 0 since accessed by opt
-
-  int irow,icol;
-  for (i = 1; i <= ntypes; i++) {
-    for (j = 1; j <= ntypes; j++) {
-      irow = map[i];
-      icol = map[j];
-      if (irow == -1 || icol == -1) {
-        type2z2r[i][j] = 0;
-        continue;
-      }
-      if (irow < icol) {
-        irow = map[j];
-        icol = map[i];
-      }
-      n = 0;
-      for (m = 0; m < irow; m++) n += m + 1;
-      n += icol;
-      type2z2r[i][j] = n;
-    }
-  }
 }
 
-/* ---------------------------------------------------------------------- */
 
-void PairLS::array2spline()
-{
-  rdr = 1.0/dr;
-  rdrho = 1.0/drho;
 
-  memory->destroy(frho_spline);
-  memory->destroy(rhor_spline);
-  memory->destroy(z2r_spline);
+// void PairLS::par2pot_is(int is)
+// {
+  
+// }
 
-  memory->create(frho_spline,nfrho,nrho+1,7,"pair:frho");
-  memory->create(rhor_spline,nrhor,nr+1,7,"pair:rhor");
-  memory->create(z2r_spline,nz2r,nr+1,7,"pair:z2r");
 
-  for (int i = 0; i < nfrho; i++)
-    interpolate(nrho,drho,frho[i],frho_spline[i]);
 
-  for (int i = 0; i < nrhor; i++)
-    interpolate(nr,dr,rhor[i],rhor_spline[i]);
+// void PairLS::par2pot_is1_is2(int is1, int is2)
+// {
+  
+// }
 
-  for (int i = 0; i < nz2r; i++)
-    interpolate(nr,dr,z2r[i],z2r_spline[i]);
-}
 
-/* ---------------------------------------------------------------------- */
+// utility functions
 
-void PairLS::interpolate(int n, double delta, double *f, double **spline)
-{
-  for (int m = 1; m <= n; m++) spline[m][6] = f[m];
+// bool PairLS::string2bool(const std::string & v)
+// {
+//     return !v.empty () &&
+//         (strcasecmp (v.c_str (), "true") == 0 ||
+//          atoi (v.c_str ()) != 0);
+// }
 
-  spline[1][5] = spline[2][6] - spline[1][6];
-  spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
-  spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
-  spline[n][5] = spline[n][6] - spline[n-1][6];
-
-  for (int m = 3; m <= n-2; m++)
-    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) +
-                    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
-
-  for (int m = 1; m <= n-1; m++) {
-    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) -
-      2.0*spline[m][5] - spline[m+1][5];
-    spline[m][3] = spline[m][5] + spline[m+1][5] -
-      2.0*(spline[m+1][6]-spline[m][6]);
-  }
-
-  spline[n][4] = 0.0;
-  spline[n][3] = 0.0;
-
-  for (int m = 1; m <= n; m++) {
-    spline[m][2] = spline[m][5]/delta;
-    spline[m][1] = 2.0*spline[m][4]/delta;
-    spline[m][0] = 3.0*spline[m][3]/delta;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairLS::single(int i, int j, int itype, int jtype,
-                       double rsq, double /*factor_coul*/, double /*factor_lj*/,
-                       double &fforce)
-{
-  int m;
-  double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
-  double *coeff;
-
-  if (!numforce)
-    error->all(FLERR,"LS embedding data required for this calculation is missing");
-
-  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
-    error->warning(FLERR,"LS embedding data not computed for this time step ");
-    embedstep = update->ntimestep;
-  }
-
-  if (numforce[i] > 0) {
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int> (p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
-    coeff = frho_spline[type2frho[itype]][m];
-    phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-    phi *= 1.0/static_cast<double>(numforce[i]);
-  } else phi = 0.0;
-
-  r = sqrt(rsq);
-  p = r*rdr + 1.0;
-  m = static_cast<int> (p);
-  m = MIN(m,nr-1);
-  p -= m;
-  p = MIN(p,1.0);
-
-  coeff = rhor_spline[type2rhor[itype][jtype]][m];
-  rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
-  coeff = rhor_spline[type2rhor[jtype][itype]][m];
-  rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
-  coeff = z2r_spline[type2z2r[itype][jtype]][m];
-  z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-  z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-
-  recip = 1.0/r;
-  phi += z2*recip;
-  phip = z2p*recip - phi*recip;
-  psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-  fforce = -psip*recip;
-
-  return phi;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int PairLS::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int * /*pbc*/)
-{
-  int i,j,m;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = fp[j];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairLS::unpack_forward_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) fp[i] = buf[m++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-int PairLS::pack_reverse_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) buf[m++] = rho[i];
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairLS::unpack_reverse_comm(int n, int *list, double *buf)
-{
-  int i,j,m;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    rho[j] += buf[m++];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-double PairLS::memory_usage()
-{
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
-  return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   swap fp array with one passed in by caller
-------------------------------------------------------------------------- */
-
-void PairLS::swap_ls(double *fp_caller, double **fp_caller_hold)
-{
-  double *tmp = fp;
-  fp = fp_caller;
-  *fp_caller_hold = tmp;
-
-  // skip warning about out-of-sync timestep, since we already warn in the caller
-  embedstep = update->ntimestep;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairLS::extract(const char *str, int &dim)
-{
-  dim = 2;
-  if (strcmp(str,"scale") == 0) return (void *) scale;
-  return nullptr;
-}

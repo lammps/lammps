@@ -1,1 +1,2 @@
-from .lammps import *
+from .core import *
+from .pylammps import *

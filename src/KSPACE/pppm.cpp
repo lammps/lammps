@@ -1365,7 +1365,7 @@ void PPPM::set_grid_local()
   // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
   //   global PPPM grid that my particles can contribute charge to
   // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+  // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
   // dist[3] = particle position bound = subbox + skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
@@ -1887,7 +1887,10 @@ void PPPM::particle_map()
 
   for (int i = 0; i < nlocal; i++) {
 
-    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // order = even:
+    //   (nx,ny,nz) = global index of grid pt to "lower left" of charge
+    // order = odd:
+    //   (nx,ny,nz) = global index of grid pt closest to charge due to shift
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 

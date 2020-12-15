@@ -20,23 +20,14 @@
 
 from __future__ import print_function
 
-# imports for simple LAMMPS python wrapper module "lammps"
-
-import sys,traceback,types
-import warnings
-from ctypes import *
-from os.path import dirname,abspath,join
-from inspect import getsourcefile
-
-# imports for advanced LAMMPS python wrapper modules "PyLammps" and "IPyLammps"
-
-from collections import namedtuple
 import os
-import select
 import re
+import select
 import sys
+from collections import namedtuple
 
 from .core import lammps
+
 
 class OutputCapture(object):
   """ Utility class to capture LAMMPS library output """

@@ -22,7 +22,7 @@ FUNCTION f_lammps_no_mpi_with_args() BIND(C, name="f_lammps_no_mpi_with_args")
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_no_mpi_with_args
 
-  CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
+  CHARACTER(len=12), DIMENSION(4), PARAMETER :: args = &
       [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', '-nocite' ]
 
   lmp = lammps(args)
@@ -54,7 +54,7 @@ FUNCTION f_lammps_open_with_args() BIND(C, name="f_lammps_open_with_args")
   TYPE(c_ptr) :: f_lammps_open_with_args
   INTEGER     :: color, key, ierr
 
-  CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
+  CHARACTER(len=12), DIMENSION(4), PARAMETER :: args = &
       [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', '-nocite' ]
 
   color = 2
@@ -73,7 +73,7 @@ SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
   CALL lmp%close()
   lmp%handle = c_null_ptr
 END SUBROUTINE f_lammps_close
-  
+
 FUNCTION f_lammps_get_comm() BIND(C, name="f_lammps_get_comm")
   USE liblammps
   USE keepcreate, ONLY: mycomm
@@ -82,5 +82,3 @@ FUNCTION f_lammps_get_comm() BIND(C, name="f_lammps_get_comm")
 
   f_lammps_get_comm = mycomm
 END FUNCTION f_lammps_get_comm
-  
-

@@ -95,7 +95,7 @@ class PPPMDisp : public KSpace {
   int nlower_6,nupper_6;
   int ngrid_6,nfft_6,nfft_both_6;
 
-  //// the following variables are needed for every structure factor
+  // the following variables are needed for every structure factor
   
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;

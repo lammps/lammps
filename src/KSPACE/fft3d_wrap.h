@@ -21,6 +21,8 @@ namespace LAMMPS_NS {
 
 class FFT3d : protected Pointers {
  public:
+  enum{FORWARD=1,BACKWARD=-1};
+
   FFT3d(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,int,int,int,
         int,int,int,int,int,int,int,int,int *,int);
   ~FFT3d();

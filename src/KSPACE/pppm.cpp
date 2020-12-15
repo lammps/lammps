@@ -51,7 +51,6 @@ using namespace MathSpecial;
 
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-enum{FORWARD=-1,BACKWARD=1};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -2014,7 +2013,7 @@ void PPPM::poisson_ik()
     work1[n++] = ZEROF;
   }
 
-  fft1->compute(work1,work1,FORWARD);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
 
   // global energy and virial contribution
 
@@ -2075,7 +2074,7 @@ void PPPM::poisson_ik()
         n += 2;
       }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2096,7 +2095,7 @@ void PPPM::poisson_ik()
         n += 2;
       }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2117,7 +2116,7 @@ void PPPM::poisson_ik()
         n += 2;
       }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2149,7 +2148,7 @@ void PPPM::poisson_ik_triclinic()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2168,7 +2167,7 @@ void PPPM::poisson_ik_triclinic()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2187,7 +2186,7 @@ void PPPM::poisson_ik_triclinic()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2215,7 +2214,7 @@ void PPPM::poisson_ad()
     work1[n++] = ZEROF;
   }
 
-  fft1->compute(work1,work1,FORWARD);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
 
   // global energy and virial contribution
 
@@ -2261,7 +2260,7 @@ void PPPM::poisson_ad()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2290,7 +2289,7 @@ void PPPM::poisson_peratom()
       n += 2;
     }
 
-    fft2->compute(work2,work2,BACKWARD);
+    fft2->compute(work2,work2,FFT3d::BACKWARD);
 
     n = 0;
     for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2312,7 +2311,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2329,7 +2328,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2346,7 +2345,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2363,7 +2362,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2380,7 +2379,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2397,7 +2396,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,BACKWARD);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -3006,11 +3005,11 @@ int PPPM::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(work1,nfft_both,FORWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     if (differentiation_flag != 1) {
-      fft2->timing1d(work1,nfft_both,BACKWARD);
-      fft2->timing1d(work1,nfft_both,BACKWARD);
+      fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+      fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     }
   }
 
@@ -3036,11 +3035,11 @@ int PPPM::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(work1,work1,FORWARD);
-    fft2->compute(work1,work1,BACKWARD);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
     if (differentiation_flag != 1) {
-      fft2->compute(work1,work1,BACKWARD);
-      fft2->compute(work1,work1,BACKWARD);
+      fft2->compute(work1,work1,FFT3d::BACKWARD);
+      fft2->compute(work1,work1,FFT3d::BACKWARD);
     }
   }
 
@@ -3317,7 +3316,7 @@ void PPPM::poisson_groups(int AA_flag)
     work_A[n++] = ZEROF;
   }
 
-  fft1->compute(work_A,work_A,FORWARD);
+  fft1->compute(work_A,work_A,FFT3d::FORWARD);
 
   // group B
 
@@ -3327,7 +3326,7 @@ void PPPM::poisson_groups(int AA_flag)
     work_B[n++] = ZEROF;
   }
 
-  fft1->compute(work_B,work_B,FORWARD);
+  fft1->compute(work_B,work_B,FFT3d::FORWARD);
 
   // group-group energy and force contribution,
   //  keep everything in reciprocal space so

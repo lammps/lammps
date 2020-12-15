@@ -46,7 +46,6 @@ using namespace MathSpecial;
 
 enum{REVERSE_MU};
 enum{FORWARD_MU,FORWARD_MU_PERATOM};
-enum{FORWARD=-1,BACKWARD=1};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -1294,9 +1293,9 @@ void PPPMDipole::poisson_ik_dipole()
     n += 2;
   }
 
-  fft1->compute(work1,work1,FORWARD);
-  fft1->compute(work2,work2,FORWARD);
-  fft1->compute(work3,work3,FORWARD);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
+  fft1->compute(work2,work2,FFT3d::FORWARD);
+  fft1->compute(work3,work3,FFT3d::FORWARD);
 
   // global energy and virial contribution
 
@@ -1372,7 +1371,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1393,7 +1392,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1414,7 +1413,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1437,7 +1436,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1460,7 +1459,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1483,7 +1482,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1506,7 +1505,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1529,7 +1528,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1552,7 +1551,7 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1590,7 +1589,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1615,7 +1614,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1640,7 +1639,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1665,7 +1664,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1690,7 +1689,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1715,7 +1714,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1740,7 +1739,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1765,7 +1764,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1790,7 +1789,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1815,7 +1814,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1840,7 +1839,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1865,7 +1864,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1890,7 +1889,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1915,7 +1914,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1940,7 +1939,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1965,7 +1964,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -1990,7 +1989,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2015,7 +2014,7 @@ void PPPMDipole::poisson_peratom_dipole()
         ii++;
       }
 
-  fft2->compute(work4,work4,BACKWARD);
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2446,18 +2445,18 @@ int PPPMDipole::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(work1,nfft_both,FORWARD);
-    fft1->timing1d(work1,nfft_both,FORWARD);
-    fft1->timing1d(work1,nfft_both,FORWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
-    fft2->timing1d(work1,nfft_both,BACKWARD);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
   }
 
   MPI_Barrier(world);
@@ -2481,18 +2480,18 @@ int PPPMDipole::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(work1,work1,FORWARD);
-    fft1->compute(work1,work1,FORWARD);
-    fft1->compute(work1,work1,FORWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
-    fft2->compute(work1,work1,BACKWARD);
+    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
   }
 
   MPI_Barrier(world);

@@ -959,10 +959,50 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
 
 
 
-// void PairLS::par2pot_is(int is)
-// {
+void PairLS::par2pot_is(int is)
+{
+  // Start pot_ls_a_sp.h
+  int n_sp;
+  double R_sp[mfi];
+  double a_sp[mfi], b_sp[mfi], c_sp[mfi], d_sp[mfi], e_sp[mfi];
+  // End pot_ls_a_sp.h
+
+  int i, j, i1, i2, n;
+  double p1, p2, pn;
+  double v_ZBL, vp_ZBL, vpp_ZBL;
+  double B6[6];
+  double r1, r2, f1, fp1, fpp1, f2, fp2, fpp2;
   
-// }
+  // par2pot_is.f(15-18):
+  //   zz_ZBL(is,is)=z_ion(is)*z_ion(is)*(3.795D0**2)
+  //   a_ZBL(is,is)=0.8853D0
+  //  :	*0.5291772083D0/(z_ion(is)**0.23D0 + z_ion(is)**0.23D0)
+
+  zz_ZBL[is][is] = z_ion[is]*z_ion[is]*pow(3.795,2);
+  a_ZBL[is][is] = 0.8853*0.5291772083/(pow(z_ion[is],0.23) + pow(z_ion[is],0.23));
+
+  // par2pot_is.f(21-28):
+	// n_sp=n_sp_fi
+	// do i=1,n_sp
+	// R_sp(i)=R_sp_fi(i,is,is)
+	// enddo
+	// do i=1,n_sp-1
+	// a_sp(i)=a_sp_fi(i,is,is)
+	// enddo
+	// a_sp(n_sp)=0.0D0
+
+	n_sp = n_sp_fi[is][is];
+	for (i=0; i < n_sp; i++)
+  {
+    R_sp[i]=R_sp_fi[i][is][is];
+  }
+	for (i=0; i < n_sp-1; i++)
+  {
+    a_sp[i]=a_sp_fi[i][is][is];
+  }  
+	a_sp[n_sp-1] = 0.0;
+
+}
 
 
 

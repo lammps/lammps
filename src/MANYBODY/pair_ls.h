@@ -113,37 +113,6 @@ class PairLS : public Pair {
   int **n_sp_fi, **n_sp_ro, **n_sp_emb, **n_sp_f, **n_sp_g; // numbers of spline nodes  for differen 
   int *n_f3;    // array with numbers of basis functions for each sort of atom
 
-  // arrays in stack as they stored in common blocks
-  // double shag_sp_fi[mi][mi], shag_sp_ro[mi][mi], shag_sp_emb[mi], shag_sp_f[mi][mi], shag_sp_g;  
-  // double R_sp_fi[mfi][mi][mi], R_sp_ro[mfi][mi][mi], R_sp_emb[memb][mi], R_sp_f[mf][mi][mi], R_sp_g[mg]; 
-  // double a_sp_fi[mfi][mi][mi], b_sp_fi[mfi][mi][mi], c_sp_fi[mfi][mi][mi], d_sp_fi[mfi][mi][mi];
-  // double a_sp_ro[mro][mi][mi], b_sp_ro[mro][mi][mi], c_sp_ro[mro][mi][mi], d_sp_ro[mro][mi][mi];
-  // double a_sp_emb[memb][mi], b_sp_emb[memb][mi], c_sp_emb[memb][mi], d_sp_emb[memb][mi];
-  // double a_sp_f3[mf][mf3][mi][mi], b_sp_f3[mf][mf3][mi][mi], c_sp_f3[mf][mf3][mi][mi], d_sp_f3[mf][mf3][mi][mi];
-  // double a_sp_g3[mg][mf3][mf3][mi], b_sp_g3[mg][mf3][mf3][mi], c_sp_g3[mg][mf3][mf3][mi], d_sp_g3[mg][mf3][mf3][mi]; 
-  // double a_sp_f4[mf][mi][mi], b_sp_f4[mf][mi][mi], c_sp_f4[mf][mi][mi], d_sp_f4[mf][mi][mi];
-  // double a_sp_g4[mi][mi], b_sp_g4[mi][mi], c_sp_g4[mi][mi], d_sp_g4[mi][mi];
-  // double fip_rmin[mi][mi];
-  // double z_ion[mi], c_ZBL[4], d_ZBL[4], zz_ZBL[mi][mi], a_ZBL[mi][mi], e0_ZBL[mi][mi];
-  // double Rmin_fi_ZBL[mi][mi], c_fi_ZBL[6][mi][mi];
-  // double Rc_fi, Rc_f;
-
-    // inverted arrays in stack in comparison as they declared in common blocks in pot_ls.h
-  // double shag_sp_fi[mi][mi], shag_sp_ro[mi][mi], shag_sp_emb[mi], shag_sp_f[mi][mi], shag_sp_g;  
-  // double R_sp_fi[mi][mi][mfi], R_sp_ro[mi][mi][mro], R_sp_emb[mi][memb], R_sp_f[mi][mi][mf], R_sp_g[mg]; 
-  // double a_sp_fi[mi][mi][mfi], b_sp_fi[mi][mi][mfi], c_sp_fi[mi][mi][mfi], d_sp_fi[mi][mi][mfi];
-  // double a_sp_ro[mi][mi][mro], b_sp_ro[mi][mi][mro], c_sp_ro[mi][mi][mro], d_sp_ro[mi][mi][mro];
-  // double a_sp_emb[mi][memb], b_sp_emb[mi][memb], c_sp_emb[mi][memb], d_sp_emb[mi][memb];
-  // double a_sp_f3[mi][mi][mf3][mf], b_sp_f3[mi][mi][mf3][mf], c_sp_f3[mi][mi][mf3][mf], d_sp_f3[mi][mi][mf3][mf];
-  // double a_sp_g3[mi][mf3][mf3][mg], b_sp_g3[mi][mf3][mf3][mg], c_sp_g3[mi][mf3][mf3][mg], d_sp_g3[mi][mf3][mf3][mg]; 
-  // double a_sp_f4[mi][mi][mf], b_sp_f4[mi][mi][mf], c_sp_f4[mi][mi][mf], d_sp_f4[mi][mi][mf];
-  // double a_sp_g4[mi][mi], b_sp_g4[mi][mi], c_sp_g4[mi][mi], d_sp_g4[mi][mi];
-  // double fip_rmin[mi][mi];
-  // double z_ion[mi], c_ZBL[4], d_ZBL[4], zz_ZBL[mi][mi], a_ZBL[mi][mi], e0_ZBL[mi][mi];
-  // double Rmin_fi_ZBL[mi][mi], c_fi_ZBL[mi][mi][6];
-  // double Rc_fi, Rc_f;
-
-  // End pot_ls.h
 
 //   // Begin external fortan subroutines
 //   extern void e_force_(double *e_sum, double *pressure, double *sxx, double *syy, double *szz, double *e_at, double *f_at[], double *px_at, double *py_at, double pz_at,
@@ -166,7 +135,7 @@ class PairLS : public Pair {
   void r_pot_ls_is1_is2(char *, int, int);
   void allocate();
 
-  // void par2pot_is(int);
+  void par2pot_is(int);
   // void par2pot_is1_is2(int, int);
 
   // External Fortran subroutines that does not use the Fotran common block 

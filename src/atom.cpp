@@ -83,6 +83,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ntypes = 0;
   nellipsoids = nlines = ntris = nbodies = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+  atomtypelabel = bondtypelabel = angletypelabel = dihedraltypelabel = impropertypelabel = NULL;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
   firstgroupname = nullptr;
@@ -1693,6 +1694,67 @@ void Atom::allocate_type_arrays()
 }
 
 /* ----------------------------------------------------------------------
+   allocate character-based type arrays (labels) of length ntypes
+   always allocated (for both numeric and character-based type modes)
+   initialize label with (a string of) its numeric counterpart
+------------------------------------------------------------------------- */
+
+void Atom::allocate_type_labels()
+{
+  char *char_type = new char[256];
+
+  atomtypelabel = (char **) memory->srealloc(atomtypelabel,
+                 ntypes*sizeof(char *),"atom:atomtypelabel");
+  for (int i = 0; i < ntypes; i++) {
+    sprintf(char_type,"%d",i+1);
+    int n = strlen(char_type) + 1;
+    atom->atomtypelabel[i] = new char[n];
+    strcpy(atom->atomtypelabel[i],char_type);
+  }
+  if (force->bond) {
+    bondtypelabel = (char **) memory->srealloc(bondtypelabel,
+                              nbondtypes*sizeof(char *),"atom:bondtypelabel");
+    for (int i = 0; i < nbondtypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->bondtypelabel[i] = new char[n];
+      strcpy(atom->bondtypelabel[i],char_type);
+    }
+  }
+  if (force->angle) {
+    angletypelabel = (char **) memory->srealloc(angletypelabel,
+                              nangletypes*sizeof(char *),"atom:angletypelabel");
+    for (int i = 0; i < nangletypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->angletypelabel[i] = new char[n];
+      strcpy(atom->angletypelabel[i],char_type);
+    }
+  }
+  if (force->dihedral) {
+    dihedraltypelabel = (char **) memory->srealloc(dihedraltypelabel,
+                              ndihedraltypes*sizeof(char *),"atom:dihedraltypelabel");
+    for (int i = 0; i < ndihedraltypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->dihedraltypelabel[i] = new char[n];
+      strcpy(atom->dihedraltypelabel[i],char_type);
+    }
+  }
+  if (force->improper) {
+    impropertypelabel = (char **) memory->srealloc(impropertypelabel,
+                              nimpropertypes*sizeof(char *),"atom:impropertypelabel");
+    for (int i = 0; i < nimpropertypes; i++) {
+      sprintf(char_type,"%d",i+1);
+      int n = strlen(char_type) + 1;
+      atom->impropertypelabel[i] = new char[n];
+      strcpy(atom->impropertypelabel[i],char_type);
+    }
+  }
+  delete [] char_type;
+}
+
+/* ----------------------------------------------------------------------
    set a mass and flag it as set
    called from reading of data file
    type_offset may be used when reading multiple data files
@@ -2714,4 +2776,3 @@ double Atom::memory_usage()
 
   return bytes;
 }
-

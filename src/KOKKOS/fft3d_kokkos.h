@@ -72,6 +72,7 @@ struct fft_plan_3d_kokkos {
 template<class DeviceType>
 class FFT3dKokkos : protected Pointers {
  public:
+  enum{FORWARD=1,BACKWARD=-1};
   typedef DeviceType device_type;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 

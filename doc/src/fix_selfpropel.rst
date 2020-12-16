@@ -48,6 +48,28 @@ is the dipole orientation of particle *i*.
    all the dipole magnitudes to 1.0 unless you have a good reason not to
    (see the :doc:`set <set>` command on how to do this).
 
+Along with adding a force contribution, this fix defaults to adding
+a contribution to the pressure :math:`f_P \sum_i <e_i . r_i>/(d V)`,
+where :math:`r_i` is the *unwrapped* coordinate of particle i in
+the case of periodic boundary conditions.
+See :ref:`(Winkler) <Winkler1>` for a discussion of this active
+pressure contribution.
+
+.. note::
+
+   In contrast to equilibrium systems, pressure of active systems
+   in general depends on the geometry of the container.
+   The active pressure contribution as calculated in this fix
+   is only valid for certain boundary conditions (spherical
+   walls, rectangular walls, or periodic boundary conditions).
+   For other geometries, the pressure must be measured via
+   explicit calculation of the force per unit area on a wall,
+   and so one must not calculate it using this fix.
+   (Use :doc:`fix_modify <fix_modify>` as described below
+   to turn off the virial contribution of this fix). Again,
+   see :ref:`(Winkler) <Winkler1>` for discussion of why this
+   is the case.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -80,3 +102,9 @@ Default
 """""""
 
 none
+
+----------
+
+.. _Winkler1:
+
+**(Winkler)** Winkler, Wysocki, and Gompper, Soft Matter, 11, 6680 (2015).

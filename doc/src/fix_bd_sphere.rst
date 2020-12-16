@@ -86,6 +86,16 @@ section 7.4).
 ---------
 
 .. note::
+   Temperature computation using the :doc:`compute temp <compute_temp>`
+   will not correctly compute temperature of these overdamped dynamics
+   since we are explicitly neglecting inertial effects.
+   See e.g. chapter 6 of :ref:`(Doi) <Doi1>` for more details on this.
+   Temperature is instead defined in terms of the note above (for
+   equilibrium systems).
+
+---------
+
+.. note::
    The diffusion coefficient :math:`D_t` is measured
    in units of (length*length)/time and the diffusion coefficient
    :math:`D_r` is measured in units of 1/time, where time and length
@@ -171,6 +181,10 @@ The default for *rng* is *uniform*.
 
 **(Callegari)** Callegari and Volpe, *Numerical Simulations of Active Brownian
 Particles*, Flowing Matter, 211-238 (2019).
+
+.. _Doi1:
+
+**(Doi)** Doi, Soft Matter Physics (2013).
 
 .. _Dunweg6:
 

@@ -61,7 +61,7 @@ the angular velocity vector.
 
 See :doc:`fix bd/sphere <fix_bd_sphere>` for discussion on the
 values of :math:`\gamma_t`, :math:`\gamma_r`, :math:`D_t`,
-and :math:`D_r` when simulating equilibrium systems.
+:math:`D_r`, and temperature when simulating equilibrium systems.
 
 
 If the *rng* keyword is used with the *uniform* value, then the noise

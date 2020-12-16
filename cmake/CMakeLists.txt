@@ -692,7 +692,7 @@ if(BUILD_SHARED_LIBS OR PKG_PYTHON)
   endif()
   if (Python_EXECUTABLE)
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python)
-    install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} setup.py build -b ${CMAKE_BINARY_DIR}/python install --prefix=${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ${LAMMPS_PYTHON_DIR})")
+    install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} setup.py build -b ${CMAKE_BINARY_DIR}/python install --prefix=${CMAKE_INSTALL_PREFIX} --root=\$ENV{DESTDIR}/ WORKING_DIRECTORY ${LAMMPS_PYTHON_DIR})")
   endif()
 endif()
 

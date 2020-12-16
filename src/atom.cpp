@@ -1755,6 +1755,19 @@ void Atom::allocate_type_labels()
 }
 
 /* ----------------------------------------------------------------------
+   find integer type given a type label
+   return -1 if type not yet defined
+------------------------------------------------------------------------- */
+
+int Atom::find_type(char *typelabel, char **typelabelarray, int num_types)
+{
+  for (int i = 0; i < num_types; i++) {
+    if (typelabelarray[i] && strcmp(typelabel,typelabelarray[i]) == 0) return i+1;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
    set a mass and flag it as set
    called from reading of data file
    type_offset may be used when reading multiple data files

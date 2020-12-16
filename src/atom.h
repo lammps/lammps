@@ -310,6 +310,7 @@ class Atom : protected Pointers {
 
   virtual void allocate_type_arrays();
   void allocate_type_labels();
+  int find_type(char *, char **, int);
   void set_mass(const char *, int, const char *, int);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);

@@ -40,6 +40,7 @@ OPT.
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
    * :doc:`bd/sphere <fix_bd_sphere>`
+   * :doc:`bd/asphere <fix_bd_asphere>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`

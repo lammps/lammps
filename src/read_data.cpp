@@ -52,7 +52,7 @@ using namespace LAMMPS_NS;
 #define MAXBODY 32         // max # of lines in one body
 
                            // customize for new sections
-#define NSECTIONS 26       // change when add to header::section_keywords
+#define NSECTIONS 30       // change when add to header::section_keywords
 
 enum{NONE,APPEND,VALUE,MERGE};
 
@@ -717,6 +717,26 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) typelabels(atom->atomtypelabel,ntypes);
         else skip_lines(ntypes);
 
+      } else if (strcmp(keyword,"Bond Type Labels") == 0) {
+        if (nbondtypes)
+          if (firstpass) typelabels(atom->bondtypelabel,nbondtypes);
+          else skip_lines(nbondtypes);
+
+      } else if (strcmp(keyword,"Angle Type Labels") == 0) {
+        if (nangletypes)
+          if (firstpass) typelabels(atom->angletypelabel,nangletypes);
+          else skip_lines(nangletypes);
+
+      } else if (strcmp(keyword,"Dihedral Type Labels") == 0) {
+        if (ndihedraltypes)
+          if (firstpass) typelabels(atom->dihedraltypelabel,ndihedraltypes);
+          else skip_lines(ndihedraltypes);
+
+      } else if (strcmp(keyword,"Improper Type Labels") == 0) {
+        if (nimpropertypes)
+          if (firstpass) typelabels(atom->impropertypelabel,nimpropertypes);
+          else skip_lines(nimpropertypes);
+
       } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
                                           keyword));
 
@@ -945,7 +965,8 @@ void ReadData::header(int firstpass)
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
      "EndBondTorsion Coeffs","AngleTorsion Coeffs",
      "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs",
-     "Atom Type Labels"};
+     "Atom Type Labels","Bond Type Labels","Angle Type Labels",
+     "Dihedral Type Labels","Improper Type Labels"};
 
   // skip 1st line of file
 

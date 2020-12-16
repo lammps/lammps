@@ -1002,6 +1002,141 @@ void PairLS::par2pot_is(int is)
   }  
 	a_sp[n_sp-1] = 0.0;
 
+  // par2pot_is.f(29-36):
+	// call SPL(n_sp, R_sp, a_sp, 1, fip_Rmin(is,is),0.0D0, b_sp,c_sp,d_sp)
+		// do i=1,n_sp_fi
+		// a_sp_fi(i,is,is)=a_sp(i)
+		// b_sp_fi(i,is,is)=b_sp(i)
+		// c_sp_fi(i,is,is)=c_sp(i)
+		// d_sp_fi(i,is,is)=d_sp(i)
+		// enddo
+	// shag_sp_fi(is,is)=1.0D0/((R_sp_fi(n_sp,is,is)-R_sp_fi(1,is,is))/dfloat(n_sp-1))
+
+	SPL(n_sp, R_sp, a_sp, 1, fip_Rmin[is][is], 0.0, b_sp, mfi, c_sp, d_sp);
+	for (i=0; i < n_sp; i++)
+  {
+    a_sp_fi[i][is][is] = a_sp[i];
+    b_sp_fi[i][is][is] = b_sp[i];
+    c_sp_fi[i][is][is] = c_sp[i];
+    d_sp_fi[i][is][is] = d_sp[i];
+  }
+	
+	shag_sp_fi[is][is] = 1.0/((R_sp_fi[n_sp-1][is][is]-R_sp_fi[0][is][is])/(n_sp-1));
+
+  // par2pot_is.f(39-49):
+  // c fi_ZBL
+	// r1=Rmin_fi_ZBL(is,is)
+	// f1=v_ZBL(r1,is,is)+e0_ZBL(is,is)
+	// fp1=vp_ZBL(r1,is,is)
+	// fpp1=vpp_ZBL(r1,is,is)
+	//     r2=R_sp_fi(1,is,is)
+	//     f2=a_sp_fi(1,is,is)
+	//     fp2=b_sp_fi(1,is,is)
+	//     fpp2=2.0D0*c_sp_fi(1,is,is)	
+	// call smooth_zero_22 (B6,r1,r2,f1,fp1,fpp1,
+  //    :                         f2,fp2,fpp2)
+	// c_fi_ZBL(1:6,is,is)=B6(1:6)
+
+	r1 = Rmin_fi_ZBL[is][is];
+	f1 = v_ZBL[r1][is][is]+e0_ZBL[is][is];
+	fp1 = vp_ZBL[r1][is][is];
+	fpp1 = vpp_ZBL[r1][is][is];
+  r2 = R_sp_fi[0][is][is];
+  f2 = a_sp_fi[0][is][is];
+  fp2 = b_sp_fi[0][is][is];
+  fpp2 = 2.0*c_sp_fi[0][is][is];	
+	
+  smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
+
+  for (i = 0; i < 6; i++)
+  {
+    c_fi_ZBL[i][is][is] = B6[i];
+  }
+
+  // par2pot_is.f(51-68):
+  // ! ro
+	// n_sp=n_sp_ro
+	// do i=1,n_sp
+	// R_sp(i)=R_sp_ro(i,is,is)
+	// enddo
+	// do i=1,n_sp
+	// a_sp(i)=a_sp_ro(i,is,is)
+	// enddo
+	// p1=0.0D0
+  // c	p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+	// call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
+	// do i=1,n_sp
+	// a_sp_ro(i,is,is)=a_sp(i)
+	// b_sp_ro(i,is,is)=b_sp(i)
+	// c_sp_ro(i,is,is)=c_sp(i)
+	// d_sp_ro(i,is,is)=d_sp(i)
+	// enddo
+	// shag_sp_ro(is,is)=1.0D0/((R_sp_ro(n_sp,is,is)-R_sp_ro(1,is,is))/dfloat(n_sp-1))
+
+  n_sp = n_sp_ro[i][i];
+  for (i = 0, i < n_sp, i++)
+  {
+    R_sp[i]=R_sp_ro[i][is][is];
+    a_sp[i]=a_sp_ro[i][is][is];
+  }
+  p1=0.0;
+
+	SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+	for (i=0; i < n_sp; i++)
+  {  
+    a_sp_ro[i][is][is] = a_sp[i];
+    b_sp_ro[i][is][is] = b_sp[i];
+    c_sp_ro[i][is][is] = c_sp[i];
+    d_sp_ro[i][is][is] = d_sp[i];
+  }
+	shag_sp_ro[is][is] = 1.0/((R_sp_ro[n_sp-1][is][is]-R_sp_ro[0][is][is])/(n_sp-1));
+
+  // par2pot_is.f(70-91):
+  // ! emb
+  // 	n_sp=n_sp_emb
+  // 	n=n_sp_emb
+  // 	do i=1,n_sp
+  // 	R_sp(i)=R_sp_emb(i,is)
+  // 	enddo
+  // 	do i=1,n_sp
+  // 	a_sp(i)=a_sp_emb(i,is)
+  // 	enddo
+  // 	a_sp(1)=0.0D0
+  // 	p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  // c	pn=(a_sp(n)-a_sp(n-1))/(R_sp(n)-R_sp(n-1))
+  // 	pn=0.0D0
+  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,pn, b_sp,c_sp,d_sp)
+  // 		do i=1,n_sp
+  // 		a_sp_emb(i,is)=a_sp(i)
+  // 		b_sp_emb(i,is)=b_sp(i)
+  // 		c_sp_emb(i,is)=c_sp(i)
+  // 		d_sp_emb(i,is)=d_sp(i)
+  // 		enddo
+  // 	shag_sp_emb(is)=1.0D0/((R_sp_emb(n_sp,is)-R_sp_emb(1,is))/dfloat(n_sp-1))
+
+	n_sp = n_sp_emb[is][is];
+	n = n_sp_emb[is][is];
+  for (i = 0, i < n_sp, i++)
+  {
+    R_sp[i]=R_sp_emb[i][is][is];
+    a_sp[i]=a_sp_emb[i][is][is];
+  }  
+	a_sp[0]=0.0;
+
+	p1 = (a_sp[1]-a_sp[0])/(R_sp[1]-R_sp[0]);
+	pn = 0.0;
+	SPL(n_sp, R_sp, a_sp, 1, p1, pn, b_sp, c_sp, d_sp);
+	for (i=0; i < n_sp; i++)
+  {  
+    a_sp_emb[i][is] = a_sp[i];
+    b_sp_emb[i][is] = b_sp[i];
+    c_sp_emb[i][is] = c_sp[i];
+    d_sp_emb[i][is] = d_sp[i];
+  }
+
+	shag_sp_emb[is] = 1.0/((R_sp_emb[n_sp-1][is] - R_sp_emb[0][is])/(n_sp - 1)); 
+
+
 }
 
 

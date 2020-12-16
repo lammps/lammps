@@ -1,0 +1,46 @@
+variable	fp equal 4.0
+variable	seed equal 192409
+
+variable	params string ${fp}
+
+# 2d Active Brownian Particle model
+log             log_${params}_2d.lammps.log
+units           lj
+atom_style      dipole
+dimension       2
+newton off
+
+
+lattice         sq 0.4
+region          box block -16 16 -16 16 -0.2 0.2
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+velocity        all create 1.0 1 loop geom
+
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix         1 all selfpropel ${fp}
+fix         2 all enforce2d
+
+compute press all pressure NULL virial
+
+thermo_style    custom step temp epair c_press
+
+# write trajectory and thermo in a log-scale frequency
+#dump            1 all custom 1 dump_${params}_2d.lammpstrj id type &
+#		x y z xu yu zu mux muy muz fx fy fz
+#dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          1
+
+# main run
+run             0
+
+

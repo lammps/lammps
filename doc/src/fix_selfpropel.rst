@@ -69,7 +69,23 @@ pressure contribution.
    to turn off the virial contribution of this fix). Again,
    see :ref:`(Winkler) <Winkler1>` for discussion of why this
    is the case.
+   
+   Furthermore, when dealing with active systems, the temperature
+   is no longer well defined. Therefore, one should ensure that
+   the *virial* flag is used if computing pressure with the
+   :doc:`compute pressure` command (turning off temperature
+   contributions).
 
+This command is extremely similar to :doc:`fix propel/self <fix_propel_self>`
+(when the latter has the *quat* keyword invoked). There are two differences
+between this command and :doc:`fix propel/self <fix_propel_self>`. Firstly,
+this command uses dipoles to indicate the direction of self-propulsion (vs
+ellipsoid quaternions). There is no real advantage/disadvantage of using
+dipole or quaternions that the author can see. The second difference is
+that this command allows for the calculation of the active pressure. This
+is the reason why this new command exists, as it is useful to be able
+to compute the pressure of the system.
+   
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -93,10 +109,15 @@ Restrictions
 This fix only works when the DIPOLE package is enabled.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+
+
 Related commands
 """"""""""""""""
 
-:doc:`fix efield <fix_efield>`
+:doc:`fix propel/self <fix_propel_self>`, :doc:`fix efield <fix_efield>` ,
+:doc:`compute pressure`     
 
 Default
 """""""

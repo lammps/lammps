@@ -714,7 +714,7 @@ void ReadData::command(int narg, char **arg)
         else skip_lines(nimpropertypes);
 
       } else if (strcmp(keyword,"Atom Type Labels") == 0) {
-        if (firstpass) atomtypelabels();
+        if (firstpass) typelabels(atom->atomtypelabel,ntypes);
         else skip_lines(ntypes);
 
       } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
@@ -1909,24 +1909,24 @@ void ReadData::impropercoeffs(int which)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadData::atomtypelabels()
+void ReadData::typelabels(char **mytypelabel, int myntypes)
 {
   int n;
   char *next;
-  char *buf = new char[ntypes*MAXLINE];
+  char *buf = new char[myntypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
+  int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *typelabel = new char[MAXLINE];
-  for (int i = 0; i < ntypes; i++) {
+  for (int i = 0; i < myntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
     sscanf(buf,"%*d %s",typelabel);
     n = strlen(typelabel) + 1;
-    delete [] atom->atomtypelabel[i];
-    atom->atomtypelabel[i] = new char[n];
-    strcpy(atom->atomtypelabel[i],typelabel);
+    delete [] mytypelabel[i];
+    mytypelabel[i] = new char[n];
+    strcpy(mytypelabel[i],typelabel);
     buf = next + 1;
   }
   delete [] typelabel;

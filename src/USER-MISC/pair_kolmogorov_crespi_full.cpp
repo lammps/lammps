@@ -17,8 +17,7 @@
    based on previous versions by Jaap Kroes
 
    This is a complete version of the potential described in
-   [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)] and
-   the paramters are refined in [Nano Lett. 18, 6009 (2018)]
+   [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
 #include "pair_kolmogorov_crespi_full.h"
@@ -45,14 +44,6 @@ using namespace LAMMPS_NS;
 #define PGDELTA 1
 
 static const char cite_kc[] =
-  "@Article{Kolmogorov2005\n"
-  " author = {A. N. Kolmogorov and V. H. Crespi},\n"
-  " title = {Registry-dependent interlayer potential for graphitic systems},\n"
-  " journal = {Physical Review B},\n"
-  " volume =  71,\n"
-  " pages =   {235415}\n"
-  " year =    2005,\n"
-  "}\n\n"
   "@Article{Ouyang2018\n"
   " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
   " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -60,14 +51,6 @@ static const char cite_kc[] =
   " volume =  18,\n"
   " pages =   {6009}\n"
   " year =    2018,\n"
-  "}\n\n"
-  "@Article{Ouyang2020\n"
-  " author = {W. Ouyang, I. Azuri, D. Mandelli, A. Tkatchenko, L. Kronik, M. Urbakh, and O. Hod},\n"
-  " title = {Mechanical and Tribological Properties of Layered Materials under High Pressure: Assessing the Importance of Many-Body Dispersion Effects},\n"
-  " journal = {J. Chem. Theory Comput.},\n"
-  " volume =  16,\n"
-  " pages =   {666}\n"
-  " year =    2020,\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

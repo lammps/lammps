@@ -1,5 +1,6 @@
 .. index:: pair_style tersoff
 .. index:: pair_style tersoff/table
+.. index:: pair_style tersoff/shift
 .. index:: pair_style tersoff/gpu
 .. index:: pair_style tersoff/intel
 .. index:: pair_style tersoff/kk
@@ -16,14 +17,19 @@ pair_style tersoff/table command
 
 Accelerator Variants: *tersoff/table/omp*
 
+
+pair_style tersoff/shift command
+================================
+
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style
+   pair_style style delta
 
-* style = *tersoff* or *tersoff/table* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
+* style = *tersoff* or *tersoff/table* or *tersoff/shift* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
+* delta = the shift applied to the equilibrium bond length of the tersoff potential (for tersoff/shift only).
 
 Examples
 """"""""
@@ -36,6 +42,9 @@ Examples
 
    pair_style tersoff/table
    pair_coeff * * SiCGe.tersoff Si(D)
+
+   pair_style tersoff/shift 0.05
+   pair_coeff * * Si.tersoff Si
 
 Description
 """""""""""
@@ -70,6 +79,37 @@ environment and angular functions. Linear interpolation is performed
 between adjacent table entries. The table length is chosen to be
 accurate within 10\^-6 with respect to the *tersoff* style energy.
 The *tersoff/table* should give better performance in terms of speed.
+
+The *tersoff/shift* style computes the energy E of a system of atoms, whose formula
+is the same as the Tersoff potential. The only modification is that the original 
+equilibrium bond length (:math: `r_0`) of the system is shifted to :math:`r_0-\delta`.
+
+.. note::
+
+   The sign of :math:`\delta` determines whether the resulting equilibrium bond length will be elongated 
+   or shrinked relative to the original value. Specifically, values of :math:`\delta < 0` will result in 
+   elongation of the bond length, while values of :math:`\delta > 0` will result in shrinking of the bond length.
+
+This *tersoff/shift* style is designed for simulations of closely matched van der Waals heterostructures. 
+For instance, let's consider the case of a system with few-layers graphene atop a thick hexagonal boron nitride (h-BN) 
+substrate simulated using periodic boundary conditions. The experimental lattice mismatch of ~1.8% between graphene
+and h-BN is not well captured by the equilibrium lattice constants of available potentials, thus a small in-plane strain
+will be introduced in the system when building a periodic supercell.To minimize the effect of strain on
+simulation results, the *tersoff/shift* style is proposed that allows adjusting the equilibrium bond length
+of one of the two materials (e.g., h-BN). Validitation, benchmark tests and applications of the *tersoff/shift* style
+can be found in :ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
+
+For the specific case discussed above, the force field can be defined as
+
+.. code-block:: LAMMPS
+
+   pair_style  hybrid/overlay rebo tersoff/shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
+   pair_coeff  * * rebo              CH.rebo     NULL NULL C
+   pair_coeff  * * tersoff/shift     BNC.tersoff B    N    NULL
+   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
+   pair_coeff  1 1 coul/shield 0.70
+   pair_coeff  1 2 coul/shield 0.695
+   pair_coeff  2 2 coul/shield 0.69
 
 Only a single pair_coeff command is used with the *tersoff* style
 which specifies a Tersoff potential file with parameters for all
@@ -277,3 +317,11 @@ Condens. Matter, 15, 5649(2003).
 .. _Tersoff_21:
 
 **(Tersoff_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
+
+.. _Mandelli1:
+
+**(Mandelli_1)** D. Mandelli, W. Ouyang, M. Urbakh, and O. Hod, ACS Nano 13(7), 7603-7609 (2019).
+
+.. _Ouyang5:
+
+**(Ouyang_1)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

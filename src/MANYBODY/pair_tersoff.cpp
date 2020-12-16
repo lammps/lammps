@@ -43,6 +43,7 @@ using namespace MathSpecial;
 
 PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
 {
+  shift_flag = 0;
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -139,6 +140,7 @@ void PairTersoff::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
+      if(shift_flag == 1) rsq += shift*shift + 2*sqrt(rsq)*shift;
 
       if (rsq < cutshortsq) {
         neighshort[numshort++] = j;
@@ -189,6 +191,7 @@ void PairTersoff::compute(int eflag, int vflag)
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      if(shift_flag == 1) rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
       if (rsq1 >= params[iparam_ij].cutsq) continue;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
@@ -206,6 +209,7 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if(shift_flag == 1) rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
@@ -237,6 +241,7 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if(shift_flag == 1) rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         attractive(&params[iparam_ijk],prefactor,
@@ -283,9 +288,15 @@ void PairTersoff::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairTersoff::settings(int narg, char **/*arg*/)
+void PairTersoff::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if(shift_flag == 1) {
+    if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
+    shift = utils::numeric(FLERR,arg[0],false,lmp);
+  }
+  else {
+    if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -560,13 +571,15 @@ void PairTersoff::setup_params()
 void PairTersoff::repulsive(Param *param, double rsq, double &fforce,
                             int eflag, double &eng)
 {
-  double r,tmp_fc,tmp_fc_d,tmp_exp;
+  double r,rs,tmp_fc,tmp_fc_d,tmp_exp;
 
   r = sqrt(rsq);
   tmp_fc = ters_fc(r,param);
   tmp_fc_d = ters_fc_d(r,param);
   tmp_exp = exp(-param->lam1 * r);
-  fforce = -param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1) / r;
+  rs = r;
+  if(shift_flag == 1) rs = r - shift;
+  fforce = -param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1) / rs;
   if (eflag) eng = tmp_fc * param->biga * tmp_exp;
 }
 
@@ -575,12 +588,18 @@ void PairTersoff::repulsive(Param *param, double rsq, double &fforce,
 double PairTersoff::zeta(Param *param, double rsqij, double rsqik,
                          double *delrij, double *delrik)
 {
-  double rij,rik,costheta,arg,ex_delr;
+  double rij,rik,rijs,riks,costheta,arg,ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
+  rijs = rij;
+  riks = rik;
+  if(shift_flag == 1) { 
+    rijs = rij - shift;
+    riks = rik - shift;
+  }
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
-              delrij[2]*delrik[2]) / (rij*rik);
+              delrij[2]*delrik[2]) / (rijs*riks);
 
   if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
@@ -598,13 +617,15 @@ void PairTersoff::force_zeta(Param *param, double rsq, double zeta_ij,
                              double &fforce, double &prefactor,
                              int eflag, double &eng)
 {
-  double r,fa,fa_d,bij;
+  double r,rs,fa,fa_d,bij;
 
   r = sqrt(rsq);
   fa = ters_fa(r,param);
   fa_d = ters_fa_d(r,param);
   bij = ters_bij(zeta_ij,param);
-  fforce = 0.5*bij*fa_d / r;
+  rs = r;
+  if(shift_flag == 1) rs = r - shift;
+  fforce = 0.5*bij*fa_d / rs;
   prefactor = -0.5*fa * ters_bij_d(zeta_ij,param);
   if (eflag) eng = 0.5*bij*fa;
 }
@@ -621,14 +642,20 @@ void PairTersoff::attractive(Param *param, double prefactor,
                              double *fi, double *fj, double *fk)
 {
   double rij_hat[3],rik_hat[3];
-  double rij,rijinv,rik,rikinv;
+  double rij,rijinv,rijs,rik,rikinv,riks;
 
   rij = sqrt(rsqij);
-  rijinv = 1.0/rij;
+  rik = sqrt(rsqik);
+  rijs = rij;
+  riks = rik;
+  if(shift_flag == 1) { 
+    rijs = rij - shift;
+    riks = rik - shift;
+  }
+  rijinv = 1.0/rijs;
   vec3_scale(rijinv,delrij,rij_hat);
 
-  rik = sqrt(rsqik);
-  rikinv = 1.0/rik;
+  rikinv = 1.0/riks;
   vec3_scale(rikinv,delrik,rik_hat);
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,param);
@@ -775,13 +802,19 @@ void PairTersoff::costheta_d(double *rij_hat, double rij,
                              double *dri, double *drj, double *drk)
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
+  double rijs = rij;
+  double riks = rik;
+  if(shift_flag == 1) { 
+    rijs = rij - shift;
+    riks = rik - shift;
+  }
 
   double cos_theta = vec3_dot(rij_hat,rik_hat);
 
   vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
+  vec3_scale(1.0/rijs,drj,drj);
   vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
+  vec3_scale(1.0/riks,drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
 }

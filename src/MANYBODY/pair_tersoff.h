@@ -66,6 +66,9 @@ class PairTersoff : public Pair {
   int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
 
+  double shift;                 // added for TersoffShift
+  int shift_flag;		// flag to turn on/off tersoff/shift 
+
   virtual void allocate();
   virtual void read_file(char *);
   virtual void setup_params();

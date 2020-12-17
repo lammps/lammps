@@ -83,7 +83,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ntypes = 0;
   nellipsoids = nlines = ntris = nbodies = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
-  atomtypelabel = bondtypelabel = angletypelabel = dihedraltypelabel = impropertypelabel = NULL;
+  atomtypelabel = bondtypelabel = angletypelabel = NULL;
+  dihedraltypelabel = impropertypelabel = NULL;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
   firstgroupname = nullptr;
@@ -307,6 +308,19 @@ Atom::~Atom()
 
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
+
+  // delete type labels
+
+  for (int i = 0; i < ntypes; i++) delete atomtypelabel[i];
+  memory->sfree(atomtypelabel);
+  for (int i = 0; i < nbondtypes; i++) delete bondtypelabel[i];
+  memory->sfree(bondtypelabel);
+  for (int i = 0; i < nangletypes; i++) delete angletypelabel[i];
+  memory->sfree(angletypelabel);
+  for (int i = 0; i < ndihedraltypes; i++) delete dihedraltypelabel[i];
+  memory->sfree(dihedraltypelabel);
+  for (int i = 0; i < nimpropertypes; i++) delete impropertypelabel[i];
+  memory->sfree(impropertypelabel);
 
   // delete per-type arrays
 

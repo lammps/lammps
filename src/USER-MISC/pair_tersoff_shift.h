@@ -28,18 +28,6 @@ class PairTersoffShift : public PairTersoff {
  public:
   PairTersoffShift(class LAMMPS *);
   ~PairTersoffShift() {}
-//  void settings(int, char **);
-
-// protected:
-//  virtual void repulsive(Param *, double, double &, int, double &);
-//  virtual double zeta(Param *, double, double, double *, double *);
-//  virtual void force_zeta(Param *, double, double, double &,
-//                          double &, int, double &);
-//  void attractive(Param *, double, double, double, double *, double *,
-//                  double *, double *, double *);
-//  void costheta_d(double *, double, double *, double,
-//                  double *, double *, double *);
-//
 };
 
 }

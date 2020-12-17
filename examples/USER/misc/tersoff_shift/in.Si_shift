@@ -1,0 +1,36 @@
+# Generate tip
+units          metal
+dimension      3
+boundary       p p p
+atom_style     atomic
+
+variable 	xm equal 10
+variable 	ym equal 10
+variable 	zm equal 5
+lattice  	diamond   5.481  # Si-Si
+region   	recbox block    0.0  ${xm} 0.0 ${ym} 0.0 ${zm}
+
+create_box    	1  recbox
+create_atoms  	1  region recbox units box
+
+mass	* 	28.0855
+pair_style	tersoff/shift 0.05
+pair_coeff 	* * Si.tersoff Si
+
+thermo_style    custom step cpu etotal pe ke temp 
+thermo          100
+thermo_modify   flush yes norm no lost warn
+thermo_modify   line one format float %20.15g
+
+#### Simulation settings ####
+timestep  	0.001
+velocity  	all create 300.0 12345 dist gaussian mom yes rot yes
+fix       	thermostat all nve
+
+############# Output ###############
+thermo          100
+thermo_style    custom step etotal pe ke temp
+thermo_modify   lost warn
+
+###### Run molecular dynamics ######
+run 		10000

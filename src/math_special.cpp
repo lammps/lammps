@@ -183,7 +183,7 @@ static const double nfac_table[] = {
   5.42391066613159e+295,
   9.00369170577843e+297,
   1.503616514865e+300, // nmaxfactorial = 167
-};  
+};
 
 /* ----------------------------------------------------------------------
    factorial n vial lookup from precomputed table

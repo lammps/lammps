@@ -87,8 +87,8 @@ this.
       | LAMMPS Python package  | * ``$HOME/.local/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
       |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$HOME/.local/lib/`` (32bit)                                 |                                                             |
-      |                        | * ``$HOME/.local/lib64/`` (64bit)                               |                                                             |
+      | LAMMPS shared library  | * ``$HOME/.local/lib/`` (32bit)                                 | Set shared loader environment variable to this path         |
+      |                        | * ``$HOME/.local/lib64/`` (64bit)                               | (see below for more info on this)                           |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS executable      | * ``$HOME/.local/bin/``                                         |                                                             |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
@@ -274,12 +274,12 @@ this.
       | LAMMPS Python Module   | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
       |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/`` (32bit)                                 |                                                             |
-      |                        | * ``$VIRTUAL_ENV/lib64/`` (64bit)                               |                                                             |
+      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/`` (32bit)                                 | Set shared loader environment variable to this path         |
+      |                        | * ``$VIRTUAL_ENV/lib64/`` (64bit)                               | (see below for more info on this)                           |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
       | LAMMPS executable      | * ``$VIRTUAL_ENV/bin/``                                         |                                                             |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS potential files | * ``$VIRTUAL_ENV/share/lammps/potentials/``                     |                                                             |
+      | LAMMPS potential files | * ``$VIRTUAL_ENV/share/lammps/potentials/``                     | Set ``LAMMPS_POTENTIALS`` environment variable to this path |
       +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
 
       In that case you need to modify the ``$HOME/myenv/bin/activate``
@@ -296,7 +296,7 @@ this.
          echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
 
          # MacOS
-         echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
+         echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$DYLD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
 
    .. tab:: In place usage
 

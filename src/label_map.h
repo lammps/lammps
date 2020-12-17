@@ -22,8 +22,8 @@ class LabelMap : protected Pointers {
  public:
    int natomtypes,nbondtypes,nangletypes;
    int ndihedraltypes,nimpropertypes;
-   char **typelabel,**btypelabel,**atypelabel;
-   char **dtypelabel,**itypelabel;
+   std::vector<std::string> typelabel,btypelabel,atypelabel;
+   std::vector<std::string> dtypelabel,itypelabel;
 
    LabelMap(LAMMPS *lmp);
    ~LabelMap();

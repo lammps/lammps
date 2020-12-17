@@ -26,9 +26,6 @@ LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
 {
   natomtypes = nbondtypes = nangletypes = 0;
   ndihedraltypes = nimpropertypes = 0;
-
-  typelabel = btypelabel = atypelabel = NULL;
-  dtypelabel = itypelabel = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -37,16 +34,11 @@ LabelMap::~LabelMap()
 {
   // delete type labels
 
-  for (int i = 0; i < natomtypes; i++) delete typelabel[i];
-  memory->sfree(typelabel);
-  for (int i = 0; i < nbondtypes; i++) delete btypelabel[i];
-  memory->sfree(btypelabel);
-  for (int i = 0; i < nangletypes; i++) delete atypelabel[i];
-  memory->sfree(atypelabel);
-  for (int i = 0; i < ndihedraltypes; i++) delete dtypelabel[i];
-  memory->sfree(dtypelabel);
-  for (int i = 0; i < nimpropertypes; i++) delete itypelabel[i];
-  memory->sfree(itypelabel);
+  typelabel.clear();
+  btypelabel.clear();
+  atypelabel.clear();
+  dtypelabel.clear();
+  itypelabel.clear();
 }
 
 /* ----------------------------------------------------------------------
@@ -57,57 +49,33 @@ LabelMap::~LabelMap()
 
 void LabelMap::allocate_type_labels()
 {
-  char *char_type = new char[256];
+  typelabel.resize(natomtypes);
+  for (int i = 0; i < natomtypes; i++)
+    typelabel[i] = fmt::format("{}",i);
 
-  typelabel = (char **) memory->srealloc(typelabel,
-             natomtypes*sizeof(char *),"atom:typelabel");
-  for (int i = 0; i < natomtypes; i++) {
-    sprintf(char_type,"%d",i+1);
-    int n = strlen(char_type) + 1;
-    typelabel[i] = new char[n];
-    strcpy(typelabel[i],char_type);
-  }
   if (force->bond) {
-    btypelabel = (char **) memory->srealloc(btypelabel,
-                nbondtypes*sizeof(char *),"atom:btypelabel");
-    for (int i = 0; i < nbondtypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      btypelabel[i] = new char[n];
-      strcpy(btypelabel[i],char_type);
-    }
+    btypelabel.resize(nbondtypes);
+    for (int i = 0; i < nbondtypes; i++)
+      btypelabel[i] = fmt::format("{}",i);
   }
+
   if (force->angle) {
-    atypelabel = (char **) memory->srealloc(atypelabel,
-                nangletypes*sizeof(char *),"atom:atypelabel");
-    for (int i = 0; i < nangletypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      atypelabel[i] = new char[n];
-      strcpy(atypelabel[i],char_type);
-    }
+    atypelabel.resize(nangletypes);
+    for (int i = 0; i < nangletypes; i++)
+      atypelabel[i] = fmt::format("{}",i);
   }
+
   if (force->dihedral) {
-    dtypelabel = (char **) memory->srealloc(dtypelabel,
-                ndihedraltypes*sizeof(char *),"atom:dtypelabel");
-    for (int i = 0; i < ndihedraltypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      dtypelabel[i] = new char[n];
-      strcpy(dtypelabel[i],char_type);
-    }
+    dtypelabel.resize(ndihedraltypes);
+    for (int i = 0; i < ndihedraltypes; i++)
+      dtypelabel[i] = fmt::format("{}",i);
   }
+
   if (force->improper) {
-    itypelabel = (char **) memory->srealloc(itypelabel,
-                nimpropertypes*sizeof(char *),"atom:itypelabel");
-    for (int i = 0; i < nimpropertypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      itypelabel[i] = new char[n];
-      strcpy(itypelabel[i],char_type);
-    }
+    itypelabel.resize(nimpropertypes);
+    for (int i = 0; i < nimpropertypes; i++)
+      itypelabel[i] = fmt::format("{}",i);
   }
-  delete [] char_type;
 }
 
 /* ----------------------------------------------------------------------

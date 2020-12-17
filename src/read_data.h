@@ -106,7 +106,7 @@ class ReadData : protected Pointers {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
-  void typelabels(char **, int);
+  void typelabels(std::vector<std::string> &, int);
 
   void fix(int, char *);
 };

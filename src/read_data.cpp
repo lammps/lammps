@@ -1931,7 +1931,7 @@ void ReadData::impropercoeffs(int which)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadData::typelabels(char **mytypelabel, int myntypes)
+void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes)
 {
   int n;
   char *next;
@@ -1945,10 +1945,7 @@ void ReadData::typelabels(char **mytypelabel, int myntypes)
     next = strchr(buf,'\n');
     *next = '\0';
     sscanf(buf,"%*d %s",typelabel);
-    n = strlen(typelabel) + 1;
-    delete [] mytypelabel[i];
-    mytypelabel[i] = new char[n];
-    strcpy(mytypelabel[i],typelabel);
+    mytypelabel[i] = typelabel;
     buf = next + 1;
   }
   delete [] typelabel;

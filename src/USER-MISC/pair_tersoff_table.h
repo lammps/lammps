@@ -43,7 +43,7 @@ class PairTersoffTable : public Pair {
   void init_style();
   double init_one(int, int);
 
-  static const int NPARAMS_PER_LINE = 17;
+  static constexpr int NPARAMS_PER_LINE = 17;
 
  protected:
   struct Param {

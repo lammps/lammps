@@ -65,7 +65,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/reverse* or *cuda/aware*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *pair/comm/forward* *fix/comm/forward* or *comm/reverse* or *cuda/aware*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -81,9 +81,11 @@ Syntax
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *comm* value = *no* or *host* or *device*
-             use value for comm/exchange and comm/forward and comm/reverse
+             use value for comm/exchange and comm/forward and pair/comm/forward and fix/comm/forward and comm/reverse
            *comm/exchange* value = *no* or *host* or *device*
            *comm/forward* value = *no* or *host* or *device*
+           *pair/comm/forward* value = *no* or *host* or *device*
+           *fix/comm/forward* value = *no* or *host* or *device*
            *comm/reverse* value = *no* or *host* or *device*
              no = perform communication pack/unpack in non-KOKKOS mode
              host = perform pack/unpack on host (e.g. with OpenMP threading)
@@ -484,7 +486,8 @@ because the GPU is faster at performing pairwise interactions, then this
 rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
-The *comm* and *comm/exchange* and *comm/forward* and *comm/reverse*
+The *comm* and *comm/exchange* and *comm/forward* and *pair/comm/forward*
+and *fix/comm/forward* and comm/reverse*
 keywords determine whether the host or device performs the packing and
 unpacking of data when communicating per-atom data between processors.
 "Exchange" communication happens only on timesteps that neighbor lists
@@ -492,10 +495,12 @@ are rebuilt. The data is only for atoms that migrate to new processors.
 "Forward" communication happens every timestep. "Reverse" communication
 happens every timestep if the *newton* option is on. The data is for
 atom coordinates and any other atom properties that needs to be updated
-for ghost atoms owned by each processor.
+for ghost atoms owned by each processor. "Pair/comm" controls additional
+communication in pair styles, such as pair_style EAM. "Fix/comm" controls
+additional communication in fixes, such as fix SHAKE.
 
-The *comm* keyword is simply a short-cut to set the same value for both
-the *comm/exchange* and *comm/forward* and *comm/reverse* keywords.
+The *comm* keyword is simply a short-cut to set the same value for all
+the comm keywords.
 
 The value options for all 3 keywords are *no* or *host* or *device*\ . A
 value of *no* means to use the standard non-KOKKOS method of

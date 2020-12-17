@@ -21,6 +21,7 @@
 #include "atom_masks.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -32,6 +33,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 using namespace std;
 
 #ifdef DBL_EPSILON

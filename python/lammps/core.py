@@ -95,7 +95,7 @@ class lammps(object):
     # load liblammps.so unless name is given
     #   if name = "g++", load liblammps_g++.so
     # try loading the LAMMPS shared object from the location
-    #   of lammps.py with an absolute path,
+    #   of the lammps package with an absolute path,
     #   so that LD_LIBRARY_PATH does not need to be set for regular install
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
@@ -319,7 +319,7 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs:
-          cmdargs.insert(0,"lammps.py")
+          cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:
@@ -341,7 +341,7 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs:
-          cmdargs.insert(0,"lammps.py")
+          cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:

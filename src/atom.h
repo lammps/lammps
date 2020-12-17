@@ -52,8 +52,6 @@ class Atom : protected Pointers {
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
-  char **atomtypelabel,**bondtypelabel,**angletypelabel;
-  char **dihedraltypelabel,**impropertypelabel;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int extra_bond_per_atom,extra_angle_per_atom;
   int extra_dihedral_per_atom,extra_improper_per_atom;
@@ -230,6 +228,10 @@ class Atom : protected Pointers {
   int nmolecule;
   class Molecule **molecules;
 
+  // type labels
+
+  class LabelMap *lmap;
+
   // extra peratom info in restart file destined for fix & diag
 
   double **extra;
@@ -310,8 +312,6 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void allocate_type_labels();
-  int find_type(char *, char **, int);
   void set_mass(const char *, int, const char *, int);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);
@@ -324,6 +324,8 @@ class Atom : protected Pointers {
   void add_molecule(int, char **);
   int find_molecule(char *);
   void add_molecule_atom(class Molecule *, int, int, tagint);
+
+  void add_label_map();
 
   void first_reorder();
   virtual void sort();

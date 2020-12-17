@@ -23,6 +23,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "label_map.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -83,8 +84,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ntypes = 0;
   nellipsoids = nlines = ntris = nbodies = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
-  atomtypelabel = bondtypelabel = angletypelabel = NULL;
-  dihedraltypelabel = impropertypelabel = NULL;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
   firstgroupname = nullptr;
@@ -203,6 +202,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nmolecule = 0;
   molecules = nullptr;
 
+  // type labels
+
+  lmap = nullptr;
+
   // custom atom arrays
 
   nivector = ndvector = 0;
@@ -309,18 +312,8 @@ Atom::~Atom()
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
 
-  // delete type labels
-
-  for (int i = 0; i < ntypes; i++) delete atomtypelabel[i];
-  memory->sfree(atomtypelabel);
-  for (int i = 0; i < nbondtypes; i++) delete bondtypelabel[i];
-  memory->sfree(bondtypelabel);
-  for (int i = 0; i < nangletypes; i++) delete angletypelabel[i];
-  memory->sfree(angletypelabel);
-  for (int i = 0; i < ndihedraltypes; i++) delete dihedraltypelabel[i];
-  memory->sfree(dihedraltypelabel);
-  for (int i = 0; i < nimpropertypes; i++) delete impropertypelabel[i];
-  memory->sfree(impropertypelabel);
+  // delete label map
+  delete lmap;
 
   // delete per-type arrays
 
@@ -1708,80 +1701,6 @@ void Atom::allocate_type_arrays()
 }
 
 /* ----------------------------------------------------------------------
-   allocate character-based type arrays (labels) of length ntypes
-   always allocated (for both numeric and character-based type modes)
-   initialize label with (a string of) its numeric counterpart
-------------------------------------------------------------------------- */
-
-void Atom::allocate_type_labels()
-{
-  char *char_type = new char[256];
-
-  atomtypelabel = (char **) memory->srealloc(atomtypelabel,
-                 ntypes*sizeof(char *),"atom:atomtypelabel");
-  for (int i = 0; i < ntypes; i++) {
-    sprintf(char_type,"%d",i+1);
-    int n = strlen(char_type) + 1;
-    atom->atomtypelabel[i] = new char[n];
-    strcpy(atom->atomtypelabel[i],char_type);
-  }
-  if (force->bond) {
-    bondtypelabel = (char **) memory->srealloc(bondtypelabel,
-                              nbondtypes*sizeof(char *),"atom:bondtypelabel");
-    for (int i = 0; i < nbondtypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      atom->bondtypelabel[i] = new char[n];
-      strcpy(atom->bondtypelabel[i],char_type);
-    }
-  }
-  if (force->angle) {
-    angletypelabel = (char **) memory->srealloc(angletypelabel,
-                              nangletypes*sizeof(char *),"atom:angletypelabel");
-    for (int i = 0; i < nangletypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      atom->angletypelabel[i] = new char[n];
-      strcpy(atom->angletypelabel[i],char_type);
-    }
-  }
-  if (force->dihedral) {
-    dihedraltypelabel = (char **) memory->srealloc(dihedraltypelabel,
-                              ndihedraltypes*sizeof(char *),"atom:dihedraltypelabel");
-    for (int i = 0; i < ndihedraltypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      atom->dihedraltypelabel[i] = new char[n];
-      strcpy(atom->dihedraltypelabel[i],char_type);
-    }
-  }
-  if (force->improper) {
-    impropertypelabel = (char **) memory->srealloc(impropertypelabel,
-                              nimpropertypes*sizeof(char *),"atom:impropertypelabel");
-    for (int i = 0; i < nimpropertypes; i++) {
-      sprintf(char_type,"%d",i+1);
-      int n = strlen(char_type) + 1;
-      atom->impropertypelabel[i] = new char[n];
-      strcpy(atom->impropertypelabel[i],char_type);
-    }
-  }
-  delete [] char_type;
-}
-
-/* ----------------------------------------------------------------------
-   find integer type given a type label
-   return -1 if type not yet defined
-------------------------------------------------------------------------- */
-
-int Atom::find_type(char *typelabel, char **typelabelarray, int num_types)
-{
-  for (int i = 0; i < num_types; i++) {
-    if (typelabelarray[i] && strcmp(typelabel,typelabelarray[i]) == 0) return i+1;
-  }
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
    set a mass and flag it as set
    called from reading of data file
    type_offset may be used when reading multiple data files
@@ -2054,6 +1973,21 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
     for (int i = 0; i < n; i++)
       special[ilocal][i] = onemol->special[iatom][i] + offset;
   }
+}
+
+/* ----------------------------------------------------------------------
+   allocate space for type label map
+------------------------------------------------------------------------- */
+
+void Atom::add_label_map()
+{
+  lmap = new LabelMap(lmp);
+  lmap->natomtypes = ntypes;
+  lmap->nbondtypes = nbondtypes;
+  lmap->nangletypes = nangletypes;
+  lmap->ndihedraltypes = ndihedraltypes;
+  lmap->nimpropertypes = nimpropertypes;
+  lmap->allocate_type_labels();
 }
 
 /* ----------------------------------------------------------------------

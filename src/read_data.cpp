@@ -33,6 +33,7 @@
 #include "group.h"
 #include "improper.h"
 #include "irregular.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -440,7 +441,7 @@ void ReadData::command(int narg, char **arg)
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
       atom->allocate_type_arrays();
-      atom->allocate_type_labels();
+      atom->add_label_map();
       atom->deallocate_topology();
 
       // allocate atom arrays to N, rounded up by AtomVec->DELTA
@@ -714,27 +715,27 @@ void ReadData::command(int narg, char **arg)
         else skip_lines(nimpropertypes);
 
       } else if (strcmp(keyword,"Atom Type Labels") == 0) {
-        if (firstpass) typelabels(atom->atomtypelabel,ntypes);
+        if (firstpass) typelabels(atom->lmap->typelabel,ntypes);
         else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
         if (nbondtypes)
-          if (firstpass) typelabels(atom->bondtypelabel,nbondtypes);
+          if (firstpass) typelabels(atom->lmap->btypelabel,nbondtypes);
           else skip_lines(nbondtypes);
 
       } else if (strcmp(keyword,"Angle Type Labels") == 0) {
         if (nangletypes)
-          if (firstpass) typelabels(atom->angletypelabel,nangletypes);
+          if (firstpass) typelabels(atom->lmap->atypelabel,nangletypes);
           else skip_lines(nangletypes);
 
       } else if (strcmp(keyword,"Dihedral Type Labels") == 0) {
         if (ndihedraltypes)
-          if (firstpass) typelabels(atom->dihedraltypelabel,ndihedraltypes);
+          if (firstpass) typelabels(atom->lmap->dtypelabel,ndihedraltypes);
           else skip_lines(ndihedraltypes);
 
       } else if (strcmp(keyword,"Improper Type Labels") == 0) {
         if (nimpropertypes)
-          if (firstpass) typelabels(atom->impropertypelabel,nimpropertypes);
+          if (firstpass) typelabels(atom->lmap->itypelabel,nimpropertypes);
           else skip_lines(nimpropertypes);
 
       } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",

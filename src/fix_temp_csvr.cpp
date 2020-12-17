@@ -347,7 +347,7 @@ void FixTempCSVR::write_restart(FILE *fp)
   }
   double state[103];
   random->get_state(state);
-  MPI_Gather(state,103,MPI_DOUBLE,list+2,103*comm->nprocs,MPI_DOUBLE,0,world);
+  MPI_Gather(state,103,MPI_DOUBLE,list+2,103,MPI_DOUBLE,0,world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);

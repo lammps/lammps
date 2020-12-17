@@ -32,7 +32,7 @@
 #include <vector>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_COMPILER) || (__PGI)
 #define _do_nothing
 #elif defined(__clang__)
 #pragma clang optimize off

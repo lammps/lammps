@@ -1179,6 +1179,8 @@ std::string Info::get_compiler_info()
   std::string buf;
 #if __clang__
   buf = fmt::format("Clang C++ {}", __VERSION__);
+#elif __PGI
+  buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
 #elif __INTEL_COMPILER
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
   buf = fmt::format("Intel C++ {:.2f}.{} / {}", version,

@@ -55,7 +55,7 @@ The *tersoff* style computes a 3-body Tersoff potential
 .. math::
 
   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+  V_{ij} & = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + delta) \right] \\
   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & r < R - D \\
     \frac{1}{2} - \frac{1}{2} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) &
@@ -65,14 +65,15 @@ The *tersoff* style computes a 3-body Tersoff potential
   f_R(r) & =  A \exp (-\lambda_1 r) \\
   f_A(r) & =  -B \exp (-\lambda_2 r) \\
   b_{ij} & =  \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik} + \delta) g \left[ \theta_{ijk}(r_{ij} + \delta, r_{ik} + \delta) \right]
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
   g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
 interactions.  The summations in the formula are over all neighbors
-J and K of atom I within a cutoff distance = R + D.
+J and K of atom I within a cutoff distance = R + D. math:`\delta` is
+non-zero only for *tersoff/shift* style. 
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed

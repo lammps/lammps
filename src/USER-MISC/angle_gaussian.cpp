@@ -62,7 +62,7 @@ void AngleGaussian::compute(int eflag, int vflag)
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
-  double dtheta,tk;
+  double dtheta;
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
   double prefactor, exponent, g_i, sum_g_i, sum_numerator;
 
@@ -331,7 +331,6 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
   double theta = acos(c) ;
 
   double sum_g_i = 0.0;
-  double sum_numerator = 0.0;
   for (int i = 0; i < nterms[type]; i++) {
     double dtheta = theta - theta0[type][i];
     double prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));

@@ -761,15 +761,15 @@ void FixBondReact::post_constructor()
 void FixBondReact::init()
 {
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-    // check cutoff for iatomtype,jatomtype
-    for (int i = 0; i < nreacts; i++) {
-      if (closeneigh[i] == -1) // indicates will search for non-bonded bonding atoms
-        if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
-          error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
-    }
+  // check cutoff for iatomtype,jatomtype
+  for (int i = 0; i < nreacts; i++) {
+    if (closeneigh[i] == -1) // indicates will search for non-bonded bonding atoms
+      if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
+        error->all(FLERR,"Bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
+  }
 
   // need a half neighbor list, built every Nevery steps
   int irequest = neighbor->request(this,instance_me);
@@ -1068,10 +1068,11 @@ void FixBondReact::far_partner()
         continue;
       }
 
-      if (molecule_keyword[rxnID] == INTER)
+      if (molecule_keyword[rxnID] == INTER) {
         if (atom->molecule[i] == atom->molecule[j]) continue;
-      else if (molecule_keyword[rxnID] == INTRA)
+      } else if (molecule_keyword[rxnID] == INTRA) {
         if (atom->molecule[i] != atom->molecule[j]) continue;
+      }
 
       jtype = type[j];
       possible = 0;
@@ -1152,10 +1153,11 @@ void FixBondReact::close_partner()
       if (i_limit_tags[i2] != 0) continue;
       if (itype != iatomtype[rxnID] || jtype != jatomtype[rxnID]) continue;
 
-      if (molecule_keyword[rxnID] == INTER)
+      if (molecule_keyword[rxnID] == INTER) {
         if (atom->molecule[i1] == atom->molecule[i2]) continue;
-      else if (molecule_keyword[rxnID] == INTRA)
+      } else if (molecule_keyword[rxnID] == INTRA) {
         if (atom->molecule[i1] != atom->molecule[i2]) continue;
+      }
 
       delx = x[i1][0] - x[i2][0];
       dely = x[i1][1] - x[i2][1];

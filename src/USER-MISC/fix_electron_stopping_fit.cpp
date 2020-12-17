@@ -62,9 +62,9 @@ static const char cite_fix_electron_stopping_fit_c[] =
 // ---------------------------------------------------------------------
 
 FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp,narg,arg), energy_coh_in(nullptr), drag_fac_in_1(nullptr),
-  drag_fac_in_2(nullptr), drag_fac_1(nullptr), drag_fac_2(nullptr),
-  v_min_sq(nullptr), v_max_sq(nullptr)
+  Fix(lmp,narg,arg), energy_coh_in(nullptr), v_min_sq(nullptr), v_max_sq(nullptr),
+  drag_fac_in_1(nullptr), drag_fac_in_2(nullptr),
+  drag_fac_1(nullptr), drag_fac_2(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_electron_stopping_fit_c);
 
@@ -151,7 +151,7 @@ void FixElectronStoppingFit::setup(int vflag)
 
 // ---------------------------------------------------------------------
 
-void FixElectronStoppingFit::post_force(int vflag)
+void FixElectronStoppingFit::post_force(int /*vflag*/)
 {
   double **v = atom->v;
   double **f = atom->f;
@@ -192,7 +192,7 @@ void FixElectronStoppingFit::post_force(int vflag)
 
 // ---------------------------------------------------------------------
 
-void FixElectronStoppingFit::post_force_respa(int vflag, int ilevel, int iloop)
+void FixElectronStoppingFit::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 };

@@ -76,7 +76,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Check API version
 
-  int api_version;
+  int api_version=0;
   p->cmd("getApiVersion",&api_version);
   if ((api_version < 5) || (api_version > 7))
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "

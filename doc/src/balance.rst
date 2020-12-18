@@ -288,7 +288,7 @@ adjacent planes are closer together than the neighbor skin distance
 (as specified by the :doc`neigh_modify <neigh_modify>` command), then
 the plane positions are shifted to separate them by at least this
 amount.  This is to prevent particles being lost when dynamics are run
-with processor subdomains that are too narrow in one or more
+with processor sub-domains that are too narrow in one or more
 dimensions.
 
 Once the re-balancing is complete and final processor sub-domains

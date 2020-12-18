@@ -185,7 +185,7 @@ void Universe::add_world(char *str)
         nper = atoi(part.c_str());
       } else {
         n = atoi(part.substr(0,found).c_str());
-        nper = atoi(part.substr(found-1).c_str());\
+        nper = atoi(part.substr(found+1).c_str());
       }
     }
 

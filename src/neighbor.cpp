@@ -2162,12 +2162,15 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
+  // or this is skip list and parent is occasional list,
   // insure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
   if (mylist->listfull && mylist->listfull->occasional)
     build_one(mylist->listfull,preflag);
+  if (mylist->listskip && mylist->listskip->occasional)
+    build_one(mylist->listskip,preflag);
 
   // create stencil if hasn't been created since last setup_bins() call
 

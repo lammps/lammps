@@ -3002,6 +3002,7 @@ Sukumaran
 Sulc
 sumsq
 Sunderland
+supercell
 superset
 supersphere
 Supinski

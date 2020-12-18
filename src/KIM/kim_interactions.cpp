@@ -291,10 +291,10 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
+    auto trimmed = utils::trim_comment(line);
+    if (trimmed.find_first_not_of(" \t\n\r") == std::string::npos) continue;
 
-    words = utils::split_words(line);
+    words = utils::split_words(trimmed);
     if (key == "pair") {
       for (int ia = 0; ia < atom->ntypes; ++ia) {
         for (int ib = ia; ib < atom->ntypes; ++ib)

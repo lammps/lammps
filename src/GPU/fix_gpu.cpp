@@ -120,6 +120,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   double binsize = 0.0;
   char *opencl_flags = nullptr;
   int block_pair = -1;
+  int pair_only_flag = 0;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -169,6 +170,12 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/only") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
+      else error->all(FLERR,"Illegal package gpu command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal package gpu command");
   }
 
@@ -185,6 +192,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  if (pair_only_flag) {
+    lmp->suffixp = lmp->suffix;
+    lmp->suffix = nullptr;
+  }
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib

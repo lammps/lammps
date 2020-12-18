@@ -173,7 +173,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int citeflag = 1;
   int helpflag = 0;
 
-  suffix = suffix2 = nullptr;
+  suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
   if (arg) exename = arg[0];
   else exename = nullptr;
@@ -714,6 +714,7 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
+  delete [] suffixp;
 
   // free the MPI comm created by -mpi command-line arg processed in constructor
   // it was passed to universe as if original universe world

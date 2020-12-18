@@ -301,6 +301,7 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
+  int pair_only_flag = 0;
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
@@ -390,6 +391,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/only") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) neigh_thread = 0;
@@ -452,6 +459,15 @@ void KokkosLMP::accelerator(int narg, char **arg)
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;
   else neighbor->binsizeflag = 1;
+
+  if (pair_only_flag) {
+    lmp->suffixp = lmp->suffix;
+    lmp->suffix = new char[7];
+    strcpy(lmp->suffix,"kk/host");
+
+    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------

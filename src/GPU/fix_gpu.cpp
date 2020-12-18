@@ -196,6 +196,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
     lmp->suffix = nullptr;
+  } else {
+    if (lmp->suffixp) {
+      lmp->suffix = lmp->suffixp;
+      lmp->suffixp = nullptr;
+    }
   }
 
   // pass params to GPU library

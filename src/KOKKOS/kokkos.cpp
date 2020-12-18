@@ -467,6 +467,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
+  } else {
+    // restore settings to regular suffix use, if previously, pair/only was used.
+    if (lmp->suffixp) {
+      delete[] lmp->suffix;
+      lmp->suffix = lmp->suffixp;
+      lmp->suffixp = nullptr;
+      // TODO: restore communication settings
+    }
   }
 }
 

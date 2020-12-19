@@ -35,7 +35,7 @@ enum{TYPE,RADIUS};
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vlocal(nullptr), alocal(nullptr), indices(nullptr), pack_choice(nullptr)
+  vlocal(NULL), alocal(NULL), indices(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 
@@ -233,7 +233,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular == Atom::TEMPLATE && (kindflag == BOND || kindflag == ANGLE ||
+  if (atom->molecular == 2 && (kindflag == BOND || kindflag == ANGLE ||
                                kindflag == DIHEDRAL || kindflag == IMPROPER))
     error->all(FLERR,"Compute property/local does not (yet) work "
                "with atom_style template");
@@ -254,8 +254,8 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute property/local requires atom attribute radius");
 
   nmax = 0;
-  vlocal = nullptr;
-  alocal = nullptr;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,7 +273,7 @@ ComputePropertyLocal::~ComputePropertyLocal()
 void ComputePropertyLocal::init()
 {
   if (kindflag == NEIGH || kindflag == PAIR) {
-    if (force->pair == nullptr)
+    if (force->pair == NULL)
       error->all(FLERR,"No pair style is defined for compute property/local");
     if (force->pair->single_enable == 0)
       error->all(FLERR,"Pair style does not support compute property/local");
@@ -665,16 +665,12 @@ double ComputePropertyLocal::memory_usage()
 
 void ComputePropertyLocal::pack_patom1(int n)
 {
-  int i,j;
+  int i;
   tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
-    j = indices[m][1];
-    if(tag[i] < tag[j])
-      buf[n] = tag[i];
-    else 
-      buf[n] = tag[j];
+    buf[n] = tag[i];
     n += nvalues;
   }
 }
@@ -683,16 +679,12 @@ void ComputePropertyLocal::pack_patom1(int n)
 
 void ComputePropertyLocal::pack_patom2(int n)
 {
-  int i,j;
+  int i;
   tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
-    i = indices[m][0];
-    j = indices[m][1];
-    if(tag[i] > tag[j])
-      buf[n] = tag[i];
-    else 
-      buf[n] = tag[j];
+    i = indices[m][1];
+    buf[n] = tag[i];
     n += nvalues;
   }
 }
@@ -701,17 +693,12 @@ void ComputePropertyLocal::pack_patom2(int n)
 
 void ComputePropertyLocal::pack_ptype1(int n)
 {
-  int i,j;
+  int i;
   int *type = atom->type;
-  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
-    j = indices[m][1];
-    if(tag[i] < tag[j])
-      buf[n] = type[i];
-    else 
-      buf[n] = type[j];
+    buf[n] = type[i];
     n += nvalues;
   }
 }
@@ -720,17 +707,12 @@ void ComputePropertyLocal::pack_ptype1(int n)
 
 void ComputePropertyLocal::pack_ptype2(int n)
 {
-  int i,j;
+  int i;
   int *type = atom->type;
-  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
-    i = indices[m][0];
-    j = indices[m][1];
-    if(tag[i] > tag[j])
-      buf[n] = type[i];
-    else 
-      buf[n] = type[j];
+    i = indices[m][1];
+    buf[n] = type[i];
     n += nvalues;
   }
 }

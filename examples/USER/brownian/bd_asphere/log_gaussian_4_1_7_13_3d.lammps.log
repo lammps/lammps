@@ -38,13 +38,13 @@ neigh_modify    every 1 delay 1 check yes
 pair_style none
 
 
-fix         1 all bd/asphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
-fix         1 all bd/asphere 4 ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
-fix         1 all bd/asphere 4 1 ${D_t} ${D_r} ${seed} rng ${rng} dipole
-fix         1 all bd/asphere 4 1 7 ${D_r} ${seed} rng ${rng} dipole
-fix         1 all bd/asphere 4 1 7 13 ${seed} rng ${rng} dipole
-fix         1 all bd/asphere 4 1 7 13 1974019 rng ${rng} dipole
-fix         1 all bd/asphere 4 1 7 13 1974019 rng gaussian dipole
+fix         1 all brownian/asphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all brownian/asphere 4 ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all brownian/asphere 4 1 ${D_t} ${D_r} ${seed} rng ${rng} dipole
+fix         1 all brownian/asphere 4 1 7 ${D_r} ${seed} rng ${rng} dipole
+fix         1 all brownian/asphere 4 1 7 13 ${seed} rng ${rng} dipole
+fix         1 all brownian/asphere 4 1 7 13 1974019 rng ${rng} dipole
+fix         1 all brownian/asphere 4 1 7 13 1974019 rng gaussian dipole
 
 
 compute press all pressure NULL virial
@@ -61,9 +61,9 @@ Per MPI rank memory allocation (min/avg/max) = 5.379 | 5.379 | 5.379 Mbytes
 Step Temp E_pair c_press 
        0            1            0            0 
    50000 1.3923773e+11            0            0 
-Loop time of 5.68636 on 1 procs for 50000 steps with 512 atoms
+Loop time of 5.61345 on 1 procs for 50000 steps with 512 atoms
 
-Performance: 0.076 tau/day, 8792.977 timesteps/s
+Performance: 0.077 tau/day, 8907.171 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
@@ -71,10 +71,10 @@ Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.11589    | 0.11589    | 0.11589    |   0.0 |  2.04
-Output  | 2.1155e-05 | 2.1155e-05 | 2.1155e-05 |   0.0 |  0.00
-Modify  | 5.4911     | 5.4911     | 5.4911     |   0.0 | 96.57
-Other   |            | 0.07936    |            |       |  1.40
+Comm    | 0.11822    | 0.11822    | 0.11822    |   0.0 |  2.11
+Output  | 2.0199e-05 | 2.0199e-05 | 2.0199e-05 |   0.0 |  0.00
+Modify  | 5.4135     | 5.4135     | 5.4135     |   0.0 | 96.44
+Other   |            | 0.0817     |            |       |  1.46
 
 Nlocal:        512.000 ave         512 max         512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -100,9 +100,8 @@ thermo_style    custom step temp epair c_msd[*] c_press
 
 
 # write trajectory and thermo in a log-scale frequency
-dump            1 all custom 1000 dump_${params}_2d.lammpstrj id type 		x y xu yu mux muy muz fx fy fz
-dump            1 all custom 1000 dump_gaussian_4_1_7_13_2d.lammpstrj id type 		x y xu yu mux muy muz fx fy fz
-dump_modify     1 first yes sort id
+#dump            1 all custom 1000 dump_${params}_3d.lammpstrj id type #		x y xu yu mux muy muz fx fy fz
+#dump_modify     1 first yes sort id
 
 timestep        0.00001
 thermo          10000
@@ -110,7 +109,7 @@ thermo          10000
 # main run
 run             120000
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
-Per MPI rank memory allocation (min/avg/max) = 7.103 | 7.103 | 7.103 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 5.754 | 5.754 | 5.754 Mbytes
 Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press 
        0 1.3923773e+11            0            0            0            0            0            0 
    10000    1413805.2            0    1.3943053    1.4055827    1.4346505    4.2345385            0 
@@ -125,20 +124,20 @@ Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press
   100000    1430838.3            0    14.104796    13.817001    13.596538    41.518335            0 
   110000    1364246.8            0    15.382464     15.09201    15.017312    45.491785            0 
   120000    1389237.6            0    16.632972    16.343173    16.015748    48.991892            0 
-Loop time of 13.595 on 1 procs for 120000 steps with 512 atoms
+Loop time of 13.2439 on 1 procs for 120000 steps with 512 atoms
 
-Performance: 7626.329 tau/day, 8826.770 timesteps/s
+Performance: 7828.487 tau/day, 9060.749 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Neigh   | 0.00079148 | 0.00079148 | 0.00079148 |   0.0 |  0.01
-Comm    | 0.029132   | 0.029132   | 0.029132   |   0.0 |  0.21
-Output  | 0.15178    | 0.15178    | 0.15178    |   0.0 |  1.12
-Modify  | 13.222     | 13.222     | 13.222     |   0.0 | 97.25
-Other   |            | 0.1916     |            |       |  1.41
+Neigh   | 0.00075178 | 0.00075178 | 0.00075178 |   0.0 |  0.01
+Comm    | 0.0282     | 0.0282     | 0.0282     |   0.0 |  0.21
+Output  | 0.00032692 | 0.00032692 | 0.00032692 |   0.0 |  0.00
+Modify  | 13.017     | 13.017     | 13.017     |   0.0 | 98.29
+Other   |            | 0.1976     |            |       |  1.49
 
 Nlocal:        512.000 ave         512 max         512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -151,4 +150,4 @@ Total # of neighbors = 0
 Ave neighs/atom = 0.0000000
 Neighbor list builds = 1110
 Dangerous builds = 0
-Total wall time: 0:00:19
+Total wall time: 0:00:18

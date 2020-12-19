@@ -182,8 +182,8 @@ accelerated styles exist.
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
-* :doc:`bd/asphere <fix_bd_asphere>` - integrate positions and orientations in overdamped motion
-* :doc:`bd/sphere <fix_bd_sphere>` - overdamped translational and rotational brownian dynamics
+* :doc:`brownian/asphere <fix_brownian_asphere>` - overdamped translational and rotational brownian for ellipsoids
+* :doc:`brownian/sphere <fix_brownian_sphere>` - overdamped translational and rotational brownian for spheres
 * :doc:`bocs <fix_bocs>` - NPT style time integration with pressure correction
 * :doc:`bond/break <fix_bond_break>` - break bonds on the fly
 * :doc:`bond/create <fix_bond_create>` - create bonds on the fly

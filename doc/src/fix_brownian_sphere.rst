@@ -1,17 +1,17 @@
-.. index:: fix bd/sphere
+.. index:: fix brownian/sphere
 
-fix bd/sphere command
-======================
+fix brownian/sphere command
+===========================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID bd/sphere gamma_t gamma_r diff_t diff_r seed keyword args
+   fix ID group-ID brownian/sphere gamma_t gamma_r diff_t diff_r seed keyword args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* bd/sphere = style name of this fix command
+* brownian/sphere = style name of this fix command
 * gamma_t = translational friction coefficient
 * gamma_r = rotational friction coefficient
 * diff_t = translational diffusion coefficient
@@ -32,10 +32,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 1294019
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng none dipole
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 rng uniform
-   fix 1 all bd/sphere 1.0 1.0 1.0 1.0 19581092 dipole rng gaussian
+   fix 1 all brownian/sphere 1.0 1.0 1.0 1.0 1294019
+   fix 1 all brownian/sphere 1.0 1.0 1.0 1.0 19581092 rng none dipole
+   fix 1 all brownian/sphere 1.0 1.0 1.0 1.0 19581092 rng uniform
+   fix 1 all brownian/sphere 1.0 1.0 1.0 1.0 19581092 dipole rng gaussian
 
 
 Description

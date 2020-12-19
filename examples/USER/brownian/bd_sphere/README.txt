@@ -1,11 +1,11 @@
-The input file in2ddipole.bd demonstrates how to run a 2d simulation
-of particles undergoing overdamped brownian motion in both
-translational and rotational degrees of freedom. Dipole
+The input file in2ddipole.brownian demonstrates how to run a
+2d simulation of particles undergoing overdamped brownian motion
+in both translational and rotational degrees of freedom. Dipole
 updating is turned on, so the package DIPOLE must be built
 for this example to work.
 
-The input file in3d_virial_on.bd demonstrates how to run a
-similar simulation but in 3d. In this case, the virial
+The input file in3d_virial_on.brownian demonstrates how to run
+a similar simulation but in 3d. In this case, the virial
 contribution of the brownian dynamics (the sum
 sum_i <r_i dot sqrt{2D_t}W>/(3*volume) where W is
 a random variable with mean 0 and variance dt) is

@@ -1,17 +1,17 @@
-.. index:: fix bd/asphere
+.. index:: fix brownian/asphere
 
-fix bd/asphere command
-======================
+fix brownian/asphere command
+============================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID bd/asphere gamma_t gamma_r diff_t diff_r seed keyword args
+   fix ID group-ID brownian/asphere gamma_t gamma_r diff_t diff_r seed keyword args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* bd/asphere = style name of this fix command
+* brownian/asphere = style name of this fix command
 * gamma_t = translational friction coefficient
 * gamma_r = rotational friction coefficient
 * diff_t = translational diffusion coefficient
@@ -32,10 +32,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all bd/asphere 1.0 1.0 1.0 1.0 1294019
-   fix 1 all bd/asphere 1.0 1.0 1.0 1.0 19581092 rng none dipole
-   fix 1 all bd/asphere 1.0 1.0 1.0 1.0 19581092 rng uniform
-   fix 1 all bd/asphere 1.0 1.0 1.0 1.0 19581092 dipole rng gaussian
+   fix 1 all brownian/asphere 1.0 1.0 1.0 1.0 1294019
+   fix 1 all brownian/asphere 1.0 1.0 1.0 1.0 19581092 rng none dipole
+   fix 1 all brownian/asphere 1.0 1.0 1.0 1.0 19581092 rng uniform
+   fix 1 all brownian/asphere 1.0 1.0 1.0 1.0 19581092 dipole rng gaussian
 
 
 Description
@@ -59,7 +59,7 @@ Chapter 4 of :ref:`(Goldstein) <GoldsteinCM1>`), :math:`dW_t` and
 The quaternions :math:`q` of the ellipsoid are updated each timestep from
 the angular velocity vector.
 
-See :doc:`fix bd/sphere <fix_bd_sphere>` for discussion on the
+See :doc:`fix brownian/sphere <fix_brownian_sphere>` for discussion on the
 values of :math:`\gamma_t`, :math:`\gamma_r`, :math:`D_t`,
 :math:`D_r`, and temperature when simulating equilibrium systems.
 
@@ -124,7 +124,7 @@ be point particles.
 Related commands
 """"""""""""""""
 
-:doc:`fix bd/sphere <fix_bd_sphere>`, :doc:`fix langevin <fix_langevin>`,
+:doc:`fix brownian/sphere <fix_brownian_sphere>`, :doc:`fix langevin <fix_langevin>`,
 :doc:`fix nve/asphere <fix_nve_asphere>`, :doc:`atom style <atom_style>`
 
 Default

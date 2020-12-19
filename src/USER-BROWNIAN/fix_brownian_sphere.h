@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(bd/sphere,FixBdSphere)
+FixStyle(brownian/sphere,FixBrownianSphere)
 
 #else
 
-#ifndef LMP_FIX_BD_SPHERE_H
-#define LMP_FIX_BD_SPHERE_H
+#ifndef LMP_FIX_BROWNIAN_SPHERE_H
+#define LMP_FIX_BROWNIAN_SPHERE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixBdSphere : public Fix {
+class FixBrownianSphere : public Fix {
  public:
-  FixBdSphere(class LAMMPS *, int, char **);
-  virtual ~FixBdSphere();
+  FixBrownianSphere(class LAMMPS *, int, char **);
+  virtual ~FixBrownianSphere();
   void init();
   void initial_integrate(int);
   void setup(int);
@@ -61,34 +61,34 @@ protected:
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix bd/sphere command.
+E: Illegal fix brownian/sphere command.
 
 Wrong number/type of input arguments.
 
-E: Compute bd/sphere requires atom style sphere
+E: Compute brownian/sphere requires atom style sphere
 
 Self-explanatory.
 
-E: Compute bd/sphere requires atom attribute mu
+E: Compute brownian/sphere requires atom attribute mu
 
 Self-explanatory.
 
-E: Fix bd/sphere translational viscous drag coefficient must be > 0.
+E: Fix brownian/sphere translational viscous drag coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/sphere rotational viscous drag coefficient must be > 0.
+E: Fix brownian/sphere rotational viscous drag coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/sphere translational diffusion coefficient must be > 0.
+E: Fix brownian/sphere translational diffusion coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/sphere rotational diffusion coefficient must be > 0.
+E: Fix brownian/sphere rotational diffusion coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/sphere seed must be > 0.
+E: Fix brownian/sphere seed must be > 0.
 
 */

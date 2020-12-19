@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(bd/asphere,FixBdAsphere)
+FixStyle(brownian/asphere,FixBrownianAsphere)
 
 #else
 
-#ifndef LMP_FIX_BD_ASPHERE_H
-#define LMP_FIX_BD_ASPHERE_H
+#ifndef LMP_FIX_BROWNIAN_ASPHERE_H
+#define LMP_FIX_BROWNIAN_ASPHERE_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixBdAsphere : public Fix {
+class FixBrownianAsphere : public Fix {
  public:
-  FixBdAsphere(class LAMMPS *, int, char **);
-  virtual ~FixBdAsphere();
+  FixBrownianAsphere(class LAMMPS *, int, char **);
+  virtual ~FixBrownianAsphere();
   void init();
   void initial_integrate(int);
   void setup(int);
@@ -66,38 +66,38 @@ protected:
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix bd/asphere command.
+E: Illegal fix brownian/asphere command.
 
 Wrong number/type of input arguments.
 
-E: Compute bd/asphere requires atom style sphere
+E: Compute brownian/asphere requires atom style sphere
 
 Self-explanatory.
 
-E: Compute bd/asphere requires atom style ellipsoid
+E: Compute brownian/asphere requires atom style ellipsoid
 
 Self-explanatory.
 
-E: Compute bd/asphere dipole requires atom attribute mu
+E: Compute brownian/asphere dipole requires atom attribute mu
 
 Self-explanatory.
 
-E: Fix bd/asphere translational viscous drag coefficient must be > 0.
+E: Fix brownian/asphere translational viscous drag coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/asphere rotational viscous drag coefficient must be > 0.
+E: Fix brownian/asphere rotational viscous drag coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/asphere translational diffusion coefficient must be > 0.
+E: Fix brownian/asphere translational diffusion coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/asphere rotational diffusion coefficient must be > 0.
+E: Fix brownian/asphere rotational diffusion coefficient must be > 0.
 
 Self-explanatory.
 
-E: Fix bd/asphere seed must be > 0.
+E: Fix brownian/asphere seed must be > 0.
 
 */

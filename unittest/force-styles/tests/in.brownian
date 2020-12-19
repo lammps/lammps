@@ -2,7 +2,7 @@ variable  newton_pair     index  on
 variable  newton_bond     index  on
 variable  units           index  lj
 variable  input_dir       index  .
-variable  data_file       index  ${input_dir}/data.bdsphere
+variable  data_file       index  ${input_dir}/data.brownian
 variable  pair_style      index  'zero 8.0'
 
 atom_style       hybrid dipole sphere

@@ -33,7 +33,7 @@ neigh_modify    every 1 delay 1 check yes
 pair_style none
 
 
-fix         1 all bd/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
+fix         1 all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
 fix_modify  1 virial yes
 
 compute press all pressure NULL virial

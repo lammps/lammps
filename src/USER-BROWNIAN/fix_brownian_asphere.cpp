@@ -17,7 +17,7 @@
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
-#include "fix_bd_asphere.h"
+#include "fix_brownian_asphere.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,7 +42,7 @@ enum{NODIPOLE,DIPOLE};
 
 /* ---------------------------------------------------------------------- */
 
-FixBdAsphere::FixBdAsphere(LAMMPS *lmp, int narg, char **arg) :
+FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   virial_flag = 1;
@@ -53,34 +53,34 @@ FixBdAsphere::FixBdAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 
   if (narg > 11 || narg < 8 )
-    error->all(FLERR,"Illegal fix bd/asphere command.");
+    error->all(FLERR,"Illegal fix brownian/asphere command.");
 
   if (!atom->sphere_flag)
-    error->all(FLERR,"Fix bd/asphere requires atom style sphere");
+    error->all(FLERR,"Fix brownian/asphere requires atom style sphere");
 
   gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
   if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix bd/asphere translational viscous drag "
+    error->all(FLERR,"Fix brownian/asphere translational viscous drag "
 	       "coefficient must be > 0.");
 
   gamma_r = utils::numeric(FLERR,arg[4],false,lmp);
   if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix bd/asphere rotational viscous drag "
+    error->all(FLERR,"Fix brownian/asphere rotational viscous drag "
 	       "coefficient must be > 0.");
 
 
   diff_t = utils::numeric(FLERR,arg[5],false,lmp);
   if (diff_t <= 0.0)
-    error->all(FLERR,"Fix bd/asphere translational diffusion "
+    error->all(FLERR,"Fix brownian/asphere translational diffusion "
 	       "coefficient must be > 0.");
   
   diff_r = utils::numeric(FLERR,arg[6],false,lmp);
   if (diff_r <= 0.0)
-    error->all(FLERR,"Fix bd/asphere rotational diffusion "
+    error->all(FLERR,"Fix brownian/asphere rotational diffusion "
 	       "coefficient must be > 0.");
   
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
-  if (seed <= 0) error->all(FLERR,"Fix bd/asphere seed must be > 0.");
+  if (seed <= 0) error->all(FLERR,"Fix brownian/asphere seed must be > 0.");
 
   noise_flag = 1;
   gaussian_noise_flag = 0;
@@ -90,7 +90,7 @@ FixBdAsphere::FixBdAsphere(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"rng") == 0) {
       if (narg == iarg + 1) {
-	error->all(FLERR,"Illegal fix/bd/asphere command.");
+	error->all(FLERR,"Illegal fix/brownian/asphere command.");
       }
       if (strcmp(arg[iarg + 1],"uniform") == 0) {
 	noise_flag = 1;
@@ -100,19 +100,19 @@ FixBdAsphere::FixBdAsphere(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg + 1],"none") == 0) {
 	noise_flag = 0;
       } else {
-	error->all(FLERR,"Illegal fix/bd/asphere command.");
+	error->all(FLERR,"Illegal fix/brownian/asphere command.");
       }
       iarg = iarg + 2;
     } else if (strcmp(arg[iarg],"dipole") == 0) {
       dipole_flag = DIPOLE;
       iarg = iarg + 1;
     } else {
-      error->all(FLERR,"Illegal fix/bd/asphere command.");
+      error->all(FLERR,"Illegal fix/brownian/asphere command.");
     }
   }
   
   if (dipole_flag == DIPOLE && !atom->mu_flag)
-    error->all(FLERR,"Fix bd/asphere dipole requires atom attribute mu");
+    error->all(FLERR,"Fix brownian/asphere dipole requires atom attribute mu");
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -121,7 +121,7 @@ FixBdAsphere::FixBdAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixBdAsphere::setmask()
+int FixBrownianAsphere::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -131,7 +131,7 @@ int FixBdAsphere::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-FixBdAsphere::~FixBdAsphere()
+FixBrownianAsphere::~FixBrownianAsphere()
 {
   delete random;
 }
@@ -140,13 +140,13 @@ FixBdAsphere::~FixBdAsphere()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBdAsphere::init()
+void FixBrownianAsphere::init()
 {
 
 
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec)
-    error->all(FLERR,"Compute bd/asphere requires "
+    error->all(FLERR,"Compute brownian/asphere requires "
 	       "atom style ellipsoid");
   
   // check that all particles are finite-size ellipsoids
@@ -159,7 +159,7 @@ void FixBdAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one(FLERR,"Fix bd/asphere requires extended particles");
+	error->one(FLERR,"Fix brownian/asphere requires extended particles");
   
   
   if (dipole_flag == DIPOLE) {
@@ -208,7 +208,7 @@ void FixBdAsphere::init()
   sqrtdt = sqrt(dt);
 }
 
-void FixBdAsphere::setup(int vflag)
+void FixBrownianAsphere::setup(int vflag)
 {
   post_force(vflag);
 }
@@ -216,7 +216,7 @@ void FixBdAsphere::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 
 
-void FixBdAsphere::initial_integrate(int /* vflag */)
+void FixBrownianAsphere::initial_integrate(int /* vflag */)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -313,7 +313,7 @@ void FixBdAsphere::initial_integrate(int /* vflag */)
   return;
 }
 
-void FixBdAsphere::update_x_and_omega(double *x, double *v, double *omega,
+void FixBrownianAsphere::update_x_and_omega(double *x, double *v, double *omega,
 				   double *f, double *torque, int d3rot)
 {
   double dx, dy, dz;
@@ -341,7 +341,7 @@ void FixBdAsphere::update_x_and_omega(double *x, double *v, double *omega,
    apply random force, stolen from MISC/fix_efield.cpp 
 ------------------------------------------------------------------------- */
 
-void FixBdAsphere::post_force(int vflag)
+void FixBrownianAsphere::post_force(int vflag)
 {
   double **f = atom->f;
   double **x = atom->x;
@@ -384,7 +384,7 @@ void FixBdAsphere::post_force(int vflag)
     }
 }
 
-void FixBdAsphere::reset_dt()
+void FixBrownianAsphere::reset_dt()
 {
 
   dt = update->dt;

@@ -4,12 +4,12 @@ date_generated: Tue Dec 08 12:28:40 2020
 epsilon: 1e-12
 prerequisites: ! |
   atom hybrid dipole sphere
-  fix bd_sphere
+  fix brownian/sphere
 pre_commands: ! ""
 post_commands: ! |
-  fix test solute bd_sphere 1.0 1.0 1.0 1.0 1049270 dipole
+  fix test solute brownian/sphere 1.0 1.0 1.0 1.0 1049270 dipole
   fix_modify test virial yes
-input_file: in.bdsphere
+input_file: in.brownian
 natoms: 32
 run_pos: ! |2
 1 0.8198132185477983 -1.5120221815010249 1.069236010215717

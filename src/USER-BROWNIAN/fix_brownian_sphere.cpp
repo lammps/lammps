@@ -17,7 +17,7 @@
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
-#include "fix_bd_sphere.h"
+#include "fix_brownian_sphere.h"
 
 #include <cmath>
 #include <cstring>
@@ -41,7 +41,7 @@ enum{NONE,DIPOLE};
 
 /* ---------------------------------------------------------------------- */
 
-FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
+FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   virial_flag = 1;
@@ -51,34 +51,34 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
   extra = NONE;
 
   if (narg > 11 || narg < 8 )
-    error->all(FLERR,"Illegal fix bd/sphere command.");
+    error->all(FLERR,"Illegal fix brownian/sphere command.");
 
   if (!atom->sphere_flag)
-    error->all(FLERR,"Fix bd/sphere requires atom style sphere");
+    error->all(FLERR,"Fix brownian/sphere requires atom style sphere");
 
   gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
   if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix bd/sphere translational viscous drag "
+    error->all(FLERR,"Fix brownian/sphere translational viscous drag "
 	       "coefficient must be > 0.");
 
   gamma_r = utils::numeric(FLERR,arg[4],false,lmp);
   if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix bd/sphere rotational viscous drag "
+    error->all(FLERR,"Fix brownian/sphere rotational viscous drag "
 	       "coefficient must be > 0.");
 
 
   diff_t = utils::numeric(FLERR,arg[5],false,lmp);
   if (diff_t <= 0.0)
-    error->all(FLERR,"Fix bd/sphere translational diffusion "
+    error->all(FLERR,"Fix brownian/sphere translational diffusion "
 	       "coefficient must be > 0.");
   
   diff_r = utils::numeric(FLERR,arg[6],false,lmp);
   if (diff_r <= 0.0)
-    error->all(FLERR,"Fix bd/sphere rotational diffusion "
+    error->all(FLERR,"Fix brownian/sphere rotational diffusion "
 	       "coefficient must be > 0.");
   
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
-  if (seed <= 0) error->all(FLERR,"Fix bd/sphere seed must be > 0.");
+  if (seed <= 0) error->all(FLERR,"Fix brownian/sphere seed must be > 0.");
 
   noise_flag = 1;
   gaussian_noise_flag = 0;
@@ -88,7 +88,7 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"rng") == 0) {
       if (narg == iarg + 1) {
-	error->all(FLERR,"Illegal fix/bd/sphere command.");
+	error->all(FLERR,"Illegal fix/brownian/sphere command.");
       }
       if (strcmp(arg[iarg + 1],"uniform") == 0) {
 	noise_flag = 1;
@@ -98,19 +98,19 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg + 1],"none") == 0) {
 	noise_flag = 0;
       } else {
-	error->all(FLERR,"Illegal fix/bd/sphere command.");
+	error->all(FLERR,"Illegal fix/brownian/sphere command.");
       }
       iarg = iarg + 2;
     } else if (strcmp(arg[iarg],"dipole") == 0) {
       extra = DIPOLE;
       iarg = iarg + 1;
     } else {
-      error->all(FLERR,"Illegal fix/bd/sphere command.");
+      error->all(FLERR,"Illegal fix/brownian/sphere command.");
     }
   }
   
   if (extra == DIPOLE && !atom->mu_flag)
-    error->all(FLERR,"Fix bd/sphere update dipole requires atom attribute mu");
+    error->all(FLERR,"Fix brownian/sphere update dipole requires atom attribute mu");
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -119,7 +119,7 @@ FixBdSphere::FixBdSphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixBdSphere::setmask()
+int FixBrownianSphere::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
@@ -129,7 +129,7 @@ int FixBdSphere::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-FixBdSphere::~FixBdSphere()
+FixBrownianSphere::~FixBrownianSphere()
 {
   delete random;
 }
@@ -138,7 +138,7 @@ FixBdSphere::~FixBdSphere()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBdSphere::init()
+void FixBrownianSphere::init()
 {
   
   g1 =  force->ftm2v/gamma_t;
@@ -161,14 +161,14 @@ void FixBdSphere::init()
   sqrtdt = sqrt(dt);
 }
 
-void FixBdSphere::setup(int vflag)
+void FixBrownianSphere::setup(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBdSphere::initial_integrate(int /* vflag */)
+void FixBrownianSphere::initial_integrate(int /* vflag */)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -270,7 +270,7 @@ void FixBdSphere::initial_integrate(int /* vflag */)
    apply random force, stolen from MISC/fix_efield.cpp 
 ------------------------------------------------------------------------- */
 
-void FixBdSphere::post_force(int vflag)
+void FixBrownianSphere::post_force(int vflag)
 {
   double **f = atom->f;
   double **x = atom->x;
@@ -313,7 +313,7 @@ void FixBdSphere::post_force(int vflag)
     }
 }
 
-void FixBdSphere::reset_dt()
+void FixBrownianSphere::reset_dt()
 {
 
   dt = update->dt;

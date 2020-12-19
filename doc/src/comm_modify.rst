@@ -90,7 +90,7 @@ The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
 communication mode *multi* instead. Since in this case the communication
 cutoffs are determined per atom type, a type specifier is needed and
 cutoff for one or multiple types can be extended. Also ranges of types
-using the usual asterisk notation can be given. For granular pairstyles,
+using the usual asterisk notation can be given. For granular pair styles,
 the default cutoff is set to the sum of the current maximum atomic radii
 for each type.
 

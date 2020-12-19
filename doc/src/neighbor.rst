@@ -49,7 +49,9 @@ sometimes be faster.  Either style should give the same answers.
 
 The *multi* style is a modified binning algorithm that is useful for
 systems with a wide range of cutoff distances, e.g. due to different
-size particles.  For the *bin* style, the bin size is set to 1/2 of
+size particles. For granular pairstyles, cutoffs are set to the 
+sum of the maximum atomic radii for each atom type.
+For the *bin* style, the bin size is set to 1/2 of
 the largest cutoff distance between any pair of atom types and a
 single set of bins is defined to search over for all atom types.  This
 can be inefficient if one pair of types has a very long cutoff, but

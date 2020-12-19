@@ -1,5 +1,5 @@
 Authors of LAMMPS
-=================
+-----------------
 
 The primary LAMMPS developers are at Sandia National Labs and Temple
 University:

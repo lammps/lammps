@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,6 +74,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
 

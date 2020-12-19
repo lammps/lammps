@@ -1,5 +1,5 @@
 Overview of LAMMPS
-==================
+------------------
 
 LAMMPS is a classical molecular dynamics (MD) code that models
 ensembles of particles in a liquid, solid, or gaseous state.  It can

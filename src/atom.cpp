@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1106,6 +1106,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   // remap atom into simulation box
   // if atom is in my sub-domain, unpack its values
 
+  int flagx = 0, flagy = 0, flagz = 0;
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
@@ -1118,15 +1119,16 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         error->all(FLERR,"Incorrect atom format in data file");
     }
 
-    int imx = 0;
-    int imy = 0;
-    int imz = 0;
+    int imx = 0, imy = 0, imz = 0;
     if (imageflag) {
       imx = utils::inumeric(FLERR,values[iptr],false,lmp);
       imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
       imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+      if ((!domain->xperiodic) && (imx != 0)) { flagx = 1; imx = 0; }
+      if ((!domain->yperiodic) && (imy != 0)) { flagy = 1; imy = 0; }
+      if ((!domain->zperiodic) && (imz != 0)) { flagz = 1; imz = 0; }
     }
     imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
@@ -1161,6 +1163,22 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     }
 
     buf = next + 1;
+  }
+
+  // warn if reading data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (flagx)
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
+    if (flagy)
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
+    if (flagz)
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
   }
 
   delete [] values;
@@ -1895,7 +1913,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
 
-  if (molecular != 1) return;
+  if (molecular != Atom::MOLECULAR) return;
 
   // add bond topology info
   // for molecular atom styles, but not atom style template

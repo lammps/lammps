@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,7 +53,15 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   external_interpreter = Py_IsInitialized();
 
   Py_Initialize();
-  PyEval_InitThreads();
+
+  // only needed for Python 2.x and Python 3 < 3.7
+  // With Python 3.7 this function is now called by Py_Initialize()
+  // Deprecated since version 3.9, will be removed in version 3.11
+#if PY_MAJOR_VERSION < 3 || PY_MINOR_VERSION < 7
+  if(!PyEval_ThreadsInitialized()) {
+    PyEval_InitThreads();
+  }
+#endif
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 

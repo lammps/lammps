@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -718,7 +718,6 @@ void FixDeposit::options(int narg, char **arg)
         error->all(FLERR,"Illegal fix deposit command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
-
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int n = strlen(arg[iarg+1]) + 1;

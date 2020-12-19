@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -324,7 +324,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
     // with respect to the two "middle" atom positions (x[i2] and x[i3]).
     // For an explanation of the formula used below, download the file
     // "dihedral_table_2011-8-02.tar.gz" at the bottom of this post:
-    //    http://lammps.sandia.gov/threads/msg22233.html
+    //    https://lammps.sandia.gov/threads/msg22234.html
     // Unpack it and go to this subdirectory:
     //    "supporting_information/doc/gradient_formula_explanation/"
     double dphi123_dx2_coef = neg_inv_L23 * (L23 + proj12on23_len);

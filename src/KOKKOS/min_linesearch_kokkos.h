@@ -56,6 +56,9 @@ class MinLineSearchKokkos : public MinKokkos {
   DAT::t_ffloat_1d g;    // old gradient vector
   DAT::t_ffloat_1d h;    // search direction vector
 
+  double *gextra;             // g,h for extra global dof, x0 is stored by fix
+  double *hextra;
+
   typedef int (MinLineSearchKokkos::*FnPtr)(double, double &);
   FnPtr linemin;
   int linemin_quadratic(double, double &);

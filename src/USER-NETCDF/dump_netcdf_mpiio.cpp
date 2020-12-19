@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -292,7 +292,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_open(MPI_COMM_WORLD, filecurrent, NC_WRITE, MPI_INFO_NULL,
+    NCERRX( ncmpi_open(world, filecurrent, NC_WRITE, MPI_INFO_NULL,
                        &ncid), filecurrent );
 
     // dimensions
@@ -372,7 +372,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_create(MPI_COMM_WORLD, filecurrent, NC_64BIT_DATA,
+    NCERRX( ncmpi_create(world, filecurrent, NC_64BIT_DATA,
                          MPI_INFO_NULL, &ncid), filecurrent );
 
     // dimensions
@@ -748,7 +748,7 @@ void DumpNetCDFMPIIO::write()
 
   nme = count();
   int *block_sizes = new int[comm->nprocs];
-  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, world);
   blocki = 0;
   for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
   delete [] block_sizes;

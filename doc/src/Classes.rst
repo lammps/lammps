@@ -1,5 +1,5 @@
-LAMMPS C++ base classes
-=======================
+C++ base classes
+================
 
 LAMMPS is designed to be used as a C++ class library where one can set
 up and drive a simulation through creating a class instance and then

@@ -108,6 +108,10 @@ For specifics see the LICENSE file contained in the repository or distribution.
 * ARM
     * Pthreads backend
 
+### Build system:
+* CMake >= 3.10: required
+* CMake >= 3.13: recommended
+* CMake >= 3.18: Fortran linkage. This does not affect most mixed Fortran/Kokkos builds. See [build issues](BUILD.md#KnownIssues).
 
 Primary tested compiler are passing in release mode
 with warnings as errors. They also are tested with a comprehensive set of

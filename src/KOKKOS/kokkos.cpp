@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -199,7 +199,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
   neigh_thread = 0;
   neigh_thread_set = 0;
-  neighflag_qeq_set = 0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
@@ -314,7 +313,6 @@ void KokkosLMP::accelerator(int narg, char **arg)
           neighflag = HALF;
       }
       else error->all(FLERR,"Illegal package kokkos command");
-      if (!neighflag_qeq_set) neighflag_qeq = neighflag;
       iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/qeq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -326,7 +324,6 @@ void KokkosLMP::accelerator(int narg, char **arg)
           neighflag_qeq = HALF;
       }
       else error->all(FLERR,"Illegal package kokkos command");
-      neighflag_qeq_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");

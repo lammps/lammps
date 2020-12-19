@@ -18,7 +18,7 @@ in addition to
 
           $ make yes-name
 
-as described on the :doc:`Build_package <Build_package>` doc page.
+as described on the :doc:`Build_package <Build_package>` page.
 
 For a CMake build there may be additional optional or required
 variables to set.  For a build with make, a provided library under the
@@ -282,6 +282,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
          -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build, value = no (default) or yes
          -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off, value = off (default) or on
          -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer, value = no (default) or yes
+         -D KIM_EXTRA_UNITTESTS=value    # enables extra unit tests, value = no (default) or yes
 
       If ``DOWNLOAD_KIM`` is set to *yes* (or *on*), the KIM API library
       will be downloaded and built inside the CMake build directory.  If
@@ -289,6 +290,11 @@ minutes to hours) to build.  Of course you only need to do that once.)
       where CMake cannot find it), you may need to set the
       ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
       found, or run the command ``source kim-api-activate``.
+
+      Extra unit tests can only be available if they are explicitly requested
+      (``KIM_EXTRA_UNITTESTS`` is set to *yes* (or *on*)) and the prerequisites
+      are met. See :ref:`KIM Extra unit tests <kim_extra_unittests>` for
+      more details on this.
 
    .. tab:: Traditional make
 
@@ -337,6 +343,38 @@ certificate. This option is insecure.  As an alternative, you can
 specify your own CA cert path by setting the environment variable
 ``CURL_CA_BUNDLE`` to the path of your choice.  A call to the KIM web
 query would get this value from the environment variable.
+
+.. _kim_extra_unittests:
+
+KIM Extra unit tests (CMake only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+During development, testing, or debugging, if
+:doc:`unit testing <Build_development>` is enabled in LAMMPS, one can also
+enable extra tests on :doc:`KIM commands <kim_commands>` by setting the
+``KIM_EXTRA_UNITTESTS`` to *yes* (or *on*). 
+
+Enabling the extra unit tests have some requirements,
+
+* It requires to have internet access.
+* It requires to have libcurl installed with the matching development headers
+  and the curl-config tool.
+* It requires to build LAMMPS with the PYTHON package installed and linked to
+  Python 3.6 or later. See the :ref:`PYTHON package build info <python>` for
+  more details on this.
+* It requires to have ``kim-property`` Python package installed, which can be
+  easily done using *pip* as ``pip install kim-property``, or from the
+  *conda-forge* channel as ``conda install kim-property`` if LAMMPS is built in
+  Conda. More detailed information is available at:
+  `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
+* It is also necessary to install 
+  ``EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000``, and 
+  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`` KIM models. 
+  See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
+  to learn how to install a pre-build binary of the OpenKIM Repository of
+  Models or see
+  `Installing KIM Models <https://openkim.org/doc/usage/obtaining-models/#installing_models>`_
+  to learn how to install the specific KIM models.
 
 ----------
 

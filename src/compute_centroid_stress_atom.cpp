@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -124,10 +124,35 @@ void ComputeCentroidStressAtom::init()
     else biasflag = NOBIAS;
   } else biasflag = NOBIAS;
 
-  // check if pair styles support centroid atom stress
+  // check if force components and fixes support centroid atom stress
+  // all bond styles support it as CENTROID_SAME
+
   if (pairflag && force->pair)
-    if (force->pair->centroidstressflag & 4)
+    if (force->pair->centroidstressflag == CENTROID_NOTAVAIL)
       error->all(FLERR, "Pair style does not support compute centroid/stress/atom");
+
+  if (angleflag && force->angle)
+    if (force->angle->centroidstressflag == CENTROID_NOTAVAIL)
+      error->all(FLERR, "Angle style does not support compute centroid/stress/atom");
+
+  if (dihedralflag && force->dihedral)
+    if (force->dihedral->centroidstressflag == CENTROID_NOTAVAIL)
+      error->all(FLERR, "Dihedral style does not support compute centroid/stress/atom");
+
+  if (improperflag && force->improper)
+    if (force->improper->centroidstressflag == CENTROID_NOTAVAIL)
+      error->all(FLERR, "Improper style does not support compute centroid/stress/atom");
+
+  if (kspaceflag && force->kspace)
+    if (force->kspace->centroidstressflag == CENTROID_NOTAVAIL)
+      error->all(FLERR, "KSpace style does not support compute centroid/stress/atom");
+
+  if (fixflag) {
+    for (int ifix = 0; ifix < modify->nfix; ifix++)
+      if (modify->fix[ifix]->virial_flag &&
+          modify->fix[ifix]->centroidstressflag == CENTROID_NOTAVAIL)
+        error->all(FLERR, "Fix style does not support compute centroid/stress/atom");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,12 +198,12 @@ void ComputeCentroidStressAtom::compute_peratom()
     for (j = 0; j < 9; j++)
       stress[i][j] = 0.0;
 
-  // add in per-atom contributions from each force
+  // add in per-atom contributions from all force components and fixes
 
-  // per-atom virial and per-atom centroid virial are the same for two-body
-  // many-body pair styles not yet implemented
+  // pair styles are either CENTROID_SAME or CENTROID_AVAIL or CENTROID_NOTAVAIL
+
   if (pairflag && force->pair && force->pair->compute_flag) {
-    if (force->pair->centroidstressflag & 2) {
+    if (force->pair->centroidstressflag == CENTROID_AVAIL) {
       double **cvatom = force->pair->cvatom;
       for (i = 0; i < npair; i++)
         for (j = 0; j < 9; j++)
@@ -195,6 +220,10 @@ void ComputeCentroidStressAtom::compute_peratom()
   }
 
   // per-atom virial and per-atom centroid virial are the same for bonds
+  // bond styles are all CENTROID_SAME
+  // angle, dihedral, improper styles are CENTROID_AVAIL or CENTROID_NOTAVAIL
+  // KSpace styles are all CENTROID_NOTAVAIL, placeholder CENTROID_SAME below
+
   if (bondflag && force->bond) {
     double **vatom = force->bond->vatom;
     for (i = 0; i < nbond; i++) {
@@ -241,6 +270,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // possible during setup phase if fix has not initialized its vatom yet
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input
+  // fix styles are CENTROID_SAME or CENTROID_NOTAVAIL
 
   if (fixflag) {
     for (int ifix = 0; ifix < modify->nfix; ifix++)
@@ -258,7 +288,8 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   // communicate ghost virials between neighbor procs
 
-  if (force->newton || (force->kspace && force->kspace->tip4pflag && force->kspace->compute_flag))
+  if (force->newton ||
+      (force->kspace && force->kspace->tip4pflag && force->kspace->compute_flag))
     comm->reverse_comm_compute(this);
 
   // zero virial of atoms not in group

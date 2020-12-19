@@ -2,7 +2,7 @@ LAMMPS Library Interfaces
 *************************
 
 As described on the :doc:`library interface to LAMMPS <Howto_library>`
-doc page, LAMMPS can be built as a library (static or shared), so that
+page, LAMMPS can be built as a library (static or shared), so that
 it can be called by another code, used in a :doc:`coupled manner
 <Howto_couple>` with other codes, or driven through a :doc:`Python
 script <Python_head>`.  Even the LAMMPS standalone executable is
@@ -58,24 +58,34 @@ functions of the C language API require an argument containing a
 "handle" in the form of a ``void *`` type variable, which points to the
 location of a LAMMPS class instance.
 
-The ``library.h`` header file by default includes the ``mpi.h`` header
-for an MPI library, so it must be present when compiling code using the
-library interface.  This usually must be the header from the same MPI
-library as the LAMMPS library was compiled with.  The exception is when
-LAMMPS was compiled in serial mode using the ``STUBS`` MPI library.  In
-that case the calling code may be compiled with a different MPI library
-so long as :cpp:func:`lammps_open_no_mpi` is called to create a
-LAMMPS instance. Then you may set the define ``-DLAMMPS_LIB_NO_MPI``
-when compiling your code and the inclusion of ``mpi.h`` will be skipped
-and consequently the function :cpp:func:`lammps_open` may not be used.
+The ``library.h`` header file by default does not include the ``mpi.h``
+header file and thus hides the :cpp:func:`lammps_open` function which
+requires the declaration of the ``MPI_comm`` data type.  This is only
+a problem when the communicator that would be passed is different from
+``MPI_COMM_WORLD``.  Otherwise calling :cpp:func:`lammps_open_no_mpi`
+will work just as well.  To make :cpp:func:`lammps_open` available,
+you need to compile the code with ``-DLAMMPS_LIB_MPI`` or add the line
+``#define LAMMPS_LIB_MPI`` before ``#include "library.h"``.
+
+Please note the ``mpi.h`` file must usually be the same (and thus the
+MPI library in use) for the LAMMPS code and library and the calling code.
+The exception is when LAMMPS was compiled in serial mode using the
+``STUBS`` MPI library.  In that case the calling code may be compiled
+with a different MPI library so long as :cpp:func:`lammps_open_no_mpi`
+is called to create a LAMMPS instance.  In that case each MPI rank will
+run LAMMPS in serial mode.
 
 .. admonition:: Errors versus exceptions
    :class: note
 
-   If any of the function calls in the LAMMPS library API trigger
-   an error inside LAMMPS, this will result in an abort of the entire
-   program.  This is not always desirable.  Instead, LAMMPS can be
-   compiled to instead :ref:`throw a C++ exception <exceptions>`.
+   If the LAMMPS executable encounters an error condition, it will abort
+   after printing an error message. For a library interface this is
+   usually not desirable.  Thus LAMMPS can be compiled to to :ref:`throw
+   a C++ exception <exceptions>` instead.  If enabled, the library
+   functions will catch those exceptions and return.  The error status
+   :cpp:func:`can be queried <lammps_has_error>` and an :cpp:func:`error
+   message retrieved <lammps_get_last_error_message>`.  We thus
+   recommend enabling C++ exceptions when using the library interface,
 
 .. warning::
 
@@ -94,6 +104,7 @@ and consequently the function :cpp:func:`lammps_open` may not be used.
    Library_create
    Library_execute
    Library_properties
+   Library_atoms
    Library_objects
    Library_scatter
    Library_neighbor

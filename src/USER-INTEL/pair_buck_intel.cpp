@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -227,7 +227,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl =  (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned

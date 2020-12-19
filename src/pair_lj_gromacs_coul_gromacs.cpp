@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -34,7 +33,6 @@ using namespace LAMMPS_NS;
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
-  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

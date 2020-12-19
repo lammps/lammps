@@ -14,7 +14,6 @@ TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-POLYFILL       = $(SPHINXCONFIG)/_static/polyfill.js
 
 PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
@@ -65,7 +64,7 @@ DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+
 help:
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html          create HTML doc pages in html dir"
+	@echo "  html          create HTML pages in html dir"
 	@echo "  pdf           create Manual.pdf in this dir"
 	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"
@@ -81,7 +80,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(POLYFILL) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
 	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
@@ -95,7 +94,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
+html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
@@ -230,19 +229,12 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install --upgrade pip; \
-		pip install --use-feature=2020-resolver -r $(BUILDDIR)/utils/requirements.txt; \
+		pip install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)
 
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
-
-# fall back to using wget and/or unencrypted download, if curl fails
-$(POLYFILL): $(MATHJAX)
-	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		curl -s -o $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		wget -O $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		wget -O $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

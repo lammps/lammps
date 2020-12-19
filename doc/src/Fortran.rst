@@ -19,19 +19,30 @@ for a simple program using the Fortran interface would be:
    mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
 
 Please note, that the MPI compiler wrapper is only required when the
-calling the library from an MPI parallel code.  Please also note the order
-of the source files: the lammps.f90 file needs to be compiled first,
-since it provides the ``LIBLAMMPS`` module that is imported by the
-Fortran code using the interface.
+calling the library from an MPI parallel code.  Please also note the
+order of the source files: the ``lammps.f90`` file needs to be compiled
+first, since it provides the ``LIBLAMMPS`` module that is imported by
+the Fortran code using the interface.  A working example code can be
+found together with equivalent examples in C and C++ in the
+``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
-.. versionadded:: 30Sep2020
+.. versionadded:: 9Oct2020
 
 .. admonition:: Work in Progress
+   :class: note
 
    This Fortran module is work in progress and only the documented
    functionality is currently available. The final implementation should
    cover the entire range of functionality available in the C and
    Python library interfaces.
+
+.. note::
+
+   A contributed (and complete!) Fortran interface that more
+   closely resembles the C-library interface is available
+   in the ``examples/COUPLE/fortran2`` folder.  Please see the
+   ``README`` file in that folder for more information about it
+   and how to contact its author and maintainer.
 
 ----------
 

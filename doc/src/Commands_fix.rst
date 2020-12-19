@@ -62,6 +62,7 @@ OPT.
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electron/stopping <fix_electron_stopping>`
+   * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
    * :doc:`eos/table <fix_eos_table>`
@@ -195,7 +196,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
-   * :doc:`shake <fix_shake>`
+   * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
    * :doc:`smd/adjust_dt <fix_smd_adjust_dt>`

@@ -65,6 +65,7 @@ class FixBondReact : public Fix {
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
+  int *molecule_keyword;
   int nconstraints;
   int narrhenius;
   double **constraints;

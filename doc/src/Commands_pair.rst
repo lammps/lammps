@@ -81,6 +81,7 @@ OPT.
    * :doc:`coul/slater/long <pair_coul_slater>`
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
+   * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (gio) <pair_dpd>`
@@ -240,6 +241,7 @@ OPT.
    * :doc:`spin/dipole/long <pair_spin_dipole>`
    * :doc:`spin/dmi <pair_spin_dmi>`
    * :doc:`spin/exchange <pair_spin_exchange>`
+   * :doc:`spin/exchange/biquadratic <pair_spin_exchange>`
    * :doc:`spin/magelec <pair_spin_magelec>`
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`

@@ -277,23 +277,25 @@ CudaInternal::~CudaInternal() {
     std::cerr.flush();
   }
 
-  m_cudaDev                 = -1;
-  m_cudaArch                = -1;
-  m_multiProcCount          = 0;
-  m_maxWarpCount            = 0;
-  m_maxBlock                = 0;
-  m_maxSharedWords          = 0;
-  m_maxConcurrency          = 0;
-  m_scratchSpaceCount       = 0;
-  m_scratchFlagsCount       = 0;
-  m_scratchUnifiedCount     = 0;
-  m_scratchUnifiedSupported = 0;
-  m_streamCount             = 0;
-  m_scratchSpace            = nullptr;
-  m_scratchFlags            = nullptr;
-  m_scratchUnified          = nullptr;
-  m_scratchConcurrentBitset = nullptr;
-  m_stream                  = nullptr;
+  m_cudaDev                   = -1;
+  m_cudaArch                  = -1;
+  m_multiProcCount            = 0;
+  m_maxWarpCount              = 0;
+  m_maxBlock                  = 0;
+  m_maxSharedWords            = 0;
+  m_maxConcurrency            = 0;
+  m_scratchSpaceCount         = 0;
+  m_scratchFlagsCount         = 0;
+  m_scratchUnifiedCount       = 0;
+  m_scratchUnifiedSupported   = 0;
+  m_streamCount               = 0;
+  m_scratchSpace              = nullptr;
+  m_scratchFlags              = nullptr;
+  m_scratchUnified            = nullptr;
+  m_scratchConcurrentBitset   = nullptr;
+  m_stream                    = nullptr;
+  m_team_scratch_current_size = 0;
+  m_team_scratch_ptr          = nullptr;
 }
 
 int CudaInternal::verify_is_initialized(const char *const label) const {
@@ -552,7 +554,9 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     CUDA_SAFE_CALL(cudaEventCreate(&constantMemReusable));
   }
 
-  m_stream = stream;
+  m_stream                    = stream;
+  m_team_scratch_current_size = 0;
+  m_team_scratch_ptr          = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -653,12 +657,31 @@ Cuda::size_type *CudaInternal::scratch_functor(
   return m_scratchFunctor;
 }
 
+void *CudaInternal::resize_team_scratch_space(std::int64_t bytes,
+                                              bool force_shrink) {
+  if (m_team_scratch_current_size == 0) {
+    m_team_scratch_current_size = bytes;
+    m_team_scratch_ptr          = Kokkos::kokkos_malloc<Kokkos::CudaSpace>(
+        "CudaSpace::ScratchMemory", m_team_scratch_current_size);
+  }
+  if ((bytes > m_team_scratch_current_size) ||
+      ((bytes < m_team_scratch_current_size) && (force_shrink))) {
+    m_team_scratch_current_size = bytes;
+    m_team_scratch_ptr          = Kokkos::kokkos_realloc<Kokkos::CudaSpace>(
+        m_team_scratch_ptr, m_team_scratch_current_size);
+  }
+  return m_team_scratch_ptr;
+}
+
 //----------------------------------------------------------------------------
 
 void CudaInternal::finalize() {
   was_finalized = true;
   if (nullptr != m_scratchSpace || nullptr != m_scratchFlags) {
-    Impl::finalize_host_cuda_lock_arrays();
+    // Only finalize this if we're the singleton
+    if (this == &singleton()) {
+      Impl::finalize_host_cuda_lock_arrays();
+    }
 
     using RecordCuda = Kokkos::Impl::SharedAllocationRecord<CudaSpace>;
     using RecordHost =
@@ -671,20 +694,25 @@ void CudaInternal::finalize() {
     if (m_scratchFunctorSize > 0)
       RecordCuda::decrement(RecordCuda::get_record(m_scratchFunctor));
 
-    m_cudaDev                 = -1;
-    m_multiProcCount          = 0;
-    m_maxWarpCount            = 0;
-    m_maxBlock                = 0;
-    m_maxSharedWords          = 0;
-    m_scratchSpaceCount       = 0;
-    m_scratchFlagsCount       = 0;
-    m_scratchUnifiedCount     = 0;
-    m_streamCount             = 0;
-    m_scratchSpace            = nullptr;
-    m_scratchFlags            = nullptr;
-    m_scratchUnified          = nullptr;
-    m_scratchConcurrentBitset = nullptr;
-    m_stream                  = nullptr;
+    if (m_team_scratch_current_size > 0)
+      Kokkos::kokkos_free<Kokkos::CudaSpace>(m_team_scratch_ptr);
+
+    m_cudaDev                   = -1;
+    m_multiProcCount            = 0;
+    m_maxWarpCount              = 0;
+    m_maxBlock                  = 0;
+    m_maxSharedWords            = 0;
+    m_scratchSpaceCount         = 0;
+    m_scratchFlagsCount         = 0;
+    m_scratchUnifiedCount       = 0;
+    m_streamCount               = 0;
+    m_scratchSpace              = nullptr;
+    m_scratchFlags              = nullptr;
+    m_scratchUnified            = nullptr;
+    m_scratchConcurrentBitset   = nullptr;
+    m_stream                    = nullptr;
+    m_team_scratch_current_size = 0;
+    m_team_scratch_ptr          = nullptr;
   }
 
   // only destroy these if we're finalizing the singleton

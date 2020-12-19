@@ -1,5 +1,5 @@
 Install LAMMPS
-**************
+==============
 
 You can download LAMMPS as an executable or as source code.
 

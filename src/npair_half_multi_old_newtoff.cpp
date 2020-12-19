@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,10 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_half_size_multi_newton.h"
+#include "npair_half_multi_old_newtoff.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
+#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -22,39 +24,44 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMultiNewton::NPairHalfSizeMultiNewton(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfMultiOldNewtoff::NPairHalfMultiOldNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   size particles
-   binned neighbor list construction with full Newton's 3rd law
-   each owned atom i checks its own bin and other bins in Newton stencil
+   binned neighbor list construction with partial Newton's 3rd law
+   each owned atom i checks own bin and other bins in stencil
    multi-type stencil is itype dependent and is distance checked
-   every pair stored exactly once by some processor
+   pair stored once if i,j are both owned and i < j
+   pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMultiNewton::build(NeighList *list)
+void NPairHalfMultiOldNewtoff::build(NeighList *list)
 {
-  int i,j,k,m,n,itype,jtype,ibin,ns;
+  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radi,radsum,cutdistsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
 
   double **x = atom->x;
-  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
-  int history = list->history;
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
+  else moltemplate = 0;
+
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
-
-  int mask_history = 3 << SBBITS;
 
   int inum = 0;
   ipage->reset();
@@ -67,41 +74,17 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    radi = radius[i];
-
-    // loop over rest of atoms in i's bin, ghosts are at end of linked list
-    // if j is owned atom, store it, since j is beyond i in linked list
-    // if j is ghost, only store if j coords are "above and to the right" of i
-
-    for (j = bins[i]; j >= 0; j = bins[j]) {
-      if (j >= nlocal) {
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-        }
-      }
-
-      jtype = type[j];
-      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      radsum = radi + radius[j];
-      cutdistsq = (radsum+skin) * (radsum+skin);
-
-      if (rsq <= cutdistsq) {
-        if (history && rsq < radsum*radsum) 
-          neighptr[n++] = j ^ mask_history;
-        else 
-          neighptr[n++] = j;
-      }
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in other bins in stencil, store every pair
+    // loop over all atoms in other bins in stencil including self
+    // only store pair if i < j
     // skip if i,j neighbor cutoff is less than bin distance
+    // stores own/own pairs only once
+    // stores own/ghost pairs on both procs
 
     ibin = atom2bin[i];
     s = stencil_multi[itype];
@@ -110,6 +93,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
     ns = nstencil_multi[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
+        if (j <= i) continue;
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
 
@@ -119,14 +103,21 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
-        radsum = radi + radius[j];
-        cutdistsq = (radsum+skin) * (radsum+skin);
 
-        if (rsq <= cutdistsq) {
-          if (history && rsq < radsum*radsum) 
-            neighptr[n++] = j ^ mask_history;
-          else
-            neighptr[n++] = j;
+        if (rsq <= cutneighsq[itype][jtype]) {
+          if (molecular != Atom::ATOMIC) {
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which = 0;
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+          } else neighptr[n++] = j;
         }
       }
     }

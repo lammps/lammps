@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "npair_half_multi_newton_tri_omp.h"
+#include "npair_full_multi_old_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -26,17 +26,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMultiNewtonTriOmp::NPairHalfMultiNewtonTriOmp(LAMMPS *lmp) :
-  NPair(lmp) {}
+NPairFullMultiOldOmp::NPairFullMultiOldOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction with Newton's 3rd law for triclinic
-   each owned atom i checks its own bin and other bins in triclinic stencil
+   binned neighbor list construction for all neighbors
    multi-type stencil is itype dependent and is distance checked
-   every pair stored exactly once by some processor
+   every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
+void NPairFullMultiOldOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -91,13 +89,9 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in bins, including self, in stencil
+    // loop over all atoms in other bins in stencil, including self
     // skip if i,j neighbor cutoff is less than bin distance
-    // bins below self are excluded from stencil
-    // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and lower x)
-    //         (equal zyx and j <= i)
-    // latter excludes self-self interaction but allows superposed atoms
+    // skip i = j
 
     ibin = atom2bin[i];
     s = stencil_multi[itype];
@@ -108,14 +102,7 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
-          }
-        }
+        if (i == j) continue;
 
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -151,4 +138,5 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;
+  list->gnum = 0;
 }

@@ -13,23 +13,23 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(half/multi/newton/tri/omp,
-           NPairHalfMultiNewtonTriOmp,
-           NP_HALF | NP_MULTI | NP_NEWTON | NP_TRI | NP_OMP)
+NPairStyle(half/size/multi/old/newton/omp,
+           NPairHalfSizeMultiOldNewtonOmp,
+           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_NEWTON | NP_OMP | NP_ORTHO)
 
 #else
 
-#ifndef LMP_NPAIR_HALF_MULTI_NEWTON_TRI_OMP_H
-#define LMP_NPAIR_HALF_MULTI_NEWTON_TRI_OMP_H
+#ifndef LMP_NPAIR_HALF_SIZE_MULTI_OLD_NEWTON_OMP_H
+#define LMP_NPAIR_HALF_SIZE_MULTI_OLD_NEWTON_OMP_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfMultiNewtonTriOmp : public NPair {
+class NPairHalfSizeMultiOldNewtonOmp : public NPair {
  public:
-  NPairHalfMultiNewtonTriOmp(class LAMMPS *);
-  ~NPairHalfMultiNewtonTriOmp() {}
+  NPairHalfSizeMultiOldNewtonOmp(class LAMMPS *);
+  ~NPairHalfSizeMultiOldNewtonOmp() {}
   void build(class NeighList *);
 };
 

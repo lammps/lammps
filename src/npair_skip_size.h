@@ -15,7 +15,7 @@
 
 NPairStyle(skip/half/size,
            NPairSkipSize,
-           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI |
+           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 #else

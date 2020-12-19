@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+g/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,24 +13,23 @@
 
 #ifdef NPAIR_CLASS
 
-NPairStyle(half/size/multi/newtoff/omp,
-           NPairHalfSizeMultiNewtoffOmp,
-           NP_HALF | NP_SIZE | NP_MULTI | NP_NEWTOFF | NP_OMP |
-           NP_ORTHO | NP_TRI)
+NPairStyle(half/size/multi/old/newton,
+           NPairHalfSizeMultiOldNewton,
+           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_NEWTON | NP_ORTHO)
 
 #else
 
-#ifndef LMP_NPAIR_HALF_SIZE_MULTI_NEWTOFF_OMP_H
-#define LMP_NPAIR_HALF_SIZE_MULTI_NEWTOFF_OMP_H
+#ifndef LMP_NPAIR_HALF_SIZE_MULTI_OLD_NEWTON_H
+#define LMP_NPAIR_HALF_SIZE_MULTI_OLD_NEWTON_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfSizeMultiNewtoffOmp : public NPair {
+class NPairHalfSizeMultiOldNewton : public NPair {
  public:
-  NPairHalfSizeMultiNewtoffOmp(class LAMMPS *);
-  ~NPairHalfSizeMultiNewtoffOmp() {}
+  NPairHalfSizeMultiOldNewton(class LAMMPS *);
+  ~NPairHalfSizeMultiOldNewton() {}
   void build(class NeighList *);
 };
 
@@ -41,4 +40,7 @@ class NPairHalfSizeMultiNewtoffOmp : public NPair {
 
 /* ERROR/WARNING messages:
 
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
 */

@@ -58,6 +58,19 @@ using namespace NeighConst;
 
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 
+static const char cite_neigh_multi_old[] =
+  "neighbor multi/old command:\n\n"
+  "@Article{Intveld08,\n"
+  " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
+  " and G.{\\,}S.~Grest},\n"
+  " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
+  "            Mixtures in an Explicit Solvent using Molecular Dynamics},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2008,\n"
+  " volume =  179,\n"
+  " pages =   {320--329}\n"
+  "}\n\n";
+
 static const char cite_neigh_multi[] =
   "neighbor multi command:\n\n"
   "@Article{Intveld08,\n"
@@ -69,6 +82,13 @@ static const char cite_neigh_multi[] =
   " year =    2008,\n"
   " volume =  179,\n"
   " pages =   {320--329}\n"
+  "}\n\n"
+  "@article{Shire2020,\n"
+  " author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},\n"
+  " title = {DEM simulations of polydisperse media: efficient contact\n"
+  "          detection applied to investigate the quasi-static limit},\n"
+  " journal = {Computational Particle Mechanics},\n"
+  " year = {2020}\n"
   "}\n\n";
 
 //#define NEIGH_LIST_DEBUG 1
@@ -1622,10 +1642,10 @@ int Neighbor::choose_bin(NeighRequest *rq)
 
     // neighbor style is BIN or MULTI or MULTI2 and must match
 
-    if (style == Neighbor::BIN || style == Neighbor::MULTI) {
+    if (style == Neighbor::BIN || style == Neighbor::MULTI_OLD) {
       if (!(mask & NB_STANDARD)) continue;
-    } else if (style == Neighbor::MULTI2) {
-      if (!(mask & NB_MULTI2)) continue;
+    } else if (style == Neighbor::MULTI) {
+      if (!(mask & NB_MULTI)) continue;
     }
 
     return i+1;
@@ -1695,14 +1715,14 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     if (!rq->ghost != !(mask & NS_GHOST)) continue;
     if (!rq->ssa != !(mask & NS_SSA)) continue;
 
-    // neighbor style is one of BIN, MULTI, or MULTI2 and must match
+    // neighbor style is one of BIN, MULTI_OLD, or MULTI and must match
 
     if (style == Neighbor::BIN) {
       if (!(mask & NS_BIN)) continue;
+    } else if (style == Neighbor::MULTI_OLD) {
+      if (!(mask & NS_MULTI_OLD)) continue;
     } else if (style == Neighbor::MULTI) {
       if (!(mask & NS_MULTI)) continue;
-    } else if (style == Neighbor::MULTI2) {
-      if (!(mask & NS_MULTI2)) continue;
     }
 
     // dimension is 2 or 3 and must match
@@ -1832,16 +1852,16 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (!rq->halffull != !(mask & NP_HALF_FULL)) continue;
     if (!rq->off2on != !(mask & NP_OFF2ON)) continue;
 
-    // neighbor style is one of NSQ, BIN, MULTI, or MULTI2 and must match
+    // neighbor style is one of NSQ, BIN, MULTI_OLD, or MULTI and must match
 
     if (style == Neighbor::NSQ) {
       if (!(mask & NP_NSQ)) continue;
     } else if (style == Neighbor::BIN) {
       if (!(mask & NP_BIN)) continue;
+    } else if (style == Neighbor::MULTI_OLD) {
+      if (!(mask & NP_MULTI_OLD)) continue;
     } else if (style == Neighbor::MULTI) {
       if (!(mask & NP_MULTI)) continue;
-    } else if (style == Neighbor::MULTI2) {
-      if (!(mask & NP_MULTI2)) continue;
     }
 
     // domain triclinic flag is on or off and must match
@@ -2211,9 +2231,10 @@ void Neighbor::set(int narg, char **arg)
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
   else if (strcmp(arg[1],"multi") == 0) style = Neighbor::MULTI;
-  else if (strcmp(arg[1],"multi2") == 0) style = Neighbor::MULTI2;
+  else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
   else error->all(FLERR,"Illegal neighbor command");
 
+  if (style == Neighbor::MULTI_OLD && lmp->citeme) lmp->citeme->add(cite_neigh_multi_old);
   if (style == Neighbor::MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);
 }
 

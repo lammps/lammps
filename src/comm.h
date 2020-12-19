@@ -152,6 +152,7 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
+  int multi2;                        // 1 if multi cutoff is intra-type cutoff
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,
@@ -161,7 +162,6 @@ class Comm : protected Pointers {
                          int (*)(int, char *, int &, int *&, char *&, void *),
                          int, char *&, int, void *, int);
   void rendezvous_stats(int, int, int, int, int, int, bigint);
-  int multi2;                        // 1 if multi cutoff is intra-type cutoff
 
  public:
   enum{MULTIPLE};

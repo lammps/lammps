@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "npair_full_multi_omp.h"
+#include "npair_half_multi_old_newton_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -26,15 +26,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairFullMultiOmp::NPairFullMultiOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfMultiOldNewtonOmp::NPairHalfMultiOldNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction for all neighbors
+   binned neighbor list construction with full Newton's 3rd law
+   each owned atom i checks its own bin and other bins in Newton stencil
    multi-type stencil is itype dependent and is distance checked
-   every neighbor pair appears in list of both atoms i and j
+   every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairFullMultiOmp::build(NeighList *list)
+void NPairHalfMultiOldNewtonOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -89,9 +90,46 @@ void NPairFullMultiOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in other bins in stencil, including self
+    // loop over rest of atoms in i's bin, ghosts are at end of linked list
+    // if j is owned atom, store it, since j is beyond i in linked list
+    // if j is ghost, only store if j coords are "above and to the right" of i
+
+    for (j = bins[i]; j >= 0; j = bins[j]) {
+      if (j >= nlocal) {
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp) {
+          if (x[j][1] < ytmp) continue;
+          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
+      }
+
+      jtype = type[j];
+      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq <= cutneighsq[itype][jtype]) {
+        if (molecular != Atom::ATOMIC) {
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >=0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which = 0;
+          if (which == 0) neighptr[n++] = j;
+          else if (domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+        } else neighptr[n++] = j;
+      }
+    }
+
+    // loop over all atoms in other bins in stencil, store every pair
     // skip if i,j neighbor cutoff is less than bin distance
-    // skip i = j
 
     ibin = atom2bin[i];
     s = stencil_multi[itype];
@@ -102,7 +140,6 @@ void NPairFullMultiOmp::build(NeighList *list)
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
-        if (i == j) continue;
 
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -138,5 +175,4 @@ void NPairFullMultiOmp::build(NeighList *list)
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;
-  list->gnum = 0;
 }

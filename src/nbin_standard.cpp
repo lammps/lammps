@@ -115,7 +115,7 @@ void NBinStandard::setup_bins(int style)
 
   // optimal bin size is roughly 1/2 the cutoff
   // for BIN style, binsize = 1/2 of max neighbor cutoff
-  // for MULTI style, binsize = 1/2 of min neighbor cutoff
+  // for MULTI_OLD style, binsize = 1/2 of min neighbor cutoff
   // special case of all cutoffs = 0.0, binsize = box size
 
   double binsize_optimal;

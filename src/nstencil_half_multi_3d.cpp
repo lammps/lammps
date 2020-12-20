@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_multi2_2d_tri.h"
+#include "nstencil_half_multi_3d.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "nbin.h"
@@ -23,12 +23,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti22dTri::NStencilHalfMulti22dTri(LAMMPS *lmp) :
+NStencilHalfMulti3d::NStencilHalfMulti3d(LAMMPS *lmp) :
   NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void NStencilHalfMulti22dTri::set_stencil_properties()
+void NStencilHalfMulti3d::set_stencil_properties()
 {
   int n = atom->ntypes;
   int i, j;
@@ -59,9 +59,9 @@ void NStencilHalfMulti22dTri::set_stencil_properties()
    create stencils based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilHalfMulti22dTri::create()
+void NStencilHalfMulti3d::create()
 {
-  int itype, jtype, bin_type, i, j, ns;
+  int itype, jtype, bin_type, i, j, k, ns;
   int n = atom->ntypes;
   double cutsq;
   
@@ -72,29 +72,38 @@ void NStencilHalfMulti22dTri::create()
       
       ns = 0;
       
-      sx = stencil_sx_multi2[itype][jtype];
-      sy = stencil_sy_multi2[itype][jtype];
+      sx = stencil_sx_multi[itype][jtype];
+      sy = stencil_sy_multi[itype][jtype];
+      sz = stencil_sz_multi[itype][jtype];
       
-      mbinx = stencil_mbinx_multi2[itype][jtype];
-      mbiny = stencil_mbiny_multi2[itype][jtype];
+      mbinx = stencil_mbinx_multi[itype][jtype];
+      mbiny = stencil_mbiny_multi[itype][jtype];
+      mbinz = stencil_mbinz_multi[itype][jtype];
       
       bin_type = stencil_bin_type[itype][jtype];
       
       cutsq = cutneighsq[itype][jtype];
       
       if (stencil_half[itype][jtype]) {
-        for (j = 0; j <= sy; j++)
-          for (i = -sx; i <= sx; i++)
-            if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
-	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
+        for (k = 0; k <= sz; k++)
+          for (j = -sy; j <= sy; j++)
+            for (i = -sx; i <= sx; i++)
+	          if (k > 0 || j > 0 || (j == 0 && i > 0)) { 
+	            if (bin_distance_multi(i,j,k,bin_type) < cutsq)
+	              stencil_multi[itype][jtype][ns++] = 
+                          k*mbiny*mbinx + j*mbinx + i;
+	          }
       } else {
-        for (j = -sy; j <= sy; j++)
-          for (i = -sx; i <= sx; i++)
-	        if (bin_distance_multi2(i,j,0,bin_type) < cutsq)
-	          stencil_multi2[itype][jtype][ns++] = j*mbinx + i;
+        for (k = -sz; k <= sz; k++)
+          for (j = -sy; j <= sy; j++)
+            for (i = -sx; i <= sx; i++)
+	          if (bin_distance_multi(i,j,k,bin_type) < cutsq)
+	            stencil_multi[itype][jtype][ns++] = 
+                        k*mbiny*mbinx + j*mbinx + i;
       }
       
-      nstencil_multi2[itype][jtype] = ns;
+      nstencil_multi[itype][jtype] = ns;
     }
   }
 }
+

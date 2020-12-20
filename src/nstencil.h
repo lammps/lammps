@@ -41,7 +41,7 @@ class NStencil : protected Pointers {
 
   double cutoff_custom;            // cutoff set by requestor  
   
-  // Arrays to store options for multi2 itype-jtype stencils
+  // Arrays to store options for multi itype-jtype stencils
   bool **stencil_half;             // flag creation of a half stencil for itype-jtype
   bool **stencil_skip;             // skip creation of itype-jtype stencils (for newton on)  
   int **stencil_bin_type;          // what type to use for bin information
@@ -107,7 +107,7 @@ class NStencil : protected Pointers {
   void copy_bin_info();                     // copy info from NBin class
   double bin_distance(int, int, int);       // distance between bin corners
 
-  // methods for multi2 NStencil
+  // methods for multi NStencil
 
   double bin_distance_multi(int, int, int, int);   // distance between bin corners for different types 
   void copy_bin_info_multi();                      // copy multi info from NBin class

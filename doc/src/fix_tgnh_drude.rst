@@ -65,10 +65,13 @@ Examples
 Description
 """""""""""
 
-These commands are variants of the Nose-Hoover fix styles :doc:`fix nvt <fix_nh>` and :doc:`fix npt <fix_nh>` for thermalized Drude polarizable models.
-They apply temperature-grouped Nose-Hoover thermostat (TGNH) proposed by :ref:`(Son) <tgnh-Son>`.
-When there are fast vibrational modes with frequencies close to Drude oscillators (e.g. double bonds or out-of-plane torsions),
-this thermostat can provide better kinetic energy equipartition.
+These commands are variants of the Nose-Hoover fix styles :doc:`fix nvt
+<fix_nh>` and :doc:`fix npt <fix_nh>` for thermalized Drude polarizable
+models.  They apply temperature-grouped Nose-Hoover thermostat (TGNH)
+proposed by :ref:`(Son) <tgnh-Son>`.  When there are fast vibrational
+modes with frequencies close to Drude oscillators (e.g. double bonds or
+out-of-plane torsions), this thermostat can provide better kinetic
+energy equipartitioning.
 
 The difference between TGNH and the original Nose-Hoover thermostat is that,
 TGNH separates the kinetic energy of the group into three contributions:
@@ -108,8 +111,8 @@ Here :math:`N_\mathrm{mol}` and :math:`N_\mathrm{mol,sys}` are the numbers of mo
    not.  You must therefore use the :doc:`fix drude <fix_drude>` command to
    specify the Drude status of each atom type.
 
-   Because that TGNH thermostat thermalizes the molecular COM motion,
-   all atoms belong to the same molecule must be in the same group.
+   Because the TGNH thermostat thermostats the molecular COM motion,
+   all atoms belonging to the same molecule must be in the same group.
    That is, these fixes can not be applied to a subset of a molecule.
 
    For this fix to act correctly, ghost atoms need to know their velocity.

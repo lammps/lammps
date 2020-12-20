@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nbin_multi2.h"
+#include "nbin_multi.h"
 #include "neighbor.h"
 #include "atom.h"
 #include "group.h"
@@ -28,34 +28,34 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NBinMulti2::NBinMulti2(LAMMPS *lmp) : NBin(lmp) {}
+NBinMulti::NBinMulti(LAMMPS *lmp) : NBin(lmp) {}
 
 /* ----------------------------------------------------------------------
    setup for bin_atoms()
 ------------------------------------------------------------------------- */
 
-void NBinMulti2::bin_atoms_setup(int nall) 
+void NBinMulti::bin_atoms_setup(int nall) 
 {
-  // binhead_multi2[n] = per-bin vector mbins in length mbins_multi2[n]
+  // binhead_multi[n] = per-bin vector mbins in length mbins_multi[n]
   
   for (int n = 1; n <= maxtypes; n++) {
-    if (mbins_multi2[n] > maxbins_multi2[n]) {
-      maxbins_multi2[n] = mbins_multi2[n];
-      memory->destroy(binhead_multi2[n]);
-      memory->create(binhead_multi2[n], mbins_multi2[n], "neigh:mbins_multi2");
+    if (mbins_multi[n] > maxbins_multi[n]) {
+      maxbins_multi[n] = mbins_multi[n];
+      memory->destroy(binhead_multi[n]);
+      memory->create(binhead_multi[n], mbins_multi[n], "neigh:mbins_multi");
     }
   }
 
-  // bins_multi2[n] and atom2bin_multi2[n] = per-atom vectors
+  // bins_multi[n] and atom2bin_multi[n] = per-atom vectors
   // for both local and ghost atoms
 
   if (nall > maxatom) {
     maxatom = nall;
     for (int n = 1; n <= maxtypes; n++) {
-      memory->destroy(bins_multi2[n]);
-      memory->destroy(atom2bin_multi2[n]);
-      memory->create(bins_multi2[n], maxatom, "neigh:bin_multi2");
-      memory->create(atom2bin_multi2[n], maxatom, "neigh:atom2bin_multi2");
+      memory->destroy(bins_multi[n]);
+      memory->destroy(atom2bin_multi[n]);
+      memory->create(bins_multi[n], maxatom, "neigh:bin_multi");
+      memory->create(atom2bin_multi[n], maxatom, "neigh:atom2bin_multi");
     }
   }
 }
@@ -64,7 +64,7 @@ void NBinMulti2::bin_atoms_setup(int nall)
    Identify index of type with smallest cutoff
 ------------------------------------------------------------------------ */
 
-int NBinMulti2::itype_min() {
+int NBinMulti::itype_min() {
 
   int itypemin = 1;
   double ** cutneighsq;
@@ -84,7 +84,7 @@ int NBinMulti2::itype_min() {
    setup neighbor binning geometry
    ---------------------------------------------------------------------- */
 
-void NBinMulti2::setup_bins(int style)
+void NBinMulti::setup_bins(int style)
 {
   int n;
   int itypemin;
@@ -96,64 +96,64 @@ void NBinMulti2::setup_bins(int style)
     // Clear any/all memory for existing types
 
     for (n = 1; n <= maxtypes; n++) {
-      memory->destroy(atom2bin_multi2[n]);
-      memory->destroy(binhead_multi2[n]);
-      memory->destroy(bins_multi2[n]);
+      memory->destroy(atom2bin_multi[n]);
+      memory->destroy(binhead_multi[n]);
+      memory->destroy(bins_multi[n]);
     }
-    delete [] atom2bin_multi2;
-    delete [] binhead_multi2;
-    delete [] bins_multi2;
+    delete [] atom2bin_multi;
+    delete [] binhead_multi;
+    delete [] bins_multi;
 
     // Realloacte at updated maxtypes
 
     maxtypes = atom->ntypes;
 
-    atom2bin_multi2 = new int*[maxtypes+1]();
-    binhead_multi2 = new int*[maxtypes+1]();
-    bins_multi2 = new int*[maxtypes+1]();
+    atom2bin_multi = new int*[maxtypes+1]();
+    binhead_multi = new int*[maxtypes+1]();
+    bins_multi = new int*[maxtypes+1]();
 
-    memory->destroy(nbinx_multi2);
-    memory->destroy(nbiny_multi2);
-    memory->destroy(nbinz_multi2);
-    memory->create(nbinx_multi2, maxtypes+1, "neigh:nbinx_multi2");
-    memory->create(nbiny_multi2, maxtypes+1, "neigh:nbiny_multi2");
-    memory->create(nbinz_multi2, maxtypes+1, "neigh:nbinz_multi2");
+    memory->destroy(nbinx_multi);
+    memory->destroy(nbiny_multi);
+    memory->destroy(nbinz_multi);
+    memory->create(nbinx_multi, maxtypes+1, "neigh:nbinx_multi");
+    memory->create(nbiny_multi, maxtypes+1, "neigh:nbiny_multi");
+    memory->create(nbinz_multi, maxtypes+1, "neigh:nbinz_multi");
 
-    memory->destroy(mbins_multi2);
-    memory->destroy(mbinx_multi2);
-    memory->destroy(mbiny_multi2);
-    memory->destroy(mbinz_multi2);
-    memory->create(mbins_multi2, maxtypes+1, "neigh:mbins_multi2");
-    memory->create(mbinx_multi2, maxtypes+1, "neigh:mbinx_multi2");
-    memory->create(mbiny_multi2, maxtypes+1, "neigh:mbiny_multi2");
-    memory->create(mbinz_multi2, maxtypes+1, "neigh:mbinz_multi2");
+    memory->destroy(mbins_multi);
+    memory->destroy(mbinx_multi);
+    memory->destroy(mbiny_multi);
+    memory->destroy(mbinz_multi);
+    memory->create(mbins_multi, maxtypes+1, "neigh:mbins_multi");
+    memory->create(mbinx_multi, maxtypes+1, "neigh:mbinx_multi");
+    memory->create(mbiny_multi, maxtypes+1, "neigh:mbiny_multi");
+    memory->create(mbinz_multi, maxtypes+1, "neigh:mbinz_multi");
 
-    memory->destroy(mbinxlo_multi2);
-    memory->destroy(mbinylo_multi2);
-    memory->destroy(mbinzlo_multi2);
-    memory->create(mbinxlo_multi2, maxtypes+1, "neigh:mbinxlo_multi2");
-    memory->create(mbinylo_multi2, maxtypes+1, "neigh:mbinylo_multi2");
-    memory->create(mbinzlo_multi2, maxtypes+1, "neigh:mbinzlo_multi2");
+    memory->destroy(mbinxlo_multi);
+    memory->destroy(mbinylo_multi);
+    memory->destroy(mbinzlo_multi);
+    memory->create(mbinxlo_multi, maxtypes+1, "neigh:mbinxlo_multi");
+    memory->create(mbinylo_multi, maxtypes+1, "neigh:mbinylo_multi");
+    memory->create(mbinzlo_multi, maxtypes+1, "neigh:mbinzlo_multi");
 
-    memory->destroy(binsizex_multi2);
-    memory->destroy(binsizey_multi2);
-    memory->destroy(binsizez_multi2);
-    memory->create(binsizex_multi2, maxtypes+1, "neigh:binsizex_multi2");
-    memory->create(binsizey_multi2, maxtypes+1, "neigh:binsizey_multi2");
-    memory->create(binsizez_multi2, maxtypes+1, "neigh:binsizez_multi2");
+    memory->destroy(binsizex_multi);
+    memory->destroy(binsizey_multi);
+    memory->destroy(binsizez_multi);
+    memory->create(binsizex_multi, maxtypes+1, "neigh:binsizex_multi");
+    memory->create(binsizey_multi, maxtypes+1, "neigh:binsizey_multi");
+    memory->create(binsizez_multi, maxtypes+1, "neigh:binsizez_multi");
 
-    memory->destroy(bininvx_multi2);
-    memory->destroy(bininvy_multi2);
-    memory->destroy(bininvz_multi2);
-    memory->create(bininvx_multi2, maxtypes+1, "neigh:bininvx_multi2");
-    memory->create(bininvy_multi2, maxtypes+1, "neigh:bininvy_multi2");
-    memory->create(bininvz_multi2, maxtypes+1, "neigh:bininvz_multi2");
+    memory->destroy(bininvx_multi);
+    memory->destroy(bininvy_multi);
+    memory->destroy(bininvz_multi);
+    memory->create(bininvx_multi, maxtypes+1, "neigh:bininvx_multi");
+    memory->create(bininvy_multi, maxtypes+1, "neigh:bininvy_multi");
+    memory->create(bininvz_multi, maxtypes+1, "neigh:bininvz_multi");
 
-    memory->destroy(maxbins_multi2);
-    memory->create(maxbins_multi2, maxtypes+1, "neigh:maxbins_multi2");
+    memory->destroy(maxbins_multi);
+    memory->create(maxbins_multi, maxtypes+1, "neigh:maxbins_multi");
     // make sure reallocation occurs in bin_atoms_setup()
     for (n = 1; n <= maxtypes; n++) {
-      maxbins_multi2[n] = 0;
+      maxbins_multi[n] = 0;
     }
     maxatom = 0;
   }
@@ -214,16 +214,16 @@ void NBinMulti2::setup_bins(int style)
 
     // create actual bins
     // always have one bin even if cutoff > bbox
-    // for 2d, nbinz_multi2[n] = 1
+    // for 2d, nbinz_multi[n] = 1
 
-    nbinx_multi2[n] = static_cast<int> (bbox[0]*binsizeinv);
-    nbiny_multi2[n] = static_cast<int> (bbox[1]*binsizeinv);
-    if (dimension == 3) nbinz_multi2[n] = static_cast<int> (bbox[2]*binsizeinv);
-    else nbinz_multi2[n] = 1;
+    nbinx_multi[n] = static_cast<int> (bbox[0]*binsizeinv);
+    nbiny_multi[n] = static_cast<int> (bbox[1]*binsizeinv);
+    if (dimension == 3) nbinz_multi[n] = static_cast<int> (bbox[2]*binsizeinv);
+    else nbinz_multi[n] = 1;
 
-    if (nbinx_multi2[n] == 0) nbinx_multi2[n] = 1;
-    if (nbiny_multi2[n] == 0) nbiny_multi2[n] = 1;
-    if (nbinz_multi2[n] == 0) nbinz_multi2[n] = 1;
+    if (nbinx_multi[n] == 0) nbinx_multi[n] = 1;
+    if (nbiny_multi[n] == 0) nbiny_multi[n] = 1;
+    if (nbinz_multi[n] == 0) nbinz_multi[n] = 1;
 
     // compute actual bin size for nbins to fit into box exactly
     // error if actual bin size << cutoff, since will create a zillion bins
@@ -231,17 +231,17 @@ void NBinMulti2::setup_bins(int style)
     // typically due to non-periodic, flat system in a particular dim
     // in that extreme case, should use NSQ not BIN neighbor style
 
-    binsizex_multi2[n] = bbox[0]/nbinx_multi2[n];
-    binsizey_multi2[n] = bbox[1]/nbiny_multi2[n];
-    binsizez_multi2[n] = bbox[2]/nbinz_multi2[n];
+    binsizex_multi[n] = bbox[0]/nbinx_multi[n];
+    binsizey_multi[n] = bbox[1]/nbiny_multi[n];
+    binsizez_multi[n] = bbox[2]/nbinz_multi[n];
 
-    bininvx_multi2[n] = 1.0 / binsizex_multi2[n];
-    bininvy_multi2[n] = 1.0 / binsizey_multi2[n];
-    bininvz_multi2[n] = 1.0 / binsizez_multi2[n];
+    bininvx_multi[n] = 1.0 / binsizex_multi[n];
+    bininvy_multi[n] = 1.0 / binsizey_multi[n];
+    bininvz_multi[n] = 1.0 / binsizez_multi[n];
 
-    if (binsize_optimal*bininvx_multi2[n] > CUT2BIN_RATIO ||
-	    binsize_optimal*bininvy_multi2[n] > CUT2BIN_RATIO ||
-	    binsize_optimal*bininvz_multi2[n] > CUT2BIN_RATIO)
+    if (binsize_optimal*bininvx_multi[n] > CUT2BIN_RATIO ||
+	    binsize_optimal*bininvy_multi[n] > CUT2BIN_RATIO ||
+	    binsize_optimal*bininvz_multi[n] > CUT2BIN_RATIO)
       error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
 
     // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
@@ -253,46 +253,46 @@ void NBinMulti2::setup_bins(int style)
     double coord;
 
     coord = bsubboxlo[0] - SMALL*bbox[0];
-    mbinxlo_multi2[n] = static_cast<int> ((coord-bboxlo[0])*bininvx_multi2[n]);
-    if (coord < bboxlo[0]) mbinxlo_multi2[n] = mbinxlo_multi2[n] - 1;
+    mbinxlo_multi[n] = static_cast<int> ((coord-bboxlo[0])*bininvx_multi[n]);
+    if (coord < bboxlo[0]) mbinxlo_multi[n] = mbinxlo_multi[n] - 1;
     coord = bsubboxhi[0] + SMALL*bbox[0];
-    mbinxhi = static_cast<int> ((coord-bboxlo[0])*bininvx_multi2[n]);
+    mbinxhi = static_cast<int> ((coord-bboxlo[0])*bininvx_multi[n]);
 
     coord = bsubboxlo[1] - SMALL*bbox[1];
-    mbinylo_multi2[n] = static_cast<int> ((coord-bboxlo[1])*bininvy_multi2[n]);
-    if (coord < bboxlo[1]) mbinylo_multi2[n] = mbinylo_multi2[n] - 1;
+    mbinylo_multi[n] = static_cast<int> ((coord-bboxlo[1])*bininvy_multi[n]);
+    if (coord < bboxlo[1]) mbinylo_multi[n] = mbinylo_multi[n] - 1;
     coord = bsubboxhi[1] + SMALL*bbox[1];
-    mbinyhi = static_cast<int> ((coord-bboxlo[1])*bininvy_multi2[n]);
+    mbinyhi = static_cast<int> ((coord-bboxlo[1])*bininvy_multi[n]);
 
     if (dimension == 3) {
       coord = bsubboxlo[2] - SMALL*bbox[2];
-      mbinzlo_multi2[n] = static_cast<int> ((coord-bboxlo[2])*bininvz_multi2[n]);
-      if (coord < bboxlo[2]) mbinzlo_multi2[n] = mbinzlo_multi2[n] - 1;
+      mbinzlo_multi[n] = static_cast<int> ((coord-bboxlo[2])*bininvz_multi[n]);
+      if (coord < bboxlo[2]) mbinzlo_multi[n] = mbinzlo_multi[n] - 1;
       coord = bsubboxhi[2] + SMALL*bbox[2];
-      mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz_multi2[n]);
+      mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz_multi[n]);
     }
 
     // extend bins by 1 to insure stencil extent is included
     // for 2d, only 1 bin in z
 
-    mbinxlo_multi2[n] = mbinxlo_multi2[n] - 1;
+    mbinxlo_multi[n] = mbinxlo_multi[n] - 1;
     mbinxhi = mbinxhi + 1;
-    mbinx_multi2[n] = mbinxhi - mbinxlo_multi2[n] + 1;
+    mbinx_multi[n] = mbinxhi - mbinxlo_multi[n] + 1;
 
-    mbinylo_multi2[n] = mbinylo_multi2[n] - 1;
+    mbinylo_multi[n] = mbinylo_multi[n] - 1;
     mbinyhi = mbinyhi + 1;
-    mbiny_multi2[n] = mbinyhi - mbinylo_multi2[n] + 1;
+    mbiny_multi[n] = mbinyhi - mbinylo_multi[n] + 1;
 
     if (dimension == 3) {
-      mbinzlo_multi2[n] = mbinzlo_multi2[n] - 1;
+      mbinzlo_multi[n] = mbinzlo_multi[n] - 1;
       mbinzhi = mbinzhi + 1;
-    } else mbinzlo_multi2[n] = mbinzhi = 0;
-    mbinz_multi2[n] = mbinzhi - mbinzlo_multi2[n] + 1;
+    } else mbinzlo_multi[n] = mbinzhi = 0;
+    mbinz_multi[n] = mbinzhi - mbinzlo_multi[n] + 1;
 
-    bigint bbin = ((bigint) mbinx_multi2[n]) 
-      * ((bigint) mbiny_multi2[n]) * ((bigint) mbinz_multi2[n]) + 1;
+    bigint bbin = ((bigint) mbinx_multi[n]) 
+      * ((bigint) mbiny_multi[n]) * ((bigint) mbinz_multi[n]) + 1;
     if (bbin > MAXSMALLINT) error->one(FLERR,"Too many neighbor bins");
-    mbins_multi2[n] = bbin;
+    mbins_multi[n] = bbin;
   }
 
 }
@@ -301,13 +301,13 @@ void NBinMulti2::setup_bins(int style)
    bin owned and ghost atoms by type
 ------------------------------------------------------------------------- */
 
-void NBinMulti2::bin_atoms()
+void NBinMulti::bin_atoms()
 {
   int i,ibin,n;
 
   last_bin = update->ntimestep;
   for (n = 1; n <= maxtypes; n++) {
-    for (i = 0; i < mbins_multi2[n]; i++) binhead_multi2[n][i] = -1;
+    for (i = 0; i < mbins_multi[n]; i++) binhead_multi[n][i] = -1;
   }
 
   // bin in reverse order so linked list will be in forward order
@@ -324,38 +324,38 @@ void NBinMulti2::bin_atoms()
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
         n = type[i];
-        ibin = coord2bin_multi2(x[i], n);
-        atom2bin_multi2[n][i] = ibin;
-        bins_multi2[n][i] = binhead_multi2[n][ibin];
-        binhead_multi2[n][ibin] = i;
+        ibin = coord2bin_multi(x[i], n);
+        atom2bin_multi[n][i] = ibin;
+        bins_multi[n][i] = binhead_multi[n][ibin];
+        binhead_multi[n][ibin] = i;
       }
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
       n = type[i];
-      ibin = coord2bin_multi2(x[i], n);
-      atom2bin_multi2[n][i] = ibin;
-      bins_multi2[n][i] = binhead_multi2[n][ibin];
-      binhead_multi2[n][ibin] = i;
+      ibin = coord2bin_multi(x[i], n);
+      atom2bin_multi[n][i] = ibin;
+      bins_multi[n][i] = binhead_multi[n][ibin];
+      binhead_multi[n][ibin] = i;
     }
   } else {
     for (i = nall-1; i >= 0; i--) {
       n = type[i];
-      ibin = coord2bin_multi2(x[i], n);
-      atom2bin_multi2[n][i] = ibin;
-      bins_multi2[n][i] = binhead_multi2[n][ibin];
-      binhead_multi2[n][ibin] = i;
+      ibin = coord2bin_multi(x[i], n);
+      atom2bin_multi[n][i] = ibin;
+      bins_multi[n][i] = binhead_multi[n][ibin];
+      binhead_multi[n][ibin] = i;
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double NBinMulti2::memory_usage()
+double NBinMulti::memory_usage()
 {
   double bytes = 0;
   
   for (int m = 1; m < maxtypes; m++) {
-    bytes += maxbins_multi2[m]*sizeof(int);
+    bytes += maxbins_multi[m]*sizeof(int);
     bytes += 2*maxatom*sizeof(int);
   }
   return bytes;

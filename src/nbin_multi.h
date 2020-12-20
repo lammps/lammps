@@ -13,24 +13,24 @@
 
 #ifdef NBIN_CLASS
 
-NBinStyle(multi2,
-          NBinMulti2,
-          NB_MULTI2)
+NBinStyle(multi,
+          NBinMulti,
+          NB_MULTI)
 
 #else
 
-#ifndef LMP_NBIN_MULTI2_H
-#define LMP_NBIN_MULTI2_H
+#ifndef LMP_NBIN_MULTI_H
+#define LMP_NBIN_MULTI_H
 
 #include "nbin.h"
 
 namespace LAMMPS_NS {
 
-class NBinMulti2 : public NBin {
+class NBinMulti : public NBin {
  public:
 
-  NBinMulti2(class LAMMPS *);
-  ~NBinMulti2() {}
+  NBinMulti(class LAMMPS *);
+  ~NBinMulti() {}
   void bin_atoms_setup(int);
   void setup_bins(int);
   void bin_atoms();

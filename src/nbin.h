@@ -38,18 +38,18 @@ class NBin : protected Pointers {
   int *bins;                   // index of next atom in same bin
   int *atom2bin;               // bin assignment for each atom (local+ghost)
 
-  // Analogues for NBinMultimulti2
+  // Analogues for NBinMultimulti
   
-  int *nbinx_multi2, *nbiny_multi2, *nbinz_multi2;
-  int *mbins_multi2;
-  int *mbinx_multi2, *mbiny_multi2, *mbinz_multi2;
-  int *mbinxlo_multi2, *mbinylo_multi2, *mbinzlo_multi2;
-  double *binsizex_multi2, *binsizey_multi2, *binsizez_multi2;
-  double *bininvx_multi2, *bininvy_multi2, *bininvz_multi2;
+  int *nbinx_multi, *nbiny_multi, *nbinz_multi;
+  int *mbins_multi;
+  int *mbinx_multi, *mbiny_multi, *mbinz_multi;
+  int *mbinxlo_multi, *mbinylo_multi, *mbinzlo_multi;
+  double *binsizex_multi, *binsizey_multi, *binsizez_multi;
+  double *bininvx_multi, *bininvy_multi, *bininvz_multi;
 
-  int **binhead_multi2;
-  int **bins_multi2;
-  int **atom2bin_multi2;
+  int **binhead_multi;
+  int **bins_multi;
+  int **atom2bin_multi;
   
   NBin(class LAMMPS *);
   ~NBin();
@@ -89,15 +89,15 @@ class NBin : protected Pointers {
 
   int maxbin;                       // size of binhead array
 
-  // data for multi/multi2 NBin
+  // data for multi/multi NBin
 
-  int maxtypes;                     // size of multi2 arrays
-  int * maxbins_multi2;             // size of 2nd dimension of binhead_multi2 array
+  int maxtypes;                     // size of multi arrays
+  int * maxbins_multi;             // size of 2nd dimension of binhead_multi array
 
   // methods
 
   int coord2bin(double *);
-  int coord2bin_multi2(double *, int);  
+  int coord2bin_multi(double *, int);  
 };
 
 }

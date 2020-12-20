@@ -27,21 +27,17 @@ class NStencil : protected Pointers {
   int nstencil;                    // # of bins in stencil
   int *stencil;                    // list of bin offsets
   int **stencilxyz;                // bin offsets in xyz dims
-  int *nstencil_multi;             // # bins in each type-based multi stencil
-  int **stencil_multi;             // list of bin offsets in each stencil
-  double **distsq_multi;           // sq distances to bins in each stencil
-  int ** nstencil_multi2;          // # bins bins in each itype-jtype multi2 stencil
-  int *** stencil_multi2;          // list of bin offsets in each multi2 stencil
-  int ** maxstencil_multi2;        // max stencil size for each multi2 stencil
-  
-  // Note distsq_multi is used in multi to quickly skip bins beyond interaction cutoff
-  // Not quite sure why bins are beyond this distance? Have to think
-  // Probably not needed for multi2 since bins are more efficiently chosen
+  int *nstencil_multi_old;         // # bins in each type-based old multi stencil
+  int **stencil_multi_old;         // list of bin offsets in each stencil
+  double **distsq_multi_old;       // sq distances to bins in each stencil
+  int ** nstencil_multi;           // # bins bins in each itype-jtype multi stencil
+  int *** stencil_multi;           // list of bin offsets in each multi stencil
+  int ** maxstencil_multi;         // max stencil size for each multi stencil
   
   int sx,sy,sz;                    // extent of stencil in each dim
-  int **stencil_sx_multi2;         // analogs for each multi2 stencil
-  int **stencil_sy_multi2;
-  int **stencil_sz_multi2;
+  int **stencil_sx_multi;         // analogs for each multi stencil
+  int **stencil_sy_multi;
+  int **stencil_sz_multi;
 
   double cutoff_custom;            // cutoff set by requestor  
   
@@ -77,32 +73,32 @@ class NStencil : protected Pointers {
   double binsizex,binsizey,binsizez;
   double bininvx,bininvy,bininvz;
   
-  // data from NBin class for multi2
+  // data from NBin class for multi
   
-  int *mbinx_multi2;
-  int *mbiny_multi2;
-  int *mbinz_multi2;
-  double *binsizex_multi2;
-  double *binsizey_multi2;
-  double *binsizez_multi2;
-  double *bininvx_multi2;
-  double *bininvy_multi2;
-  double *bininvz_multi2;
+  int *mbinx_multi;
+  int *mbiny_multi;
+  int *mbinz_multi;
+  double *binsizex_multi;
+  double *binsizey_multi;
+  double *binsizez_multi;
+  double *bininvx_multi;
+  double *bininvy_multi;
+  double *bininvz_multi;
   
   // Stored bin information for each stencil
   
-  int **stencil_mbinx_multi2;
-  int **stencil_mbiny_multi2;
-  int **stencil_mbinz_multi2;
-  double **stencil_binsizex_multi2;
-  double **stencil_binsizey_multi2;
-  double **stencil_binsizez_multi2;  
+  int **stencil_mbinx_multi;
+  int **stencil_mbiny_multi;
+  int **stencil_mbinz_multi;
+  double **stencil_binsizex_multi;
+  double **stencil_binsizey_multi;
+  double **stencil_binsizez_multi;  
   
   // data common to all NStencil variants
 
   int xyzflag;                     // 1 if stencilxyz is allocated
   int maxstencil;                  // max size of stencil
-  int maxstencil_multi;            // max sizes of stencils
+  int maxstencil_multi_old;        // max sizes of stencils
 
   int dimension;
 
@@ -113,8 +109,8 @@ class NStencil : protected Pointers {
 
   // methods for multi2 NStencil
 
-  double bin_distance_multi2(int, int, int, int);  // distance between bin corners for different types 
-  void copy_bin_info_multi2();                     // copy mult2 info from NBin class
+  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different types 
+  void copy_bin_info_multi();                      // copy multi info from NBin class
   virtual void set_stencil_properties(){}          // determine which stencils to build and how 
 };
 

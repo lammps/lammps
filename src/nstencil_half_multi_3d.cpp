@@ -42,14 +42,14 @@ void NStencilHalfMulti3d::set_stencil_properties()
     for (j = 1; j <= n; j++) {
       if(cutneighsq[i][i] > cutneighsq[j][j]) continue;
 
-      stencil_skip[i][j] = 0;
+      flag_skip_multi[i][j] = 0;
       
       if(cutneighsq[i][i] == cutneighsq[j][j]){
-        stencil_half[i][j] = 1;
-        stencil_bin_type[i][j] = i;
+        flag_half_multi[i][j] = 1;
+        bin_type_multi[i][j] = i;
       } else {
-        stencil_half[i][j] = 0;
-        stencil_bin_type[i][j] = j;
+        flag_half_multi[i][j] = 0;
+        bin_type_multi[i][j] = j;
       }
     }
   }
@@ -68,7 +68,7 @@ void NStencilHalfMulti3d::create()
   
   for (itype = 1; itype <= n; itype++) {
     for (jtype = 1; jtype <= n; jtype++) {
-      if (stencil_skip[itype][jtype]) continue;
+      if (flag_skip_multi[itype][jtype]) continue;
       
       ns = 0;
       
@@ -80,11 +80,11 @@ void NStencilHalfMulti3d::create()
       mbiny = stencil_mbiny_multi[itype][jtype];
       mbinz = stencil_mbinz_multi[itype][jtype];
       
-      bin_type = stencil_bin_type[itype][jtype];
+      bin_type = bin_type_multi[itype][jtype];
       
       cutsq = cutneighsq[itype][jtype];
       
-      if (stencil_half[itype][jtype]) {
+      if (flag_half_multi[itype][jtype]) {
         for (k = 0; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)

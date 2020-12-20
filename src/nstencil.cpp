@@ -79,9 +79,9 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   stencil_multi = nullptr;  
   maxstencil_multi = nullptr;
  
-  stencil_half = nullptr;
-  stencil_skip = nullptr;
-  stencil_bin_type = nullptr;
+  flag_half_multi = nullptr;
+  flag_skip_multi = nullptr;
+  bin_type_multi = nullptr;
 
   dimension = domain->dimension;
 }
@@ -111,16 +111,16 @@ NStencil::~NStencil()
     memory->destroy(nstencil_multi);
     for (int i = 1; i <= n; i++) {
       for (int j = 0; j <= n; j++) {
-        if (! stencil_skip[i][j]) 
+        if (! flag_skip_multi[i][j]) 
             memory->destroy(stencil_multi[i][j]);
       }
       delete [] stencil_multi[i];
     }
     delete [] stencil_multi;
     memory->destroy(maxstencil_multi);
-    memory->destroy(stencil_half);
-    memory->destroy(stencil_skip);
-    memory->destroy(stencil_bin_type);
+    memory->destroy(flag_half_multi);
+    memory->destroy(flag_skip_multi);
+    memory->destroy(bin_type_multi);
     
     memory->destroy(stencil_sx_multi);
     memory->destroy(stencil_sy_multi);
@@ -272,12 +272,12 @@ void NStencil::create_setup()
     if(nb) copy_bin_info_multi();
 
     // Allocate arrays to store stencil information
-    memory->create(stencil_half, n+1, n+1, 
-                   "neighstencil:stencil_half");
-    memory->create(stencil_skip, n+1, n+1, 
-                   "neighstencil:stencil_skip");
-    memory->create(stencil_bin_type, n+1, n+1, 
-                   "neighstencil:stencil_bin_type");
+    memory->create(flag_half_multi, n+1, n+1, 
+                   "neighstencil:flag_half_multi");
+    memory->create(flag_skip_multi, n+1, n+1, 
+                   "neighstencil:flag_skip_multi");
+    memory->create(bin_type_multi, n+1, n+1, 
+                   "neighstencil:bin_type_multi");
 
     memory->create(stencil_sx_multi, n+1, n+1, 
                    "neighstencil:stencil_sx_multi");               
@@ -303,7 +303,7 @@ void NStencil::create_setup()
     // Skip all stencils by default, initialize smax
     for (i = 1; i <= n; i++) {
       for (j = 1; j <= n; j++) {
-        stencil_skip[i][j] = 1;   
+        flag_skip_multi[i][j] = 1;   
       }
     }
       
@@ -329,10 +329,10 @@ void NStencil::create_setup()
       for (j = 1; j <= n; j++) {
         
         // Skip creation of unused stencils 
-        if (stencil_skip[i][j]) continue;
+        if (flag_skip_multi[i][j]) continue;
            
-        // Copy bin info for this particular pair of types
-        bin_type = stencil_bin_type[i][j];
+        // Copy bin info for this pair of atom types
+        bin_type = bin_type_multi[i][j];
         
         stencil_binsizex_multi[i][j] = binsizex_multi[bin_type];
         stencil_binsizey_multi[i][j] = binsizey_multi[bin_type];

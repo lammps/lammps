@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMultiNewtonOldOmp::NPairHalfSizeMultiNewtonOldOmp(LAMMPS *lmp) :
+NPairHalfSizeMultiOldNewtonOmp::NPairHalfSizeMultiOldNewtonOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -35,7 +35,7 @@ NPairHalfSizeMultiNewtonOldOmp::NPairHalfSizeMultiNewtonOldOmp(LAMMPS *lmp) :
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMultiNewtonOldOmp::build(NeighList *list)
+void NPairHalfSizeMultiOldNewtonOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int history = list->history;

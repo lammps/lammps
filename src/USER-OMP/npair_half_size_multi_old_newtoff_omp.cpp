@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMultiNewtoffOldOmp::NPairHalfSizeMultiNewtoffOldOmp(LAMMPS *lmp) :
+NPairHalfSizeMultiOldNewtoffOmp::NPairHalfSizeMultiOldNewtoffOmp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -36,7 +36,7 @@ NPairHalfSizeMultiNewtoffOldOmp::NPairHalfSizeMultiNewtoffOldOmp(LAMMPS *lmp) :
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMultiNewtoffOldOmp::build(NeighList *list)
+void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int history = list->history;

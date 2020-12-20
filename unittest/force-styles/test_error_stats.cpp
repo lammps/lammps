@@ -26,7 +26,7 @@ TEST(ErrorStats, test)
 
     std::stringstream out;
     out << stats;
-    ASSERT_EQ(out.str(), "Average:  5.800e-01 StdDev:  7.305e-01 MaxErr:  2.000e+00 @ item: 3.0");
+    ASSERT_EQ(out.str(), "Average:  5.800e-01 StdDev:  7.305e-01 MaxErr:  2.000e+00 @ item: 3");
 
     stats.reset();
     ASSERT_EQ(stats.has_data(), false);

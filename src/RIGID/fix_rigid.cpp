@@ -2710,11 +2710,15 @@ double FixRigid::compute_scalar()
 
 void *FixRigid::extract(const char *str, int &dim)
 {
+  dim = 0;
+
   if (strcmp(str,"body") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
     return body;
   }
   if (strcmp(str,"masstotal") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
     return masstotal;
   }

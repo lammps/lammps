@@ -44,7 +44,7 @@ if (Python_EXECUTABLE)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
 
     if(COVERAGE_FOUND)
-        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps/*.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
     else()
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
     endif()
@@ -57,10 +57,13 @@ if (Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-  add_test(NAME PythonCommands
-           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
-           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  # some of the tests in this file will fail without exceptions enabled
+  if(LAMMPS_EXCEPTIONS)
+    add_test(NAME PythonCommands
+             COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
+             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+    set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  endif()
 
   add_test(NAME PythonNumpy
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v

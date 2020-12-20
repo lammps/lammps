@@ -205,6 +205,7 @@ accelerated styles exist.
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
+* :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
 * :doc:`eos/cv <fix_eos_cv>` -
 * :doc:`eos/table <fix_eos_table>` -

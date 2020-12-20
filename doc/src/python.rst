@@ -323,8 +323,8 @@ Python function is as follows:
 
 The function definition must include a variable (lmpptr in this case)
 which corresponds to SELF in the python command.  The first line of the
-function imports the Python module lammps.py in the python directory of
-the distribution.  The second line creates a Python object "lmp" which
+function imports the :doc:`"lammps" Python module <Python_module>`.
+The second line creates a Python object ``lmp`` which
 wraps the instance of LAMMPS that called the function.  The "ptr=lmpptr"
 argument is what makes that happen.  The third line invokes the
 command() function in the LAMMPS library interface.  It takes a single
@@ -502,18 +502,16 @@ Python library on your system.  Settings to enable this are in the
 lib/python/Makefile.lammps file.  See the lib/python/README file for
 information on those settings.
 
-If you use Python code which calls back to LAMMPS, via the SELF input
-argument explained above, there is an extra step required when
-building LAMMPS.  LAMMPS must also be built as a shared library and
-your Python function must be able to load the Python module in
-python/lammps.py that wraps the LAMMPS library interface.  These are
-the same steps required to use Python by itself to wrap LAMMPS.
-Details on these steps are explained on the :doc:`Python <Python_head>`
-doc page.  Note that it is important that the stand-alone LAMMPS
-executable and the LAMMPS shared library be consistent (built from the
-same source code files) in order for this to work.  If the two have
-been built at different times using different source files, problems
-may occur.
+If you use Python code which calls back to LAMMPS, via the SELF input argument
+explained above, there is an extra step required when building LAMMPS.  LAMMPS
+must also be built as a shared library and your Python function must be able to
+load the :doc:`"lammps" Python module <Python_module>` that wraps the LAMMPS
+library interface.  These are the same steps required to use Python by itself
+to wrap LAMMPS.  Details on these steps are explained on the :doc:`Python
+<Python_head>` doc page.  Note that it is important that the stand-alone LAMMPS
+executable and the LAMMPS shared library be consistent (built from the same
+source code files) in order for this to work.  If the two have been built at
+different times using different source files, problems may occur.
 
 Related commands
 """"""""""""""""

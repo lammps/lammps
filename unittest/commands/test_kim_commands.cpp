@@ -17,6 +17,7 @@
 #include "lammps.h"
 #include "lmppython.h"
 #include "modify.h"
+#include "output.h"
 #include "utils.h"
 #include "variable.h"
 #include "gmock/gmock.h"
@@ -82,17 +83,24 @@ TEST_F(KimCommandsTest, kim_init)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal kim_init command.*", lmp->input->one("kim_init"););
+    TEST_FAILURE(".*ERROR: Illegal kim_init command.*", 
+                 lmp->input->one("kim_init"););
     TEST_FAILURE(".*ERROR: Illegal kim_init command.*",
                  lmp->input->one("kim_init LennardJones_Ar real si"););
     TEST_FAILURE(".*ERROR: LAMMPS unit_style lj not supported by KIM models.*",
                  lmp->input->one("kim_init LennardJones_Ar lj"););
+    TEST_FAILURE(".*ERROR: LAMMPS unit_style micro not supported by KIM models.*",
+                 lmp->input->one("kim_init LennardJones_Ar micro"););
+    TEST_FAILURE(".*ERROR: LAMMPS unit_style nano not supported by KIM models.*",
+                 lmp->input->one("kim_init LennardJones_Ar nano"););
     TEST_FAILURE(".*ERROR: Unknown unit_style.*",
                  lmp->input->one("kim_init LennardJones_Ar new_style"););
     TEST_FAILURE(".*ERROR: KIM Model name not found.*",
                  lmp->input->one("kim_init Unknown_Model real"););
     TEST_FAILURE(".*ERROR: Incompatible units for KIM Simulator Model, required units = metal.*",
                  lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu real"););
+    // TEST_FAILURE(".*ERROR: KIM Model does not support the requested unit system.*",
+    //              lmp->input->one("kim_init ex_model_Ar_P_Morse real"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim_init LennardJones_Ar real");
@@ -123,6 +131,17 @@ TEST_F(KimCommandsTest, kim_interactions)
     lmp->input->one("region box block 0 10 0 10 0 10");
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
+                 lmp->input->one("kim_interactions Ar Ar"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 20 0 20 0 20");
+    lmp->input->one("create_box 4 box");
+    lmp->input->one("create_atoms 4 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
@@ -171,6 +190,21 @@ TEST_F(KimCommandsTest, kim_interactions)
 
     TEST_FAILURE(".*ERROR: Species 'Ar' is not supported by this KIM Simulator Model.*",
                  lmp->input->one("kim_interactions Ar"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu metal");
+    lmp->input->one("lattice fcc 4.08");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    lmp->input->one("kim_interactions Au");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // ASSERT_EQ(lmp->output->var_kim_periodic, 1);
+    // TEST_FAILURE(".*ERROR: Incompatible units for KIM Simulator Model.*",
+    //              lmp->input->one("kim_interactions Au"););
+
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
@@ -292,7 +326,8 @@ TEST_F(KimCommandsTest, kim_property)
                      "3 >= 3.6 support.*",
                      lmp->input->one("kim_property"););
     } else {
-        TEST_FAILURE(".*ERROR: Invalid kim_property command.*", lmp->input->one("kim_property"););
+        TEST_FAILURE(".*ERROR: Invalid kim_property command.*", 
+                     lmp->input->one("kim_property"););
         TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
                      lmp->input->one("kim_property create"););
         TEST_FAILURE(".*ERROR: Incorrect arguments in kim_property command.\n"
@@ -300,8 +335,160 @@ TEST_F(KimCommandsTest, kim_property)
                      "is mandatory.*",
                      lmp->input->one("kim_property unknown 1 atomic-mass"););
     }
+#if defined(KIM_EXTRA_UNITTESTS)
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property create' command.*",
+                     lmp->input->one("kim_property create 1"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property destroy' command.*",
+                     lmp->input->one("kim_property destroy 1 cohesive-potential-energy-cubic-crystal"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property modify' command.*",
+                     lmp->input->one("kim_property modify 1 key short-name"););
+        TEST_FAILURE(".*ERROR: There is no property instance to modify the content.*",
+                     lmp->input->one("kim_property modify 1 key short-name source-value 1 fcc"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property remove' command.*",
+                     lmp->input->one("kim_property remove 1 key"););
+        TEST_FAILURE(".*ERROR: There is no property instance to remove the content.*",
+                     lmp->input->one("kim_property remove 1 key short-name"););
+        TEST_FAILURE(".*ERROR: There is no property instance to dump the content.*",
+                     lmp->input->one("kim_property dump results.edn"););
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lmp->input->one("clear");
+        lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+        lmp->input->one("kim_property create 1 cohesive-potential-energy-cubic-crystal");
+        lmp->input->one("kim_property modify 1 key short-name source-value 1 fcc");
+        lmp->input->one("kim_property destroy 1");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+#endif
 }
 
+TEST_F(KimCommandsTest, kim_query)
+{
+    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    
+    TEST_FAILURE(".*ERROR: Illegal kim_query command.*", 
+                 lmp->input->one("kim_query"););
+    TEST_FAILURE(".*ERROR: Must use 'kim_init' before 'kim_query'.*",
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal kim_query command.\nThe keyword 'split' "
+                 "must be followed by the name of the query function.*", 
+                 lmp->input->one("kim_query a0 split"););
+
+    TEST_FAILURE(".*ERROR: Illegal kim_query command.\nThe 'list' keyword "
+                 "can not be used after 'split'.*", 
+                 lmp->input->one("kim_query a0 split list"););
+
+    TEST_FAILURE(".*ERROR: Illegal kim_query command.\nThe 'list' keyword "
+                 "must be followed by \\('split' and\\) the name of the query "
+                 "function.*", lmp->input->one("kim_query a0 list"););
+
+    TEST_FAILURE(".*ERROR: Illegal 'model' key in kim_query command.*", 
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic "
+                                 "model=[MO_959249795837_003]"););
+
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `crystal` "
+                 "to kim_query is wrong. The query format is the "
+                 "keyword=\\[value\\], where value is always an array of one "
+                 "or more comma-separated items.*", 
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic "
+                                 "crystal"););
+
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `"
+                 "crystal=fcc` to kim_query is wrong. The query format is the "
+                 "keyword=\\[value\\], where value is always an array of one "
+                 "or more comma-separated items.*", 
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic "
+                                 "crystal=fcc"););
+
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `"
+                 "crystal=\\[fcc` to kim_query is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*", 
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic "
+                                 "crystal=[fcc"););
+
+   TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `"
+                 "crystal=fcc\\]` to kim_query is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*", 
+                 lmp->input->one("kim_query a0 get_lattice_constant_cubic "
+                                 "crystal=fcc]"););
+    
+    std::string squery("kim_query a0 get_lattice_constant_cubic ");
+    squery += "crystal=[\"fcc\"] species=\"Al\",\"Ni\" units=[\"angstrom\"]";
+
+   TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "\"Al\",\"Ni\"` to kim_query is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*", 
+                 lmp->input->one(squery););
+
+    squery = "kim_query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[\"fcc\"] species=\"Al\",\"Ni\", units=[\"angstrom\"]";
+
+   TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "\"Al\",\"Ni\",` to kim_query is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*", 
+                 lmp->input->one(squery););
+
+    squery = "kim_query a0 get_lattice_constant_cubic crystal=[fcc] "
+             "species=[Al]";
+    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+
+    squery = "kim_query a0 get_lattice_constant_cubic crystal=[fcc] "
+             "units=[\"angstrom\"]";
+    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+
+#if defined(KIM_EXTRA_UNITTESTS)
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
+    
+    squery = "kim_query latconst split get_lattice_constant_hexagonal ";
+    squery += "crystal=[\"hcp\"] species=[\"Zr\"] units=[\"angstrom\"]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) == 
+                 std::string("3.234055244384789")));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) == 
+                 std::string("5.167650199630013")));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
+    
+    squery = "kim_query latconst list get_lattice_constant_hexagonal ";
+    squery += "crystal=[hcp] species=[Zr] units=[angstrom]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) == 
+                 std::string("3.234055244384789  5.167650199630013")));
+
+    squery = "kim_query latconst list get_lattice_constant_hexagonal ";
+    squery += "crystal=[bcc] species=[Zr] units=[angstrom]";
+    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
+    
+    squery = "kim_query alpha get_linear_thermal_expansion_coefficient_cubic ";
+    squery += "crystal=[fcc] species=[Al] units=[1/K] temperature=[293.15] ";
+    squery += "temperature_units=[K]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("alpha")) == 
+                 std::string("1.654960564704273e-05")));
+#endif
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

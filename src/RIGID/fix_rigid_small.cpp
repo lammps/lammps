@@ -3424,7 +3424,10 @@ int FixRigidSmall::modify_param(int narg, char **arg)
 
 void *FixRigidSmall::extract(const char *str, int &dim)
 {
+  dim = 0;
+
   if (strcmp(str,"body") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
     return atom2body;
   }
@@ -3438,6 +3441,7 @@ void *FixRigidSmall::extract(const char *str, int &dim)
   // used by granular pair styles, indexed by atom2body
 
   if (strcmp(str,"masstotal") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
 
     if (nmax_mass < nmax_body) {

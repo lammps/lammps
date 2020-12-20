@@ -100,11 +100,7 @@ void kimProperty::command(int narg, char **arg)
     error->all(FLERR, msg);
   }
 
-  if (comm->me == 0) {
-    std::string msg;
-    msg = "#=== kim-property ===========================================\n";
-    input->write_echo(msg);
-  }
+  input->write_echo("#=== kim-property ===========================================\n");
 
   // Get the kim_str ptr to the data associated with a kim_property_str
   // variable

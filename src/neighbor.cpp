@@ -1640,7 +1640,7 @@ int Neighbor::choose_bin(NeighRequest *rq)
     if (!rq->kokkos_device != !(mask & NB_KOKKOS_DEVICE)) continue;
     if (!rq->kokkos_host != !(mask & NB_KOKKOS_HOST)) continue;
 
-    // neighbor style is BIN or MULTI or MULTI2 and must match
+    // neighbor style is BIN or MULTI or MULTI_OLD and must match
 
     if (style == Neighbor::BIN || style == Neighbor::MULTI_OLD) {
       if (!(mask & NB_STANDARD)) continue;

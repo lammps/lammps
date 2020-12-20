@@ -176,8 +176,8 @@ void CommTiled::setup()
 
   if (mode == Comm::MULTI) {
     double cut;
-    if (multi2) {
-        // If using multi2 binlists, communicate itype particles a distance
+    if (multi_reduce) {
+        // If using multi/reduce binlists, communicate itype particles a distance
         // equal to the max of itype-jtype interaction given smaller jtype particles 
         double **cutneighsq = neighbor->cutneighsq;
         double *cuttypesq = neighbor->cuttypesq;

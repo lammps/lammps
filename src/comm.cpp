@@ -76,7 +76,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   grid2proc = nullptr;
   xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
-  multi2 = 0;
+  multi_reduce = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -242,15 +242,15 @@ void Comm::init()
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
-  // Can't used multi2 communication with Newton off
+  // Can't used multi_reduce communication with Newton off
   // TODO: need to somehow restrict this option with full neighbor lists
-  // CANNOT use multi2 communication with full nlist 
-  // Could remove NP_NEWTON from npair_full_*multi2*, but could be cryptic
-  // Also could be cases where you want newton off (hybrid) but don't use multi2 comm
-  // Could add check on neighbor build, if full and comm->multi2 error...
+  // CANNOT use multi_reduce communication with full nlist 
+  // Could remove NP_NEWTON from npair_full_*multi_reduce*, but could be cryptic
+  // Also could be cases where you want newton off (hybrid) but don't use multi_reduce comm
+  // Could add check on neighbor build, if full and comm->multi_reduce error...
   // or just add check on comm setup - is that run before every run? Only if box change...
-  if (force->newton == 0 && multi2)
-    error->all(FLERR,"Cannot use multi2 communication with Newton off");
+  if (force->newton == 0 && multi_reduce)
+    error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
 }
 
 /* ----------------------------------------------------------------------
@@ -337,10 +337,10 @@ void Comm::modify_params(int narg, char **arg)
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i] = cut;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"cutoff/multi2") == 0) {
+    } else if (strcmp(arg[iarg],"multi/reduce") == 0) {
       if (mode == Comm::SINGLE)
-        error->all(FLERR,"Use cutoff/multi2 in mode multi only");
-      multi2 = 1;
+        error->all(FLERR,"Use multi/reduce in mode multi only");
+      multi_reduce = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");

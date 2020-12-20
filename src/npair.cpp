@@ -135,24 +135,24 @@ void NPair::copy_bin_info()
   bins = nb->bins;
   binhead = nb->binhead;
 
-  nbinx_multi2 = nb->nbinx_multi2;
-  nbiny_multi2 = nb->nbiny_multi2;
-  nbinz_multi2 = nb->nbinz_multi2;
-  mbins_multi2 = nb->mbins_multi2;
-  mbinx_multi2 = nb->mbinx_multi2;
-  mbiny_multi2 = nb->mbiny_multi2;
-  mbinz_multi2 = nb->mbinz_multi2;
-  mbinxlo_multi2 = nb->mbinxlo_multi2;
-  mbinylo_multi2 = nb->mbinylo_multi2;
-  mbinzlo_multi2 = nb->mbinzlo_multi2;
+  nbinx_multi = nb->nbinx_multi;
+  nbiny_multi = nb->nbiny_multi;
+  nbinz_multi = nb->nbinz_multi;
+  mbins_multi = nb->mbins_multi;
+  mbinx_multi = nb->mbinx_multi;
+  mbiny_multi = nb->mbiny_multi;
+  mbinz_multi = nb->mbinz_multi;
+  mbinxlo_multi = nb->mbinxlo_multi;
+  mbinylo_multi = nb->mbinylo_multi;
+  mbinzlo_multi = nb->mbinzlo_multi;
 
-  bininvx_multi2 = nb->bininvx_multi2;
-  bininvy_multi2 = nb->bininvy_multi2;
-  bininvz_multi2 = nb->bininvz_multi2;
+  bininvx_multi = nb->bininvx_multi;
+  bininvy_multi = nb->bininvy_multi;
+  bininvz_multi = nb->bininvz_multi;
 
-  atom2bin_multi2 = nb->atom2bin_multi2;
-  bins_multi2 = nb->bins_multi2;
-  binhead_multi2 = nb->binhead_multi2;
+  atom2bin_multi = nb->atom2bin_multi;
+  bins_multi = nb->bins_multi;
+  binhead_multi = nb->binhead_multi;
 }
 
 /* ----------------------------------------------------------------------
@@ -164,12 +164,12 @@ void NPair::copy_stencil_info()
   nstencil = ns->nstencil;
   stencil = ns->stencil;
   stencilxyz = ns->stencilxyz;
+  nstencil_multi_old = ns->nstencil_multi_old;
+  stencil_multi_old = ns->stencil_multi_old;
+  distsq_multi_old = ns->distsq_multi_old;
+
   nstencil_multi = ns->nstencil_multi;
   stencil_multi = ns->stencil_multi;
-  distsq_multi = ns->distsq_multi;
-
-  nstencil_multi2 = ns->nstencil_multi2;
-  stencil_multi2 = ns->stencil_multi2;
 }
 
 /* ----------------------------------------------------------------------
@@ -277,32 +277,32 @@ int NPair::coord2bin(double *x, int it)
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi2[it]) + nbinx_multi2[it];
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[it]) + nbinx_multi[it];
   else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]);
-    ix = MIN(ix,nbinx_multi2[it]-1);
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[it]);
+    ix = MIN(ix,nbinx_multi[it]-1);
   } else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi2[it]) - 1;
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[it]) - 1;
 
   if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi2[it]) + nbiny_multi2[it];
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi[it]) + nbiny_multi[it];
   else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]);
-    iy = MIN(iy,nbiny_multi2[it]-1);
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[it]);
+    iy = MIN(iy,nbiny_multi[it]-1);
   } else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi2[it]) - 1;
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[it]) - 1;
 
   if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi2[it]) + nbinz_multi2[it];
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi[it]) + nbinz_multi[it];
   else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]);
-    iz = MIN(iz,nbinz_multi2[it]-1);
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[it]);
+    iz = MIN(iz,nbinz_multi[it]-1);
   } else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi2[it]) - 1;
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[it]) - 1;
 
   
-  ibin = (iz-mbinzlo_multi2[it])*mbiny_multi2[it]*mbinx_multi2[it]
-       + (iy-mbinylo_multi2[it])*mbinx_multi2[it]
-       + (ix-mbinxlo_multi2[it]);
+  ibin = (iz-mbinzlo_multi[it])*mbiny_multi[it]*mbinx_multi[it]
+       + (iy-mbinylo_multi[it])*mbinx_multi[it]
+       + (ix-mbinxlo_multi[it]);
   return ibin;
 }

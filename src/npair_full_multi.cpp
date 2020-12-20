@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_full_multi2.h"
+#include "npair_full_multi.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -24,15 +24,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairFullMulti2::NPairFullMulti2(LAMMPS *lmp) : NPair(lmp) {}
+NPairFullMulti::NPairFullMulti(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   multi2-type stencil is itype-jtype dependent   
+   multi-type stencil is itype-jtype dependent   
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void NPairFullMulti2::build(NeighList *list)
+void NPairFullMulti::build(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
@@ -78,7 +78,7 @@ void NPairFullMulti2::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -91,12 +91,12 @@ void NPairFullMulti2::build(NeighList *list)
       // skip i = j
       // use full stencil for all type combinations
 
-      s = stencil_multi2[itype][jtype];
-      ns = nstencil_multi2[itype][jtype];
+      s = stencil_multi[itype][jtype];
+      ns = nstencil_multi[itype][jtype];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
 	      if (i == j) continue;
 	  
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

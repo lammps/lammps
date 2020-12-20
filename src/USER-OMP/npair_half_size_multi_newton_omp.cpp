@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "npair_half_size_multi2_newton_omp.h"
+#include "npair_half_size_multi_newton_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -24,17 +24,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMulti2NewtonOmp::NPairHalfSizeMulti2NewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfSizeMultiNewtonOmp::NPairHalfSizeMultiNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with full Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent
+   multi-type stencil is itype-jtype dependent
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMulti2NewtonOmp::build(NeighList *list)
+void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int history = list->history;
@@ -79,7 +79,7 @@ void NPairHalfSizeMulti2NewtonOmp::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -98,9 +98,9 @@ void NPairHalfSizeMulti2NewtonOmp::build(NeighList *list)
           //   if j is owned atom, store it, since j is beyond i in linked list
           //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-          js = bins_multi2[itype][i];
+          js = bins_multi[itype][i];
         
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -132,9 +132,9 @@ void NPairHalfSizeMulti2NewtonOmp::build(NeighList *list)
           //   if j is owned atom, store it if j > i
           //   if j is ghost, only store if j coords are "above and to the right" of i          
         
-          js = binhead_multi2[jtype][jbin];
+          js = binhead_multi[jtype][jbin];
           
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
             if(j < i) continue;	        
             
             if (j >= nlocal) {
@@ -169,12 +169,12 @@ void NPairHalfSizeMulti2NewtonOmp::build(NeighList *list)
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
        
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
       
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

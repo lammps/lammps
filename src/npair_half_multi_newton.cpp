@@ -11,9 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include "npair_half_multi2_newton_omp.h"
-#include "npair_omp.h"
+#include "npair_half_multi_newton.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -26,34 +24,22 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMulti2NewtonOmp::NPairHalfMulti2NewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfMultiNewton::NPairHalfMultiNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent
+   multi-type stencil is itype-jtype dependent
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfMulti2NewtonOmp::build(NeighList *list)
+void NPairHalfMultiNewton::build(NeighList *list)
 {
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int molecular = atom->molecular;
-  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
-
-  NPAIR_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
-#endif
-  NPAIR_OMP_SETUP(nlocal);
-
-  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom;
+  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   int js;
-
-  // loop over each atom, storing neighbors
 
   double **x = atom->x;
   int *type = atom->type;
@@ -62,23 +48,26 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
 
-  // each thread has its own page allocator
-  MyPage<int> &ipage = list->ipage[tid];
-  ipage.reset();
+  int inum = 0;
+  ipage->reset();
 
-  for (i = ifrom; i < ito; i++) {
-
+  for (i = 0; i < nlocal; i++) {
     n = 0;
-    neighptr = ipage.vget();
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -90,7 +79,7 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -109,9 +98,9 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
           //   if j is owned atom, store it, since j is beyond i in linked list
           //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-          js = bins_multi2[itype][i];
+          js = bins_multi[itype][i];
         
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -150,9 +139,9 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
           //   if j is owned atom, store it if j > i
           //   if j is ghost, only store if j coords are "above and to the right" of i          
         
-          js = binhead_multi2[jtype][jbin];
+          js = binhead_multi[jtype][jbin];
           
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
             if(j < i) continue;	        
             
             if (j >= nlocal) {
@@ -194,12 +183,12 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
        
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
       
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
       
@@ -226,14 +215,14 @@ void NPairHalfMulti2NewtonOmp::build(NeighList *list)
 	    }
 	  }
     }
-
-    ilist[i] = i;
+    
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage.vgot(n);
-    if (ipage.status())
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-  NPAIR_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }

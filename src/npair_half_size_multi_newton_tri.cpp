@@ -11,14 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include "npair_half_multi2_newton_tri_omp.h"
-#include "npair_omp.h"
+#include "npair_half_size_multi_newton_tri.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -26,80 +22,62 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMulti2NewtonTriOmp::NPairHalfMulti2NewtonTriOmp(LAMMPS *lmp) :
-  NPair(lmp) {}
+NPairHalfSizeMultiNewtonTri::NPairHalfSizeMultiNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi2-type stencil is itype-jtype dependent   
+   multi-type stencil is itype-jtype dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfMulti2NewtonTriOmp::build(NeighList *list)
+void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 {
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int molecular = atom->molecular;
-  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
-
-  NPAIR_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
-#endif
-  NPAIR_OMP_SETUP(nlocal);
-
-  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom;
-  tagint tagprev;
+  int i,j,k,n,itype,jtype,ibin,jbin,ns,js;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double radi,radsum,cutdistsq;
   int *neighptr,*s;
-  int js;
-
-  // loop over each atom, storing neighbors
 
   double **x = atom->x;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
-  int *molindex = atom->molindex;
-  int *molatom = atom->molatom;
-  Molecule **onemols = atom->avec->onemols;
-
+  int history = list->history;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
 
-  // each thread has its own page allocator
-  MyPage<int> &ipage = list->ipage[tid];
-  ipage.reset();
+  int mask_history = 3 << SBBITS;
 
-  for (i = ifrom; i < ito; i++) {
+  int inum = 0;
+  ipage->reset();
 
+  for (i = 0; i < nlocal; i++) {
     n = 0;
-    neighptr = ipage.vget();
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    if (moltemplate) {
-      imol = molindex[i];
-      iatom = molatom[i];
-      tagprev = tag[i] - iatom - 1;
-    }
+    radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
-    
+    ibin = atom2bin_multi[itype][i];
+
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
 
       // if same type use own bin
       if(itype == jtype) jbin = ibin;
 	  else jbin = coord2bin(x[i], jtype);
-      
+
+
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
       // stencil is half if i same size as j
@@ -109,12 +87,12 @@ void NPairHalfMulti2NewtonTriOmp::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
                   
           // if same size (e.g. same type), use half stencil            
           if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
@@ -126,41 +104,34 @@ void NPairHalfMulti2NewtonTriOmp::build(NeighList *list)
                 if (x[j][0] == xtmp && j <= i) continue;
               }
             }                
-          }            
+          }  
           
-	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-      
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
       
-	      if (rsq <= cutneighsq[itype][jtype]) {
-	        if (molecular != Atom::ATOMIC) {
-	  	    if (!moltemplate)
-	  	      which = find_special(special[i],nspecial[i],tag[j]);
-	  	    else if (imol >= 0)
-	  	      which = find_special(onemols[imol]->special[iatom],
-	  	    		       onemols[imol]->nspecial[iatom],
-	  	    		       tag[j]-tagprev);
-	  	    else which = 0;
-	  	    if (which == 0) neighptr[n++] = j;
-	  	    else if (domain->minimum_image_check(delx,dely,delz))
-	  	      neighptr[n++] = j;
-	  	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	        } else neighptr[n++] = j;
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
+	  	    neighptr[n++] = j ^ mask_history;
+	        else
+	  	    neighptr[n++] = j;
 	      }
 	    }
 	  }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage.vgot(n);
-    if (ipage.status())
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-  NPAIR_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }

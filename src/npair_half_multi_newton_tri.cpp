@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_half_multi2_newtoff.h"
+#include "npair_half_multi_newton_tri.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -24,17 +24,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMulti2Newtoff::NPairHalfMulti2Newtoff(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfMultiNewtonTri::NPairHalfMultiNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction with partial Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent      
-   each owned atom i checks own bin and other bins in stencil
-   pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
+   binned neighbor list construction with Newton's 3rd law for triclinic
+   multi-type stencil is itype-jtype dependent   
+   each owned atom i checks its own bin and other bins in triclinic stencil
+   every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfMulti2Newtoff::build(NeighList *list)
+void NPairHalfMultiNewtonTri::build(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
@@ -55,7 +54,7 @@ void NPairHalfMulti2Newtoff::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
+  if (molecular == 2) moltemplate = 1;
   else moltemplate = 0;
 
   int *ilist = list->ilist;
@@ -80,55 +79,69 @@ void NPairHalfMulti2Newtoff::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
-    // loop through stencils for all types    
+    // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
-        
+
       // if same type use own bin
       if(itype == jtype) jbin = ibin;
 	  else jbin = coord2bin(x[i], jtype);
       
-      // loop over all atoms in other bins in stencil including self
-      // only store pair if i < j
-      // stores own/own pairs only once
-      // stores own/ghost pairs on both procs      
-      // use full stencil for all type combinations
+      // loop over all atoms in bins in stencil
+      // stencil is empty if i larger than j
+      // stencil is half if i same size as j
+      // stencil is full if i smaller than j
+      // if half: pairs for atoms j "below" i are excluded
+      // below = lower z or (equal z and lower y) or (equal zy and lower x)
+      //         (equal zyx and j <= i)
+      // latter excludes self-self interaction but allows superposed atoms
 
-      s = stencil_multi2[itype][jtype];
-      ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
-      for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
-	      if (j <= i) continue;
-           
-	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	  for (k = 0; k < ns; k++) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
+                  
+          // if same size (e.g. same type), use half stencil            
+          if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
+            if (x[j][2] < ztmp) continue;
+            if (x[j][2] == ztmp) {
+              if (x[j][1] < ytmp) continue;
+              if (x[j][1] == ytmp) {
+                if (x[j][0] < xtmp) continue;
+                if (x[j][0] == xtmp && j <= i) continue;
+              }
+            }                
+          }            
           
+	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+      
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
-          
-          if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular != Atom::ATOMIC) {
-              if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
-              else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx,dely,delz))
-                neighptr[n++] = j;
-              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            } else neighptr[n++] = j;
-          }
-        }
-      }
+	      rsq = delx*delx + dely*dely + delz*delz;
+      
+	      if (rsq <= cutneighsq[itype][jtype]) {
+	        if (molecular != Atom::ATOMIC) {
+	  	    if (!moltemplate)
+	  	      which = find_special(special[i],nspecial[i],tag[j]);
+	  	    else if (imol >= 0)
+	  	      which = find_special(onemols[imol]->special[iatom],
+	  	    		       onemols[imol]->nspecial[iatom],
+	  	    		       tag[j]-tagprev);
+	  	    else which = 0;
+	  	    if (which == 0) neighptr[n++] = j;
+	  	    else if (domain->minimum_image_check(delx,dely,delz))
+	  	      neighptr[n++] = j;
+	  	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	        } else neighptr[n++] = j;
+	      }
+	    }
+	  }
     }
-
+    
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

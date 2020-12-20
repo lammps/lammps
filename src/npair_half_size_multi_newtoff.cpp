@@ -5,15 +5,14 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+es   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include "npair_half_size_multi2_newtoff_omp.h"
-#include "npair_omp.h"
+#include <string.h>
+#include "npair_half_size_multi_newtoff.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -24,55 +23,47 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMulti2NewtoffOmp::NPairHalfSizeMulti2NewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfSizeMultiNewtoff::NPairHalfSizeMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with partial Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent      
+   multi-type stencil is itype-jtype dependent      
    each owned atom i checks own bin and other bins in stencil
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
+void NPairHalfSizeMultiNewtoff::build(NeighList *list)
 {
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
-  const int history = list->history;
-  const int mask_history = 3 << SBBITS;
-
-  NPAIR_OMP_INIT;
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
-#endif
-  NPAIR_OMP_SETUP(nlocal);
-
   int i,j,k,n,itype,jtype,ibin,jbin,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
   int js;
 
-  // loop over each atom, storing neighbors
-
   double **x = atom->x;
-  double *radius = atom->radius;  
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  if (includegroup) nlocal = atom->nfirst;
 
+  int history = list->history;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
 
-  // each thread has its own page allocator
-  MyPage<int> &ipage = list->ipage[tid];
-  ipage.reset();
+  int mask_history = 3 << SBBITS;
 
-  for (i = ifrom; i < ito; i++) {
+  int inum = 0;
+  ipage->reset();
 
+  for (i = 0; i < nlocal; i++) {
     n = 0;
-    neighptr = ipage.vget();
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -80,7 +71,7 @@ void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
     // loop through stencils for all types    
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -95,12 +86,12 @@ void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
       // stores own/ghost pairs on both procs      
       // use full stencil for all type combinations
 
-      s = stencil_multi2[itype][jtype];
-      ns = nstencil_multi2[itype][jtype];
+      s = stencil_multi[itype][jtype];
+      ns = nstencil_multi[itype][jtype];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >=0; j = bins_multi[jtype][j]) {
 	      if (j <= i) continue;
            
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -122,13 +113,13 @@ void NPairHalfSizeMulti2NewtoffOmp::build(NeighList *list)
       }
     }
 
-    ilist[i] = i;
+    ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage.vgot(n);
-    if (ipage.status())
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-  NPAIR_OMP_CLOSE;
-  list->inum = nlocal;
+
+  list->inum = inum;
 }

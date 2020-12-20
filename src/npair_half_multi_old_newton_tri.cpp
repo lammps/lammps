@@ -88,10 +88,10 @@ void NPairHalfMultiOldNewtonTri::build(NeighList *list)
     // latter excludes self-self interaction but allows superposed atoms
 
     ibin = atom2bin[i];
-    s = stencil_multi[itype];
-    distsq = distsq_multi[itype];
+    s = stencil_multi_old[itype];
+    distsq = distsq_multi_old[itype];
     cutsq = cutneighsq[itype];
-    ns = nstencil_multi[itype];
+    ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];

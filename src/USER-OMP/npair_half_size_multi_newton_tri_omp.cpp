@@ -11,7 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_half_size_multi2_newton_tri.h"
+#include "omp_compat.h"
+#include "npair_half_size_multi_newton_tri_omp.h"
+#include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -22,45 +24,55 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMulti2NewtonTri::NPairHalfSizeMulti2NewtonTri(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfSizeMultiNewtonTriOmp::NPairHalfSizeMultiNewtonTriOmp(LAMMPS *lmp) :
+  NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi2-type stencil is itype-jtype dependent   
+   multi-type stencil is itype-jtype dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
+void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,jbin,ns,js;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;  
+  const int history = list->history;
+  const int mask_history = 3 << SBBITS;
+
+  NPAIR_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nlocal);
+
+  int i,j,k,n,itype,jtype,ibin,jbin,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
+  int js;
+
+  // loop over each atom, storing neighbors
 
   double **x = atom->x;
-  double *radius = atom->radius;
+  double *radius = atom->radius;  
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
-  int nlocal = atom->nlocal;
-  if (includegroup) nlocal = atom->nfirst;
 
-  int history = list->history;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
-  int mask_history = 3 << SBBITS;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
-  int inum = 0;
-  ipage->reset();
+  for (i = ifrom; i < ito; i++) {
 
-  for (i = 0; i < nlocal; i++) {
     n = 0;
-    neighptr = ipage->vget();
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -68,7 +80,7 @@ void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
 
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -87,12 +99,12 @@ void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
                   
           // if same size (e.g. same type), use half stencil            
           if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
@@ -125,13 +137,13 @@ void NPairHalfSizeMulti2NewtonTri::build(NeighList *list)
 	  }
     }
 
-    ilist[inum++] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-
-  list->inum = inum;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
 }

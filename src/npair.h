@@ -79,25 +79,25 @@ class NPair : protected Pointers {
   int *atom2bin,*bins;
   int *binhead;
 
-  int *nbinx_multi2, *nbiny_multi2, *nbinz_multi2;
-  int *mbins_multi2;
-  int *mbinx_multi2, *mbiny_multi2, *mbinz_multi2;
-  int *mbinxlo_multi2, *mbinylo_multi2, *mbinzlo_multi2;
-  double *bininvx_multi2, *bininvy_multi2, *bininvz_multi2;
-  int **binhead_multi2,**bins_multi2;
-  int **atom2bin_multi2;
+  int *nbinx_multi, *nbiny_multi, *nbinz_multi;
+  int *mbins_multi;
+  int *mbinx_multi, *mbiny_multi, *mbinz_multi;
+  int *mbinxlo_multi, *mbinylo_multi, *mbinzlo_multi;
+  double *bininvx_multi, *bininvy_multi, *bininvz_multi;
+  int **binhead_multi,**bins_multi;
+  int **atom2bin_multi;
 
   // data from NStencil class
 
   int nstencil;
   int *stencil;
   int **stencilxyz;
-  int *nstencil_multi;
-  int **stencil_multi;
-  double **distsq_multi;
+  int *nstencil_multi_old;
+  int **stencil_multi_old;
+  double **distsq_multi_old;
 
-  int ** nstencil_multi2;
-  int *** stencil_multi2;
+  int ** nstencil_multi;
+  int *** stencil_multi;
   
   // data common to all NPair variants
 

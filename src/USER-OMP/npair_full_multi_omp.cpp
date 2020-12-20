@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "npair_half_multi2_newtoff_omp.h"
+#include "npair_full_multi_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -26,17 +26,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMulti2NewtoffOmp::NPairHalfMulti2NewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairFullMultiOmp::NPairFullMultiOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction with partial Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent      
-   each owned atom i checks own bin and other bins in stencil
-   pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
+   binned neighbor list construction for all neighbors
+   multi-type stencil is itype-jtype dependent   
+   every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
+void NPairFullMultiOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -52,7 +50,7 @@ void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
-  int js;
+  int js;  
 
   // loop over each atom, storing neighbors
 
@@ -91,52 +89,50 @@ void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
-    // loop through stencils for all types    
+    // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
-        
+
       // if same type use own bin
       if(itype == jtype) jbin = ibin;
 	  else jbin = coord2bin(x[i], jtype);
-      
-      // loop over all atoms in other bins in stencil including self
-      // only store pair if i < j
-      // stores own/own pairs only once
-      // stores own/ghost pairs on both procs      
+
+      // loop over all atoms in surrounding bins in stencil including self
+      // skip i = j
       // use full stencil for all type combinations
 
-      s = stencil_multi2[itype][jtype];
-      ns = nstencil_multi2[itype][jtype];
+      s = stencil_multi[itype][jtype];
+      ns = nstencil_multi[itype][jtype];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi2[jtype][j]) {
-	      if (j <= i) continue;
-           
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
+	      if (i == j) continue;
+	  
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+	      rsq = delx*delx + dely*dely + delz*delz;
           
-          if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular != Atom::ATOMIC) {
-              if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
-              else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx,dely,delz))
-                neighptr[n++] = j;
-              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            } else neighptr[n++] = j;
-          }
-        }
+	      if (rsq <= cutneighsq[itype][jtype]) {
+	        if (molecular != Atom::ATOMIC) {
+	          if (!moltemplate)
+		        which = find_special(special[i],nspecial[i],tag[j]);
+	          else if (imol >= 0)
+		        which = find_special(onemols[imol]->special[iatom],
+		    		     onemols[imol]->nspecial[iatom],
+		    		     tag[j]-tagprev);
+	          else which = 0;
+	          if (which == 0) neighptr[n++] = j;
+	          else if (domain->minimum_image_check(delx,dely,delz))
+		        neighptr[n++] = j;
+	          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	        } else neighptr[n++] = j;
+	      }
+	    }
       }
     }
 
@@ -149,4 +145,5 @@ void NPairHalfMulti2NewtoffOmp::build(NeighList *list)
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;
+  list->gnum = 0;
 }

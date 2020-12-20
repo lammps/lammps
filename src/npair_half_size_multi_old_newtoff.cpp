@@ -77,10 +77,10 @@ void NPairHalfSizeMultiOldNewtoff::build(NeighList *list)
     // stores own/ghost pairs on both procs
 
     ibin = atom2bin[i];
-    s = stencil_multi[itype];
-    distsq = distsq_multi[itype];
+    s = stencil_multi_old[itype];
+    distsq = distsq_multi_old[itype];
     cutsq = cutneighsq[itype];
-    ns = nstencil_multi[itype];
+    ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
         if (j <= i) continue;

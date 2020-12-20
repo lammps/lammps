@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "npair_half_size_multi2_newton_tri_omp.h"
+#include "npair_half_size_multi_newtoff_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -24,20 +24,20 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeMulti2NewtonTriOmp::NPairHalfSizeMulti2NewtonTriOmp(LAMMPS *lmp) :
-  NPair(lmp) {}
+NPairHalfSizeMultiNewtoffOmp::NPairHalfSizeMultiNewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    size particles
-   binned neighbor list construction with Newton's 3rd law for triclinic
-   multi2-type stencil is itype-jtype dependent   
-   each owned atom i checks its own bin and other bins in triclinic stencil
-   every pair stored exactly once by some processor
+   binned neighbor list construction with partial Newton's 3rd law
+   multi-type stencil is itype-jtype dependent      
+   each owned atom i checks own bin and other bins in stencil
+   pair stored once if i,j are both owned and i < j
+   pair stored by me if j is ghost (also stored by proc owning j)
 ------------------------------------------------------------------------- */
 
-void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
+void NPairHalfSizeMultiNewtoffOmp::build(NeighList *list)
 {
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;  
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int history = list->history;
   const int mask_history = 3 << SBBITS;
 
@@ -80,61 +80,46 @@ void NPairHalfSizeMulti2NewtonTriOmp::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
-
-    // loop through stencils for all types
+    ibin = atom2bin_multi[itype][i];
+    
+    // loop through stencils for all types    
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
-
+        
       // if same type use own bin
       if(itype == jtype) jbin = ibin;
 	  else jbin = coord2bin(x[i], jtype);
-
-
-      // loop over all atoms in bins in stencil
-      // stencil is empty if i larger than j
-      // stencil is half if i same size as j
-      // stencil is full if i smaller than j
-      // if half: pairs for atoms j "below" i are excluded
-      // below = lower z or (equal z and lower y) or (equal zy and lower x)
-      //         (equal zyx and j <= i)
-      // latter excludes self-self interaction but allows superposed atoms
-
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
       
-	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
-                  
-          // if same size (e.g. same type), use half stencil            
-          if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
-            if (x[j][2] < ztmp) continue;
-            if (x[j][2] == ztmp) {
-              if (x[j][1] < ytmp) continue;
-              if (x[j][1] == ytmp) {
-                if (x[j][0] < xtmp) continue;
-                if (x[j][0] == xtmp && j <= i) continue;
-              }
-            }                
-          }  
+      // loop over all atoms in other bins in stencil including self
+      // only store pair if i < j
+      // stores own/own pairs only once
+      // stores own/ghost pairs on both procs      
+      // use full stencil for all type combinations
+
+      s = stencil_multi[itype][jtype];
+      ns = nstencil_multi[itype][jtype];
+      
+      for (k = 0; k < ns; k++) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >=0; j = bins_multi[jtype][j]) {
+	      if (j <= i) continue;
+           
+	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
 	      radsum = radi + radius[j];
 	      cutdistsq = (radsum+skin) * (radsum+skin);
-      
+
 	      if (rsq <= cutdistsq) {
 	        if (history && rsq < radsum*radsum) 
-	  	    neighptr[n++] = j ^ mask_history;
+	          neighptr[n++] = j ^ mask_history;
 	        else
-	  	    neighptr[n++] = j;
+	          neighptr[n++] = j;
 	      }
 	    }
-	  }
+      }
     }
 
     ilist[i] = i;

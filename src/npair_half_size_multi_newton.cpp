@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_half_multi2_newton.h"
+#include "npair_half_size_multi_newton.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -24,43 +22,38 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfMulti2Newton::NPairHalfMulti2Newton(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalfSizeMultiNewton::NPairHalfSizeMultiNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
+   size particles
    binned neighbor list construction with full Newton's 3rd law
-   multi2-type stencil is itype-jtype dependent
+   multi-type stencil is itype-jtype dependent
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-void NPairHalfMulti2Newton::build(NeighList *list)
+void NPairHalfSizeMultiNewton::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
-  tagint tagprev;
+  int i,j,k,n,itype,jtype,ibin,jbin,ns,js;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double radi,radsum,cutdistsq;
   int *neighptr,*s;
-  int js;
 
   double **x = atom->x;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
-  int *molindex = atom->molindex;
-  int *molatom = atom->molatom;
-  Molecule **onemols = atom->avec->onemols;
-  if (molecular == 2) moltemplate = 1;
-  else moltemplate = 0;
-
+  int history = list->history;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+
+  int mask_history = 3 << SBBITS;
 
   int inum = 0;
   ipage->reset();
@@ -73,13 +66,9 @@ void NPairHalfMulti2Newton::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    if (moltemplate) {
-      imol = molindex[i];
-      iatom = molatom[i];
-      tagprev = tag[i] - iatom - 1;
-    }
+    radi = radius[i];
 
-    ibin = atom2bin_multi2[itype][i];
+    ibin = atom2bin_multi[itype][i];
     
     // loop through stencils for all types
     for (jtype = 1; jtype <= atom->ntypes; jtype++) {
@@ -98,9 +87,9 @@ void NPairHalfMulti2Newton::build(NeighList *list)
           //   if j is owned atom, store it, since j is beyond i in linked list
           //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-          js = bins_multi2[itype][i];
+          js = bins_multi[itype][i];
         
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -110,28 +99,21 @@ void NPairHalfMulti2Newton::build(NeighList *list)
 	        }
             
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	        delx = xtmp - x[j][0];
 	        dely = ytmp - x[j][1];
 	        delz = ztmp - x[j][2];
 	        rsq = delx*delx + dely*dely + delz*delz;
-            
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	    	    if (!moltemplate)
-	    	      which = find_special(special[i],nspecial[i],tag[j]);
-	    	    else if (imol >= 0)
-	    	      which = find_special(onemols[imol]->special[iatom],
-	    			       onemols[imol]->nspecial[iatom],
-	    			       tag[j]-tagprev);
-	    	    else which = 0;
-	    	    if (which == 0) neighptr[n++] = j;
-	    	    else if (domain->minimum_image_check(delx,dely,delz))
-	    	      neighptr[n++] = j;
-	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
+	        radsum = radi + radius[j];
+	        cutdistsq = (radsum+skin) * (radsum+skin);
+          
+	        if (rsq <= cutdistsq) {
+	          if (history && rsq < radsum*radsum) 
+	            neighptr[n++] = j ^ mask_history;
+	          else 
+	            neighptr[n++] = j;
 	        }
-	      }  
+	      }
         } else {	
 
           // if different types, implement with:
@@ -139,9 +121,9 @@ void NPairHalfMulti2Newton::build(NeighList *list)
           //   if j is owned atom, store it if j > i
           //   if j is ghost, only store if j coords are "above and to the right" of i          
         
-          js = binhead_multi2[jtype][jbin];
+          js = binhead_multi[jtype][jbin];
           
-	      for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	      for (j = js; j >= 0; j = bins_multi[jtype][j]) {
             if(j < i) continue;	        
             
             if (j >= nlocal) {
@@ -153,67 +135,53 @@ void NPairHalfMulti2Newton::build(NeighList *list)
 	        }
             
 	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	        delx = xtmp - x[j][0];
 	        dely = ytmp - x[j][1];
 	        delz = ztmp - x[j][2];
 	        rsq = delx*delx + dely*dely + delz*delz;
-            
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	  	      if (!moltemplate)
-	  	        which = find_special(special[i],nspecial[i],tag[j]);
-	  	      else if (imol >= 0)
-	  	        which = find_special(onemols[imol]->special[iatom],
-	  	  		       onemols[imol]->nspecial[iatom],
-	  	  		       tag[j]-tagprev);
-	  	      else which = 0;
-	  	      if (which == 0) neighptr[n++] = j;
-	  	      else if (domain->minimum_image_check(delx,dely,delz))
-	  	        neighptr[n++] = j;
-	  	      else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
+	        radsum = radi + radius[j];
+	        cutdistsq = (radsum+skin) * (radsum+skin);
+          
+	        if (rsq <= cutdistsq) {
+	          if (history && rsq < radsum*radsum) 
+	            neighptr[n++] = j ^ mask_history;
+	          else 
+	            neighptr[n++] = j;
 	        }
-	      } 
-        }          
-      }
-       
+	      }
+        }
+      }  
+
       // for all types, loop over all atoms in other bins in stencil, store every pair 
       // stencil is empty if i larger than j
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
        
-	  s = stencil_multi2[itype][jtype];
-	  ns = nstencil_multi2[itype][jtype];
+	  s = stencil_multi[itype][jtype];
+	  ns = nstencil_multi[itype][jtype];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi2[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi2[jtype][j]) {
+	    js = binhead_multi[jtype][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
       
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-      
-	      delx = xtmp - x[j][0];
+
+          delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
-      
-	      if (rsq <= cutneighsq[itype][jtype]) {
-	        if (molecular != Atom::ATOMIC) {
-	  	    if (!moltemplate)
-	  	      which = find_special(special[i],nspecial[i],tag[j]);
-	  	    else if (imol >= 0)
-	  	      which = find_special(onemols[imol]->special[iatom],
-	  			       onemols[imol]->nspecial[iatom],
-	  			       tag[j]-tagprev);
-	  	    else which = 0;
-	  	    if (which == 0) neighptr[n++] = j;
-	  	    else if (domain->minimum_image_check(delx,dely,delz))
-	  	      neighptr[n++] = j;
-	  	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	        } else neighptr[n++] = j;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
+        
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
+	    	    neighptr[n++] = j ^ mask_history;
+	        else
+	    	    neighptr[n++] = j;
 	      }
 	    }
-	  }
+      }
     }
     
     ilist[inum++] = i;

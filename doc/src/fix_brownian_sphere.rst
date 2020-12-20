@@ -53,8 +53,8 @@ viscous forces. The stochastic equations of motion are
    d\Omega = \frac{T}{\gamma_r}dt + \sqrt{2D_r}dW_r,
 
 where :math:`d\Omega` is an infinitesimal rotation vector (see e.g.
-Chapter 4 of :ref:`(Goldstein) <GoldsteinCM>`), :math:`dW_t` and
-:math:`dW_r` are Wiener processes (see e.g. :ref:`(Gardiner) <GardinerC>`).
+Chapter 4 of :ref:`(Goldstein) <GoldsteinCM1>`), :math:`dW_t` and
+:math:`dW_r` are Wiener processes (see e.g. :ref:`(Gardiner) <GardinerC2>`).
 The dipole vectors :math:`e_i` are updated using the rotation matrix
 
 .. math::
@@ -85,35 +85,31 @@ section 7.4).
 
 ---------
 
-.. note::
-   Temperature computation using the :doc:`compute temp <compute_temp>`
-   will not correctly compute temperature of these overdamped dynamics
-   since we are explicitly neglecting inertial effects.
-   See e.g. chapter 6 of :ref:`(Doi) <Doi1>` for more details on this.
-   Temperature is instead defined in terms of the note above (for
-   equilibrium systems).
+See note on the unphysical result of using :doc:`compute temp <compute_temp>`
+with this fix in :doc:`fix brownian <fix_brownian>`.
 
 ---------
 
 .. note::
-   The diffusion coefficient :math:`D_t` is measured
-   in units of (length*length)/time and the diffusion coefficient
-   :math:`D_r` is measured in units of 1/time, where time and length
-   are in the units specified on the :doc:`units <units>` page. Similarly,
-   :math:`\gamma_t` and :math:`\gamma_r` are measured in
+   The diffusion coefficient :math:`D_t` and the translational
+   drag coefficient :math:`\gamma_t` are discussed in
+   :doc:`fix brownian <fix_brownian>`. The diffusion coefficient
+   :math:`D_r` is measured in units of 1/time, where time is  in the
+   units specified on the :doc:`units <units>` page. Similarly,
+   and :math:`\gamma_r` is measured in
    units of mass/time and (mass*length*length)/(time).
 
 ---------
 
 If the *rng* keyword is used with the *uniform* value, then the noise
 is generated from a uniform distribution (see
-:ref:`(Dunweg) <Dunweg6>` for why this works). This is the same method
+:ref:`(Dunweg) <Dunweg7>` for why this works). This is the same method
 of noise generation as used in :doc:`fix_langevin <fix_langevin>`.
 
 If the *rng* keyword is used with the *gaussian* value, then the noise
 is generated from a gaussian distribution. Typically this added
 complexity is unnecessary, and one should be fine using the *uniform*
-value for reasons argued in :ref:`(Dunweg) <Dunweg6>`.
+value for reasons argued in :ref:`(Dunweg) <Dunweg7>`.
 
 If the *rng* keyword is used with the *none* value, then the noise
 terms are set to zero.
@@ -151,7 +147,7 @@ as defined by the :doc:`atom_style sphere <atom_style>` command.
 If the *dipole* keyword is used, they must also store a dipole moment
 as defined by the :doc:`atom_style dipole <atom_style>` command.
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the USER-BROWNIAN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
@@ -159,8 +155,9 @@ doc page for more info.
 Related commands
 """"""""""""""""
 
+:doc:`fix brownian <fix_brownian>`, :doc:`fix brownian/asphere <fix_brownian_asphere>`,
+:doc:`fix propel/self <fix_propel_self>`,
 :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/sphere <fix_nve_sphere>`,
-:doc:`atom style <atom_style>`
 
 Default
 """""""
@@ -169,11 +166,11 @@ The default for *rng* is *uniform*.
 
 ----------
 
-.. _GoldsteinCM:
+.. _GoldsteinCM1:
 
 **(Goldstein)** Goldstein, Poole, and Safko, Classical Mechanics, 3rd Ed. (2001).
 
-.. _GardinerC:
+.. _GardinerC2:
 
 **(Gardiner)** Gardiner, A Handbook for the Natural and Social Sciences 4th Ed. (2009).
 
@@ -182,11 +179,7 @@ The default for *rng* is *uniform*.
 **(Callegari)** Callegari and Volpe, *Numerical Simulations of Active Brownian
 Particles*, Flowing Matter, 211-238 (2019).
 
-.. _Doi1:
-
-**(Doi)** Doi, Soft Matter Physics (2013).
-
-.. _Dunweg6:
+.. _Dunweg7:
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 

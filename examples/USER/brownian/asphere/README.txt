@@ -1,2 +1,2 @@
-The input file in2d.bd demonstrates how to run a 2d simulation
+The input file in3d.brownian demonstrates how to run a 3d simulation
 of ellipsoidal particles undergoing overdamped brownian motion.

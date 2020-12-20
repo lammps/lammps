@@ -21,10 +21,9 @@ Syntax
        *dipole* value = none = apply force along dipole direction
        *velocity* value = none = apply force along velocity direction
        *quat* values = direction vector *sx* and *sy* and *sz*
-         *sx* = x component of force direction in ellipsoid frame
-	 *sy* = y component of force direction in ellipsoid frame
-	 *sz* = z component of force direction in ellipsoid frame
-
+        *sx* = x component of force direction in ellipsoid frame
+	*sy* = y component of force direction in ellipsoid frame
+	*sz* = z component of force direction in ellipsoid frame
 
 
 Examples

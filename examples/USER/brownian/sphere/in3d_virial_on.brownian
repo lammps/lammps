@@ -1,4 +1,6 @@
-# 3d overdamped brownian dynamics
+# 3d overdamped brownian dynamics of sphere, with
+# virial contribution (i.e. ideal gas pressure)
+# included
 
 
 variable	rng string uniform
@@ -16,7 +18,6 @@ log             log_${params}_3d.lammps.log
 units           lj
 atom_style      sphere
 dimension       3
-newton off
 
 
 lattice         sc 0.4
@@ -26,14 +27,11 @@ create_atoms    1 box
 #mass            * 1.0
 velocity        all create 1.0 1 loop geom
 
-
-neighbor        1.0 bin
-neigh_modify    every 1 delay 1 check yes
-
 pair_style none
 
 
-fix         1 all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} rng ${rng}
+fix         1 all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} &
+	    ${D_r} ${seed} rng ${rng}
 fix_modify  1 virial yes
 
 compute press all pressure NULL virial
@@ -46,21 +44,11 @@ thermo          50001
 run             50000
 reset_timestep  0
 
-
-#initialisation for the main run
-
 # MSD 
 compute         msd  all msd
 
 
 thermo_style    custom step temp epair c_msd[*] c_press
-
-
-# write trajectory and thermo in a log-scale frequency
-# uncomment the next three lines for dump file
-#dump            1 all custom 10000 dump_${params}_3d.lammpstrj id type &
-#		x y xu yu fx fy fz
-#dump_modify     1 first yes sort id
 
 timestep        0.00001
 thermo          1000

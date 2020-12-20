@@ -39,6 +39,7 @@ OPT.
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
+   * :doc:`brownian <fix_brownian>`
    * :doc:`brownian/asphere <fix_brownian_asphere>`
    * :doc:`brownian/sphere <fix_brownian_sphere>`
    * :doc:`bocs <fix_bocs>`

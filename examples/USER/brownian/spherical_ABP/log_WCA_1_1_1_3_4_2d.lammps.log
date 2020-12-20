@@ -1,0 +1,163 @@
+units           lj
+atom_style	hybrid dipole sphere
+WARNING: Atom_style hybrid defines both pertype and peratom masses - both must be set, only peratom masses will be used (src/atom_vec_hybrid.cpp:157)
+dimension       2
+newton off
+
+
+lattice         sq 0.4
+Lattice spacing in x,y,z = 1.5811388 1.5811388 1.5811388
+region          box block -16 16 -16 16 -0.2 0.2
+create_box      1 box
+Created orthogonal box = (-25.298221 -25.298221 -0.31622777) to (25.298221 25.298221 0.31622777)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 box
+Created 1024 atoms
+  create_atoms CPU = 0.001 seconds
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+set             type  * dipole/random 1974019 1.0
+Setting atom values ...
+  1024 settings made for dipole/random
+velocity        all create 1.0 1 loop geom
+
+# more careful with neighbors since higher diffusion in abps
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+
+# WCA potential (purely repulsive)
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0 1.1224
+pair_modify shift yes
+
+
+
+# overdamped brownian dynamics time-step
+fix         step all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 ${gamma_r} ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 1 ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 1 3 ${seed} dipole
+fix         step all brownian/sphere 1 1 1 3 1974019 dipole
+# self-propulsion force along the dipole direction
+fix	    activity all propel/self ${fp} dipole
+fix	    activity all propel/self 4 dipole
+fix	    2 all enforce2d
+
+
+compute press all pressure NULL virial
+
+thermo_style    custom step temp epair c_press
+
+#equilibration
+timestep        0.0000000001
+thermo          50001
+run             50000
+Neighbor list info ...
+  update every 1 steps, delay 1 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.1224
+  ghost atom cutoff = 2.1224
+  binsize = 1.0612, bins = 48 48 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton off
+      pair build: half/bin/newtoff
+      stencil: half/bin/2d/newtoff
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.052 | 5.052 | 5.052 Mbytes
+Step Temp E_pair c_press 
+       0            1            0  -0.53979198 
+   50000 1.0371295e+10            0    -0.542818 
+Loop time of 2.25396 on 4 procs for 50000 steps with 1024 atoms
+
+Performance: 0.192 tau/day, 22183.200 timesteps/s
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.1034     | 0.10382    | 0.10438    |   0.1 |  4.61
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.26698    | 0.26833    | 0.26924    |   0.2 | 11.90
+Output  | 2.2284e-05 | 2.4926e-05 | 3.2332e-05 |   0.0 |  0.00
+Modify  | 1.7222     | 1.7237     | 1.727      |   0.1 | 76.48
+Other   |            | 0.1581     |            |       |  7.01
+
+Nlocal:        256.000 ave         256 max         256 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        105.000 ave         105 max         105 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:        544.000 ave         544 max         544 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2176
+Ave neighs/atom = 2.1250000
+Neighbor list builds = 0
+Dangerous builds = 0
+reset_timestep  0
+
+
+# MSD
+compute         msd  all msd
+
+
+thermo_style    custom step temp epair c_msd[*] c_press
+
+
+timestep        0.00001
+thermo          10000
+
+# main run
+run             200000
+Per MPI rank memory allocation (min/avg/max) = 5.427 | 5.427 | 5.427 Mbytes
+Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press 
+       0 1.0371295e+10            0            0            0            0            0    -0.542818 
+   10000    107356.09  0.079828495   0.19584264   0.19679822            0   0.39264086 0.00078740793 
+   20000    101692.44   0.11317533   0.40847364   0.42097802            0   0.82945167   0.74111888 
+   30000    105763.55   0.10261852   0.68303669   0.66125751            0    1.3442942   0.71112533 
+   40000    105127.29   0.12371743   0.97990144   0.94005552            0     1.919957    1.0574552 
+   50000    101579.58   0.12771813    1.3059069    1.2364468            0    2.5423537     1.059263 
+   60000    104914.36   0.12055843    1.6215593     1.525488            0    3.1470473   0.79873537 
+   70000    106629.18    0.1278745    1.9639958    1.8682794            0    3.8322752   0.91950208 
+   80000    103286.54   0.13927689    2.3201565    2.2373383            0    4.5574948    1.1875034 
+   90000    106451.61  0.093479681    2.6287902    2.5753347            0    5.2041249    1.0861163 
+  100000    102199.72   0.13269425    2.9127976    2.9369237            0    5.8497214    1.4841998 
+  110000    105229.73   0.10594209    3.1798718    3.3495317            0    6.5294035    1.5444784 
+  120000    106262.36   0.11902575    3.6267452    3.7188125            0    7.3455578    1.3366518 
+  130000    109388.12   0.10562576     3.929973    4.0226942            0    7.9526672     1.324534 
+  140000    107697.35   0.13028752     4.231893    4.3780995            0    8.6099925    1.7406167 
+  150000    103928.72   0.12278994    4.5826286    4.7578662            0    9.3404948    1.3024003 
+  160000    103370.23   0.11391216    4.8767011    5.1181189            0      9.99482    1.4325241 
+  170000    103821.53   0.11163256     5.153318    5.3785963            0    10.531914    1.4569115 
+  180000    106824.99   0.13225083    5.4080929    5.7399804            0    11.148073     1.334984 
+  190000     101794.6   0.10632938    5.7384925     6.080955            0    11.819448   0.81285422 
+  200000    102128.67   0.13703498    6.0414673    6.4511058            0    12.492573   0.42904128 
+Loop time of 9.60419 on 4 procs for 200000 steps with 1024 atoms
+
+Performance: 17992.140 tau/day, 20824.236 timesteps/s
+100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.71756    | 0.75121    | 0.79008    |   3.0 |  7.82
+Neigh   | 0.018158   | 0.018773   | 0.019357   |   0.3 |  0.20
+Comm    | 1.0469     | 1.0597     | 1.0738     |   1.2 | 11.03
+Output  | 0.00051435 | 0.00057078 | 0.00070838 |   0.0 |  0.01
+Modify  | 6.8012     | 6.9883     | 7.1513     |   4.9 | 72.76
+Other   |            | 0.7857     |            |       |  8.18
+
+Nlocal:        256.000 ave         265 max         240 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:        88.5000 ave          91 max          87 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+Neighs:        678.500 ave         713 max         597 min
+Histogram: 1 0 0 0 0 0 0 0 1 2
+
+Total # of neighbors = 2714
+Ave neighs/atom = 2.6503906
+Neighbor list builds = 241
+Dangerous builds = 0
+Total wall time: 0:00:11

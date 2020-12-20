@@ -1,0 +1,150 @@
+units           lj
+atom_style	hybrid dipole sphere
+WARNING: Atom_style hybrid defines both pertype and peratom masses - both must be set, only peratom masses will be used (src/atom_vec_hybrid.cpp:157)
+dimension       3
+newton off
+
+
+lattice         sc 0.4
+Lattice spacing in x,y,z = 1.3572088 1.3572088 1.3572088
+region          box block -8 8 -8 8 -8 8
+create_box      1 box
+Created orthogonal box = (-10.857670 -10.857670 -10.857670) to (10.857670 10.857670 10.857670)
+  2 by 1 by 2 MPI processor grid
+create_atoms    1 box
+Created 4096 atoms
+  create_atoms CPU = 0.002 seconds
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+set             type  * dipole/random 1974019 1.0
+Setting atom values ...
+  4096 settings made for dipole/random
+velocity        all create 1.0 1 loop geom
+
+pair_style none
+
+# overdamped brownian dynamics time-step
+fix         step all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 ${gamma_r} ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 1 ${D_r} ${seed} dipole
+fix         step all brownian/sphere 1 1 1 3 ${seed} dipole
+fix         step all brownian/sphere 1 1 1 3 1974019 dipole
+# self-propulsion force along the dipole direction
+fix	    activity all propel/self ${fp} dipole
+fix	    activity all propel/self 4 dipole
+
+
+compute press all pressure NULL virial
+
+thermo_style    custom step temp epair c_press
+
+#equilibration
+timestep        0.0000000001
+thermo          50001
+run             50000
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2118)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 4.319 | 4.319 | 4.319 Mbytes
+Step Temp E_pair c_press 
+       0            1            0  0.068021726 
+   50000 1.046425e+10            0  0.067505633 
+Loop time of 7.83903 on 4 procs for 50000 steps with 4096 atoms
+
+Performance: 0.055 tau/day, 6378.340 timesteps/s
+97.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.50238    | 0.51891    | 0.53617    |   1.7 |  6.62
+Output  | 2.6343e-05 | 3.6075e-05 | 4.6997e-05 |   0.0 |  0.00
+Modify  | 6.9536     | 6.9732     | 7.0105     |   0.8 | 88.95
+Other   |            | 0.3469     |            |       |  4.43
+
+Nlocal:        1024.00 ave        1024 max        1024 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        353.000 ave         353 max         353 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+reset_timestep  0
+
+
+# MSD to demonstrate expected diffusive behaviour for ideal active
+# brownian motion, which is
+#
+#      MSD = (2*d*D_t + 2*fp**2/(gamma_t**2*(d-1)*D_r))*t
+#
+# with d being simulation dimension
+compute         msd  all msd
+
+
+thermo_style    custom step temp epair c_msd[*] c_press
+
+
+timestep        0.00001
+thermo          10000
+
+# main run
+run             120000
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 4.694 | 4.694 | 4.694 Mbytes
+Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press 
+       0 1.046425e+10            0            0            0            0            0  0.067505633 
+   10000    106340.56            0    0.2469318   0.23662295    0.2441413   0.72769605   0.19939966 
+   20000    104620.27            0   0.55429324    0.5231436   0.54976641    1.6272032   0.26601423 
+   30000    106130.45            0   0.87562668   0.84813496   0.89321299    2.6169746   0.30836996 
+   40000    105773.31            0    1.2262635    1.1899278    1.2626926    3.6788838   0.35392219 
+   50000    103804.88            0    1.5851624    1.5645815    1.6434185    4.7931624   0.33326997 
+   60000    105746.45            0    1.9928016    1.9347072    1.9837329    5.9112417    0.2550878 
+   70000     104500.3            0    2.3269429    2.2774077    2.3368821    6.9412326   0.25218225 
+   80000    105381.46            0    2.7114959    2.6937299    2.7171132     8.122339   0.36940892 
+   90000    104542.79            0    3.0828648     3.084417    3.0783207    9.2456025   0.36106481 
+  100000    104246.75            0    3.4635513    3.5105066    3.4545226     10.42858    0.3712313 
+  110000    103099.55            0    3.8471061    3.9389997    3.8220676    11.608173   0.38466185 
+  120000    103098.45            0    4.2014598    4.3456831    4.1888659    12.736009   0.36710217 
+Loop time of 22.8893 on 4 procs for 120000 steps with 4096 atoms
+
+Performance: 4529.619 tau/day, 5242.615 timesteps/s
+100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0.0049489  | 0.0050479  | 0.0050978  |   0.1 |  0.02
+Comm    | 0.082752   | 0.084491   | 0.085332   |   0.4 |  0.37
+Output  | 0.00054352 | 0.0006034  | 0.00064793 |   0.0 |  0.00
+Modify  | 21.069     | 21.521     | 21.964     |   7.0 | 94.02
+Other   |            | 1.278      |            |       |  5.58
+
+Nlocal:        1024.00 ave        1050 max        1010 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Nghost:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 2169
+Dangerous builds = 0
+
+# if you want to check that rotational diffusion is behaving as expected,
+# uncomment next three lines for dump output and then plot <e(t).e(0)>,
+# which should decay exponentially with timescale (d-1)*D_r (with d
+# being simulation dimension)
+
+#dump            1 all custom 2000 dump_ideal_${params}_3d.lammpstrj id type #		x y xu yu mux muy muz fx fy fz
+#dump_modify     1 first yes sort id
+
+#run             120000
+Total wall time: 0:00:30

@@ -11,7 +11,7 @@ variable zblz equal 73
 
 pair_style hybrid/overlay &
 zbl ${zblcutinner} ${zblcutouter} &
-mliap model mliappy Ta06A.mliap.pytorch.model.pkl &
+mliap model mliappy Ta06A.mliap.pytorch.model.pt &
 descriptor sna Ta06A.mliap.descriptor
 pair_coeff 1 1 zbl ${zblz} ${zblz}
 pair_coeff * * mliap Ta

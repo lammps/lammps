@@ -46,7 +46,7 @@ using namespace LAMMPS_NS;
 
 // max number of interaction per atom for f(Z) environment potential
 
-#define leadDimInteractionList 64
+static constexpr int leadDimInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 

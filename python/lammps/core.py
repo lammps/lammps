@@ -77,7 +77,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     # for windows installers the shared library is in a different folder
-    winpath = abspath(os.path.join(modpath,'..','bin'))
+    winpath = abspath(os.path.join(modpath,'..','..','bin'))
     self.lib = None
     self.lmp = None
 

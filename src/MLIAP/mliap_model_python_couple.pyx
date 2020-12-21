@@ -46,7 +46,7 @@ cdef object c_id(MLIAPModelPython * c_model):
     """
     return int(<uintptr_t> c_model)
 
-cdef object retrieve(MLIAPModelPython * c_model):
+cdef object retrieve(MLIAPModelPython * c_model) with gil:
     try:
         model = LOADED_MODELS[c_id(c_model)]
     except KeyError as ke:
@@ -61,8 +61,12 @@ cdef public int MLIAPPY_load_model(MLIAPModelPython * c_model, char* fname) with
         model = None
         returnval = 0
     else:
-        with open(str_fname,'rb') as pfile:
-            model = pickle.load(pfile)
+        if str_fname.endswith(".pt") or str_fname.endswith('.pth'):
+            import torch
+            model = torch.load(str_fname)
+        else:
+            with open(str_fname,'rb') as pfile:
+                model = pickle.load(pfile)
         returnval = 1
     LOADED_MODELS[c_id(c_model)] = model
     return returnval

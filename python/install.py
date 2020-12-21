@@ -95,22 +95,26 @@ print("Installing LAMMPS Python package version %s into site-packages folder" % 
 # we need to switch to the folder of the python package
 os.chdir(os.path.dirname(args.package))
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 from distutils.sysconfig import get_python_lib
 import site
-tryuser=False
 
+#Arguments common to global or user install -- everything but data_files
+setup_kwargs= dict(name="lammps",
+        version=verstr,
+        author="Steve Plimpton",
+        author_email="sjplimp@sandia.gov",
+        url="https://lammps.sandia.gov",
+        description="LAMMPS Molecular Dynamics Python package",
+        license="GPL",
+        packages=find_packages(),
+        )
+
+tryuser=False
 try:
   sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
-  setup(name = "lammps",
-        version = verstr,
-        author = "Steve Plimpton",
-        author_email = "sjplimp@sandia.gov",
-        url = "https://lammps.sandia.gov",
-        description = "LAMMPS Molecular Dynamics Python package",
-        license = "GPL",
-        packages=['lammps'],
-        data_files = [(os.path.join(get_python_lib(), 'lammps'), [args.lib])])
+  setup_kwargs['data_files']=[(os.path.join(get_python_lib(), 'lammps'), [args.lib])]
+  setup(**setup_kwargs)
 except:
   tryuser=True
   print ("Installation into global site-packages folder failed.\nTrying user folder %s now." % site.USER_SITE)
@@ -118,14 +122,7 @@ except:
 if tryuser:
   try:
     sys.argv = ["setup.py","install","--user"]    # as if had run "python setup.py install --user"
-    setup(name = "lammps",
-          version = verstr,
-          author = "Steve Plimpton",
-          author_email = "sjplimp@sandia.gov",
-          url = "https://lammps.sandia.gov",
-          description = "LAMMPS Molecular Dynamics Python package",
-          license = "GPL",
-          packages=['lammps'],
-          data_files = [(os.path.join(site.USER_SITE, 'lammps'), [args.lib])])
+    setup_kwargs['data_files']=[(os.path.join(site.USER_SITE, 'lammps'), [args.lib])]
+    setup(**setup_kwargs)
   except:
     print("Installation into user site package folder failed.")

@@ -81,26 +81,24 @@ import lammps
 
 lmp = lammps.lammps(cmdargs=['-echo','both'])
 
-# this commmand must be run before the MLIAP object is declared in lammps.
+# Before defining the pair style, one must do the following:
+import lammps.mliap
+lammps.mliap.activate_mliappy(lmp)
+# Otherwise, when running lammps in library mode,
+# you will get an error:
+# "ERROR: Loading MLIAPPY coupling module failure."
 
-lmp.mliappy.activate()
-
-# setup the simulation and declare an empty model
+# Setup the simulation and declare an empty model
 # by specifying model filename as "LATER"
-
 lmp.commands_string(before_loading)
 
-# define the PyTorch model by loading a pkl file.
-# this could also be done in other ways.
+# Define the model however you like. In this example
+# we load it from disk:
+import torch
+model = torch.load('Ta06A.mliap.pytorch.model.pt')
 
-import pickle
-with open('Ta06A.mliap.pytorch.model.pkl','rb') as pfile:
-  model = pickle.load(pfile)
+# Connect the PyTorch model to the mliap pair style.
+lammps.mliap.load_model(model)
   
-# connect the PyTorch model to the mliap pair style
-
-lmp.mliappy.load_model(model)
-
 # run the simulation with the mliap pair style
-
 lmp.commands_string(after_loading)

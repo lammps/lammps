@@ -22,20 +22,28 @@ def calc_n_params(model):
     return sum(p.nelement() for p in model.parameters())
 
 class TorchWrapper(torch.nn.Module):
-    def __init__(self, model,n_descriptors,n_elements,n_params=None):
+    def __init__(self, model,n_descriptors,n_elements,n_params=None,device=None,dtype=torch.float64):
         super().__init__()
+
         self.model = model
-        self.model.to(self.dtype)
+        self.device = device
+        self.dtype = dtype
+
+        # Put model on device and convert to dtype
+        self.to(self.dtype)
+        self.to(self.device)
+
         if n_params is None:
             n_params = calc_n_params(model)
+
         self.n_params = n_params
         self.n_descriptors = n_descriptors
         self.n_elements = n_elements
 
-    def __call__(self, elems, bispectrum, beta, energy):
+    def forward(self, elems, bispectrum, beta, energy):
 
-        bispectrum = torch.from_numpy(bispectrum).to(self.dtype).requires_grad_(True)
-        elems = torch.from_numpy(elems).to(torch.long) - 1
+        bispectrum = torch.from_numpy(bispectrum).to(dtype=self.dtype, device=self.device).requires_grad_(True)
+        elems = torch.from_numpy(elems).to(dtype=torch.long, device=self.device) - 1
 
         with torch.autograd.enable_grad():
 
@@ -47,12 +55,6 @@ class TorchWrapper(torch.nn.Module):
 
         beta[:] = beta_nn.detach().cpu().numpy().astype(np.float64)
         energy[:] = energy_nn.detach().cpu().numpy().astype(np.float64)
-
-class TorchWrapper32(TorchWrapper):
-    dtype = torch.float32
-
-class TorchWrapper64(TorchWrapper):
-    dtype = torch.float64
 
 class IgnoreElems(torch.nn.Module):
     def __init__(self,subnet):

@@ -84,6 +84,16 @@ for the :doc:`pair_style snap <pair_snap>` coefficient file.
 Specifically, the line containing the element weight and radius is omitted,
 since these are handled by the *descriptor*.
 
+Notes on mliappy models:
+When the *model* keyword is *mliappy*, the filename should end in '.pt',
+'.pth' for pytorch models, or be a pickle file. To load a model from
+memory (i.e. an existing python object), specify the filename as
+"LATER", and then call `lammps.mliap.load_model(model)` from python
+before using the pair style. When using lammps via the library mode, you will need to call
+`lammps.mliappy.activate_mliappy(lmp)` on the active lammps object
+before the pair style is defined. This call locates and loads the mliap-specific
+python module that is built into lammps.
+
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component
 descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of

@@ -10,10 +10,10 @@ Lattice spacing in x,y,z = 1.3572088 1.3572088 1.3572088
 region          box block -8 8 -8 8 -8 8
 create_box      1 box
 Created orthogonal box = (-10.857670 -10.857670 -10.857670) to (10.857670 10.857670 10.857670)
-  2 by 1 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 4096 atoms
-  create_atoms CPU = 0.002 seconds
+  create_atoms CPU = 0.003 seconds
 mass            * 1.0
 set             type  * dipole/random ${seed} 1.0
 set             type  * dipole/random 1974019 1.0
@@ -31,8 +31,8 @@ fix         step all brownian/sphere 1 1 1 ${D_r} ${seed} dipole
 fix         step all brownian/sphere 1 1 1 3 ${seed} dipole
 fix         step all brownian/sphere 1 1 1 3 1974019 dipole
 # self-propulsion force along the dipole direction
-fix	    activity all propel/self ${fp} dipole
-fix	    activity all propel/self 4 dipole
+fix	    activity all propel/self dipole ${fp}
+fix	    activity all propel/self dipole 4
 
 
 compute press all pressure NULL virial
@@ -45,31 +45,31 @@ thermo          50001
 run             50000
 WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2118)
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
-Per MPI rank memory allocation (min/avg/max) = 4.319 | 4.319 | 4.319 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.362 | 4.362 | 4.362 Mbytes
 Step Temp E_pair c_press 
        0            1            0  0.068021726 
-   50000 1.046425e+10            0  0.067505633 
-Loop time of 7.83903 on 4 procs for 50000 steps with 4096 atoms
+   50000 1.0486812e+10            0  0.068203091 
+Loop time of 25.3706 on 1 procs for 50000 steps with 4096 atoms
 
-Performance: 0.055 tau/day, 6378.340 timesteps/s
-97.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.017 tau/day, 1970.786 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.50238    | 0.51891    | 0.53617    |   1.7 |  6.62
-Output  | 2.6343e-05 | 3.6075e-05 | 4.6997e-05 |   0.0 |  0.00
-Modify  | 6.9536     | 6.9732     | 7.0105     |   0.8 | 88.95
-Other   |            | 0.3469     |            |       |  4.43
+Comm    | 0.31005    | 0.31005    | 0.31005    |   0.0 |  1.22
+Output  | 3.2633e-05 | 3.2633e-05 | 3.2633e-05 |   0.0 |  0.00
+Modify  | 24.471     | 24.471     | 24.471     |   0.0 | 96.45
+Other   |            | 0.5897     |            |       |  2.32
 
-Nlocal:        1024.00 ave        1024 max        1024 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:        353.000 ave         353 max         353 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Nlocal:        4096.00 ave        4096 max        4096 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        817.000 ave         817 max         817 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:         0.00000 ave           0 max           0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 0
 Ave neighs/atom = 0.0000000
@@ -96,46 +96,46 @@ thermo          10000
 # main run
 run             120000
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
-Per MPI rank memory allocation (min/avg/max) = 4.694 | 4.694 | 4.694 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.737 | 4.737 | 4.737 Mbytes
 Step Temp E_pair c_msd[1] c_msd[2] c_msd[3] c_msd[4] c_press 
-       0 1.046425e+10            0            0            0            0            0  0.067505633 
-   10000    106340.56            0    0.2469318   0.23662295    0.2441413   0.72769605   0.19939966 
-   20000    104620.27            0   0.55429324    0.5231436   0.54976641    1.6272032   0.26601423 
-   30000    106130.45            0   0.87562668   0.84813496   0.89321299    2.6169746   0.30836996 
-   40000    105773.31            0    1.2262635    1.1899278    1.2626926    3.6788838   0.35392219 
-   50000    103804.88            0    1.5851624    1.5645815    1.6434185    4.7931624   0.33326997 
-   60000    105746.45            0    1.9928016    1.9347072    1.9837329    5.9112417    0.2550878 
-   70000     104500.3            0    2.3269429    2.2774077    2.3368821    6.9412326   0.25218225 
-   80000    105381.46            0    2.7114959    2.6937299    2.7171132     8.122339   0.36940892 
-   90000    104542.79            0    3.0828648     3.084417    3.0783207    9.2456025   0.36106481 
-  100000    104246.75            0    3.4635513    3.5105066    3.4545226     10.42858    0.3712313 
-  110000    103099.55            0    3.8471061    3.9389997    3.8220676    11.608173   0.38466185 
-  120000    103098.45            0    4.2014598    4.3456831    4.1888659    12.736009   0.36710217 
-Loop time of 22.8893 on 4 procs for 120000 steps with 4096 atoms
+       0 1.0486812e+10            0            0            0            0            0  0.068203091 
+   10000    104209.87            0   0.25428952    0.2512451   0.23617807   0.74171269    0.1910208 
+   20000    104433.46            0   0.55611319   0.57499464   0.54362634    1.6747342   0.27977792 
+   30000    104615.53            0   0.88377871    0.8933002   0.88683731    2.6639162   0.31709969 
+   40000     105930.5            0    1.2301515     1.262995    1.2479624    3.7411089   0.26149988 
+   50000    105556.39            0    1.5798848    1.6402779    1.6392277    4.8593905   0.34401188 
+   60000    104644.58            0    1.9782384    1.9902061    2.0327974    6.0012419   0.26709167 
+   70000    104314.31            0    2.3681872    2.3695505    2.4241916    7.1619294   0.24191407 
+   80000       105700            0    2.7109374    2.7434271    2.8309194    8.2852839   0.28355159 
+   90000    103411.61            0    3.1023448    3.0881218    3.1599155     9.350382    0.3070844 
+  100000    105432.12            0    3.4853878    3.4372177    3.5153198    10.437925   0.28141015 
+  110000    105723.04            0    3.8405786    3.7967805    3.8738332    11.511192   0.33248553 
+  120000    104734.31            0    4.2454301    4.1714561    4.2234474    12.640334    0.3603781 
+Loop time of 63.7803 on 1 procs for 120000 steps with 4096 atoms
 
-Performance: 4529.619 tau/day, 5242.615 timesteps/s
-100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 1625.581 tau/day, 1881.459 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Neigh   | 0.0049489  | 0.0050479  | 0.0050978  |   0.1 |  0.02
-Comm    | 0.082752   | 0.084491   | 0.085332   |   0.4 |  0.37
-Output  | 0.00054352 | 0.0006034  | 0.00064793 |   0.0 |  0.00
-Modify  | 21.069     | 21.521     | 21.964     |   7.0 | 94.02
-Other   |            | 1.278      |            |       |  5.58
+Neigh   | 0.013032   | 0.013032   | 0.013032   |   0.0 |  0.02
+Comm    | 0.093045   | 0.093045   | 0.093045   |   0.0 |  0.15
+Output  | 0.00069845 | 0.00069845 | 0.00069845 |   0.0 |  0.00
+Modify  | 62.279     | 62.279     | 62.279     |   0.0 | 97.65
+Other   |            | 1.394      |            |       |  2.19
 
-Nlocal:        1024.00 ave        1050 max        1010 min
-Histogram: 2 0 0 1 0 0 0 0 0 1
+Nlocal:        4096.00 ave        4096 max        4096 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:         0.00000 ave           0 max           0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:         0.00000 ave           0 max           0 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 0
 Ave neighs/atom = 0.0000000
-Neighbor list builds = 2169
+Neighbor list builds = 2174
 Dangerous builds = 0
 
 # if you want to check that rotational diffusion is behaving as expected,
@@ -147,4 +147,4 @@ Dangerous builds = 0
 #dump_modify     1 first yes sort id
 
 #run             120000
-Total wall time: 0:00:30
+Total wall time: 0:01:29

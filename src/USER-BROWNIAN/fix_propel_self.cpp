@@ -16,8 +16,7 @@
 
    Thanks to Liesbeth Janssen @ Eindhoven University for useful discussions!
 
-   Current maintainer: Sam Cameron @ University of Bristol
- 
+   Current maintainer: Sam Cameron @ University of Bristol 
 ----------------------------------------------------------------------- */
 
 #include <math.h>
@@ -49,44 +48,47 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) :
 
   virial_flag = 1;
   
-  if (narg < 5)
+  if (narg != 5 && narg != 9)
     error->all(FLERR,"Illegal fix propel/self command");
 
-
-  magnitude = utils::numeric(FLERR,arg[3],false,lmp);
   
-  if (strcmp(arg[4],"velocity") == 0) {
+  if (strcmp(arg[3],"velocity") == 0) {
     mode = VELOCITY;
     thermo_virial = 0;
-    if (narg != 5) {
-      error->all(FLERR,"Illegal fix propel/self command");
-    }
-  } else if (strcmp(arg[4],"dipole") == 0) {
+  } else if (strcmp(arg[3],"dipole") == 0) {
     mode = DIPOLE;
     thermo_virial = 1;
-    if (narg != 5) {
-      error->all(FLERR,"Illegal fix propel/self command");
-    }
-  } else if (strcmp(arg[4],"quat") == 0) {
+  } else if (strcmp(arg[3],"quat") == 0) {
     mode = QUAT;
     thermo_virial = 1;
-    if (narg != 8) {
-      error->all(FLERR,"Illegal fix propel/self command");
-    } else {
-      sx = utils::numeric(FLERR,arg[5],false,lmp);
-      sy = utils::numeric(FLERR,arg[6],false,lmp);
-      sz = utils::numeric(FLERR,arg[7],false,lmp);
-      double qnorm = sqrt(sx*sx + sy*sy + sz*sz);
-      sx = sx/qnorm;
-      sy = sy/qnorm;
-      sz = sz/qnorm;
-    }
   } else {
     error->all(FLERR,"Illegal fix propel/self command");
   }
 
+  magnitude = utils::numeric(FLERR,arg[4],false,lmp);
 
+  // check for keyword
 
+  if (narg == 9) {
+    if (mode != QUAT) {
+      error->all(FLERR,"Illegal fix propel/self command");
+    }
+    if (strcmp(arg[5],"qvector") == 0) {
+      sx = utils::numeric(FLERR,arg[6],false,lmp);
+      sy = utils::numeric(FLERR,arg[7],false,lmp);
+      sz = utils::numeric(FLERR,arg[8],false,lmp);
+      double snorm = sqrt(sx*sx + sy*sy + sz*sz);
+      sx = sx/snorm;
+      sy = sy/snorm;
+      sz = sz/snorm;
+    } else {
+      error->all(FLERR,"Illegal fix propel/self command");
+    }
+  } else {
+    sx = 1.0;
+    sy = 0.0;
+    sz = 0.0;
+  }
   
 }
 

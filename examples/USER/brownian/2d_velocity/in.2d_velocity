@@ -31,7 +31,7 @@ neigh_modify    every 1 delay 1 check yes
 pair_style none
 
 fix         step all brownian ${gamma_t} ${D_t} ${seed}
-fix	    vel all propel/self ${fp} velocity
+fix	    vel all propel/self velocity ${fp}
 fix         2 all enforce2d
 fix_modify  vel virial yes
 

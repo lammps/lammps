@@ -8,22 +8,19 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID propel/self magnitude keyword values
+   fix ID group-ID propel/self mode magnitude keyword values
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * propel/self = style name of this fix command
+* mode = *dipole* or *velocity* or *quat*
 * magnitude = magnitude of self-propulsion force
-* one (and only one) keyword/value pair must be appended to args
-* keyword = *dipole* or *velocity* or *quat*
+* zero or one keyword/value pairs may be appended
+* keyword = *qvector*
 
   .. parsed-literal::
 
-       *dipole* value = none = apply force along dipole direction
-       *velocity* value = none = apply force along velocity direction
-       *quat* values = direction vector *sx* and *sy* and *sz*
-        *sx* = x component of force direction in ellipsoid frame
-	*sy* = y component of force direction in ellipsoid frame
-	*sz* = z component of force direction in ellipsoid frame
+       *qvector* value = direction of force in ellipsoid frame
+        *sx*, *sy*, *sz* = components of *qvector*
 
 
 Examples
@@ -31,9 +28,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix propel/self all 40.0 dipole
-   fix propel/self all 10.0 velocity
-   fix propel/self all 15.7 quat 1.0 0.0 0.0
+   fix active all propel/self dipole 40.0 
+   fix active all propel/self velocity 10.0 
+   fix active all propel/self quat 15.7 qvector 1.0 0.0 0.0
 
 Description
 """""""""""
@@ -50,7 +47,7 @@ is the magnitude of the force, and :math:`e_i` is the vector direction
 of the force. The specification of :math:`e_i` is based on which of the
 three keywords (*dipole* or *velocity* or *quat*) one selects.
 
-For keyword *dipole*, :math:`e_i` is just equal to
+For mode *dipole*, :math:`e_i` is just equal to
 the dipole vectors of the atoms in the group. Therefore, if the dipoles
 are not unit vectors, the :math:`e_i` will not be unit vectors.
 
@@ -66,21 +63,31 @@ are not unit vectors, the :math:`e_i` will not be unit vectors.
    all the dipole magnitudes to 1.0 unless you have a good reason not to
    (see the :doc:`set <set>` command on how to do this).
 
-For keyword *velocity*, :math:`e_i` points in the direction
+For mode *velocity*, :math:`e_i` points in the direction
 of the current velocity (a unit-vector). This can be interpreted as a
 velocity-dependent friction, as proposed by e.g. :ref:`(Erdmann) <Erdmann1>`.
 
-For keyword *quat*, :math:`e_i` points in the direction of the unit
-vector defined by its arguments *sx*, *sy*, and *sz*, which are
-themselves defined within the coordinate frame of the atom's
+For mode *quat*, :math:`e_i` points in the direction of a unit
+vector, oriented in the coordinate frame of the ellipsoidal particles,
+which defaults to point along the x-direction. This default behaviour
+can be changed by via the *quatvec* keyword.
+
+The optional *quatvec* keyword specifies the direction of self-propulsion
+via a unit vector (sx,sy,sz). The arguments *sx*, *sy*, and *sz*, are
+defined within the coordinate frame of the atom's
 ellipsoid. For instance, for an ellipsoid with long axis along
 its x-direction, if one wanted the self-propulsion force to also
 be along this axis, set *sx* equal to 1 and *sy*, *sz* both equal
-to zero. For *quat*, :math:`e_i` will always be a unit vector,
-so multiplying all three arguments *sx*, *sy*, and *sz* by a
-positive scalar will not change the self-propulsion force
-(multiplying by a negative scalar will change the sign of the
-force).
+to zero. This keyword may only be specified for mode *quat*.
+
+.. note::
+   
+   In using keyword *quatvec*, the three arguments *sx*,
+   *sy*, and *sz* will be automatically normalised to components
+   of a unit vector internally to avoid users having to explicitly
+   do so themselves. Therefore, in mode *quat*, the vectors :math:`e_i`
+   will always be of unit length. 
+
 
 Along with adding a force contribution, this fix can also
 contribute to the virial (pressure) of the system, defined as
@@ -89,10 +96,10 @@ contribute to the virial (pressure) of the system, defined as
 boundary conditions. See :ref:`(Winkler) <Winkler1>` for a
 discussion of this active pressure contribution.
 
-For keywords *dipole* and *quat*, this fix is by default
+For modes *dipole* and *quat*, this fix is by default
 included in pressure computations.
 
-For keyword *velocity*, this fix is by default not included
+For mode *velocity*, this fix is by default not included
 in pressure computations.
 
 

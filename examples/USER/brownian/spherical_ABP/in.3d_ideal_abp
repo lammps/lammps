@@ -30,7 +30,7 @@ pair_style none
 # overdamped brownian dynamics time-step
 fix         step all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} dipole
 # self-propulsion force along the dipole direction
-fix	    activity all propel/self ${fp} dipole
+fix	    activity all propel/self dipole ${fp}
 
 
 compute press all pressure NULL virial

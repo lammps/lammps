@@ -2421,6 +2421,19 @@ int Neighbor::exclude_setting()
 }
 
 /* ----------------------------------------------------------------------
+   check if any of the old requested neighbor lists are full
+------------------------------------------------------------------------- */
+
+int Neighbor::any_full()
+{
+  int any_full = 0;
+  for(int i = 0; i < old_nrequest; i++) {
+    if(old_requests[i]->full) any_full = 1;
+  }
+  return any_full;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

@@ -122,6 +122,7 @@ class Neighbor : protected Pointers {
   void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
   int exclude_setting();            // return exclude value to accelerator pkg
   class NeighRequest *find_request(void *);  // find a neighbor request
+  int any_full();                   // Check if any old requests had full neighbor lists
 
   double memory_usage();
 

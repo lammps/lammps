@@ -242,15 +242,13 @@ void Comm::init()
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
-  // Can't used multi_reduce communication with Newton off
-  // TODO: need to somehow restrict this option with full neighbor lists
-  // CANNOT use multi_reduce communication with full nlist 
-  // Could remove NP_NEWTON from npair_full_*multi_reduce*, but could be cryptic
-  // Also could be cases where you want newton off (hybrid) but don't use multi_reduce comm
-  // Could add check on neighbor build, if full and comm->multi_reduce error...
-  // or just add check on comm setup - is that run before every run? Only if box change...
-  if (force->newton == 0 && multi_reduce)
-    error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
+  // Can't used multi/reduce communication with Newton off or full neighbor lits
+  if(multi_reduce){
+    if (force->newton == 0)
+      error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
+    if (neighbor->any_full())
+      error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
+  }
 }
 
 /* ----------------------------------------------------------------------

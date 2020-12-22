@@ -188,6 +188,12 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   nex_mol = maxex_mol = 0;
   ex_mol_group = ex_mol_bit = ex_mol_intra = nullptr;
 
+  // Multi data
+  
+  map_type_multi = nullptr;
+  cutmultisq = nullptr;
+  multi_groups = 0;
+
   // Kokkos setting
 
   copymode = 0;
@@ -253,6 +259,9 @@ Neighbor::~Neighbor()
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
   memory->destroy(ex_mol_intra);
+  
+  memory->destroy(map_type_multi);
+  memory->destroy(cutmultisq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -335,6 +344,35 @@ void Neighbor::init()
     }
   }
   cutneighmaxsq = cutneighmax * cutneighmax;
+
+  // multi cutoffs
+  if(style == Neighbor::MULTI){
+    int igroup, jgroup;
+    // If not defined, create default mapping
+    if(not map_type_multi) {
+      memory->create(map_type_multi,n+1,"neigh:map_type_multi");  
+      n_multi_groups = n;
+      for(i = 1; i <= n; i++)
+        map_type_multi[i] = i-1;
+    }  
+
+    // Define maximum interaction distance for each pair of groups
+    memory->grow(cutmultisq, n_multi_groups, n_multi_groups, "neigh:cutmultisq");
+    for(i = 0; i < n_multi_groups; i++)
+      for(j = 0; j < n_multi_groups; j++)
+        cutmultisq[i][j] = 0.0;
+    
+    for(i = 1; i <= n; i++){
+      igroup = map_type_multi[i];
+      for(j = 1; j <= n; j++){
+        jgroup = map_type_multi[j];
+        if(cutneighsq[i][j] > cutmultisq[igroup][jgroup]) {
+          cutmultisq[igroup][jgroup] = cutneighsq[i][j];
+          cutmultisq[jgroup][igroup] = cutneighsq[i][j];
+        }
+      }
+    }
+  }
 
   // rRESPA cutoffs
 
@@ -1934,6 +1972,7 @@ NPair *Neighbor::pair_creator(LAMMPS *lmp)
 /* ----------------------------------------------------------------------
    setup neighbor binning and neighbor stencils
    called before run and every reneighbor if box size/shape changes
+   initialize default settings for multi before run   
    only operates on perpetual lists
    build_one() operates on occasional lists
 ------------------------------------------------------------------------- */
@@ -2379,9 +2418,55 @@ void Neighbor::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;
-
+        
       } else error->all(FLERR,"Illegal neigh_modify command");
+    } else if (strcmp(arg[iarg],"multi/custom") == 0) {
+      if(style != Neighbor::MULTI)
+        error->all(FLERR,"Cannot use multi/custom command without multi setting");
+        
+      if(iarg+2 > narg)
+        error->all(FLERR,"Invalid multi/custom command");
+      int nextra = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if(iarg+1+nextra > narg)
+        error->all(FLERR,"Invalid multi/custom command");
 
+      int ntypes = atom->ntypes;
+      int n, nlo, nhi, i, j, igroup, jgroup;
+
+      if(not map_type_multi)
+        memory->create(map_type_multi,ntypes+1,"neigh:map_type_multi");  
+
+      // Erase previous mapping
+      for(i = 1; i <= ntypes; i++)
+        map_type_multi[i] = -1;
+
+      // For each custom range, define mapping for types in interval
+      n_multi_groups = 0;
+      char *id;
+      for(i = 0; i < nextra; i++){
+        n = strlen(arg[iarg+2+i]) + 1;
+        id = new char[n];
+        strcpy(id,arg[iarg+2+i]);
+        utils::bounds(FLERR,id,1,ntypes,nlo,nhi,error);
+        delete [] id;
+
+        for (j = nlo; j <= nhi; j++) {
+          if(map_type_multi[j] != -1)
+            error->all(FLERR,"Type specified more than once in multi/custom commnd");
+          map_type_multi[j] = n_multi_groups;
+        }
+        n_multi_groups += 1;
+      }   
+
+      // Create seprate group for each undefined atom type 
+      for(i = 1; i <= ntypes; i++){
+        if(map_type_multi[i] == -1){
+          map_type_multi[i] = n_multi_groups;
+          n_multi_groups += 1;
+        }
+      }
+      
+      iarg += 2 + nextra;
     } else error->all(FLERR,"Illegal neigh_modify command");
   }
 }

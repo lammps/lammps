@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class Neighbor : protected Pointers {
  public:
   enum{NSQ,BIN,MULTI_OLD,MULTI};
-  int style;                       // 0,1,2 = nsq, bin, multi/old, multi
+  int style;                       // 0,1,2,3 = nsq, bin, multi/old, multi
   int every;                       // build every this many steps
   int delay;                       // delay build for this many steps
   int dist_check;                  // 0 = always build, 1 = only if 1/2 dist
@@ -101,6 +101,13 @@ class Neighbor : protected Pointers {
   int **dihedrallist;
   int nimproperlist;               // list of impropers to compute
   int **improperlist;
+
+  // optional type grouping for multi
+  
+  int multi_groups;                // 1 if custom groupings are defined for multi
+  int n_multi_groups;              // # of custom groupings
+  int *map_type_multi;             // ntype array mapping types to custom groupings
+  double **cutmultisq;             // cutoffs for each combination of custom groupings
 
   // public methods
 

@@ -177,29 +177,33 @@ void CommTiled::setup()
   if (mode == Comm::MULTI) {
     double cut;
     if (multi_reduce) {
-        // If using multi/reduce binlists, communicate itype particles a distance
-        // equal to the max of itype-jtype interaction given smaller jtype particles 
-        double **cutneighsq = neighbor->cutneighsq;
-        double *cuttypesq = neighbor->cuttypesq;
-        for (i = 1; i <= ntypes; i++) {
+      // If using multi/reduce, communicate itype particles a distance equal
+      // to the max of itype-jtype group interaction given smaller jtype group 
+      int igroup, jgroup;
+      double **cutmultisq = neighbor->cutmultisq;
+      int *map_type_multi = neighbor->map_type_multi;
+      for (i = 1; i <= ntypes; i++) {
 
-          if (cutusermulti) {
-            cutghostmulti[i][0] = cutusermulti[i];
-            cutghostmulti[i][1] = cutusermulti[i];
-            cutghostmulti[i][2] = cutusermulti[i];
-          } else {
-            cutghostmulti[i][0] = 0.0;
-            cutghostmulti[i][1] = 0.0;
-            cutghostmulti[i][2] = 0.0;
-          }
-          
-          for (j = 1; j <= ntypes; j++){
-            if(cutneighsq[j][j] > cutneighsq[i][i]) continue;
-            cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutneighsq[i][j]));
-            cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutneighsq[i][j]));
-            cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutneighsq[i][j]));
-          }
+        if (cutusermulti) {
+          cutghostmulti[i][0] = cutusermulti[i];
+          cutghostmulti[i][1] = cutusermulti[i];
+          cutghostmulti[i][2] = cutusermulti[i];
+        } else {
+          cutghostmulti[i][0] = 0.0;
+          cutghostmulti[i][1] = 0.0;
+          cutghostmulti[i][2] = 0.0;
         }
+        
+        igroup = map_type_multi[i];
+        for (j = 1; j <= ntypes; j++){
+          jgroup = map_type_multi[j];
+          
+          if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
+          cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
+          cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
+          cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
+        }
+      }
     } else {
       // If using a single binlist, use the max itype-jtype interaction distance for communication
       double *cuttype = neighbor->cuttype;

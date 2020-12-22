@@ -514,8 +514,6 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 
   // communicate and sum densities
 
-  atomKK->modified(execution_space,DPDRHO_MASK);
-
   if (newton_pair) {
     comm->reverse_comm_pair(this);
     atomKK->sync(execution_space,DPDRHO_MASK);
@@ -667,8 +665,6 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 template<class DeviceType>
 int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  atomKK->sync(execution_space,DPDRHO_MASK);
-
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();

@@ -435,7 +435,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
-  // if "gpu/aware off" and "comm device", change to "comm classic"
+  // if "gpu/aware off" and "comm device", change to "comm no"
 
   if (!gpu_aware_flag && nmpi > 1) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {

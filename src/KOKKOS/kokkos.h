@@ -33,8 +33,6 @@ class KokkosLMP : protected Pointers {
   int reverse_comm_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
-  int forward_pair_comm_on_host;
-  int forward_fix_comm_on_host;
   int reverse_comm_on_host;
   int exchange_comm_changed;
   int forward_comm_changed;

@@ -112,8 +112,6 @@ void CommKokkos::init()
   reverse_comm_classic = lmp->kokkos->reverse_comm_classic;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
-  forward_pair_comm_on_host = lmp->kokkos->forward_pair_comm_on_host;
-  forward_fix_comm_on_host = lmp->kokkos->forward_fix_comm_on_host;
   reverse_comm_on_host = lmp->kokkos->reverse_comm_on_host;
 
   CommBrick::init();
@@ -460,7 +458,7 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  if (fix->execution_space == Host || forward_pair_comm_classic) {
+  if (pair->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_pair(pair);
   } else {

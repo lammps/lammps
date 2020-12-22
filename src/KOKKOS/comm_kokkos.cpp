@@ -365,7 +365,7 @@ void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
   if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::forward_comm_fix(fix);
+    CommBrick::forward_comm_fix(fix,size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
     forward_comm_fix_device<LMPDeviceType>(fix);

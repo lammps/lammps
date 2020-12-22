@@ -243,7 +243,7 @@ speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS
 is recommended in this scenario.
 
 Using a GPU-aware MPI library is highly recommended. GPU-aware MPI use can be
-avoided by using :doc:`-pk kokkos gpu/aware no <package>`. As above for
+avoided by using :doc:`-pk kokkos gpu/aware off <package>`. As above for
 multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 

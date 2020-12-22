@@ -397,14 +397,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else if (strcmp(arg[iarg],"comm/fix/forward") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) forward_fix_comm_classic = 1;
-      if (strcmp(arg[iarg+1],"host") == 0) forward_fix_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) forward_fix_comm_classic = 1;
       else if (strcmp(arg[iarg+1],"device") == 0) forward_fix_comm_classic = 0;
       else error->all(FLERR,"Illegal package kokkos command");
       forward_fix_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/reverse") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"no") == 0) reverse_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) reverse_comm_classic = 1;
       else if (strcmp(arg[iarg+1],"host") == 0) {
         reverse_comm_classic = 0;
         reverse_comm_on_host = 1;

@@ -21,7 +21,7 @@
 #include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm.h"
+#include "comm_kokkos.h"
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
@@ -49,6 +49,7 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   kokkosable = 1;
   forward_comm_device = 1;
   atomKK = (AtomKokkos *) atom;
+  commKK = (CommKokkos *) comm;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
@@ -81,8 +82,8 @@ FixQEqReaxKokkos<DeviceType>::~FixQEqReaxKokkos()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init()
 {
-  atomKK->k_q.modify<LMPHostType>();
-  atomKK->k_q.sync<DeviceType>();
+  atomKK->modified(Host,Q_MASK);
+  atomKK->sync(execution_space,Q_MASK);
 
   FixQEqReax::init();
 
@@ -1012,9 +1013,9 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );
-  atomKK->k_q.modify<DeviceType>();
+  atomKK->modified(execution_space,Q_MASK);
   comm->forward_comm_fix(this);
-  atomKK->k_q.sync<DeviceType>();
+  atomKK->sync(execution_space,Q_MASK);
 
 }
 
@@ -1349,6 +1350,7 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual
                                                         int iswap_in, DAT::tdual_xfloat_1d &k_buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
+  k_sendlist.sync<DeviceType>();
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
@@ -1434,11 +1436,11 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
   } else if (pack_flag == 2) {
     k_s.sync_host();
     for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
-    k_d.modify_host();
+    k_s.modify_host();
   } else if (pack_flag == 3) {
     k_t.sync_host();
     for (m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
-    k_d.modify_host();
+    k_t.modify_host();
   } else if (pack_flag == 4) {
     atomKK->sync(Host,Q_MASK);
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];

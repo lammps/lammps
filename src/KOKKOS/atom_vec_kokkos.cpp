@@ -33,8 +33,6 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
   no_border_vel_flag = 1;
 }
 
-static constexpr bigint DELTA=10; // much smaller than DELTA in atom_vec.cpp
-
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
@@ -44,6 +42,7 @@ static constexpr bigint DELTA=10; // much smaller than DELTA in atom_vec.cpp
 
 bigint AtomVecKokkos::roundup(bigint n)
 {
+  auto DELTA = LMP_KOKKOS_AV_DELTA;
   if (n % DELTA) n = n/DELTA * DELTA + DELTA;
   if (n > MAXSMALLINT)
     error->one(FLERR,"Too many atoms created on one or more procs");

@@ -16,3 +16,4 @@ of time and requests from the LAMMPS user community.
    Developer_unittest
    Classes
    Developer_utils
+   Developer_notes

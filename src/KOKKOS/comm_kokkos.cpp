@@ -365,7 +365,7 @@ void CommKokkos::reverse_comm_device()
 
 void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
-  if (!(fix->execution_space == Device) || !fix->forward_comm_device || forward_fix_comm_classic) {
+  if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_fix(fix);
   } else {
@@ -460,7 +460,7 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  if (!(fix->execution_space == Device) || forward_pair_comm_classic) {
+  if (fix->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_pair(pair);
   } else {

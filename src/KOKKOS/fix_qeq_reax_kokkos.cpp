@@ -21,7 +21,7 @@
 #include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm_kokkos.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
@@ -49,7 +49,6 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   kokkosable = 1;
   forward_comm_device = 1;
   atomKK = (AtomKokkos *) atom;
-  commKK = (CommKokkos *) comm;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
@@ -1350,7 +1349,6 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual
                                                         int iswap_in, DAT::tdual_xfloat_1d &k_buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  k_sendlist.sync<DeviceType>();
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();

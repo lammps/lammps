@@ -1,6 +1,6 @@
 # this only installs the LAMMPS python package
 # it assumes the LAMMPS shared library is already installed
-from setuptools import setup, find_packages
+from distutils.core import setup
 import os
 
 LAMMPS_PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -22,5 +22,5 @@ setup(
     url = "https://lammps.sandia.gov",
     description = "LAMMPS Molecular Dynamics Python package",
     license = "GPL",
-    packages=find_packages(),
+    packages=["lammps","lammps.mliap"],
 )

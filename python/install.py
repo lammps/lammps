@@ -95,7 +95,7 @@ print("Installing LAMMPS Python package version %s into site-packages folder" % 
 # we need to switch to the folder of the python package
 os.chdir(os.path.dirname(args.package))
 
-from setuptools import setup, find_packages
+from distutils.core import setup
 from distutils.sysconfig import get_python_lib
 import site
 
@@ -107,7 +107,7 @@ setup_kwargs= dict(name="lammps",
         url="https://lammps.sandia.gov",
         description="LAMMPS Molecular Dynamics Python package",
         license="GPL",
-        packages=find_packages(),
+        packages=["lammps","lammps.mliap"],
         )
 
 tryuser=False

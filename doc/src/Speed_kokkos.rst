@@ -38,14 +38,14 @@ produce an executable compatible with a specific hardware.
    :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
-   CUDA-aware. This is not always the case, especially when using
+   GPU-aware. This is not always the case, especially when using
    pre-compiled MPI libraries provided by a Linux distribution. This is
    not a problem when using only a single GPU with a single MPI
    rank. When running with multiple MPI ranks, you may see segmentation
-   faults without CUDA-aware MPI support. These can be avoided by adding
-   the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the
+   faults without GPU-aware MPI support. These can be avoided by adding
+   the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
-   cuda/aware off <package>` in the input file.
+   gpu/aware off <package>` in the input file.
 
 .. admonition:: AMD GPU support
    :class: note
@@ -242,8 +242,8 @@ case, also packing/unpacking communication buffers on the host may give
 speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS
 is recommended in this scenario.
 
-Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be
-avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for
+Using a GPU-aware MPI library is highly recommended. GPU-aware MPI use can be
+avoided by using :doc:`-pk kokkos gpu/aware no <package>`. As above for
 multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 

@@ -79,7 +79,7 @@ size_t ZstdFileWriter::write(const void * buffer, size_t length)
 
   do {
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-    size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
+    ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
   } while(input.pos < input.size);
 

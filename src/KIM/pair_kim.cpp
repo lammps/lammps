@@ -890,7 +890,7 @@ void PairKIM::set_argument_pointers()
                                  KIM_SUPPORT_STATUS_notSupported)) {
       if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
                                   KIM_SUPPORT_STATUS_required)
-        || (eflag_global == 1)) {
+        || (eflag_global != 0)) {
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,&(eng_vdwl));
@@ -905,7 +905,7 @@ void PairKIM::set_argument_pointers()
   // Set KIM pointer appropriately for particalEnergy
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_required)
-      && (eflag_atom != 1)) {
+      && (eflag_atom == 0)) {
     // reallocate per-atom energy array if necessary
     if (atom->nmax > maxeatom) {
       maxeatom = atom->nmax;
@@ -916,13 +916,13 @@ void PairKIM::set_argument_pointers()
 
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_optional)
-      && (eflag_atom != 1)) {
+      && (eflag_atom == 0)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy,
       static_cast<double *>(nullptr));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleEnergy,
-                                      KIM_SUPPORT_STATUS_notSupported)) {
+                                        KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
         pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy, eatom);
   }
@@ -940,9 +940,9 @@ void PairKIM::set_argument_pointers()
   }
 
   // Set KIM pointer appropriately for particleVirial
-  if ((vflag_atom == 0) &&
-      KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_required)) {
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_required)
+      && (vflag_atom == 0)) {
     // reallocate per-atom virial array if necessary
     if (atom->nmax > maxvatom) {
       maxvatom = atom->nmax;
@@ -951,9 +951,9 @@ void PairKIM::set_argument_pointers()
     }
   }
 
-  if ((vflag_atom == 0) &&
-      KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_optional)) {
+  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                              KIM_SUPPORT_STATUS_optional)
+      && (vflag_atom == 0)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,

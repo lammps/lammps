@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 
+#include "pair_lj_cubic_const.h"
 
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;

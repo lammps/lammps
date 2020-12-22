@@ -44,10 +44,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   int lgflag = control->lgflag;
   int errorflag = 1;
   double     val;
-  MPI_Comm comm;
-  int me;
-  comm = MPI_COMM_WORLD;
-  MPI_Comm_rank(comm, &me);
+  int me = control->me;
 
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);

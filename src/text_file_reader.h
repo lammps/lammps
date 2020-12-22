@@ -27,7 +27,7 @@ namespace LAMMPS_NS
   class TextFileReader {
     std::string filename;
     std::string filetype;
-    static const int MAXLINE = 1024;
+    static constexpr int MAXLINE = 1024;
     char line[MAXLINE];
     FILE *fp;
 

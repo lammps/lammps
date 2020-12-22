@@ -256,4 +256,14 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
   }
 }
 
+TEST(TEST_CATEGORY, view_mapping_trivially_copyable) {
+  using exec_space = TEST_EXECSPACE;
+
+  using dst_traits = Kokkos::ViewTraits<int *, exec_space>;
+  using src_traits = dst_traits;
+  using mapping    = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
+
+  static_assert(std::is_trivially_copyable<mapping>{}, "");
+}
+
 }  // namespace Test

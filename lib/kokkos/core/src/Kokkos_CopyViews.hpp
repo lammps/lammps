@@ -292,6 +292,7 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 1, iType> {
   ViewTypeB b;
 
   using policy_type = Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<iType>>;
+  using value_type  = typename ViewTypeA::value_type;
 
   ViewCopy(const ViewTypeA& a_, const ViewTypeB& b_,
            const ExecSpace space = ExecSpace())
@@ -301,7 +302,9 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 1, iType> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const iType& i0) const { a(i0) = b(i0); };
+  void operator()(const iType& i0) const {
+    a(i0) = static_cast<value_type>(b(i0));
+  };
 };
 
 template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
@@ -317,6 +320,7 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 2, iType> {
       Kokkos::Rank<2, outer_iteration_pattern, inner_iteration_pattern>;
   using policy_type =
       Kokkos::MDRangePolicy<ExecSpace, iterate_type, Kokkos::IndexType<iType>>;
+  using value_type = typename ViewTypeA::value_type;
 
   ViewCopy(const ViewTypeA& a_, const ViewTypeB& b_,
            const ExecSpace space = ExecSpace())
@@ -328,7 +332,7 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 2, iType> {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType& i0, const iType& i1) const {
-    a(i0, i1) = b(i0, i1);
+    a(i0, i1) = static_cast<value_type>(b(i0, i1));
   };
 };
 
@@ -346,6 +350,7 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 3, iType> {
       Kokkos::Rank<3, outer_iteration_pattern, inner_iteration_pattern>;
   using policy_type =
       Kokkos::MDRangePolicy<ExecSpace, iterate_type, Kokkos::IndexType<iType>>;
+  using value_type = typename ViewTypeA::value_type;
 
   ViewCopy(const ViewTypeA& a_, const ViewTypeB& b_,
            const ExecSpace space = ExecSpace())
@@ -358,7 +363,7 @@ struct ViewCopy<ViewTypeA, ViewTypeB, Layout, ExecSpace, 3, iType> {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType& i0, const iType& i1, const iType& i2) const {
-    a(i0, i1, i2) = b(i0, i1, i2);
+    a(i0, i1, i2) = static_cast<value_type>(b(i0, i1, i2));
   };
 };
 
@@ -2498,7 +2503,7 @@ inline void deep_copy(
     typename std::enable_if<
         Kokkos::Impl::is_execution_space<ExecSpace>::value &&
         std::is_same<typename ViewTraits<ST, SP...>::specialize,
-                     void>::value>::type* = 0) {
+                     void>::value>::type* = nullptr) {
   using src_traits       = ViewTraits<ST, SP...>;
   using src_memory_space = typename src_traits::memory_space;
   static_assert(src_traits::rank == 0,
@@ -3221,7 +3226,7 @@ create_mirror_view_and_copy(
   using Mirror      = typename Impl::MirrorViewType<Space, T, P...>::view_type;
   std::string label = name.empty() ? src.label() : name;
   auto mirror       = typename Mirror::non_const_type{
-      ViewAllocateWithoutInitializing(label), src.layout()};
+      view_alloc(WithoutInitializing, label), src.layout()};
   deep_copy(mirror, src);
   return mirror;
 }
@@ -3248,8 +3253,7 @@ typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
         !Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
         nullptr) {
   using Mirror = typename Impl::MirrorViewType<Space, T, P...>::view_type;
-  return Mirror(Kokkos::ViewAllocateWithoutInitializing(src.label()),
-                src.layout());
+  return Mirror(view_alloc(WithoutInitializing, src.label()), src.layout());
 }
 
 } /* namespace Kokkos */

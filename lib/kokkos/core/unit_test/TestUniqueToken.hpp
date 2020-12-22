@@ -60,6 +60,9 @@ class TestUniqueToken {
   view_type counts;
   view_type errors;
 
+  struct count_test_start_tag {};
+  struct count_test_check_tag {};
+
   KOKKOS_INLINE_FUNCTION
   void operator()(long) const {
     Kokkos::Experimental::AcquireUniqueToken<execution_space, Scope> token_val(
@@ -79,6 +82,19 @@ class TestUniqueToken {
     if (!ok) {
       Kokkos::atomic_fetch_add(&errors(0), 1);
     }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(count_test_start_tag, long) const {
+    constexpr int R = 10;
+    int id          = tokens.acquire();
+    for (int j = 0; j < R; j++) counts(id)++;
+    tokens.release(id);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(count_test_check_tag, long i, int64_t& lsum) const {
+    lsum += counts(i);
   }
 
   TestUniqueToken()
@@ -114,6 +130,23 @@ class TestUniqueToken {
       for (long i = 0; i < n; ++i) {
         if (max < host_counts[i]) max = host_counts[i];
       }
+    }
+
+    // Count test for pull request #3260
+    {
+      constexpr int N = 1000000;
+      constexpr int R = 10;
+      int num         = self.tokens.size();
+      Kokkos::resize(self.counts, num);
+      Kokkos::deep_copy(self.counts, 0);
+      Kokkos::parallel_for(
+          "Start", Kokkos::RangePolicy<Space, count_test_start_tag>(0, N),
+          self);
+      int64_t sum = 0;
+      Kokkos::parallel_reduce(
+          "Check", Kokkos::RangePolicy<Space, count_test_check_tag>(0, num),
+          self, sum);
+      ASSERT_EQ(sum, int64_t(N) * R);
     }
 
     std::cout << "TestUniqueToken max reuse = " << max << std::endl;

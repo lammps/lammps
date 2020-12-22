@@ -89,3 +89,73 @@ function(kokkos_check)
     set(${KOKKOS_CHECK_RETURN_VALUE} ${KOKKOS_CHECK_SUCCESS} PARENT_SCOPE)
   endif()
 endfunction()
+
+# this function is provided to easily select which files use nvcc_wrapper:
+#
+#       GLOBAL      --> all files
+#       TARGET      --> all files in a target
+#       SOURCE      --> specific source files
+#       DIRECTORY   --> all files in directory
+#       PROJECT     --> all files/targets in a project/subproject
+#
+FUNCTION(kokkos_compilation)
+    CMAKE_PARSE_ARGUMENTS(COMP "GLOBAL;PROJECT" "" "DIRECTORY;TARGET;SOURCE" ${ARGN})
+
+    # search relative first and then absolute
+    SET(_HINTS "${CMAKE_CURRENT_LIST_DIR}/../.." "@CMAKE_INSTALL_PREFIX@")
+
+    # find kokkos_launch_compiler
+    FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
+        NAMES           kokkos_launch_compiler
+        HINTS           ${_HINTS}
+        PATHS           ${_HINTS}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'")
+    ENDIF()
+
+    IF(COMP_GLOBAL)
+        # if global, don't bother setting others
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+    ELSE()
+        FOREACH(_TYPE PROJECT DIRECTORY TARGET SOURCE)
+            # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
+            IF("${_TYPE}" STREQUAL "PROJECT" AND COMP_${_TYPE})
+                LIST(APPEND COMP_DIRECTORY ${PROJECT_SOURCE_DIR})
+                UNSET(COMP_${_TYPE})
+            ENDIF()
+            # set the properties if defined
+            IF(COMP_${_TYPE})
+                # MESSAGE(STATUS "Using nvcc_wrapper :: ${_TYPE} :: ${COMP_${_TYPE}}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+            ENDIF()
+        ENDFOREACH()
+    ENDIF()
+ENDFUNCTION()
+
+# A test to check whether a downstream project set the C++ compiler to NVCC or not
+# this is called only when Kokkos was installed with Kokkos_ENABLE_CUDA=ON
+FUNCTION(kokkos_compiler_is_nvcc VAR COMPILER)
+    # Check if the compiler is nvcc (which really means nvcc_wrapper).
+    EXECUTE_PROCESS(COMMAND ${COMPILER} ${ARGN} --version
+                    OUTPUT_VARIABLE INTERNAL_COMPILER_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    RESULT_VARIABLE RET)
+    # something went wrong
+    IF(RET GREATER 0)
+        SET(${VAR} false PARENT_SCOPE)
+    ELSE()
+        STRING(REPLACE "\n" " - " INTERNAL_COMPILER_VERSION_ONE_LINE ${INTERNAL_COMPILER_VERSION} )
+        STRING(FIND ${INTERNAL_COMPILER_VERSION_ONE_LINE} "nvcc" INTERNAL_COMPILER_VERSION_CONTAINS_NVCC)
+        STRING(REGEX REPLACE "^ +" "" INTERNAL_HAVE_COMPILER_NVCC "${INTERNAL_HAVE_COMPILER_NVCC}")
+        IF(${INTERNAL_COMPILER_VERSION_CONTAINS_NVCC} GREATER -1)
+            SET(${VAR} true PARENT_SCOPE)
+        ELSE()
+            SET(${VAR} false PARENT_SCOPE)
+        ENDIF()
+    ENDIF()
+ENDFUNCTION()
+

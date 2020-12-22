@@ -105,7 +105,7 @@ class SharedAllocationRecord<void, void> {
   SharedAllocationHeader* const m_alloc_ptr;
   size_t const m_alloc_size;
   function_type const m_dealloc;
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   SharedAllocationRecord* const m_root;
   SharedAllocationRecord* m_prev;
   SharedAllocationRecord* m_next;
@@ -121,7 +121,7 @@ class SharedAllocationRecord<void, void> {
    *         use_count is zero.
    */
   SharedAllocationRecord(
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
       SharedAllocationRecord* arg_root,
 #endif
       SharedAllocationHeader* arg_alloc_ptr, size_t arg_alloc_size,
@@ -166,7 +166,7 @@ class SharedAllocationRecord<void, void> {
       : m_alloc_ptr(nullptr),
         m_alloc_size(0),
         m_dealloc(nullptr)
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         ,
         m_root(this),
         m_prev(this),

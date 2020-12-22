@@ -19,7 +19,7 @@
 #include "error.h"
 #include "domain.h"
 
-#define DELTA 10
+#define DELTA 10 // much smaller than atom_vec.cpp
 
 using namespace LAMMPS_NS;
 
@@ -38,6 +38,7 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
+   overload needed because Kokkos uses a smaller DELTA than in atom_vec.cpp
 ------------------------------------------------------------------------- */
 
 bigint AtomVecKokkos::roundup(bigint n)

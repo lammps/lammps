@@ -48,7 +48,7 @@ MY_MPI_PATH = $(dir ${MY_MPI_EXE})
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I${MY_MPI_PATH}../include
 MPI_PATH = 
-MPI_LIB = -L${MY_MPI_PATH}../lib -lmpi_ibm
+MPI_LIB = -L${MY_MPI_PATH}../lib -lmpi_ibm -lopen-pal -lopen-rte -lhwloc_ompi -levent_core -levent_pthreads -levent
 
 # FFT library
 # see discussion in Section 3.5.2 of manual

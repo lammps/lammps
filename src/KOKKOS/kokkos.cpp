@@ -352,7 +352,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-        forward_pair_comm_classic = forward_fix_comm_classic = 0;
+        forward_pair_comm_classic = forward_fix_comm_classic = 1;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
@@ -514,25 +514,15 @@ int KokkosLMP::neigh_count(int m)
   if (nk->lists[m]->execution_space == Host) {
     NeighListKokkos<LMPHostType>* nlistKK = (NeighListKokkos<LMPHostType>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
     Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
     Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   } else if (nk->lists[m]->execution_space == Device) {
     NeighListKokkos<LMPDeviceType>* nlistKK = (NeighListKokkos<LMPDeviceType>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
     Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
     Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   }

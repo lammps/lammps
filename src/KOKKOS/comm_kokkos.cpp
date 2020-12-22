@@ -107,9 +107,13 @@ void CommKokkos::init()
   atomKK = (AtomKokkos *) atom;
   exchange_comm_classic = lmp->kokkos->exchange_comm_classic;
   forward_comm_classic = lmp->kokkos->forward_comm_classic;
+  forward_pair_comm_classic = lmp->kokkos->forward_pair_comm_classic;
+  forward_fix_comm_classic = lmp->kokkos->forward_fix_comm_classic;
   reverse_comm_classic = lmp->kokkos->reverse_comm_classic;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
+  forward_pair_comm_on_host = lmp->kokkos->forward_pair_comm_on_host;
+  forward_fix_comm_on_host = lmp->kokkos->forward_fix_comm_on_host;
   reverse_comm_on_host = lmp->kokkos->reverse_comm_on_host;
 
   CommBrick::init();
@@ -361,6 +365,17 @@ void CommKokkos::reverse_comm_device()
 
 void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
+  if (!fix->kokkosable || !fix->forward_comm_device || forward_fix_comm_classic) {
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::forward_comm_fix(fix);
+  } else if (forward_fix_comm_on_host) {
+    k_sendlist.sync<LMPHostType>();
+    forward_comm_fix_device<LMPHostType>(fix);
+  } else {
+    k_sendlist.sync<LMPDeviceType>();
+    forward_comm_fix_device<LMPDeviceType>(fix);
+  }
+
   if (fix->execution_space == Device && fix->forward_comm_device) {
     k_sendlist.sync<LMPDeviceType>();
     forward_comm_fix_device<LMPDeviceType>(fix,size);
@@ -456,10 +471,13 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  if (pair->execution_space == Host) {
+  if (!pair->kokkosable || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_pair(pair);
-  } else if (pair->execution_space == Device) {
+  } else if (forward_pair_comm_on_host) {
+    k_sendlist.sync<LMPHostType>();
+    forward_comm_pair_device<LMPHostType>(pair);
+  } else {
     k_sendlist.sync<LMPDeviceType>();
     forward_comm_pair_device<LMPDeviceType>(pair);
   }

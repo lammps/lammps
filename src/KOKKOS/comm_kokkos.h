@@ -25,9 +25,13 @@ class CommKokkos : public CommBrick {
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
+  bool forward_pair_comm_classic;
+  bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
+  bool forward_pair_comm_on_host;
+  bool forward_fix_comm_on_host;
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);

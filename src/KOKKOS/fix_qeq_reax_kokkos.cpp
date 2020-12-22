@@ -263,15 +263,15 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 2;
-  k_s.template sync<DeviceType>();
-  comm->forward_comm_fix(this);
   k_s.template modify<DeviceType>();
+  comm->forward_comm_fix(this);
+  k_s.template sync<DeviceType>();
 
   // comm->forward_comm_fix(this); //Dist_vector( t );
   pack_flag = 3;
-  k_t.template sync<DeviceType>();
-  comm->forward_comm_fix(this);
   k_t.template modify<DeviceType>();
+  comm->forward_comm_fix(this);
+  k_t.template sync<DeviceType>();
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
 
@@ -752,9 +752,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    k_o.template sync<LMPHostType>();
     comm->reverse_comm_fix(this); //Coll_vector( q );
-    k_o.template modify<LMPHostType>();
     k_o.template sync<DeviceType>();
   }
 
@@ -781,9 +779,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
-    k_d.template sync<DeviceType>();
-    comm->forward_comm_fix(this);
     k_d.template modify<DeviceType>();
+    comm->forward_comm_fix(this);
+    k_d.template sync<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -807,9 +805,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      k_o.template sync<LMPHostType>();
       comm->reverse_comm_fix(this); //Coll_vector( q );
-      k_o.template modify<LMPHostType>();
       k_o.template sync<DeviceType>();
     }
 
@@ -888,9 +884,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    k_o.template sync<LMPHostType>();
     comm->reverse_comm_fix(this); //Coll_vector( q );
-    k_o.template modify<LMPHostType>();
     k_o.template sync<DeviceType>();
   }
 
@@ -917,9 +911,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
-    k_d.template sync<DeviceType>();
-    comm->forward_comm_fix(this);
     k_d.template modify<DeviceType>();
+    comm->forward_comm_fix(this);
+    k_d.template sync<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
@@ -943,9 +937,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      k_o.template sync<LMPHostType>();
       comm->reverse_comm_fix(this); //Coll_vector( q );
-      k_o.template modify<LMPHostType>();
       k_o.template sync<DeviceType>();
     }
 
@@ -1020,9 +1012,9 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );
-  atomKK->k_q.sync<DeviceType>();
-  comm->forward_comm_fix(this);
   atomKK->k_q.modify<DeviceType>();
+  comm->forward_comm_fix(this);
+  atomKK->k_q.sync<DeviceType>();
 
 }
 
@@ -1411,14 +1403,19 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *bu
 {
   int m;
 
-  if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = h_d[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = h_s[list[m]];
-  else if( pack_flag == 3 )
-    for(m = 0; m < n; m++) buf[m] = h_t[list[m]];
-  else if( pack_flag == 4 )
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  if (pack_flag == 1) {
+    k_d.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
+  } else if (pack_flag == 2) {
+    k_s.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
+  } else if (pack_flag == 3) {
+    k_t.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_t[list[m]];
+  } else if (pack_flag == 4) {
+    atomKK->sync(Host,Q_MASK);
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  }
 
   return n;
 }
@@ -1430,14 +1427,23 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 {
   int i, m;
 
-  if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
-  else if( pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
-  else if( pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  if (pack_flag == 1) {
+    k_d.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
+    k_d.modify_host();
+  } else if (pack_flag == 2) {
+    k_s.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
+    k_d.modify_host();
+  } else if (pack_flag == 3) {
+    k_t.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
+    k_d.modify_host();
+  } else if (pack_flag == 4) {
+    atomKK->sync(Host,Q_MASK);
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    atomKK->modified(Host,Q_MASK);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1445,6 +1451,8 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  k_o.sync_host();
+
   int i, m;
   for(m = 0, i = first; m < n; m++, i++) {
     buf[m] = h_o[i];
@@ -1457,9 +1465,13 @@ int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *bu
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  k_o.sync_host();
+
   for(int m = 0; m < n; m++) {
     h_o[list[m]] += buf[m];
   }
+
+  k_o.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */

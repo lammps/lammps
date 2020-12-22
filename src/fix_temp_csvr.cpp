@@ -338,16 +338,17 @@ double FixTempCSVR::compute_scalar()
 
 void FixTempCSVR::write_restart(FILE *fp)
 {
-  int nsize = (98+2+3)*comm->nprocs+2; // pRNG state per proc + nprocs + energy
+  const int PRNGSIZE = 98+2+3;
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
     list = new double[nsize];
     list[0] = energy;
     list[1] = comm->nprocs;
   }
-  double state[103];
+  double state[PRNGSIZE];
   random->get_state(state);
-  MPI_Gather(state,103,MPI_DOUBLE,list+2,103*comm->nprocs,MPI_DOUBLE,0,world);
+  MPI_Gather(state,PRNGSIZE,MPI_DOUBLE,list+2,PRNGSIZE,MPI_DOUBLE,0,world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);

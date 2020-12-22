@@ -32,12 +32,10 @@
 #include "error.h"
 #include "citeme.h"
 
-
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
-
 
 static const char cite_pair_edip[] =
   "@article{cjiang2012\n"
@@ -56,7 +54,9 @@ static const char cite_pair_edip[] =
   " year      = {2010},\n"
   "}\n\n";
 
+// max number of interaction per atom for f(Z) environment potential
 
+static constexpr int leadDimInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 
@@ -94,7 +94,6 @@ PairEDIPMulti::~PairEDIPMulti()
     memory->destroy(cutsq);
     delete [] map;
 
-//XXX    deallocateGrids();
     deallocatePreLoops();
   }
 }

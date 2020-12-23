@@ -1,4 +1,7 @@
 ########################################################################
+# As of version 3.3.0 Kokkos requires C++14
+set(CMAKE_CXX_STANDARD 14)
+########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
   message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")

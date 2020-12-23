@@ -409,12 +409,25 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 #ifdef LMP_KOKKOS_GPU
 
+  if (pair_only_flag) {
+    lmp->suffixp = lmp->suffix;
+    lmp->suffix = new char[7];
+    strcpy(lmp->suffix,"kk/host");
+  } else {
+    // restore settings to regular suffix use, if previously, pair/only was used
+    if (lmp->suffixp) {
+      delete[] lmp->suffix;
+      lmp->suffix = lmp->suffixp;
+      lmp->suffixp = nullptr;
+    }
+  }
+
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
-  // if "cuda/aware off" and "comm device", change to "comm host"
+  // if "cuda/aware off" or "pair/only on", and "comm device", change to "comm host"
 
-  if (!gpu_aware_flag && nmpi > 1) {
+  if (!gpu_aware_flag && nmpi > 1 || pair_only_flag) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_on_host = 1;
       exchange_comm_changed = 1;
@@ -429,9 +442,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
-  // if "cuda/aware on" and comm flags were changed previously, change them back
+  // if "cuda/aware on" or "pair/only off" and comm flags were changed previously, change them back
 
-  if (gpu_aware_flag) {
+  if (gpu_aware_flag && !pair_only_flag) {
     if (exchange_comm_changed) {
       exchange_comm_on_host = 0;
       exchange_comm_changed = 0;
@@ -459,23 +472,6 @@ void KokkosLMP::accelerator(int narg, char **arg)
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;
   else neighbor->binsizeflag = 1;
-
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = new char[7];
-    strcpy(lmp->suffix,"kk/host");
-
-    exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
-    exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
-  } else {
-    // restore settings to regular suffix use, if previously, pair/only was used.
-    if (lmp->suffixp) {
-      delete[] lmp->suffix;
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-      // TODO: restore communication settings
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

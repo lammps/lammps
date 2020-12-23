@@ -150,10 +150,15 @@ class PairLS : public Pair {
 
   void par2pot_is(int);
   // void par2pot_is1_is2(int, int);
-  void smooth_zero_22(double **, double *, double *, double *, double *, double *, double *, double *, double *);
+  // void smooth_zero_22(double *, double *, double *, double *, double *, double *, double *, double *, double *);
+  void smooth_zero_22(double *, double, double, double, double, double, double, double, double);
   void SPL(int, double *, double *, int, double, double, double *, double *, double *);
-  void LA30(int, double *, double *, int, double, double, double *, double *, double *);
+  void LA30(int, double *, double *, double *, double *, double *, int *);
 
+
+  double v_ZBL(double, int, int);
+  double vp_ZBL(double, int, int);
+  double vpp_ZBL(double, int, int);
 
   // External Fortran subroutines that does not use the Fotran common block 
   // These subrotines are called by par2pot_is and par2pot_is1_is2 subrotines and may should be declared in the corresponding voids

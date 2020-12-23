@@ -369,9 +369,8 @@ void PairLS::coeff(int narg, char **arg)
       std::cout << "!!!!! PairLS debug mode !!!!! " << " The arg with potential name is " << arg[i-1] << std::endl;
       r_pot_ls_is(arg[i-1], i);
       std::cout << "!!!!! PairLS debug mode !!!!! " << " End reading potential for atom " << i << std::endl;
+      par2pot_is(i);
       setflag[i][i] = 1;
-      // print_pot_arrays_is(i); // check if potential was correctly read
-      // par2pot_is(i);
     }
 
   // read_pot_ls.f (20-25):
@@ -672,14 +671,14 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       std::cout << " z_ion[" << is << "] = " << z_ion[is]<< std::endl;
       for (int n = 0; n < 4; n++)
       {
-        c_ZBL[n] = reader.next_double();
+        c_ZBL[n][is][is] = reader.next_double();
         std::cout << " c_ZBL[" << n << "]["<< is << "][" << is << "] = " << c_ZBL[n][is][is]<< std::endl;
       }
 
       for (int n = 0; n < 4; n++)
       {
-        d_ZBL[n] = reader.next_double();
-        std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[n[is][is]]<< std::endl;
+        d_ZBL[n][is][is] = reader.next_double();
+        std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[n][is][is]<< std::endl;
       }
     }
     catch (TokenizerException &e) {
@@ -968,12 +967,12 @@ void PairLS::par2pot_is(int is)
   fp2 = b_sp_fi[0][is][is];
   fpp2 = 2.0*c_sp_fi[0][is][is];	
 	
-  // smooth_zero_22(&B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
   smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
+  // smooth_zero_22(B6, &r1, &r2, &f1, &fp1, &fpp1, &f2, &fp2, &fpp2);
 
   for (i = 0; i < 6; i++)
   {
-    c_fi_ZBL[i][is][is] = B6[i][0];
+    c_fi_ZBL[i][is][is] = B6[i];
   }
 
   // par2pot_is.f(51-68):
@@ -997,7 +996,7 @@ void PairLS::par2pot_is(int is)
 	// shag_sp_ro(is,is)=1.0D0/((R_sp_ro(n_sp,is,is)-R_sp_ro(1,is,is))/dfloat(n_sp-1))
 
   n_sp = n_sp_ro[i][i];
-  for (i = 0, i < n_sp, i++)
+  for (i = 0; i < n_sp; i++)
   {
     R_sp[i] = R_sp_ro[i][is][is];
     a_sp[i] = a_sp_ro[i][is][is];
@@ -1040,10 +1039,10 @@ void PairLS::par2pot_is(int is)
 
 	n_sp = n_sp_emb[is][is];
 	n = n_sp_emb[is][is];
-  for (i = 0, i < n_sp, i++)
+  for (i = 0; i < n_sp; i++)
   {
-    R_sp[i] = R_sp_emb[i][is][is];
-    a_sp[i] = a_sp_emb[i][is][is];
+    R_sp[i] = R_sp_emb[i][is];
+    a_sp[i] = a_sp_emb[i][is];
   }  
 	a_sp[0] = 0.0;
 
@@ -1084,14 +1083,14 @@ void PairLS::par2pot_is(int is)
   // 	shag_sp_f(is,is)=1.0D0/((R_sp_f(n_sp,is,is)-R_sp_f(1,is,is))/dfloat(n_sp-1))
 
 	n_sp = n_sp_f[is][is];
-  for (i = 0, i < n_sp, i++)
+  for (i = 0; i < n_sp; i++)
   {
     R_sp[i] = R_sp_f[i][is][is];
   }
 
-  for (i1 = 0, i1 < n_f3[is], i1++)
+  for (i1 = 0; i1 < n_f3[is]; i1++)
   {
-    for (i = 0, i < n_sp, i++)
+    for (i = 0; i < n_sp; i++)
     {
       a_sp[i] = a_sp_f3[i][i1][is][is];
     }
@@ -1145,15 +1144,15 @@ void PairLS::par2pot_is(int is)
   // 	shag_sp_g=1.0D0/((R_sp_g(n_sp)-R_sp_g(1))/dfloat(n_sp-1))
 
 	n_sp = n_sp_g[is][is];
-  for (i = 0, i < n_sp, i++)
+  for (i = 0; i < n_sp; i++)
   {
     R_sp[i] = R_sp_g[i];
   }
-  for (i1 = 0, i1 < n_f3[is], i1++)
+  for (i1 = 0; i1 < n_f3[is]; i1++)
   {
-    for (i2 = 0, i2 <= i1, i2++)
+    for (i2 = 0; i2 <= i1; i2++)
     {
-      for (i = 0, i < n_sp, i++)
+      for (i = 0; i < n_sp; i++)
       {
         a_sp[i] = a_sp_g3[i][i1][i2][is];
       }
@@ -1196,7 +1195,7 @@ void PairLS::smooth_zero_22(double *B, double R1, double R2, double f1, double f
   // int IPIV[N];
   // double A[LDA][N];
   int *IPIV;
-  double **A;
+  double *A;
   memory->create(IPIV, N, "PairLS:smooth_zero_22_IPIV_w");
   // memory->create(A, LDA, N, "PairLS:smooth_zero_22_A_w");
   memory->create(A, LDA*N, "PairLS:smooth_zero_22_A_w");
@@ -1252,7 +1251,8 @@ void PairLS::smooth_zero_22(double *B, double R1, double R2, double f1, double f
   B[3] = f2;
   B[4] = fp2;
   B[5] = fpp2;
-  DGESV(N, NRHS, A, LDA, IPIV, B, LDB, &INFO);
+
+  dgesv_(&N, &NRHS, A, &LDA, IPIV, B, &LDB, &INFO);
 
   memory->destroy(IPIV);
   memory->destroy(A);
@@ -1345,14 +1345,15 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
       nn = n;
   }    
 
-  LA30(nn, A[0:nn-1], B[0:nn-1], C[0:nn-1], D[0:nn-1], S[0:nn-1], &Err);
+  LA30(nn, A, B, C, D, S, &Err);
+  // LA30(nn, A[0:nn-1], B[0:nn-1], C[0:nn-1], D[0:nn-1], S[0:nn-1], Err);
 
   B[0] = X[1] - X[0];
   if (ib == 3) 
   {
     S[n-1] = S[0]; B[1] = X[2] - X[1];
   }
-  for (i = 0, i < n1; i++)
+  for (i = 0; i < n1; i++)
   {
     D[i] = (S[i + 1] - S[i])/B[i];
     C[i] = 3.0*S[i];
@@ -1380,7 +1381,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
   // n = size(A)
   if (n < 3) 
   {
-    Error = 1; 
+    *Error = 1; 
     return;
   }
 
@@ -1404,7 +1405,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
       memory->destroy(R);
       memory->destroy(S);
       memory->destroy(T);
-      Error = 65; 
+      *Error = 65; 
       return;
     }
     P[ii] = (D[i] - P[i]*C[i])/W;
@@ -1414,7 +1415,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
 
   S[n-1] = 1.0; 
   T[n-1] = 0.0;
-  for (i = n-2; i >= 0, i--) // check for consistency with LA30.f in testing
+  for (i = n-2; i >= 0; i--) // check for consistency with LA30.f in testing
   {
     ii = i + 1;
     S[i] = Q[ii]*S[ii] + R[ii];
@@ -1431,7 +1432,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
     memory->destroy(R);
     memory->destroy(S);
     memory->destroy(T);
-    Error = 65; 
+    *Error = 65; 
     return;
   }
 
@@ -1446,7 +1447,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
   memory->destroy(R);
   memory->destroy(S);
   memory->destroy(T);
-  Error = 0; 
+  *Error = 0; 
   return;
 }
 
@@ -1469,7 +1470,7 @@ double PairLS::v_ZBL(double r, int is, int js)
   w = r/a_ZBL[is][js];
 
   sum = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
   }
@@ -1492,13 +1493,13 @@ double PairLS::vp_ZBL(double r, int is, int js)
   w = r/a_ZBL[is][js];
 
   sum = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
   }
 
   sump = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sump = sump + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*(-d_ZBL[i][is][js]/a_ZBL[is][js]);
   }
@@ -1512,7 +1513,7 @@ double PairLS::vp_ZBL(double r, int is, int js)
 double PairLS::vpp_ZBL(double r, int is, int js)
 {
   int i;
-  double vp_ZBL;
+  double vpp_ZBL;
   double w, sum, sump, sumpp, zz_r, zzp_r, zzpp_r;
 
   zz_r = zz_ZBL[is][js]/r;
@@ -1522,19 +1523,19 @@ double PairLS::vpp_ZBL(double r, int is, int js)
   w = r/a_ZBL[is][js];
 
   sum = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
   }
 
   sump = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sump = sump + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*(-d_ZBL[i][is][js]/a_ZBL[is][js]);
   }
 
   sumpp = 0.0;
-  for (i = 0, i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     sumpp = sumpp + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*pow((d_ZBL[i][is][js]/a_ZBL[is][js]),2);
   }

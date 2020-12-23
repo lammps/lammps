@@ -18,13 +18,16 @@ Syntax
        *gpu* args = Ngpu keyword value ...
          Ngpu = # of GPUs per node
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *newton* or *binsize* or *split* or *gpuID* or *tpa* or *device* or *blocksize*
+         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *device* or *blocksize*
            *neigh* value = *yes* or *no*
              yes = neighbor list build on GPU (default)
              no = neighbor list build on CPU
            *newton* = *off* or *on*
              off = set Newton pairwise flag off (default and required)
              on = set Newton pairwise flag on (currently not allowed)
+           *pair/only* = *off* or *on*
+             off = apply "gpu" suffix to all available styles in the GPU package (default)
+             on  - apply "gpu" suffix only pair styles
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
@@ -65,7 +68,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/reverse* or *cuda/aware*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/reverse* or *cuda/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -91,6 +94,9 @@ Syntax
            *cuda/aware* = *off* or *on*
              off = do not use CUDA-aware MPI
              on = use CUDA-aware MPI (default)
+           *pair/only* = *off* or *on*
+             off = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
+             on  = use device acceleration only for pair styles (and host acceleration for others)
        *omp* args = Nthreads keyword value ...
          Nthread = # of OpenMP threads to associate with each MPI process
          zero or more keyword/value pairs may be appended
@@ -193,6 +199,14 @@ computation is done, but less communication.  In the future a value of
 for compatibility with the package command for other accelerator
 styles.  Note that the newton setting for bonded interactions is not
 affected by this keyword.
+
+The *pair/only* keyword can change how any "gpu" suffix is applied.
+By default a suffix is applied to all styles for which an accelerated
+variant is available.  However, that is not always the most effective
+way to use an accelerator.  With *pair/only* set to *on* the suffix
+will only by applied to supported pair styles, which tend to be the
+most effective in using an accelerator and their operation can be
+overlapped with all other computations on the CPU.
 
 The *binsize* keyword sets the size of bins used to bin atoms in
 neighbor list builds performed on the GPU, if *neigh* = *yes* is set.
@@ -534,11 +548,19 @@ available (currently only possible with OpenMPI v2.0.0 or later), then
 the *cuda/aware* keyword is automatically set to *off* by default. When
 the *cuda/aware* keyword is set to *off* while any of the *comm*
 keywords are set to *device*\ , the value for these *comm* keywords will
-be automatically changed to *host*\ . This setting has no effect if not
+be automatically changed to *no*\ . This setting has no effect if not
 running on GPUs or if using only one MPI rank. CUDA-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 "MV2_USE_CUDA" environment variable is set to "1", CrayMPI, and IBM
 Spectrum MPI when the "-gpu" flag is used.
+
+The *pair/only* keyword can change how the KOKKOS suffix "kk" is applied
+when using an accelerator device.  By default device acceleration is
+always used for all available styles.  With *pair/only* set to *on* the
+suffix setting will choose device acceleration only for pair styles and
+run all other force computations concurrently on the host CPU.
+The *comm* flags will also automatically be changed to *no*\ . This can
+result in better performance for certain configurations and system sizes.
 
 ----------
 

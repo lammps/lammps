@@ -80,7 +80,24 @@ the script will exit with an error message.
 in.mliap.pytorch.relu1hidden
 ----------------------------
 This example demonstrates a simple neural network potential
-using PyTorch and SNAP descriptors. It uses a ReLU activation
-function with just 1 hidden layer.
-  
+using PyTorch and SNAP descriptors. 
+
 `lmp -in in.mliap.pytorch.relu1hidden -echo both`
+
+It was trained on just the energy component (no forces) of 
+the data used in the original SNAP Ta06A potential for 
+tantalum (Thompson, Swiler, Trott, Foiles, Tucker, 
+J Comp Phys, 285, 316 (2015).). Because of the very small amount
+of energy training data, it uses just 1 hidden layer with 
+a ReLU activation function. It is not expected to be 
+very accurate for forces. 
+
+NOTE: Unlike the previous example, this example uses 
+a pre-built PyTorch file `Ta06A.mliap.pytorch.model.pt`. 
+It is read using `torch.load`,
+which implicitly uses the Python `pickle` module.
+This is known to be insecure. It is possible to construct malicious 
+pickle data that will execute arbitrary code during unpickling. Never 
+load data that could have come from an untrusted source, or that 
+could have been tampered with. Only load data you trust.
+

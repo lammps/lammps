@@ -15,6 +15,7 @@
 #define LMP_LMPTYPE_KOKKOS_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
@@ -40,7 +41,7 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #endif
 
 #define MAX_TYPES_STACKPARAMS 12
-#define NeighClusterSize 8
+static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
 
 namespace Kokkos {
   using NoInit = ViewAllocateWithoutInitializing;

@@ -221,6 +221,8 @@ OPT.
    * :doc:`temp/rescale <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
+   * :doc:`tgnpt/drude <fix_tgnh_drude>`
+   * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
    * :doc:`ti/spring <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`

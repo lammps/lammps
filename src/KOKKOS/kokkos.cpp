@@ -309,6 +309,7 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
+  int pair_only_flag = 0;
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
@@ -420,6 +421,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/only") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) neigh_thread = 0;
@@ -432,12 +439,25 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 #ifdef LMP_KOKKOS_GPU
 
+  if (pair_only_flag) {
+    lmp->suffixp = lmp->suffix;
+    lmp->suffix = new char[7];
+    strcpy(lmp->suffix,"kk/host");
+  } else {
+    // restore settings to regular suffix use, if previously, pair/only was used
+    if (lmp->suffixp) {
+      delete[] lmp->suffix;
+      lmp->suffix = lmp->suffixp;
+      lmp->suffixp = nullptr;
+    }
+  }
+
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
-  // if "gpu/aware off" and "comm device", change to "comm no"
+  // if "gpu/aware off" or "pair/only on", and "comm device", change to "comm no"
 
-  if (!gpu_aware_flag && nmpi > 1) {
+  if ((!gpu_aware_flag && nmpi > 1) || pair_only_flag) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_classic = 1;
       exchange_comm_changed = 1;
@@ -460,9 +480,9 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
-  // if "gpu/aware on" and comm flags were changed previously, change them back
+  // if "gpu/aware on" and "pair/only off", and comm flags were changed previously, change them back
 
-  if (gpu_aware_flag) {
+  if (gpu_aware_flag && !pair_only_flag) {
     if (exchange_comm_changed) {
       exchange_comm_classic = 0;
       exchange_comm_changed = 0;

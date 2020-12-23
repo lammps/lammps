@@ -875,7 +875,7 @@ void PairLS::par2pot_is(int is)
   int i, j, i1, i2, n;
   double p1, p2, pn;
   // double B6[6][1];
-  double **B6;
+  double *B6;
   double r1, r2, f1, fp1, fpp1, f2, fp2, fpp2;
   
   memory->destroy(R_sp);
@@ -892,7 +892,7 @@ void PairLS::par2pot_is(int is)
   memory->create(c_sp, mfi, "PairLS:c_sp_w");
   memory->create(d_sp, mfi, "PairLS:d_sp_w");
   memory->create(e_sp, mfi, "PairLS:e_sp_w");
-  memory->create(B6, 6, 1, "PairLS:B6_w");
+  memory->create(B6, 6, "PairLS:B6_w");
 
   // par2pot_is.f(15-18):
   //   zz_ZBL(is,is)=z_ion(is)*z_ion(is)*(3.795D0**2)
@@ -1189,7 +1189,7 @@ void PairLS::par2pot_is(int is)
 // Subroutines for spline creation written by A.G. Lipnitskii and translated from Fortran to C++ 
 
 // smooth_zero_22.f
-void PairLS::smooth_zero_22(double **B, double R1, double R2, double f1, double fp1, double fpp1, double f2, double fp2, double fpp2)
+void PairLS::smooth_zero_22(double *B, double R1, double R2, double f1, double fp1, double fpp1, double f2, double fp2, double fpp2)
 {
   //c == calc sqear delta  ==>
   int N = 6, NRHS = 1, LDA = 6, LDB = 7, INFO = 1;
@@ -1198,52 +1198,60 @@ void PairLS::smooth_zero_22(double **B, double R1, double R2, double f1, double 
   int *IPIV;
   double **A;
   memory->create(IPIV, N, "PairLS:smooth_zero_22_IPIV_w");
-  memory->create(A, LDA, N, "PairLS:smooth_zero_22_A_w");
+  // memory->create(A, LDA, N, "PairLS:smooth_zero_22_A_w");
+  memory->create(A, LDA*N, "PairLS:smooth_zero_22_A_w");
 
   // double B[6][1];
   // double R1, R2, f1, fp1, fpp1, f2, fp2, fpp2;
-  A[0][0] = 1;
-  A[0][1] = R1;
-  A[0][2] = pow(R1,2);
-  A[0][3] = pow(R1,3);
-  A[0][4] = pow(R1,4);
-  A[0][5] = pow(R1,5);
-  A[1][0] = 0;
-  A[1][1] = 1;
-  A[1][2] = 2*R1;
-  A[1][3] = 3*pow(R1,2);
-  A[1][4] = 4*pow(R1,3);
-  A[1][5] = 5*pow(R1,4);
-  A[2][0] = 0;
-  A[2][1] = 0;
-  A[2][2] = 2;
-  A[2][3] = 6*R1;
-  A[2][4] = 12*pow(R1,2);
-  A[2][5] = 20*pow(R1,3);
-  A[3][0] = 1;
-  A[3][1] = R2;
-  A[3][2] = pow(R2,2);
-  A[3][3] = pow(R2,3);
-  A[3][4] = pow(R2,4);
-  A[3][5] = pow(R2,5);
-  A[4][0] = 0;
-  A[4][1] = 1;
-  A[4][2] = 2*R2;
-  A[4][3] = 3*pow(R2,2);
-  A[4][4] = 4*pow(R2,3);
-  A[4][5] = 5*pow(R2,4);
-  A[5][0] = 0;
-  A[5][1] = 0;
-  A[5][2] = 2;
-  A[5][3] = 6*R2;
-  A[5][4] = 12*pow(R2,2);
-  A[5][5] = 20*pow(R2,3);
-  B[0][0] = f1;
-  B[1][0] = fp1;
-  B[2][0] = fpp1;
-  B[3][0] = f2;
-  B[4][0] = fp2;
-  B[5][0] = fpp2;
+
+  A[0] = 1;            // A[0][0] = 1;
+  A[1] = 0;            // A[1][0] = 0;
+  A[2] = 0;            // A[2][0] = 0;
+  A[3] = 1;            // A[3][0] = 1;
+  A[4] = 0;            // A[4][0] = 0;
+  A[5] = 0;            // A[5][0] = 0;
+
+  A[6] = R1;           // A[0][1] = R1;
+  A[7] = 1;            // A[1][1] = 1;
+  A[8] = 0;            // A[2][1] = 0;
+  A[9] = R2;           // A[3][1] = R2;
+  A[10] = 1;            // A[4][1] = 1;
+  A[11] = 0;            // A[5][1] = 0;
+
+  A[12] = pow(R1,2);    // A[0][2] = pow(R1,2);
+  A[13] = 2*R1;         // A[1][2] = 2*R1;
+  A[14] = 2;            // A[2][2] = 2;
+  A[15] = pow(R2,2);    // A[3][2] = pow(R2,2);
+  A[16] = 2*R2;         // A[4][2] = 2*R2;
+  A[17] = 2;            // A[5][2] = 2;
+
+  A[18] = pow(R1,3);    // A[0][3] = pow(R1,3);
+  A[19] = 3*pow(R1,2);  // A[1][3] = 3*pow(R1,2);
+  A[20] = 6*R1;         // A[2][3] = 6*R1;
+  A[21] = pow(R2,3);    // A[3][3] = pow(R2,3);
+  A[22] = 3*pow(R2,2);  // A[4][3] = 3*pow(R2,2);
+  A[23] = 6*R2;         // A[5][3] = 6*R2;
+
+  A[24] = pow(R1,4);    // A[0][4] = pow(R1,4);
+  A[25] = 4*pow(R1,3);  // A[1][4] = 4*pow(R1,3);
+  A[26] = 12*pow(R1,2); // A[2][4] = 12*pow(R1,2);
+  A[27] = pow(R2,4);    // A[3][4] = pow(R2,4);
+  A[28] = 4*pow(R2,3);  // A[4][4] = 4*pow(R2,3);
+  A[29] = 12*pow(R2,2); // A[5][4] = 12*pow(R2,2);
+
+  A[30] = pow(R1,5);    // A[0][5] = pow(R1,5);
+  A[31] = 5*pow(R1,4);  // A[1][5] = 5*pow(R1,4);
+  A[32] = 20*pow(R1,3); // A[2][5] = 20*pow(R1,3);
+  A[33] = pow(R2,5);    // A[3][5] = pow(R2,5);
+  A[34] = 5*pow(R2,4);  // A[4][5] = 5*pow(R2,4);
+  A[35] = 20*pow(R2,3); // A[5][5] = 20*pow(R2,3);
+
+  B[0] = f1;
+  B[1] = fp1;
+  B[2] = fpp1;
+  B[3] = f2;
+  B[4] = fp2;
+  B[5] = fpp2;
   DGESV(N, NRHS, A, LDA, IPIV, B, LDB, &INFO);
 
   memory->destroy(IPIV);

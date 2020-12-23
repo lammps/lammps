@@ -11,6 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/******************************************************************************
+* BLAS and LAPACK definitions
+******************************************************************************/
+#ifdef MKL
+#include "mkl.h"
+#define dgesv_ dgesv
+#else
+extern "C"
+{
+extern void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
+}
+#endif
+
 #ifdef PAIR_CLASS
 
 PairStyle(ls,PairLS)

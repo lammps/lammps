@@ -425,36 +425,36 @@ void KokkosLMP::accelerator(int narg, char **arg)
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
-  // if "cuda/aware off" or "pair/only on", and "comm device", change to "comm host"
+  // if "cuda/aware off" or "pair/only on", and "comm device", change to "comm no"
 
-  if (!gpu_aware_flag && nmpi > 1 || pair_only_flag) {
+  if ((!gpu_aware_flag && nmpi > 1) || pair_only_flag) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
-      exchange_comm_on_host = 1;
+      exchange_comm_classic = 1;
       exchange_comm_changed = 1;
     }
     if (forward_comm_classic == 0 && forward_comm_on_host == 0) {
-      forward_comm_on_host = 1;
+      forward_comm_classic = 1;
       forward_comm_changed = 1;
     }
     if (reverse_comm_classic == 0 && reverse_comm_on_host == 0) {
-      reverse_comm_on_host = 1;
+      reverse_comm_classic = 1;
       reverse_comm_changed = 1;
     }
   }
 
-  // if "cuda/aware on" or "pair/only off" and comm flags were changed previously, change them back
+  // if "cuda/aware on" and "pair/only off", and comm flags were changed previously, change them back
 
   if (gpu_aware_flag && !pair_only_flag) {
     if (exchange_comm_changed) {
-      exchange_comm_on_host = 0;
+      exchange_comm_classic = 0;
       exchange_comm_changed = 0;
     }
     if (forward_comm_changed) {
-      forward_comm_on_host = 0;
+      forward_comm_classic = 0;
       forward_comm_changed = 0;
     }
     if (reverse_comm_changed) {
-      reverse_comm_on_host = 0;
+      reverse_comm_classic = 0;
       reverse_comm_changed = 0;
     }
   }

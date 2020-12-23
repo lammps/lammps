@@ -548,7 +548,7 @@ available (currently only possible with OpenMPI v2.0.0 or later), then
 the *cuda/aware* keyword is automatically set to *off* by default. When
 the *cuda/aware* keyword is set to *off* while any of the *comm*
 keywords are set to *device*\ , the value for these *comm* keywords will
-be automatically changed to *host*\ . This setting has no effect if not
+be automatically changed to *no*\ . This setting has no effect if not
 running on GPUs or if using only one MPI rank. CUDA-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 "MV2_USE_CUDA" environment variable is set to "1", CrayMPI, and IBM
@@ -558,7 +558,8 @@ The *pair/only* keyword can change how the KOKKOS suffix "kk" is applied
 when using an accelerator device.  By default device acceleration is
 always used for all available styles.  With *pair/only* set to *on* the
 suffix setting will choose device acceleration only for pair styles and
-run all other force computations concurrently on the host GPU.  This can
+run all other force computations concurrently on the host CPU.
+The *comm* flags will also automatically be changed to *no*\ . This can
 result in better performance for certain configurations and system sizes.
 
 ----------

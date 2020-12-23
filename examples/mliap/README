@@ -1,7 +1,7 @@
-This directory contains multipler examples of 
+This directory contains multiple examples of 
 machine-learning potentials defined using the 
 MLIAP package in LAMMPS. The input files
-are descirbed below.
+are described below.
 
 in.mliap.snap.Ta06A
 -------------------
@@ -21,57 +21,61 @@ Run EME-SNAP, equivalent to examples/snap/in.snap.InP.JCPA2020
 
 in.mliap.snap.compute
 ---------------------
-Generate gradients w.r.t. coefficients for linear SNAP,
-equivalent to in.snap.compute
+Generate the A matrix, the gradients (w.r.t. coefficients) 
+of total potential energy, forces, and stress tensor for 
+linear SNAP, equivalent to in.snap.compute
 
 in.mliap.quadratic.compute
 --------------------------
-Generate gradients w.r.t. coefficients for quadratic SNAP,
-equivalent to in.snap.compute.quadratic
+Generate the A matrix, the gradients (w.r.t. coefficients) 
+of total potential energy, forces, and stress tensor for 
+for quadratic SNAP, equivalent to in.snap.compute.quadratic
 
 in.mliap.pytorch.Ta06A
 -----------------------
 This reproduces the output of in.mliap.snap.Ta06A above,
 but using the Python coupling to PyTorch.
-It can be run in two different ways:
+
+This example can be run in two different ways:
 
 1: Running a LAMMPS executable: in.mliap.pytorch.Ta06A
 
-First run convert_mliap_Ta06A.py, which will convert the Ta06A potential 
-into a pytorch model. It will be saved as "Ta06A.mliap.pytorch.model.pkl".
+First run ``python convert_mliap_Ta06A.py``. It creates
+a PyTorch energy model that replicates the 
+SNAP Ta06A potential and saves it in the file 
+"Ta06A.mliap.pytorch.model.pt".
 
-It will also copy "../../src/MLIAP/mliappy_pytorch.py" 
-file into the current working directory. mliappy_pytorch.py contains
-class definitions suitable for wrapping an arbitrary PyTorch 
-energy model. It must be available to python when
-creating or unpickling a PyTorch energy model.
-
-From that point you can run the example as follows
+You can then run the example as follows
 
 `lmp -in in.mliap.pytorch.Ta06A -echo both`
 
 The resultant log.lammps output should be identical to that generated
 by in.mliap.snap.Ta06A.
 
+If this fails, see the instructions for building the MLIAP package
+with Python support enabled. Also, confirm that the
+LAMMPS Python embedded Python interpreter is
+working by running ../examples/in.python.
+
 2: Running a Python script: mliap_pytorch_Ta06A.py
 
-Before testing this, ensure that the first example 
-(using LAMMPS executable) works.
-Also, not all python installations support this mode of operation.
-It requires that the Python interpreter be initialized.
-To check this for your Python library,
-try running the Py_IsInitialized() method.
-If the return value is True, you should be able to run the example,
-as follows:
+Before testing this, ensure that the previous method
+(running a LAMMPS executable) works.
+
+You can run the example in serial: 
 
 `python mliap_pytorch_Ta06A.py`
 
-or
+or in parallel:
 
 `mpirun -np 4 python mliap_pytorch_Ta06A.py`
 
 The resultant log.lammps output should be identical to that generated
 by in.mliap.snap.Ta06A and in.mliap.pytorch.Ta06A.
+
+Not all Python installations support this mode of operation.
+It requires that the Python interpreter be initialized. If not,
+the script will exit with an error message.
 
 in.mliap.pytorch.relu1hidden
 ----------------------------

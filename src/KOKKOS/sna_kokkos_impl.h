@@ -412,7 +412,7 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
 {
   for (int jelem = 0; jelem < nelements; jelem++) {
     for (int j = 0; j <= twojmax; j++) {
-      const int jju_half = idxu_half_block(j);
+      int jju_half = idxu_half_block(j); // removed "const" to work around GCC 7 bug
 
       // Only diagonal elements get initialized
       // Top half only: gets symmetrized by TransformUi
@@ -484,15 +484,15 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
   for (int j = 1; j <= twojmax; j++) {
 
-    const int jju = idxu_half_block[j];
+    int jju = idxu_half_block[j]; // removed "const" to work around GCC 7 bug
 
     // fill in left side of matrix layer from previous layer
 
     // Flatten loop over ma, mb
     // for (int ma = 0; ma <= j; ma++)
-    const int n_ma = j+1;
+    int n_ma = j+1; // removed "const" to work around GCC 7 bug
     // for (int mb = 0; 2*mb <= j; mb++)
-    const int n_mb = j/2+1;
+    int n_mb = j/2+1; // removed "const" to work around GCC 7 bug
 
     const int total_iters = n_ma * n_mb;
 
@@ -898,9 +898,9 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
     // flatten the loop over ma,mb
 
     // for (int ma = 0; ma <= j; ma++)
-    const int n_ma = j+1;
+    int n_ma = j+1; // removed "const" to work around GCC 7 bug
     // for (int mb = 0; 2*mb <= j; mb++)
-    const int n_mb = j/2+1;
+    int n_mb = j/2+1; // removed "const" to work around GCC 7 bug
 
     const int total_iters = n_ma * n_mb;
 
@@ -1031,7 +1031,7 @@ void SNAKokkos<DeviceType>::pre_ui_cpu(const typename Kokkos::TeamPolicy<DeviceT
 {
   for (int jelem = 0; jelem < nelements; jelem++) {
     for (int j = 0; j <= twojmax; j++) {
-      const int jju = idxu_half_block(j);
+      int jju = idxu_half_block(j); // removed "const" to work around GCC 7 bug
 
       // Only diagonal elements get initialized
       // for (int m = 0; m < (j+1)*(j/2+1); m++)
@@ -1182,7 +1182,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
         //for(int jjb = 0; jjb < idxb_max; jjb++) {
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
-          const int j = idxb(jjb, 2);
+          int j = idxb(jjb, 2); // removed "const" to work around GCC 7 bug
 
           int jjz = idxz_block(j1, j2, j);
           int jju = idxu_block[j];
@@ -1207,7 +1207,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
           // For j even, special treatment for middle column
 
           if (j%2 == 0) {
-            const int mb = j/2;
+            int mb = j/2; // removed "const" to work around GCC 7 bug
             Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
                 [&] (const int ma, double& sum) {
             //for(int ma = 0; ma < mb; ma++) {
@@ -1521,8 +1521,8 @@ void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy
   ulist(0,iatom,jnbor).im = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    const int jju = idxu_cache_block[j];
-    const int jjup = idxu_cache_block[j-1];
+    int jju = idxu_cache_block[j]; // removed "const" to work around GCC 7 bug
+    int jjup = idxu_cache_block[j-1]; // removed "const" to work around GCC 7 bug
 
     // fill in left side of matrix layer from previous layer
 

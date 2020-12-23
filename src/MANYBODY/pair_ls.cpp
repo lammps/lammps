@@ -35,6 +35,9 @@
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
+// #include <Accelerate/Accelerate.h>
+// #include <lapacke.h>
+
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -43,6 +46,7 @@ using namespace LAMMPS_NS;
 
 PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 {
+  std::cout << "!!!!! PairLS debug mode !!!!! " << "PairLS constructor started working"  << std::endl;
 
   shag_sp_fi  = nullptr;
   shag_sp_ro  = nullptr;
@@ -105,108 +109,14 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
   n_sp_f   = nullptr;
   n_sp_g   = nullptr;
 
-  // memory allocation in heap for arrays with variables and spline coefficients
-  // maybe it is not nessessary to allocate all this memory
-  // shag_sp_fi  = new double[mi][mi];
-  // shag_sp_ro  = new double[mi][mi];
-  // shag_sp_emb = new double[mi]; 
-  // shag_sp_f   = new double[mi][mi];
-  // shag_sp_g   = new double; 
-
-  // R_sp_fi  = new double[mfi][mi][mi]; 
-  // R_sp_ro  = new double[mfi][mi][mi]; 
-  // R_sp_emb = new double[memb][mi]; 
-  // R_sp_f   = new double[mf][mi][mi]; 
-  // R_sp_g   = new double[mg];
-
-  // a_sp_fi = new double[mfi][mi][mi]; 
-  // b_sp_fi = new double[mfi][mi][mi];
-  // c_sp_fi = new double[mfi][mi][mi]; 
-  // d_sp_fi = new double[mfi][mi][mi];
-
-  // a_sp_ro = new double[mro][mi][mi];
-  // b_sp_ro = new double[mro][mi][mi];
-  // c_sp_ro = new double[mro][mi][mi];
-  // d_sp_ro = new double[mro][mi][mi];
-  
-  // a_sp_emb = new double[memb][mi];
-  // b_sp_emb = new double[memb][mi];
-  // c_sp_emb = new double[memb][mi];
-  // d_sp_emb = new double[memb][mi];
-  
-  // a_sp_f3 = new double[mf][mf3][mi][mi];
-  // b_sp_f3 = new double[mf][mf3][mi][mi];
-  // c_sp_f3 = new double[mf][mf3][mi][mi];
-  // d_sp_f3 = new double[mf][mf3][mi][mi];
-  
-  // a_sp_g3 = new double[mg][mf3][mf3][mi];
-  // b_sp_g3 = new double[mg][mf3][mf3][mi];
-  // c_sp_g3 = new double[mg][mf3][mf3][mi];
-  // d_sp_g3 = new double[mg][mf3][mf3][mi]; 
-  
-  // a_sp_f4 = new double[mf][mi][mi];
-  // b_sp_f4 = new double[mf][mi][mi];
-  // c_sp_f4 = new double[mf][mi][mi];
-  // d_sp_f4 = new double[mf][mi][mi];
-  
-  // a_sp_g4 = new double[mi][mi];
-  // b_sp_g4 = new double[mi][mi];
-  // c_sp_g4 = new double[mi][mi];
-  // d_sp_g4 = new double[mi][mi];
-  
-  
-  // fip_rmin = new double[mi][mi];
-  
-  
-  // z_ion  = new double[mi]; 
-  // c_ZBL  = new double[4]; 
-  // d_ZBL  = new double[4]; 
-  // zz_ZBL = new double[mi][mi]; 
-  // a_ZBL  = new double[mi][mi]; 
-  // e0_ZBL = new double[mi][mi];
-  
-  
-  // Rmin_fi_ZBL = new double[mi][mi]; 
-  // c_fi_ZBL    = new double[6][mi][mi];
-  
-  // Rc_fi = new double; 
-  // Rc_f  = new double;
-
   n_sort = atom->ntypes;
-
-
-  // EAM inheritance
-  // restartinfo = 0;
-  // manybody_flag = 1;
-  // embedstep = -1;
-  // unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
-
-  // nmax = 0;
-  // rho = nullptr;
-  // fp = nullptr;
-  // numforce = nullptr;
-  // map = nullptr;
-  // type2frho = nullptr;
-
-  // nfuncfl = 0;
-  // funcfl = nullptr;
-
-  // setfl = nullptr;
-  // fs = nullptr;
-
-  // frho = nullptr;
-  // rhor = nullptr;
-  // z2r = nullptr;
-  // scale = nullptr;
-
-  // frho_spline = nullptr;
-  // rhor_spline = nullptr;
-  // z2r_spline = nullptr;
-
-  // set comm size needed by this Pair
 
   comm_forward = 1;
   comm_reverse = 1;
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << "PairLS constructor end working"  << std::endl;
+
+
 }
 
 /* ----------------------------------------------------------------------
@@ -385,8 +295,8 @@ void PairLS::allocate()
   memory->create(fip_rmin,mi,mi,"PairLS:fip_rmin");
 
   memory->create(z_ion,mi,"PairLS:z_ion");
-  memory->create(c_ZBL,4,"PairLS:c_ZBL");
-  memory->create(d_ZBL,4,"PairLS:d_ZBL");
+  memory->create(c_ZBL,4,mi,mi,"PairLS:c_ZBL");
+  memory->create(d_ZBL,4,mi,mi,"PairLS:d_ZBL");
   memory->create(zz_ZBL,mi,mi,"PairLS:zz_ZBL");
   memory->create(a_ZBL,mi,mi,"PairLS:a_ZBL");
   memory->create(e0_ZBL,mi,mi,"PairLS:e0_ZBL");
@@ -416,15 +326,8 @@ void PairLS::settings(int narg, char **/*arg*/)
 }
 
 /* ----------------------------------------------------------------------
-   (For future implementations. Coeffs for each pair of atoms are the names of files with potential functions should be written separately (example for 3-component system):
-   pair_coeff 1 1 pot_1
-   pair_coeff 2 2 pot_2
-   pair_coeff 3 3 pot_3
-   pair_coeff 1 2 pot_1_2
-   pair_coeff 1 3 pot_1_3
-   pair_coeff 2 3 pot_2_3)
-
-  coeffs for each pair of atoms are the names of files with potential functions should be in a row in the following order (example for 3-component system):
+  Pair coeffs for each pair of atoms are the names of files with potential functions.
+  They should be written in a row in the following order (example for 3-component system):
   pair_coeff pot_1 pot_2 pot_3 pot_1_2 pot_1_3 pot_2_3
 
   Here pot_i are the names of files containing potential functions for one sort of atom i,
@@ -770,13 +673,13 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       for (int n = 0; n < 4; n++)
       {
         c_ZBL[n] = reader.next_double();
-        std::cout << " c_ZBL[" << n << "] = " << c_ZBL[n]<< std::endl;
+        std::cout << " c_ZBL[" << n << "]["<< is << "][" << is << "] = " << c_ZBL[n][is][is]<< std::endl;
       }
 
       for (int n = 0; n < 4; n++)
       {
         d_ZBL[n] = reader.next_double();
-        std::cout << " d_ZBL[" << n << "] = " << d_ZBL[n]<< std::endl;
+        std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[n[is][is]]<< std::endl;
       }
     }
     catch (TokenizerException &e) {
@@ -963,16 +866,34 @@ void PairLS::par2pot_is(int is)
 {
   // Start pot_ls_a_sp.h
   int n_sp;
-  double R_sp[mfi];
-  double a_sp[mfi], b_sp[mfi], c_sp[mfi], d_sp[mfi], e_sp[mfi];
+  // double R_sp[mfi];
+  // double a_sp[mfi], b_sp[mfi], c_sp[mfi], d_sp[mfi], e_sp[mfi];
+  double *R_sp;
+  double *a_sp, *b_sp, *c_sp, *d_sp, *e_sp; 
   // End pot_ls_a_sp.h
 
   int i, j, i1, i2, n;
   double p1, p2, pn;
-  double v_ZBL, vp_ZBL, vpp_ZBL;
-  double B6[6];
+  // double B6[6][1];
+  double **B6;
   double r1, r2, f1, fp1, fpp1, f2, fp2, fpp2;
   
+  memory->destroy(R_sp);
+  memory->destroy(a_sp);
+  memory->destroy(b_sp);
+  memory->destroy(c_sp);
+  memory->destroy(d_sp);
+  memory->destroy(e_sp);
+  memory->destroy(B6);
+
+  memory->create(R_sp, mfi, "PairLS:a_sp_w");
+  memory->create(a_sp, mfi, "PairLS:a_sp_w");
+  memory->create(b_sp, mfi, "PairLS:b_sp_w");
+  memory->create(c_sp, mfi, "PairLS:c_sp_w");
+  memory->create(d_sp, mfi, "PairLS:d_sp_w");
+  memory->create(e_sp, mfi, "PairLS:e_sp_w");
+  memory->create(B6, 6, 1, "PairLS:B6_w");
+
   // par2pot_is.f(15-18):
   //   zz_ZBL(is,is)=z_ion(is)*z_ion(is)*(3.795D0**2)
   //   a_ZBL(is,is)=0.8853D0
@@ -992,11 +913,11 @@ void PairLS::par2pot_is(int is)
 	// a_sp(n_sp)=0.0D0
 
 	n_sp = n_sp_fi[is][is];
-	for (i=0; i < n_sp; i++)
+	for (i = 0; i < n_sp; i++)
   {
     R_sp[i]=R_sp_fi[i][is][is];
   }
-	for (i=0; i < n_sp-1; i++)
+	for (i = 0; i < n_sp-1; i++)
   {
     a_sp[i]=a_sp_fi[i][is][is];
   }  
@@ -1012,8 +933,9 @@ void PairLS::par2pot_is(int is)
 		// enddo
 	// shag_sp_fi(is,is)=1.0D0/((R_sp_fi(n_sp,is,is)-R_sp_fi(1,is,is))/dfloat(n_sp-1))
 
-	SPL(n_sp, R_sp, a_sp, 1, fip_Rmin[is][is], 0.0, b_sp, mfi, c_sp, d_sp);
-	for (i=0; i < n_sp; i++)
+	// SPL(n_sp, &R_sp, &a_sp, 1, fip_rmin[is][is], 0.0, &b_sp, &c_sp, &d_sp);
+	SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is][is], 0.0, b_sp, c_sp, d_sp);
+	for (i = 0; i < n_sp; i++)
   {
     a_sp_fi[i][is][is] = a_sp[i];
     b_sp_fi[i][is][is] = b_sp[i];
@@ -1038,19 +960,20 @@ void PairLS::par2pot_is(int is)
 	// c_fi_ZBL(1:6,is,is)=B6(1:6)
 
 	r1 = Rmin_fi_ZBL[is][is];
-	f1 = v_ZBL[r1][is][is]+e0_ZBL[is][is];
-	fp1 = vp_ZBL[r1][is][is];
-	fpp1 = vpp_ZBL[r1][is][is];
+	f1 = v_ZBL(r1, is, is) + e0_ZBL[is][is];
+	fp1 = vp_ZBL(r1, is, is);
+	fpp1 = vpp_ZBL(r1, is, is);
   r2 = R_sp_fi[0][is][is];
   f2 = a_sp_fi[0][is][is];
   fp2 = b_sp_fi[0][is][is];
   fpp2 = 2.0*c_sp_fi[0][is][is];	
 	
+  // smooth_zero_22(&B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
   smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
 
   for (i = 0; i < 6; i++)
   {
-    c_fi_ZBL[i][is][is] = B6[i];
+    c_fi_ZBL[i][is][is] = B6[i][0];
   }
 
   // par2pot_is.f(51-68):
@@ -1076,13 +999,14 @@ void PairLS::par2pot_is(int is)
   n_sp = n_sp_ro[i][i];
   for (i = 0, i < n_sp, i++)
   {
-    R_sp[i]=R_sp_ro[i][is][is];
-    a_sp[i]=a_sp_ro[i][is][is];
+    R_sp[i] = R_sp_ro[i][is][is];
+    a_sp[i] = a_sp_ro[i][is][is];
   }
   p1=0.0;
 
+	// SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
 	SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
-	for (i=0; i < n_sp; i++)
+	for (i = 0; i < n_sp; i++)
   {  
     a_sp_ro[i][is][is] = a_sp[i];
     b_sp_ro[i][is][is] = b_sp[i];
@@ -1118,15 +1042,16 @@ void PairLS::par2pot_is(int is)
 	n = n_sp_emb[is][is];
   for (i = 0, i < n_sp, i++)
   {
-    R_sp[i]=R_sp_emb[i][is][is];
-    a_sp[i]=a_sp_emb[i][is][is];
+    R_sp[i] = R_sp_emb[i][is][is];
+    a_sp[i] = a_sp_emb[i][is][is];
   }  
-	a_sp[0]=0.0;
+	a_sp[0] = 0.0;
 
 	p1 = (a_sp[1]-a_sp[0])/(R_sp[1]-R_sp[0]);
 	pn = 0.0;
+	// SPL(n_sp, &R_sp, &a_sp, 1, p1, pn, &b_sp, &c_sp, &d_sp);
 	SPL(n_sp, R_sp, a_sp, 1, p1, pn, b_sp, c_sp, d_sp);
-	for (i=0; i < n_sp; i++)
+	for (i = 0; i < n_sp; i++)
   {  
     a_sp_emb[i][is] = a_sp[i];
     b_sp_emb[i][is] = b_sp[i];
@@ -1136,6 +1061,120 @@ void PairLS::par2pot_is(int is)
 
 	shag_sp_emb[is] = 1.0/((R_sp_emb[n_sp-1][is] - R_sp_emb[0][is])/(n_sp - 1)); 
 
+  // par2pot_is.f(97-115):
+  // ! f3
+  // 	n_sp=n_sp_f
+  // 	do i=1,n_sp
+  // 	R_sp(i)=R_sp_f(i,is,is)
+  // 	enddo
+  // 	do i1=1,n_f3(is)
+  // 	    do i=1,n_sp
+  // 	    a_sp(i)=a_sp_f3(i,i1,is,is)
+  // 	    enddo
+  // 	    p1=0.0D0
+  // c	    p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
+  // 		do i=1,n_sp
+  // 		a_sp_f3(i,i1,is,is)=a_sp(i)
+  // 		b_sp_f3(i,i1,is,is)=b_sp(i)
+  // 		c_sp_f3(i,i1,is,is)=c_sp(i)
+  // 		d_sp_f3(i,i1,is,is)=d_sp(i)
+  // 		enddo
+  // 	enddo
+  // 	shag_sp_f(is,is)=1.0D0/((R_sp_f(n_sp,is,is)-R_sp_f(1,is,is))/dfloat(n_sp-1))
+
+	n_sp = n_sp_f[is][is];
+  for (i = 0, i < n_sp, i++)
+  {
+    R_sp[i] = R_sp_f[i][is][is];
+  }
+
+  for (i1 = 0, i1 < n_f3[is], i1++)
+  {
+    for (i = 0, i < n_sp, i++)
+    {
+      a_sp[i] = a_sp_f3[i][i1][is][is];
+    }
+    p1 = 0.0;
+    // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
+    SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+    for (i = 0; i < n_sp; i++)
+    { 
+      a_sp_f3[i][i1][is][is] = a_sp[i];
+      b_sp_f3[i][i1][is][is] = b_sp[i];
+      c_sp_f3[i][i1][is][is] = c_sp[i];
+      d_sp_f3[i][i1][is][is] = d_sp[i];
+    }
+  }
+	shag_sp_f[is][is] = 1.0/((R_sp_f[n_sp-1][is][is]-R_sp_f[0][is][is])/(n_sp-1));
+
+  // par2pot_is.f(117-150):
+  // ! g3
+  // 	n_sp=n_sp_g
+  // 	do i=1,n_sp
+  // 	R_sp(i)=R_sp_g(i)
+  // 	enddo
+  // c						    if_diag(is)=.false.
+  // 	do i1=1,n_f3(is)
+  // 	do i2=1,i1
+  // 	    do i=1,n_sp
+  // 	    a_sp(i)=a_sp_g3(i,i1,i2,is)
+  // 	    enddo
+  // c	    if(i2.NE.i1) then
+  // c	    if(abs(a_sp(2))<0.00000001.AND.abs(a_sp(7))<0.00000001) if_diag(is)=.true.
+  // c	    endif
+  // 	p1=0.0D0
+  // 	p2=0.0D0
+  // 	    if(.NOT.if_gp0_pot(is)) then
+  // 	    p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  // 	    p2=(a_sp(n_sp)-a_sp(n_sp-1))/(R_sp(n_sp)-R_sp(n_sp-1))
+  // 	    endif
+  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,p2, b_sp,c_sp,d_sp)
+  // 		do i=1,n_sp
+  // 		a_sp_g3(i,i1,i2,is)=a_sp(i)
+  // 		a_sp_g3(i,i2,i1,is)=a_sp(i)
+  // 		b_sp_g3(i,i1,i2,is)=b_sp(i)
+  // 		b_sp_g3(i,i2,i1,is)=b_sp(i)
+  // 		c_sp_g3(i,i1,i2,is)=c_sp(i)
+  // 		c_sp_g3(i,i2,i1,is)=c_sp(i)
+  // 		d_sp_g3(i,i1,i2,is)=d_sp(i)
+  // 		d_sp_g3(i,i2,i1,is)=d_sp(i)
+  // 		enddo
+  // 	enddo
+  // 	enddo
+  // 	shag_sp_g=1.0D0/((R_sp_g(n_sp)-R_sp_g(1))/dfloat(n_sp-1))
+
+	n_sp = n_sp_g[is][is];
+  for (i = 0, i < n_sp, i++)
+  {
+    R_sp[i] = R_sp_g[i];
+  }
+  for (i1 = 0, i1 < n_f3[is], i1++)
+  {
+    for (i2 = 0, i2 <= i1, i2++)
+    {
+      for (i = 0, i < n_sp, i++)
+      {
+        a_sp[i] = a_sp_g3[i][i1][i2][is];
+      }
+      p1 = 0.0;
+      p2 = 0.0;
+      // SPL(n_sp, &R_sp, &a_sp, 1, p1, p2, &b_sp, &c_sp, &d_sp);
+      SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp);
+      for (i = 0; i < n_sp; i++)
+      { 
+        a_sp_g3[i][i1][i2][is] = a_sp[i];
+        a_sp_g3[i][i2][i1][is] = a_sp[i];
+        b_sp_g3[i][i1][i2][is] = b_sp[i];
+        b_sp_g3[i][i2][i1][is] = b_sp[i];
+        c_sp_g3[i][i1][i2][is] = c_sp[i];
+        c_sp_g3[i][i2][i1][is] = c_sp[i];
+        d_sp_g3[i][i1][i2][is] = d_sp[i];
+        d_sp_g3[i][i2][i1][is] = d_sp[i];
+      }
+    }  
+  }
+	shag_sp_g = 1.0/((R_sp_g[n_sp-1]-R_sp_g[0])/(n_sp-1));
 
 }
 
@@ -1147,12 +1186,849 @@ void PairLS::par2pot_is(int is)
 // }
 
 
-// utility functions
+// Subroutines for spline creation written by A.G. Lipnitskii and translated from Fortran to C++ 
 
-// bool PairLS::string2bool(const std::string & v)
+// smooth_zero_22.f
+void PairLS::smooth_zero_22(double **B, double R1, double R2, double f1, double fp1, double fpp1, double f2, double fp2, double fpp2)
+{
+  //c == calc sqear delta  ==>
+  int N = 6, NRHS = 1, LDA = 6, LDB = 7, INFO = 1;
+  // int IPIV[N];
+  // double A[LDA][N];
+  int *IPIV;
+  double **A;
+  memory->create(IPIV, N, "PairLS:smooth_zero_22_IPIV_w");
+  memory->create(A, LDA, N, "PairLS:smooth_zero_22_A_w");
+
+  // double B[6][1];
+  // double R1, R2, f1, fp1, fpp1, f2, fp2, fpp2;
+  A[0][0] = 1;
+  A[0][1] = R1;
+  A[0][2] = pow(R1,2);
+  A[0][3] = pow(R1,3);
+  A[0][4] = pow(R1,4);
+  A[0][5] = pow(R1,5);
+  A[1][0] = 0;
+  A[1][1] = 1;
+  A[1][2] = 2*R1;
+  A[1][3] = 3*pow(R1,2);
+  A[1][4] = 4*pow(R1,3);
+  A[1][5] = 5*pow(R1,4);
+  A[2][0] = 0;
+  A[2][1] = 0;
+  A[2][2] = 2;
+  A[2][3] = 6*R1;
+  A[2][4] = 12*pow(R1,2);
+  A[2][5] = 20*pow(R1,3);
+  A[3][0] = 1;
+  A[3][1] = R2;
+  A[3][2] = pow(R2,2);
+  A[3][3] = pow(R2,3);
+  A[3][4] = pow(R2,4);
+  A[3][5] = pow(R2,5);
+  A[4][0] = 0;
+  A[4][1] = 1;
+  A[4][2] = 2*R2;
+  A[4][3] = 3*pow(R2,2);
+  A[4][4] = 4*pow(R2,3);
+  A[4][5] = 5*pow(R2,4);
+  A[5][0] = 0;
+  A[5][1] = 0;
+  A[5][2] = 2;
+  A[5][3] = 6*R2;
+  A[5][4] = 12*pow(R2,2);
+  A[5][5] = 20*pow(R2,3);
+  B[0][0] = f1;
+  B[1][0] = fp1;
+  B[2][0] = fpp1;
+  B[3][0] = f2;
+  B[4][0] = fp2;
+  B[5][0] = fpp2;
+  DGESV(N, NRHS, A, LDA, IPIV, B, LDB, &INFO);
+
+  memory->destroy(IPIV);
+  memory->destroy(A);
+};
+
+
+// SPL.f90
+void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, double *B, double *C, double *D)
+{
+  // int ib, n;         // intent(in)
+  // double X[n], Y[n]; // intent(in)
+  // double D1, DN;     // intent(in)
+  // double B[n], C[n], D[n];
+  double *A, *S;
+  double t1, t2, t3;
+  int i, n1, nn, Err;
+  //begin
+  // n = size(X)
+  if (n == 1) 
+  {
+      B[0] = 0.0; C[0] = 0.0; D[0] = 0.0;
+      return;
+  } else
+  if (n == 2) 
+  {
+      B[0] = (Y[1] - Y[0])/(X[1] - X[0]);
+      C[0] = 0.0; D[0] = 0.0;
+      B[1] = 0.0; C[1] = 0.0; D[1] = 0.0;
+      return;
+  }
+  n1 = n - 1;
+  B[0] = X[1] - X[0]; B[n-1] = 0.0;
+  C[0] = 0.0; C[1] = B[0];
+  D[0] = (Y[1] - Y[0])/B[0]; D[1] = D[0];
+  memory->create(A, n, "PairLS:SPL_A_w");
+  memory->create(S, n, "PairLS:SPL_S_w");  
+  for (i = 1; i = n1 - 1; i++)
+  {
+    B[i] = X[i + 1] - X[i]; C[i + 1] = B[i];
+    A[i] = 2.0*(X[i + 1] - X[i - 1]);
+    D[i + 1] = (Y[i + 1] - Y[i])/B[i];
+    D[i] = D[i + 1] - D[i];    
+  }
+
+  switch (ib)
+  {
+    case 1:
+      A[0] = 2.0*B[0]; A[n-1] = 2.0*B[n1-1];
+      D[0] = D[0] - D1; D[n-1] = DN - D[n-1];
+      nn = n;
+      break;
+    case 2:
+      A[0] = 6.0; A[n-1] = 6.0; B[0] = 0.0; C[n-1] = 0.0;
+      D[0] = D1; D[n-1] = DN;
+      nn = n;
+      break;
+    case 3:
+      D[0] = D[0] - D[n-1];   
+      if (n == 3) 
+      {
+        A[0] = X[2] - X[0]; 
+        A[1] = A[0]; 
+        A[2] = A[0]; 
+        D[2] = D[0];
+        B[0] = 0.0; 
+        B[1] = 0.0; 
+        C[1] = 0.0; 
+        C[2] = 0.0;
+        nn = n;   // maybe it should be nn = n - 1
+      } 
+      else
+      {
+        A[0] = 2.0*(B[0] + B[n1-1]); C[0] = B[n1-1];
+        nn = n1;  // maybe it should be nn = n1 - 1
+      }     
+      break;
+    default:
+      A[0] = -B[0]; A[n] = -B[n1-1];
+      if (n == 3) 
+      {
+        D[0] = 0.0; D[2] = 0.0;
+      } 
+      else
+      {
+        D[0] = D[2]/(X[3] - X[1]) - D[1]/(X[2] - X[0]);
+        D[n-1] = D[n1-1]/(X[n-1] - X[n-3]) - D[n-3]/(X[n1-1] - X[n-4]);
+        D[0] = -D[0]*B[0]*B[0]/(X[3] - X[0]);
+        D[n-1] = D[n-1]*B[n1-1]*B[n1-1]/(X[n-1] - X[n-4]);
+      }
+      nn = n;
+  }    
+
+  LA30(nn, A[0:nn-1], B[0:nn-1], C[0:nn-1], D[0:nn-1], S[0:nn-1], &Err);
+
+  B[0] = X[1] - X[0];
+  if (ib == 3) 
+  {
+    S[n-1] = S[0]; B[1] = X[2] - X[1];
+  }
+  for (i = 0, i < n1; i++)
+  {
+    D[i] = (S[i + 1] - S[i])/B[i];
+    C[i] = 3.0*S[i];
+    B[i] = (Y[i + 1] - Y[i])/B[i] - B[i]*(S[i + 1] + 2.0*S[i]);
+  }
+  D[n-1] = D[n1-1]; C[n-1] = 3.0*S[n-1]; B[n-1] = B[n1-1];
+
+  memory->destroy(A);
+  memory->destroy(S);
+}
+
+// LA30.f
+void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, int *Error)
+{
+  //
+  // int(4), intent(in):: n;
+  // float(8), intent(in):: A[n], B[n], C[n], D[n];
+  // float(8):: X[n];
+  // int(4):: Error;
+  // float(8), allocatable:: P[:], Q[:], R[:], S[:], T[:];
+  double *P, *Q, *R, *S, *T;
+  double W;
+  int i, ii;
+  //begin
+  // n = size(A)
+  if (n < 3) 
+  {
+    Error = 1; 
+    return;
+  }
+
+  memory->create(P, n, "PairLS:LA30_P_w");
+  memory->create(Q, n, "PairLS:LA30_Q_w");
+  memory->create(R, n, "PairLS:LA30_R_w");
+  memory->create(S, n, "PairLS:LA30_S_w");
+  memory->create(T, n, "PairLS:LA30_T_w");
+  P[0] = 0.0; 
+  Q[0] = 0.0; 
+  R[0] = 1.0;
+
+  for (i = 0; i < n-1; i++)
+  {
+    ii = i + 1;
+    W = A[i] + Q[i]*C[i];
+    if (1.0 + W == 1.0) 
+    {
+      memory->destroy(P);
+      memory->destroy(Q);
+      memory->destroy(R);
+      memory->destroy(S);
+      memory->destroy(T);
+      Error = 65; 
+      return;
+    }
+    P[ii] = (D[i] - P[i]*C[i])/W;
+    Q[ii] = -B[i]/W;
+    R[ii] = -R[i]*C[i]/W;
+  }
+
+  S[n-1] = 1.0; 
+  T[n-1] = 0.0;
+  for (i = n-2; i >= 0, i--) // check for consistency with LA30.f in testing
+  {
+    ii = i + 1;
+    S[i] = Q[ii]*S[ii] + R[ii];
+    T[i] = Q[ii]*T[ii] + P[ii];
+  }
+
+
+  W = A[n-1] + B[n-1]*S[0] + C[n-1]*S[n-2];
+
+  if (1.0 + W == 1.0) 
+  {
+    memory->destroy(P);
+    memory->destroy(Q);
+    memory->destroy(R);
+    memory->destroy(S);
+    memory->destroy(T);
+    Error = 65; 
+    return;
+  }
+
+  X[n-1] = (D[n-1] - B[n-1]*T[0] - C[n-1]*T[n-2])/W;
+  for (i = 0; i < n-1; i++)
+  {
+    X[i] = S[i]*X[n-1] + T[i];
+  }
+
+  memory->destroy(P);
+  memory->destroy(Q);
+  memory->destroy(R);
+  memory->destroy(S);
+  memory->destroy(T);
+  Error = 0; 
+  return;
+}
+
+
+
+
+
+
+
+// Potential functions
+// fun_pot_ls.f(603-623):
+double PairLS::v_ZBL(double r, int is, int js)
+{
+  int i;
+  double v_ZBL;
+  double w, sum, zz_r;
+
+  zz_r = zz_ZBL[is][js]/r;
+
+  w = r/a_ZBL[is][js];
+
+  sum = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
+  }
+
+  v_ZBL = zz_r*sum;
+        
+  return v_ZBL;
+}
+
+// fun_pot_ls.f(627-655):
+double PairLS::vp_ZBL(double r, int is, int js)
+{
+  int i;
+  double vp_ZBL;
+  double w, sum, sump, zz_r, zzp_r;
+
+  zz_r = zz_ZBL[is][js]/r;
+  zzp_r = -zz_r/r;
+
+  w = r/a_ZBL[is][js];
+
+  sum = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
+  }
+
+  sump = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sump = sump + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*(-d_ZBL[i][is][js]/a_ZBL[is][js]);
+  }
+
+  vp_ZBL = zzp_r*sum + zz_r*sump;
+        
+  return vp_ZBL;
+}
+
+// fun_pot_ls.f(659-694):
+double PairLS::vpp_ZBL(double r, int is, int js)
+{
+  int i;
+  double vp_ZBL;
+  double w, sum, sump, sumpp, zz_r, zzp_r, zzpp_r;
+
+  zz_r = zz_ZBL[is][js]/r;
+  zzp_r = -zz_r/r;
+  zzpp_r = -2.0*zzp_r/r;
+
+  w = r/a_ZBL[is][js];
+
+  sum = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sum = sum + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w);
+  }
+
+  sump = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sump = sump + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*(-d_ZBL[i][is][js]/a_ZBL[is][js]);
+  }
+
+  sumpp = 0.0;
+  for (i = 0, i < 4; i++)
+  {
+    sumpp = sumpp + c_ZBL[i][is][js]*exp(-d_ZBL[i][is][js]*w)*pow((d_ZBL[i][is][js]/a_ZBL[is][js]),2);
+  }
+
+  vpp_ZBL = zzpp_r*sum + 2.0*zzp_r*sump + zz_r*sumpp;
+        
+  return vpp_ZBL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // LAPACK subroutines and functions translated from Fortran to C++
+// // dgesv.f
+// void PairLS::DGESV(int N, int NRHS, double **A, int LDA, int *IPIV, double **B, int LDB, int *INFO)
 // {
-//     return !v.empty () &&
-//         (strcasecmp (v.c_str (), "true") == 0 ||
-//          atoi (v.c_str ()) != 0);
+
+//   // *  DGESV computes the solution to a real system of linear equations
+//   // *     A * X = B,
+//   // *  where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
+//   // *
+//   // *  The LU decomposition with partial pivoting and row interchanges is
+//   // *  used to factor A as
+//   // *     A = P * L * U,
+//   // *  where P is a permutation matrix, L is unit lower triangular, and U is
+//   // *  upper triangular.  The factored form of A is then used to solve the
+//   // *  system of equations A * X = B.
+//   // 
+//   // *  Arguments
+//   // *  =========
+//   // *
+//   // *  N       (input) INTEGER
+//   // *          The number of linear equations, i.e., the order of the
+//   // *          matrix A.  N >= 0.
+//   // *
+//   // *  NRHS    (input) INTEGER
+//   // *          The number of right hand sides, i.e., the number of columns
+//   // *          of the matrix B.  NRHS >= 0.
+//   // *
+//   // *  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+//   // *          On entry, the N-by-N coefficient matrix A.
+//   // *          On exit, the factors L and U from the factorization
+//   // *          A = P*L*U; the unit diagonal elements of L are not stored.
+//   // *
+//   // *  LDA     (input) INTEGER
+//   // *          The leading dimension of the array A.  LDA >= max(1,N).
+//   // *
+//   // *  IPIV    (output) INTEGER array, dimension (N)
+//   // *          The pivot indices that define the permutation matrix P;
+//   // *          row i of the matrix was interchanged with row IPIV(i).
+//   // *
+//   // *  B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
+//   // *          On entry, the N-by-NRHS matrix of right hand side matrix B.
+//   // *          On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+//   // *
+//   // *  LDB     (input) INTEGER
+//   // *          The leading dimension of the array B.  LDB >= max(1,N).
+//   // *
+//   // *  INFO    (output) INTEGER
+//   // *          = 0:  successful exit
+//   // *          < 0:  if INFO = -i, the i-th argument had an illegal value
+//   // *          > 0:  if INFO = i, U(i,i) is exactly zero.  The factorization
+//   // *                has been completed, but the factor U is exactly
+//   // *                singular, so the solution could not be computed.
+//   // *
+//   // *  =====================================================================
+//   // 
+//   // *     .. Executable Statements ..
+//   // *
+//   // *     Test the input parameters.
+//   INFO = 0;
+//   if (N < 0) 
+//   {
+//     INFO = -1;
+//     std::cout << "PairLS::DGESV Illegal value of parameter N = " << N << std::endl;  
+//   } 
+//   else if (NRHS < 0) 
+//   {
+//     INFO = -2;
+//     std::cout << "PairLS::DGESV Illegal value of parameter NRHS = " << NRHS << std::endl;  
+//   } 
+//   else if (LDA < MAX(1, N)) 
+//   {
+//     INFO = -4;
+//     std::cout << "PairLS::DGESV Illegal values of parameters LDA = " << LDA << "and/or N = " << N << std::endl;  
+//   } 
+//   else if (LDB < MAX(1, N)) 
+//   {
+//     INFO = -7;
+//     std::cout << "PairLS::DGESV Illegal values of parameters LDB = " << LDB << "and/or N = " << N << std::endl;  
+//   }
+
+//   if (INFO != 0) 
+//   {
+//       // XERBLA("DGESV ", -INFO);
+//       return;
+//   }
+//   //*
+//   //*     Compute the LU factorization of A.
+//   //*
+//   DGETRF(N, N, A, LDA, IPIV, INFO);
+//   if (INFO == 0) 
+//   {
+//       //*
+//       //*        Solve the system A*X = B, overwriting B with X.
+//       //*
+//       DGETRS("No transpose", N, NRHS, A, LDA, IPIV, B, LDB, INFO);
+//   }
+//   return;
 // }
 
+// // dgetrf.f
+// void PairLS::DGETRF(int M, int N, double **A, int LDA, int *IPIV, int *INFO)
+// {
+//   // *  DGETRF computes an LU factorization of a general M-by-N matrix A
+//   // *  using partial pivoting with row interchanges.
+//   // *
+//   // *  The factorization has the form
+//   // *     A = P * L * U
+//   // *  where P is a permutation matrix, L is lower triangular with unit
+//   // *  diagonal elements (lower trapezoidal if m > n), and U is upper
+//   // *  triangular (upper trapezoidal if m < n).
+//   // *
+//   // *  This is the right-looking Level 3 BLAS version of the algorithm.
+//   // *
+//   // *  Arguments
+//   // *  =========
+//   // *
+//   // *  M       (input) INTEGER
+//   // *          The number of rows of the matrix A.  M >= 0.
+//   // *
+//   // *  N       (input) INTEGER
+//   // *          The number of columns of the matrix A.  N >= 0.
+//   // *
+//   // *  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+//   // *          On entry, the M-by-N matrix to be factored.
+//   // *          On exit, the factors L and U from the factorization
+//   // *          A = P*L*U; the unit diagonal elements of L are not stored.
+//   // *
+//   // *  LDA     (input) INTEGER
+//   // *          The leading dimension of the array A.  LDA >= max(1,M).
+//   // *
+//   // *  IPIV    (output) INTEGER array, dimension (min(M,N))
+//   // *          The pivot indices; for 1 <= i <= min(M,N), row i of the
+//   // *          matrix was interchanged with row IPIV(i).
+//   // *
+//   // *  INFO    (output) INTEGER
+//   // *          = 0:  successful exit
+//   // *          < 0:  if INFO = -i, the i-th argument had an illegal value
+//   // *          > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
+//   // *                has been completed, but the factor U is exactly
+//   // *                singular, and division by zero will occur if it is used
+//   // *                to solve a system of equations.
+//   // *
+//   // *  =====================================================================
+
+//   //*     .. Parameters ..
+//   double const ONE = 1.0;
+
+//   //*     ..
+//   //*     .. Local Scalars ..
+//   int I, IINFO, J, JB, NB;
+//   //*     .. Additional Local Scalars for C-like indexing of arrays
+//   int II, JJ; 
+//   //*     ..
+//   //*     .. External Subroutines ..
+//   // EXTERNAL DGEMM, DGETF2, DLASWP, DTRSM, XERBLA;
+//   //*     ..
+//   //*     .. External Functions ..
+//   // int ILAENV;
+//   // EXTERNAL ILAENV;
+//   //*     ..
+//   //*     .. Intrinsic Functions ..
+//   // INTRINSIC MAX, MIN;
+//   //*     ..
+//   //*     .. Executable Statements ..
+//   //*
+//   //*     Test the input parameters.
+//   //*
+//   INFO = 0;
+//   if (M < 0) 
+//   {
+//     INFO = -1;
+//     std::cout << "PairLS::DGETRF Illegal value of parameter M = " << M << std::endl;  
+//   } 
+//   else if (N < 0) 
+//   {
+//     INFO = -2;
+//     std::cout << "PairLS::DGETRF Illegal value of parameter N = " << N << std::endl;  
+//   } 
+//   else if (LDA < MAX(1, M)) 
+//   {
+//     INFO = -4;
+//     std::cout << "PairLS::DGETRF Illegal values of parameters LDA = " << LDA << "and/or M = " << M << std::endl;  
+//   }
+
+//   if (INFO != 0) 
+//   {
+//     // XERBLA("DGETRF", -INFO);
+//     return;
+//   }
+//   //*
+//   //*     Quick return if possible
+//   //*
+//   if (M == 0 || N == 0) return;
+//   //*
+//   //*     Determine the block size for this environment.
+//   //*
+//   NB = ILAENV(1, "DGETRF", " ", M, N, -1, -1); // check what this means
+//   if (NB <= 1 || NB >= MIN(M, N)) 
+//   {
+//     //*
+//     //*        Use unblocked code.
+//     //*
+//     DGETF2(M, N, A, LDA, IPIV, INFO);
+//   } 
+//   else
+//   {
+//     //*
+//     //*        Use blocked code.
+//     //*
+//     for (J = 1, J <= MIN(M, N), J += NB)    // decide what to use
+//     // for (JJ = 1, JJ <= MIN(M, N), JJ += NB)    // decide what to use
+//     // for (J = 0, J < MIN(M, N), J += NB)  // decide what to use
+//     {
+//       // J = JJ - 1;
+//       JB = MIN(MIN(M, N) - J + 1, NB);  // decide what to use
+//       // JB = MIN(MIN(M, N) - (J+1) + 1, NB); // decide what to use
+//       //*
+//       //*           Factor diagonal and subdiagonal blocks and test for exact
+//       //*           singularity.
+//       //*
+//       DGETF2(M - J + 1, JB, A[J-1][J-1], LDA, IPIV[0:J-1], IINFO); // decide what to use
+//       // DGETF2(M - J + 1, JB, A(J, J), LDA, IPIV(J), IINFO);        // decide what to use
+//       // DGETF2(M - (J+1) + 1, JB, A[0:J][0:J], LDA, IPIV[0:J], IINFO); // decide what to use
+//       //*
+//       //*           Adjust INFO and the pivot indices.
+//       //*
+//       if (INFO == 0 && IINFO > 0) INFO = IINFO + J - 1;
+//       for(I = J, I <= MIN(M, J + JB - 1), I++)
+//       {
+//         IPIV[I-1] = J - 1 + IPIV[I-1];     // decide what to use
+//         // IPIV[I] = (J+1) - 1 + IPIV[I];   // decide what to use
+//       }
+//       //*
+//       //*           Apply interchanges to columns 1:J-1.
+//       //*
+//       DLASWP(J - 1, A, LDA, J, J + JB - 1, IPIV, 1);                 // decide what to use
+//       // DLASWP((J+1) - 1, A, LDA, (J+1), (J+1) + JB - 1, IPIV, 1);  // decide what to use
+//       //*
+//       if (J + JB <= N)         // decide what to use
+//       // if (J+1 + JB <= N)    // decide what to use
+//       {
+//         //*
+//         //*              Apply interchanges to columns J+JB:N.
+//         //*
+//         DLASWP(N - J - JB + 1, A[1][J + JB], LDA, J, J + JB - 1,  IPIV, 1);      // decide what to use 
+//         // DLASWP(N - (J+1) - JB + 1, A[1][(J+1) + JB], LDA, J, J + JB - 1,  IPIV, 1); // decide what to use
+//         //*
+//         //*              Compute block row of U.
+//         //*
+//         // DTRSM("Left", "Lower", "No transpose", "Unit", JB, N - J - JB + 1, ONE, A(J, J), LDA, A(J, J + JB),                     LDA);
+//         DTRSM("Left", "Lower", "No transpose", "Unit", JB, N - (J+1) - JB + 1, ONE, A[0:J][0:J], LDA, A(J, J + JB),                     LDA);
+//         if (J+1 + JB <= M) 
+//         {
+//           //*
+//           //*                 Update trailing submatrix.
+//           //*
+//           DGEMM("No transpose", "No transpose", M - J - JB + 1,    N - J - JB + 1, JB, -ONE, A(J + JB, J), LDA,                        A(J, J + JB), LDA, ONE, A(J + JB, J + JB),                        LDA);
+//         }
+//       }
+          
+//     }
+//   }
+//   return;
+
+// }
+
+// // ilaenv.f
+// int PairLS::ILAENV()
+// {
+
+// }
+
+// // ieeeck.f
+// int PairLS::IEEECK()
+// {
+
+// }
+
+// // lsame.f
+// bool PairLS::LSAME()
+// {
+
+// }
+
+
+
+// // dgetf2.f
+// void PairLS::DGETF2(int M, int N, double **A, int LDA, int *IPIV, int *INFO)
+// {
+
+// }
+
+// // dlaswp.f
+// void PairLS::DLASWP(int N, double **A, int LDA, int K1, int K2, int *IPIV, int INCX)
+// {
+//   //*
+//   //*  -- LAPACK auxiliary routine (version 2.0) --
+//   //*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
+//   //*     Courant Institute, Argonne National Lab, and Rice University
+//   //*     October 31, 1992
+//   //*
+//   //*     .. Scalar Arguments ..
+//   // int INCX, K1, K2, LDA, N;
+//   //*     ..
+//   //*     .. Array Arguments ..
+//   // int IPIV[*];
+//   // double A(LDA, *);
+//   //*     ..
+//   //*
+//   //*  Purpose
+//   //*  =======
+//   //*
+//   //*  DLASWP performs a series of row interchanges on the matrix A.
+//   //*  One row interchange is initiated for each of rows K1 through K2 of A.
+//   //*
+//   //*  Arguments
+//   //*  =========
+//   //*
+//   //*  N       (input) INTEGER
+//   //*          The number of columns of the matrix A.
+//   //*
+//   //*  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+//   //*          On entry, the matrix of column dimension N to which the row
+//   //*          interchanges will be applied.
+//   //*          On exit, the permuted matrix.
+//   //*
+//   //*  LDA     (input) INTEGER
+//   //*          The leading dimension of the array A.
+//   //*
+//   //*  K1      (input) INTEGER
+//   //*          The first element of IPIV for which a row interchange will
+//   //*          be done.
+//   //*
+//   //*  K2      (input) INTEGER
+//   //*          The last element of IPIV for which a row interchange will
+//   //*          be done.
+//   //*
+//   //*  IPIV    (input) INTEGER array, dimension (M*abs(INCX))
+//   //*          The vector of pivot indices.  Only the elements in positions
+//   //*          K1 through K2 of IPIV are accessed.
+//   //*          IPIV(K) = L implies rows K and L are to be interchanged.
+//   //*
+//   //*  INCX    (input) INTEGER
+//   //*          The increment between successive values of IPIV.  If IPIV
+//   //*          is negative, the pivots are applied in reverse order.
+//   //*
+//   //* =====================================================================
+//   //*
+//   //*     .. Local Scalars ..
+//   int I, IP, IX;
+//   //*     ..
+//   //*     .. External Subroutines ..
+//   // EXTERNAL DSWAP;
+//   //*     ..
+//   //*     .. Executable Statements ..
+//   //*
+//   //*     Interchange row I with row IPIV(I) for each of rows K1 through K2.
+//   //*
+//   if (INCX == 0) return;
+//   if (INCX > 0) 
+//   {
+//     IX = K1;
+//   } 
+//   else
+//   {
+//     IX = 1 + (1 - K2)*INCX;
+//   }
+
+//   if (INCX == 1) 
+//   {
+//     for(I = K1; I <= K2; I++)
+//     {
+//       IP = IPIV[I-1];
+//       if (IP != I) 
+//       {
+//         // DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
+//         DSWAP(N, A[0:I][0], LDA, A(IP, 1), LDA);
+//       }
+//     }
+//   } 
+//   else if (INCX > 1) 
+//   {
+//     for(I = K1; I <= K2; I++)
+//     {
+//       IP = IPIV[IX];
+//       if (IP != I) 
+//       {
+//         DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
+//       }
+//       IX = IX + INCX;
+//     }
+//   } 
+//   else if (INCX < 0) 
+//   {
+//       for(I = K2, K1, I -= 1)
+//       {
+//         IP = IPIV[IX];
+//         if (IP != I) 
+//         {
+//           DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
+//         }
+//         IX = IX + INCX;
+//       }
+//   }
+//   return;
+// }
+
+// void PairLS::DSWAP(int N, double **A, int LDA, int K1, int K2, int *IPIV, int INCX)
+// {
+
+// }
+
+// // dtrsm.f
+// void PairLS::DTRSM()
+// {
+
+// }
+
+
+// // dgemm.f
+// void PairLS::DGEMM()
+// {
+
+// }
+
+// // dgetrs.f
+// void PairLS::DGETRS()
+// {
+
+// }
+
+// void PairLS::DGER()
+// {
+  
+// }
+
+// // idamax.f
+// int PairLS::idamax()
+// {
+
+// }
+
+// // dscal.f
+// int PairLS::dscal()
+// {
+
+// }

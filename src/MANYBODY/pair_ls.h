@@ -97,7 +97,7 @@ class PairLS : public Pair {
   // spline coefficients determining expansion coefficients g4(cos(theta_ijk),cos(theta_jkl),cos(theta_ilj)) for basis functions f4(R_ij) in the third term describing four-body interactions in the equation for total energy    
   double **a_sp_g4, **b_sp_g4, **c_sp_g4, **d_sp_g4;    
   double **fip_rmin;
-  double *z_ion, *c_ZBL, *d_ZBL, **zz_ZBL, **a_ZBL, **e0_ZBL;
+  double *z_ion, ***c_ZBL, ***d_ZBL, **zz_ZBL, **a_ZBL, **e0_ZBL; // maybe it is useful to make c_ZBL and d_ZBL three-dimensional arrays 
   double **Rmin_fi_ZBL, ***c_fi_ZBL;
   double Rc_fi, Rc_f;
 
@@ -137,6 +137,10 @@ class PairLS : public Pair {
 
   void par2pot_is(int);
   // void par2pot_is1_is2(int, int);
+  void smooth_zero_22(double **, double *, double *, double *, double *, double *, double *, double *, double *);
+  void SPL(int, double *, double *, int, double, double, double *, double *, double *);
+  void LA30(int, double *, double *, int, double, double, double *, double *, double *);
+
 
   // External Fortran subroutines that does not use the Fotran common block 
   // These subrotines are called by par2pot_is and par2pot_is1_is2 subrotines and may should be declared in the corresponding voids

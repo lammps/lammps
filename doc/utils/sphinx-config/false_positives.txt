@@ -533,6 +533,7 @@ cuda
 Cuda
 CUDA
 CuH
+Cui
 cuFFT
 Cummins
 Curk
@@ -869,6 +870,7 @@ equilibrating
 equilibration
 Equilibria
 equilization
+equipartitioning
 Ercolessi
 Erdmann
 eradius
@@ -3071,9 +3073,11 @@ tex
 tfac
 tfmc
 tfMC
-th
+tgnpt
+tgnvt
 Thakkar
 Thaokar
+th
 thb
 thei
 Theodorou
@@ -3479,6 +3483,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+Yethiraj
 yflag
 yhi
 yi

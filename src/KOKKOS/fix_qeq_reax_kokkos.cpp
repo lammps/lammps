@@ -51,8 +51,8 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
-  datamask_modify = Q_MASK | X_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | Q_MASK | MASK_MASK | TYPE_MASK | TAG_MASK;
+  datamask_modify = X_MASK;
 
   nmax = m_cap = 0;
   allocated_flag = 0;
@@ -81,7 +81,6 @@ FixQEqReaxKokkos<DeviceType>::~FixQEqReaxKokkos()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init()
 {
-  atomKK->modified(Host,Q_MASK);
   atomKK->sync(execution_space,Q_MASK);
 
   FixQEqReax::init();
@@ -1009,13 +1008,11 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
   // q[i] = s[i] - u * t[i];
   FixQEqReaxKokkosCalculateQFunctor<DeviceType> calculateQ_functor(this);
   Kokkos::parallel_for(inum,calculateQ_functor);
+  atomKK->modified(execution_space,Q_MASK);
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );
-  atomKK->modified(execution_space,Q_MASK);
   comm->forward_comm_fix(this);
-  atomKK->sync(execution_space,Q_MASK);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1379,6 +1376,9 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int fir
   first = first_in;
   d_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxUnpackForwardComm>(0,n),*this);
+
+  if (pack_flag == 4)
+    atomKK->modified(execution_space,Q_MASK); // needed for auto_sync
 }
 
 template<class DeviceType>

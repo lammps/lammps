@@ -708,7 +708,7 @@ void bifactor(int n, int *factor1, int *factor2)
    Arguments:
    in           starting address of input data on this proc, all set to 0.0
    nsize        size of in
-   flag         1 for forward FFT, -1 for inverse FFT
+   flag         1 for forward FFT, -1 for backward FFT
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
@@ -733,7 +733,8 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   int length3 = plan->length3;
 
 // fftw3 and Dfti in MKL encode the number of transforms
-// into the plan, so we cannot operate on a smaller data set.
+// into the plan, so we cannot operate on a smaller data set
+  
 #if defined(FFT_MKL) || defined(FFT_FFTW3)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;
@@ -746,7 +747,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   // data is just an array of 0.0
 
 #if defined(FFT_MKL)
-  if (flag == -1) {
+  if (flag == 1) {
     DftiComputeForward(plan->handle_fast,data);
     DftiComputeForward(plan->handle_mid,data);
     DftiComputeForward(plan->handle_slow,data);
@@ -757,23 +758,23 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   }
 #elif defined(FFT_FFTW3)
   FFTW_API(plan) theplan;
-  if (flag == -1)
+  if (flag == 1)
     theplan=plan->plan_fast_forward;
   else
     theplan=plan->plan_fast_backward;
   FFTW_API(execute_dft)(theplan,data,data);
-  if (flag == -1)
+  if (flag == 1)
     theplan=plan->plan_mid_forward;
   else
     theplan=plan->plan_mid_backward;
   FFTW_API(execute_dft)(theplan,data,data);
-  if (flag == -1)
+  if (flag == 1)
     theplan=plan->plan_slow_forward;
   else
     theplan=plan->plan_slow_backward;
   FFTW_API(execute_dft)(theplan,data,data);
 #else
-  if (flag == -1) {
+  if (flag == 1) {
     for (int offset = 0; offset < total1; offset += length1)
       kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
     for (int offset = 0; offset < total2; offset += length2)
@@ -793,7 +794,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   // scaling if required
   // limit num to size of data
 
-  if (flag == 1 && plan->scaled) {
+  if (flag == -1 && plan->scaled) {
     norm = plan->norm;
     num = MIN(plan->normnum,nsize);
 #if defined(FFT_FFTW3)

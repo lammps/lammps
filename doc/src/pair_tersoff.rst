@@ -26,10 +26,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style style delta
+   pair_style style keywords values
 
 * style = *tersoff* or *tersoff/table* or *tersoff/shift* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
-* delta = the shift applied to the equilibrium bond length of the tersoff potential (for tersoff/shift only).
+* keyword = *shift*
+
+  .. parsed-literal::
+
+       *shift* value = delta
+         delta = the value of the shift applied to the equilibrium bond length of the tersoff potential
 
 Examples
 """"""""
@@ -43,7 +48,7 @@ Examples
    pair_style tersoff/table
    pair_coeff * * SiCGe.tersoff Si(D)
 
-   pair_style tersoff/shift 0.05
+   pair_style tersoff shift 0.05
    pair_coeff * * Si.tersoff Si
 
 Description
@@ -73,7 +78,7 @@ The *tersoff* style computes a 3-body Tersoff potential
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
 interactions.  The summations in the formula are over all neighbors
 J and K of atom I within a cutoff distance = R + D. math:`\delta` is
-non-zero only for *tersoff/shift* style. 
+the shift applied to the equilibrium bond length. 
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
@@ -81,7 +86,7 @@ between adjacent table entries. The table length is chosen to be
 accurate within 10\^-6 with respect to the *tersoff* style energy.
 The *tersoff/table* should give better performance in terms of speed.
 
-The *tersoff/shift* style computes the energy E of a system of atoms, whose formula
+The *shift* keyword computes the energy E of a system of atoms, whose formula
 is the same as the Tersoff potential. The only modification is that the original 
 equilibrium bond length (:math: `r_0`) of the system is shifted to :math:`r_0-\delta`.
 
@@ -91,7 +96,7 @@ equilibrium bond length (:math: `r_0`) of the system is shifted to :math:`r_0-\d
    or shrinked relative to the original value. Specifically, values of :math:`\delta < 0` will result in 
    elongation of the bond length, while values of :math:`\delta > 0` will result in shrinking of the bond length.
 
-This *tersoff/shift* style is designed for simulations of closely matched van der Waals heterostructures. 
+This *shift* keyword is designed for simulations of closely matched van der Waals heterostructures. 
 For instance, let's consider the case of a system with few-layers graphene atop a thick hexagonal boron nitride (h-BN) 
 substrate simulated using periodic boundary conditions. The experimental lattice mismatch of ~1.8% between graphene
 and h-BN is not well captured by the equilibrium lattice constants of available potentials, thus a small in-plane strain
@@ -104,7 +109,7 @@ For the specific case discussed above, the force field can be defined as
 
 .. code-block:: LAMMPS
 
-   pair_style  hybrid/overlay rebo tersoff/shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
+   pair_style  hybrid/overlay rebo tersoff shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
    pair_coeff  * * rebo              CH.rebo     NULL NULL C
    pair_coeff  * * tersoff/shift     BNC.tersoff B    N    NULL
    pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C

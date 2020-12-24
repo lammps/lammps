@@ -290,13 +290,16 @@ void PairTersoff::allocate()
 
 void PairTersoff::settings(int narg, char **arg)
 {
-  if(shift_flag == 1) {
-    if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
-    shift = utils::numeric(FLERR,arg[0],false,lmp);
+  if (narg == 0) { 
+    shift_flag = 0;
   }
-  else {
-    if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  else if (narg == 2) {
+    if (strcmp(arg[0],"shift") == 0) {
+      shift_flag = 1;
+      shift = utils::numeric(FLERR,arg[1],false,lmp);
+    } else error->all(FLERR,"Illegal option for pair_tersoff");
   }
+  else error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------

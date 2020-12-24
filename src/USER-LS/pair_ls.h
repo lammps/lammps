@@ -11,18 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/******************************************************************************
-* BLAS and LAPACK definitions
-******************************************************************************/
-#ifdef MKL
-#include "mkl.h"
-#define dgesv_ dgesv
-#else
-// extern "C"
-// {
-extern void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
-// }
-#endif
  
 #ifdef PAIR_CLASS
 
@@ -35,8 +23,23 @@ PairStyle(ls,PairLS)
 
 #include "pair.h"
 
-namespace LAMMPS_NS {
+/******************************************************************************
+* BLAS and LAPACK definitions
+******************************************************************************/
+#ifdef MKL
+#include "mkl.h"
+#define dgesv_ dgesv
+#else
+// #include <lapacke.h>
+// #define dgesv_ LAPACKE_dgesv_work
+// extern "C"
+// {
+extern "C" void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
+// extern void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
+// }
+#endif
 
+namespace LAMMPS_NS {
 
 class PairLS : public Pair {
  public:
@@ -159,6 +162,8 @@ class PairLS : public Pair {
   double v_ZBL(double, int, int);
   double vp_ZBL(double, int, int);
   double vpp_ZBL(double, int, int);
+  // void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
+
 
   // External Fortran subroutines that does not use the Fotran common block 
   // These subrotines are called by par2pot_is and par2pot_is1_is2 subrotines and may should be declared in the corresponding voids

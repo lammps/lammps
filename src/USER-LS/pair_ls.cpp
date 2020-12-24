@@ -876,6 +876,7 @@ void PairLS::par2pot_is(int is)
   // double B6[6][1];
   double *B6;
   double r1, r2, f1, fp1, fpp1, f2, fp2, fpp2;
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " entering par2pot_is" << std::endl;
   
   memory->destroy(R_sp);
   memory->destroy(a_sp);
@@ -884,6 +885,7 @@ void PairLS::par2pot_is(int is)
   memory->destroy(d_sp);
   memory->destroy(e_sp);
   memory->destroy(B6);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " destroyed memory for R_sp, a_sp, etc" << std::endl;
 
   memory->create(R_sp, mfi, "PairLS:a_sp_w");
   memory->create(a_sp, mfi, "PairLS:a_sp_w");
@@ -897,9 +899,12 @@ void PairLS::par2pot_is(int is)
   //   zz_ZBL(is,is)=z_ion(is)*z_ion(is)*(3.795D0**2)
   //   a_ZBL(is,is)=0.8853D0
   //  :	*0.5291772083D0/(z_ion(is)**0.23D0 + z_ion(is)**0.23D0)
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " created memory for R_sp, a_sp, etc" << std::endl;
 
   zz_ZBL[is][is] = z_ion[is]*z_ion[is]*pow(3.795,2);
   a_ZBL[is][is] = 0.8853*0.5291772083/(pow(z_ion[is],0.23) + pow(z_ion[is],0.23));
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " zz_ZBL[is][is] and a_ZBL[is][is] assigned" << std::endl;
 
   // par2pot_is.f(21-28):
 	// n_sp=n_sp_fi
@@ -933,7 +938,12 @@ void PairLS::par2pot_is(int is)
 	// shag_sp_fi(is,is)=1.0D0/((R_sp_fi(n_sp,is,is)-R_sp_fi(1,is,is))/dfloat(n_sp-1))
 
 	// SPL(n_sp, &R_sp, &a_sp, 1, fip_rmin[is][is], 0.0, &b_sp, &c_sp, &d_sp);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " now SPL function will be called" << std::endl;
+
 	SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is][is], 0.0, b_sp, c_sp, d_sp);
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL function worked well" << std::endl;
+
 	for (i = 0; i < n_sp; i++)
   {
     a_sp_fi[i][is][is] = a_sp[i];
@@ -967,13 +977,18 @@ void PairLS::par2pot_is(int is)
   fp2 = b_sp_fi[0][is][is];
   fpp2 = 2.0*c_sp_fi[0][is][is];	
 	
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " now smooth_zero_22 function will be called" << std::endl;
+
   smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
   // smooth_zero_22(B6, &r1, &r2, &f1, &fp1, &fpp1, &f2, &fp2, &fpp2);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " smooth_zero_22 function worked well" << std::endl;
 
   for (i = 0; i < 6; i++)
   {
     c_fi_ZBL[i][is][is] = B6[i];
   }
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < 6; i++) worked well" << std::endl;
 
   // par2pot_is.f(51-68):
   // ! ro
@@ -995,16 +1010,23 @@ void PairLS::par2pot_is(int is)
 	// enddo
 	// shag_sp_ro(is,is)=1.0D0/((R_sp_ro(n_sp,is,is)-R_sp_ro(1,is,is))/dfloat(n_sp-1))
 
-  n_sp = n_sp_ro[i][i];
+  n_sp = n_sp_ro[is][is];
+  std::cout << " n_sp = " << n_sp_ro[is][is] << std::endl;
   for (i = 0; i < n_sp; i++)
   {
+    std::cout << " i = " << i << " R_sp_ro[i][is][is] = " << R_sp_ro[i][is][is] << std::endl;
     R_sp[i] = R_sp_ro[i][is][is];
     a_sp[i] = a_sp_ro[i][is][is];
   }
   p1=0.0;
 
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
+
+
 	// SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
 	SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
+
 	for (i = 0; i < n_sp; i++)
   {  
     a_sp_ro[i][is][is] = a_sp[i];
@@ -1013,6 +1035,8 @@ void PairLS::par2pot_is(int is)
     d_sp_ro[i][is][is] = d_sp[i];
   }
 	shag_sp_ro[is][is] = 1.0/((R_sp_ro[n_sp-1][is][is]-R_sp_ro[0][is][is])/(n_sp-1));
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
 
   // par2pot_is.f(70-91):
   // ! emb
@@ -1252,7 +1276,10 @@ void PairLS::smooth_zero_22(double *B, double R1, double R2, double f1, double f
   B[4] = fp2;
   B[5] = fpp2;
 
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " entering dgesv" << std::endl;
+
   dgesv_(&N, &NRHS, A, &LDA, IPIV, B, &LDB, &INFO);
+  // dgesv_(LAPACK_COL_MAJOR, N, NRHS, A, LDA, IPIV, B, LDB);
 
   memory->destroy(IPIV);
   memory->destroy(A);
@@ -1271,6 +1298,7 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
   int i, n1, nn, Err;
   //begin
   // n = size(X)
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " entering SPL" << std::endl;
   if (n == 1) 
   {
       B[0] = 0.0; C[0] = 0.0; D[0] = 0.0;
@@ -1289,13 +1317,27 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
   D[0] = (Y[1] - Y[0])/B[0]; D[1] = D[0];
   memory->create(A, n, "PairLS:SPL_A_w");
   memory->create(S, n, "PairLS:SPL_S_w");  
-  for (i = 1; i = n1 - 1; i++)
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " A and S arrays created" << std::endl;
+
+  // SPL.f90(27-32):
+  // do i=2, n1
+  //   B(i)=X(i+1)-X(i); C(i+1)=B(i)
+  //   A(i)=2.0*(X(i+1)-X(i-1))
+  //   D(i+1)=(Y(i+1)-Y(i))/B(i)
+  //   D(i)=D(i+1)-D(i)
+  // end do
+
+  for (i = 1; i < n1; i++)
   {
-    B[i] = X[i + 1] - X[i]; C[i + 1] = B[i];
+    std::cout << i << std::endl;
+    B[i] = X[i + 1] - X[i]; 
+    C[i + 1] = B[i];
     A[i] = 2.0*(X[i + 1] - X[i - 1]);
     D[i + 1] = (Y[i + 1] - Y[i])/B[i];
     D[i] = D[i + 1] - D[i];    
   }
+
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " Cycle: for (i = 1; i < n1; i++) done" << std::endl;
 
   switch (ib)
   {
@@ -1343,10 +1385,13 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
         D[n-1] = D[n-1]*B[n1-1]*B[n1-1]/(X[n-1] - X[n-4]);
       }
       nn = n;
+      break;
   }    
 
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " now LA30 function will be called" << std::endl;
   LA30(nn, A, B, C, D, S, &Err);
   // LA30(nn, A[0:nn-1], B[0:nn-1], C[0:nn-1], D[0:nn-1], S[0:nn-1], Err);
+  std::cout << "!!!!! PairLS debug mode !!!!! " << " LA30 worked well" << std::endl;
 
   B[0] = X[1] - X[0];
   if (ib == 3) 

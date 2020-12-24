@@ -514,10 +514,8 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 
   // communicate and sum densities
 
-  if (newton_pair) {
+  if (newton_pair)
     comm->reverse_comm_pair(this);
-    atomKK->sync(execution_space,DPDRHO_MASK);
-  }
 
   comm->forward_comm_pair(this);
   atomKK->sync(execution_space,DPDRHO_MASK);
@@ -665,6 +663,8 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 template<class DeviceType>
 int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
 {
+  atomKK->sync(execution_space,DPDRHO_MASK);
+
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
@@ -687,6 +687,8 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int fi
   first = first_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
+
+  atomKK->modified(execution_space,DPDRHO_MASK); // needed for auto_sync
 }
 
 template<class DeviceType>

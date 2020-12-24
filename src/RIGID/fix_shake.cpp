@@ -2542,13 +2542,13 @@ void FixShake::stats()
       const auto bcnt = b_count_all[i]/2;
       if (bcnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
     for (i = 1; i < na; i++) {
       const auto acnt = a_count_all[i]/3;
       if (acnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt);
+                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
     utils::logmesg(lmp,mesg);
   }

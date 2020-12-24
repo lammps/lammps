@@ -1,0 +1,21 @@
+This package implements the PINN potential as a LAMMPS pair style. 
+
+The description of the PINN model can be found in G. P. Purja Pun et al.,
+"Development of a general-purpose machine-learning interatomic potential 
+for aluminum by the physically informed neural network method", 
+PHYSICAL REVIEW MATERIALS 4, 113807 (2020).
+
+It was written by 
+	Ganga P Purja Pun, gpurjapu@gmu.edu,
+  	George Mason University,
+	Fairfax, VA 22030.
+
+Use "make yes-user-pinn" to enable this package when building LAMMPS.
+
+It requires Intel MKL library !!!
+
+In your LAMMPS input script, specifiy
+  pair_style gmu/pinn
+to enable the use of this implementation. All parameters, input files and
+outputs are exactly identical to these used with pair_style eam/alloy.
+

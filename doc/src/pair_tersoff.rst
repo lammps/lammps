@@ -1,6 +1,5 @@
 .. index:: pair_style tersoff
 .. index:: pair_style tersoff/table
-.. index:: pair_style tersoff/shift
 .. index:: pair_style tersoff/gpu
 .. index:: pair_style tersoff/intel
 .. index:: pair_style tersoff/kk

@@ -28,6 +28,7 @@ class PairTersoffZBL : public PairTersoff {
  public:
   PairTersoffZBL(class LAMMPS *);
   ~PairTersoffZBL() {}
+  void settings(int, char **);
 
   static const int NPARAMS_PER_LINE = 21;
 

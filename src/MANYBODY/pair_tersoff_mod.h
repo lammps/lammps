@@ -33,6 +33,7 @@ class PairTersoffMOD : public PairTersoff {
   static const int NPARAMS_PER_LINE = 20;
 
  protected:
+  void settings(int, char **);
   virtual void read_file(char *);
   virtual void setup_params();
   double zeta(Param *, double, double, double *, double *);

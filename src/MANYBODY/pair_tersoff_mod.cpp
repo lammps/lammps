@@ -39,6 +39,15 @@ using namespace MathSpecial;
 
 PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp) {}
 
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairTersoffMOD::settings(int narg, char **/*arg*/)
+{
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  shift_flag = 0;
+}
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::read_file(char *file)

@@ -28,6 +28,7 @@ class PairTersoffMODC : public PairTersoffMOD {
  public:
   PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp) {};
   ~PairTersoffMODC() {}
+  void settings(int, char **);
 
   static const int NPARAMS_PER_LINE = 21;
 

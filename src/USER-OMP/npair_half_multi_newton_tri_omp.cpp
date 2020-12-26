@@ -118,7 +118,7 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
 	    for (j = js; j >= 0; j = bins_multi[jgroup][j]) {
                   
           // if same size (same group), use half stencil            
-          if(cutmultisq[igroup][igroup] == cutmutlisq[jgroup][jgroup]){
+          if(cutmultisq[igroup][igroup] == cutmultisq[jgroup][jgroup]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;

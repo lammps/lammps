@@ -83,7 +83,7 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
     ibin = atom2bin_multi[igroup][i];
     
     // loop through stencils for all groups
-    for (jgroup = 0; jgroup < n_multi_group; jgroup++) {
+    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
         
       // if same group use own bin
       if(igroup == jgroup) jbin = ibin;

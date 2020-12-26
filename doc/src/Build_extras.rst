@@ -352,7 +352,7 @@ KIM Extra unit tests (CMake only)
 During development, testing, or debugging, if
 :doc:`unit testing <Build_development>` is enabled in LAMMPS, one can also
 enable extra tests on :doc:`KIM commands <kim_commands>` by setting the
-``KIM_EXTRA_UNITTESTS`` to *yes* (or *on*). 
+``KIM_EXTRA_UNITTESTS`` to *yes* (or *on*).
 
 Enabling the extra unit tests have some requirements,
 
@@ -367,9 +367,9 @@ Enabling the extra unit tests have some requirements,
   *conda-forge* channel as ``conda install kim-property`` if LAMMPS is built in
   Conda. More detailed information is available at:
   `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
-* It is also necessary to install 
-  ``EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000``, and 
-  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`` KIM models. 
+* It is also necessary to install
+  ``EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000``, and
+  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`` KIM models.
   See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-build binary of the OpenKIM Repository of
   Models or see

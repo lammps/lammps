@@ -33,21 +33,21 @@ namespace LAMMPS_NS {
           TORQUE    = 1<<8
     };
 
-    static const double TOLERANCE = 1.0e-6;
-    static const double EPSILON   = 1.0e-7;
-    static const double BIG       = 1.0e20;
+    static constexpr double TOLERANCE = 1.0e-6;
+    static constexpr double EPSILON   = 1.0e-7;
+    static constexpr double BIG       = 1.0e20;
 
     // moment of inertia prefactor for sphere
-    static const double SINERTIA = 0.4;
+    static constexpr double SINERTIA = 0.4;
     // moment of inertia prefactor for ellipsoid
-    static const double EINERTIA = 0.2;
+    static constexpr double EINERTIA = 0.2;
     // moment of inertia prefactor for line segment
-    static const double LINERTIA = 1.0/12.0;
+    static constexpr double LINERTIA = 1.0/12.0;
 
-    static const int MAXLINE    = 1024;
-    static const int CHUNK      = 1024;
-    static const int DELTA_BODY = 10000;
-    static const int ATTRIBUTE_PERBODY = 20;
+    static constexpr int MAXLINE    = 1024;
+    static constexpr int CHUNK      = 1024;
+    static constexpr int DELTA_BODY = 10000;
+    static constexpr int ATTRIBUTE_PERBODY = 20;
   }
 }
 

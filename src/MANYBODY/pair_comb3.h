@@ -37,7 +37,7 @@ class PairComb3 : public Pair {
   virtual double combqeq(double *, int &);
   double enegtot;
 
-  static const int NPARAMS_PER_LINE = 74;
+  static constexpr int NPARAMS_PER_LINE = 74;
 
  protected:
  // general potential parameters

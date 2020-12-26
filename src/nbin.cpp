@@ -40,8 +40,6 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   binsizex_multi = nullptr; binsizey_multi = nullptr; binsizez_multi = nullptr;
   bininvx_multi = nullptr; bininvy_multi = nullptr; bininvz_multi = nullptr;
   binhead_multi = nullptr;
-  bins_multi = nullptr;
-  atom2bin_multi = nullptr;
   maxbins_multi = nullptr;
   
   map_type_multi = nullptr;
@@ -67,7 +65,7 @@ NBin::~NBin()
   memory->destroy(bins);
   memory->destroy(atom2bin);
   
-  if (!bins_multi) return;
+  if (!binhead_multi) return;
   
   memory->destroy(nbinx_multi);
   memory->destroy(nbiny_multi);
@@ -89,12 +87,8 @@ NBin::~NBin()
 
   for (int n = 0; n < maxgroups; n++) {
     memory->destroy(binhead_multi[n]);
-    memory->destroy(bins_multi[n]);
-    memory->destroy(atom2bin_multi[n]);
   }
   delete [] binhead_multi;
-  delete [] bins_multi;
-  delete [] atom2bin_multi;
 
   memory->destroy(maxbins_multi);  
 }

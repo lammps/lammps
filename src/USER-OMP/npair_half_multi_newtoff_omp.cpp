@@ -92,7 +92,7 @@ void NPairHalfMultiNewtoffOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi[igroup][i];
+    ibin = atom2bin[i];
     
     // loop through stencils for all groups    
     for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
@@ -112,7 +112,7 @@ void NPairHalfMultiNewtoffOmp::build(NeighList *list)
       
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jgroup][jbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi[jgroup][j]) {
+	    for (j = js; j >=0; j = bins[j]) {
 	      if (j <= i) continue;
            
           jtype = type[j];

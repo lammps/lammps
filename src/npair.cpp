@@ -156,8 +156,6 @@ void NPair::copy_bin_info()
   bininvy_multi = nb->bininvy_multi;
   bininvz_multi = nb->bininvz_multi;
 
-  atom2bin_multi = nb->atom2bin_multi;
-  bins_multi = nb->bins_multi;
   binhead_multi = nb->binhead_multi;
 }
 

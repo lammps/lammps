@@ -68,7 +68,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi[igroup][i];
+    ibin = atom2bin[i];
     
     // loop through stencils for all groups
     for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
@@ -87,9 +87,9 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
           //   if j is owned atom, store it, since j is beyond i in linked list
           //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-          js = bins_multi[igroup][i];
+          js = bins[i];
         
-	      for (j = js; j >= 0; j = bins_multi[jgroup][j]) {
+	      for (j = js; j >= 0; j = bins[j]) {
 	        if (j >= nlocal) {
 	          if (x[j][2] < ztmp) continue;
 	          if (x[j][2] == ztmp) {
@@ -124,7 +124,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
         
           js = binhead_multi[jgroup][jbin];
           
-	      for (j = js; j >= 0; j = bins_multi[jgroup][j]) {
+	      for (j = js; j >= 0; j = bins[j]) {
             if(j < i) continue;	        
             
             if (j >= nlocal) {
@@ -165,7 +165,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
       
 	  for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jgroup][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi[jgroup][j]) {
+	    for (j = js; j >= 0; j = bins[j]) {
       
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

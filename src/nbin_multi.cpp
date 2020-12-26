@@ -46,19 +46,16 @@ void NBinMulti::bin_atoms_setup(int nall)
     }
   }
 
-  // bins_multi[n] and atom2bin_multi[n] = per-atom vectors
+  // bins and atom2bin = per-atom vectors
   // for both local and ghost atoms
-  
-  // TODO: maxatom should be maxatom per group
+  // for multi, bins and atom2bin correspond to different binlists
 
   if (nall > maxatom) {
     maxatom = nall;
-    for (int n = 0; n < maxgroups; n++) {
-      memory->destroy(bins_multi[n]);
-      memory->destroy(atom2bin_multi[n]);
-      memory->create(bins_multi[n], maxatom, "neigh:bin_multi");
-      memory->create(atom2bin_multi[n], maxatom, "neigh:atom2bin_multi");
-    }
+    memory->destroy(bins);
+    memory->create(bins,maxatom,"neigh:bins");
+    memory->destroy(atom2bin);
+    memory->create(atom2bin,maxatom,"neigh:atom2bin");
   }
 }
 
@@ -90,22 +87,16 @@ void NBinMulti::setup_bins(int style)
 
     // Clear any/all memory for existing types
 
-    for (n = 0; n < maxgroups; n++) {
-      memory->destroy(atom2bin_multi[n]);
+    for (n = 0; n < maxgroups; n++)
       memory->destroy(binhead_multi[n]);
-      memory->destroy(bins_multi[n]);
-    }
-    delete [] atom2bin_multi;
+    
     delete [] binhead_multi;
-    delete [] bins_multi;
 
     // Realloacte at updated maxtypes
 
     maxgroups = n_multi_groups;
 
-    atom2bin_multi = new int*[maxgroups]();
     binhead_multi = new int*[maxgroups]();
-    bins_multi = new int*[maxgroups]();
 
     memory->destroy(nbinx_multi);
     memory->destroy(nbiny_multi);
@@ -321,24 +312,24 @@ void NBinMulti::bin_atoms()
       if (mask[i] & bitmask) {
         n = map_type_multi[type[i]];
         ibin = coord2bin_multi(x[i], n);
-        atom2bin_multi[n][i] = ibin;
-        bins_multi[n][i] = binhead_multi[n][ibin];
+        atom2bin[i] = ibin;
+        bins[i] = binhead_multi[n][ibin];
         binhead_multi[n][ibin] = i;
       }
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
       n = map_type_multi[type[i]];
       ibin = coord2bin_multi(x[i], n);
-      atom2bin_multi[n][i] = ibin;
-      bins_multi[n][i] = binhead_multi[n][ibin];
+      atom2bin[i] = ibin;
+      bins[i] = binhead_multi[n][ibin];
       binhead_multi[n][ibin] = i;
     }
   } else {
     for (i = nall-1; i >= 0; i--) {
       n = map_type_multi[type[i]];
       ibin = coord2bin_multi(x[i], n);
-      atom2bin_multi[n][i] = ibin;
-      bins_multi[n][i] = binhead_multi[n][ibin];
+      atom2bin[i] = ibin;
+      bins[i] = binhead_multi[n][ibin];
       binhead_multi[n][ibin] = i;
     }
   }

@@ -48,8 +48,6 @@ class NBin : protected Pointers {
   double *bininvx_multi, *bininvy_multi, *bininvz_multi;
 
   int **binhead_multi;
-  int **bins_multi;
-  int **atom2bin_multi;
   
   NBin(class LAMMPS *);
   ~NBin();

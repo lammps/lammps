@@ -87,8 +87,7 @@ class NPair : protected Pointers {
   int *mbinx_multi, *mbiny_multi, *mbinz_multi;
   int *mbinxlo_multi, *mbinylo_multi, *mbinzlo_multi;
   double *bininvx_multi, *bininvy_multi, *bininvz_multi;
-  int **binhead_multi,**bins_multi;
-  int **atom2bin_multi;
+  int **binhead_multi;
 
   // data from NStencil class
 

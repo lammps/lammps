@@ -28,7 +28,7 @@ NPairHalfMultiNewtoff::NPairHalfMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with partial Newton's 3rd law
-   multi-type stencil is itype-jtype dependent      
+   multi stencil is igroup-jgroup dependent      
    each owned atom i checks own bin and other bins in stencil
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
@@ -36,7 +36,7 @@ NPairHalfMultiNewtoff::NPairHalfMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfMultiNewtoff::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,jbin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,igroup,jgroup,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
@@ -69,8 +69,8 @@ void NPairHalfMultiNewtoff::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
-
     itype = type[i];
+    igroup = map_type_multi[itype];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -80,30 +80,31 @@ void NPairHalfMultiNewtoff::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    ibin = atom2bin_multi[itype][i];
+    ibin = atom2bin_multi[igroup][i];
     
-    // loop through stencils for all types    
-    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
+    // loop through stencils for all groups    
+    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
         
-      // if same type use own bin
-      if(itype == jtype) jbin = ibin;
-	  else jbin = coord2bin(x[i], jtype);
+      // if same group use own bin
+      if(igroup == jgroup) jbin = ibin;
+	  else jbin = coord2bin(x[i], jgroup);
       
       // loop over all atoms in other bins in stencil including self
       // only store pair if i < j
       // stores own/own pairs only once
       // stores own/ghost pairs on both procs      
-      // use full stencil for all type combinations
+      // use full stencil for all group combinations
 
-      s = stencil_multi[itype][jtype];
-      ns = nstencil_multi[itype][jtype];
+      s = stencil_multi[igroup][jgroup];
+      ns = nstencil_multi[igroup][jgroup];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jtype][jbin + s[k]];
-	    for (j = js; j >=0; j = bins_multi[jtype][j]) {
+	    js = binhead_multi[jgroup][jbin + s[k]];
+	    for (j = js; j >=0; j = bins_multi[jgroup][j]) {
 	      if (j <= i) continue;
            
-	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
           
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];

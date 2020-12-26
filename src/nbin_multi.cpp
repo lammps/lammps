@@ -38,7 +38,7 @@ void NBinMulti::bin_atoms_setup(int nall)
 {
   // binhead_multi[n] = per-bin vector mbins in length mbins_multi[n]
   
-  for (int n = 1; n <= maxtypes; n++) {
+  for (int n = 0; n < maxgroups; n++) {
     if (mbins_multi[n] > maxbins_multi[n]) {
       maxbins_multi[n] = mbins_multi[n];
       memory->destroy(binhead_multi[n]);
@@ -48,10 +48,12 @@ void NBinMulti::bin_atoms_setup(int nall)
 
   // bins_multi[n] and atom2bin_multi[n] = per-atom vectors
   // for both local and ghost atoms
+  
+  // TODO: maxatom should be maxatom per group
 
   if (nall > maxatom) {
     maxatom = nall;
-    for (int n = 1; n <= maxtypes; n++) {
+    for (int n = 0; n < maxgroups; n++) {
       memory->destroy(bins_multi[n]);
       memory->destroy(atom2bin_multi[n]);
       memory->create(bins_multi[n], maxatom, "neigh:bin_multi");
@@ -61,23 +63,16 @@ void NBinMulti::bin_atoms_setup(int nall)
 }
 
 /* ---------------------------------------------------------------------
-   Identify index of type with smallest cutoff
+   Identify index of group with smallest cutoff
 ------------------------------------------------------------------------ */
 
-int NBinMulti::itype_min() {
+int NBinMulti::igroup_min() 
+{
+  int imin = 0;
+  for (int n = 0; n < maxgroups; n++)
+    if (cutmultisq[n][n] < cutmultisq[imin][imin])  imin = n;
 
-  int itypemin = 1;
-  double ** cutneighsq;
-
-  cutneighsq = neighbor->cutneighsq;
-
-  for (int n = 1; n <= atom->ntypes; n++) {
-    if (cutneighsq[n][n] < cutneighsq[itypemin][itypemin]) {
-      itypemin = n;
-    }
-  }
-
-  return itypemin;
+  return imin;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,15 +82,15 @@ int NBinMulti::itype_min() {
 void NBinMulti::setup_bins(int style)
 {
   int n;
-  int itypemin;
+  int igroupmin;
 
   // Initialize arrays
   
-  if (atom->ntypes > maxtypes) {
+  if (n_multi_groups > maxgroups) {
 
     // Clear any/all memory for existing types
 
-    for (n = 1; n <= maxtypes; n++) {
+    for (n = 0; n < maxgroups; n++) {
       memory->destroy(atom2bin_multi[n]);
       memory->destroy(binhead_multi[n]);
       memory->destroy(bins_multi[n]);
@@ -106,59 +101,60 @@ void NBinMulti::setup_bins(int style)
 
     // Realloacte at updated maxtypes
 
-    maxtypes = atom->ntypes;
+    maxgroups = n_multi_groups;
 
-    atom2bin_multi = new int*[maxtypes+1]();
-    binhead_multi = new int*[maxtypes+1]();
-    bins_multi = new int*[maxtypes+1]();
+    atom2bin_multi = new int*[maxgroups]();
+    binhead_multi = new int*[maxgroups]();
+    bins_multi = new int*[maxgroups]();
 
     memory->destroy(nbinx_multi);
     memory->destroy(nbiny_multi);
     memory->destroy(nbinz_multi);
-    memory->create(nbinx_multi, maxtypes+1, "neigh:nbinx_multi");
-    memory->create(nbiny_multi, maxtypes+1, "neigh:nbiny_multi");
-    memory->create(nbinz_multi, maxtypes+1, "neigh:nbinz_multi");
+    memory->create(nbinx_multi, maxgroups, "neigh:nbinx_multi");
+    memory->create(nbiny_multi, maxgroups, "neigh:nbiny_multi");
+    memory->create(nbinz_multi, maxgroups, "neigh:nbinz_multi");
 
     memory->destroy(mbins_multi);
     memory->destroy(mbinx_multi);
     memory->destroy(mbiny_multi);
     memory->destroy(mbinz_multi);
-    memory->create(mbins_multi, maxtypes+1, "neigh:mbins_multi");
-    memory->create(mbinx_multi, maxtypes+1, "neigh:mbinx_multi");
-    memory->create(mbiny_multi, maxtypes+1, "neigh:mbiny_multi");
-    memory->create(mbinz_multi, maxtypes+1, "neigh:mbinz_multi");
+    memory->create(mbins_multi, maxgroups, "neigh:mbins_multi");
+    memory->create(mbinx_multi, maxgroups, "neigh:mbinx_multi");
+    memory->create(mbiny_multi, maxgroups, "neigh:mbiny_multi");
+    memory->create(mbinz_multi, maxgroups, "neigh:mbinz_multi");
 
     memory->destroy(mbinxlo_multi);
     memory->destroy(mbinylo_multi);
     memory->destroy(mbinzlo_multi);
-    memory->create(mbinxlo_multi, maxtypes+1, "neigh:mbinxlo_multi");
-    memory->create(mbinylo_multi, maxtypes+1, "neigh:mbinylo_multi");
-    memory->create(mbinzlo_multi, maxtypes+1, "neigh:mbinzlo_multi");
+    memory->create(mbinxlo_multi, maxgroups, "neigh:mbinxlo_multi");
+    memory->create(mbinylo_multi, maxgroups, "neigh:mbinylo_multi");
+    memory->create(mbinzlo_multi, maxgroups, "neigh:mbinzlo_multi");
 
     memory->destroy(binsizex_multi);
     memory->destroy(binsizey_multi);
     memory->destroy(binsizez_multi);
-    memory->create(binsizex_multi, maxtypes+1, "neigh:binsizex_multi");
-    memory->create(binsizey_multi, maxtypes+1, "neigh:binsizey_multi");
-    memory->create(binsizez_multi, maxtypes+1, "neigh:binsizez_multi");
+    memory->create(binsizex_multi, maxgroups, "neigh:binsizex_multi");
+    memory->create(binsizey_multi, maxgroups, "neigh:binsizey_multi");
+    memory->create(binsizez_multi, maxgroups, "neigh:binsizez_multi");
 
     memory->destroy(bininvx_multi);
     memory->destroy(bininvy_multi);
     memory->destroy(bininvz_multi);
-    memory->create(bininvx_multi, maxtypes+1, "neigh:bininvx_multi");
-    memory->create(bininvy_multi, maxtypes+1, "neigh:bininvy_multi");
-    memory->create(bininvz_multi, maxtypes+1, "neigh:bininvz_multi");
+    memory->create(bininvx_multi, maxgroups, "neigh:bininvx_multi");
+    memory->create(bininvy_multi, maxgroups, "neigh:bininvy_multi");
+    memory->create(bininvz_multi, maxgroups, "neigh:bininvz_multi");
 
     memory->destroy(maxbins_multi);
-    memory->create(maxbins_multi, maxtypes+1, "neigh:maxbins_multi");
+    memory->create(maxbins_multi, maxgroups, "neigh:maxbins_multi");
+    
     // make sure reallocation occurs in bin_atoms_setup()
-    for (n = 1; n <= maxtypes; n++) {
+    for (n = 0; n < maxgroups; n++) {
       maxbins_multi[n] = 0;
     }
     maxatom = 0;
   }
 
-  itypemin = itype_min();
+  igroupmin = igroup_min();
 
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by comm->cutghost
@@ -193,16 +189,16 @@ void NBinMulti::setup_bins(int style)
   bbox[1] = bboxhi[1] - bboxlo[1];
   bbox[2] = bboxhi[2] - bboxlo[2];
 
-  // For each type...
+  // For each grouping...
 
-  for (n = 1; n <= atom->ntypes; n++) {
+  for (n = 0; n < maxgroups; n++) {
     // binsize_user only relates to smallest type
     // optimal bin size is roughly 1/2 the type-type cutoff
     // special case of all cutoffs = 0.0, binsize = box size
 
     double binsize_optimal;
-    if (n == itypemin && binsizeflag) binsize_optimal = binsize_user;
-    else binsize_optimal = 0.5*sqrt(neighbor->cutneighsq[n][n]);
+    if (n == igroupmin && binsizeflag) binsize_optimal = binsize_user;
+    else binsize_optimal = 0.5*sqrt(cutmultisq[n][n]);
     if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
     double binsizeinv = 1.0/binsize_optimal;
 
@@ -306,7 +302,7 @@ void NBinMulti::bin_atoms()
   int i,ibin,n;
 
   last_bin = update->ntimestep;
-  for (n = 1; n <= maxtypes; n++) {
+  for (n = 0; n < maxgroups; n++) {
     for (i = 0; i < mbins_multi[n]; i++) binhead_multi[n][i] = -1;
   }
 
@@ -323,7 +319,7 @@ void NBinMulti::bin_atoms()
     int bitmask = group->bitmask[includegroup];
     for (i = nall-1; i >= nlocal; i--) {
       if (mask[i] & bitmask) {
-        n = type[i];
+        n = map_type_multi[type[i]];
         ibin = coord2bin_multi(x[i], n);
         atom2bin_multi[n][i] = ibin;
         bins_multi[n][i] = binhead_multi[n][ibin];
@@ -331,7 +327,7 @@ void NBinMulti::bin_atoms()
       }
     }
     for (i = atom->nfirst-1; i >= 0; i--) {
-      n = type[i];
+      n = map_type_multi[type[i]];
       ibin = coord2bin_multi(x[i], n);
       atom2bin_multi[n][i] = ibin;
       bins_multi[n][i] = binhead_multi[n][ibin];
@@ -339,7 +335,7 @@ void NBinMulti::bin_atoms()
     }
   } else {
     for (i = nall-1; i >= 0; i--) {
-      n = type[i];
+      n = map_type_multi[type[i]];
       ibin = coord2bin_multi(x[i], n);
       atom2bin_multi[n][i] = ibin;
       bins_multi[n][i] = binhead_multi[n][ibin];
@@ -354,7 +350,7 @@ double NBinMulti::memory_usage()
 {
   double bytes = 0;
   
-  for (int m = 1; m < maxtypes; m++) {
+  for (int m = 0; m < maxgroups; m++) {
     bytes += maxbins_multi[m]*sizeof(int);
     bytes += 2*maxatom*sizeof(int);
   }

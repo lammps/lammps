@@ -38,7 +38,7 @@ class NBinMulti : public NBin {
 
  private:
 
-  int itype_min();
+  int igroup_min();
 };
 
 }

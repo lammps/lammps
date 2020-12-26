@@ -350,8 +350,8 @@ void Neighbor::init()
     int igroup, jgroup;
     // If not defined, create default mapping
     if(not map_type_multi) {
-      memory->create(map_type_multi,n+1,"neigh:map_type_multi");  
       n_multi_groups = n;
+      memory->create(map_type_multi,n+1,"neigh:map_type_multi");  
       for(i = 1; i <= n; i++)
         map_type_multi[i] = i-1;
     }  

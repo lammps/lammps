@@ -252,9 +252,9 @@ void CommBrick::setup()
             jgroup = map_type_multi[j];
             
             if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
-            cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
+            cutghostmulti[i][0] = length0 * MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
+            cutghostmulti[i][1] = length1 * MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
+            cutghostmulti[i][2] = length2 * MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
           }
         }
       } else {

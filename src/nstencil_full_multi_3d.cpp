@@ -29,17 +29,17 @@ NStencilFullMulti3d::NStencilFullMulti3d(LAMMPS *lmp) : NStencil(lmp) {}
 
 void NStencilFullMulti3d::set_stencil_properties()
 {
-  int n = atom->ntypes;
+  int n = n_multi_groups;
   int i, j;
   
   // Always look up neighbor using full stencil and neighbor's bin
   // Stencil cutoff set by i-j cutoff
 
-  for (i = 1; i <= n; i++) {
-    for (j = 1; j <= n; j++) {
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
       flag_half_multi[i][j] = 0;
       flag_skip_multi[i][j] = 0;
-      bin_type_multi[i][j] = j;
+      bin_group_multi[i][j] = j;
     }
   }
 }
@@ -50,37 +50,37 @@ void NStencilFullMulti3d::set_stencil_properties()
 
 void NStencilFullMulti3d::create()
 {
-  int itype, jtype, bin_type, i, j, k, ns;
-  int n = atom->ntypes;
+  int igroup, jgroup, bin_group, i, j, k, ns;
+  int n = n_multi_groups;
   double cutsq;
   
   
-  for (itype = 1; itype <= n; itype++) {
-    for (jtype = 1; jtype <= n; jtype++) {
-      if (flag_skip_multi[itype][jtype]) continue;
+  for (igroup = 0; igroup < n; igroup++) {
+    for (jgroup = 0; jgroup < n; jgroup++) {
+      if (flag_skip_multi[igroup][jgroup]) continue;
       
       ns = 0;
       
-      sx = stencil_sx_multi[itype][jtype];
-      sy = stencil_sy_multi[itype][jtype];
-      sz = stencil_sz_multi[itype][jtype];
+      sx = stencil_sx_multi[igroup][jgroup];
+      sy = stencil_sy_multi[igroup][jgroup];
+      sz = stencil_sz_multi[igroup][jgroup];
       
-      mbinx = stencil_mbinx_multi[itype][jtype];
-      mbiny = stencil_mbiny_multi[itype][jtype];
-      mbinz = stencil_mbinz_multi[itype][jtype];  
+      mbinx = stencil_mbinx_multi[igroup][jgroup];
+      mbiny = stencil_mbiny_multi[igroup][jgroup];
+      mbinz = stencil_mbinz_multi[igroup][jgroup];  
       
-      bin_type = bin_type_multi[itype][jtype];
+      bin_group = bin_group_multi[igroup][jgroup];
       
-      cutsq = cutneighsq[itype][jtype];
+      cutsq = cutmultisq[igroup][jgroup];
       
       for (k = -sz; k <= sz; k++)
         for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
-	        if (bin_distance_multi(i,j,k,bin_type) < cutsq)
-	          stencil_multi[itype][jtype][ns++] = 
+	        if (bin_distance_multi(i,j,k,bin_group) < cutsq)
+	          stencil_multi[igroup][jgroup][ns++] = 
                       k*mbiny*mbinx + j*mbinx + i;
       
-      nstencil_multi[itype][jtype] = ns;
+      nstencil_multi[igroup][jgroup] = ns;
     }
   }
 }

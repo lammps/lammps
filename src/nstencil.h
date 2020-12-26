@@ -44,7 +44,7 @@ class NStencil : protected Pointers {
   // Arrays to store options for multi itype-jtype stencils
   bool **flag_half_multi;          // flag creation of a half stencil for itype-jtype
   bool **flag_skip_multi;          // skip creation of itype-jtype stencils (for newton on)  
-  int **bin_type_multi;            // what type to use for bin information
+  int **bin_group_multi;           // what group to use for bin information
 
   NStencil(class LAMMPS *);
   virtual ~NStencil();
@@ -66,7 +66,10 @@ class NStencil : protected Pointers {
   double cutneighmaxsq;
   double *cuttypesq;
   double **cutneighsq;
-
+  double **cutmultisq;
+  int n_multi_groups;
+  int *map_type_multi;
+  
   // data from NBin class
 
   int mbinx,mbiny,mbinz;

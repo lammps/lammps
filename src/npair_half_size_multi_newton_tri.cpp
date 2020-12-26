@@ -27,14 +27,14 @@ NPairHalfSizeMultiNewtonTri::NPairHalfSizeMultiNewtonTri(LAMMPS *lmp) : NPair(lm
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi-type stencil is itype-jtype dependent   
+   multi stencil is igroup-jgroup dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
 void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,jbin,ns,js;
+  int i,j,k,n,itype,jtype,igroup,jgroup,ibin,jbin,ns,js;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -61,21 +61,21 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
-
     itype = type[i];
+    igroup = map_type_multi[itype];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
 
-    ibin = atom2bin_multi[itype][i];
+    ibin = atom2bin_multi[igroup][i];
 
-    // loop through stencils for all types
-    for (jtype = 1; jtype <= atom->ntypes; jtype++) {
+    // loop through stencils for all groups
+    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
 
-      // if same type use own bin
-      if(itype == jtype) jbin = ibin;
-	  else jbin = coord2bin(x[i], jtype);
+      // if same group use own bin
+      if(igroup == jgroup) jbin = ibin;
+	  else jbin = coord2bin(x[i], jgroup);
 
 
       // loop over all atoms in bins in stencil
@@ -87,15 +87,15 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi[itype][jtype];
-	  ns = nstencil_multi[itype][jtype];
+	  s = stencil_multi[igroup][jgroup];
+	  ns = nstencil_multi[igroup][jgroup];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jtype][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins_multi[jtype][j]) {
+	    js = binhead_multi[jgroup][jbin + s[k]];
+	    for (j = js; j >= 0; j = bins_multi[jgroup][j]) {
                   
-          // if same size (e.g. same type), use half stencil            
-          if(cutneighsq[itype][itype] == cutneighsq[jtype][jtype]){
+          // if same size (same group), use half stencil            
+          if(cutmultisq[igroup][igroup] == cutmultisq[jgroup][jgroup]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;
@@ -106,6 +106,7 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
             }                
           }  
           
+          jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
 	      delx = xtmp - x[j][0];

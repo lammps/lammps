@@ -51,6 +51,8 @@ class PairLS : public Pair {
   virtual void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+
+  // maybe not needed public methods
   // double single(int, int, int, int, double, double, double, double &);
   // virtual void *extract(const char *, int &);
 
@@ -59,13 +61,12 @@ class PairLS : public Pair {
   // int pack_reverse_comm(int, int, double *);
   // void unpack_reverse_comm(int, int *, double *);
   // double memory_usage();
-  // void swap_ls(double *, double **);
 
 
 
  protected:
  
-  // Begin max_at.h
+  // Begin max_at.h (may be it is not needed in the LAMMPS implementation)
   const int  n_mark_at=10;
   const long  max_at=100000;
   const int  max_at_def=100;
@@ -88,7 +89,7 @@ class PairLS : public Pair {
   const int memb=10;          // max_sp_emb
   const int mf=15;            // max_sp_f
   const int mg=15;            // max_sp_g
-  const int mi=6;             // max_sort_at
+  const int mi=6;             // max_sort_at (actually is equal to mi-1 since C-arrays are started form 0 while the atom indexes are started from 1)
 
 
 
@@ -129,71 +130,56 @@ class PairLS : public Pair {
   int **n_sp_fi, **n_sp_ro, **n_sp_emb, **n_sp_f, **n_sp_g; // numbers of spline nodes  for differen 
   int *n_f3;    // array with numbers of basis functions for each sort of atom
 
-
-//   // Begin external fortan subroutines
-//   extern void e_force_(double *e_sum, double *pressure, double *sxx, double *syy, double *szz, double *e_at, double *f_at[], double *px_at, double *py_at, double pz_at,
-//   double *r_at[], int *i_sort_at, int *n_at, double *sizex, double *sizey, double *sizez);
-
-//   extern void read_pot_(char *name_pot_is, char *name_pot_is1_is2, char *r_pot)
-
-//   // End external fortan subroutines
-
   /* 
-   Fortran subroutines translated into void functions (class methods) in C++ 
-   In the original program md1_temp, all these subrotines use the variables stored in common blocks declared in file pot_ls.h 
-   In the LAMMPS implementation, the variables from Fortran common blocks are declared as protected members of PairLS class
-   The protected members of PairLS class can be inherited by any of its child classes   
+   Fortran subroutines translated into the void or double functions (class methods) in C++. 
+   In the original program md1_temp, all these subrotines use the variables stored in the common blocks which are declared in the file pot_ls.h. 
+   In the LAMMPS implementation, the variables from the Fortran common blocks are declared as protected members of PairLS class.
+   The protected members of PairLS class can be inherited by any of its child classes.   
   */
 
   // subroutines for reading potential files
-  // void read_pot_ls(char *name_pot_is, char *name_pot_is1_is2, double *r_pot); // implemented in coeff method
   void r_pot_ls_is(char *, int);
   void r_pot_ls_is1_is2(char *, int, int);
   void allocate();
 
   void par2pot_is(int);
   void par2pot_is1_is2(int, int);
-  // void smooth_zero_22(double *, double *, double *, double *, double *, double *, double *, double *, double *);
   void smooth_zero_22(double *, double, double, double, double, double, double, double, double);
   void SPL(int, double *, double *, int, double, double, double *, double *, double *);
   void LA30(int, double *, double *, double *, double *, double *, int *);
 
+  // subroutines for calculating energies and forces
+  void e_force_fi_emb(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *);
+  void e_force_g3(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *);
+
+  // potential functions and their derivatives
+  double fun_fi(double, int, int);
+  double funp_fi(double, int, int);
+  double funpp_fi(double, int, int);
+
+  double fun_ro(double, int, int);
+  double funp_ro(double, int, int);
+  double funpp_ro(double, int, int);  
+
+  double fun_emb(double, int);
+  double funp_emb(double, int);
+  double funpp_emb(double, int); 
+
+  double fun_f3(double, int, int, int);
+  double funp_f3(double, int, int, int);
+  double funpp_f3(double, int, int, int);
+
+  double fun_g3(double, int, int, int);
+  double funp_g3(double, int, int, int);
+  double funpp_g3(double, int, int, int);
 
   double v_ZBL(double, int, int);
   double vp_ZBL(double, int, int);
   double vpp_ZBL(double, int, int);
-  // void dgesv_(int *, int *, double *, int *, int *, double *, int *, int *);
 
-
-  // External Fortran subroutines that does not use the Fotran common block 
-  // These subrotines are called by par2pot_is and par2pot_is1_is2 subrotines and may should be declared in the corresponding voids
-  // These subroutines should be compiled separately with fortran compiler 
-  // extern void smooth_zero_22_(double *B);
-  // extern void SPL_(int n, );
-
-   // // External fortan subrotines called from SPL and smooth_zero_22 subroutines
-   // extern void LA30();
-   // extern void dgesv_(int *n, int *nrhs,  double *a,  int  *lda,  
-   //                    int *ipivot, double *b, int *ldb, int *info)
-
-  // subroutines for calculating energies and forces
-  //  void e_force_ls(double *e_sum, double *pressure, 
-  //                  double *sxx, double *syy, double *szz, 
-  //                  double *e_at, double *f_at[], 
-  //                  double *px_at, double *py_at, double pz_at,
-  //                  double *r_at[], int *i_sort_at, int *n_at, 
-  //                  double *sizex, double *sizey, double *sizez);
-
-  //  void e_force_fi_emb(e_at,f_at,px_at,py_at,pz_at,
-  //            	        r_at,i_sort_at,n_at,sizex,sizey,sizez);
-
-  //  void e_force_g3(e_at_g3,f_at_g3,px_at_g3,py_at_g3,pz_at_g3,
-  //    :		       r_at,i_sort_at,n_at,sizex,sizey,sizez);
-
-
-
-//   virtual void read_file(char *);
-//   virtual void file2array();
+  double fun_fi_ZBL(double, int, int);
+  double funp_fi_ZBL(double, int, int);
+  double funpp_fi_ZBL(double, int, int);
 
 };
 

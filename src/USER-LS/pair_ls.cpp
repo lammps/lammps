@@ -1733,13 +1733,438 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
   return;
 }
 
+// functions for calculating energies and forces
+
+void PairLS::e_force_fi_emb(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *)
+{
+
+}
+
+void PairLS::e_force_g3(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *)
+{
+
+}
 
 
 
 
 
 
-// Potential functions
+
+// Potential functions from fun_pot_ls.f
+
+// fun_pot_ls.f(3-36):
+double PairLS::fun_fi(double r , int is, int js)
+{
+  int i;
+  double fun_fi, r, dr, r0_min;
+
+  if (r >= R_sp_fi[n_sp_fi-1][is][js]) 
+  {
+    fun_fi = 0.0;
+    return fun_fi;
+  }
+
+  if (r < Rmin_fi_ZBL[is][js]) 
+  {
+    fun_fi = v_ZBL(r, is, js) + e0_ZBL[is][js];
+    return fun_fi;
+  }
+
+  r0_min = R_sp_fi[0][is][js];
+
+  if (r < r0_min) 
+  {
+    fun_fi = fun_fi_ZBL(r, is, js);
+    return fun_fi;
+  }
+
+  i = int((r - R_sp_fi[0][is][js])*shag_sp_fi[is][js]);
+  i = i + 1;
+  if (i < 1) i = 1;
+  dr = r - R_sp_fi[i-1][is][js];
+  fun_fi = a_sp_fi[i-1][is][js] + dr*(b_sp_fi[i-1][is][js] + dr*(c_sp_fi[i-1][is][js] + dr*(d_sp_fi[i-1][is][js])));
+
+  return fun_fi;
+
+}
+
+// fun_pot_ls.f(39-70):
+double PairLS::funp_fi(double r, int is, int js)
+{
+  int i;
+  double funp_fi, r, dr, r0_min;
+
+  if (r >= R_sp_fi[n_sp_fi-1][is][js]) 
+  {
+    funp_fi = 0.0;
+    return funp_fi;
+  }
+
+  if (r < Rmin_fi_ZBL[is][js]) 
+  {
+    funp_fi = vp_ZBL(r, is, js);
+    return funp_fi;
+  }
+
+  r0_min = R_sp_fi[0][is][js];
+
+  if (r < r0_min) 
+  {
+    funp_fi = funp_fi_ZBL(r, is, js);
+    return funp_fi;
+  }
+
+  i = int((r - R_sp_fi[0][is][js])*shag_sp_fi[is][js]);
+  i = i + 1;
+  if (i < 1) i = 1;
+  dr = r - R_sp_fi[i-1][is][js];
+  funp_fi = b_sp_fi[i-1][is][js] + dr*(2.0*c_sp_fi[i-1][is][js] + dr*(3.0*d_sp_fi[i-1][is][js]));
+
+  return funp_fi;
+}
+
+// fun_pot_ls.f(74-106):
+double PairLS::funpp_fi(double r, int is, int js)
+{
+  int i;
+  double funpp_fi, r, dr, r0_min;
+
+  if (r >= R_sp_fi[n_sp_fi-1][is][js]) 
+  {
+    funpp_fi = 0.0;
+    return funpp_fi;
+  }
+
+  if (r < Rmin_fi_ZBL[is][js]) 
+  {
+    funpp_fi = vpp_ZBL(r, is, js);
+    return funpp_fi;
+  }
+
+  r0_min = R_sp_fi[0][is][js];
+
+  if (r < r0_min) 
+  {
+    funpp_fi = funpp_fi_ZBL(r, is, js);
+    return funpp_fi;
+  }
+
+  i = int((r - r0_min)*shag_sp_fi[is][js]);
+  i = i + 1;
+  if (i < 1) i = 1;
+  dr = r - R_sp_fi[i-1][is][js];
+  funpp_fi = 2.0*c_sp_fi[i-1][is][js] + dr*(6.0*d_sp_fi[i-1][is][js]);
+
+  return funpp_fi;
+}
+
+
+
+// fun_pot_ls.f(112-139):
+double PairLS::fun_ro(double r, int is, int js)
+{
+  int i;
+  double fun_ro, r, dr, r0_min;
+
+  if (r >= R_sp_ro[n_sp_ro-1][is][js]) 
+  {
+    fun_ro = 0.0;
+    return fun_ro;
+  }
+
+  r0_min = R_sp_ro[0][is][js];
+
+  if (r < r0_min) 
+  {
+    fun_ro = a_sp_ro[0][is][js];
+    return fun_ro;
+  }
+
+  i = int((r - r0_min)*shag_sp_ro[is][js]);
+  i = i + 1;
+  dr = r - R_sp_ro[i-1][is][js];
+  fun_ro = a_sp_ro[i-1][is][js] + dr*(b_sp_ro[i-1][is][js] + dr*(c_sp_ro[i-1][is][js] + dr*(d_sp_ro[i-1][is][js])));
+
+  return fun_ro;
+}
+
+// fun_pot_ls.f(142-169):
+double PairLS::funp_ro(double r, int is, int js)
+{
+  int i;
+  double funp_ro, r, dr, r0_min;
+
+  if (r >= R_sp_ro[n_sp_ro-1][is][js]) 
+  {
+    funp_ro = 0.0;
+    return funp_ro;
+  }
+
+  r0_min = R_sp_ro[0][is][js];
+
+  if (r < r0_min) 
+  {
+    funp_ro = 0.0;
+    return funp_ro;
+  }
+
+  i = int((r - r0_min)*shag_sp_ro[is][js]);
+  i = i + 1;
+  dr = r - R_sp_ro[i-1][is][js];
+  funp_ro = b_sp_ro[i-1][is][js] + dr*(2.0*c_sp_ro[i-1][is][js] + dr*(3.0*d_sp_ro[i-1][is][js]));
+
+  return funp_ro;  
+}
+
+// fun_pot_ls.f(173-200):
+double PairLS::funpp_ro(double r, int is, int js)
+{
+  int i;
+  double funpp_ro, r, dr, r0_min;
+
+  if (r >= R_sp_ro[n_sp_ro-1][is][js]) 
+  {
+    funpp_ro = 0.0;
+    return funpp_ro;
+  }
+
+  r0_min = R_sp_ro[0][is][js];
+
+  if (r < r0_min) 
+  {
+    funpp_ro = 0.0;
+    return funpp_ro;
+  }
+
+  i = int((r - r0_min)*shag_sp_ro[is][js]);
+  i = i + 1;
+  if (i <= 0) i = 1;
+  dr = r - R_sp_ro[i-1][is][js];
+  funpp_ro = 2.0*c_sp_ro[i-1][is][js] + dr*(6.0*d_sp_ro[i-1][is][js]);
+
+  return funpp_ro;  
+}  
+
+
+// fun_pot_ls.f(209-245):
+double PairLS::fun_emb(double r, int is)
+{
+  int i;
+  double fun_emb, r, dr, r0_min;
+
+  if (r >= R_sp_emb(n_sp_emb, is)) 
+  {
+      fun_emb = a_sp_emb[n_sp_emb-1][is];
+      return fun_emb;
+  }
+
+  r0_min = R_sp_emb[0][is];
+
+  if (r <= r0_min) 
+  {
+      fun_emb = b_sp_emb[0][is]*(r - r0_min);
+      return fun_emb;
+  }
+
+  //c    	
+  i = int((r - R_sp_emb[0][is])*shag_sp_emb[is]);
+  i = i + 1;
+  dr = r - R_sp_emb[i-1][is];
+  fun_emb = a_sp_emb[i-1][is] + dr*(b_sp_emb[i-1][is] + dr*(c_sp_emb[i-1][is] + dr*(d_sp_emb[i-1][is])));
+
+  return fun_emb;  
+}
+
+// fun_pot_ls.f(248-273):
+double PairLS::funp_emb(double r, int is)
+{
+  int i;
+  double funp_emb, r, dr, r0_min;
+
+  if (r >= R_sp_emb(n_sp_emb, is)) 
+  {
+      funp_emb = 0.0;
+      return funp_emb;
+  }
+
+  r0_min = R_sp_emb[0][is];
+
+  if (r <= r0_min) 
+  {
+      funp_emb = b_sp_emb[0][is];
+      return funp_emb;
+  }
+
+  //c    	
+  i = int((r - r0_min)*shag_sp_emb[is]);
+  i = i + 1;
+  dr = r - R_sp_emb[i-1][is];
+  funp_emb = b_sp_emb[i-1][is] + dr*(2.0*c_sp_emb[i-1][is] + dr*(3.0*d_sp_emb[i-1][is]));
+
+  return funp_emb;  
+}
+
+// fun_pot_ls.f(285-312):
+double PairLS::funpp_emb(double r, int is)
+{
+  int i;
+  double funpp_emb, r, dr, r0_min;
+
+  if (r >= R_sp_emb(n_sp_emb, is)) 
+  {
+      funpp_emb = 0.0;
+      return funpp_emb;
+  }
+
+  r0_min = R_sp_emb[0][is];
+
+  if (r <= r0_min) 
+  {
+      funpp_emb = 0.0;
+      return funpp_emb;
+  }
+
+  //c    	
+  i = int((r - r0_min)*shag_sp_emb[is]);
+  i = i + 1;
+  if(i <= 0) i = 1; // maybe this condition should be added also for fun_emb and funp_emb?
+  dr = r - R_sp_emb[i-1][is];
+  funpp_emb = 2.0*c_sp_emb[i-1][is] + dr*(6.0*d_sp_emb[i-1][is]));
+
+  return funpp_emb;    
+} 
+
+
+// fun_pot_ls.f(319-347):
+double PairLS::fun_f3(double r, int i_f3, int js, int is)
+{
+  int i;
+  double fun_f3, r, dr, r0_min;
+
+  if (r >= R_sp_f[n_sp_f-1][js][is]) 
+  {
+      fun_f3 = 0.0;
+      return fun_f3;
+  }
+
+  r0_min = R_sp_f[0][js][is];
+
+  if (r <= r0_min) 
+  {
+      fun_f3 = a_sp_f3[0][i_f3-1][js][is];
+      return fun_f3;
+  }
+
+  i = int((r - r0_min)*shag_sp_f[js][is]);
+  i = i + 1;
+  dr = r - R_sp_f[i-1][js][is];
+  fun_f3 = a_sp_f3[i-1][i_f3-1][js][is] + dr*(b_sp_f3[i-1][i_f3-1][js][is] + dr*(c_sp_f3[i-1][i_f3-1][js][is] + dr*(d_sp_f3[i-1][i_f3-1][js][is])));
+
+  return fun_f3;
+}
+
+// fun_pot_ls.f(350-377):
+double PairLS::funp_f3(double r, int i_f3, int js, int is)
+{
+  int i;
+  double funp_f3, r, dr, r0_min;
+
+  if (r >= R_sp_f[n_sp_f-1][js][is]) 
+  {
+      funp_f3 = 0.0;
+      return funp_f3;
+  }
+
+  r0_min = R_sp_f[0][js][is];
+
+  if (r <= r0_min) 
+  {
+      funp_f3 = 0.0;
+      return funp_f3;
+  }
+
+  i = int((r - r0_min)*shag_sp_f[js][is]);
+  i = i + 1;
+  dr = r - R_sp_f[i-1][js][is];
+  funp_f3 = b_sp_f3[i-1][i_f3-1][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3-1][js][is]));
+
+  return funp_f3;  
+}
+
+// fun_pot_ls.f(381-406):
+double PairLS::funpp_f3(double r, int i_f3, int js, int is)
+{
+  int i;
+  double funpp_f3, r, dr, r0_min;
+
+  if (r >= R_sp_f[n_sp_f-1][js][is]) 
+  {
+      funpp_f3 = 0.0;
+      return funpp_f3;
+  }
+
+  r0_min = R_sp_f[0][js][is];
+
+  if (r <= r0_min) 
+  {
+      funpp_f3 = 0.0;
+      return funpp_f3;
+  }
+
+  i = int((r - r0_min)*shag_sp_f[js][is]);
+  i = i + 1;
+  if (i <= 0) i = 1;
+  dr = r - R_sp_f[i-1][js][is];
+  funpp_f3 = 2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3-1][js][is]);
+
+  return funpp_f3;    
+}
+
+
+// fun_pot_ls.f(412-425):
+double PairLS::fun_g3(double r, int i1, int i2, int is)
+{
+  int i;
+  double fun_g3, r, dr;
+
+  i = int((r - R_sp_g[0])*shag_sp_g);
+  i = i + 1;
+  if (i >= n_sp_g) i = n_sp_g - 1;
+  dr = r - R_sp_g[i-1];
+  fun_g3 = a_sp_g3[i-1][i1-1][i2-1][is] + dr*(b_sp_g3[i-1][i1-1][i2-1][is] + dr*(c_sp_g3[i-1][i1-1][i2-1][is] + dr*(d_sp_g3[i-1][i1-1][i2-1][is])));
+  return fun_g3;
+}
+
+// fun_pot_ls.f(428-442):
+double PairLS::funp_g3(double r, int i1, int i2, int is)
+{
+  int i;
+  double funp_g3, r, dr;
+
+  i = int((r - R_sp_g[0])*shag_sp_g);
+  i = i + 1;
+  if (i >= n_sp_g) i = n_sp_g - 1;
+  dr = r - R_sp_g[i-1];
+  funp_g3 = b_sp_g3[i-1][i1-1][i2-1][is] + dr*(2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(3.0*d_sp_g3[i-1][i1-1][i2-1][is]));
+  return funp_g3;
+}
+
+// fun_pot_ls.f(446-459):
+double PairLS::funpp_g3(double r, int i1, int i2, int is)
+{
+  int i;
+  double funpp_g3, r, dr;
+
+  i = int((r - R_sp_g[0])*shag_sp_g);
+  i = i + 1;
+  if (i >= n_sp_g) i = n_sp_g - 1;
+  dr = r - R_sp_g[i-1];
+  funpp_g3 = 2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(6.0*d_sp_g3[i-1][i1-1][i2-1][is]);
+  return funpp_g3;
+}
+
+
 // fun_pot_ls.f(603-623):
 double PairLS::v_ZBL(double r, int is, int js)
 {
@@ -1834,6 +2259,35 @@ double PairLS::vpp_ZBL(double r, int is, int js)
 }
 
 
+// fun_pot_ls.f(698-711):
+double PairLS::fun_fi_ZBL(double r, int is, int js)
+{
+  double fun_fi_ZBL;
+
+  fun_fi_ZBL = c_fi_ZBL[0][is][js] + r*(c_fi_ZBL[1][is][js] + r*(c_fi_ZBL[2][is][js] + r*(c_fi_ZBL[3][is][js] + r*(c_fi_ZBL[4][is][js] + r*(c_fi_ZBL[5][is][js])))));
+
+  return fun_fi_ZBL;
+}
+
+// fun_pot_ls.f(715-727):
+double PairLS::funp_fi_ZBL(double r, int is, int js)
+{
+  double funp_fi_ZBL;
+
+  funp_fi_ZBL = c_fi_ZBL[1][is][js] + r*(2.0*c_fi_ZBL[2][is][js] + r*(3.0*c_fi_ZBL[3][is][js] + r*(4.0*c_fi_ZBL[4][is][js] + r*(5.0*c_fi_ZBL[5][is][js]))));
+
+  return funp_fi_ZBL;
+}
+
+// fun_pot_ls.f(731-742):
+double PairLS::funpp_fi_ZBL(double r, int is, int js)
+{
+  double funpp_fi_ZBL;
+
+  funpp_fi_ZBL = 2.0*c_fi_ZBL[2][is][js] + r*(6.0*c_fi_ZBL[3][is][js] + r*(12.0*c_fi_ZBL[4][is][js] + r*(20.0*c_fi_ZBL[5][is][js])));
+
+  return funpp_fi_ZBL;
+}
 
 
 

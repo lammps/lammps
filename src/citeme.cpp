@@ -41,10 +41,9 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file)
 
   screen_flag = _screen;
   scrbuffer.clear();
-  
   logfile_flag = _logfile;
   logbuffer.clear();
-  
+
   if (_file && universe->me == 0) {
     fp = fopen(_file,"w");
     if (fp) {
@@ -89,7 +88,6 @@ void CiteMe::add(const char *ref)
     if (screen_flag == VERBOSE) scrbuffer += cite_header;
     if (screen_flag == TERSE) scrbuffer += cite_nagline;
   }
-  
   if (logbuffer.empty()) {
     logbuffer += cite_separator;
     if (logfile_flag == VERBOSE) logbuffer += cite_header;
@@ -108,12 +106,16 @@ void CiteMe::add(const char *ref)
 void CiteMe::flush()
 {
   if (comm->me == 0) {
-    scrbuffer += cite_separator;
-    logbuffer += cite_separator;
-    if (screen) fputs(scrbuffer.c_str(),screen);
-    if (logfile) fputs(logbuffer.c_str(),logfile);
-    scrbuffer.clear();
-    logbuffer.clear();
+    if (!scrbuffer.empty()) {
+      scrbuffer += cite_separator;
+      if (screen) fputs(scrbuffer.c_str(),screen);
+      scrbuffer.clear();
+    }
+    if (!scrbuffer.empty()) {
+      logbuffer += cite_separator;
+      if (logfile) fputs(logbuffer.c_str(),logfile);
+      logbuffer.clear();
+    }
   }
   return;
 }

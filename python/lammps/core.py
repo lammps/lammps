@@ -1670,5 +1670,3 @@ class lammps(object):
     computeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
     return idx
-
-

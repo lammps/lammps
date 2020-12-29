@@ -130,6 +130,17 @@ class PairLS : public Pair {
   int **n_sp_fi, **n_sp_ro, **n_sp_emb, **n_sp_f, **n_sp_g; // numbers of spline nodes  for differen 
   int *n_f3;    // array with numbers of basis functions for each sort of atom
 
+  // common/md_relax_manager/ 
+  int which_pot;
+  int i_shift_fixed_boundary;
+  bool fixed_boundary_y; 
+  bool periodic[3]; 
+  bool if_Px_Py_Pz;
+  bool if_relax_z_only;
+  bool if_calc_pressure;
+  bool if_print;
+  bool *if_true_i;
+
   /* 
    Fortran subroutines translated into the void or double functions (class methods) in C++. 
    In the original program md1_temp, all these subrotines use the variables stored in the common blocks which are declared in the file pot_ls.h. 
@@ -149,7 +160,7 @@ class PairLS : public Pair {
   void LA30(int, double *, double *, double *, double *, double *, int *);
 
   // subroutines for calculating energies and forces
-  void e_force_fi_emb(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *);
+  void e_force_fi_emb(double *, double **, double *, double *, double *,  double **, int *, int, double *, double *, double *);
   void e_force_g3(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *);
 
   // potential functions and their derivatives

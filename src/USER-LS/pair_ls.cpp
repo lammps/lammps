@@ -114,6 +114,10 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
   comm_forward = 1;
   comm_reverse = 1;
 
+  periodic[0] = domain->xperiodic;
+  periodic[1] = domain->yperiodic;
+  periodic[2] = domain->zperiodic;
+  
   std::cout << "!!!!! PairLS debug mode !!!!! " << "PairLS constructor end working"  << std::endl;
 
 
@@ -207,7 +211,7 @@ void PairLS::compute(int eflag, int vflag)
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  ev_init(eflag,vflag);
+  // ev_init(eflag,vflag);
 
 
   double **x = atom->x;
@@ -223,8 +227,14 @@ void PairLS::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  double sizex, sizey, sizez;
+  int n_at = atom->natoms;
 
+  memory->create(if_true_i,,"PairLS:if_true_i");
 
+  sizex = domain->xprd; // global x box dimension
+  sizey = domain->yprd; // global y box dimension
+  sizez = domain->zprd; // global z box dimension
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -1735,9 +1745,315 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
 
 // functions for calculating energies and forces
 
-void PairLS::e_force_fi_emb(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *)
+// e_force_fi_emb.f
+// void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double *sizex, double *sizey, double *sizez)
+void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
 
+  // Array Arguments
+  // int *i_sort_at = atom->type // aary with atom types that must range from 1 to specified # of types.
+  // Scalar Arguments
+  double e_sum, pressure, sxx, syy, szz;
+  
+  // Local Scalars
+  int i, j, ii, jj, jnum, is, js;
+  int n_i, in_list;
+  double rr_pot[10][10], size[3];
+  double sizex05, sizey05, sizez05, x, y, z, xx, yy, zz, rr, r, r1;
+  double roi, roj, w, ropi, ropj, w1, w2, w3;
+  int i1, i2, i3, iw;
+
+  // Local Arrays
+  double *rosum;
+  memory->create(rosum, max_at, "PairLS:rosum");
+
+  // pointers to LAMMPS arrays 
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  // double **x = atom->x;
+  // double **f = atom->f;
+  // int *type = atom->type; // Atom types must range from 1 to specified # of types.
+  // int nlocal = atom->nlocal;
+  // int newton_pair = force->newton_pair;
+  int inum = list->inum; // # of I atoms neighbors are stored for
+
+  ilist = list->ilist;           // local indices of I atoms
+  numneigh = list->numneigh;     // # of J neighbors for each I atom
+  firstneigh = list->firstneigh; // ptr to 1st J int value of each I atom
+
+  // time1 = timesec(idum);
+
+  sizex05 = sizex*0.5D0;
+  sizey05 = sizey*0.5D0;
+  sizez05 = sizez*0.5D0;
+
+  for (is = 1; is <= n_sort; is++)
+  {
+    for (js = 1; js <= n_sort; js++)
+    {
+      rr_pot[js][is] = pow(R_sp_fi[n_sp_fi-1][js][is],2);
+    }
+  }
+  
+  e_at = {0.0};
+  rosum = {0.0};
+
+  // == calc rosum(n_at) =========================>
+
+//////////////////////////////////////////////////
+  // This is how an original loop over the md_ls Verlet's list is look 
+  // i = 0; // start atom i;
+  // in_list = 0; // start list of atom i;
+  // while (i < n_at)
+  // {
+  //   // if (i > n_at) break;
+  //   n_i = neighbour_list(in_list) // number of neighbours of atom i;
+  //   if (n_i == 0) continue;
+  //   x = r_at(1, i); 
+  //   y = r_at(2, i); 
+  //   z = r_at(3, i); 
+  //   is = i_sort_at(i);
+
+  //   // Loop over neighbours of atom i
+  //   for (jj = in_list + 1; jj = in_list + n_i; jj++)
+  //   {
+  //     j = neighbour_list(jj);
+  //     js = i_sort_at(j);
+  //     xx = r_at(1, j) - x; 
+  //     yy = r_at(2, j) - y; 
+  //     zz = r_at(3, j) - z;;
+  //     if (periodic(1)) && (xx > sizex05) xx = xx - sizex;
+  //     if (periodic(1)) && (xx < - sizex05) xx = xx + sizex;
+  //     if (periodic(2)) && (yy > sizey05) yy = yy - sizey;
+  //     if (periodic(2)) && (yy < - sizey05) yy = yy + sizey;
+  //     if (periodic(3)) && (zz > sizez05) zz = zz - sizez;
+  //     if (periodic(3)) && (zz < - sizez05) zz = zz + sizez;
+  //     rr = xx**2 + yy**2 + zz**2;
+  //     if (rr < rr_pot[js, is]) 
+  //     {
+  //     r = dsqrt(rr);
+  //     roj = fun_ro(r, js, is);
+  //     rosum[i] = rosum[i] + roj;
+  //     if (if_true_i(i)) 
+  //     {
+  //     w = fun_fi(r, is, js);
+  //     e_at(i) = e_at(i) + w;
+  //   }// end loop over jj;
+  //   // g111:
+  //   // Set starting position of next atom i
+  //   i = i + 1;
+  //   in_list = in_list + n_i + 1;
+  // };
+
+//////////////////////////////////////////////////
+
+  // Loop over the LAMMPS neighbour list 
+  std::cout << " i indexes of atoms in the LAMMPS neighbour list" << "  "; 
+  for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
+  {
+    i = ilist[ii];  // index of atom i
+    std::cout << i << "  ";
+    x = r_at[i][0];
+    y = r_at[i][1];
+    z = r_at[i][2];
+    is = i_sort_at[i];
+    jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
+    jnum = numneigh[i];    // # of J neighbors for the atom i
+
+    for (jj = 0; jj < jnum; jj++) 
+    {
+      j = jlist[jj];  // index of atom j
+      js = type[j];
+      xx = r_at[j][1] - x;
+      yy = r_at[j][2] - y;
+      zz = r_at[j][3] - z;
+      // if (domain->xperiodic && xx >  domain->xprd_half) xx = xx - sizex;
+      // if (domain->xperiodic && xx < -domain->xprd_half) xx = xx + sizex;
+      // if (domain->yperiodic && yy >  domain->yprd_half) yy = yy - sizey;
+      // if (domain->yperiodic && yy < -domain->yprd_half) yy = yy + sizey;
+      // if (domain->zperiodic && zz >  domain->zprd_half) zz = zz - sizez;
+      // if (domain->zperiodic && zz < -domain->zprd_half) zz = zz + sizez;
+      /////////////////////////////////////
+      // if (periodic[0] && xx >  sizex05) xx = xx - sizex;
+      // if (periodic[0] && xx < -sizex05) xx = xx + sizex;
+      // if (periodic[1] && yy >  sizey05) yy = yy - sizey;
+      // if (periodic[1] && yy < -sizey05) yy = yy + sizey;
+      // if (periodic[2] && zz >  sizez05) zz = zz - sizez;
+      // if (periodic[2] && zz < -sizez05) zz = zz + sizez;
+      // Start debugging version
+      // if (domain->xperiodic && xx >  domain->xprd_half) 
+      if (periodic[0] && xx > sizex05) 
+      {
+        std::cout << " domain->xperiodic && xx > domain->xprd_half is true" << std::endl;
+        xx = xx - sizex;
+      }
+      // if (domain->xperiodic && xx < -domain->xprd_half) 
+      if (periodic[0] && xx < -sizex05) 
+      {
+        std::cout << " domain->xperiodic && xx < -domain->xprd_half is true" << std::endl;
+        xx = xx + sizex;
+      }
+      // if (domain->yperiodic && yy >  domain->yprd_half) 
+      if (periodic[1] && yy > sizey05) 
+      {
+        std::cout << " domain->yperiodic && yy >  domain->yprd_half is true" << std::endl;
+        yy = yy - sizey;
+      }
+      // if (domain->yperiodic && yy < -domain->yprd_half) 
+      if (periodic[1] && yy < -sizey05) 
+      {
+        std::cout << " domain->yperiodic && yy < -domain->yprd_half is true" << std::endl;
+        yy = yy + sizey;
+      }
+      // if (domain->zperiodic && zz >  domain->zprd_half) 
+      if (periodic[2] && zz > sizez05) 
+      {
+        std::cout << " domain->zperiodic && zz >  domain->zprd_half is true" << std::endl;
+        zz = zz - sizez;
+      }
+      // if (domain->zperiodic && zz < -domain->zprd_half) 
+      if (periodic[2] && zz < -sizez05) 
+      {
+        std::cout << " domain->zperiodic && zz < -domain->zprd_half is true" << std::endl;
+        zz = zz + sizez;  
+      }
+      // End debugging version
+      rr = xx**2 + yy**2 + zz**2;
+      if (rr < rr_pot[js][is]) 
+      {
+        r = sqrt(rr);
+        roj = fun_ro(r, js, is);
+        rosum[i] = rosum[i] + roj;
+        if (if_true_i[i])     // check what it mean
+        {
+          w = fun_fi(r, is, js);
+          e_at[i] = e_at[i] + w; 
+        }
+      }
+    }
+  }
+//////////////////////////////////////////////////
+
+  // == calc energies: e_at(n_at) ==>
+  for (i = 0; i < n_at; i++)
+  {
+    if (.not.if_true_i(i)) cycle;
+    w = fun_emb(rosum[i], i_sort_at(i)) + 0.5D0*e_at(i);
+    e_at(i) = w;
+  }
+
+
+  //c
+  //c
+  //c
+  //c == calc funp_emb(n_at) and put one into rosum(n_at) ==>
+  do i = 1, n_at
+  //c	    if(.not.if_true_i(i)) cycle
+  rosum[i] = funp_emb(rosum[i], i_sort_at(i));
+  }do;
+
+
+  //c
+  //c == calc forces: f_at(3,n_at) ==============================>
+  //c
+  f_at = 0.0D0;
+  px_at = 0.0D0;
+  py_at = 0.0D0;
+  pz_at = 0.0D0;
+  pressure = 0.0D0;
+
+  // Loop over the Verlet"s listundefinedundefined
+  i = 1 // start atom i;
+  in_list = 1 // start list of atom i;
+  do;
+  if (i > n_at) exit;
+  n_i = neighbour_list(in_list) // number of neighbours of atom i;
+  if (n_i =  = 0) goto g222;
+  if (.not.if_true_i(i)) goto g222;
+  x = r_at(1, i); y = r_at(2, i); z = r_at(3, i); is = i_sort_at(i);;
+  // Loop over neighbours of atom i
+  do jj = in_list + 1, in_list + n_i
+  j = neighbour_list(jj);
+  js = i_sort_at(j);
+  xx = r_at(1, j) - x; yy = r_at(2, j) - y; zz = r_at(3, j) - z;;
+  if (periodic(1)) && (xx > sizex05) xx = xx - sizex;
+  if (periodic(1)) && (xx < - sizex05) xx = xx + sizex;
+  if (periodic(2)) && (yy > sizey05) yy = yy - sizey;
+  if (periodic(2)) && (yy < - sizey05) yy = yy + sizey;
+  if (periodic(3)) && (zz > sizez05) zz = zz - sizez;
+  if (periodic(3)) && (zz < - sizez05) zz = zz + sizez;
+  rr = xx**2 + yy**2 + zz**2;
+  if (rr < rr_pot[js, is]) 
+  {
+  r = dsqrt(rr);
+  r1 = 1.0D0/r;
+  ropi = funp_ro(r, is, js);
+  if (js =  = is) 
+  {
+  ropj = ropi;
+  } else
+  {
+  ropj = funp_ro(r, js, is);
+  }
+  w = ((rosum[i]*ropj + rosum[j]*ropi) + funp_fi(r, is, js))*r1;
+  w1 = w*xx; w2 = w*yy; w3 = w*zz;;
+  f_at(1, i) = f_at(1, i) + w1;
+  f_at(2, i) = f_at(2, i) + w2 // add the fi force j = >i;
+  f_at(3, i) = f_at(3, i) + w3;
+  w1 = w1*xx;
+  w2 = w2*yy;
+  w3 = w3*zz;
+  px_at(i) = px_at(i) + w1;
+  py_at(i) = py_at(i) + w2;
+  pz_at(i) = pz_at(i) + w3;
+  //c			px_at(j)=px_at(j)+w1
+  //c		        py_at(j)=py_at(j)+w2
+  //c			pz_at(j)=pz_at(j)+w3
+  }
+  }do // end loop over jj;
+
+
+
+  g222:
+
+  // Set starting position of next atom i
+  i = i + 1;
+  in_list = in_list + n_i + 1;
+  }do;
+
+
+  //c
+  //c	sxx=0.0D0
+  //c	syy=0.0D0
+  //c	szz=0.0D0
+  //c	    e_sum=0.0D0
+
+  w = 0.5D0*(-1.0D0)/(sizex*sizey*sizez);
+  do i = 1, n_at
+  //c	if(.not.if_true_i(i)) cycle
+  //c	    e_sum=e_sum+e_at(i)
+  //c	sxx=sxx + px_at(i)
+  //c	syy=syy + py_at(i)
+  //c	szz=szz + pz_at(i)
+  px_at(i) = w*px_at(i);
+  py_at(i) = w*py_at(i);
+  pz_at(i) = w*pz_at(i);
+  }do;
+
+
+  ;
+  //c	sxx=0.5D0*(-1.0D0)*sxx/(sizex*sizey*sizez)
+  //c	syy=0.5D0*(-1.0D0)*syy/(sizex*sizey*sizez)
+  //c	szz=0.5D0*(-1.0D0)*szz/(sizex*sizey*sizez)
+  ;
+  //c	pressure=(1.0D0/3.0D0)*(sxx+syy+szz)
+  //c
+  // g777:
+
+  // time2 = timesec(idum);
+  // t_e_force_fi_emb = t_e_force_fi_emb + (time2 - time1);
+  //c
+  memory->destroy(rosum);
+  return;
 }
 
 void PairLS::e_force_g3(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *)
@@ -2059,7 +2375,8 @@ double PairLS::fun_f3(double r, int i_f3, int js, int is)
   i = int((r - r0_min)*shag_sp_f[js][is]);
   i = i + 1;
   dr = r - R_sp_f[i-1][js][is];
-  fun_f3 = a_sp_f3[i-1][i_f3-1][js][is] + dr*(b_sp_f3[i-1][i_f3-1][js][is] + dr*(c_sp_f3[i-1][i_f3-1][js][is] + dr*(d_sp_f3[i-1][i_f3-1][js][is])));
+  // fun_f3 = a_sp_f3[i-1][i_f3-1][js][is] + dr*(b_sp_f3[i-1][i_f3-1][js][is] + dr*(c_sp_f3[i-1][i_f3-1][js][is] + dr*(d_sp_f3[i-1][i_f3-1][js][is])));
+  fun_f3 = a_sp_f3[i-1][i_f3][js][is] + dr*(b_sp_f3[i-1][i_f3][js][is] + dr*(c_sp_f3[i-1][i_f3][js][is] + dr*(d_sp_f3[i-1][i_f3][js][is])));
 
   return fun_f3;
 }
@@ -2087,7 +2404,8 @@ double PairLS::funp_f3(double r, int i_f3, int js, int is)
   i = int((r - r0_min)*shag_sp_f[js][is]);
   i = i + 1;
   dr = r - R_sp_f[i-1][js][is];
-  funp_f3 = b_sp_f3[i-1][i_f3-1][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3-1][js][is]));
+  // funp_f3 = b_sp_f3[i-1][i_f3-1][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3-1][js][is]));
+  funp_f3 = b_sp_f3[i-1][i_f3][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3][js][is]));
 
   return funp_f3;  
 }
@@ -2116,7 +2434,8 @@ double PairLS::funpp_f3(double r, int i_f3, int js, int is)
   i = i + 1;
   if (i <= 0) i = 1;
   dr = r - R_sp_f[i-1][js][is];
-  funpp_f3 = 2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3-1][js][is]);
+  // funpp_f3 = 2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3-1][js][is]);
+  funpp_f3 = 2.0*c_sp_f3[i-1][i_f3][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3][js][is]);
 
   return funpp_f3;    
 }
@@ -2132,7 +2451,8 @@ double PairLS::fun_g3(double r, int i1, int i2, int is)
   i = i + 1;
   if (i >= n_sp_g) i = n_sp_g - 1;
   dr = r - R_sp_g[i-1];
-  fun_g3 = a_sp_g3[i-1][i1-1][i2-1][is] + dr*(b_sp_g3[i-1][i1-1][i2-1][is] + dr*(c_sp_g3[i-1][i1-1][i2-1][is] + dr*(d_sp_g3[i-1][i1-1][i2-1][is])));
+  // fun_g3 = a_sp_g3[i-1][i1-1][i2-1][is] + dr*(b_sp_g3[i-1][i1-1][i2-1][is] + dr*(c_sp_g3[i-1][i1-1][i2-1][is] + dr*(d_sp_g3[i-1][i1-1][i2-1][is])));
+  fun_g3 = a_sp_g3[i-1][i1][i2][is] + dr*(b_sp_g3[i-1][i1][i2][is] + dr*(c_sp_g3[i-1][i1][i2][is] + dr*(d_sp_g3[i-1][i1][i2][is])));
   return fun_g3;
 }
 
@@ -2146,7 +2466,8 @@ double PairLS::funp_g3(double r, int i1, int i2, int is)
   i = i + 1;
   if (i >= n_sp_g) i = n_sp_g - 1;
   dr = r - R_sp_g[i-1];
-  funp_g3 = b_sp_g3[i-1][i1-1][i2-1][is] + dr*(2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(3.0*d_sp_g3[i-1][i1-1][i2-1][is]));
+  // funp_g3 = b_sp_g3[i-1][i1-1][i2-1][is] + dr*(2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(3.0*d_sp_g3[i-1][i1-1][i2-1][is]));
+  funp_g3 = b_sp_g3[i-1][i1][i2][is] + dr*(2.0*c_sp_g3[i-1][i1][i2][is] + dr*(3.0*d_sp_g3[i-1][i1][i2][is]));
   return funp_g3;
 }
 
@@ -2160,7 +2481,8 @@ double PairLS::funpp_g3(double r, int i1, int i2, int is)
   i = i + 1;
   if (i >= n_sp_g) i = n_sp_g - 1;
   dr = r - R_sp_g[i-1];
-  funpp_g3 = 2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(6.0*d_sp_g3[i-1][i1-1][i2-1][is]);
+  // funpp_g3 = 2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(6.0*d_sp_g3[i-1][i1-1][i2-1][is]);
+  funpp_g3 = 2.0*c_sp_g3[i-1][i1][i2][is] + dr*(6.0*d_sp_g3[i-1][i1][i2][is]);
   return funpp_g3;
 }
 

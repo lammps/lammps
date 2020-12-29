@@ -17,7 +17,7 @@ target_link_libraries(test_potential_file_reader PRIVATE lammps GTest::GMock GTe
 add_test(NAME PotentialFileReader COMMAND test_potential_file_reader WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(PotentialFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
-if (PKG_MANYBODY)
+if(PKG_MANYBODY)
     add_executable(test_eim_potential_file_reader test_eim_potential_file_reader.cpp)
     target_link_libraries(test_eim_potential_file_reader PRIVATE lammps GTest::GMock GTest::GTest)
     add_test(NAME EIMPotentialFileReader COMMAND test_eim_potential_file_reader WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -33,7 +33,7 @@ target_link_libraries(test_dump_atom PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME DumpAtom COMMAND test_dump_atom WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
-if (PKG_COMPRESS)
+if(PKG_COMPRESS)
     find_program(GZIP_BINARY NAMES gzip REQUIRED)
 
     add_executable(test_dump_atom_gz test_dump_atom_gz.cpp)
@@ -113,7 +113,7 @@ target_link_libraries(test_dump_cfg PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME DumpCfg COMMAND test_dump_cfg WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(DumpCfg PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
-if (BUILD_TOOLS)
+if(BUILD_TOOLS)
     set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
     set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
 endif()

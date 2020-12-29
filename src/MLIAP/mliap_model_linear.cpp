@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_model_linear.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
@@ -21,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
   if (nparams > 0) ndescriptors = nparams - 1;
 }
@@ -51,8 +55,9 @@ int MLIAPModelLinear::get_nparams()
 
 void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 {
+  data->energy = 0.0;
+
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
     double* coeffi = coeffelem[ielem];
@@ -74,7 +79,8 @@ void MLIAPModelLinear::compute_gradients(MLIAPData* data)
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 
-      data->pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }

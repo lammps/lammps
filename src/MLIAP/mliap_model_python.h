@@ -11,24 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MLIAP_MODEL_QUADRATIC_H
-#define LMP_MLIAP_MODEL_QUADRATIC_H
+#ifndef LMP_MLIAP_MODEL_PYTHON_H
+#define LMP_MLIAP_MODEL_PYTHON_H
 
 #include "mliap_model.h"
 
 namespace LAMMPS_NS {
 
-class MLIAPModelQuadratic : public MLIAPModelSimple {
+
+class MLIAPModelPython : public MLIAPModel {
 public:
-  MLIAPModelQuadratic(LAMMPS*, char* = nullptr);
-  ~MLIAPModelQuadratic();
+  MLIAPModelPython(LAMMPS*, char* = NULL);
+  ~MLIAPModelPython();
   virtual int get_nparams();
   virtual int get_gamma_nnz(class MLIAPData*);
   virtual void compute_gradients(class MLIAPData*);
   virtual void compute_gradgrads(class MLIAPData*);
   virtual void compute_force_gradients(class MLIAPData*);
+  virtual double memory_usage();
+  void connect_param_counts(); // If possible convert this to protected/private and
+                         // and figure out how to declare cython fn
+                         // load_from_python as a friend.
+  int model_loaded;
 
 protected:
+  virtual void read_coeffs(char *);
+
+private:
+
 };
 
 }

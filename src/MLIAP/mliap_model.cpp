@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_model.h"
 
 #include "comm.h"
@@ -28,13 +32,9 @@ using namespace LAMMPS_NS;
 
 MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 {
-  coeffelem = nullptr;
-  if (coefffilename) read_coeffs(coefffilename);
-  else {
-    nparams = 0;
-    nelements = 0;
-    ndescriptors = 0;
-  }
+  nparams = 0;
+  nelements = 0;
+  ndescriptors = 0;
   nonlinearflag = 0;
 }
 
@@ -42,8 +42,8 @@ MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 
 MLIAPModel::~MLIAPModel()
 {
-  memory->destroy(coeffelem);
 }
+
 
 /* ----------------------------------------------------------------------
    placeholder
@@ -73,7 +73,22 @@ void MLIAPModel::set_ndescriptors(int ndescriptors_in)
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAPModel::read_coeffs(char *coefffilename)
+
+MLIAPModelSimple::MLIAPModelSimple(LAMMPS* lmp, char* coefffilename) : MLIAPModel(lmp, coefffilename)
+{
+  coeffelem = nullptr;
+  if (coefffilename) read_coeffs(coefffilename);
+}
+
+/* ---------------------------------------------------------------------- */
+
+MLIAPModelSimple::~MLIAPModelSimple()
+{
+  memory->destroy(coeffelem);
+}
+
+
+void MLIAPModelSimple::read_coeffs(char *coefffilename)
 {
 
   // open coefficient file on proc 0
@@ -165,7 +180,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
    memory usage
 ------------------------------------------------------------------------- */
 
-double MLIAPModel::memory_usage()
+double MLIAPModelSimple::memory_usage()
 {
   double bytes = 0;
 

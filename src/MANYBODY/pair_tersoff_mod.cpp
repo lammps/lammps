@@ -39,15 +39,6 @@ using namespace MathSpecial;
 
 PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp) {}
 
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairTersoffMOD::settings(int narg, char **/*arg*/)
-{
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  shift_flag = 0;
-}
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::read_file(char *file)
@@ -215,14 +206,13 @@ void PairTersoffMOD::setup_params()
 /* ---------------------------------------------------------------------- */
 
 double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
-                         double *delrij, double *delrik)
+                         double *rij_hat, double *rik_hat)
 {
   double rij,rik,costheta,arg,ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
-              delrij[2]*delrik[2]) / (rij*rik);
+  costheta = vec3_dot(rij_hat,rik_hat);
 
   if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
@@ -287,8 +277,8 @@ double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::ters_zetaterm_d(double prefactor,
-                                  double *rij_hat, double rij,
-                                  double *rik_hat, double rik,
+                                  double *rij_hat, double rij, double rijinv,
+                                  double *rik_hat, double rik, double rikinv,
                                   double *dri, double *drj, double *drk,
                                   Param *param)
 {
@@ -311,7 +301,7 @@ void PairTersoffMOD::ters_zetaterm_d(double prefactor,
   cos_theta = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk_mod(cos_theta,param);
   gijk_d = ters_gijk_d_mod(cos_theta,param);
-  costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
+  costheta_d(rij_hat,rijinv,rik_hat,rikinv,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Ri
   // dri = -dfc*gijk*ex_delr*rik_hat;

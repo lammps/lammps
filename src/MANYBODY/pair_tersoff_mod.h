@@ -33,7 +33,6 @@ class PairTersoffMOD : public PairTersoff {
   static const int NPARAMS_PER_LINE = 20;
 
  protected:
-  void settings(int, char **);
   virtual void read_file(char *);
   virtual void setup_params();
   double zeta(Param *, double, double, double *, double *);
@@ -42,7 +41,8 @@ class PairTersoffMOD : public PairTersoff {
   double ters_fc_d(double, Param *);
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
-  void ters_zetaterm_d(double, double *, double, double *, double,
+  void ters_zetaterm_d(double, double *, double, double, 
+                               double *, double, double,
                                double *, double *, double *, Param *);
 
   // inlined functions for efficiency

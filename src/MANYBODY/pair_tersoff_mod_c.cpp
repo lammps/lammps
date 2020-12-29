@@ -30,15 +30,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA 4
 
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairTersoffMODC::settings(int narg, char **/*arg*/)
-{
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  shift_flag = 0;
-}
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMODC::read_file(char *file)

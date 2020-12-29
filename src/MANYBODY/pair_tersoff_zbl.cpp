@@ -57,16 +57,6 @@ PairTersoffZBL::PairTersoffZBL(LAMMPS *lmp) : PairTersoff(lmp)
   } else error->all(FLERR,"Pair tersoff/zbl requires metal or real units");
 }
 
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairTersoffZBL::settings(int narg, char **/*arg*/)
-{
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  shift_flag = 0;
-}
-
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffZBL::read_file(char *file)

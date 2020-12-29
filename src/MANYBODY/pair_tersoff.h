@@ -134,11 +134,6 @@ class PairTersoff : public Pair {
     z[2] = k*x[2]+y[2];
   }
 
-  inline void vec3_norm(const double x[3], double * const y) const {
-    double f = 1.0/sqrt(vec3_dot(x, x));
-    vec3_scale(f, x, y);
-  }
-
 };
 
 }

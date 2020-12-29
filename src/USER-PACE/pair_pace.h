@@ -14,6 +14,7 @@ PairStyle(pace,PairPACE)
 
 #include "pair.h"
 #include "ace_evaluator.h"
+#include "ace_recursive.h"
 #include "ace_c_basis.h"
 
 namespace LAMMPS_NS {
@@ -41,7 +42,7 @@ namespace LAMMPS_NS {
     protected:
         ACECTildeBasisSet *basis_set = nullptr;
 
-        ACECTildeEvaluator *ace = nullptr;
+        ACERecursiveEvaluator *ace = nullptr;
 
         char *potential_file_name;
 

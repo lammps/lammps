@@ -307,7 +307,7 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[i] = which element the Ith atom type is, -1 if not mapped
     // map[0] is not used
 
-    ace = new ACECTildeEvaluator();
+    ace = new ACERecursiveEvaluator();
     ace->element_type_mapping.init(atom->ntypes + 1);
 
     for (int i = 1; i <= atom->ntypes; i++) {

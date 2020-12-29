@@ -1,7 +1,7 @@
 # Initialization
 units           metal
 boundary        p p p
-atom_style      full
+atom_style      charge
 processors      * * 1     # domain decomposition over x and y
 
 # System and atom definition
@@ -13,7 +13,7 @@ mass            1 10.8110   # boron mass (g/mole) | membrane
 mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
 
 ######################## Potential defition ########################
-pair_style  tersoff/shift 0.0
+pair_style  tersoff shift 0.0
 pair_coeff  * * BNC.tersoff B N
 ####################################################################
 # Neighbor update settings

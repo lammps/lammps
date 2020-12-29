@@ -14,7 +14,7 @@ create_box    	1  recbox
 create_atoms  	1  region recbox units box
 
 mass	* 	28.0855
-pair_style	tersoff/shift 0.05
+pair_style	tersoff shift 0.05
 pair_coeff 	* * Si.tersoff Si
 
 thermo_style    custom step cpu etotal pe ke temp 
@@ -33,4 +33,4 @@ thermo_style    custom step etotal pe ke temp
 thermo_modify   lost warn
 
 ###### Run molecular dynamics ######
-run 		10000
+run 		1000

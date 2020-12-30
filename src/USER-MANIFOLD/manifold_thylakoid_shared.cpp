@@ -40,7 +40,7 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
       // The others should be 1.
       if ( (args[0] != 1.0) && (args[0] != 0.0) &&
            (args[1] != 1.0) && (args[1] != 0.0) &&
-           (args[2] != 1.0) && (args[2] != 0.0) ) {
+           (args[2] != 1.0) && (args[2] != 0.0)) {
         err_flag = -1;
       }
       break;

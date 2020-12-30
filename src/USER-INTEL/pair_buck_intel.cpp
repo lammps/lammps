@@ -442,7 +442,7 @@ template <class flt_t>
 void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                   Memory *memory,
                                                   const int cop) {
-  if ( (ntypes != _ntypes ) ) {
+  if ((ntypes != _ntypes )) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;

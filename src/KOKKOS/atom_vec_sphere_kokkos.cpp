@@ -917,7 +917,7 @@ struct AtomVecSphereKokkos_UnpackComm {
 
 void AtomVecSphereKokkos::unpack_comm_kokkos(
   const int &n, const int &first,
-  const DAT::tdual_xfloat_2d &buf ) {
+  const DAT::tdual_xfloat_2d &buf) {
   // Fallback to AtomVecKokkos if radvary == 0
   if (radvary == 0) {
     AtomVecKokkos::unpack_comm_kokkos(n,first,buf);
@@ -994,7 +994,7 @@ struct AtomVecSphereKokkos_UnpackCommVel {
 
 void AtomVecSphereKokkos::unpack_comm_vel_kokkos(
   const int &n, const int &first,
-  const DAT::tdual_xfloat_2d &buf ) {
+  const DAT::tdual_xfloat_2d &buf) {
   if (commKK->forward_comm_on_host) {
     atomKK->modified(Host,X_MASK|RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
     if (radvary == 0) {

@@ -599,7 +599,7 @@ void PairLJCutCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes || ntable != _ntable) ) {
+  if ((ntypes != _ntypes || ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;

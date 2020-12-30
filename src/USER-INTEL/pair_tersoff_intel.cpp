@@ -566,7 +566,7 @@ template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes) ) {
+  if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       c_first_loop_t * oc_first_loop = c_first_loop[0];

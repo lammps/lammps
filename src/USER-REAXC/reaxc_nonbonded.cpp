@@ -62,13 +62,13 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   e_vdW = 0;
   e_lg = de_lg = 0.0;
 
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     if (system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       if (system->my_atoms[j].type < 0) continue;
@@ -228,14 +228,14 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
   e_ele = e_vdW = 0;
 
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     type_i  = system->my_atoms[i].type;
     if (type_i < 0) continue;
     start_i = Start_Index(i,far_nbrs);
     end_i   = End_Index(i,far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       type_j = system->my_atoms[j].type;
@@ -322,7 +322,7 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
   double q, en_tmp;
 
   data->my_en.e_pol = 0.0;
-  for( i = 0; i < system->n; i++ ) {
+  for (i = 0; i < system->n; i++) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
     q = system->my_atoms[i].q;

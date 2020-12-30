@@ -526,7 +526,7 @@ struct AtomVecDPDKokkos_UnpackComm {
 /* ---------------------------------------------------------------------- */
 
 void AtomVecDPDKokkos::unpack_comm_kokkos(const int &n, const int &first,
-    const DAT::tdual_xfloat_2d &buf ) {
+    const DAT::tdual_xfloat_2d &buf) {
   if (commKK->forward_comm_on_host) {
     atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     atomKK->modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);

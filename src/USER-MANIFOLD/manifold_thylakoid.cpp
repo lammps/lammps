@@ -57,17 +57,17 @@ void manifold_thylakoid::post_param_init()
 
 void manifold_thylakoid::checkup()
 {
-  if (comm->me == 0 ) {
+  if (comm->me == 0) {
     fprintf(screen,"This is checkup of thylakoid %p\n", this);
     fprintf(screen,"I have %ld parts. They are:\n", parts.size());
-    for ( int i = 0; i < (int)parts.size(); ++i ) {
+    for (int i = 0; i < (int)parts.size(); ++i) {
       fprintf(screen, "[%f, %f] x [%f, %f] x [%f, %f]\n",
               parts[i]->xlo, parts[i]->xhi,
               parts[i]->ylo, parts[i]->yhi,
               parts[i]->zlo, parts[i]->zhi );
     }
     fprintf(screen,"My params are:\n");
-    for ( int i = 0; i < NPARAMS; ++i ) {
+    for (int i = 0; i < NPARAMS; ++i) {
       fprintf(screen,"%f\n", params[i]);
     }
   }
@@ -120,7 +120,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
 thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_flag*/, std::size_t *idx )
 {
 
-  for ( std::size_t i = 0; i < parts.size(); ++i ) {
+  for (std::size_t i = 0; i < parts.size(); ++i) {
     thyla_part *p = parts[i];
     if (is_in_domain(p,x)) {
       if (idx != nullptr) *idx = i;
@@ -604,7 +604,7 @@ thyla_part *manifold_thylakoid::make_cyl_to_plane_part(double X0, double R0, dou
 
 void manifold_thylakoid::print_part_data( FILE *fp_doms, FILE *fp_coms )
 {
-  for ( std::size_t i = 0; i < parts.size(); ++i ) {
+  for (std::size_t i = 0; i < parts.size(); ++i) {
     thyla_part *p = parts[i];
     fprintf(fp_doms, "%f   %f\n",  p->xlo, p->ylo);
     fprintf(fp_doms, "%f   %f\n",  p->xlo, p->yhi);

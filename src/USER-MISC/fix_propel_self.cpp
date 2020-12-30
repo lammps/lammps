@@ -171,8 +171,8 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 
   // Add the active force to the atom force:
 
-  for ( int i = 0; i < nlocal; ++i ) {
-    if ( mask[i] & groupbit ) {
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }
@@ -207,7 +207,7 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/)
   // Add the active force to the atom force:
 
   for (int i = 0; i < nlocal; ++i) {
-    if ( mask[i] & groupbit ) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }

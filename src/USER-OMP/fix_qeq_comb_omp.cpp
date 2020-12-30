@@ -125,7 +125,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {

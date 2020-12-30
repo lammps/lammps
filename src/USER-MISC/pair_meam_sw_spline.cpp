@@ -562,7 +562,7 @@ int PairMEAMSWSpline::pack_forward_comm(int n, int *list, double *buf,
 {
         int* list_iter = list;
         int* list_iter_end = list + n;
-        while(list_iter != list_iter_end)
+        while (list_iter != list_iter_end)
                 *buf++ = Uprime_values[*list_iter++];
         return n;
 }

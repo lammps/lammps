@@ -50,11 +50,11 @@ DihedralFourier::~DihedralFourier()
     memory->destroy(nterms);
 
     for (int i=1; i<= atom->ndihedraltypes; i++) {
-      if ( k[i] ) delete [] k[i];
-      if ( multiplicity[i] ) delete [] multiplicity[i];
-      if ( shift[i] ) delete [] shift[i];
-      if ( cos_shift[i] ) delete [] cos_shift[i];
-      if ( sin_shift[i] ) delete [] sin_shift[i];
+      if (k[i]) delete [] k[i];
+      if (multiplicity[i]) delete [] multiplicity[i];
+      if (shift[i]) delete [] shift[i];
+      if (cos_shift[i]) delete [] cos_shift[i];
+      if (sin_shift[i]) delete [] sin_shift[i];
     }
     delete [] k;
     delete [] multiplicity;

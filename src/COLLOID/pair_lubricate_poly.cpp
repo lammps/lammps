@@ -480,7 +480,7 @@ void PairLubricatePoly::init_style()
 
     if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
+      if (((FixWall *) modify->fix[i])->xflag) {
         flagwall = 2; // Moving walls exist
         wallfix = (FixWall *) modify->fix[i];
       }

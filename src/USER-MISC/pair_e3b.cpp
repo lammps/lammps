@@ -418,7 +418,7 @@ void PairE3B::coeff(int narg, char **arg)
   rs=rc3=rc2=0.0;
 
   int iarg = 2; //beginning of keyword/value pairs
-  while(iarg < narg) {
+  while (iarg < narg) {
     char *keyword = arg[iarg++];
     if (checkKeyword(keyword,"Ea",1,narg-iarg))
       ea=utils::numeric(FLERR,arg[iarg++],false,lmp);

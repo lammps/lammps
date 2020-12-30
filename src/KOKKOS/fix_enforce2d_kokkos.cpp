@@ -77,7 +77,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
   if (atomKK->torque_flag) flag_mask |= 4;
 
   copymode = 1;
-  switch( flag_mask ) {
+  switch (flag_mask) {
     case 0:{
       FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);

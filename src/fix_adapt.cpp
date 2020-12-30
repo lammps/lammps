@@ -70,7 +70,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"bond") == 0 ) {
+    } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -110,7 +110,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       nadapt++;
       iarg += 6;
 
-    } else if (strcmp(arg[iarg],"bond") == 0 ) {
+    } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
       adapt[nadapt].which = BOND;
       int n = strlen(arg[iarg+1]) + 1;
@@ -651,7 +651,7 @@ void FixAdapt::change_settings()
     }
   }
   if (anybond) {
-    for (int m = 0; m < nadapt; ++m ) {
+    for (int m = 0; m < nadapt; ++m) {
       Adapt *ad = &adapt[m];
       if (ad->which == BOND) {
         ad->bond->reinit();

@@ -86,7 +86,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   // equal style vars (so that they are not overwritten each time step).
 
   double *params = ptr_m->params;
-  for( int i = 0; i < nvars; ++i ) {
+  for (int i = 0; i < nvars; ++i) {
     if (was_var( arg[i+4] ))
       error->all(FLERR,"Equal-style variables not allowed with fix manifoldforce");
 

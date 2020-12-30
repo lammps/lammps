@@ -207,7 +207,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   data.special_flag[3] = special_flag[3];
 
   data.h_resize()=1;
-  while(data.h_resize()) {
+  while (data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;
     data.h_resize() = 0;
 

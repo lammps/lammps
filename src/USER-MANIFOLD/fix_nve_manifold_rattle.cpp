@@ -117,7 +117,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     error->all(FLERR, msg);
   }
   // Loop over manifold args:
-  for( int i = 0; i < nvars; ++i ) {
+  for (int i = 0; i < nvars; ++i) {
     int len = 0, offset = 0;
     if (was_var( arg[i+6] )) {
       len = strlen(arg[i+6]) - 1; // -1 because -2 for v_, +1 for \0.
@@ -135,7 +135,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 
   ptr_m->params = new double[nvars];
   if (!ptr_m->params ) error->all(FLERR,"Failed to allocate params!");
-  for( int i = 0; i < nvars; ++i ) {
+  for (int i = 0; i < nvars; ++i) {
     // If param i was variable type, it will be set later...
     ptr_m->params[i] = is_var[i] ? 0.0 : utils::numeric( FLERR, arg[i+6] ,false,lmp);
   }
@@ -144,7 +144,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 
   // Loop over rest of args:
   int argi = 6 + nvars;
-  while( argi < narg ) {
+  while ( argi < narg) {
     if (strcmp(arg[argi], "every") == 0) {
       nevery = utils::inumeric(FLERR,arg[argi+1],false,lmp);
       next_output = update->ntimestep + nevery;
@@ -170,7 +170,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 FixNVEManifoldRattle::~FixNVEManifoldRattle()
 {
   if (tstrs) {
-    for( int i = 0; i < nvars; ++i ) {
+    for (int i = 0; i < nvars; ++i) {
       delete [] tstrs[i];
     }
     delete [] tstrs;
@@ -277,7 +277,7 @@ void FixNVEManifoldRattle::update_var_params()
 
   double *ptr_params = ptr_m->params;
 
-  for( int i = 0; i < nvars; ++i ) {
+  for (int i = 0; i < nvars; ++i) {
     if (is_var[i]) {
       tvars[i] = input->variable->find(tstrs[i]);
       if (tvars[i] < 0) {
@@ -306,7 +306,7 @@ int FixNVEManifoldRattle::dof(int /*igroup*/)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int natoms = 0;
-  for( int i = 0; i < nlocal; ++i ) {
+  for (int i = 0; i < nlocal; ++i) {
     if (mask[i] & groupbit) ++natoms;
   }
 
@@ -508,7 +508,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
   const double c_inv = 1.0 / c;
 
 
-  while ( 1 ) {
+  while (1) {
     v[0] = vt[0] - l*no_dt[0];
     v[1] = vt[1] - l*no_dt[1];
     v[2] = vt[2] - l*no_dt[2];
@@ -643,7 +643,7 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
 
     res = infnorm<4>(R);
     ++iters;
-  }while( (res > tolerance) && (iters < max_iter) );
+  } while ((res > tolerance) && (iters < max_iter));
 
   if (iters >= max_iter && res >= tolerance) {
           char msg[2048];

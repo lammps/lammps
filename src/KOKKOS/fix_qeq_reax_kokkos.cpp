@@ -139,8 +139,8 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
   k_shield = DAT::tdual_ffloat_2d("qeq/kk:shield",ntypes+1,ntypes+1);
   d_shield = k_shield.template view<DeviceType>();
 
-  for ( i = 1; i <= ntypes; ++i )
-    for ( j = 1; j <= ntypes; ++j )
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j)
       k_shield.h_view(i,j) = pow( gamma[i] * gamma[j], -1.5 );
 
   k_shield.template modify<LMPHostType>();
@@ -1371,11 +1371,11 @@ void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxPackForwardComm, cons
 
   if (pack_flag == 1)
     d_buf[i] = d_d[j];
-  else if ( pack_flag == 2 )
+  else if (pack_flag == 2)
     d_buf[i] = d_s[j];
-  else if ( pack_flag == 3 )
+  else if (pack_flag == 3)
     d_buf[i] = d_t[j];
-  else if ( pack_flag == 4 )
+  else if (pack_flag == 4)
     d_buf[i] = q[j];
 }
 
@@ -1413,11 +1413,11 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *bu
 
   if (pack_flag == 1)
     for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
-  else if ( pack_flag == 2 )
+  else if (pack_flag == 2)
     for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
-  else if ( pack_flag == 3 )
+  else if (pack_flag == 3)
     for (m = 0; m < n; m++) buf[m] = h_t[list[m]];
-  else if ( pack_flag == 4 )
+  else if (pack_flag == 4)
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
 
   return n;

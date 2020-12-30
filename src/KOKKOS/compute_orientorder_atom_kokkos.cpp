@@ -341,17 +341,17 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
 
 #define SWAP(view,i,j) do {       \
     tmp = view(i); view(i) = view(j); view(j) = tmp; \
-  } while(0)
+  } while (0)
 
 #define ISWAP(view,i,j) do {        \
     itmp = view(i); view(i) = view(j); view(j) = itmp; \
-  } while(0)
+  } while (0)
 
 #define SWAP3(view,i,j) do {                  \
     tmp = view(i,0); view(i,0) = view(j,0); view(j,0) = tmp; \
     tmp = view(i,1); view(i,1) = view(j,1); view(j,1) = tmp; \
     tmp = view(i,2); view(i,2) = view(j,2); view(j,2) = tmp; \
-  } while(0)
+  } while (0)
 
 /* ---------------------------------------------------------------------- */
 

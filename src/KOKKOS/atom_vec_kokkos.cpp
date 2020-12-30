@@ -420,7 +420,7 @@ struct AtomVecKokkos_UnpackComm {
 /* ---------------------------------------------------------------------- */
 
 void AtomVecKokkos::unpack_comm_kokkos(const int &n, const int &first,
-    const DAT::tdual_xfloat_2d &buf ) {
+    const DAT::tdual_xfloat_2d &buf) {
   if (commKK->forward_comm_on_host) {
     sync(Host,X_MASK);
     modified(Host,X_MASK);
@@ -691,7 +691,7 @@ struct AtomVecKokkos_UnpackCommVel {
 /* ---------------------------------------------------------------------- */
 
 void AtomVecKokkos::unpack_comm_vel_kokkos(const int &n, const int &first,
-    const DAT::tdual_xfloat_2d &buf ) {
+    const DAT::tdual_xfloat_2d &buf) {
   if (commKK->forward_comm_on_host) {
     sync(Host,X_MASK|V_MASK);
     modified(Host,X_MASK|V_MASK);
@@ -864,7 +864,7 @@ struct AtomVecKokkos_PackReverse {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecKokkos::pack_reverse_kokkos(const int &n, const int &first,
-    const DAT::tdual_ffloat_2d &buf ) {
+    const DAT::tdual_ffloat_2d &buf) {
   if (commKK->reverse_comm_on_host) {
     sync(Host,F_MASK);
     struct AtomVecKokkos_PackReverse<LMPHostType> f(atomKK->k_f,buf,first);

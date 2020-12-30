@@ -132,7 +132,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
   dt = qstep;
   dtmax = TMAX * dt;
 
-  for (iloop = 0; iloop < maxiter; iloop ++ ) {
+  for (iloop = 0; iloop < maxiter; iloop ++) {
     pack_flag = 1;
     comm->forward_comm_fix(this);
 
@@ -314,7 +314,7 @@ int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
 
   if (pack_flag == 1)
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-  else if ( pack_flag == 2 )
+  else if (pack_flag == 2)
     for (m = 0; m < n; m++) buf[m] = qf[list[m]];
 
   return m;

@@ -247,7 +247,7 @@ void PairCoulStreitz::read_file(char *file)
     PotentialFileReader reader(lmp, file, "coul/streitz");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -318,7 +318,7 @@ void PairCoulStreitz::setup_params()
   for (i = 0; i < nelements; i++) {
     n = -1;
     for (m = 0; m < nparams; m++) {
-      if (i == params[m].ielement ) {
+      if (i == params[m].ielement) {
         if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
         n = m;
       }

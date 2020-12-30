@@ -336,7 +336,7 @@ void ComputeStressMopProfile::compute_pairs()
               //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
-                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -345,7 +345,7 @@ void ComputeStressMopProfile::compute_pairs()
                 values_local[ibin][m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
 
               } else if ( ((xi[dir]<pos) && (xj[dir]>pos))
-                          || ((xi[dir]<pos1) && (xj[dir]>pos1)) ) {
+                          || ((xi[dir]<pos1) && (xj[dir]>pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -363,7 +363,7 @@ void ComputeStressMopProfile::compute_pairs()
               //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
-                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -499,7 +499,7 @@ void ComputeStressMopProfile::setup_bins()
   // set bin coordinates
   for (i = 0; i < nbins; i++) {
     coord[i][0] = offset + i*delta;
-    if ( coord[i][0] < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
+    if (coord[i][0] < (domain->boxlo[dir]+domain->prd_half[dir])) {
       coordp[i][0] = coord[i][0] + domain->prd[dir];
     } else {
       coordp[i][0] = coord[i][0] - domain->prd[dir];

@@ -408,7 +408,7 @@ void VerletKokkos::run(int n)
     unsigned int datamask_modify_device = 0;
     unsigned int datamask_read_host = 0;
 
-    if ( pair_compute_flag ) {
+    if (pair_compute_flag) {
       if (force->pair->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->pair->datamask_read;
@@ -418,7 +418,7 @@ void VerletKokkos::run(int n)
         datamask_modify_device |= force->pair->datamask_modify;
       }
     }
-    if ( atomKK->molecular && force->bond )  {
+    if (atomKK->molecular && force->bond)  {
       if (force->bond->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->bond->datamask_read;
@@ -428,7 +428,7 @@ void VerletKokkos::run(int n)
         datamask_modify_device |= force->bond->datamask_modify;
       }
     }
-    if ( atomKK->molecular && force->angle ) {
+    if (atomKK->molecular && force->angle) {
       if (force->angle->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->angle->datamask_read;
@@ -438,7 +438,7 @@ void VerletKokkos::run(int n)
         datamask_modify_device |= force->angle->datamask_modify;
       }
     }
-    if ( atomKK->molecular && force->dihedral ) {
+    if (atomKK->molecular && force->dihedral) {
       if (force->dihedral->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->dihedral->datamask_read;
@@ -448,7 +448,7 @@ void VerletKokkos::run(int n)
         datamask_modify_device |= force->dihedral->datamask_modify;
       }
     }
-    if ( atomKK->molecular && force->improper ) {
+    if (atomKK->molecular && force->improper) {
       if (force->improper->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->improper->datamask_read;
@@ -458,7 +458,7 @@ void VerletKokkos::run(int n)
         datamask_modify_device |= force->improper->datamask_modify;
       }
     }
-    if ( kspace_compute_flag ) {
+    if (kspace_compute_flag) {
       if (force->kspace->execution_space==Host) {
         execute_on_host  = true;
         datamask_read_host   |= force->kspace->datamask_read;

@@ -1220,7 +1220,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while(1)
+   while (1)
    {
       // Estimate y'' with finite-difference ...
 
@@ -1258,11 +1258,11 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }

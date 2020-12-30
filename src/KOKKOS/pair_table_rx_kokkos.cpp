@@ -1117,7 +1117,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if ( strcmp(site1,"1fluid") == 0 )
+     if (strcmp(site1,"1fluid") == 0)
        isite1 = OneFluidValue;
      else {
        isite1 = nspecies;
@@ -1132,7 +1132,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
        if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
      }
 
-     if ( strcmp(site2,"1fluid") == 0 )
+     if (strcmp(site2,"1fluid") == 0)
        isite2 = OneFluidValue;
      else {
        isite2 = nspecies;

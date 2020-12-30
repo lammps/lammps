@@ -217,7 +217,7 @@ void PairMDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
+  if (seed <= 0) {
     struct timespec time;
     clock_gettime( CLOCK_REALTIME, &time );
     seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed

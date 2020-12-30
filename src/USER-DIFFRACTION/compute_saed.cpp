@@ -88,7 +88,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
          ztype[i] = j;
          }
        }
-       if ( ztype[i] == SAEDmaxType + 1 )
+       if (ztype[i] == SAEDmaxType + 1)
           error->all(FLERR,"Compute SAED: Invalid ASF atom type");
     iarg++;
   }
@@ -148,7 +148,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Zone flag to capture entire recrocal space volume
-  if (  (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ) {
+  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
   } else {
       R_Ewald = (1 / lambda);
       double Rnorm = R_Ewald/ sqrt(Zone[0] * Zone[0] +
@@ -213,7 +213,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   double K[3];
 
   // Zone flag to capture entire recrocal space volume
-  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ) {
+  if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
         for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
@@ -239,7 +239,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
             EpdR2 = pow(R_Ewald + dR_Ewald,2);
-            if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
+            if ((r2 > EmdR2) && (r2 < EpdR2)) {
               n++;
             }
           }
@@ -293,7 +293,7 @@ void ComputeSAED::init()
   int n = 0;
 
   // Zone 0 0 0 flag to capture entire recrocal space volume
-  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ) {
+  if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
         for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
@@ -324,7 +324,7 @@ void ComputeSAED::init()
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
             EpdR2 = pow(R_Ewald + dR_Ewald,2);
-            if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
+            if ((r2 > EmdR2) && (r2 < EpdR2)) {
               store_tmp[3*n] = i;
               store_tmp[3*n+1] = j;
               store_tmp[3*n+2] = k;
@@ -473,13 +473,13 @@ void ComputeSAED::compute_vector()
       Fvec[2*n+1] = Fatom2;
 
       // reporting progress of calculation
-      if ( echo ) {
+      if (echo) {
 #if defined(_OPENMP)
         #pragma omp critical
       // TODO use VMD timer style incrementer
 #endif
         {
-          if ( m == round(frac * nRows) ) {
+          if (m == round(frac * nRows)) {
             if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
             frac += 0.1;
           }

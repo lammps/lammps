@@ -2227,7 +2227,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
-    if ( nTotal[id] < MY_EPSILON || nTotalold[id] < MY_EPSILON )
+    if (nTotal[id] < MY_EPSILON || nTotalold[id] < MY_EPSILON)
       errorFlag1 = 1;
 
     // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)

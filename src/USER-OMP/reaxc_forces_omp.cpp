@@ -92,7 +92,7 @@ void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
 #endif
 
   /* Implement all force calls as function pointers */
-  for ( i = 0; i < NUM_INTRS; i++ ) {
+  for (i = 0; i < NUM_INTRS; i++) {
     (Interaction_Functions[i])( system, control, data, workspace,
                                 lists, out_control );
   }
@@ -284,7 +284,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for (int i = 0; i < N; ++i ) {
+    for (int i = 0; i < N; ++i) {
       system->my_atoms[i].num_bonds = MAX(Num_Entries(i,bonds)*2, MIN_BONDS);
 
       if (i < N-1)
@@ -308,7 +308,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for (int i = 0; i < n; ++i ) {
+    for (int i = 0; i < n; ++i) {
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
@@ -335,7 +335,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
                             reax_list **lists, output_controls * /* out_control */,
-                            MPI_Comm comm ) {
+                            MPI_Comm comm) {
 #ifdef OMP_TIMING
   double startTimeBase, endTimeBase;
   startTimeBase = MPI_Wtime();
@@ -395,7 +395,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
 
-    for ( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
       if (nbr_pj->d <= cutoff) {
         int j = nbr_pj->nbr;

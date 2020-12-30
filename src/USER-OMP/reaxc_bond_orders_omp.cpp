@@ -46,7 +46,7 @@
 using namespace LAMMPS_NS;
 
 void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
-                             storage *workspace, reax_list **lists ) {
+                             storage *workspace, reax_list **lists) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;
@@ -164,7 +164,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   }
 
   // forces on k: i neighbor
-  for ( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -194,7 +194,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   }
 
   // forces on k: j neighbor
-  for ( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -229,7 +229,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
 void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
                                  simulation_data * /* data */,
-                                 storage *workspace, reax_list **lists ) {
+                                 storage *workspace, reax_list **lists) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;
@@ -274,7 +274,7 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
    * forces related to atom i          *
    * first neighbors of atom i         *
    ************************************/
-  for ( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -307,7 +307,7 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
   /* force */
   rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
 
-  for ( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -692,7 +692,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for (j = 0; j < system->N; ++j ) {
+    for (j = 0; j < system->N; ++j) {
       type_j = system->my_atoms[j].type;
       if (type_j < 0) continue;
       sbp_j = &(system->reax_param.sbp[ type_j ]);

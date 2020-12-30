@@ -122,7 +122,7 @@ void ComputeEntropyAtom::init()
     error->all(FLERR,"Compute entropy/atom requires a pair style be"
                " defined");
 
-  if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) )
+  if ((cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin))
     {
         error->all(FLERR,"Compute entropy/atom cutoff is longer than the"
                    " pairwise cutoff. Increase the neighbor list skin"

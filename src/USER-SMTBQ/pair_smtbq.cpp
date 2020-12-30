@@ -153,9 +153,9 @@ PairSMTBQ::~PairSMTBQ()
   if (elements) {
     for ( i = 0; i < nelements; i++) delete [] elements[i];
 
-    for( i = 0; i < atom->ntypes ; i++ ) free( params[i].nom );
-    for( i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot );
-    for( i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode );
+    for (i = 0; i < atom->ntypes ; i++ ) free( params[i].nom);
+    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot);
+    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode);
   }
 
   free(QEqMode);
@@ -400,7 +400,7 @@ void PairSMTBQ::read_file(char *file)
       // open file on all processors
   FILE *fp;
   fp = utils::open_potential(file,lmp,nullptr);
-  if ( fp  == nullptr ) {
+  if (fp  == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open SMTBQ potential file %s",file);
     error->one(FLERR,str);
@@ -572,7 +572,7 @@ void PairSMTBQ::read_file(char *file)
     //    if (test == 0) printf (" on a %s -> %d = %s\n",words[2],j,params[j].nom);
 
 
-    if ( test == 1 ) {
+    if (test == 1) {
       if (verbose) printf ("========== fin des interaction ==========\n");
       break ; }
 
@@ -766,7 +766,7 @@ void PairSMTBQ::read_file(char *file)
 
   } else if (strcmp(QEqMode,"QEqAll") != 0         &&
              strcmp(QEqMode,"QEqAllParallel") != 0 &&
-             strcmp(QEqMode,"Surface") != 0 ) {
+             strcmp(QEqMode,"Surface") != 0) {
     error->all(FLERR,"The QEq Mode is not known. QEq mode should be :\n"
                "  Possible QEq  modes    |   parameters\n"
                "  QEqAll                      |   no parameters\n"
@@ -809,7 +809,7 @@ void PairSMTBQ::read_file(char *file)
   /* ======================================================== */
 
   /* deallocate helper storage */
-  for( i = 0; i < MAXTOKENS ; i++ ) free( words[i] );
+  for (i = 0; i < MAXTOKENS ; i++ ) free( words[i]);
   free( words );
   free( ptr );
   fclose(fp);
@@ -1055,7 +1055,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
       //    ----------------------------------------------
       if ( strcmp(intparams[m].typepot,"buck") == 0 ||
-           strcmp(intparams[m].typepot,"buckPlusAttr") ==0 ) {
+           strcmp(intparams[m].typepot,"buckPlusAttr") ==0) {
         //    ----------------------------------------------
 
         evdwl = 0.0; fpair =0.0;
@@ -1079,7 +1079,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
       }  // ----------------------------------- Rep O-O
 
-      if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0 ) {
+      if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0) {
         //    ----------------------------------------------
 
         evdwl = 0.0; fpair =0.0;
@@ -2577,7 +2577,7 @@ void PairSMTBQ::Charge()
   //     Init_charge(nQEq,nQEqa,nQEqc);
   //  ---------------------------------
 
-  if (update->ntimestep == 0 && (strcmp(QInitMode,"true") == 0)   ) {
+  if (update->ntimestep == 0 && (strcmp(QInitMode,"true") == 0)) {
     //Carefull here it won't be fine if there are more than 2 species!!!
     QOxInit=max(QOxInit, -0.98* params[1].qform *nQEqcall[gp]/nQEqaall[gp])   ;
 
@@ -2622,7 +2622,7 @@ void PairSMTBQ::Charge()
 
 
   // --------------------------------------------
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     // --------------------------------------------
 
     qtot = qtotll = Transf[3*cluster] = 0.0 ;
@@ -3556,7 +3556,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
 
   strncpy( test, s, MAXLINE-1 );
 
-  for( mot = strtok(test, sep); mot; mot = strtok(nullptr, sep) ) {
+  for (mot = strtok(test, sep); mot; mot = strtok(nullptr, sep)) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }

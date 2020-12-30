@@ -202,7 +202,7 @@ void PairEAMOpt::eval()
         jtype = type[j] - 1;
 
         double p = sqrt(rsq)*tmp_rdr;
-        if ( (int)p <= nr2 ) {
+        if ((int)p <= nr2) {
           int m = (int)p + 1;
           p -= (double)((int)p);
           fast_alpha_t& a = tabeighti[jtype*nr+m];
@@ -289,7 +289,7 @@ void PairEAMOpt::eval()
         double r = sqrt(rsq);
         double rhoip,rhojp,z2,z2p;
         double p = r*tmp_rdr;
-        if ( (int)p <= nr2 ) {
+        if ((int)p <= nr2) {
           int m = (int) p + 1;
           m = MIN(m,nr-1);
           p -= (double)((int) p);

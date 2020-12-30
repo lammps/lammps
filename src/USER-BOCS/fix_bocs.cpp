@@ -186,7 +186,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-      if ( strcmp(arg[iarg], "analytic") == 0  ) {
+      if (strcmp(arg[iarg], "analytic") == 0) {
         if (iarg + 4 > narg) {
           error->all(FLERR,"Illegal fix bocs command. Basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
@@ -202,13 +202,13 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
           p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
-      } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
+      } else if (strcmp(arg[iarg], "linear_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
         p_basis_type = BASIS_LINEAR_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
+      } else if (strcmp(arg[iarg], "cubic_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
         p_basis_type = BASIS_CUBIC_SPLINE;
@@ -551,7 +551,7 @@ void FixBocs::init()
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
-        else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+        else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                                splines, spline_length);
@@ -1592,12 +1592,12 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == BASIS_ANALYTIC )
+      if (p_basis_type == BASIS_ANALYTIC)
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE  )
+      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
       }

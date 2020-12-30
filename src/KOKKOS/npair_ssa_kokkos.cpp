@@ -452,7 +452,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 
   bool firstTry = true;
   data.h_resize()=1;
-  while(data.h_resize()) {
+  while (data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;
     data.h_resize() = 0;
 

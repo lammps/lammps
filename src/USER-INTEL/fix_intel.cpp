@@ -1170,7 +1170,7 @@ int FixIntel::set_host_affinity(const int nomp)
   p = popen(cmd, "r");
   if (p == nullptr) return -1;
   ncores = 0;
-  while(fgets(readbuf, 512, p)) {
+  while (fgets(readbuf, 512, p)) {
     proc_list[ncores] = atoi(readbuf);
     ncores++;
   }
@@ -1224,7 +1224,7 @@ int FixIntel::set_host_affinity(const int nomp)
     p = popen(cmd, "r");
     if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       int first = coi_cores + node_rank * mpi_cores;
       CPU_ZERO(&cpuset);
@@ -1260,7 +1260,7 @@ int FixIntel::set_host_affinity(const int nomp)
     p = popen(cmd, "r");
     if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       nlwp++;
       if (nlwp <= plwp) continue;

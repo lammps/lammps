@@ -67,7 +67,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
   } else pos = utils::numeric(FLERR,arg[4],false,lmp);
 
-  if ( pos < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
+  if (pos < (domain->boxlo[dir]+domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
     pos1 = pos - domain->prd[dir];
@@ -319,7 +319,7 @@ void ComputeStressMop::compute_pairs()
           if (newton_pair || j < nlocal) {
 
             //check if ij pair is across plane, add contribution to pressure
-            if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -327,7 +327,7 @@ void ComputeStressMop::compute_pairs()
               values_local[m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
               values_local[m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
             }
-            else if ( ((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1)) ) {
+            else if (((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -338,7 +338,7 @@ void ComputeStressMop::compute_pairs()
 
           } else {
 
-            if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 

@@ -933,33 +933,33 @@ bool Info::is_defined(const char *category, const char *name)
 
 bool Info::has_style(const std::string &category, const std::string &name)
 {
-  if ( category == "atom" ) {
+  if (category == "atom") {
     return find_style(lmp, atom->avec_map, name, false);
-  } else if ( category == "integrate" ) {
+  } else if (category == "integrate") {
     return find_style(lmp, update->integrate_map, name, true);
-  } else if ( category == "minimize" ) {
+  } else if (category == "minimize") {
     return find_style(lmp, update->minimize_map, name, true);
-  } else if ( category == "pair" ) {
+  } else if (category == "pair") {
     return find_style(lmp, force->pair_map, name, true);
-  } else if ( category == "bond" ) {
+  } else if (category == "bond") {
     return find_style(lmp, force->bond_map, name, true);
-  } else if ( category == "angle" ) {
+  } else if (category == "angle") {
     return find_style(lmp, force->angle_map, name, true);
-  } else if ( category == "dihedral" ) {
+  } else if (category == "dihedral") {
     return find_style(lmp, force->dihedral_map, name, true);
-  } else if ( category == "improper" ) {
+  } else if (category == "improper") {
     return find_style(lmp, force->improper_map, name, true);
-  } else if ( category == "kspace" ) {
+  } else if (category == "kspace") {
     return find_style(lmp, force->kspace_map, name, true);
-  } else if ( category == "fix" ) {
+  } else if (category == "fix") {
     return find_style(lmp, modify->fix_map, name, true);
-  } else if ( category == "compute" ) {
+  } else if (category == "compute") {
     return find_style(lmp, modify->compute_map, name, true);
-  } else if ( category == "region" ) {
+  } else if (category == "region") {
     return find_style(lmp, domain->region_map, name, false);
-  } else if ( category == "dump" ) {
+  } else if (category == "dump") {
     return find_style(lmp, output->dump_map, name, false);
-  } else if ( category == "command" ) {
+  } else if (category == "command") {
     return find_style(lmp, input->command_map, name, false);
   }
   return false;
@@ -967,33 +967,33 @@ bool Info::has_style(const std::string &category, const std::string &name)
 
 std::vector<std::string> Info::get_available_styles(const std::string &category)
 {
-  if ( category == "atom" ) {
+  if (category == "atom") {
     return get_style_names(atom->avec_map);
-  } else if ( category == "integrate" ) {
+  } else if (category == "integrate") {
     return get_style_names(update->integrate_map);
-  } else if ( category == "minimize" ) {
+  } else if (category == "minimize") {
     return get_style_names(update->minimize_map);
-  } else if ( category == "pair" ) {
+  } else if (category == "pair") {
     return get_style_names(force->pair_map);
-  } else if ( category == "bond" ) {
+  } else if (category == "bond") {
     return get_style_names(force->bond_map);
-  } else if ( category == "angle" ) {
+  } else if (category == "angle") {
     return get_style_names(force->angle_map);
-  } else if ( category == "dihedral" ) {
+  } else if (category == "dihedral") {
     return get_style_names(force->dihedral_map);
-  } else if ( category == "improper" ) {
+  } else if (category == "improper") {
     return get_style_names(force->improper_map);
-  } else if ( category == "kspace" ) {
+  } else if (category == "kspace") {
     return get_style_names(force->kspace_map);
-  } else if ( category == "fix" ) {
+  } else if (category == "fix") {
     return get_style_names(modify->fix_map);
-  } else if ( category == "compute" ) {
+  } else if (category == "compute") {
     return get_style_names(modify->compute_map);
-  } else if ( category == "region" ) {
+  } else if (category == "region") {
     return get_style_names(domain->region_map);
-  } else if ( category == "dump" ) {
+  } else if (category == "dump") {
     return get_style_names(output->dump_map);
-  } else if ( category == "command" ) {
+  } else if (category == "command") {
     return get_style_names(input->command_map);
   }
   return std::vector<std::string>();

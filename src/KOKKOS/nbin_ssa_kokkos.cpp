@@ -293,7 +293,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
       child = parent*2+1; /* Find the next child */
     }
     gbins(ibin, parent) = t; /* We save t in the heap */
-  } while(1);
+  } while (1);
 }
 
 namespace LAMMPS_NS {

@@ -89,7 +89,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         ztype[i] = j;
        }
      }
-    if ( ztype[i] == XRDmaxType + 1 )
+    if (ztype[i] == XRDmaxType + 1)
         error->all(FLERR,"Compute XRD: Invalid ASF atom type");
     iarg++;
   }
@@ -109,7 +109,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal Compute XRD Command");
       Min2Theta = atof(arg[iarg+1]) / 2;
       Max2Theta = atof(arg[iarg+2]) / 2;
-      if (Max2Theta > MY_PI ) {
+      if (Max2Theta > MY_PI) {
         Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
         Max2Theta = Max2Theta * MY_PI / 180;
         radflag = 0;
@@ -215,7 +215,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         K[1] = j * dK[1];
         K[2] = k * dK[2];
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-        if  (4 >= dinv2 * lambda * lambda ) {
+        if  (4 >= dinv2 * lambda * lambda) {
           ang = asin(lambda * sqrt(dinv2) * 0.5);
           if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           nRows++;
@@ -276,7 +276,7 @@ void ComputeXRD::init()
     K[1] = j * dK[1];
     K[2] = k * dK[2];
     dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-    if  (4 >= dinv2 * lambda * lambda ) {
+    if  (4 >= dinv2 * lambda * lambda) {
        ang = asin(lambda * sqrt(dinv2) * 0.5);
        if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           store_tmp[3*n] = k;
@@ -422,12 +422,12 @@ void ComputeXRD::compute_array()
         Fvec[2*n+1] = Fatom2 * sqrt_lp;
 
         // reporting progress of calculation
-        if ( echo ) {
+        if (echo) {
 #if defined(_OPENMP)
           #pragma omp critical
 #endif
           {
-            if ( m == round(frac * size_array_rows) ) {
+            if (m == round(frac * size_array_rows)) {
               if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
               frac += 0.1;
             }
@@ -476,12 +476,12 @@ void ComputeXRD::compute_array()
         Fvec[2*n+1] = Fatom2;
 
         // reporting progress of calculation
-        if ( echo ) {
+        if (echo) {
 #if defined(_OPENMP)
           #pragma omp critical
 #endif
           {
-            if ( m == round(frac * size_array_rows) ) {
+            if (m == round(frac * size_array_rows)) {
               if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100 );
               frac += 0.1;
             }

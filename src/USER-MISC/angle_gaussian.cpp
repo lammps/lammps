@@ -217,7 +217,7 @@ void AngleGaussian::coeff(int narg, char **arg)
     alpha[i] = new double [n];
     width[i] = new double [n];
     theta0[i] = new double [n];
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);
       width[i][j] = utils::numeric(FLERR,arg[4+3*j],false,lmp);
       theta0[i][j] = utils::numeric(FLERR,arg[5+3*j],false,lmp)* MY_PI / 180.0;

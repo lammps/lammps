@@ -2758,7 +2758,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
     }
     // property / atom
     if ( (vptr == nullptr) && ((strstr(name,"d_") == name)
-                               || (strstr(name,"i_") == name)) ) {
+                               || (strstr(name,"i_") == name))) {
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
         if (lmp->comm->me == 0)
@@ -4269,7 +4269,7 @@ included in the LAMMPS library in use.
  */
 int lammps_config_package_count() {
   int i = 0;
-  while(LAMMPS::installed_packages[i] != nullptr) {
+  while (LAMMPS::installed_packages[i] != nullptr) {
     ++i;
   }
   return i;

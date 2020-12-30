@@ -481,7 +481,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     trd2 = transtrace(T12->H1H2##coord,T45->H1H2   ); \
     trd3 = transtrace(T12->H1H2 ,T45->H1##coord##H2); \
     trd4 = transtrace(T12->H1H2 ,T45->H1H2##coord  ); \
-  } while(0)
+  } while (0)
 */
 #define trd_update_4(T12,T45) \
   do {                                         \
@@ -510,7 +510,7 @@ void PairMGPT::force_debug_4(double xx[][3],
       trd1y = utr1y.d; trd2y = utr2y.d; trd3y = utr3y.d; trd4y = utr4y.d; \
       trd1z = utr1z.d; trd2z = utr2z.d; trd3z = utr3z.d; trd4z = utr4z.d; \
     }                                          \
-  } while(0)
+  } while (0)
 
 #define dfix_update_4a(coord) \
   do { \
@@ -518,7 +518,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     dfj##coord = ( ( sij)*trd1##coord + (-sjk)*trd2##coord ) * (ve / anorm4); \
     dfk##coord = ( ( sjk)*trd2##coord + (-skm)*trd4##coord ) * (ve / anorm4); \
     dfm##coord = ( ( sim)*trd3##coord + ( skm)*trd4##coord ) * (ve / anorm4); \
-  } while(0)
+  } while (0)
 
 
 #define dfix_update_4b(coord) \
@@ -527,7 +527,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     dfj##coord = ( (-sjk)*trd2##coord + (-sjm)*trd4##coord ) * (ve / anorm4); \
     dfk##coord = ( (-ski)*trd1##coord + ( sjk)*trd2##coord ) * (ve / anorm4); \
     dfm##coord = ( ( sim)*trd3##coord + ( sjm)*trd4##coord ) * (ve / anorm4); \
-  } while(0);
+  } while (0);
 
 #define dfix_update_4c(coord) \
   do { \
@@ -535,7 +535,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     dfj##coord = ( ( sij)*trd1##coord + (-sjm)*trd3##coord ) * (ve / anorm4); \
     dfk##coord = ( (-ski)*trd2##coord + (-skm)*trd4##coord ) * (ve / anorm4); \
     dfm##coord = ( ( sjm)*trd3##coord + ( skm)*trd4##coord ) * (ve / anorm4); \
-  } while(0);
+  } while (0);
 
 #define accumulate_forces_2(w) \
   do { \
@@ -546,7 +546,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     fjx = fjx + dfjx*(w);    \
     fjy = fjy + dfjy*(w);    \
     fjz = fjz + dfjz*(w);    \
-  } while(0)
+  } while (0)
 
 #define accumulate_forces_3(w) \
   do { \
@@ -554,7 +554,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     fkx = fkx + dfkx*(w);    \
     fky = fky + dfky*(w);    \
     fkz = fkz + dfkz*(w);    \
-  } while(0)
+  } while (0)
 
 #define accumulate_forces_4(w) \
   do { \
@@ -562,7 +562,7 @@ void PairMGPT::force_debug_4(double xx[][3],
     fmx = fmx + dfmx*(w);    \
     fmy = fmy + dfmy*(w);    \
     fmz = fmz + dfmz*(w);    \
-  } while(0)
+  } while (0)
 
 
 
@@ -868,7 +868,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 	*/
 
 	p = first[i+1]-1;
-	while(p >= first[i] && nlist_short[p] > j) {
+	while (p >= first[i] && nlist_short[p] > j) {
 	  nlist_short[p+1] = nlist_short[p];
 	  p = p - 1;
 	}
@@ -941,7 +941,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 	    Since i is in the j-list, and i > k and the list
 	    is sorted, the loop below terminates:-)
 	  */
-	  while(mj < first[j+1] && nlist_short[mj] < k) mj = mj + 1;
+	  while (mj < first[j+1] && nlist_short[mj] < k) mj = mj + 1;
 	  if (mj < first[j+1] && nlist_short[mj] == k) {
 	    /* Closed triplet */
 	    c_jk = 1;
@@ -1265,7 +1265,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 		i is in both the j-list and the k-list, and i > k,
 		and lists are sorted, so the loop terminates.
 	      */
-	      while(nlist_short[mj] < i && nlist_short[mk] < i) {
+	      while (nlist_short[mj] < i && nlist_short[mk] < i) {
 
 		if (mj >= first[j+1] || mk >= first[k+1]) {
 		  printf("Illegal quad...\n"
@@ -1291,7 +1291,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
 		    /* Alrady know ij,jk,ki,jm,km bonds. Look for im bond. */
 		    mi = first[i];
-		    while(mi < first[i+1] && nlist_short[mi] < m) mi = mi + 1;
+		    while (mi < first[i+1] && nlist_short[mi] < m) mi = mi + 1;
 		    if (mi < first[i+1] && nlist_short[mi] == m)
 		      c_im = 1;
 		    else
@@ -1613,7 +1613,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     {
       Hash<bond_data,Doublet>::Iterator iter = bond_hash.begin();
       int nitem = 0,nhit = 0;
-      while(iter != bond_hash.end()) {
+      while (iter != bond_hash.end()) {
 	nitem++;
 	nhit += iter.link()->hits;
 	iter.next();
@@ -2149,7 +2149,7 @@ void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zh
     Mx[j][i] = Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);        \
     My[j][i] = My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);        \
     Mz[j][i] = Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);        \
-  } while(0)
+  } while (0)
 
 #define MAKE_ELEMENT_7(i,j)                                          \
   do {                                                               \
@@ -2168,7 +2168,7 @@ void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zh
     Mx[j][i] = Mx[i][j] = fl_x*tmp + fl_ri*(tmpx - x*tmpsum);        \
     My[j][i] = My[i][j] = fl_y*tmp + fl_ri*(tmpy - y*tmpsum);        \
     Mz[j][i] = Mz[i][j] = fl_z*tmp + fl_ri*(tmpz - z*tmpsum);        \
-  } while(0)
+  } while (0)
 /* End of bond matrix macros */
 
 

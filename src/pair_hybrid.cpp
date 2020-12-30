@@ -775,14 +775,14 @@ void PairHybrid::read_restart(FILE *fp)
     special_lj[m] = special_coul[m] = nullptr;
     if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n > 0 ) {
+    if (n > 0) {
       special_lj[m] = new double[4];
       if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
     if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n > 0 ) {
+    if (n > 0) {
       special_coul[m] = new double[4];
       if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);

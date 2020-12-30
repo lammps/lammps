@@ -165,7 +165,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   Tokenizer tokens(labelline);
   nwords = 0;
 
-  while(tokens.has_next()) {
+  while (tokens.has_next()) {
     labels[tokens.next()] = nwords++;
   }
 

@@ -145,7 +145,7 @@ std::vector<std::string> Tokenizer::as_vector() {
   // generate vector
   std::vector<std::string> tokens;
 
-  while(has_next()) {
+  while (has_next()) {
     tokens.emplace_back(next());
   }
 

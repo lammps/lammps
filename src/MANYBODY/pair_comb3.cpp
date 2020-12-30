@@ -531,7 +531,7 @@ void PairComb3::read_file(char *file)
     PotentialFileReader reader(lmp, file, "COMB3");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -1085,7 +1085,7 @@ void PairComb3::compute(int eflag, int vflag)
       sht_lnum = sht_num[j];
 
       jtag = tag[j];
-      if ( jtag <= itag ) continue ;
+      if (jtag <= itag) continue ;
       ycn = NCo[j];
 
       jtype = map[type[j]];
@@ -1402,7 +1402,7 @@ void PairComb3::compute(int eflag, int vflag)
         // radical i-j-l-p: apply to all CC,CO,OC bonds
         if ( params[iparam_jil].rad_flag >= 1 &&
           params[iparam_jil].ielementgp == 1 &&
-          params[iparam_jil].kelementgp == 1 ) {
+          params[iparam_jil].kelementgp == 1) {
             iparam_lj = elem2param[ltype][jtype][jtype];
             lcn=NCo[l];
             double rjl=sqrt(rsq2);
@@ -1667,7 +1667,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
 
   // radical energy
 
-  if ( parami->rad_flag>0 ) {
+  if (parami->rad_flag>0) {
     rad_calc( r, parami, paramj, kconjug, lconjug, i, j, xcn, ycn);
     bij +=  brad[0];
     pradx = brad[1]*att_eng;
@@ -1701,7 +1701,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   prefac_ji5 = -0.5*att_eng*dbji5;      // prefac_ji5 = -pfji4
 
   // combines com6 & com7 below
-  if ( parami->rad_flag>0 || parami->tor_flag!=0 ) {
+  if (parami->rad_flag>0 || parami->tor_flag!=0) {
     prefac_ij2-=pradx;
     prefac_ji2-=prady;
   }
@@ -1859,7 +1859,7 @@ void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
   YYBn = (parami->aB-fabs(pow(parami->bB*(qi-parami->Qo),10)));
   YYBj = (paramj->aB-fabs(pow(paramj->bB*(qj-paramj->Qo),10)));
 
-  if (YYBn*YYBj > 0.0 ) {
+  if (YYBn*YYBj > 0.0) {
     AlfDiAlfDj = exp(0.5*(parami->alfi*Di+paramj->alfi*Dj));
     Bsi = (pbij1*exp(-alfij1*r)+pbij2*exp(-alfij2*r)+pbij3*exp(-alfij3*r))*
       sqrt(YYBn*YYBj)*AlfDiAlfDj;                               // Bsi is cbj
@@ -1894,7 +1894,7 @@ void PairComb3::comb_bij_d(double zet, Param *param, double r, int i,
   zeta = pow(zetang,pow_n)+pcorn;
   tmp_tbij=pow_n*pow(zetang,(pow_n-1.0));
 
-  if ((1.0 + zeta) < 0.1 ) {
+  if ((1.0 + zeta) < 0.1) {
     zeta=0.1-1.0;
     tbij = pow(1.0 + zeta, -0.5/pow_n);
     tbij1=0.0;
@@ -2933,7 +2933,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
   vec3_scale(-1.0,delrl,delrl);
   rmul = sqrt(1.0-rmul*rmul);
 
-  if (rmul > 0.1 ) {
+  if (rmul > 0.1) {
     double fc1k, fc1l, TT1, TT2, rmut, btt, tork[3], torl[3];
 
     fc1k = comb_fc(rik,paramk);
@@ -3065,7 +3065,7 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
   srmul = sqrt(1.0-rmul*rmul);
   if (acos(rmul) > MY_PI) srmul = -srmul;
 
-  if (srmul > 0.1 ) {
+  if (srmul > 0.1) {
     double fc1k, fcp1k, fc1l, fcp1l, srmul2, dt1dik, dt1djl;
     double TT1, TT2, rmut, btt, tork[3], torl[3];
     double dt2dik[3], dt2djl[3], dt2dij[3], AA, AA2;

@@ -75,7 +75,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
   vsize = 10;
   volarr = (double *) malloc(sizeof(double) * vsize);
   n = 0;
-  while(fgets(line,sizeof(line),in) != nullptr) {
+  while (fgets(line,sizeof(line),in) != nullptr) {
     double zval,ivol,rws,mass;
     double r0x,r1x,drx;
     int nrx,i;
@@ -185,7 +185,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   in = fopen(parmin_file,"r");
   do {
     fgets(line,sizeof(line),in);
-  } while(line[strspn(line," \t")] == '#');
+  } while (line[strspn(line," \t")] == '#');
 
   /* Test to see whether this is a one-line or two-line version of parmin */
   if (sscanf(line,"%lf %lf %lf %lf %d",&ddl[1],&ddl[2],&ddl[3],&ddl[4],&L) == 5) {
@@ -244,7 +244,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
     do {
       fgets(line,sizeof(line),in);
-    } while(line[strspn(line," \t")] == '#');
+    } while (line[strspn(line," \t")] == '#');
 
     metalx[0] = 0;
 

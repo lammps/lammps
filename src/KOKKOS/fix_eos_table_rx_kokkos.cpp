@@ -303,7 +303,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
   nPG = 0;
 
   if (rx_flag) {
-    for (int ispecies = 0; ispecies < nspecies; ispecies++ ) {
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       nTotal += dvector(ispecies,id);
       if (fabs(d_moleculeCorrCoeff[ispecies]) > tolerance) {
         nPG++;

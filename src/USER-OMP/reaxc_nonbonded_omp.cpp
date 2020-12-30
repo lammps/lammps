@@ -96,13 +96,13 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     if (system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;

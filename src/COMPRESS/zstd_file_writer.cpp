@@ -81,7 +81,7 @@ size_t ZstdFileWriter::write(const void * buffer, size_t length)
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
     ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(input.pos < input.size);
+  } while (input.pos < input.size);
 
   return length;
 }
@@ -100,7 +100,7 @@ void ZstdFileWriter::flush()
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(remaining);
+  } while (remaining);
 
   fflush(fp);
 }
@@ -119,7 +119,7 @@ void ZstdFileWriter::close()
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(remaining);
+  } while (remaining);
 
   ZSTD_freeCCtx(cctx);
   cctx = nullptr;

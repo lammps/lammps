@@ -1289,7 +1289,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
     // allocate data for eigenvalue decomposition
     double **A=nullptr;
     double **Q=nullptr;
-    if ( n > 1 ) {
+    if (n > 1) {
       // get dispersion coefficients
       double **b = (double **) force->pair->extract("B",tmp);
       memory->create(A,n,n,"pppm/disp:A");
@@ -1364,7 +1364,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
 
     // check if the function should preferably be [1] or [2] or [3]
     if (nsplit == 1) {
-      if ( B ) delete [] B;
+      if (B) delete [] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1380,7 +1380,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
     }
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
-      if ( B ) delete [] B;
+      if (B) delete [] B;
     }
     if (function[3]) {
       if (me == 0)
@@ -2130,7 +2130,7 @@ void PPPMDisp::allocate_peratom()
   }
 
   if (function[2]) {
-    if (differentiation_flag != 1 ) {
+    if (differentiation_flag != 1) {
       memory->create3d_offset(u_brick_a0,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_a0");
       memory->create3d_offset(u_brick_a1,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,

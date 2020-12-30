@@ -47,7 +47,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      if ( a[i] ) delete [] a[i];
+      if (a[i]) delete [] a[i];
     delete [] a;
     delete [] nterms;
   }
@@ -290,7 +290,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     a[i] = new double [n];
     nterms[i] = n;
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }

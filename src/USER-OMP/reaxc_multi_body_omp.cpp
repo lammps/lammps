@@ -116,7 +116,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     numbonds = 0;
     e_lp = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
     /* calculate the energy */
@@ -137,7 +137,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     /* correction for C2 */
     if (p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C"))
-      for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+      for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
@@ -227,7 +227,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     numbonds = 0;
     e_un = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
     if (numbonds > 0) total_Eun += e_un =

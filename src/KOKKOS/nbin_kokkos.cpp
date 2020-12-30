@@ -92,7 +92,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
   h_resize() = 1;
 
-  while(h_resize() > 0) {
+  while (h_resize() > 0) {
     h_resize() = 0;
     deep_copy(d_resize, h_resize);
 

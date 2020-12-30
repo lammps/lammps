@@ -162,7 +162,7 @@ void PairQUIP::compute(int eflag, int vflag)
 
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
-     for ( jj = 0; jj < 3; jj++ ) {
+     for (jj = 0; jj < 3; jj++) {
         f[ii][jj] += quip_force[iquip];
         iquip++;
      }

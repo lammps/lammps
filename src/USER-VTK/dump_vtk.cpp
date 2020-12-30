@@ -1910,7 +1910,7 @@ void DumpVTK::identify_vectors()
       continue;
 
     // assume components are grouped together and in correct order
-    if (name.count(it->first + 1) && name.count(it->first + 2) ) { // more attributes?
+    if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
          it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
       {

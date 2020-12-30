@@ -1091,7 +1091,7 @@ void utils::merge_sort(int *index, int num, void *ptr,
 
     // copy all indices not handled by the chunked merge sort loop
 
-    for ( ; i < num ; i++ ) dest[i] = hold[i];
+    for (; i < num ; i++) dest[i] = hold[i];
     chunk *= 2;
   }
 

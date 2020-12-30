@@ -103,9 +103,9 @@ voronoicell_base::~voronoicell_base() {
  * \param[in] vb a pointered to the class to be copied. */
 template<class vc_class>
 void voronoicell_base::check_memory_for_copy(vc_class &vc,voronoicell_base* vb) {
-        while(current_vertex_order<vb->current_vertex_order) add_memory_vorder(vc);
-        for (int i=0;i<current_vertex_order;i++) while(mem[i]<vb->mec[i]) add_memory(vc,i,ds2);
-        while(current_vertices<vb->p) add_memory_vertices(vc);
+        while (current_vertex_order<vb->current_vertex_order) add_memory_vorder(vc);
+        for (int i=0;i<current_vertex_order;i++) while (mem[i]<vb->mec[i]) add_memory(vc,i,ds2);
+        while (current_vertices<vb->p) add_memory_vertices(vc);
 }
 
 /** Increases the memory storage for a particular vertex order, by increasing
@@ -139,7 +139,7 @@ void voronoicell_base::add_memory(vc_class &vc,int i,int *stackp2) {
                 l=new int[s*mem[i]];
                 int m=0;
                 vc.n_allocate_aux1(i);
-                while(j<s*mec[i]) {
+                while (j<s*mec[i]) {
                         k=mep[i][j+(i<<1)];
                         if (k>=0) {
                                 ed[k]=l+j;
@@ -211,14 +211,14 @@ void voronoicell_base::add_memory_vorder(vc_class &vc) {
 #endif
         p1=new int[i];
         for (j=0;j<current_vertex_order;j++) p1[j]=mem[j];
-        while(j<i) p1[j++]=0;
+        while (j<i) p1[j++]=0;
         delete [] mem;mem=p1;
         p2=new int*[i];
         for (j=0;j<current_vertex_order;j++) p2[j]=mep[j];
         delete [] mep;mep=p2;
         p1=new int[i];
         for (j=0;j<current_vertex_order;j++) p1[j]=mec[j];
-        while(j<i) p1[j++]=0;
+        while (j<i) p1[j++]=0;
         delete [] mec;mec=p1;
         vc.n_add_memory_vorder(i);
         current_vertex_order=i;
@@ -234,7 +234,7 @@ void voronoicell_base::add_memory_ds(int *&stackp) {
         fprintf(stderr,"Delete stack 1 memory scaled up to %d\n",current_delete_size);
 #endif
         int *dsn=new int[current_delete_size],*dsnp=dsn,*dsp=ds;
-        while(dsp<stackp) *(dsnp++)=*(dsp++);
+        while (dsp<stackp) *(dsnp++)=*(dsp++);
         delete [] ds;ds=dsn;stackp=dsnp;
         stacke=ds+current_delete_size;
 }
@@ -249,7 +249,7 @@ void voronoicell_base::add_memory_ds2(int *&stackp2) {
         fprintf(stderr,"Delete stack 2 memory scaled up to %d\n",current_delete2_size);
 #endif
         int *dsn=new int[current_delete2_size],*dsnp=dsn,*dsp=ds2;
-        while(dsp<stackp2) *(dsnp++)=*(dsp++);
+        while (dsp<stackp2) *(dsnp++)=*(dsp++);
         delete [] ds2;ds2=dsn;stackp2=dsnp;
         stacke2=ds2+current_delete2_size;
 }
@@ -293,7 +293,7 @@ inline bool voronoicell_base::search_for_outside_edge(vc_class &vc,int &up) {
         int i,lp,lw,*j(ds2),*stackp2(ds2);
         double l;
         *(stackp2++)=up;
-        while(j<stackp2) {
+        while (j<stackp2) {
                 up=*(j++);
                 for (i=0;i<nu[up];i++) {
                         lp=ed[up][i];
@@ -359,7 +359,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         }
 
                         ls=ed[up][nu[up]+us];
-                        while(lw==1) {
+                        while (lw==1) {
                                 if (++count>=p) throw true;
                                 u=l;up=lp;
                                 for (us=0;us<ls;us++) {
@@ -369,7 +369,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                                 }
                                 if (us==ls) {
                                         us++;
-                                        while(us<nu[up]) {
+                                        while (us<nu[up]) {
                                                 lp=ed[up][us];
                                                 lw=m_test(lp,l);
                                                 if (l<u) break;
@@ -399,7 +399,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         } while (us<nu[up]);
                         if (us==nu[up]) return true;
 
-                        while(qw==-1) {
+                        while (qw==-1) {
                                 qs=ed[up][nu[up]+us];
                                 if (++count>=p) throw true;
                                 u=q;up=qp;
@@ -410,7 +410,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                                 }
                                 if (us==qs) {
                                         us++;
-                                        while(us<nu[up]) {
+                                        while (us<nu[up]) {
                                                 qp=ed[up][us];
                                                 qw=m_test(qp,q);
                                                 if (u<q) break;
@@ -551,7 +551,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // We found an edge outside the cutting space. Keep
                         // moving through these edges until we find one that's
                         // inside or on the plane.
-                        while(j<nu[up]) {
+                        while (j<nu[up]) {
                                 lp=ed[up][j];
                                 lw=m_test(lp,l);
                                 if (lw!=-1) break;
@@ -583,7 +583,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // one. Delete the edges of the original vertex, and
                         // update the relational table.
                         us=cycle_down(i,up);
-                        while(i<j) {
+                        while (i<j) {
                                 qp=ed[up][i];
                                 qs=ed[up][nu[up]+i];
                                 vc.n_copy(p,k,up,i);
@@ -603,7 +603,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         i=nu[up]-1;
                         lp=ed[up][i];
                         lw=m_test(lp,l);
-                        while(lw==-1) {
+                        while (lw==-1) {
                                 i--;
 
                                 // If i reaches zero, then we have a point in
@@ -618,7 +618,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         j=1;
                         qp=ed[up][j];
                         qw=m_test(qp,q);
-                        while(qw==-1) {
+                        while (qw==-1) {
                                 j++;
                                 qp=ed[up][j];
                                 qw=m_test(qp,l);
@@ -641,7 +641,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // Add memory to store the vertex if it doesn't exist
                         // already
                         k=1;
-                        while(nu[p]>=current_vertex_order) add_memory_vorder(vc);
+                        while (nu[p]>=current_vertex_order) add_memory_vorder(vc);
                         if (mec[nu[p]]==mem[nu[p]]) add_memory(vc,nu[p],stackp2);
 
                         // Copy the edges of the original vertex into the new
@@ -651,7 +651,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         ed[p]=mep[nu[p]]+((nu[p]<<1)+1)*mec[nu[p]]++;
                         ed[p][nu[p]<<1]=p;
                         us=i++;
-                        while(i<nu[up]) {
+                        while (i<nu[up]) {
                                 qp=ed[up][i];
                                 qs=ed[up][nu[up]+i];
                                 vc.n_copy(p,k,up,i);
@@ -663,7 +663,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                                 i++;k++;
                         }
                         i=0;
-                        while(i<j) {
+                        while (i<j) {
                                 qp=ed[up][i];
                                 qs=ed[up][nu[up]+i];
                                 vc.n_copy(p,k,up,i);
@@ -734,7 +734,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
         // When the code reaches here, we have initialized the first point, and
         // we have a direction for moving it to construct the rest of the facet
         cp=p;rp=p;p++;
-        while(qp!=up||qs!=us) {
+        while (qp!=up||qs!=us) {
 
                 // We're currently tracing round an intersected facet. Keep
                 // moving around it until we find a point or edge which
@@ -887,7 +887,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // k now holds the number of edges of the new vertex
                         // we are forming. Add memory for it if it doesn't exist
                         // already.
-                        while(k>=current_vertex_order) add_memory_vorder(vc);
+                        while (k>=current_vertex_order) add_memory_vorder(vc);
                         if (mec[k]==mem[k]) add_memory(vc,k,stackp2);
 
                         // Now create a new vertex with order k, or augment
@@ -903,7 +903,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                                         vc.n_set_aux1(k);
                                         edp=mep[k]+((k<<1)+1)*mec[k]++;
                                         i=0;
-                                        while(i<nu[j]) {
+                                        while (i<nu[j]) {
                                                 vc.n_copy_aux1(j,i);
                                                 edp[i]=ed[j][i];
                                                 edp[k+i]=ed[j][nu[j]+i];
@@ -956,7 +956,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // Copy in the edges of the underlying vertex,
                         // and do one less if this was a double edge
                         qs=iqs;
-                        while(i<(new_double_edge?k:k-1)) {
+                        while (i<(new_double_edge?k:k-1)) {
                                 qs=cycle_up(qs,qp);
                                 lp=ed[qp][qs];ls=ed[qp][nu[qp]+qs];
                                 vc.n_copy(j,i,qp,qs);
@@ -986,7 +986,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
 
         // Delete points: first, remove any duplicates
         dsp=ds;
-        while(dsp<stackp) {
+        while (dsp<stackp) {
                 j=*dsp;
                 if (ed[j][nu[j]]!=-1) {
                         ed[j][nu[j]]=-1;
@@ -1025,12 +1025,12 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
         up=0;
 
         // Delete them from the array structure
-        while(stackp>ds) {
+        while (stackp>ds) {
                 --p;
-                while(ed[p][nu[p]]==-1) {
+                while (ed[p][nu[p]]==-1) {
                         j=nu[p];
                         edp=ed[p];edd=(mep[j]+((j<<1)+1)*--mec[j]);
-                        while(edp<ed[p]+(j<<1)+1) *(edp++)=*(edd++);
+                        while (edp<ed[p]+(j<<1)+1) *(edp++)=*(edd++);
                         vc.n_set_aux2_copy(p,j);
                         vc.n_copy_pointer(ed[p][(j<<1)],p);
                         ed[ed[p][(j<<1)]]=ed[p];
@@ -1047,7 +1047,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                         // Memory management
                         j=nu[up];
                         edp=ed[up];edd=(mep[j]+((j<<1)+1)*--mec[j]);
-                        while(edp<ed[up]+(j<<1)+1) *(edp++)=*(edd++);
+                        while (edp<ed[up]+(j<<1)+1) *(edp++)=*(edd++);
                         vc.n_set_aux2_copy(up,j);
                         vc.n_copy_pointer(ed[up][j<<1],up);
                         vc.n_copy_pointer(up,p);
@@ -1082,7 +1082,7 @@ template<class vc_class>
 inline bool voronoicell_base::collapse_order2(vc_class &vc) {
         if (!collapse_order1(vc)) return false;
         int a,b,i,j,k,l;
-        while(mec[2]>0) {
+        while (mec[2]>0) {
 
                 // Pick a order 2 vertex and read in its edges
                 i=--mec[2];
@@ -1142,7 +1142,7 @@ inline bool voronoicell_base::collapse_order2(vc_class &vc) {
 template<class vc_class>
 inline bool voronoicell_base::collapse_order1(vc_class &vc) {
         int i,j,k;
-        while(mec[1]>0) {
+        while (mec[1]>0) {
                 up=0;
 #if VOROPP_VERBOSE >=1
                 fputs("Order one collapse\n",stderr);
@@ -1187,7 +1187,7 @@ inline bool voronoicell_base::delete_connection(vc_class &vc,int j,int k,bool ha
         if (mec[i]==mem[i]) add_memory(vc,i,ds2);
         vc.n_set_aux1(i);
         for (l=0;l<q;l++) vc.n_copy_aux1(j,l);
-        while(l<i) {
+        while (l<i) {
                 vc.n_copy_aux1_shift(j,l);
                 l++;
         }
@@ -1197,7 +1197,7 @@ inline bool voronoicell_base::delete_connection(vc_class &vc,int j,int k,bool ha
                 edp[l]=ed[j][l];
                 edp[l+i]=ed[j][l+nu[j]];
         }
-        while(l<i) {
+        while (l<i) {
                 m=ed[j][l+1];
                 edp[l]=m;
                 k=ed[j][l+nu[j]+1];
@@ -1232,7 +1232,7 @@ void voronoicell_base::face_areas(std::vector<double> &v) {
                         ed[i][j]=-1-k;
                         l=cycle_up(ed[i][nu[i]+j],k);
                         m=ed[k][l];ed[k][l]=-1-m;
-                        while(m!=i) {
+                        while (m!=i) {
                                 n=cycle_up(ed[k][nu[k]+l],m);
                                 ux=pts[3*k]-pts[3*i];
                                 uy=pts[3*k+1]-pts[3*i+1];

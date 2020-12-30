@@ -417,7 +417,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
    // compute ydot at t=t0
    k_rhs (t, y, ydot, userData);
 
-   while(1)
+   while (1)
    {
       // Estimate y'' with finite-difference ...
 
@@ -455,11 +455,11 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }
@@ -736,7 +736,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while(1)
+   while (1)
    {
       // Estimate y'' with finite-difference ...
 
@@ -774,11 +774,11 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }

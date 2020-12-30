@@ -111,8 +111,8 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
      Hydrogen bond is between j and k.
      so in this function i->X, j->H, k->Z when we map
      variables onto the ones in the handout.*/
-  //  for( j = 0; j < system->n; ++j )
-  for( j = ifrom; j < ito; ++j ) {
+  //  for (j = 0; j < system->n; ++j)
+  for (j = ifrom; j < ito; ++j) {
     /* j has to be of type H */
     if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
       /*set j's variables */
@@ -124,7 +124,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
       if (type_j < 0) continue;
 
       top = 0;
-      for( pi = start_j; pi < end_j; ++pi )  {
+      for (pi = start_j; pi < end_j; ++pi)  {
         pbond_ij = &( bond_list[pi] );
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;
@@ -136,7 +136,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
           hblist[top++] = pi;
       }
 
-      for( pk = hb_start_j; pk < hb_end_j; ++pk ) {
+      for (pk = hb_start_j; pk < hb_end_j; ++pk) {
         /* set k's varibles */
         k = hbond_list[pk].nbr;
         type_k = system->my_atoms[k].type;
@@ -145,7 +145,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
         r_jk = nbr_jk->d;
         rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
 
-        for( itr = 0; itr < top; ++itr ) {
+        for (itr = 0; itr < top; ++itr) {
           pi = hblist[itr];
           pbond_ij = &( bonds->select.bond_list[pi] );
           i = pbond_ij->nbr;

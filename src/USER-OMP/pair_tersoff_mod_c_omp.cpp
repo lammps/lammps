@@ -74,8 +74,10 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
   tagint itag,jtag;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double fforce;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+  double r1_hat[3],r2_hat[3];
   double zeta_ij,prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -135,6 +137,9 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
+      double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
+      vec3_scale(r1inv, delr1, r1_hat);
+
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
       fxtmp += delx*fpair;
@@ -164,6 +169,9 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
       if (rsq1 > params[iparam_ij].cutsq) continue;
 
+      double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
+      vec3_scale(r1inv, delr1, r1_hat);
+
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
       fjxtmp = fjytmp = fjztmp = 0.0;
@@ -182,12 +190,17 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
+        vec3_scale(r2inv, delr2, r2_hat);
+
+        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,r2_hat);
       }
 
       // pairwise force due to zeta
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,EFLAG,evdwl);
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fforce,prefactor,EFLAG,evdwl);
+      
+      fpair = fforce*r1inv;
 
       fxtmp += delr1[0]*fpair;
       fytmp += delr1[1]*fpair;
@@ -214,8 +227,11 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
+        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
+        vec3_scale(r2inv, delr2, r2_hat);
+
         attractive(&params[iparam_ijk],prefactor,
-                   rsq1,rsq2,delr1,delr2,fi,fj,fk);
+                   rsq1,rsq2,r1_hat,r2_hat,fi,fj,fk);
 
         fxtmp += fi[0];
         fytmp += fi[1];

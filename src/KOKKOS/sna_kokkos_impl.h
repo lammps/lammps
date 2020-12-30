@@ -531,7 +531,7 @@ void SNAKokkos<DeviceType, real, vector_length>::compute_ui(const typename Kokko
         // grab the cached value
         const complex ulist_prev = ulist_wrapper.get(ma);
 
-        // ulist_accum += rootpq * a.conj() * ulist_prev; 
+        // ulist_accum += rootpq * a.conj() * ulist_prev;
         real rootpq = rootpqarray(j - ma, j - mb);
         ulist_accum.re += rootpq * (a.re * ulist_prev.re + a.im * ulist_prev.im);
         ulist_accum.im += rootpq * (a.re * ulist_prev.im - a.im * ulist_prev.re);
@@ -943,7 +943,7 @@ void SNAKokkos<DeviceType, real, vector_length>::compute_fused_deidrj(const type
         const complex ulist_prev = ulist_wrapper.get(ma);
         const complex dulist_prev = dulist_wrapper.get(ma);
 
-        // ulist_accum += rootpq * a.conj() * ulist_prev; 
+        // ulist_accum += rootpq * a.conj() * ulist_prev;
         real rootpq = rootpqarray(j - ma, j - mb);
         ulist_accum.re += rootpq * (a.re * ulist_prev.re + a.im * ulist_prev.im);
         ulist_accum.im += rootpq * (a.re * ulist_prev.im - a.im * ulist_prev.re);

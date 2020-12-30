@@ -13,8 +13,6 @@
 
 #ifdef PAIR_CLASS
 
-#include "kokkos_type.h"
-
 PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>)
 PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>)
 #ifdef LMP_KOKKOS_GPU

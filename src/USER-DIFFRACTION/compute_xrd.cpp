@@ -80,11 +80,11 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   // Define atom types for atomic scattering factor coefficients
   int iarg = 4;
   ztype = new int[ntypes];
-  for (int i = 0; i < ntypes; i++){
+  for (int i = 0; i < ntypes; i++) {
     ztype[i] = XRDmaxType + 1;
   }
   for (int i = 0; i < ntypes; i++) {
-    for(int j = 0; j < XRDmaxType; j++){
+    for (int j = 0; j < XRDmaxType; j++) {
       if (strcasecmp(arg[iarg],XRDtypeList[j]) == 0) {
         ztype[i] = j;
        }
@@ -109,7 +109,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal Compute XRD Command");
       Min2Theta = atof(arg[iarg+1]) / 2;
       Max2Theta = atof(arg[iarg+2]) / 2;
-      if (Max2Theta > MY_PI ){
+      if (Max2Theta > MY_PI ) {
         Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
         Max2Theta = Max2Theta * MY_PI / 180;
         radflag = 0;
@@ -162,28 +162,28 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     double ave_inv = 0.0;
     prd = domain->prd;
 
-    if (periodicity[0]){
+    if (periodicity[0]) {
       prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
     }
-    if (periodicity[1]){
+    if (periodicity[1]) {
       prd_inv[1] = 1 / prd[1];
       ave_inv += prd_inv[1];
     }
-    if (periodicity[2]){
+    if (periodicity[2]) {
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
     }
 
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
-    if (!periodicity[0]){
+    if (!periodicity[0]) {
       prd_inv[0] = ave_inv;
     }
-    if (!periodicity[1]){
+    if (!periodicity[1]) {
       prd_inv[1] = ave_inv;
     }
-    if (!periodicity[2]){
+    if (!periodicity[2]) {
       prd_inv[2] = ave_inv;
     }
   }
@@ -261,7 +261,7 @@ void ComputeXRD::init()
   double ang = 0.0;
 
   double convf = 360 / MY_PI;
-  if (radflag ==1){
+  if (radflag ==1) {
   convf = 1;
   }
 
@@ -400,16 +400,16 @@ void ComputeXRD::compute_array()
         Fatom2 = 0.0;
 
         // Calculate the atomic structure factor by type
-        for (int ii = 0; ii < ntypes; ii++){
+        for (int ii = 0; ii < ntypes; ii++) {
           f[ii] = 0;
-          for (int C = 0; C < 8 ; C+=2){
+          for (int C = 0; C < 8 ; C+=2) {
             f[ii] += ASFXRD[ztype[ii]][C] * exp(-1 * ASFXRD[ztype[ii]][C+1] * SinTheta_lambda * SinTheta_lambda );
           }
           f[ii] += ASFXRD[ztype[ii]][8];
         }
 
         // Evaluate the structure factor equation -- looping over all atoms
-        for (int ii = 0; ii < nlocalgroup; ii++){
+        for (int ii = 0; ii < nlocalgroup; ii++) {
           typei=typelocal[ii]-1;
           inners = 2 * MY_PI * (K[0] * xlocal[3*ii] + K[1] * xlocal[3*ii+1] +
                     K[2] * xlocal[3*ii+2]);
@@ -456,16 +456,16 @@ void ComputeXRD::compute_array()
         Fatom2 = 0.0;
 
         // Calculate the atomic structure factor by type
-        for (int ii = 0; ii < ntypes; ii++){
+        for (int ii = 0; ii < ntypes; ii++) {
           f[ii] = 0;
-          for (int C = 0; C < 8 ; C+=2){
+          for (int C = 0; C < 8 ; C+=2) {
             f[ii] += ASFXRD[ztype[ii]][C] * exp(-1 * ASFXRD[ztype[ii]][C+1] * SinTheta_lambda * SinTheta_lambda );
           }
           f[ii] += ASFXRD[ztype[ii]][8];
         }
 
         // Evaluate the structure factor equation -- looping over all atoms
-        for (int ii = 0; ii < nlocalgroup; ii++){
+        for (int ii = 0; ii < nlocalgroup; ii++) {
           typei=typelocal[ii]-1;
           inners = 2 * MY_PI * (K[0] * xlocal[3*ii] + K[1] * xlocal[3*ii+1] +
                     K[2] * xlocal[3*ii+2]);

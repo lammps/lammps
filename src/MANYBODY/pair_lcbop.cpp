@@ -1220,7 +1220,7 @@ void PairLCBOP::spline_init() {
 //  for( double y=0; y<=3.0+0.0001; y+=0.1 )
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for( double x=0; x<=3.0+0.0001; x+=0.1 ) {
 //    file << x << " ";
 //    for( double y=0; y<=3.0+0.0001; y+=0.1 )
 //      file << F_conj( x, y, 0, &dummy, &dummy, &dummy ) << " ";
@@ -1231,7 +1231,7 @@ void PairLCBOP::spline_init() {
 //  for( double y=0; y<=3.0+0.0001; y+=0.1 )
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for( double x=0; x<=3.0+0.0001; x+=0.1 ) {
 //    file << x << " ";
 //    for( double y=0; y<=3.0+0.0001; y+=0.1 ) {
 //      double dF_dx;
@@ -1247,7 +1247,7 @@ void PairLCBOP::spline_init() {
 //  for( double y=0; y<=3.0+0.0001; y+=0.1 )
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for( double x=0; x<=3.0+0.0001; x+=0.1 ) {
 //    file << x << " ";
 //    for( double y=0; y<=3.0+0.0001; y+=0.1 )
 //      file << F_conj( x, y, 0, &dummy, &dummy, &dummy ) << " ";

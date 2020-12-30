@@ -176,7 +176,7 @@ void Valence_Angles( reax_system *system, control_params *control,
       BOA_ij = bo_ij->BO - control->thb_cut;
 
 
-      if( BOA_ij/*bo_ij->BO*/ > 0.0 &&
+      if ( BOA_ij/*bo_ij->BO*/ > 0.0 &&
           ( j < system->n || pbond_ij->nbr < system->n ) ) {
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;

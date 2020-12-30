@@ -303,7 +303,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   /* Equate vval3 to valf for first-row elements (25/10/2004) */
   for( i = 0; i < reax->num_atom_types; i++ )
-    if( reax->sbp[i].mass < 21 &&
+    if ( reax->sbp[i].mass < 21 &&
         reax->sbp[i].valency_val != reax->sbp[i].valency_boc ) {
       if (me == 0) {
         char errmsg[256];

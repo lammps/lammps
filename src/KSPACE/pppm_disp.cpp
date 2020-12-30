@@ -1220,7 +1220,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
     MPI_Allreduce(virial_6,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] += 0.5*volume*virial_all[i];
-    if (function[1]+function[2]+function[3]){
+    if (function[1]+function[2]+function[3]) {
       double a =  MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij;
       virial[0] -= a;
       virial[1] -= a;
@@ -8155,7 +8155,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
     for (int i = 0; i < n; i++) {
       fft1->timing1d(work1,nfft_both,1);
       fft2->timing1d(work1,nfft_both,-1);
-      if (differentiation_flag != 1){
+      if (differentiation_flag != 1) {
         fft2->timing1d(work1,nfft_both,-1);
         fft2->timing1d(work1,nfft_both,-1);
       }
@@ -8173,7 +8173,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
     for (int i = 0; i < n; i++) {
       fft1_6->timing1d(work1_6,nfft_both_6,1);
       fft2_6->timing1d(work1_6,nfft_both_6,-1);
-      if (differentiation_flag != 1){
+      if (differentiation_flag != 1) {
         fft2_6->timing1d(work1_6,nfft_both_6,-1);
         fft2_6->timing1d(work1_6,nfft_both_6,-1);
       }

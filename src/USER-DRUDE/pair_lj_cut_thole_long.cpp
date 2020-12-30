@@ -131,7 +131,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    if (drudetype[type[i]] != NOPOL_TYPE){
+    if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
@@ -187,9 +187,9 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           }
 
           if (drudetype[type[i]] != NOPOL_TYPE &&
-              drudetype[type[j]] != NOPOL_TYPE){
-            if (j != di_closest){
-              if (drudetype[type[j]] == CORE_TYPE){
+              drudetype[type[j]] != NOPOL_TYPE) {
+            if (j != di_closest) {
+              if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
@@ -231,7 +231,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
-                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;

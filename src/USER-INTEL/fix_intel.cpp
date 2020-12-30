@@ -783,7 +783,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
   if (_nthreads > INTEL_HTHREADS) packthreads = _nthreads;
   else packthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     #if defined(_OPENMP)
@@ -1266,7 +1266,7 @@ int FixIntel::set_host_affinity(const int nomp)
       if (nlwp <= plwp) continue;
 
       CPU_ZERO(&cpuset);
-      for(int i=0; i<coi_cores; i++)
+      for (int i=0; i<coi_cores; i++)
         CPU_SET(proc_list[i], &cpuset);
 
       if (sched_setaffinity(lwp, sizeof(cpu_set_t), &cpuset)) {

@@ -139,8 +139,8 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
   k_shield = DAT::tdual_ffloat_2d("qeq/kk:shield",ntypes+1,ntypes+1);
   d_shield = k_shield.template view<DeviceType>();
 
-  for( i = 1; i <= ntypes; ++i )
-    for( j = 1; j <= ntypes; ++j )
+  for ( i = 1; i <= ntypes; ++i )
+    for ( j = 1; j <= ntypes; ++j )
       k_shield.h_view(i,j) = pow( gamma[i] * gamma[j], -1.5 );
 
   k_shield.template modify<LMPHostType>();
@@ -1053,7 +1053,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_s[j];
       a_o[j] += d_val(jj) * d_s[i];
@@ -1106,7 +1106,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_d[j];
       a_o[j] += d_val(jj) * d_d[i];
@@ -1166,7 +1166,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_t[j];
       a_o[j] += d_val(jj) * d_t[i];
@@ -1371,11 +1371,11 @@ void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxPackForwardComm, cons
 
   if (pack_flag == 1)
     d_buf[i] = d_d[j];
-  else if( pack_flag == 2 )
+  else if ( pack_flag == 2 )
     d_buf[i] = d_s[j];
-  else if( pack_flag == 3 )
+  else if ( pack_flag == 3 )
     d_buf[i] = d_t[j];
-  else if( pack_flag == 4 )
+  else if ( pack_flag == 4 )
     d_buf[i] = q[j];
 }
 
@@ -1394,11 +1394,11 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxUnpackForwardComm, const int &i) const {
   if (pack_flag == 1)
     d_d[i + first] = d_buf[i];
-  else if( pack_flag == 2)
+  else if ( pack_flag == 2)
     d_s[i + first] = d_buf[i];
-  else if( pack_flag == 3)
+  else if ( pack_flag == 3)
     d_t[i + first] = d_buf[i];
-  else if( pack_flag == 4)
+  else if ( pack_flag == 4)
     q[i + first] = d_buf[i];
 
 }
@@ -1412,13 +1412,13 @@ int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *bu
   int m;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = h_d[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = h_s[list[m]];
-  else if( pack_flag == 3 )
-    for(m = 0; m < n; m++) buf[m] = h_t[list[m]];
-  else if( pack_flag == 4 )
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+    for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
+  else if ( pack_flag == 2 )
+    for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
+  else if ( pack_flag == 3 )
+    for (m = 0; m < n; m++) buf[m] = h_t[list[m]];
+  else if ( pack_flag == 4 )
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
 
   return n;
 }
@@ -1431,13 +1431,13 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
-  else if( pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
-  else if( pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
+  else if ( pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
+  else if ( pack_flag == 3)
+    for (m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
+  else if ( pack_flag == 4)
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1446,7 +1446,7 @@ template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) {
+  for (m = 0, i = first; m < n; m++, i++) {
     buf[m] = h_o[i];
   }
   return n;
@@ -1457,7 +1457,7 @@ int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *bu
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  for(int m = 0; m < n; m++) {
+  for (int m = 0; m < n; m++) {
     h_o[list[m]] += buf[m];
   }
 }

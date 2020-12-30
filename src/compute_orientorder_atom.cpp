@@ -440,16 +440,16 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
 
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    for(int m = 0; m < 2*l+1; m++) {
+    for (int m = 0; m < 2*l+1; m++) {
       qnm_r[il][m] = 0.0;
       qnm_i[il][m] = 0.0;
     }
   }
 
-  for(int ineigh = 0; ineigh < ncount; ineigh++) {
+  for (int ineigh = 0; ineigh < ncount; ineigh++) {
     const double * const r = rlist[ineigh];
     double rmag = dist(r);
-    if(rmag <= MY_EPSILON) {
+    if (rmag <= MY_EPSILON) {
       return;
     }
 
@@ -457,7 +457,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     double expphi_r = r[0];
     double expphi_i = r[1];
     double rxymag = sqrt(expphi_r*expphi_r+expphi_i*expphi_i);
-    if(rxymag <= MY_EPSILON) {
+    if (rxymag <= MY_EPSILON) {
       expphi_r = 1.0;
       expphi_i = 0.0;
     } else {
@@ -476,14 +476,14 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       qnm_r[il][l] += polar_prefactor(l, 0, costheta);
       double expphim_r = expphi_r;
       double expphim_i = expphi_i;
-      for(int m = 1; m <= +l; m++) {
+      for (int m = 1; m <= +l; m++) {
 
         double prefactor = polar_prefactor(l, m, costheta);
         double ylm_r = prefactor * expphim_r;
         double ylm_i = prefactor * expphim_i;
         qnm_r[il][m+l] += ylm_r;
         qnm_i[il][m+l] += ylm_i;
-        if(m & 1) {
+        if (m & 1) {
           qnm_r[il][-m+l] -= ylm_r;
           qnm_i[il][-m+l] += ylm_i;
         } else {
@@ -504,7 +504,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   double facn = 1.0 / ncount;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    for(int m = 0; m < 2*l+1; m++) {
+    for (int m = 0; m < 2*l+1; m++) {
       qnm_r[il][m] *= facn;
       qnm_i[il][m] *= facn;
     }
@@ -518,7 +518,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     int l = qlist[il];
     double qnormfac = sqrt(MY_4PI/(2*l+1));
     double qm_sum = 0.0;
-    for(int m = 0; m < 2*l+1; m++)
+    for (int m = 0; m < 2*l+1; m++)
       qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
     qn[jj++] = qnormfac * sqrt(qm_sum);
   }
@@ -530,8 +530,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
       double wlsum = 0.0;
-      for(int m1 = 0; m1 < 2*l+1; m1++) {
-        for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+      for (int m1 = 0; m1 < 2*l+1; m1++) {
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
           int m = m1 + m2 - l;
           double qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
           double qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
@@ -550,8 +550,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
       double wlsum = 0.0;
-      for(int m1 = 0; m1 < 2*l+1; m1++) {
-        for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+      for (int m1 = 0; m1 < 2*l+1; m1++) {
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
           int m = m1 + m2 - l;
           double qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
           double qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
@@ -575,14 +575,14 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     int il = iqlcomp;
     int l = qlcomp;
     if (qn[il] < QEPSILON)
-      for(int m = 0; m < 2*l+1; m++) {
+      for (int m = 0; m < 2*l+1; m++) {
         qn[jj++] = 0.0;
         qn[jj++] = 0.0;
       }
     else {
       double qnormfac = sqrt(MY_4PI/(2*l+1));
       double qnfac = qnormfac/qn[il];
-      for(int m = 0; m < 2*l+1; m++) {
+      for (int m = 0; m < 2*l+1; m++) {
         qn[jj++] = qnm_r[il][m] * qnfac;
         qn[jj++] = qnm_i[il][m] * qnfac;
       }
@@ -663,8 +663,8 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
   idxcg_count = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    for(int m1 = 0; m1 < 2*l+1; m1++)
-      for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++)
+    for (int m1 = 0; m1 < 2*l+1; m1++)
+      for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++)
         idxcg_count++;
   }
   idxcg_max = idxcg_count;
@@ -673,9 +673,9 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
   idxcg_count = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    for(int m1 = 0; m1 < 2*l+1; m1++) {
+    for (int m1 = 0; m1 < 2*l+1; m1++) {
         aa2 = m1 - l;
-        for(int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
           bb2 = m2 - l;
           m = aa2 + bb2 + l;
 

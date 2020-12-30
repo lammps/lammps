@@ -80,7 +80,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
         if (type_i < 0) continue;
         bo_ij = &(pbond_ij->bo_data);
 
-        if( system->reax_param.sbp[type_i].p_hbond == 2 &&
+        if ( system->reax_param.sbp[type_i].p_hbond == 2 &&
             bo_ij->BO >= HB_THRESHOLD )
           hblist[top++] = pi;
       }

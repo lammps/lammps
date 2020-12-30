@@ -1310,7 +1310,7 @@ int FixTGNHDrude::pack_restart_data(double *list)
   list[n++] = tstat_flag;
   if (tstat_flag) {
     list[n++] = mtchain;
-    for (int ich = 0; ich < mtchain; ich++){
+    for (int ich = 0; ich < mtchain; ich++) {
       list[n++] = etamol[ich];
       list[n++] = etaint[ich];
       list[n++] = etadrude[ich];
@@ -1372,12 +1372,12 @@ void FixTGNHDrude::restart(char *buf)
   if (flag) {
     int m = static_cast<int> (list[n++]);
     if (tstat_flag && m == mtchain) {
-      for (int ich = 0; ich < mtchain; ich++){
+      for (int ich = 0; ich < mtchain; ich++) {
         etamol[ich] = list[n++];
         etaint[ich] = list[n++];
         etadrude[ich] = list[n++];
       }
-      for (int ich = 0; ich < mtchain; ich++){
+      for (int ich = 0; ich < mtchain; ich++) {
         etamol_dot[ich] = list[n++];
         etaint_dot[ich] = list[n++];
         etadrude_dot[ich] = list[n++];
@@ -1509,7 +1509,7 @@ double FixTGNHDrude::compute_scalar()
     energy += ke2mol_target * etamol[0] + 0.5 * etamol_mass[0] * etamol_dot[0] * etamol_dot[0];
     energy += ke2int_target * etaint[0] + 0.5 * etaint_mass[0] * etaint_dot[0] * etaint_dot[0];
     energy += ke2drude_target * etadrude[0] + 0.5 * etadrude_mass[0] * etadrude_dot[0] * etadrude_dot[0];
-    for (ich = 1; ich < mtchain; ich++){
+    for (ich = 1; ich < mtchain; ich++) {
       energy += kt * etamol[ich] + 0.5*etamol_mass[ich]*etamol_dot[ich]*etamol_dot[ich];
       energy += kt * etaint[ich] + 0.5*etaint_mass[ich]*etaint_dot[ich]*etaint_dot[ich];
       energy += kt_drude * etadrude[ich] + 0.5*etadrude_mass[ich]*etadrude_dot[ich]*etadrude_dot[ich];
@@ -1565,7 +1565,7 @@ double FixTGNHDrude::compute_vector(int n)
 {
   if (!temp_computed_end_of_step)
     compute_temp_mol_int_drude(true);
-  switch (n){
+  switch (n) {
     case 0:
       return t_mol;
     case 1:
@@ -1711,7 +1711,7 @@ void FixTGNHDrude::nhc_temp_integrate()
   // update masses of thermostat in case target temperature changes
   etamol_mass[0] = ke2mol_target / (t_freq*t_freq);
   etaint_mass[0] = ke2int_target / (t_freq*t_freq);
-  for (int ich = 1; ich < mtchain; ich++){
+  for (int ich = 1; ich < mtchain; ich++) {
     etamol_mass[ich] = boltz * t_target / (t_freq*t_freq);
     etaint_mass[ich] = boltz * t_target / (t_freq*t_freq);
   }

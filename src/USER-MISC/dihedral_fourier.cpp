@@ -348,7 +348,7 @@ void DihedralFourier::write_restart(FILE *fp)
 {
 
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++) {
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(k[i],sizeof(double),nterms[i],fp);
     fwrite(multiplicity[i],sizeof(int),nterms[i],fp);
     fwrite(shift[i],sizeof(double),nterms[i],fp);
@@ -410,7 +410,7 @@ void DihedralFourier::write_data(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++)
   {
     fprintf(fp,"%d %d",i,nterms[i]);
-    for(int j = 0; j < nterms[i]; j++)
+    for (int j = 0; j < nterms[i]; j++)
        fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
     fprintf(fp,"\n");
   }

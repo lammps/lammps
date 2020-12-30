@@ -200,7 +200,7 @@ void BondGaussian::write_restart(FILE *fp)
 {
   fwrite(&bond_temperature[1],sizeof(double),atom->nbondtypes,fp);
   fwrite(&nterms[1],sizeof(int),atom->nbondtypes,fp);
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     fwrite(alpha[i],sizeof(double),nterms[i],fp);
     fwrite(width[i],sizeof(double),nterms[i],fp);
     fwrite(r0[i],sizeof(double),nterms[i],fp);
@@ -223,21 +223,21 @@ void BondGaussian::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->nbondtypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     alpha[i] = new double [nterms[i]];
     width[i] = new double [nterms[i]];
     r0[i] = new double [nterms[i]];
   }
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->nbondtypes; i++) {
+    for (int i = 1; i <= atom->nbondtypes; i++) {
       utils::sfread(FLERR,alpha[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,width[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,r0[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(r0[i],nterms[i],MPI_DOUBLE,0,world);

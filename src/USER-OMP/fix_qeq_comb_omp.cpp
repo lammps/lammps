@@ -135,7 +135,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     }
     comm->forward_comm_fix(this);
 
-    if(comb) enegtot = comb->yasu_char(qf,igroup);
+    if (comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 

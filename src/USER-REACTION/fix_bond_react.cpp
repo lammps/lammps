@@ -3400,7 +3400,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (ptr = strstr(line,"||")) {
       strcat(constraintstr[myrxn],"||");
       *ptr = '\0';
-    } else if (i+1 < nconstraints[myrxn]){
+    } else if (i+1 < nconstraints[myrxn]) {
       strcat(constraintstr[myrxn],"&&");
     }
     if (ptr = strchr(line,')'))

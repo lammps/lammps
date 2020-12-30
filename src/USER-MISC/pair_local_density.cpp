@@ -182,7 +182,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
     }
   }
   else {
-    for (k = 0; k < nLD; k++){
+    for (k = 0; k < nLD; k++) {
         for (i = 0; i < nlocal; i++) {
             localrho[k][i] = 0.0;
             fp[k][i] = 0.0;
@@ -710,7 +710,7 @@ void PairLocalDensity::parse_file(char *filename) {
   memory->create(a, nLD, atom->ntypes+1 , "pairLD:a");
   memory->create(b, nLD, atom->ntypes+1, "pairLD:b");
   if (me == 0) {
-    for (n = 1; n <= atom->ntypes; n++){
+    for (n = 1; n <= atom->ntypes; n++) {
         for (k = 0; k < nLD; k++) {
             a[k][n] = 0;
             b[k][n] = 0;

@@ -307,7 +307,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 void DihedralNHarmonic::write_restart(FILE *fp)
 {
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     fwrite(a[i],sizeof(double),nterms[i],fp);
 }
 
@@ -325,11 +325,11 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->ndihedraltypes; i++)
+    for (int i = 1; i <= atom->ndihedraltypes; i++)
       utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 

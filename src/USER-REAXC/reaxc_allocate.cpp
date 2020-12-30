@@ -322,7 +322,7 @@ static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
                                       int num_intrs )
 {
   Delete_List( far_nbrs);
-  if(!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )){
+  if (!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )) {
     far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
   }
 }
@@ -361,7 +361,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 
   *total_bonds = 0;
   *est_3body = 0;
-  for( i = 0; i < system->N; ++i ){
+  for( i = 0; i < system->N; ++i ) {
     *est_3body += SQR(system->my_atoms[i].num_bonds);
     *total_bonds += system->my_atoms[i].num_bonds;
   }
@@ -374,7 +374,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 #endif
 
   Delete_List( bonds);
-  if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
+  if (!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
     bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
   }
 
@@ -410,13 +410,13 @@ void ReAllocate( reax_system *system, control_params *control,
 
   realloc = &(workspace->realloc);
 
-  if( system->n >= DANGER_ZONE * system->local_cap ||
+  if ( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
     system->local_cap = MAX( (int)(system->n * safezone), mincap );
   }
 
   int Nflag = 0;
-  if( system->N >= DANGER_ZONE * system->total_cap ||
+  if ( system->N >= DANGER_ZONE * system->total_cap ||
       (0 && system->N <= LOOSE_ZONE * system->total_cap) ) {
     Nflag = 1;
     system->total_cap = MAX( (int)(system->N * safezone), mincap );
@@ -466,7 +466,7 @@ void ReAllocate( reax_system *system, control_params *control,
   /* hydrogen bonds list */
   if (control->hbond_cut > 0) {
     Hflag = 0;
-    if( system->numH >= DANGER_ZONE * system->Hcap ||
+    if ( system->numH >= DANGER_ZONE * system->Hcap ||
         (0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
       Hflag = 1;
       system->Hcap = int(MAX( system->numH * saferzone, mincap ));
@@ -496,7 +496,7 @@ void ReAllocate( reax_system *system, control_params *control,
 
     realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));
 
-    if( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
+    if ( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
                     (*lists)+THREE_BODIES ) ) {
       system->error_ptr->one(FLERR, "Problem in initializing angles list");
     }

@@ -167,7 +167,7 @@ void VerletKokkos::setup(int flag)
     timer->stamp(Timer::BOND);
   }
 
-  if(force->kspace) {
+  if (force->kspace) {
     force->kspace->setup();
     if (kspace_compute_flag) {
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
@@ -271,7 +271,7 @@ void VerletKokkos::setup_minimal(int flag)
     timer->stamp(Timer::BOND);
   }
 
-  if(force->kspace) {
+  if (force->kspace) {
     force->kspace->setup();
     if (kspace_compute_flag) {
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
@@ -480,11 +480,11 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::PAIR);
     }
 
-      if(execute_on_host) {
-        if(pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
+      if (execute_on_host) {
+        if (pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
           Kokkos::fence();
         atomKK->sync_overlapping_device(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-        if(pair_compute_flag && force->pair->execution_space!=Host) {
+        if (pair_compute_flag && force->pair->execution_space!=Host) {
           Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
         }
     }
@@ -520,8 +520,8 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::KSPACE);
     }
 
-    if(execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
-      if(f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
+    if (execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+      if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
         f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       }
       f = atomKK->k_f.d_view;

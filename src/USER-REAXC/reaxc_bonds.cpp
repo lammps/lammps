@@ -104,7 +104,7 @@ void Bonds( reax_system *system, control_params * /*control*/,
 
       /* Stabilisation terminal triple bond */
       if (bo_ij->BO >= 1.00) {
-        if( gp37 == 2 ||
+        if ( gp37 == 2 ||
             (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
             (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990) ) {
           exphu = exp( -gp7 * SQR(bo_ij->BO - 2.50) );

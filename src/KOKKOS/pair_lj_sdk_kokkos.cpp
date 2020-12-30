@@ -175,7 +175,7 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     return r6inv*(lj_1*r6inv - lj_2) * r2inv;
 
   }
-  if(ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6) return 0.0;*/
+  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6) return 0.0;*/
   const F_FLOAT r4inv=r2inv*r2inv;
   const F_FLOAT r6inv=r2inv*r4inv;
   const F_FLOAT a = ljt==LJ12_4?r4inv:r6inv;
@@ -301,7 +301,7 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cutsq = cutone*cutone;
   k_params.h_view(i,j).lj_type = lj_type[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }

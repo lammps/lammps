@@ -725,7 +725,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
     const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if(rsq < cutforcesq) {
+    if (rsq < cutforcesq) {
       const F_FLOAT r = sqrt(rsq);
       F_FLOAT p = r*rdr + 1.0;
       int m = static_cast<int> (p);
@@ -985,7 +985,7 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
   Setfl *file = setfl;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam/alloy", unit_convert_flag);
 
     // transparently convert units for supported conversions

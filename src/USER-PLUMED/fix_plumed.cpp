@@ -118,7 +118,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // LAMMPS units wrt kj/mol - nm - ps
   // Set up units
 
-  if(strcmp(update->unit_style,"lj") == 0) {
+  if (strcmp(update->unit_style,"lj") == 0) {
     // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
@@ -486,7 +486,7 @@ void FixPlumed::post_force(int /* vflag */)
   // do the real calculation:
   p->cmd("performCalc");
 
-  if(plumedStopCondition) timer->force_timeout();
+  if (plumedStopCondition) timer->force_timeout();
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full

@@ -90,7 +90,7 @@ void PairBuckCoulCutIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -177,7 +177,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
   const int ncoulshiftbits = this->ncoulshiftbits;
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload)                 \
+  #pragma offload target(mic:_cop) if (offload)                 \
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy, c_cut:length(0) alloc_if(0) free_if(0))      \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
@@ -273,10 +273,10 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
             forcecoul = qqrd2e * qtmp*q[j]/r;
             if (EFLAG)
               ecoul = forcecoul;
-            if (sbindex){
+            if (sbindex) {
               const flt_t factor_coul = special_coul[sbindex];
               forcecoul *= factor_coul;
-              if(EFLAG)
+              if (EFLAG)
                 ecoul *= factor_coul;
 
             }

@@ -169,7 +169,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     labels[tokens.next()] = nwords++;
   }
 
-  if(nwords == 0) {
+  if (nwords == 0) {
     return 1;
   }
 

@@ -479,7 +479,7 @@ void DihedralSpherical::compute(int eflag, int vflag)
     //          d U      d U    d phi    d U    d theta1     d U    d theta2
     // -f  =   -----  = ----- * ----- + -------*-------  + --------*--------
     //          d x     d phi    d x    d theta1   d X     d theta2   d X
-    for(int d=0; d < g_dim; ++d) {
+    for (int d=0; d < g_dim; ++d) {
       f1[d] = m_du_dphi*dphi_dx1[d]+m_du_dth1*dth1_dx1[d];
                                                            //note: dth2_dx1[d]=0
       f2[d] = m_du_dphi*dphi_dx2[d]+m_du_dth1*dth1_dx2[d]+m_du_dth2*dth2_dx2[d];
@@ -731,7 +731,7 @@ void DihedralSpherical::write_restart(FILE *fp)
 {
 
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++) {
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(Ccoeff[i],sizeof(double),nterms[i],fp);
     fwrite(phi_mult[i],sizeof(double),nterms[i],fp);
     fwrite(phi_shift[i],sizeof(double),nterms[i],fp);

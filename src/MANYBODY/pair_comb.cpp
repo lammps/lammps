@@ -283,7 +283,7 @@ void PairComb::compute(int eflag, int vflag)
         jtype = map[type[j]];
         iparam_ij = elem2param[itype][jtype][jtype];
 
-        if(params[iparam_ij].hfocor > 0.0 ) {
+        if (params[iparam_ij].hfocor > 0.0 ) {
           delr1[0] = x[j][0] - xtmp;
           delr1[1] = x[j][1] - ytmp;
           delr1[2] = x[j][2] - ztmp;
@@ -727,7 +727,7 @@ void PairComb::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 

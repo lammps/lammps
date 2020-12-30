@@ -72,7 +72,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // With Python 3.7 this function is now called by Py_Initialize()
   // Deprecated since version 3.9, will be removed in version 3.11
 #if PY_MAJOR_VERSION < 3 || PY_MINOR_VERSION < 7
-  if(!PyEval_ThreadsInitialized()) {
+  if (!PyEval_ThreadsInitialized()) {
     PyEval_InitThreads();
   }
 #endif
@@ -90,7 +90,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
 PythonImpl::~PythonImpl()
 {
-  if(pyMain) {
+  if (pyMain) {
     // clean up
     PyGILState_STATE gstate = PyGILState_Ensure();
 

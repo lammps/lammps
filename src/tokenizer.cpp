@@ -24,8 +24,8 @@
 
 using namespace LAMMPS_NS;
 
-TokenizerException::TokenizerException(const std::string &msg, const std::string &token){
-    if(token.empty()) {
+TokenizerException::TokenizerException(const std::string &msg, const std::string &token) {
+    if (token.empty()) {
         message = msg;
     } else {
         message = fmt::format("{}: '{}'", msg, token);
@@ -83,12 +83,12 @@ bool Tokenizer::contains(const std::string &str) const {
  *
  * \param  n  number of tokens to skip over */
 void Tokenizer::skip(int n) {
-    for(int i = 0; i < n; ++i) {
-        if(!has_next()) throw TokenizerException("No more tokens", "");
+    for (int i = 0; i < n; ++i) {
+        if (!has_next()) throw TokenizerException("No more tokens", "");
 
         size_t end = text.find_first_of(separators, start);
 
-        if(end == std::string::npos) {
+        if (end == std::string::npos) {
             start = end;
         } else {
             start = text.find_first_not_of(separators, end+1);
@@ -107,11 +107,11 @@ bool Tokenizer::has_next() const {
  *
  * \return   string with the next token */
 std::string Tokenizer::next() {
-    if(!has_next()) throw TokenizerException("No more tokens", "");
+    if (!has_next()) throw TokenizerException("No more tokens", "");
 
     size_t end = text.find_first_of(separators, start);
 
-    if(end == std::string::npos) {
+    if (end == std::string::npos) {
         std::string token = text.substr(start);
         start = end;
         return token;
@@ -210,7 +210,7 @@ std::string ValueTokenizer::next_string() {
 int ValueTokenizer::next_int() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         int value = atoi(current.c_str());
@@ -225,7 +225,7 @@ int ValueTokenizer::next_int() {
 bigint ValueTokenizer::next_bigint() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         bigint value = ATOBIGINT(current.c_str());
@@ -240,7 +240,7 @@ bigint ValueTokenizer::next_bigint() {
 tagint ValueTokenizer::next_tagint() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         tagint value = ATOTAGINT(current.c_str());
@@ -255,7 +255,7 @@ tagint ValueTokenizer::next_tagint() {
 double ValueTokenizer::next_double() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_double(current)) {
+        if (!utils::is_double(current)) {
             throw InvalidFloatException(current);
         }
         double value = atof(current.c_str());

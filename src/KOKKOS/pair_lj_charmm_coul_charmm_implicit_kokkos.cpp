@@ -151,7 +151,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
   copymode = 1;
 
   EV_FLOAT ev;
-  if(ncoultablebits)
+  if (ncoultablebits)
     ev = pair_compute<PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>,CoulLongTable<1> >
       (this,(NeighListKokkos<DeviceType>*)list);
   else
@@ -338,7 +338,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   {
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = rtable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -348,7 +348,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   {
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = drtable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -360,7 +360,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   // Copy ftable and dftable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = ftable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -371,7 +371,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = dftable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -383,7 +383,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   // Copy ctable and dctable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = ctable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -394,7 +394,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = dctable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -406,7 +406,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   // Copy etable and detable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = etable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -417,7 +417,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = detable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -499,7 +499,7 @@ double PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cut_coulsq = cut_coulsqm;
 
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;

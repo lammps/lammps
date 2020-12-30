@@ -75,7 +75,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
+      if (nbr_pj->d <= control->nonb_cut) {
         if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
@@ -110,7 +110,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       dTap += workspace->Tap[1]/r_ij;
 
       /*vdWaals Calculations*/
-      if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
+      if (system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
         { // shielding
           powr_vdW1 = pow(r_ij, p_vdW1);
           powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
@@ -139,7 +139,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
           Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
       }
 
-      if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
+      if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
         { // inner wall
           e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
           data->my_en.e_vdW += Tap * e_core;
@@ -243,7 +243,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
+      if (nbr_pj->d <= control->nonb_cut) {
         if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
@@ -372,7 +372,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
   dTap += workspace->Tap[1]/r_ij;
 
   /*vdWaals Calculations*/
-  if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
+  if (system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
     { // shielding
       powr_vdW1 = pow(r_ij, p_vdW1);
       powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
@@ -397,7 +397,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
   }
 
-  if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
+  if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
     { // inner wall
       e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
       lr->e_vdW += Tap * e_core;

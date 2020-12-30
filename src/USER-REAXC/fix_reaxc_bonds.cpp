@@ -262,7 +262,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   double cutof3 = reaxc->control->bg_cut;
   MPI_Request irequest, irequest2;
 
-  if (me == 0 ){
+  if (me == 0 ) {
     fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",natoms);
@@ -315,7 +315,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if(me ==0) fprintf(fp,"# \n");
+  if (me ==0) fprintf(fp,"# \n");
 
 }
 

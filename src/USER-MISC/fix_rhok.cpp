@@ -235,9 +235,9 @@ FixRhok::compute_vector( int inI )
 {
   if (inI == 0)
     return mRhoKGlobal[0];   // Real part
-  else if( inI == 1 )
+  else if ( inI == 1 )
     return mRhoKGlobal[1];   // Imagniary part
-  else if( inI == 2 )
+  else if ( inI == 2 )
     return sqrt( mRhoKGlobal[0]*mRhoKGlobal[0]
                  + mRhoKGlobal[1]*mRhoKGlobal[1] );
   else

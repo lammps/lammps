@@ -53,7 +53,7 @@ PairLJCutCoulCutKokkos<DeviceType>::PairLJCutCoulCutKokkos(LAMMPS *lmp):PairLJCu
 template<class DeviceType>
 PairLJCutCoulCutKokkos<DeviceType>::~PairLJCutCoulCutKokkos()
 {
-  if (allocated){
+  if (allocated) {
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
     memoryKK->destroy_kokkos(k_cut_ljsq, cut_ljsq);
     memoryKK->destroy_kokkos(k_cut_coulsq, cut_coulsq);
@@ -327,7 +327,7 @@ double PairLJCutCoulCutKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cut_coulsq = cut_coulsqm;
 
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;

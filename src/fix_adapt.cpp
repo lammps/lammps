@@ -70,7 +70,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"bond") == 0 ){
+    } else if (strcmp(arg[iarg],"bond") == 0 ) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -110,7 +110,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       nadapt++;
       iarg += 6;
 
-    } else if (strcmp(arg[iarg],"bond") == 0 ){
+    } else if (strcmp(arg[iarg],"bond") == 0 ) {
       if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
       adapt[nadapt].which = BOND;
       int n = strlen(arg[iarg+1]) + 1;
@@ -395,7 +395,7 @@ void FixAdapt::init()
       }
 
       delete [] pstyle;
-    } else if (ad->which == BOND){
+    } else if (ad->which == BOND) {
       ad->bond = nullptr;
       anybond = 1;
 
@@ -463,10 +463,10 @@ void FixAdapt::init()
       for (i = ad->ilo; i <= ad->ihi; i++)
         for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
           ad->array_orig[i][j] = ad->array[i][j];
-    } else if (ad->which == PAIR && ad->pdim == 0){
+    } else if (ad->which == PAIR && ad->pdim == 0) {
       ad->scalar_orig = *ad->scalar;
 
-    } else if (ad->which == BOND && ad->bdim == 1){
+    } else if (ad->which == BOND && ad->bdim == 1) {
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
     }
@@ -565,7 +565,7 @@ void FixAdapt::change_settings()
     // set bond type array values:
 
     } else if (ad->which == BOND) {
-      if (ad->bdim == 1){
+      if (ad->bdim == 1) {
         if (scaleflag)
           for (i = ad->ilo; i <= ad->ihi; ++i )
             ad->vector[i] = value*ad->vector_orig[i];

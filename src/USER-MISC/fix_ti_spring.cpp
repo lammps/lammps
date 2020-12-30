@@ -380,7 +380,7 @@ double FixTISpring::switch_func(double t)
 
 double FixTISpring::dswitch_func(double t)
 {
-  if(sf == 1) return 1.0/t_switch;
+  if (sf == 1) return 1.0/t_switch;
 
   double t2 = t*t;
   double t4 = t2*t2;

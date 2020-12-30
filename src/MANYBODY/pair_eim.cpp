@@ -476,7 +476,7 @@ void PairEIM::read_file(char *filename)
   setfl->tp = new int[npair];
 
   // read potential file
-  if( comm->me == 0) {
+  if ( comm->me == 0) {
     EIMPotentialFileReader reader(lmp, filename, unit_convert_flag);
 
     reader.get_global(setfl);

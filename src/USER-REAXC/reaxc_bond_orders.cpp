@@ -558,7 +558,7 @@ void BO( reax_system *system, control_params * /*control*/, simulation_data * /*
   }
 
   p_lp1 = system->reax_param.gp.l[15];
-  for( j = 0; j < system->N; ++j ){
+  for( j = 0; j < system->N; ++j ) {
     type_j = system->my_atoms[j].type;
     if (type_j < 0) continue;
     sbp_j = &(system->reax_param.sbp[ type_j ]);

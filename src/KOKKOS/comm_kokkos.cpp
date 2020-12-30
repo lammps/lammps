@@ -571,10 +571,10 @@ void CommKokkos::reverse_comm_dump(Dump *dump)
 
 void CommKokkos::exchange()
 {
-  if(atom->nextra_grow + atom->nextra_border) {
-    if(!exchange_comm_classic) {
+  if (atom->nextra_grow + atom->nextra_border) {
+    if (!exchange_comm_classic) {
       static int print = 1;
-      if(print && comm->me==0) {
+      if (print && comm->me==0) {
         error->warning(FLERR,"Fixes cannot yet send exchange data in Kokkos communication, "
                       "switching to classic exchange/border communication");
       }
@@ -625,7 +625,7 @@ struct BuildExchangeListFunctor {
   void operator() (int i) const {
     if (_x(i,_dim) < _lo || _x(i,_dim) >= _hi) {
       const int mysend=Kokkos::atomic_fetch_add(&_nsend(),1);
-      if(mysend < (int)_sendlist.extent(0)) {
+      if (mysend < (int)_sendlist.extent(0)) {
         _sendlist(mysend) = i;
         _sendflag(i) = 1;
       }
@@ -713,7 +713,7 @@ void CommKokkos::exchange_device()
 
         int sendpos = nlocal-1;
         nlocal -= k_count.h_view();
-        for(int i = 0; i < k_count.h_view(); i++) {
+        for (int i = 0; i < k_count.h_view(); i++) {
           if (k_exchange_sendlist.h_view(i)<nlocal) {
             while (k_sendflag.h_view(sendpos)) sendpos--;
             k_exchange_copylist.h_view(i) = sendpos;
@@ -887,7 +887,7 @@ struct BuildBorderListFunctor {
 
     if (my_store_pos+mysend < maxsendlist) {
     mysend = my_store_pos;
-      for(int i=teamstart + dev.team_rank(); i<teamend; i+=dev.team_size()){
+      for (int i=teamstart + dev.team_rank(); i<teamend; i+=dev.team_size()) {
         if (x(i,dim) >= lo && x(i,dim) <= hi) {
           sendlist(iswap,mysend++) = i;
         }
@@ -979,7 +979,7 @@ void CommKokkos::borders_device() {
 
             k_sendlist.modify<DeviceType>();
 
-            if(k_total_send.h_view() >= maxsendlist[iswap]) {
+            if (k_total_send.h_view() >= maxsendlist[iswap]) {
               grow_list(iswap,k_total_send.h_view());
 
               k_total_send.h_view() = 0;
@@ -1227,7 +1227,7 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
   maxsend = static_cast<int> (BUFFACTOR * n);
   int maxsend_border = (maxsend+BUFEXTRA+5)/atom->avec->size_border + 2;
   if (flag) {
-    if(space == Device)
+    if (space == Device)
       k_buf_send.modify<LMPDeviceType>();
     else
       k_buf_send.modify<LMPHostType>();
@@ -1280,7 +1280,7 @@ void CommKokkos::grow_list(int /*iswap*/, int n)
 
   memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
 
-  for(int i=0;i<maxswap;i++) {
+  for (int i=0;i<maxswap;i++) {
     maxsendlist[i]=size; sendlist[i]=&k_sendlist.view<LMPHostType>()(i,0);
   }
 }

@@ -156,7 +156,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
   // actually bin the ghost atoms
   {
-    if(ghosts_per_gbin > (int) gbins.extent(1)) {
+    if (ghosts_per_gbin > (int) gbins.extent(1)) {
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
       gbins = k_gbins.view<DeviceType>();
     }

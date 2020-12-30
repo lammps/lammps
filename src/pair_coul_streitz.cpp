@@ -113,10 +113,10 @@ void PairCoulStreitz::settings(int narg, char **arg)
 
   cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
-  if (strcmp(arg[1],"wolf") == 0){
+  if (strcmp(arg[1],"wolf") == 0) {
     kspacetype = 1;
     g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
-  } else if (strcmp(arg[1],"ewald") == 0){
+  } else if (strcmp(arg[1],"ewald") == 0) {
     ewaldflag = pppmflag = 1;
     kspacetype = 2;
   } else {
@@ -297,7 +297,7 @@ void PairCoulStreitz::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 

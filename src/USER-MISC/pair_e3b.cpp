@@ -630,7 +630,7 @@ double PairE3B::init_one(int i, int j)
 
 bool PairE3B::checkKeyword(const char *thiskey,const char *test,const int nVal, const int nRem) {
   if (strcmp(thiskey,test) == 0) {
-    if(nRem<nVal) {
+    if (nRem<nVal) {
       char str[256];
       snprintf(str,256,"Too few arguments to \"%s\" keyword.",test);
       error->all(FLERR,str);

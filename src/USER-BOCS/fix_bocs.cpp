@@ -804,7 +804,7 @@ int FixBocs::build_cubic_splines(double **data)
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
   // valgrind says that we read/write a[n] down in the
-  // for(int j=n-1; j>=0; j--) loop below
+  // for (int j=n-1; j>=0; j--) loop below
   // and I agree.
   // So the size of a must be n+1, not n as was found
   // in the original code.
@@ -858,7 +858,7 @@ int FixBocs::build_cubic_splines(double **data)
   c[n] = 0.0;
   d[n] = 0.0;
 
-  for(int j=n-1; j>=0; j--)
+  for (int j=n-1; j>=0; j--)
   {
     c[j] = z[j] - mu[j]*c[j+1];
 

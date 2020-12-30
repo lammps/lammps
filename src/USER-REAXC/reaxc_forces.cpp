@@ -155,7 +155,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
           (int)(MAX(Num_Entries(Hindex, hbonds)*saferzone, system->minhbonds));
 
         //if( Num_Entries(i, hbonds) >=
-        //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/){
+        //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/) {
         //  workspace->realloc.hbonds = 1;
 
         if (Hindex < numH-1)
@@ -367,7 +367,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
       j = nbr_pj->nbr;
       atom_j = &(system->my_atoms[j]);
 
-      if(nbr_pj->d <= cutoff) {
+      if (nbr_pj->d <= cutoff) {
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
         r_ij = nbr_pj->d;
@@ -384,7 +384,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
             jhb = sbp_j->p_hbond;
             if (ihb == 1 && jhb == 2)
               ++hb_top[i];
-            else if( j < system->n && ihb == 2 && jhb == 1 )
+            else if ( j < system->n && ihb == 2 && jhb == 1 )
               ++hb_top[j];
           }
         }

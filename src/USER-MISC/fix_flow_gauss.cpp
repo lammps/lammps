@@ -175,7 +175,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
     f_thisProc[ii]=0.0;
 
   //add all forces on each processor
-  for(ii=0; ii<nlocal; ii++)
+  for (ii=0; ii<nlocal; ii++)
     if (mask[ii] & groupbit)
       for (jj=0; jj<3; jj++)
         if (flow[jj])
@@ -191,7 +191,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
   //apply added acceleration to each atom
   double f_app[3];
   double peAdded=0.0;
-  for( ii = 0; ii<nlocal; ii++)
+  for ( ii = 0; ii<nlocal; ii++)
     if (mask[ii] & groupbit) {
       if (rmass) {
         f_app[0] = a_app[0]*rmass[ii];

@@ -116,7 +116,7 @@ void PairEAMOpt::eval()
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t* _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
         tab[m].rhor1i =  rhor_spline[type2rhor[i+1][j+1]][m][5];
         tab[m].rhor2i =  rhor_spline[type2rhor[i+1][j+1]][m][4];
@@ -124,7 +124,7 @@ void PairEAMOpt::eval()
       }
     }
     if (type2rhor[j+1][i+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor0j =  rhor_spline[type2rhor[j+1][i+1]][m][6];
         tab[m].rhor1j =  rhor_spline[type2rhor[j+1][i+1]][m][5];
         tab[m].rhor2j =  rhor_spline[type2rhor[j+1][i+1]][m][4];
@@ -139,14 +139,14 @@ void PairEAMOpt::eval()
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_gamma_t* _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
         tab[m].rhor5i =  rhor_spline[type2rhor[i+1][j+1]][m][1];
         tab[m].rhor6i =  rhor_spline[type2rhor[i+1][j+1]][m][0];
       }
     }
     if (type2rhor[j+1][i+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor4j =  rhor_spline[type2rhor[j+1][i+1]][m][2];
         tab[m].rhor5j =  rhor_spline[type2rhor[j+1][i+1]][m][1];
         tab[m].rhor6j =  rhor_spline[type2rhor[j+1][i+1]][m][0];
@@ -154,7 +154,7 @@ void PairEAMOpt::eval()
       }
     }
     if (type2z2r[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].z2r0 =  z2r_spline[type2z2r[i+1][j+1]][m][6];
         tab[m].z2r1 =  z2r_spline[type2z2r[i+1][j+1]][m][5];
         tab[m].z2r2 =  z2r_spline[type2z2r[i+1][j+1]][m][4];

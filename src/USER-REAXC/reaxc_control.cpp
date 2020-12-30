@@ -134,7 +134,7 @@ char Read_Control_File( char *control_file, control_params* control,
       ival = atoi(tmp[1]);
       control->nsteps = ival;
     }
-    else if( strcmp(tmp[0], "dt") == 0) {
+    else if ( strcmp(tmp[0], "dt") == 0) {
       val = atof(tmp[1]);
       control->dt = val * 1.e-3;  // convert dt from fs to ps!
     }

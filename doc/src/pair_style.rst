@@ -280,6 +280,7 @@ accelerated styles exist.
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
 * :doc:`peri/ves <pair_peri>` - peridynamic VES potential
+* :doc:`pinn <pair_pinn>` - manybody Physically Informed Neural Network (PINN) potential
 * :doc:`polymorphic <pair_polymorphic>` - polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -

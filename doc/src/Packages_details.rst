@@ -90,6 +90,7 @@ page gives those details.
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
    * :ref:`USER-OMP <PKG-USER-OMP>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
+   * :ref:`USER-PINN <PKG-USER-PINN>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
    * :ref:`USER-PTM <PKG-USER-PTM>`
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
@@ -2002,6 +2003,26 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 * examples/USER/phonon
 
 ----------
+
+.. _PKG-USER-PINN:
+
+USER-PINN package
+-----------------
+
+**Contents:**
+
+A pair style for the physically informed neural network (PINN) potential. 
+
+**Author:** Ganga P Purja Pun.
+
+**Supporting info:**
+
+* src/USER-PINN: filenames -> commands
+* src/USER-PINN/README
+* :doc:`pair_style pinn <pair_pinn>`
+* examples/USER/pinn
+
+-----------
 
 .. _PKG-USER-PTM:
 

@@ -52,6 +52,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
+   * :ref:`USER-PINN <user-pinn>`
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
@@ -1218,6 +1219,16 @@ be built for the most part with all major versions of the C++ language.
       (which also includes Lepton objects if enabled) and the specification file
       ``lib/colvars/Makefile.lammps``.  The latter is auto-generated, and normally does
       not need to be edited.
+
+----------
+
+.. _user-pinn:
+
+USER-PINN package
+-----------------
+
+Intel MKL library is required to build this package. Before building LAMMPS with this package, 
+you must add a library flag, ``-mkl``, to the library setting ``LIB`` in the ``src/MAKE/Makefile.mpi``.
 
 ----------
 

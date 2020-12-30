@@ -3385,25 +3385,25 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
   strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);
-    if (ptr = strrchr(line,'(')) { // reverse char search
+    if ((ptr = strrchr(line,'('))) { // reverse char search
       strncat(constraintstr[myrxn],line,ptr-line+1);
       line = ptr + 1;
     }
     // 'C' indicates where to sub in next constraint
     strcat(constraintstr[myrxn],"C");
-    if (ptr = strchr(line,')')) {
+    if ((ptr = strchr(line,')'))) {
       strncat(constraintstr[myrxn],ptr,strrchr(line,')')-ptr+1);
     }
-    if (ptr = strstr(line,"&&")) {
+    if ((ptr = strstr(line,"&&"))) {
       strcat(constraintstr[myrxn],"&&");
       *ptr = '\0';
-    } else if (ptr = strstr(line,"||")) {
+    } else if ((ptr = strstr(line,"||"))) {
       strcat(constraintstr[myrxn],"||");
       *ptr = '\0';
     } else if (i+1 < nconstraints[myrxn]) {
       strcat(constraintstr[myrxn],"&&");
     }
-    if (ptr = strchr(line,')'))
+    if ((ptr = strchr(line,')')))
       *ptr = '\0';
     sscanf(line,"%s",constraint_type);
     if (strcmp(constraint_type,"distance") == 0) {

@@ -688,7 +688,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     int numBadVolumeIntervals = 0; // count these for message
     float f1, f2;
     int test_sscanf;
-    for (int i = 0; i < inputLines.size(); ++i) {
+    for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)

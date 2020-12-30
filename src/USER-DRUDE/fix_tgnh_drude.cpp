@@ -1101,8 +1101,6 @@ void FixTGNHDrude::remap()
   double oldlo,oldhi;
   double expfac;
 
-  double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
 

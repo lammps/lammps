@@ -33,7 +33,7 @@ class FixBondReact : public Fix {
 
   enum {MAXLINE=256}; // max length of line read from files
   enum {MAXCONIDS=4}; // max # of IDs used by any constraint
-  enum {MAXCONPAR=4}; // max # of constraint parameters
+  enum {MAXCONPAR=5}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();

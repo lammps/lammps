@@ -82,6 +82,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double r1_hat[3],r2_hat[3];
   double zeta_ij,prefactor;
+  double forceshiftfac;
   int *ilist,*jlist,*numneigh,**firstneigh,*neighshort_thr;
 
   evdwl = 0.0;
@@ -128,6 +129,14 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
+      // shift rsq and store correction for force
+
+      if(shift_flag) {
+        double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
+        forceshiftfac = sqrt(rsqtmp/rsq);
+        rsq = rsqtmp;
+      }
+
       if (rsq < cutshortsq) {
         neighshort_thr[numshort++] = j;
         if (numshort >= maxshort_thr) {
@@ -153,6 +162,10 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
+      // correct force for shift in rsq
+
+      if(shift_flag) fpair *= forceshiftfac;
+
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
       fztmp += delz*fpair;
@@ -177,6 +190,10 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+
+      if(shift_flag) 
+        rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
+
       if (rsq1 >= params[iparam_ij].cutsq) continue;
 
       double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
@@ -197,6 +214,10 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+
+        if(shift_flag) 
+          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
+
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
@@ -233,6 +254,10 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+
+        if(shift_flag)
+          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
+
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));

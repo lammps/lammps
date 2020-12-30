@@ -1966,12 +1966,11 @@ int FixBondReact::check_constraints()
   }
 
   if (nconstraints[rxnID] > 0) {
-    char evalstr[MAXLINE],*ptr,valstr;
+    char evalstr[MAXLINE],*ptr;
     strcpy(evalstr,constraintstr[rxnID]);
     for (int i = 0; i < nconstraints[rxnID]; i++) {
-      sprintf(&valstr,"%d", satisfied[i]);
       ptr = strchr(evalstr,'C');
-      *ptr = valstr;
+      *ptr = satisfied[i] ? '1' : '0';
     }
     double verdict = input->variable->evaluate_boolean(evalstr);
     if (verdict == 0.0) return 0;

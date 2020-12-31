@@ -32,7 +32,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <mkl.h> // for Intel MKL library
+#include <cblas.h> // for CBLAS library
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1683,8 +1683,8 @@ void PairPINN::eval_nnet(double *input, int insize, double *output, int outsize)
 
   for (i = 1; i < params->nlayers-1; i++) { // only hidden layers
     if (i == 1) {
-      prod = (double *) mkl_malloc (params->layers[i].nnodes * sizeof(double), 64); // Do not change to simple malloc() !!!
-      sum = (double *) mkl_malloc (params->layers[i].nnodes * sizeof(double), 64); // Do not change to simple malloc() !!!
+      prod = (double *) malloc (params->layers[i].nnodes * sizeof(double));
+      sum = (double *) malloc (params->layers[i].nnodes * sizeof(double));
       // Multiplication of a matrix and a vector.
       // y <= Ax.
       // A: input matrix
@@ -1693,10 +1693,10 @@ void PairPINN::eval_nnet(double *input, int insize, double *output, int outsize)
       cblas_dgemv (CblasRowMajor, CblasTrans, insize, params->layers[i].nnodes,
                    1.0, params->layers[i].Weights, params->layers[i].nnodes, input, 1, 0.0, prod, 1);
     } else {
-      prod = (double *) mkl_realloc(prod, params->layers[i].nnodes * sizeof(double)); // Do not change to simple realloc() !!!
+      prod = (double *) realloc(prod, params->layers[i].nnodes * sizeof(double));
       cblas_dgemv (CblasRowMajor, CblasTrans, params->layers[i-1].nnodes, params->layers[i].nnodes,
           1.0, params->layers[i].Weights, params->layers[i].nnodes, sum, 1, 0.0, prod, 1); // sum holds result from previous layer !!!
-      sum = (double *) mkl_realloc(sum, params->layers[i].nnodes * sizeof(double)); // Do not change to simplerealloc() !!!
+      sum = (double *) realloc(sum, params->layers[i].nnodes * sizeof(double)); // Do not change to simplerealloc() !!!
     }
     //
     // aX + Y -> Y
@@ -1732,14 +1732,14 @@ void PairPINN::eval_nnet(double *input, int insize, double *output, int outsize)
   }
 
   // Output layer does not apply activation function.
-  prod = (double *) mkl_realloc(prod, params->layers[i].nnodes * sizeof(double)); // Do not change to simple realloc() !!!
+  prod = (double *) realloc(prod, params->layers[i].nnodes * sizeof(double));
   cblas_dgemv(CblasRowMajor, CblasTrans, params->layers[i-1].nnodes, params->layers[i].nnodes,
       1.0, params->layers[i].Weights, params->layers[i].nnodes, sum, 1, 0.0, prod, 1);
   cblas_daxpy(params->layers[i].nnodes, 1.0, params->layers[i].Biases, 1, prod, 1);
   cblas_dcopy(outsize, prod, 1, output, 1);
 
-  if (sum) mkl_free(sum);
-  if (prod) mkl_free(prod);
+  if (sum) free(sum);
+  if (prod) free(prod);
 }
 
 void PairPINN::eval_nnet_d(Layer *aNNlayers, double *input,
@@ -1757,8 +1757,8 @@ void PairPINN::eval_nnet_d(Layer *aNNlayers, double *input,
 
   for (i = 1; i < params->nlayers-1; i++) { // only hidden layers
     if (i == 1) {
-      prod = (double *) mkl_malloc (params->layers[i].nnodes * sizeof(double), 64); // Do not change to simple malloc() !!!
-      sum = (double *) mkl_malloc (params->layers[i].nnodes * sizeof(double), 64); // Do not change to simple malloc() !!!
+      prod = (double *) malloc (params->layers[i].nnodes * sizeof(double));
+      sum = (double *) malloc (params->layers[i].nnodes * sizeof(double));
       // multiplication of a matrix and a vector.
       // y <= Ax.
       // A: input matrix
@@ -1767,10 +1767,10 @@ void PairPINN::eval_nnet_d(Layer *aNNlayers, double *input,
       cblas_dgemv (CblasRowMajor, CblasTrans, insize, params->layers[i].nnodes,
                    1.0, params->layers[i].Weights, params->layers[i].nnodes, input, 1, 0.0, prod, 1);
     } else {
-      prod = (double *) mkl_realloc(prod, params->layers[i].nnodes * sizeof(double)); // Do not change to simple realloc() !!!
+      prod = (double *) realloc(prod, params->layers[i].nnodes * sizeof(double));
       cblas_dgemv (CblasRowMajor, CblasTrans, params->layers[i-1].nnodes, params->layers[i].nnodes,
           1.0, params->layers[i].Weights, params->layers[i].nnodes, sum, 1, 0.0, prod, 1); // sum holds result from previous layer !!!
-      sum = (double *) mkl_realloc(sum, params->layers[i].nnodes * sizeof(double)); // Do not change to simplerealloc() !!!
+      sum = (double *) realloc(sum, params->layers[i].nnodes * sizeof(double));
     }
     //
     // aX + Y -> Y
@@ -1786,14 +1786,14 @@ void PairPINN::eval_nnet_d(Layer *aNNlayers, double *input,
     cblas_dcopy(params->layers[i].nnodes, prod, 1, sum, 1);
   }
 
-  prod = (double *) mkl_realloc(prod, params->layers[i].nnodes * sizeof(double)); // Do not change to simple realloc() !!!
+  prod = (double *) realloc(prod, params->layers[i].nnodes * sizeof(double));
   cblas_dgemv(CblasRowMajor, CblasTrans, params->layers[i-1].nnodes, params->layers[i].nnodes,
       1.0, params->layers[i].Weights, params->layers[i].nnodes, sum, 1, 0.0, prod, 1);
   //cblas_daxpy(params->layers[i].nnodes, 1.0, params->layers[i].Biases, 1, prod, 1);
   cblas_dcopy(outsize, prod, 1, output, 1);
 
-  if (sum) mkl_free(sum);
-  if (prod) mkl_free(prod);
+  if (sum) free(sum);
+  if (prod) free(prod);
 }
 
 

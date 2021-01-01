@@ -24,7 +24,7 @@ neigh_modify    check yes
 
 #### Simulation settings ####
 timestep  	0.001
-#velocity  	all create 300.0 12345 dist gaussian mom yes rot yes
+velocity  	all create 300.0 12345 loop geom
 fix       	thermostat all nve
 
 ############# Output ###############

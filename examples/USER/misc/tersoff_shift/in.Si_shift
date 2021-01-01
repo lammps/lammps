@@ -24,7 +24,7 @@ thermo_modify   line one format float %20.15g
 
 #### Simulation settings ####
 timestep  	0.001
-velocity  	all create 300.0 12345 dist gaussian mom yes rot yes
+velocity  	all create 300.0 12345 loop geom
 fix       	thermostat all nve
 
 ############# Output ###############

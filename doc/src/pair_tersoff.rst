@@ -16,7 +16,6 @@ pair_style tersoff/table command
 
 Accelerator Variants: *tersoff/table/omp*
 
-
 pair_style tersoff/shift command
 ================================
 
@@ -27,13 +26,13 @@ Syntax
 
    pair_style style keywords values
 
-* style = *tersoff* or *tersoff/table* or *tersoff/shift* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
+* style = *tersoff* or *tersoff/table* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
 * keyword = *shift*
 
   .. parsed-literal::
 
        *shift* value = delta
-         delta = the value of the shift applied to the equilibrium bond length of the tersoff potential
+         delta = negative shift in equilibrium bond length
 
 Examples
 """"""""
@@ -59,7 +58,7 @@ The *tersoff* style computes a 3-body Tersoff potential
 .. math::
 
   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + delta) \right] \\
+  V_{ij} & = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + \delta) \right] \\
   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & r < R - D \\
     \frac{1}{2} - \frac{1}{2} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) &
@@ -69,52 +68,21 @@ The *tersoff* style computes a 3-body Tersoff potential
   f_R(r) & =  A \exp (-\lambda_1 r) \\
   f_A(r) & =  -B \exp (-\lambda_2 r) \\
   b_{ij} & =  \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik} + \delta) g \left[ \theta_{ijk}(r_{ij} + \delta, r_{ik} + \delta) \right]
+  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik} + \delta) g \left[ \theta_{ijk}(r_{ij}, r_{ik}) \right]
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
   g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
 interactions.  The summations in the formula are over all neighbors
-J and K of atom I within a cutoff distance = R + D. math:`\delta` is
-the shift applied to the equilibrium bond length. 
+J and K of atom I within a cutoff distance = R + D. :math:`\delta` is
+an optional negative shift of the equilibrium bond length, as described below. 
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
 between adjacent table entries. The table length is chosen to be
 accurate within 10\^-6 with respect to the *tersoff* style energy.
 The *tersoff/table* should give better performance in terms of speed.
-
-The *shift* keyword computes the energy E of a system of atoms, whose formula
-is the same as the Tersoff potential. The only modification is that the original 
-equilibrium bond length (:math: `r_0`) of the system is shifted to :math:`r_0-\delta`.
-
-.. note::
-
-   The sign of :math:`\delta` determines whether the resulting equilibrium bond length will be elongated 
-   or shrinked relative to the original value. Specifically, values of :math:`\delta < 0` will result in 
-   elongation of the bond length, while values of :math:`\delta > 0` will result in shrinking of the bond length.
-
-This *shift* keyword is designed for simulations of closely matched van der Waals heterostructures. 
-For instance, let's consider the case of a system with few-layers graphene atop a thick hexagonal boron nitride (h-BN) 
-substrate simulated using periodic boundary conditions. The experimental lattice mismatch of ~1.8% between graphene
-and h-BN is not well captured by the equilibrium lattice constants of available potentials, thus a small in-plane strain
-will be introduced in the system when building a periodic supercell.To minimize the effect of strain on
-simulation results, the *tersoff/shift* style is proposed that allows adjusting the equilibrium bond length
-of one of the two materials (e.g., h-BN). Validitation, benchmark tests and applications of the *tersoff/shift* style
-can be found in :ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
-
-For the specific case discussed above, the force field can be defined as
-
-.. code-block:: LAMMPS
-
-   pair_style  hybrid/overlay rebo tersoff shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
-   pair_coeff  * * rebo              CH.rebo     NULL NULL C
-   pair_coeff  * * tersoff/shift     BNC.tersoff B    N    NULL
-   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
-   pair_coeff  1 1 coul/shield 0.70
-   pair_coeff  1 2 coul/shield 0.695
-   pair_coeff  2 2 coul/shield 0.69
 
 Only a single pair_coeff command is used with the *tersoff* style
 which specifies a Tersoff potential file with parameters for all
@@ -257,6 +225,32 @@ Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou
 for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.
 
+The *shift* keyword computes the energy E of a system of atoms, whose formula
+is the same as the Tersoff potential. The only modification is that the original 
+equilibrium bond length ( :math:`r_0`) of the system is shifted to :math:`r_0-\delta`.
+The minus sign arises because each radial distance :math:`r` is replaced by :math:`r+\delta`.
+
+The *shift* keyword is designed for simulations of closely matched van der Waals heterostructures. 
+For instance, consider the case of a system with few-layers graphene atop a thick hexagonal boron nitride (h-BN) 
+substrate simulated using periodic boundary conditions. The experimental lattice mismatch of ~1.8% between graphene
+and h-BN is not well captured by the equilibrium lattice constants of available potentials, thus a small in-plane strain
+will be introduced in the system when building a periodic supercell.  To minimize the effect of strain on
+simulation results, the *shift* keyword allows adjusting the equilibrium bond length
+of one of the two materials (e.g., h-BN). Validation, benchmark tests, and applications of the 
+*shift* keyword can be found in :ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
+
+For the specific case discussed above, the force field can be defined as
+
+.. code-block:: LAMMPS
+
+   pair_style  hybrid/overlay rebo tersoff shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
+   pair_coeff  * * rebo              CH.rebo     NULL NULL C
+   pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
+   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
+   pair_coeff  1 1 coul/shield 0.70
+   pair_coeff  1 2 coul/shield 0.695
+   pair_coeff  2 2 coul/shield 0.69
+
 ----------
 
 .. include:: accel_styles.rst
@@ -273,7 +267,8 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
+This pair style does not write its information to :doc:`binary restart files <restart>`, 
+since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
@@ -287,7 +282,8 @@ Restrictions
 """"""""""""
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` 
+doc page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -298,6 +294,10 @@ use the Tersoff potential with any LAMMPS units, but you would need to
 create your own Tersoff potential file with coefficients listed in the
 appropriate units if your simulation does not use "metal" units.
 
+The *shift* keyword is not supported by the 
+*tersoff/gpu*, *tersoff/intel*, *tersoff/kk*, or *tersoff/table*
+variants. 
+
 Related commands
 """"""""""""""""
 
@@ -306,7 +306,7 @@ Related commands
 Default
 """""""
 
-none
+shift delta = 0.0
 
 ----------
 

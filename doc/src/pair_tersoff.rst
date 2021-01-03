@@ -180,6 +180,18 @@ Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
 Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` are not symmetric.
+Similarly, the threebody parameters in entries such as SiCSi and SiSiC
+are often the same, but this is not always the case, particularly 
+the value of R, which is sometimes typed on the 
+first and second elements, sometimes on the first and third elements. 
+Hence the need to specify R and D explicitly for all element triples.
+For example, while Tersoff's notation
+in Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` is ambiguous on this point,
+and properties of the zincblende lattice are the same for either choice,
+Tersoff's results for rocksalt are consistent with typing on the first 
+and third elements. :ref:`Albe et al. <Albe>` adopts the same convention.
+Conversely, the potential for B/N/C from the Cagin group
+uses the opposite convention, typing on the first and second elements.
 
 We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form

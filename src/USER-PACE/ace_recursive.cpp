@@ -370,6 +370,7 @@ void ACERecursiveEvaluator::acejlformat() {
     AAspec.resize(num2, maxorder);
     jl_coeffs.resize(num2, ndensity);
     AAidx = 0;                          // linear index into AA basis function 
+    int len_flat = 0;
     for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
         ACECTildeBasisFunction *func = &basis[func_ind];
         order = func->rank;
@@ -383,6 +384,7 @@ void ACERecursiveEvaluator::acejlformat() {
                 for (t = 0; t < order; t++) {
                     int Ait = A_lookup(int(mus[t]), int(ns[t] - 1), int(ls[t]), int(ms[t]) + int(ls[t]));
                     AAspec(AAidx, t) = Ait;
+                    len_flat += 1;
                 }
                 for (t = order; t < maxorder; t++) AAspec(AAidx, t) = -1;
                 /* copy over the coefficients */
@@ -392,6 +394,14 @@ void ACERecursiveEvaluator::acejlformat() {
             }
         }
     }
+
+    // flatten the AAspec array 
+    jl_AAspec_flat.resize(len_flat);
+    int idx_spec = 0;
+    for (int AAidx = 0; AAidx < jl_AAspec.get_dim(0); AAidx++)
+        for (int p = 0; p < jl_orders(AAidx); p++, idx_spec++)
+            jl_AAspec_flat(idx_spec) = jl_AAspec(AAidx, p);
+
 }
 
 void ACERecursiveEvaluator::test_acejlformat() {
@@ -529,6 +539,9 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
     ACEComplex B{0.};
     ACEComplex dB{0};
     ACEComplex A_cache[basis_set->rankmax];
+
+    ACEComplex dA[basis_set->rankmax];
+    int spec[basis_set->rankmax];
 
     dB_flatten.fill({0.});
 
@@ -759,22 +772,72 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
                            dag.Aspec(idx, 3));
 
 
-    /* STAGE 2: FORWARD PASS
-     * Forward pass: go through the dag and store all intermediate results
-     */
-    // rhos.fill(0); note the rhos are already reset and started filling above!
-    ACEComplex AA1{0.0};
-    ACEComplex AA2{0.0};
-    ACEComplex AAcur{0.0};
-    int i1, i2;
+    if (recursive) {
+        /* STAGE 2: FORWARD PASS
+        * Forward pass: go through the dag and store all intermediate results
+        */
+        // rhos.fill(0); note the rhos are already reset and started filling above!
+        ACEComplex AAcur{0.0};
+        int i1, i2;
 
-    for (int idx = 0; idx < dag.get_num2(); idx++) {
-        i1 = dag.nodes(idx, 0);
-        i2 = dag.nodes(idx, 1);
-        AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
-        dag.AAbuf(num1 + idx) = AAcur;
-        for (int p = 0; p < ndensity; p++)
-            rhos(p) += AAcur.real_part_product(dag.coeffs(idx, p));
+        // for (int idx = 0; idx < dag.get_num2(); idx++) {    
+        //     i1 = dag.nodes(idx, 0);
+        //     i2 = dag.nodes(idx, 1);
+        //     AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
+        //     dag.AAbuf(num1 + idx) = AAcur;
+        //     for (int p = 0; p < ndensity; p++)            
+        //         rhos(p) += AAcur.real_part_product(dag.coeffs(idx, p));
+        // }
+
+        // linear access version 
+        int *dag_nodes = dag.nodes.get_data();
+        int idx_nodes = 0;
+
+        ACEComplex *dag_coefs = dag.coeffs.get_data();
+        int idx_coefs = 0;
+
+        for (int idx = num1; idx < num1 + dag.get_num2(); idx++) {
+            i1 = dag_nodes[idx_nodes];
+            idx_nodes++;
+            i2 = dag_nodes[idx_nodes];
+            idx_nodes++;
+            AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
+            dag.AAbuf(idx) = AAcur;
+            for (int p = 0; p < ndensity; p++, idx_coefs++)
+                rhos(p) += AAcur.real_part_product(dag_coefs[idx_coefs]);
+        }
+
+    } else {
+
+        /* non-recursive Julia-style evaluator implementation */
+        // TODO: flatten the coefficients for faster access!!!
+
+        ACEComplex AAcur{1.0};
+
+        // (nonlinear access version)
+        // for (int idx = 0; idx < jl_AAspec.get_dim(0); idx ++ ) {
+        //     AAcur = 1.0;
+        //     for (int r = 0; r < jl_orders(idx); r++)
+        //         AAcur *= dag.AAbuf( jl_AAspec(idx, r) );
+        //     for (int p = 0; p < ndensity; p++) 
+        //         rhos(p) += AAcur.real_part_product(jl_coeffs(idx, p));
+        // }
+
+        // (linear access version - i.e. using flattened arrays)
+        int *AAspec = jl_AAspec_flat.get_data();
+        ACEComplex *coeffs = jl_coeffs.get_data();
+        int idx_spec = 0;
+        int idx_coefs = 0;
+        int order = 0;
+        int max_order = jl_AAspec.get_dim(1);
+        for (int iAA = 0; iAA < jl_AAspec.get_dim(0); iAA++) {
+            AAcur = 1.0;
+            order = jl_orders(iAA);
+            for (int r = 0; r < order; r++, idx_spec++)
+                AAcur *= dag.AAbuf(AAspec[idx_spec]);
+            for (int p = 0; p < ndensity; p++, idx_coefs++)
+                rhos(p) += AAcur.real_part_product(coeffs[idx_coefs]);
+        }
     }
 
     /* we now have rho and can evaluate lots of things. 
@@ -833,23 +896,118 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
 
     /* --------- we now continue with the recursive code --------- */
 
-    /* STAGE 2:  BACKWARD PASS
-     */
-    /* to prepare for the backward we first need to zero the weights */
-    dag.w.fill({0.0});
-    ACEComplex wcur{0.0};
-    for (int idx = dag.get_num2() - 1; idx >= 0; idx--) {
-        i1 = dag.nodes(idx, 0);
-        i2 = dag.nodes(idx, 1);
-        AA1 = dag.AAbuf(i1);
-        AA2 = dag.AAbuf(i2);
-        wcur = dag.w(num1 + idx);
-        for (int p = 0; p < ndensity; p++)
-            wcur += dF_drho(p) * dag.coeffs(idx, p);
-        dag.w(i1) += wcur * AA2;   // TODO: replace with explicit muladd? 
-        dag.w(i2) += wcur * AA1;
-        // dag.w(idx) = 0 ... we could now zero the current w since we no 
-        //                    longer need it.
+    if (recursive) {
+        /* STAGE 2:  BACKWARD PASS */
+        int i1, i2;
+        ACEComplex AA1{0.0};
+        ACEComplex AA2{0.0};
+        ACEComplex wcur{0.0};
+        /* to prepare for the backward we first need to zero the weights */
+        dag.w.fill({0.0});
+
+        // // simple version
+        // for (int idx = dag.get_num2()-1; idx >= 0; idx--) {
+        //     i1 = dag.nodes(idx, 0);
+        //     i2 = dag.nodes(idx, 1);
+        //     AA1 = dag.AAbuf(i1);
+        //     AA2 = dag.AAbuf(i2);
+        //     wcur = dag.w(num1+idx);
+        //     for (int p = 0; p < ndensity; p++) 
+        //         wcur += dF_drho(p) * dag.coeffs(idx, p);
+        //     dag.w(i1) += wcur * AA2;   // TODO: replace with explicit muladd? 
+        //     dag.w(i2) += wcur * AA1;
+        //     // dag.w(idx) = 0 ... we could now zero the current w since we no 
+        //     //                    longer need it.
+        // }
+
+        // linear access version
+        int *dag_nodes = dag.nodes.get_data();
+        int idx_nodes = 2 * dag.get_num2() - 1;
+
+        ACEComplex *dag_coefs = dag.coeffs.get_data();
+        int idx_coefs = ndensity * dag.get_num2() - 1;
+
+        for (int idx = num1 + dag.get_num2() - 1; idx >= num1; idx--) {
+            i2 = dag_nodes[idx_nodes];
+            idx_nodes--;
+            i1 = dag_nodes[idx_nodes];
+            idx_nodes--;
+            AA1 = dag.AAbuf(i1);
+            AA2 = dag.AAbuf(i2);
+            wcur = dag.w(idx);
+            for (int p = ndensity - 1; p >= 0; p--, idx_coefs--)
+                wcur += dF_drho(p) * dag_coefs[idx_coefs];
+            dag.w(i1) += wcur * AA2;   // TODO: replace with explicit muladd? 
+            dag.w(i2) += wcur * AA1;
+        }
+
+
+    } else {
+
+        // non-recursive ACE.jl style implemenation of gradients, but with 
+        // a backward differentiation approach to the prod-A 
+        // (cf. Algorithm 3 in the manuscript)
+
+        dag.w.fill({0.0});
+        ACEComplex AAf{1.0}, AAb{1.0}, theta{0.0};
+
+        // (nonlinear access version)
+        // for (int idx = 0; idx < jl_AAspec.get_dim(0); idx ++ ) {
+        //     int order = jl_orders(idx);
+        //     theta = 0.0; 
+        //     for (int p = 0; p < ndensity; p++) 
+        //         theta += dF_drho(p) * jl_coeffs(idx, p);
+        //     dA[0] = 1.0; 
+        //     AAf = 1.0; 
+        //     for (int t = 0; t < order-1; t++) {
+        //         spec[t] = jl_AAspec(idx, t);
+        //         A_cache[t] = dag.AAbuf(spec[t]);
+        //         AAf *= A_cache[t]; 
+        //         dA[t+1] = AAf; 
+        //     }
+        //     spec[order-1] = jl_AAspec(idx, order-1);
+        //     A_cache[order-1] = dag.AAbuf(spec[order-1]);
+        //     AAb = 1.0;
+        //     for (int t = order-1; t >= 1; t--) {
+        //         AAb *= A_cache[t]; 
+        //         dA[t-1] *= AAb; 
+        //         dag.w(spec[t]) += theta * dA[t];
+        //     }
+        //     dag.w(spec[0]) += theta * dA[0];
+        // }
+
+        // (linear access version - i.e. using flattened arrays)
+        int *AAspec = jl_AAspec_flat.get_data();
+        ACEComplex *coeffs = jl_coeffs.get_data();
+        int idx_spec = 0;
+        int idx_coefs = 0;
+        int order = 0;
+        int max_order = jl_AAspec.get_dim(1);
+        for (int iAA = 0; iAA < jl_AAspec.get_dim(0); iAA++) {
+            order = jl_orders(iAA);
+            theta = 0.0;
+            for (int p = 0; p < ndensity; p++, idx_coefs++)
+                theta += dF_drho(p) * coeffs[idx_coefs];
+            dA[0] = 1.0;
+            AAf = 1.0;
+            for (int t = 0; t < order - 1; t++, idx_spec++) {
+                spec[t] = AAspec[idx_spec];
+                A_cache[t] = dag.AAbuf(spec[t]);
+                AAf *= A_cache[t];
+                dA[t + 1] = AAf;
+            }
+            spec[order - 1] = AAspec[idx_spec];
+            idx_spec++;
+            A_cache[order - 1] = dag.AAbuf(spec[order - 1]);
+            AAb = 1.0;
+            for (int t = order - 1; t >= 1; t--) {
+                AAb *= A_cache[t];
+                dA[t - 1] *= AAb;
+                dag.w(spec[t]) += theta * dA[t];
+            }
+            dag.w(spec[0]) += theta * dA[0];
+        }
+
     }
 
     /* STAGE 3: 

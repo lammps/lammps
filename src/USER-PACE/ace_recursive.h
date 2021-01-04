@@ -136,6 +136,7 @@ class ACERecursiveEvaluator : public ACEEvaluator {
     /* convert the PACE to the ACE.jl format to prepare for DAG construction*/
     Array2D<int> jl_Aspec;
     Array2D<int> jl_AAspec;
+    Array1D<int> jl_AAspec_flat;
     Array1D<int> jl_orders;
     Array2D<ACEComplex> jl_coeffs;
 
@@ -144,19 +145,20 @@ class ACERecursiveEvaluator : public ACEEvaluator {
     /* the main event : the computational graph */
     ACEDAG dag;
 
+    bool recursive = true;
+
 public:
 
-    /******* debugging codes...********/
-    void print_dag() { dag.print(); }
-
-    void test_acejlformat();
-
-    /********************************/
 
     ACERecursiveEvaluator() = default;
 
     explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas) {
+        ACERecursiveEvaluator(bas, true);
+    }
+
+    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas, bool recursive) {
         set_basis(bas);
+        set_recursive(recursive);
     }
 
     /**
@@ -182,6 +184,20 @@ public:
      * @param max_jnum  maximum number of neighbours
      */
     void resize_neighbours_cache(int max_jnum) override;
+
+    /******* public functions related to recursive evaluator ********/
+
+    // print out the DAG for visual inspection
+    void print_dag() { dag.print(); }
+
+    // print out the jl format for visual inspection
+    // should be converted into a proper test 
+    void test_acejlformat();
+
+    void set_recursive(bool tf) { recursive = tf; }
+
+    /********************************/
+
 };
 
 

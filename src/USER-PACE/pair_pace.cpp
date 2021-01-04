@@ -308,6 +308,7 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[0] is not used
 
     ace = new ACERecursiveEvaluator();
+    ace->set_recursive(true);
     ace->element_type_mapping.init(atom->ntypes + 1);
 
     for (int i = 1; i <= atom->ntypes; i++) {

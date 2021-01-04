@@ -268,6 +268,8 @@ The typecasts prevent compiler warnings about possible truncation issues.
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
 #  define _noopt
+#elif defined(__PGI)
+#  define _noopt
 #elif defined(__GNUC__)
 #  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
 #    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)

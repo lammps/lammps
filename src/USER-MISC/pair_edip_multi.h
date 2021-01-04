@@ -36,17 +36,17 @@ class PairEDIPMulti : public Pair {
 
  protected:
   struct Param {
-    double A, B;//coefficients for pair interaction I-J
-    double cutoffA;//cut-off distance for pair interaction I-J
-    double cutoffC;//lower cut-off distance for calculating Z_I
-    double alpha;//coefficient for calculating Z_I
-    double beta;//attractive term for pair I-J
-    double sigma;//cut-off coefficient for pair I-J
-    double rho;//pair I-J
-    double gamma;//coefficient for three-body interaction I-J-K
-    double eta, lambda;//coefficients for function h(l,Z)
-    double mu, Q0;//coefficients for function Q(Z)
-    double u1, u2, u3, u4;//coefficients for function tau(Z)
+    double A, B;                // coefficients for pair interaction I-J
+    double cutoffA;             // cut-off distance for pair interaction I-J
+    double cutoffC;             // lower cut-off distance for calculating Z_I
+    double alpha;               // coefficient for calculating Z_I
+    double beta;                // attractive term for pair I-J
+    double sigma;               // cut-off coefficient for pair I-J
+    double rho;                 // pair I-J
+    double gamma;               // coefficient for three-body interaction I-J-K
+    double eta, lambda;         // coefficients for function h(l,Z)
+    double mu, Q0;              // coefficients for function Q(Z)
+    double u1, u2, u3, u4;      // coefficients for function tau(Z)
     double cutsq;
     int ielement,jelement,kelement;
   };
@@ -61,10 +61,6 @@ class PairEDIPMulti : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
-
-  // max number of interaction per atom for f(Z) environment potential
-
-  static const int leadDimInteractionList = 64;
 
   void allocate();
   void allocatePreLoops(void);

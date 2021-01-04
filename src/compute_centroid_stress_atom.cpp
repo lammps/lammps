@@ -126,11 +126,11 @@ void ComputeCentroidStressAtom::init()
 
   // check if force components and fixes support centroid atom stress
   // all bond styles support it as CENTROID_SAME
-  
+
   if (pairflag && force->pair)
     if (force->pair->centroidstressflag == CENTROID_NOTAVAIL)
       error->all(FLERR, "Pair style does not support compute centroid/stress/atom");
-  
+
   if (angleflag && force->angle)
     if (force->angle->centroidstressflag == CENTROID_NOTAVAIL)
       error->all(FLERR, "Angle style does not support compute centroid/stress/atom");
@@ -150,8 +150,8 @@ void ComputeCentroidStressAtom::init()
   if (fixflag) {
     for (int ifix = 0; ifix < modify->nfix; ifix++)
       if (modify->fix[ifix]->virial_flag &&
-	  modify->fix[ifix]->centroidstressflag == CENTROID_NOTAVAIL)
-	error->all(FLERR, "Fix style does not support compute centroid/stress/atom");
+          modify->fix[ifix]->centroidstressflag == CENTROID_NOTAVAIL)
+        error->all(FLERR, "Fix style does not support compute centroid/stress/atom");
   }
 }
 
@@ -199,9 +199,9 @@ void ComputeCentroidStressAtom::compute_peratom()
       stress[i][j] = 0.0;
 
   // add in per-atom contributions from all force components and fixes
-  
+
   // pair styles are either CENTROID_SAME or CENTROID_AVAIL or CENTROID_NOTAVAIL
-  
+
   if (pairflag && force->pair && force->pair->compute_flag) {
     if (force->pair->centroidstressflag == CENTROID_AVAIL) {
       double **cvatom = force->pair->cvatom;
@@ -223,7 +223,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // bond styles are all CENTROID_SAME
   // angle, dihedral, improper styles are CENTROID_AVAIL or CENTROID_NOTAVAIL
   // KSpace styles are all CENTROID_NOTAVAIL, placeholder CENTROID_SAME below
-  
+
   if (bondflag && force->bond) {
     double **vatom = force->bond->vatom;
     for (i = 0; i < nbond; i++) {
@@ -271,7 +271,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input
   // fix styles are CENTROID_SAME or CENTROID_NOTAVAIL
-  
+
   if (fixflag) {
     for (int ifix = 0; ifix < modify->nfix; ifix++)
       if (modify->fix[ifix]->virial_flag) {

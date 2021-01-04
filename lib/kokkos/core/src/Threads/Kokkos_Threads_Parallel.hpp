@@ -365,7 +365,8 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
   using ValueTraits =
       Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueInit  = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueFinal = Kokkos::Impl::FunctorFinal<ReducerTypeFwd, WorkTagFwd>;
 
   using pointer_type   = typename ValueTraits::pointer_type;
   using reference_type = typename ValueTraits::reference_type;
@@ -461,23 +462,32 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
  public:
   inline void execute() const {
-    ThreadsExec::resize_scratch(
-        ValueTraits::value_size(
-            ReducerConditional::select(m_functor, m_reducer)),
-        0);
+    if (m_policy.end() <= m_policy.begin()) {
+      if (m_result_ptr) {
+        ValueInit::init(ReducerConditional::select(m_functor, m_reducer),
+                        m_result_ptr);
+        ValueFinal::final(ReducerConditional::select(m_functor, m_reducer),
+                          m_result_ptr);
+      }
+    } else {
+      ThreadsExec::resize_scratch(
+          ValueTraits::value_size(
+              ReducerConditional::select(m_functor, m_reducer)),
+          0);
 
-    ThreadsExec::start(&ParallelReduce::exec, this);
+      ThreadsExec::start(&ParallelReduce::exec, this);
 
-    ThreadsExec::fence();
+      ThreadsExec::fence();
 
-    if (m_result_ptr) {
-      const pointer_type data =
-          (pointer_type)ThreadsExec::root_reduce_scratch();
+      if (m_result_ptr) {
+        const pointer_type data =
+            (pointer_type)ThreadsExec::root_reduce_scratch();
 
-      const unsigned n = ValueTraits::value_count(
-          ReducerConditional::select(m_functor, m_reducer));
-      for (unsigned i = 0; i < n; ++i) {
-        m_result_ptr[i] = data[i];
+        const unsigned n = ValueTraits::value_count(
+            ReducerConditional::select(m_functor, m_reducer));
+        for (unsigned i = 0; i < n; ++i) {
+          m_result_ptr[i] = data[i];
+        }
       }
     }
   }
@@ -696,7 +706,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
   using ValueTraits =
       Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueInit  = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueFinal = Kokkos::Impl::FunctorFinal<ReducerTypeFwd, WorkTagFwd>;
 
   using pointer_type   = typename ValueTraits::pointer_type;
   using reference_type = typename ValueTraits::reference_type;
@@ -743,23 +754,32 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
  public:
   inline void execute() const {
-    ThreadsExec::resize_scratch(
-        ValueTraits::value_size(
-            ReducerConditional::select(m_functor, m_reducer)),
-        Policy::member_type::team_reduce_size() + m_shared);
+    if (m_policy.league_size() * m_policy.team_size() == 0) {
+      if (m_result_ptr) {
+        ValueInit::init(ReducerConditional::select(m_functor, m_reducer),
+                        m_result_ptr);
+        ValueFinal::final(ReducerConditional::select(m_functor, m_reducer),
+                          m_result_ptr);
+      }
+    } else {
+      ThreadsExec::resize_scratch(
+          ValueTraits::value_size(
+              ReducerConditional::select(m_functor, m_reducer)),
+          Policy::member_type::team_reduce_size() + m_shared);
 
-    ThreadsExec::start(&ParallelReduce::exec, this);
+      ThreadsExec::start(&ParallelReduce::exec, this);
 
-    ThreadsExec::fence();
+      ThreadsExec::fence();
 
-    if (m_result_ptr) {
-      const pointer_type data =
-          (pointer_type)ThreadsExec::root_reduce_scratch();
+      if (m_result_ptr) {
+        const pointer_type data =
+            (pointer_type)ThreadsExec::root_reduce_scratch();
 
-      const unsigned n = ValueTraits::value_count(
-          ReducerConditional::select(m_functor, m_reducer));
-      for (unsigned i = 0; i < n; ++i) {
-        m_result_ptr[i] = data[i];
+        const unsigned n = ValueTraits::value_count(
+            ReducerConditional::select(m_functor, m_reducer));
+        for (unsigned i = 0; i < n; ++i) {
+          m_result_ptr[i] = data[i];
+        }
       }
     }
   }

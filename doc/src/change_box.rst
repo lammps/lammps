@@ -301,9 +301,13 @@ command.
 
 .. note::
 
-   Changing a periodic boundary to a non-periodic one will also
-   cause the image flag for that dimension to be reset to 0 for
-   all atoms.  LAMMPS will print a warning message, if that happens.
+   Changing a periodic boundary to a non-periodic one will also cause
+   the image flag for that dimension of all atoms to be reset to 0.
+   LAMMPS will print a warning message, if that happens.
+   Please note that this reset can lead to undesired changes when
+   atoms are involved in bonded interactions that straddle periodic
+   boundaries and thus the values of the image flag differs for those
+   atoms.
 
 ----------
 

@@ -18,7 +18,7 @@
 #include <vector>
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 70102
+#define FMT_VERSION 70103
 
 #ifdef __clang__
 #  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
@@ -769,7 +769,7 @@ class fixed_buffer_traits {
   explicit fixed_buffer_traits(size_t limit) : limit_(limit) {}
   size_t count() const { return count_; }
   size_t limit(size_t size) {
-    size_t n = limit_ - count_;
+    size_t n = limit_ > count_ ? limit_ - count_ : 0;
     count_ += size;
     return size < n ? size : n;
   }
@@ -792,7 +792,7 @@ class iterator_buffer final : public Traits, public buffer<T> {
  public:
   explicit iterator_buffer(OutputIt out, size_t n = buffer_size)
       : Traits(n),
-        buffer<T>(data_, 0, n < size_t(buffer_size) ? n : size_t(buffer_size)),
+        buffer<T>(data_, 0, buffer_size),
         out_(out) {}
   ~iterator_buffer() { flush(); }
 

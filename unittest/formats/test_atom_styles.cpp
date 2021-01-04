@@ -32,7 +32,7 @@
 #include <vector>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_COMPILER) || (__PGI)
 #define _do_nothing
 #elif defined(__clang__)
 #pragma clang optimize off
@@ -132,83 +132,82 @@ protected:
 
 // default class Atom state
 struct AtomState {
-    std::string atom_style = "atomic";
-    bigint natoms = 0;
-    int nlocal = 0;
-    int nghost = 0;
-    int nmax = 1;
-    int tag_enable = 1;
-    int molecular = Atom::ATOMIC;
-    bigint nellipsoids = 0;
-    bigint nlines = 0;
-    bigint ntris = 0;
-    bigint nbodies = 0;
-    bigint nbonds = 0;
-    bigint nangles = 0;
-    bigint ndihedrals = 0;
-    bigint nimpropers = 0;
-    int ntypes = 0;
-    int nbondtypes = 0;
-    int nangletypes = 0;
-    int ndihedraltypes = 0;
-    int nimpropertypes = 0;
-    int bond_per_atom = 0;
-    int angle_per_atom = 0;
-    int dihedral_per_atom = 0;
-    int improper_per_atom = 0;
-    int extra_bond_per_atom = 0;
-    int extra_angle_per_atom = 0;
+    std::string atom_style      = "atomic";
+    bigint natoms               = 0;
+    int nlocal                  = 0;
+    int nghost                  = 0;
+    int nmax                    = 1;
+    int tag_enable              = 1;
+    int molecular               = Atom::ATOMIC;
+    bigint nellipsoids          = 0;
+    bigint nlines               = 0;
+    bigint ntris                = 0;
+    bigint nbodies              = 0;
+    bigint nbonds               = 0;
+    bigint nangles              = 0;
+    bigint ndihedrals           = 0;
+    bigint nimpropers           = 0;
+    int ntypes                  = 0;
+    int nbondtypes              = 0;
+    int nangletypes             = 0;
+    int ndihedraltypes          = 0;
+    int nimpropertypes          = 0;
+    int bond_per_atom           = 0;
+    int angle_per_atom          = 0;
+    int dihedral_per_atom       = 0;
+    int improper_per_atom       = 0;
+    int extra_bond_per_atom     = 0;
+    int extra_angle_per_atom    = 0;
     int extra_dihedral_per_atom = 0;
     int extra_improper_per_atom = 0;
 
-    int sphere_flag = 0;
-    int ellipsoid_flag = 0;
-    int line_flag = 0;
-    int tri_flag = 0;
-    int body_flag = 0;
-    int peri_flag = 0;
-    int electron_flag = 0;
-    int wavepacket_flag = 0;
-    int sph_flag = 0;
-    int molecule_flag = 0;
-    int molindex_flag = 0;
-    int molatom_flag = 0;
-    int q_flag = 0;
-    int mu_flag = 0;
-    int rmass_flag = 0;
-    int radius_flag = 0;
-    int omega_flag = 0;
-    int torque_flag = 0;
-    int angmom_flag = 0;
-    int vfrac_flag = 0;
-    int spin_flag = 0;
-    int eradius_flag = 0;
-    int ervel_flag = 0;
-    int erforce_flag = 0;
-    int cs_flag = 0;
-    int csforce_flag = 0;
-    int vforce_flag = 0;
-    int ervelforce_flag = 0;
-    int etag_flag = 0;
-    int rho_flag = 0;
-    int esph_flag = 0;
-    int cv_flag = 0;
-    int vest_flag = 0;
-    int dpd_flag = 0;
-    int edpd_flag = 0;
-    int tdpd_flag = 0;
-    int mesont_flag = 0;
-    int sp_flag = 0;
-    int x0_flag = 0;
-    int smd_flag = 0;
-    int damage_flag = 0;
-    int contact_radius_flag = 0;
-    int smd_data_9_flag = 0;
-    int smd_stress_flag = 0;
-    int eff_plastic_strain_flag = 0;
+    int sphere_flag                  = 0;
+    int ellipsoid_flag               = 0;
+    int line_flag                    = 0;
+    int tri_flag                     = 0;
+    int body_flag                    = 0;
+    int peri_flag                    = 0;
+    int electron_flag                = 0;
+    int wavepacket_flag              = 0;
+    int sph_flag                     = 0;
+    int molecule_flag                = 0;
+    int molindex_flag                = 0;
+    int molatom_flag                 = 0;
+    int q_flag                       = 0;
+    int mu_flag                      = 0;
+    int rmass_flag                   = 0;
+    int radius_flag                  = 0;
+    int omega_flag                   = 0;
+    int torque_flag                  = 0;
+    int angmom_flag                  = 0;
+    int vfrac_flag                   = 0;
+    int spin_flag                    = 0;
+    int eradius_flag                 = 0;
+    int ervel_flag                   = 0;
+    int erforce_flag                 = 0;
+    int cs_flag                      = 0;
+    int csforce_flag                 = 0;
+    int vforce_flag                  = 0;
+    int ervelforce_flag              = 0;
+    int etag_flag                    = 0;
+    int rho_flag                     = 0;
+    int esph_flag                    = 0;
+    int cv_flag                      = 0;
+    int vest_flag                    = 0;
+    int dpd_flag                     = 0;
+    int edpd_flag                    = 0;
+    int tdpd_flag                    = 0;
+    int mesont_flag                  = 0;
+    int sp_flag                      = 0;
+    int x0_flag                      = 0;
+    int smd_flag                     = 0;
+    int damage_flag                  = 0;
+    int contact_radius_flag          = 0;
+    int smd_data_9_flag              = 0;
+    int smd_stress_flag              = 0;
+    int eff_plastic_strain_flag      = 0;
     int eff_plastic_strain_rate_flag = 0;
-    double pdscale = 1.0;
-
+    double pdscale                   = 1.0;
 
     int maxspecial = 1;
 
@@ -217,48 +216,49 @@ struct AtomState {
     int nivector = 0;
     int ndvector = 0;
 
-    int nextra_grow = 0;
-    int nextra_restart = 0;
-    int nextra_border = 0;
-    int nextra_grow_max = 0;
+    int nextra_grow        = 0;
+    int nextra_restart     = 0;
+    int nextra_border      = 0;
+    int nextra_grow_max    = 0;
     int nextra_restart_max = 0;
-    int nextra_border_max = 0;
-    int nextra_store = 0;
+    int nextra_border_max  = 0;
+    int nextra_store       = 0;
 
-    int map_style = Atom::MAP_NONE;
-    int map_user = 0;
+    int map_style      = Atom::MAP_NONE;
+    int map_user       = 0;
     tagint map_tag_max = -1;
 
     // properties X that aren't controlled by an equivalent X_flag
-    bool has_type = true;
-    bool has_mask = true;
+    bool has_type  = true;
+    bool has_mask  = true;
     bool has_image = true;
-    bool has_x = true;
-    bool has_v = true;
-    bool has_f = true;
+    bool has_x     = true;
+    bool has_v     = true;
+    bool has_f     = true;
 
-    bool has_bonds = false;
-    bool has_angles = false;
+    bool has_bonds    = false;
+    bool has_angles   = false;
     bool has_dihedral = false;
     bool has_improper = false;
 
-    bool has_iname = false;
-    bool has_dname = false;
-    bool has_mass = false;
+    bool has_iname        = false;
+    bool has_dname        = false;
+    bool has_mass         = false;
     bool has_mass_setflag = false;
 
     bool has_nspecial = false;
-    bool has_special = false;
+    bool has_special  = false;
 };
 
 #define ASSERT_ARRAY_ALLOCATED(ptr, enabled) \
-    if (enabled) { \
-        ASSERT_NE(ptr, nullptr); \
-    } else { \
-        ASSERT_EQ(ptr, nullptr); \
+    if (enabled) {                           \
+        ASSERT_NE(ptr, nullptr);             \
+    } else {                                 \
+        ASSERT_EQ(ptr, nullptr);             \
     }
 
-void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
+void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
+{
     ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));
 
     ASSERT_NE(atom->avec, nullptr);
@@ -289,7 +289,7 @@ void ASSERT_ATOM_STATE_EQ(Atom* atom, const AtomState& expected) {
     ASSERT_EQ(atom->extra_angle_per_atom, expected.extra_angle_per_atom);
     ASSERT_EQ(atom->extra_dihedral_per_atom, expected.extra_dihedral_per_atom);
     ASSERT_EQ(atom->extra_improper_per_atom, expected.extra_improper_per_atom);
-    
+
     ASSERT_EQ(atom->sphere_flag, expected.sphere_flag);
     ASSERT_EQ(atom->ellipsoid_flag, expected.ellipsoid_flag);
     ASSERT_EQ(atom->line_flag, expected.line_flag);
@@ -470,14 +470,14 @@ TEST_F(AtomStyleTest, atomic_is_default)
 {
     AtomState expected;
     expected.atom_style = "atomic";
-    expected.molecular = Atom::ATOMIC;
+    expected.molecular  = Atom::ATOMIC;
     expected.tag_enable = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.has_type   = true;
+    expected.has_mask   = true;
+    expected.has_image  = true;
+    expected.has_x      = true;
+    expected.has_v      = true;
+    expected.has_f      = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 }
@@ -486,14 +486,14 @@ TEST_F(AtomStyleTest, atomic_after_charge)
 {
     AtomState expected;
     expected.atom_style = "atomic";
-    expected.molecular = Atom::ATOMIC;
+    expected.molecular  = Atom::ATOMIC;
     expected.tag_enable = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.has_type   = true;
+    expected.has_mask   = true;
+    expected.has_image  = true;
+    expected.has_x      = true;
+    expected.has_v      = true;
+    expected.has_f      = true;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_style charge");
@@ -702,15 +702,15 @@ TEST_F(AtomStyleTest, charge)
 
     AtomState expected;
     expected.atom_style = "charge";
-    expected.molecular = Atom::ATOMIC;
+    expected.molecular  = Atom::ATOMIC;
     expected.tag_enable = 1;
-    expected.has_type = true;
-    expected.has_image = true;
-    expected.has_mask = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
-    expected.q_flag = 1;
+    expected.has_type   = true;
+    expected.has_image  = true;
+    expected.has_mask   = true;
+    expected.has_x      = true;
+    expected.has_v      = true;
+    expected.has_f      = true;
+    expected.q_flag     = 1;
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -878,20 +878,20 @@ TEST_F(AtomStyleTest, sphere)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "sphere";
-    expected.molecular = Atom::ATOMIC;
-    expected.tag_enable = 1;
+    expected.atom_style  = "sphere";
+    expected.molecular   = Atom::ATOMIC;
+    expected.tag_enable  = 1;
     expected.sphere_flag = 1;
-    expected.rmass_flag = 1;
+    expected.rmass_flag  = 1;
     expected.radius_flag = 1;
-    expected.omega_flag = 1;
+    expected.omega_flag  = 1;
     expected.torque_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.has_type    = true;
+    expected.has_mask    = true;
+    expected.has_image   = true;
+    expected.has_x       = true;
+    expected.has_v       = true;
+    expected.has_f       = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -1049,19 +1049,19 @@ TEST_F(AtomStyleTest, ellipsoid)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "ellipsoid";
-    expected.molecular = Atom::ATOMIC;
-    expected.tag_enable = 1;
+    expected.atom_style     = "ellipsoid";
+    expected.molecular      = Atom::ATOMIC;
+    expected.tag_enable     = 1;
     expected.ellipsoid_flag = 1;
-    expected.rmass_flag = 1;
-    expected.angmom_flag = 1;
-    expected.torque_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.rmass_flag     = 1;
+    expected.angmom_flag    = 1;
+    expected.torque_flag    = 1;
+    expected.has_type       = true;
+    expected.has_mask       = true;
+    expected.has_image      = true;
+    expected.has_x          = true;
+    expected.has_v          = true;
+    expected.has_f          = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -1387,22 +1387,22 @@ TEST_F(AtomStyleTest, line)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "line";
-    expected.molecular = Atom::ATOMIC;
-    expected.tag_enable = 1;
-    expected.sphere_flag = 1;
+    expected.atom_style    = "line";
+    expected.molecular     = Atom::ATOMIC;
+    expected.tag_enable    = 1;
+    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
-    expected.line_flag = 1;
-    expected.rmass_flag = 1;
-    expected.radius_flag = 1;
-    expected.omega_flag = 1;
-    expected.torque_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.line_flag     = 1;
+    expected.rmass_flag    = 1;
+    expected.radius_flag   = 1;
+    expected.omega_flag    = 1;
+    expected.torque_flag   = 1;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -1657,23 +1657,23 @@ TEST_F(AtomStyleTest, tri)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "tri";
-    expected.molecular = Atom::ATOMIC;
-    expected.tag_enable = 1;
-    expected.sphere_flag = 1;
+    expected.atom_style    = "tri";
+    expected.molecular     = Atom::ATOMIC;
+    expected.tag_enable    = 1;
+    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
-    expected.tri_flag = 1;
-    expected.rmass_flag = 1;
-    expected.radius_flag = 1;
-    expected.omega_flag = 1;
-    expected.angmom_flag = 1;
-    expected.torque_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.tri_flag      = 1;
+    expected.rmass_flag    = 1;
+    expected.radius_flag   = 1;
+    expected.omega_flag    = 1;
+    expected.angmom_flag   = 1;
+    expected.torque_flag   = 1;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -2061,20 +2061,20 @@ TEST_F(AtomStyleTest, body_nparticle)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "body";
-    expected.molecular = Atom::ATOMIC;
-    expected.tag_enable = 1;
-    expected.body_flag = 1;
-    expected.rmass_flag = 1;
+    expected.atom_style  = "body";
+    expected.molecular   = Atom::ATOMIC;
+    expected.tag_enable  = 1;
+    expected.body_flag   = 1;
+    expected.rmass_flag  = 1;
     expected.radius_flag = 1;
     expected.angmom_flag = 1;
     expected.torque_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.has_type    = true;
+    expected.has_mask    = true;
+    expected.has_image   = true;
+    expected.has_x       = true;
+    expected.has_v       = true;
+    expected.has_f       = true;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -2631,22 +2631,22 @@ TEST_F(AtomStyleTest, template)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "template";
-    expected.molecular = Atom::TEMPLATE;
-    expected.nbondtypes = 2;
-    expected.nangletypes = 2;
-    expected.tag_enable = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.atom_style    = "template";
+    expected.molecular     = Atom::TEMPLATE;
+    expected.nbondtypes    = 2;
+    expected.nangletypes   = 2;
+    expected.tag_enable    = 1;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
     expected.molecule_flag = 1;
     expected.molindex_flag = 1;
-    expected.molatom_flag = 1;
-    expected.nmolecule = 2;
-    expected.map_style = 3;
+    expected.molatom_flag  = 1;
+    expected.nmolecule     = 2;
+    expected.map_style     = 3;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -3027,23 +3027,23 @@ TEST_F(AtomStyleTest, template_charge)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "hybrid";
-    expected.molecular = Atom::TEMPLATE;
-    expected.nbondtypes = 2;
-    expected.nangletypes = 2;
-    expected.tag_enable = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
+    expected.atom_style    = "hybrid";
+    expected.molecular     = Atom::TEMPLATE;
+    expected.nbondtypes    = 2;
+    expected.nangletypes   = 2;
+    expected.tag_enable    = 1;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
     expected.molecule_flag = 1;
     expected.molindex_flag = 1;
-    expected.molatom_flag = 1;
-    expected.q_flag = 1;
-    expected.nmolecule = 2;
-    expected.map_style = 3;
+    expected.molatom_flag  = 1;
+    expected.q_flag        = 1;
+    expected.nmolecule     = 2;
+    expected.map_style     = 3;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -3407,7 +3407,6 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
 
-
     type     = lmp->atom->type;
     molecule = lmp->atom->molecule;
     molindex = lmp->atom->molindex;
@@ -3456,20 +3455,20 @@ TEST_F(AtomStyleTest, bond)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "bond";
-    expected.molecular = Atom::MOLECULAR;
-    expected.tag_enable = 1;
+    expected.atom_style    = "bond";
+    expected.molecular     = Atom::MOLECULAR;
+    expected.tag_enable    = 1;
     expected.molecule_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
-    expected.has_bonds = true;
-    expected.has_nspecial = true;
-    expected.has_special = true;
-    expected.map_style = 3;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
+    expected.has_bonds     = true;
+    expected.has_nspecial  = true;
+    expected.has_special   = true;
+    expected.map_style     = 3;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -3804,21 +3803,21 @@ TEST_F(AtomStyleTest, angle)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "angle";
-    expected.molecular = Atom::MOLECULAR;
-    expected.tag_enable = 1;
+    expected.atom_style    = "angle";
+    expected.molecular     = Atom::MOLECULAR;
+    expected.tag_enable    = 1;
     expected.molecule_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
-    expected.has_bonds = true;
-    expected.has_angles = true;
-    expected.has_nspecial = true;
-    expected.has_special = true;
-    expected.map_style = 3;
+    expected.has_type      = true;
+    expected.has_mask      = true;
+    expected.has_image     = true;
+    expected.has_x         = true;
+    expected.has_v         = true;
+    expected.has_f         = true;
+    expected.has_bonds     = true;
+    expected.has_angles    = true;
+    expected.has_nspecial  = true;
+    expected.has_special   = true;
+    expected.map_style     = 3;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
@@ -4164,28 +4163,28 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     AtomState expected;
-    expected.atom_style = "hybrid";
-    expected.molecular = Atom::MOLECULAR;
-    expected.tag_enable = 1;
-    expected.molecule_flag = 1;
+    expected.atom_style     = "hybrid";
+    expected.molecular      = Atom::MOLECULAR;
+    expected.tag_enable     = 1;
+    expected.molecule_flag  = 1;
     expected.ellipsoid_flag = 1;
-    expected.q_flag = 1;
-    expected.rmass_flag = 1;
-    expected.torque_flag = 1;
-    expected.angmom_flag = 1;
-    expected.has_type = true;
-    expected.has_mask = true;
-    expected.has_image = true;
-    expected.has_x = true;
-    expected.has_v = true;
-    expected.has_f = true;
-    expected.has_bonds = true;
-    expected.has_angles = true;
-    expected.has_dihedral = true;
-    expected.has_improper = true;
-    expected.has_nspecial = true;
-    expected.has_special = true;
-    expected.map_style = 3;
+    expected.q_flag         = 1;
+    expected.rmass_flag     = 1;
+    expected.torque_flag    = 1;
+    expected.angmom_flag    = 1;
+    expected.has_type       = true;
+    expected.has_mask       = true;
+    expected.has_image      = true;
+    expected.has_x          = true;
+    expected.has_v          = true;
+    expected.has_f          = true;
+    expected.has_bonds      = true;
+    expected.has_angles     = true;
+    expected.has_dihedral   = true;
+    expected.has_improper   = true;
+    expected.has_nspecial   = true;
+    expected.has_special    = true;
+    expected.map_style      = 3;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 

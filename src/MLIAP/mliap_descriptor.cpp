@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_descriptor.h"
 
 using namespace LAMMPS_NS;

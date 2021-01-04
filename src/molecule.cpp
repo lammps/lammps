@@ -760,7 +760,7 @@ void Molecule::molecules(char *line)
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms) error->one(FLERR,"Invalid Molecules section in molecule file");
       count[iatom]++;
-      molecule[iatom] = values.next_int();
+      molecule[iatom] = values.next_tagint();
       // molecule[iatom] += moffset; // placeholder for possible molecule offset
     }
   } catch (TokenizerException &e) {

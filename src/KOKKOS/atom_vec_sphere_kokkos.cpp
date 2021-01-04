@@ -30,8 +30,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 10
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
@@ -91,6 +89,7 @@ void AtomVecSphereKokkos::init()
 
 void AtomVecSphereKokkos::grow(int n)
 {
+  auto DELTA = LMP_KOKKOS_AV_DELTA;
   int step = MAX(DELTA,nmax*0.01);
   if (n == 0) nmax += step;
   else nmax = n;

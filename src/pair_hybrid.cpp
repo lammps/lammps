@@ -163,7 +163,7 @@ void PairHybrid::compute(int eflag, int vflag)
     }
 
     // substyles may be CENTROID_SAME or CENTROID_AVAIL
-    
+
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
@@ -385,7 +385,7 @@ void PairHybrid::flags()
   compute_flag = 0;
   respa_enable = 0;
   restartinfo = 0;
-  
+
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) ++single_enable;
     if (styles[m]->respa_enable) ++respa_enable;
@@ -418,7 +418,7 @@ void PairHybrid::flags()
     if (styles[m]->centroidstressflag == CENTROID_NOTAVAIL)
       centroidstressflag = CENTROID_NOTAVAIL;
     if (centroidstressflag == CENTROID_SAME &&
-	styles[m]->centroidstressflag == CENTROID_AVAIL)
+        styles[m]->centroidstressflag == CENTROID_AVAIL)
       centroidstressflag = CENTROID_AVAIL;
   }
 }

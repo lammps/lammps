@@ -24,8 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
@@ -60,6 +58,7 @@ AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecDPDKokkos::grow(int n)
 {
+  auto DELTA = LMP_KOKKOS_AV_DELTA;
   int step = MAX(DELTA,nmax*0.01);
   if (n == 0) nmax += step;
   else nmax = n;

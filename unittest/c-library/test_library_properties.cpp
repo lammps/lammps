@@ -91,10 +91,11 @@ TEST_F(LibraryProperties, thermo)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
     EXPECT_EQ(lammps_get_thermo(lmp, "step"), 2);
     EXPECT_EQ(lammps_get_thermo(lmp, "atoms"), 29);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3375.0);
@@ -106,10 +107,11 @@ TEST_F(LibraryProperties, box)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
     double boxlo[3], boxhi[3], xy, yz, xz;
     int pflags[3], boxflag;
     lammps_extract_box(lmp, boxlo, boxhi, &xy, &yz, &xz, pflags, &boxflag);
@@ -204,6 +206,28 @@ TEST_F(LibraryProperties, setting)
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), 1);
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), 0);
     EXPECT_GT(lammps_extract_setting(lmp, "nthreads"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton on off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton off on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
 
     EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 0);

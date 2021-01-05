@@ -299,10 +299,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
                               Kokkos::DefaultExecutionSpace::scratch_memory_space,
                               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
                 ScratchViewType;
-        int scratch_size = ScratchViewType::shmem_size( team_size * max_neighs );
+        int scratch_size = ScratchViewType::shmem_size(team_size * max_neighs);
 
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeNeigh> policy_neigh(chunk_size,team_size,vector_length);
-        policy_neigh = policy_neigh.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
+        policy_neigh = policy_neigh.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
         Kokkos::parallel_for("ComputeNeigh",policy_neigh,*this);
       }
 
@@ -334,7 +334,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
                               Kokkos::DefaultExecutionSpace::scratch_memory_space,
                               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
                 ScratchViewType;
-        int scratch_size = ScratchViewType::shmem_size( team_size * tile_size );
+        int scratch_size = ScratchViewType::shmem_size(team_size * tile_size);
 
         // total number of teams needed
         int chunk_size_div = (chunk_size + vector_length - 1) / vector_length;
@@ -344,7 +344,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
         int n_teams_div = (n_teams + team_size - 1) / team_size;
 
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi> policy_ui(n_teams_div, team_size, vector_length);
-        policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
+        policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
 
         Kokkos::parallel_for("ComputeUi",policy_ui,*this);
 
@@ -401,7 +401,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
                               Kokkos::DefaultExecutionSpace::scratch_memory_space,
                               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
                 ScratchViewType;
-        int scratch_size = ScratchViewType::shmem_size( 2 * team_size * tile_size );
+        int scratch_size = ScratchViewType::shmem_size(2 * team_size * tile_size);
 
         // total number of teams needed
         int chunk_size_div = (chunk_size + vector_length - 1) / vector_length;
@@ -411,7 +411,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
         int n_teams_div = (n_teams + team_size - 1) / team_size;
 
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeFusedDeidrj> policy_fused_deidrj(n_teams_div,team_size,vector_length);
-        policy_fused_deidrj = policy_fused_deidrj.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
+        policy_fused_deidrj = policy_fused_deidrj.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
 
         for (int k = 0; k < 3; k++) {
           snaKK.set_dir(k);
@@ -631,7 +631,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   const int tile_size = max_neighs; // number of elements per thread
   const int team_rank = team.team_rank();
   const int scratch_shift = team_rank * tile_size; // offset into pointer for entire team
-  int* type_cache = (int*)team.team_shmem( ).get_shmem(team.team_size() * tile_size * sizeof(int), 0) + scratch_shift;
+  int* type_cache = (int*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(int), 0) + scratch_shift;
 
   // Load various info about myself up front
   const int i = d_ilist[ii + chunk_offset];
@@ -668,7 +668,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 
     type_cache[jj] = jtype;
 
-    if ( jtype >= 0 )
+    if (jtype >= 0)
      count++;
   }, ninside);
 
@@ -679,7 +679,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 
     const int jtype = type_cache[jj];
 
-    if ( jtype >= 0 ) {
+    if (jtype >= 0) {
       if (final) {
         T_INT j = d_neighbors(i,jj);
         const F_FLOAT dx = x(j,0) - xtmp;
@@ -778,7 +778,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTra
 
     if (mapper.flip_sign == 1) {
       utot_im = -utot_im;
-    } else if (mapper.flip_sign == -1 ) {
+    } else if (mapper.flip_sign == -1) {
       utot_re = -utot_re;
     }
 
@@ -957,7 +957,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
       const int jtype = type(j);
       const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
 
-      if ( rsq < rnd_cutsq(itype,jtype) )
+      if (rsq < rnd_cutsq(itype,jtype))
        count++;
     });
   },ninside);
@@ -977,7 +977,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
     const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
     const int elem_j = d_map[jtype];
 
-    if ( rsq < rnd_cutsq(itype,jtype) ) {
+    if (rsq < rnd_cutsq(itype,jtype)) {
       if (final) {
         my_sna.rij(ii,offset,0) = static_cast<real>(dx);
         my_sna.rij(ii,offset,1) = static_cast<real>(dy);

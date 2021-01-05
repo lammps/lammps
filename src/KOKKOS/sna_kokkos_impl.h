@@ -496,7 +496,7 @@ void SNAKokkos<DeviceType, real, vector_length>::compute_ui(const typename Kokko
   const int scratch_shift = team_rank * tile_size;
 
   // extract and wrap
-  WignerWrapper<real, vector_length> ulist_wrapper((complex*)team.team_shmem( ).get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
+  WignerWrapper<real, vector_length> ulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
 
 
   // load parameters
@@ -900,8 +900,8 @@ void SNAKokkos<DeviceType, real, vector_length>::compute_fused_deidrj(const type
   const int scratch_shift = team_rank * tile_size;
 
   // extract, wrap shared memory buffer
-  WignerWrapper<real, vector_length> ulist_wrapper((complex*)team.team_shmem( ).get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
-  WignerWrapper<real, vector_length> dulist_wrapper((complex*)team.team_shmem( ).get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
+  WignerWrapper<real, vector_length> ulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
+  WignerWrapper<real, vector_length> dulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
 
   // load parameters
   const auto a = a_pack(iatom_mod, jnbor, iatom_div);
@@ -1335,7 +1335,7 @@ void SNAKokkos<DeviceType, real, vector_length>::compute_yi_cpu(int iter,
 
       int jju1 = idxu_block[j1] + (j1 + 1) * mb1min;
       int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
-      int icgb = mb1min * (j2 +1 ) + mb2max;
+      int icgb = mb1min * (j2 +1) + mb2max;
 
       for (int ib = 0; ib < nb; ib++) {
 

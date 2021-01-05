@@ -100,18 +100,18 @@ struct SortFunctor {
     dest(i) = source(index(i));
   }
   void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
+    for (int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
   void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
         dest(i,j,k) = source(index(i),j,k);
   }
   void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
-        for(int l=0; l < (int)source.extent(3); l++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
+        for (int l=0; l < (int)source.extent(3); l++)
           dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };

@@ -1323,7 +1323,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::check_team_size_for(i
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
 
-  if(team_size*vector_length > team_size_max)
+  if (team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
 }
 
@@ -1334,7 +1334,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::check_team_size_reduc
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelReduceTag());
 
-  if(team_size*vector_length > team_size_max)
+  if (team_size*vector_length > team_size_max)
     team_size = team_size_max/vector_length;
 }
 

@@ -77,17 +77,17 @@ namespace user_manifold {
   // Some utility functions that are templated, so I implement them
   // here in the header.
   template< unsigned int size > inline
-  double infnorm( double *vect )
+  double infnorm(double *vect)
   {
     double largest = fabs( vect[0] );
-    for( unsigned int i = 1; i < size; ++i ){
+    for (unsigned int i = 1; i < size; ++i){
       double c = fabs( vect[i] );
       largest = ( c > largest ) ? c : largest;
     }
     return largest;
   }
 
-  inline double dot( double *a, double *b ){
+  inline double dot(double *a, double *b){
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
   }
 

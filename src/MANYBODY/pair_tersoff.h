@@ -66,7 +66,7 @@ class PairTersoff : public Pair {
   int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
 
-  int shift_flag;		// flag to turn on/off shift 
+  int shift_flag;               // flag to turn on/off shift
   double shift;                 // negative change in equilibrium bond length
 
   virtual void allocate();
@@ -86,7 +86,7 @@ class PairTersoff : public Pair {
   virtual double ters_bij(double, Param *);
   virtual double ters_bij_d(double, Param *);
 
-  virtual void ters_zetaterm_d(double, double *, double, double, 
+  virtual void ters_zetaterm_d(double, double *, double, double,
                                double *, double, double,
                                double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,

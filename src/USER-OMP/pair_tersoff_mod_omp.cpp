@@ -183,7 +183,7 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (shift_flag) 
+      if (shift_flag)
         rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
@@ -208,7 +208,7 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (shift_flag) 
+        if (shift_flag)
           rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
 
         if (rsq2 > params[iparam_ijk].cutsq) continue;

@@ -65,7 +65,7 @@ struct TagPairSNAPComputeYiCPU{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
-template<class DeviceType, typename real_type, int vector_length_>
+template<class DeviceType, typename real_type_, int vector_length_>
 class PairSNAPKokkos : public PairSNAP {
 public:
   enum {EnabledNeighFlags=FULL|HALF|HALFTHREAD};
@@ -75,12 +75,12 @@ public:
   typedef EV_FLOAT value_type;
 
   static constexpr int vector_length = vector_length_;
-  using real = real_type;
-  using complex = SNAComplex<real>;
+  using real_type = real_type_;
+  using complex = SNAComplex<real_type>;
 
   // type-dependent team sizes
-  static constexpr int team_size_compute_ui = sizeof(real) == 4 ? 8 : 4;
-  static constexpr int team_size_compute_fused_deidrj = sizeof(real) == 4 ? 4 : 2;
+  static constexpr int team_size_compute_ui = sizeof(real_type) == 4 ? 8 : 4;
+  static constexpr int team_size_compute_fused_deidrj = sizeof(real_type) == 4 ? 4 : 2;
 
   PairSNAPKokkos(class LAMMPS *);
   ~PairSNAPKokkos();
@@ -190,7 +190,7 @@ protected:
   t_bvec bvec;
   typedef Kokkos::View<F_FLOAT***> t_dbvec;
   t_dbvec dbvec;
-  SNAKokkos<DeviceType, real, vector_length> snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> snaKK;
 
   int inum,max_neighs,chunk_size,chunk_offset;
   int host_flag;
@@ -225,14 +225,14 @@ inline double dist2(double* x,double* y);
   Kokkos::View<F_FLOAT****, Kokkos::LayoutRight, DeviceType> i_uarraytot_r, i_uarraytot_i;
   Kokkos::View<F_FLOAT******, Kokkos::LayoutRight, DeviceType> i_zarray_r, i_zarray_i;
 
-  Kokkos::View<real*, DeviceType> d_radelem;              // element radii
-  Kokkos::View<real*, DeviceType> d_wjelem;               // elements weights
-  Kokkos::View<real**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
+  Kokkos::View<real_type*, DeviceType> d_radelem;              // element radii
+  Kokkos::View<real_type*, DeviceType> d_wjelem;               // elements weights
+  Kokkos::View<real_type**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  Kokkos::View<real**, DeviceType> d_beta;                // betas for all atoms in list
-  Kokkos::View<real***, Kokkos::LayoutLeft, DeviceType> d_beta_pack;          // betas for all atoms in list, GPU
-  Kokkos::View<real**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
+  Kokkos::View<real_type**, DeviceType> d_beta;                // betas for all atoms in list
+  Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> d_beta_pack;          // betas for all atoms in list, GPU
+  Kokkos::View<real_type**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
 
   typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;

@@ -1090,20 +1090,20 @@ struct params_lj_coul {
 typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real_type>
-struct alignas(2*sizeof(real_type)) SNAComplex
+template <typename real_type_>
+struct alignas(2*sizeof(real_type_)) SNAComplex
 {
-  using real = real_type;
-  using complex = SNAComplex<real>;
-  real re,im;
+  using real_type = real_type_;
+  using complex = SNAComplex<real_type>;
+  real_type re,im;
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex()
-   : re(static_cast<real>(0.)), im(static_cast<real>(0.)) { ; }
+   : re(static_cast<real_type>(0.)), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
-   : re(re), im(static_cast<real>(0.)) { ; }
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re)
+   : re(re), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re, real_type im)
    : re(re), im(im) { ; }
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
@@ -1132,19 +1132,19 @@ struct alignas(2*sizeof(real_type)) SNAComplex
   }
 
   KOKKOS_INLINE_FUNCTION
-  static constexpr complex zero() { return complex(static_cast<real>(0.), static_cast<real>(0.)); }
+  static constexpr complex zero() { return complex(static_cast<real_type>(0.), static_cast<real_type>(0.)); }
 
   KOKKOS_INLINE_FUNCTION
-  static constexpr complex one() { return complex(static_cast<real>(1.), static_cast<real>(0.)); }
+  static constexpr complex one() { return complex(static_cast<real_type>(1.), static_cast<real_type>(0.)); }
 
   KOKKOS_INLINE_FUNCTION
   const complex conj() { return complex(re, -im); }
 
 };
 
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
+template <typename real_type>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const real_type& r, const SNAComplex<real_type>& self) {
+  return SNAComplex<real_type>(r*self.re, r*self.im);
 }
 
 typedef SNAComplex<SNAreal> SNAcomplex;

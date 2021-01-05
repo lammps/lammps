@@ -48,8 +48,8 @@ namespace LAMMPS_NS {
 //static double t7 = 0.0;
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-PairSNAPKokkos<DeviceType, real, vector_length>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
+template<class DeviceType, typename real_type, int vector_length>
+PairSNAPKokkos<DeviceType, real_type, vector_length>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
 {
   respa_enable = 0;
 
@@ -67,8 +67,8 @@ PairSNAPKokkos<DeviceType, real, vector_length>::PairSNAPKokkos(LAMMPS *lmp) : P
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-PairSNAPKokkos<DeviceType, real, vector_length>::~PairSNAPKokkos()
+template<class DeviceType, typename real_type, int vector_length>
+PairSNAPKokkos<DeviceType, real_type, vector_length>::~PairSNAPKokkos()
 {
   if (copymode) return;
 
@@ -81,8 +81,8 @@ PairSNAPKokkos<DeviceType, real, vector_length>::~PairSNAPKokkos()
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-void PairSNAPKokkos<DeviceType, real, vector_length>::init_style()
+template<class DeviceType, typename real_type, int vector_length>
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
@@ -128,8 +128,8 @@ struct FindMaxNumNeighs {
    This version is a straightforward implementation
    ---------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int vflag_in)
+template<class DeviceType, typename real_type, int vector_length>
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -192,9 +192,9 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
 
   if (beta_max < inum) {
     beta_max = inum;
-    d_beta = Kokkos::View<real**, DeviceType>("PairSNAPKokkos:beta",ncoeff,inum);
+    d_beta = Kokkos::View<real_type**, DeviceType>("PairSNAPKokkos:beta",ncoeff,inum);
     if (!host_flag)
-      d_beta_pack = Kokkos::View<real***, Kokkos::LayoutLeft, DeviceType>("PairSNAPKokkos:beta_pack",vector_length,ncoeff,(inum + vector_length - 1) / vector_length);
+      d_beta_pack = Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType>("PairSNAPKokkos:beta_pack",vector_length,ncoeff,(inum + vector_length - 1) / vector_length);
     d_ninside = Kokkos::View<int*, DeviceType>("PairSNAPKokkos:ninside",inum);
   }
 
@@ -501,8 +501,8 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-void PairSNAPKokkos<DeviceType, real, vector_length>::allocate()
+template<class DeviceType, typename real_type, int vector_length>
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::allocate()
 {
   PairSNAP::allocate();
 
@@ -515,8 +515,8 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::allocate()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-double PairSNAPKokkos<DeviceType, real, vector_length>::init_one(int i, int j)
+template<class DeviceType, typename real_type, int vector_length>
+double PairSNAPKokkos<DeviceType, real_type, vector_length>::init_one(int i, int j)
 {
   double cutone = PairSNAP::init_one(i,j);
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
@@ -529,16 +529,16 @@ double PairSNAPKokkos<DeviceType, real, vector_length>::init_one(int i, int j)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-void PairSNAPKokkos<DeviceType, real, vector_length>::coeff(int narg, char **arg)
+template<class DeviceType, typename real_type, int vector_length>
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::coeff(int narg, char **arg)
 {
   PairSNAP::coeff(narg,arg);
 
   // Set up element lists
 
-  d_radelem = Kokkos::View<real*, DeviceType>("pair:radelem",nelements);
-  d_wjelem = Kokkos::View<real*, DeviceType>("pair:wjelem",nelements);
-  d_coeffelem = Kokkos::View<real**, Kokkos::LayoutRight, DeviceType>("pair:coeffelem",nelements,ncoeffall);
+  d_radelem = Kokkos::View<real_type*, DeviceType>("pair:radelem",nelements);
+  d_wjelem = Kokkos::View<real_type*, DeviceType>("pair:wjelem",nelements);
+  d_coeffelem = Kokkos::View<real_type**, Kokkos::LayoutRight, DeviceType>("pair:coeffelem",nelements,ncoeffall);
 
   auto h_radelem = Kokkos::create_mirror_view(d_radelem);
   auto h_wjelem = Kokkos::create_mirror_view(d_wjelem);
@@ -562,7 +562,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::coeff(int narg, char **arg
   Kokkos::deep_copy(d_coeffelem,h_coeffelem);
   Kokkos::deep_copy(d_map,h_map);
 
-  snaKK = SNAKokkos<DeviceType, real, vector_length>(rfac0,twojmax,
+  snaKK = SNAKokkos<DeviceType, real_type, vector_length>(rfac0,twojmax,
                   rmin0,switchflag,bzeroflag,chemflag,bnormflag,wselfallflag,nelements);
   snaKK.grow_rij(0,0);
   snaKK.init();
@@ -573,9 +573,9 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::coeff(int narg, char **arg
    of AoSoA data layouts and scratch memory for recursive polynomials
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBeta,const int& ii) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPBeta,const int& ii) const {
 
   if (ii >= chunk_size) return;
 
@@ -585,7 +585,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBet
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type[i];
   const int ielem = d_map[itype];
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   auto d_coeffi = Kokkos::subview(d_coeffelem, ielem, Kokkos::ALL);
 
@@ -605,7 +605,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBet
       for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
         const auto jdxb = jcoeff % idxb_max;
         const auto jdx_chem = jcoeff / idxb_max;
-        real bvecj = my_sna.blist(jdxb, jdx_chem, ii);
+        real_type bvecj = my_sna.blist(jdxb, jdx_chem, ii);
         d_beta_pack(iatom_mod,icoeff,iatom_div) += d_coeffi[k]*bvecj;
         d_beta_pack(iatom_mod,jcoeff,iatom_div) += d_coeffi[k]*bveci;
         k++;
@@ -614,11 +614,11 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBet
   }
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeNeigh>::member_type& team) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeNeigh>::member_type& team) const {
 
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // extract atom number
   int ii = team.team_rank() + team.league_rank() * team.team_size();
@@ -686,11 +686,11 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
         const F_FLOAT dy = x(j,1) - ytmp;
         const F_FLOAT dz = x(j,2) - ztmp;
         const int elem_j = d_map[jtype];
-        my_sna.rij(ii,offset,0) = static_cast<real>(dx);
-        my_sna.rij(ii,offset,1) = static_cast<real>(dy);
-        my_sna.rij(ii,offset,2) = static_cast<real>(dz);
-        my_sna.wj(ii,offset) = static_cast<real>(d_wjelem[elem_j]);
-        my_sna.rcutij(ii,offset) = static_cast<real>((radi + d_radelem[elem_j])*rcutfac);
+        my_sna.rij(ii,offset,0) = static_cast<real_type>(dx);
+        my_sna.rij(ii,offset,1) = static_cast<real_type>(dy);
+        my_sna.rij(ii,offset,2) = static_cast<real_type>(dz);
+        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[elem_j]);
+        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[elem_j])*rcutfac);
         my_sna.inside(ii,offset) = j;
         if (chemflag)
           my_sna.element(ii,offset) = elem_j;
@@ -702,10 +702,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   });
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeCayleyKlein,const int iatom_mod, const int jnbor, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeCayleyKlein,const int iatom_mod, const int jnbor, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int ii = iatom_mod + iatom_div * vector_length;
   if (ii >= chunk_size) return;
@@ -716,10 +716,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_cayley_klein(iatom_mod,jnbor,iatom_div);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPPreUi, const int iatom_mod, const int j, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPPreUi, const int iatom_mod, const int j, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int ii = iatom_mod + iatom_div * vector_length;
   if (ii >= chunk_size) return;
@@ -730,10 +730,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPPre
   my_sna.pre_ui(iatom_mod, j, ielem, iatom_div);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // extract flattened atom_div / neighbor number / bend location
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_ui;
@@ -757,10 +757,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTransformUi,const int iatom_mod, const int idxu, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPTransformUi,const int iatom_mod, const int idxu, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -791,10 +791,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTra
   }
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeYi,const int iatom_mod, const int jjz, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeYi,const int iatom_mod, const int jjz, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -804,10 +804,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_yi(iatom_mod,jjz,iatom_div,d_beta_pack);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeZi,const int iatom_mod, const int jjz, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeZi,const int iatom_mod, const int jjz, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -817,10 +817,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_zi(iatom_mod,jjz,iatom_div);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeBi,const int iatom_mod, const int jjb, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeBi,const int iatom_mod, const int jjb, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -830,10 +830,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_bi(iatom_mod,jjb,iatom_div);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTransformBi,const int iatom_mod, const int idxb, const int iatom_div) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPTransformBi,const int iatom_mod, const int idxb, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -851,10 +851,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTra
 
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeFusedDeidrj>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeFusedDeidrj>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // extract flattened atom_div / neighbor number / bend location
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_fused_deidrj;
@@ -887,14 +887,14 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
    different arithmetic intensity requirements for the CPU vs GPU.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBetaCPU,const int& ii) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPBetaCPU,const int& ii) const {
 
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type[i];
   const int ielem = d_map[itype];
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   auto d_coeffi = Kokkos::subview(d_coeffelem, ielem, Kokkos::ALL);
 
@@ -922,14 +922,14 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPBet
   }
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeNeighCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeNeighCPU>::member_type& team) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeNeighCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeNeighCPU>::member_type& team) const {
 
 
   int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
   const double xtmp = x(i,0);
   const double ytmp = x(i,1);
   const double ztmp = x(i,2);
@@ -979,11 +979,11 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 
     if (rsq < rnd_cutsq(itype,jtype)) {
       if (final) {
-        my_sna.rij(ii,offset,0) = static_cast<real>(dx);
-        my_sna.rij(ii,offset,1) = static_cast<real>(dy);
-        my_sna.rij(ii,offset,2) = static_cast<real>(dz);
-        my_sna.wj(ii,offset) = static_cast<real>(d_wjelem[elem_j]);
-        my_sna.rcutij(ii,offset) = static_cast<real>((radi + d_radelem[elem_j])*rcutfac);
+        my_sna.rij(ii,offset,0) = static_cast<real_type>(dx);
+        my_sna.rij(ii,offset,1) = static_cast<real_type>(dy);
+        my_sna.rij(ii,offset,2) = static_cast<real_type>(dz);
+        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[elem_j]);
+        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[elem_j])*rcutfac);
         my_sna.inside(ii,offset) = j;
         if (chemflag)
           my_sna.element(ii,offset) = elem_j;
@@ -996,10 +996,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 }
 
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPPreUiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPPreUiCPU>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPPreUiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPPreUiCPU>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // Extract the atom number
   const int ii = team.team_rank() + team.team_size() * team.league_rank();
@@ -1012,10 +1012,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPPre
 
 
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUiCPU>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUiCPU>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // Extract the atom number
   int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((chunk_size+team.team_size()-1)/team.team_size()));
@@ -1029,10 +1029,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_ui_cpu(team,ii,jj);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTransformUiCPU, const int j, const int iatom) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPTransformUiCPU, const int j, const int iatom) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   if (iatom >= chunk_size) return;
 
@@ -1079,32 +1079,32 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPTra
   }
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeYiCPU,const int& ii) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeYiCPU,const int& ii) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
   my_sna.compute_yi_cpu(ii,d_beta);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeZiCPU,const int& ii) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeZiCPU,const int& ii) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
   my_sna.compute_zi_cpu(ii);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeBiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeBiCPU>::member_type& team) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeBiCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeBiCPU>::member_type& team) const {
   int ii = team.league_rank();
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
   my_sna.compute_bi_cpu(team,ii);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeDuidrjCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeDuidrjCPU>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeDuidrjCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeDuidrjCPU>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // Extract the atom number
   int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((chunk_size+team.team_size()-1)/team.team_size()));
@@ -1118,10 +1118,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   my_sna.compute_duidrj_cpu(team,ii,jj);
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeDeidrjCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeDeidrjCPU>::member_type& team) const {
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeDeidrjCPU,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeDeidrjCPU>::member_type& team) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
 
   // Extract the atom number
   int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((chunk_size+team.team_size()-1)/team.team_size()));
@@ -1141,10 +1141,10 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
    likely not worth it.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT& ev) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -1153,7 +1153,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
 
   int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
-  SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
   const int ninside = d_ninside(ii);
 
   Kokkos::parallel_for (Kokkos::TeamThreadRange(team,ninside),
@@ -1242,20 +1242,20 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPCom
   }
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>(), team, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType, real, vector_length>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
@@ -1300,24 +1300,24 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::v_tally_xyz(EV_FLOAT &ev, 
    memory usage
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
-double PairSNAPKokkos<DeviceType, real, vector_length>::memory_usage()
+template<class DeviceType, typename real_type, int vector_length>
+double PairSNAPKokkos<DeviceType, real_type, vector_length>::memory_usage()
 {
   double bytes = Pair::memory_usage();
   int n = atom->ntypes+1;
   bytes += n*n*sizeof(int);
-  bytes += n*n*sizeof(real);
-  bytes += (2*ncoeffall)*sizeof(real);
-  bytes += (ncoeff*3)*sizeof(real);
+  bytes += n*n*sizeof(real_type);
+  bytes += (2*ncoeffall)*sizeof(real_type);
+  bytes += (ncoeff*3)*sizeof(real_type);
   bytes += snaKK.memory_usage();
   return bytes;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 template<class TagStyle>
-void PairSNAPKokkos<DeviceType, real, vector_length>::check_team_size_for(int inum, int &team_size) {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::check_team_size_for(int inum, int &team_size) {
   int team_size_max;
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
@@ -1326,9 +1326,9 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::check_team_size_for(int in
     team_size = team_size_max/vector_length;
 }
 
-template<class DeviceType, typename real, int vector_length>
+template<class DeviceType, typename real_type, int vector_length>
 template<class TagStyle>
-void PairSNAPKokkos<DeviceType, real, vector_length>::check_team_size_reduce(int inum, int &team_size) {
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::check_team_size_reduce(int inum, int &team_size) {
   int team_size_max;
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelReduceTag());

@@ -46,11 +46,7 @@ template <typename TYPE, typename HTYPE>
                      const char *name)
 {
   data = TYPE(std::string(name),n1);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
-#else
-  h_data = data;
-#endif
   array = h_data.data();
   return data;
 }
@@ -61,11 +57,7 @@ template <typename TYPE, typename HTYPE>
                      int n1, const char *name)
 {
   data = TYPE(std::string(name),n1);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
-#else
-  h_data = data;
-#endif
   return data;
 }
 
@@ -167,11 +159,7 @@ template <typename TYPE, typename HTYPE>
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
-#else
-  h_data = data;
-#endif
   return data;
 }
 
@@ -200,11 +188,7 @@ template <typename TYPE, typename HTYPE>
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
-#else
-  h_data = data;
-#endif
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 

@@ -77,6 +77,7 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1)
 template<class DeviceType>
 PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;

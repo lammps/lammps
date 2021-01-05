@@ -42,6 +42,7 @@ PairBuckKokkos<DeviceType>::PairBuckKokkos(LAMMPS *lmp) : PairBuck(lmp)
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;

@@ -30,11 +30,7 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
   atoms_per_bin = 16;
 
   d_resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
-#else
-  h_resize = d_resize;
-#endif
   h_resize() = 1;
 
   kokkos = 1;

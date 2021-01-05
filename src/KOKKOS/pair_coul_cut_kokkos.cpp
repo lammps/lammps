@@ -33,6 +33,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairCoulCutKokkos<DeviceType>::PairCoulCutKokkos(LAMMPS *lmp) : PairCoulCut(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;

@@ -46,6 +46,7 @@ PairEAMAlloyKokkos<DeviceType>::PairEAMAlloyKokkos(LAMMPS *lmp) : PairEAM(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -170,9 +171,7 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      k_rho.template sync<LMPHostType>();
       comm->reverse_comm_pair(this);
-      k_rho.template modify<LMPHostType>();
       k_rho.template sync<DeviceType>();
     }
 
@@ -198,9 +197,11 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev.evdwl = 0.0;
   }
 
-  // communicate derivative of embedding function (on the device)
+  // communicate derivative of embedding function
 
+  k_fp.template modify<DeviceType>();
   comm->forward_comm_pair(this);
+  k_fp.template sync<DeviceType>();
 
   // compute kernel C
 
@@ -467,6 +468,8 @@ template<class DeviceType>
 int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                                       int /*pbc_flag*/, int * /*pbc*/)
 {
+  k_fp.sync_host();
+
   int i,j;
 
   for (i = 0; i < n; i++) {
@@ -481,9 +484,13 @@ int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
 template<class DeviceType>
 void PairEAMAlloyKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
+  k_fp.sync_host();
+
   for (int i = 0; i < n; i++) {
     h_fp[i + first] = buf[i];
   }
+
+  k_fp.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -491,6 +498,8 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
 template<class DeviceType>
 int PairEAMAlloyKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  k_rho.sync_host();
+
   int i,m,last;
 
   m = 0;
@@ -504,6 +513,8 @@ int PairEAMAlloyKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *
 template<class DeviceType>
 void PairEAMAlloyKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  k_rho.sync_host();
+
   int i,j,m;
 
   m = 0;
@@ -511,6 +522,8 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
     j = list[i];
     h_rho[j] += buf[m++];
   }
+
+  k_fp.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */

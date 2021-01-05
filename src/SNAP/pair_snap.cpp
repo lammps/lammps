@@ -657,7 +657,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  chunksize = 2000;
+  chunksize = 4096;
 
   // open SNAP parameter file on proc 0
 

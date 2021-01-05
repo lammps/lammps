@@ -57,6 +57,7 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -511,12 +512,13 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 
   atomKK->modified(execution_space,DPDRHO_MASK);
 
-  // communicate and sum densities (on the host)
+  // communicate and sum densities
 
   if (newton_pair)
     comm->reverse_comm_pair(this);
 
   comm->forward_comm_pair(this);
+  atomKK->sync(execution_space,DPDRHO_MASK);
 }
 
 template<class DeviceType>
@@ -686,7 +688,7 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int fi
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
 
-  atomKK->modified(execution_space,DPDRHO_MASK);
+  atomKK->modified(execution_space,DPDRHO_MASK); // needed for auto_sync
 }
 
 template<class DeviceType>
@@ -720,6 +722,8 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, do
 {
   int i,m,last;
 
+  atomKK->sync(Host,DPDRHO_MASK);
+
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) h_rho[i] = buf[m++];
@@ -748,6 +752,8 @@ template<class DeviceType>
 void PairMultiLucyRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
+
+  atomKK->sync(Host,DPDRHO_MASK);
 
   m = 0;
   for (i = 0; i < n; i++) {

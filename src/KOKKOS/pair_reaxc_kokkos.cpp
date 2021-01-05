@@ -49,6 +49,7 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
 
   cut_nbsq = cut_hbsq = cut_bosq = 0.0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | Q_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;

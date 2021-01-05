@@ -152,7 +152,7 @@ The default values for these keywords are
 * *chemflag* = 0
 * *bnormflag* = 0
 * *wselfallflag* = 0
-* *chunksize* = 2000
+* *chunksize* = 4096
 
 If *quadraticflag* is set to 1, then the SNAP energy expression includes additional quadratic terms
 that have been shown to increase the overall accuracy of the potential without much increase
@@ -189,8 +189,8 @@ pair style *snap* with the KOKKOS package and is ignored otherwise.
 This keyword controls
 the number of atoms in each pass used to compute the bispectrum
 components and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the bispectrum calculation will be broken up
+if there are 8192 atoms in the simulation and the *chunksize*
+is set to 4096, the bispectrum calculation will be broken up
 into two passes.
 
 Detailed definitions for all the other keywords

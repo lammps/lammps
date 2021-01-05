@@ -94,13 +94,8 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 #ifdef DEBUG_SSA_PAIR_CT
   d_counters = typename AT::t_int_2d("FixShardlowKokkos::d_counters", 2, 3);
   d_hist = typename AT::t_int_1d("FixShardlowKokkos::d_hist", 32);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_counters = Kokkos::create_mirror_view(d_counters);
   h_hist = Kokkos::create_mirror_view(d_hist);
-#else
-  h_counters = d_counters;
-  h_hist = d_hist;
-#endif
 #endif
 }
 

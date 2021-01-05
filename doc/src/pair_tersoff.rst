@@ -76,7 +76,7 @@ The *tersoff* style computes a 3-body Tersoff potential
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
 interactions.  The summations in the formula are over all neighbors
 J and K of atom I within a cutoff distance = R + D. :math:`\delta` is
-an optional negative shift of the equilibrium bond length, as described below. 
+an optional negative shift of the equilibrium bond length, as described below.
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
@@ -181,14 +181,14 @@ are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
 Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` are not symmetric.
 Similarly, the threebody parameters in entries such as SiCSi and SiSiC
-are often the same, but this is not always the case, particularly 
-the value of R, which is sometimes typed on the 
-first and second elements, sometimes on the first and third elements. 
+are often the same, but this is not always the case, particularly
+the value of R, which is sometimes typed on the
+first and second elements, sometimes on the first and third elements.
 Hence the need to specify R and D explicitly for all element triples.
 For example, while Tersoff's notation
 in Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` is ambiguous on this point,
 and properties of the zincblende lattice are the same for either choice,
-Tersoff's results for rocksalt are consistent with typing on the first 
+Tersoff's results for rocksalt are consistent with typing on the first
 and third elements. :ref:`Albe et al. <Albe>` adopts the same convention.
 Conversely, the potential for B/N/C from the Cagin group
 uses the opposite convention, typing on the first and second elements.
@@ -237,25 +237,30 @@ Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou
 for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.
 
-The *shift* keyword computes the energy E of a system of atoms, whose formula
-is the same as the Tersoff potential. The only modification is that the original 
-equilibrium bond length ( :math:`r_0`) of the system is shifted to :math:`r_0-\delta`.
-The minus sign arises because each radial distance :math:`r` is replaced by :math:`r+\delta`.
+The *shift* keyword computes the energy E of a system of atoms, whose
+formula is the same as the Tersoff potential. The only modification is
+that the original equilibrium bond length ( :math:`r_0`) of the system
+is shifted to :math:`r_0-\delta`.  The minus sign arises because each
+radial distance :math:`r` is replaced by :math:`r+\delta`.
 
-The *shift* keyword is designed for simulations of closely matched van der Waals heterostructures. 
-For instance, consider the case of a system with few-layers graphene atop a thick hexagonal boron nitride (h-BN) 
-substrate simulated using periodic boundary conditions. The experimental lattice mismatch of ~1.8% between graphene
-and h-BN is not well captured by the equilibrium lattice constants of available potentials, thus a small in-plane strain
-will be introduced in the system when building a periodic supercell.  To minimize the effect of strain on
-simulation results, the *shift* keyword allows adjusting the equilibrium bond length
-of one of the two materials (e.g., h-BN). Validation, benchmark tests, and applications of the 
-*shift* keyword can be found in :ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
+The *shift* keyword is designed for simulations of closely matched van
+der Waals heterostructures.  For instance, consider the case of a system
+with few-layers graphene atop a thick hexagonal boron nitride (h-BN)
+substrate simulated using periodic boundary conditions. The experimental
+lattice mismatch of ~1.8% between graphene and h-BN is not well captured
+by the equilibrium lattice constants of available potentials, thus a
+small in-plane strain will be introduced in the system when building a
+periodic supercell.  To minimize the effect of strain on simulation
+results, the *shift* keyword allows adjusting the equilibrium bond
+length of one of the two materials (e.g., h-BN). Validation, benchmark
+tests, and applications of the *shift* keyword can be found in
+:ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
 
 For the specific case discussed above, the force field can be defined as
 
 .. code-block:: LAMMPS
 
-   pair_style  hybrid/overlay rebo tersoff shift -4.07e-3 ilp/graphene/hbn 16.0 coul/shield 16.0
+   pair_style  hybrid/overlay rebo tersoff shift -0.00407 ilp/graphene/hbn 16.0 coul/shield 16.0
    pair_coeff  * * rebo              CH.rebo     NULL NULL C
    pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
    pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
@@ -279,10 +284,10 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, 
-since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -293,22 +298,24 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` 
-doc page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The Tersoff potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal :doc:`units <units>`.  You can
-use the Tersoff potential with any LAMMPS units, but you would need to
-create your own Tersoff potential file with coefficients listed in the
-appropriate units if your simulation does not use "metal" units.
+The *shift* keyword is not supported by the *tersoff/gpu*,
+*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
+variants.
 
-The *shift* keyword is not supported by the 
-*tersoff/gpu*, *tersoff/intel*, *tersoff/kk*, or *tersoff/table*
-variants. 
+The Tersoff potential files provided with LAMMPS (see the potentials
+directory) are parameterized for :doc:`"metal" units <units>`.  In addition
+the pair style supports converting potential parameters on-the-fly between
+"metal" and "real" units. You can use the *tersoff* pair style variants
+with any LAMMPS units setting, but you would need to
+create your own Tersoff potential file with coefficients listed in the
+appropriate units if your simulation does not use "metal" or "real" units.
 
 Related commands
 """"""""""""""""

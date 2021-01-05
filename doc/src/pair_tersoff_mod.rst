@@ -70,8 +70,8 @@ E of a system of atoms as
    g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body interactions.
-:math:`\delta` is an optional negative shift of the 
-equilibrium bond length, as described below. 
+:math:`\delta` is an optional negative shift of the
+equilibrium bond length, as described below.
 
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
@@ -166,11 +166,11 @@ second atom and the bond is influenced by the third atom.  Thus an entry
 for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
 
 The *shift* keyword computes the energy E of a system of atoms, whose formula
-is the same as the Tersoff potential. The only modification is that the original 
+is the same as the Tersoff potential. The only modification is that the original
 equilibrium bond length ( :math:`r_0`) of the system is shifted to :math:`r_0-\delta`.
 The minus sign arises because each radial distance :math:`r` is replaced by :math:`r+\delta`.
 More information on this option is given on the main :doc:`pair_tersoff <pair_tersoff>` page.
- 
+
 ----------
 
 .. include:: accel_styles.rst
@@ -202,9 +202,13 @@ if LAMMPS was built with that package.  See the :doc:`Build package <Build_packa
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The Tersoff/MOD potential files provided with LAMMPS (see the potentials
+The *shift* keyword is not supported by the *tersoff/gpu*,
+*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
+variants.
+
+The *tersoff/mod* potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can
-use the Tersoff/MOD potential with any LAMMPS units, but you would need to
+use the *tersoff/mod* pair style with any LAMMPS units, but you would need to
 create your own Tersoff/MOD potential file with coefficients listed in the
 appropriate units if your simulation does not use "metal" units.
 

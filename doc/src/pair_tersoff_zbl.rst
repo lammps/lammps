@@ -42,7 +42,7 @@ system of atoms as
 .. math::
 
    E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-   V_{ij} & =  (1 - f_F(r_{ij} + \delta)) V^{ZBL}(r_{ij} + \delta) 
+   V_{ij} & =  (1 - f_F(r_{ij} + \delta)) V^{ZBL}(r_{ij} + \delta)
                + f_F(r_{ij} + \delta) V^{Tersoff}(r_{ij} + \delta) \\
    f_F(r) & =  \frac{1}{1 + e^{-A_F(r - r_C)}}\\
    \\
@@ -89,8 +89,8 @@ includes
 three-body interactions. The summations in the formula are over all
 neighbors J and K of atom I within a cutoff distance = R + D.
 
-:math:`\delta` is an optional negative shift of the 
-equilibrium bond length, as described below. 
+:math:`\delta` is an optional negative shift of the
+equilibrium bond length, as described below.
 
 Only a single pair_coeff command is used with the *tersoff/zbl* style
 which specifies a Tersoff/ZBL potential file with parameters for all
@@ -239,11 +239,13 @@ for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.  Also thanks to Ram Devanathan for
 providing the base ZBL implementation.
 
-The *shift* keyword computes the energy E of a system of atoms, whose formula
-is the same as the Tersoff potential. The only modification is that the original 
-equilibrium bond length ( :math:`r_0`) of the system is shifted to :math:`r_0-\delta`.
-The minus sign arises because each radial distance :math:`r` is replaced by :math:`r+\delta`.
-More information on this option is given on the main :doc:`pair_tersoff <pair_tersoff>` page.
+The *shift* keyword computes the energy E of a system of atoms, whose
+formula is the same as the Tersoff potential. The only modification is
+that the original equilibrium bond length ( :math:`r_0`) of the system
+is shifted to :math:`r_0-\delta`.  The minus sign arises because each
+radial distance :math:`r` is replaced by :math:`r+\delta`.  More
+information on this option is given on the main :doc:`pair_tersoff
+<pair_tersoff>` page.
 
 ----------
 
@@ -261,9 +263,10 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -274,18 +277,23 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The Tersoff/ZBL potential files provided with LAMMPS (see the
-potentials directory) are parameterized for metal :doc:`units <units>`.
-You can use the Tersoff potential with any LAMMPS units, but you would
-need to create your own Tersoff potential file with coefficients
-listed in the appropriate units if your simulation does not use "metal"
-units.
+The *shift* keyword is currently not supported for the *tersoff/gpu* and
+*tersoff/kk* variants of this pair style.
+
+The tersoff/zbl potential files provided with LAMMPS (see the potentials
+directory) are parameterized for :doc:`"metal" units <units>`.  Also the
+pair style supports converting potential file parameters on-the-fly
+between "metal" and "real" units.  You can use the tersoff/zbl pair
+style with any LAMMPS units, but you would need to create your own
+tersoff/zbl potential file with coefficients listed in the appropriate
+units if your simulation does not use "metal" or "real" units.
 
 Related commands
 """"""""""""""""

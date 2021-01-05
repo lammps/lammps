@@ -28,9 +28,13 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -70,6 +74,7 @@ static const char cite_pair_agni[] =
 
 #define MAXLINE 10240
 #define MAXWORD 40
+enum { AGNI_VERSION_UNKNOWN, AGNI_VERSION_1, AGNI_VERSION_2 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -81,7 +86,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
-  ver = 0;
+  atomic_feature_version = 0;
 
   centroidstressflag = CENTROID_NOTAVAIL;
 
@@ -114,7 +119,6 @@ PairAGNI::~PairAGNI()
       delete [] params[i].eta;
       delete [] params[i].alpha;
       delete [] params[i].xU;
-      delete [] params[i].yU;
     }
     memory->destroy(params);
     params = nullptr;
@@ -131,6 +135,7 @@ PairAGNI::~PairAGNI()
 
 void PairAGNI::compute(int eflag, int vflag)
 {
+  std::cout<<"a\n";
   int i,j,k,ii,jj,inum,jnum,itype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq;
@@ -150,6 +155,8 @@ void PairAGNI::compute(int eflag, int vflag)
   double fxtmp,fytmp,fztmp;
   double *Vx, *Vy, *Vz;
 
+  std::cout<<"b\n";
+
   // loop over full neighbor list of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -160,14 +167,17 @@ void PairAGNI::compute(int eflag, int vflag)
     ztmp = x[i][2];
     fxtmp = fytmp = fztmp = 0.0;
 
+    std::cout<<"c\n";
+
     const Param &iparam = params[elem2param[itype]];
+    std::cout<<"d\n";
     Vx = new double[iparam.numeta];
     Vy = new double[iparam.numeta];
     Vz = new double[iparam.numeta];
     memset(Vx,0,iparam.numeta*sizeof(double));
     memset(Vy,0,iparam.numeta*sizeof(double));
     memset(Vz,0,iparam.numeta*sizeof(double));
-
+std::cout<<"e\n";
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -188,12 +198,12 @@ void PairAGNI::compute(int eflag, int vflag)
         const double wZ = cF*delz/r;
 
         for (k = 0; k < iparam.numeta; ++k) {
-          	double e = 0.0;
+          double e = 0.0;
 
-		if(ver == 1) //FP1
-			e = exp(-(iparam.eta[k]*rsq));
-		else if(ver == 2) //FP2
-			e = (1 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(2 * MathConst::MY_PI))) * exp(-(square(r - iparam.eta[k])) / (2 * square(iparam.gwidth)));
+		if(atomic_feature_version == AGNI_VERSION_1)
+	    e = exp(-(iparam.eta[k]*rsq));
+		else if(atomic_feature_version == AGNI_VERSION_2)
+			e = (1.0 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(MathConst::MY_2PI))) * exp(-(square(r - iparam.eta[k])) / (2.0 * square(iparam.gwidth)));
 		
           Vx[k] += wX*e;
           Vy[k] += wY*e;
@@ -317,7 +327,7 @@ void PairAGNI::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
-
+  
   // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
@@ -357,140 +367,142 @@ double PairAGNI::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairAGNI::read_file(char *file)
+void PairAGNI::read_file(char *filename)
 {
   memory->sfree(params);
   params = nullptr;
   nparams = 0;
 
-  // open file on proc 0 only
-  // then read line by line and broadcast the line to all MPI ranks
-
-  FILE *fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open AGNI potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
-
-  int i,j,n,nwords,curparam,wantdata,fp_counter;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
-  char **words = new char*[MAXWORD+1];
+  int i,j,curparam,wantdata,fp_counter;
 
   fp_counter = 0;
 
-  while (1) {
-    n = 0;
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+  // read potential file
+  if(comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "agni", unit_convert_flag);
 
-    // strip comment, skip line if blank
+    try {
+      ValueTokenizer values = reader.next_values(2);
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+      values.next_string(); // ignore
+      nparams = values.next_int();
 
-    if (nwords > MAXWORD)
-      error->all(FLERR,"Increase MAXWORD and re-compile");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-    --nwords;
-
-    if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {
-      ver = atoi(words[1]);
-      if ((ver < 1) || (ver > 2))
-        error->all(FLERR,"Incompatible AGNI potential file version");
-
-    } else if ((nwords == 2) && (strcmp(words[0],"n_elements") == 0)) {
-      nparams = atoi(words[1]);
       if ((nparams < 1) || params) // sanity check
         error->all(FLERR,"Invalid AGNI potential file");
       params = memory->create(params,nparams,"pair:params");
       memset(params,0,nparams*sizeof(Param));
+      
       curparam = -1;
-
-    } else if (params && (nwords == nparams+1) && (strcmp(words[0],"element") == 0)) {
       wantdata = -1;
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
       for (i = 0; i < nparams; ++i) {
+        const char* element = values.next_string().c_str();
         for (j = 0; j < nelements; ++j)
-          if (strcmp(words[i+1],elements[j]) == 0) break;
+          if (strcmp(element,elements[j]) == 0) break;
         if (j == nelements)
           error->all(FLERR,"No suitable parameters for requested element found");
         else params[i].ielement = j;
       }
-    } else if (params && (nwords == 2) && (strcmp(words[0],"interaction") == 0)) {
-      for (i = 0; i < nparams; ++i)
-        if (strcmp(words[1],elements[params[i].ielement]) == 0) curparam = i;
-    } else if ((curparam >=0) && (nwords == 1) && (strcmp(words[0],"endVar") == 0)) {
-      int numtrain = params[curparam].numtrain;
-      int numeta = params[curparam].numeta;
-      params[curparam].alpha = new double[numtrain];
-      params[curparam].yU = new double[numtrain];
-      params[curparam].xU = new double*[numeta];
-      for (i = 0; i < numeta; ++i)
-        params[curparam].xU[i] = new double[numtrain];
 
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      for (i = 0; i < nparams; ++i){
+        const char* element = values.next_string().c_str();
+        if (strcmp(element,elements[params[i].ielement]) == 0) curparam = i;
+      }
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      atomic_feature_version = values.next_int();
+      if (atomic_feature_version != AGNI_VERSION_1 && atomic_feature_version != AGNI_VERSION_2)
+        error->all(FLERR,"Incompatible AGNI potential file version");
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].numeta = values.next_int();
+      params[curparam].eta = new double[params[curparam].numeta];
+      params[curparam].xU = new double*[params[curparam].numeta];
+
+      values = reader.next_values(params[curparam].numeta + 1);
+      values.next_string(); // ignore
+      for(i = 0; i < params[curparam].numeta; i++)
+        params[curparam].eta[i] = values.next_double();
+      
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].gwidth = values.next_double();
+      
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].cut = values.next_double();
+      
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].numtrain = values.next_int();
+      params[curparam].alpha = new double[params[curparam].numtrain];
+      for (i = 0; i < params[curparam].numeta; ++i)
+        params[curparam].xU[i] = new double[params[curparam].numtrain];
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].sigma = values.next_double();
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      values.next_double(); // ignore
+
+      values = reader.next_values(2);
+      values.next_string(); // ignore
+      params[curparam].b = values.next_double();
+
+      values = reader.next_values(1);
+      values.next_string(); // ignore
       wantdata = curparam;
       curparam = -1;
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"Rc") == 0)) {
-      params[curparam].cut = atof(words[1]);
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"Rs") == 0)) {
-      ; // ignored
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"neighbors") == 0)) {
-      ; // ignored
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"sigma") == 0)) {
-      params[curparam].sigma = atof(words[1]);
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"lambda") == 0)) {
-      params[curparam].lambda = atof(words[1]);
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"b") == 0)) {
-      params[curparam].b = atof(words[1]);
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"gwidth") == 0)) {
-    	params[curparam].gwidth = atof(words[1]);
-    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"n_train") == 0)) {
-      	params[curparam].numtrain = atoi(words[1]);
-    } else if ((curparam >=0) && (nwords > 1) && (strcmp(words[0],"eta") == 0)) {
-      params[curparam].numeta = nwords-1;
-      params[curparam].eta = new double[nwords-1];
-      for (i = 0, j = 1 ; j < nwords; ++i, ++j)
-        params[curparam].eta[i] = atof(words[j]);
-    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+2)) {  
-      for (i = 0; i < params[wantdata].numeta; ++i) {
-        params[wantdata].xU[i][fp_counter] = atof(words[i]);
-      }
-      params[wantdata].yU[fp_counter] = atof(words[params[wantdata].numeta]);
-      params[wantdata].alpha[fp_counter] = atof(words[params[wantdata].numeta+1]);
-      fp_counter++;
-    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+3)) {  
-      for (i = 0; i < params[wantdata].numeta; ++i) {
-        params[wantdata].xU[i][fp_counter] = atof(words[i + 1]);
-      }
-      params[wantdata].yU[fp_counter] = atof(words[params[wantdata].numeta + 1]);
-      params[wantdata].alpha[fp_counter] = atof(words[params[wantdata].numeta+2]);
-      fp_counter++;
-    }else {
-      if (comm->me == 0)
-        error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");
+
+      if (params && wantdata >=0){
+        for(j = 0; j < params[wantdata].numtrain; j++){
+          values = reader.next_values(params[wantdata].numeta + 2);
+          for (i = 0; i < params[wantdata].numeta; ++i) 
+            params[wantdata].xU[i][j] = values.next_double();
+          params[wantdata].alpha[j] = values.next_double();
+          values.next_double(); // ignore
+        } 
+      }else
+        error->all(FLERR,"Invalid AGNI potential file");
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
-
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&atomic_feature_version, 1, MPI_INT, 0, world);
+  if(comm->me != 0) {
+    params = memory->create(params,nparams,"pair:params");
+    memset(params,0,nparams*sizeof(Param));
+  }
+  for(i = 0; i < nparams; i++){ 
+    MPI_Bcast(&params[i].ielement, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].numeta, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].numtrain, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].b, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].gwidth, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].sigma, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].cut, 1, MPI_DOUBLE, 0, world);
+    if(comm->me != 0) {
+      params[i].alpha = new double[params[i].numtrain];
+      params[i].eta = new double[params[i].numeta];
+      params[i].xU = new double*[params[i].numeta];
+      for (j = 0; j < params[i].numeta; ++j)
+        params[i].xU[j] = new double[params[i].numtrain];
+    }
+    MPI_Bcast(&params[i].alpha, params[i].numtrain, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].eta, params[i].numeta, MPI_DOUBLE, 0, world);
+    for(j = 0; j < params[i].numeta; j++)
+      MPI_Bcast(&params[i].xU[j], params[i].numtrain, MPI_DOUBLE, 0, world); 
+  }
+  std::cout<<" "<<params[i].ielement<<"\n";
 }
 
 /* ---------------------------------------------------------------------- */

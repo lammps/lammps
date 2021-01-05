@@ -1,8 +1,8 @@
 Example simulations of polarizable systems using Drude oscillators
 ==================================================================
 
-Each example comes in two versions for demonstrating the use of
-Nosé-Hoover or Langevin thermostats.
+Each example comes in several versions for demonstrating the use of
+Langevin, Nosé-Hoover and temperature-grouped Nosé-Hoover thermostats.
 
 * `butane` -- simulation in NVT ensemble with Thole damping
 

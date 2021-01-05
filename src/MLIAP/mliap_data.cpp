@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_data.h"
 
 #include "atom.h"
@@ -25,7 +29,8 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
                      class MLIAPModel* model_in,
                      class MLIAPDescriptor* descriptor_in,
                      class PairMLIAP* pairmliap_in) :
-  Pointers(lmp), gradforce(nullptr), betas(nullptr), descriptors(nullptr), gamma(nullptr),
+  Pointers(lmp), gradforce(nullptr), betas(nullptr),
+  descriptors(nullptr), eatoms(nullptr), gamma(nullptr),
   gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
   numneighs(nullptr), iatoms(nullptr), ielems(nullptr), jatoms(nullptr), jelems(nullptr),
   rij(nullptr), graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
@@ -64,6 +69,7 @@ MLIAPData::~MLIAPData()
 {
   memory->destroy(betas);
   memory->destroy(descriptors);
+  memory->destroy(eatoms);
   memory->destroy(gamma_row_index);
   memory->destroy(gamma_col_index);
   memory->destroy(gamma);
@@ -133,6 +139,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   if (natoms_max < natoms) {
     memory->grow(betas,natoms,ndescriptors,"MLIAPData:betas");
     memory->grow(descriptors,natoms,ndescriptors,"MLIAPData:descriptors");
+    memory->grow(eatoms,natoms,"MLIAPData:eatoms");
     natoms_max = natoms;
   }
 
@@ -267,6 +274,7 @@ double MLIAPData::memory_usage()
 
   bytes += natoms*ndescriptors*sizeof(int);      // betas
   bytes += natoms*ndescriptors*sizeof(int);      // descriptors
+  bytes += natoms*sizeof(double);                // eatoms
 
   bytes += natomneigh_max*sizeof(int);               // iatoms
   bytes += natomneigh_max*sizeof(int);               // ielems

@@ -236,12 +236,15 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
+         # Building with PGI/Nvidia Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ -DCMAKE_Fortran_COMPILER=pgfortran
 
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers.
+      toolchain to the Intel compilers and `-C ../cmake/presets/pgi.cmake`
+      should switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By

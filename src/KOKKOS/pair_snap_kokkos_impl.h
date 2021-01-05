@@ -391,7 +391,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
       // Fused ComputeDuidrj, ComputeDeidrj
       {
         // new AoSoA form
-        
+
         // team_size_compute_fused_deidrj is defined in `pair_snap_kokkos.h`
         constexpr int team_size = team_size_compute_fused_deidrj;
 

@@ -13,7 +13,7 @@ mass            1 10.8110   # boron mass (g/mole) | membrane
 mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
 
 ######################## Potential defition ########################
-pair_style  tersoff shift 0.0
+pair_style  tersoff shift 0.05
 pair_coeff  * * BNC.tersoff B N
 ####################################################################
 # Neighbor update settings
@@ -24,7 +24,7 @@ neigh_modify    check yes
 
 #### Simulation settings ####
 timestep  	0.001
-velocity  	all create 300.0 12345 loop geom
+#velocity  	all create 300.0 12345 loop geom
 fix       	thermostat all nve
 
 ############# Output ###############

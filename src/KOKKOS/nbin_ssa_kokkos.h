@@ -108,9 +108,9 @@ class NBinSSAKokkos : public NBinStandard {
     if (y >= subhi_[1]) iy = 1;
     if (x < sublo_[0]) ix = -1;
     if (x >= subhi_[0]) ix = 1;
-    if (iz < 0){
+    if (iz < 0) {
       return -1;
-    } else if (iz == 0){
+    } else if (iz == 0) {
       if (iy<0) return -1; // bottom left/middle/right
       if ((iy==0) && (ix<0) ) return -1; // left atoms
       if ((iy==0) && (ix==0)) return 0; // Locally owned atoms

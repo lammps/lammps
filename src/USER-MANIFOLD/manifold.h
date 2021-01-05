@@ -46,8 +46,8 @@ namespace user_manifold {
   // Abstract base class.
   class manifold : protected Pointers {
    public:
-    manifold(class LAMMPS* lmp) : Pointers(lmp), params(nullptr){ }
-    virtual ~manifold(){ delete[] params; }
+    manifold(class LAMMPS* lmp) : Pointers(lmp), params(nullptr) { }
+    virtual ~manifold() { delete[] params; }
     virtual double g( const double * ) = 0;
     virtual void   n( const double *, double * ) = 0;
 
@@ -61,13 +61,13 @@ namespace user_manifold {
 
     virtual const char *id() = 0;
 
-    virtual void set_atom_id( tagint /*a_id*/ ){}
+    virtual void set_atom_id( tagint /*a_id*/ ) {}
     virtual int nparams() = 0;
-    // double *get_params(){ return params; };
+    // double *get_params() { return params; };
 
     // Overload if any initialization depends on params:
-    virtual void post_param_init(){}
-    virtual void checkup(){} // Some diagnostics...
+    virtual void post_param_init() {}
+    virtual void checkup() {} // Some diagnostics...
 
     double *params;
   };
@@ -80,14 +80,14 @@ namespace user_manifold {
   double infnorm(double *vect)
   {
     double largest = fabs( vect[0] );
-    for (unsigned int i = 1; i < size; ++i){
+    for (unsigned int i = 1; i < size; ++i) {
       double c = fabs( vect[i] );
       largest = ( c > largest ) ? c : largest;
     }
     return largest;
   }
 
-  inline double dot(double *a, double *b){
+  inline double dot(double *a, double *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
   }
 

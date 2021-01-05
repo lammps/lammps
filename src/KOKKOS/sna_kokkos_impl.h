@@ -1271,7 +1271,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
 
             // apply bzero shift
 
-            if (bzero_flag){
+            if (bzero_flag) {
               if (!wselfall_flag) {
                 if (elem1 == elem2 && elem1 == elem3) {
                   sumzu -= bzero[j];

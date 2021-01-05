@@ -96,13 +96,13 @@ inline double MFOxdna::F2(double r, double k, double cut_0, double cut_lc,
                           double b_lo, double b_hi, double cut_c)
 {
 
-  if (r < cut_lc || r > cut_hc){
+  if (r < cut_lc || r > cut_hc) {
     return 0;
   }
-  else if (r < cut_lo){
+  else if (r < cut_lo) {
     return k * b_lo * (cut_lc - r)*(cut_lc-r);
   }
-  else if (r < cut_hi){
+  else if (r < cut_hi) {
     return k * 0.5 * ((r - cut_0)*(r-cut_0) - (cut_0 - cut_c)*(cut_0 - cut_c));
   }
   else{
@@ -118,13 +118,13 @@ inline double MFOxdna::DF2(double r, double k, double cut_0, double cut_lc,
                            double cut_hc, double cut_lo, double cut_hi,
                            double b_lo, double b_hi)
 {
-  if (r < cut_lc || r > cut_hc){
+  if (r < cut_lc || r > cut_hc) {
     return 0;
   }
-  else if (r < cut_lo){
+  else if (r < cut_lo) {
     return 2*k * b_lo * (r - cut_lc);
   }
-  else if (r < cut_hi){
+  else if (r < cut_hi) {
     return k * (r - cut_0);
   }
   else{

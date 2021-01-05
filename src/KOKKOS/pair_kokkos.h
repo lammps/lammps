@@ -305,7 +305,7 @@ struct PairComputeFunctor  {
 
       },fsum);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
         f(i,0) += fsum.x;
         f(i,1) += fsum.y;
         f(i,2) += fsum.z;
@@ -366,7 +366,7 @@ struct PairComputeFunctor  {
         }
       },fsum);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
       f(i,0) += fsum.x;
       f(i,1) += fsum.y;
       f(i,2) += fsum.z;
@@ -437,7 +437,7 @@ struct PairComputeFunctor  {
         }
       },fev);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
         f(i,0) += fev.f[0];
         f(i,1) += fev.f[1];
         f(i,2) += fev.f[2];
@@ -546,7 +546,7 @@ struct PairComputeFunctor  {
         }
       },fev);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
         f(i,0) += fev.f[0];
         f(i,1) += fev.f[1];
         f(i,2) += fev.f[2];

@@ -949,7 +949,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   int ninside = 0;
   Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team,num_neighs),
       [&] (const int jj, int& count) {
-    Kokkos::single(Kokkos::PerThread(team), [&] (){
+    Kokkos::single(Kokkos::PerThread(team), [&] () {
       T_INT j = d_neighbors(i,jj);
       const F_FLOAT dx = x(j,0) - xtmp;
       const F_FLOAT dy = x(j,1) - ytmp;
@@ -1166,7 +1166,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
     fij[1] = my_sna.dedr(ii,jj,1);
     fij[2] = my_sna.dedr(ii,jj,2);
 
-    Kokkos::single(Kokkos::PerThread(team), [&] (){
+    Kokkos::single(Kokkos::PerThread(team), [&] () {
       a_f(i,0) += fij[0];
       a_f(i,1) += fij[1];
       a_f(i,2) += fij[2];

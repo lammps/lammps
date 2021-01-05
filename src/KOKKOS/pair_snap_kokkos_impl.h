@@ -324,7 +324,9 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
       // ComputeUi w/vector parallelism, shared memory, direct atomicAdd into ulisttot
       {
         // new AoSoA form
-        constexpr int team_size = sizeof(real) == 4 ? 8 : 4; // shared memory reqs
+
+        // team_size_compute_ui is defined in `pair_snap_kokkos.h`
+        constexpr int team_size = team_size_compute_ui;
 
         // scratch size: 32 atoms * (twojmax+1) cached values, no double buffer
         const int tile_size = vector_length * (twojmax + 1);
@@ -341,7 +343,7 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
         int n_teams = chunk_size_div * max_neighs * (twojmax + 1);
         int n_teams_div = (n_teams + team_size - 1) / team_size;
 
-        typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi> policy_ui(n_teams_div,team_size, vector_length);
+        typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi> policy_ui(n_teams_div, team_size, vector_length);
         policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam( scratch_size ));
 
         Kokkos::parallel_for("ComputeUi",policy_ui,*this);
@@ -389,7 +391,9 @@ void PairSNAPKokkos<DeviceType, real, vector_length>::compute(int eflag_in, int 
       // Fused ComputeDuidrj, ComputeDeidrj
       {
         // new AoSoA form
-        constexpr int team_size = sizeof(real) == 4 ? 4 : 2; // shared memory reqs
+        
+        // team_size_compute_fused_deidrj is defined in `pair_snap_kokkos.h`
+        constexpr int team_size = team_size_compute_fused_deidrj;
 
         // scratch size: 32 atoms * (twojmax+1) cached values * 2 for u, du, no double buffer
         const int tile_size = vector_length * (twojmax + 1);
@@ -731,20 +735,15 @@ KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUi>::member_type& team) const {
   SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
 
-  constexpr int team_size = sizeof(real) == 4 ? 8 : 4;
-  if (team.team_size() != team_size) return; // error
-
   // extract flattened atom_div / neighbor number / bend location
-  int flattened_idx = team.team_rank() + team.league_rank() * team_size;
+  int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_ui;
 
   // extract neighbor index, iatom_div
-  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1)); // plug in int_fastdiv
+  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1));
   const int jj_jbend = flattened_idx - iatom_div * (max_neighs * (twojmax + 1));
   const int jbend = jj_jbend / max_neighs;
   const int jj = jj_jbend - jbend * max_neighs;
 
-  // check base atom numbers, hopefully this doesn't lead to blocking conditions?
-  // yep, we can't have a return in here
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, vector_length),
     [&] (const int iatom_mod) {
     const int ii = iatom_mod + vector_length * iatom_div;
@@ -857,14 +856,11 @@ KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real, vector_length>::operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeFusedDeidrj>::member_type& team) const {
   SNAKokkos<DeviceType, real, vector_length> my_sna = snaKK;
 
-  constexpr int team_size = sizeof(real) == 4 ? 4 : 2;
-  if (team.team_size() != team_size) return; // error
-
   // extract flattened atom_div / neighbor number / bend location
-  int flattened_idx = team.team_rank() + team.league_rank() * team_size;
+  int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_fused_deidrj;
 
   // extract neighbor index, iatom_div
-  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1)); // plug in int_fastdiv
+  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1));
   const int jj_jbend = flattened_idx - iatom_div * (max_neighs * (twojmax + 1));
   const int jbend = jj_jbend / max_neighs;
   const int jj = jj_jbend - jbend * max_neighs;

@@ -1090,10 +1090,10 @@ struct params_lj_coul {
 typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real_>
-struct alignas(2*sizeof(real_)) SNAComplex
+template <typename real_type>
+struct alignas(2*sizeof(real_type)) SNAComplex
 {
-  using real = real_;
+  using real = real_type;
   using complex = SNAComplex<real>;
   real re,im;
 

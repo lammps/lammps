@@ -25,9 +25,9 @@
 
 namespace LAMMPS_NS {
 
-template<typename real_, int vector_length_>
+template<typename real_type, int vector_length_>
 struct WignerWrapper {
-  using real = real_;
+  using real = real_type;
   using complex = SNAComplex<real>;
   static constexpr int vector_length = vector_length_;
 
@@ -56,11 +56,11 @@ struct alignas(8) FullHalfMapper {
   int flip_sign; // 0 -> isn't flipped, 1 -> conj, -1 -> -conj
 };
 
-template<class DeviceType, typename real_, int vector_length_>
+template<class DeviceType, typename real_type, int vector_length_>
 class SNAKokkos {
 
 public:
-  using real = real_;
+  using real = real_type;
   using complex = SNAComplex<real>;
   static constexpr int vector_length = vector_length_;
 

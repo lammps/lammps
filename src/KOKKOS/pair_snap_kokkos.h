@@ -65,7 +65,7 @@ struct TagPairSNAPComputeYiCPU{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
-template<class DeviceType, typename real_, int vector_length_>
+template<class DeviceType, typename real_type, int vector_length_>
 class PairSNAPKokkos : public PairSNAP {
 public:
   enum {EnabledNeighFlags=FULL|HALF|HALFTHREAD};
@@ -75,8 +75,12 @@ public:
   typedef EV_FLOAT value_type;
 
   static constexpr int vector_length = vector_length_;
-  using real = real_;
+  using real = real_type;
   using complex = SNAComplex<real>;
+
+  // type-dependent team sizes
+  static constexpr int team_size_compute_ui = sizeof(real) == 4 ? 8 : 4;
+  static constexpr int team_size_compute_fused_deidrj = sizeof(real) == 4 ? 4 : 2;
 
   PairSNAPKokkos(class LAMMPS *);
   ~PairSNAPKokkos();

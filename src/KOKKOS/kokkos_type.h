@@ -1076,20 +1076,34 @@ struct params_lj_coul {
 
 // Pair SNAP
 
+#define SNAP_KOKKOS_REAL double
+#define SNAP_KOKKOS_HOST_VECLEN 1
+
+#ifdef LMP_KOKKOS_GPU
+#define SNAP_KOKKOS_DEVICE_VECLEN 32
+#else
+#define SNAP_KOKKOS_DEVICE_VECLEN 1
+#endif
+
+
+// intentional: SNAreal/complex gets reused beyond SNAP
 typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real>
-struct alignas(2*sizeof(real)) SNAComplex
+template <typename real_type_>
+struct alignas(2*sizeof(real_type_)) SNAComplex
 {
-  real re,im;
+  using real_type = real_type_;
+  using complex = SNAComplex<real_type>;
+  real_type re,im;
 
-  SNAComplex() = default;
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex()
+   : re(static_cast<real_type>(0.)), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
-   : re(re), im(static_cast<real>(0.)) { ; }
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re)
+   : re(re), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re, real_type im)
    : re(re), im(im) { ; }
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
@@ -1117,26 +1131,23 @@ struct alignas(2*sizeof(real)) SNAComplex
     return *this;
   }
 
+  KOKKOS_INLINE_FUNCTION
+  static constexpr complex zero() { return complex(static_cast<real_type>(0.), static_cast<real_type>(0.)); }
+
+  KOKKOS_INLINE_FUNCTION
+  static constexpr complex one() { return complex(static_cast<real_type>(1.), static_cast<real_type>(0.)); }
+
+  KOKKOS_INLINE_FUNCTION
+  const complex conj() { return complex(re, -im); }
+
 };
 
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
+template <typename real_type>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const real_type& r, const SNAComplex<real_type>& self) {
+  return SNAComplex<real_type>(r*self.re, r*self.im);
 }
 
 typedef SNAComplex<SNAreal> SNAcomplex;
-
-// Cayley-Klein pack
-// Can guarantee it's aligned to 2 complex
-struct alignas(32) CayleyKleinPack {
-
-  SNAcomplex a, b;
-  SNAcomplex da[3], db[3];
-  SNAreal sfac;
-  SNAreal dsfacu[3];
-
-};
-
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE

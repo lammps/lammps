@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
+#include "suffix.h"
 #include "tokenizer.h"
 
 #include <cmath>
@@ -334,11 +335,13 @@ void PairTersoff::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"shift") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal option for pair_tersoff");
+      if (suffix_flag & (Suffix::INTEL|Suffix::GPU|Suffix::KOKKOS))
+        error->all(FLERR,"Keyword 'shift' not supported for this style");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
       shift = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       shift_flag = 1;
       iarg += 2;
-    } else error->all(FLERR,"Illegal option for pair_tersoff");
+    } else error->all(FLERR,"Illegal pair_style command");
   }
 }
 

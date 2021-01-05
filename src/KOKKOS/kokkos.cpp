@@ -39,7 +39,7 @@
 GPU_AWARE_UNKNOWN
 #elif defined(KOKKOS_ENABLE_CUDA)
 
-// OpenMPI supports detecting CUDA-aware MPI as of version 2.0.0
+// OpenMPI supports detecting GPU-aware MPI as of version 2.0.0
 
 #if (OPEN_MPI)
 #if (OMPI_MAJOR_VERSION >= 2)
@@ -77,6 +77,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   exchange_comm_changed = 0;
   forward_comm_changed = 0;
+  forward_pair_comm_changed = 0;
+  forward_fix_comm_changed = 0;
   reverse_comm_changed = 0;
 
   delete memory;
@@ -147,7 +149,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       if (ngpus > 1 && !set_flag)
         error->all(FLERR,"Could not determine local MPI rank for multiple "
-                           "GPUs with Kokkos CUDA because MPI library not recognized");
+                           "GPUs with Kokkos CUDA or HIP because MPI library not recognized");
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
@@ -203,7 +205,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     neighflag = FULL;
     neighflag_qeq = FULL;
     newtonflag = 0;
+
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+    forward_pair_comm_classic = forward_fix_comm_classic = 0;
+
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   } else {
     if (nthreads > 1) {
@@ -214,14 +219,17 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       neighflag_qeq = HALF;
     }
     newtonflag = 1;
+
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+    forward_pair_comm_classic = forward_fix_comm_classic = 1;
+
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
 
 #ifdef LMP_KOKKOS_GPU
 
-  // check and warn about CUDA-aware MPI availability when using multiple MPI tasks
-  // change default only if we can safely detect that CUDA-aware MPI is not available
+  // check and warn about GPU-aware MPI availability when using multiple MPI tasks
+  // change default only if we can safely detect that GPU-aware MPI is not available
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
@@ -244,14 +252,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       if (!gpu_aware_flag)
         if (me == 0)
-          error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling CUDA-aware MPI");
+          error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling GPU-aware MPI");
     }
 #endif
 
     if (gpu_aware_flag == 1 && have_gpu_aware == 0) {
       if (me == 0)
-        error->warning(FLERR,"Turning off CUDA-aware MPI since it is not detected, "
-                       "use '-pk kokkos cuda/aware on' to override");
+        error->warning(FLERR,"Turning off GPU-aware MPI since it is not detected, "
+                       "use '-pk kokkos gpu/aware on' to override");
       gpu_aware_flag = 0;
     } else if (have_gpu_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
     // MVAPICH2
@@ -264,17 +272,17 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       if (!gpu_aware_flag)
         if (me == 0)
-          error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling CUDA-aware MPI");
+          error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling GPU-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
       if (me == 0)
-        error->warning(FLERR,"Detected MPICH. Disabling CUDA-aware MPI");
+        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
       gpu_aware_flag = 0;
 #else
   if (me == 0)
-    error->warning(FLERR,"Kokkos with CUDA assumes CUDA-aware MPI is available,"
+    error->warning(FLERR,"Kokkos with CUDA or HIP assumes GPU-aware MPI is available,"
                    " but cannot determine if this is the case\n         try"
-                   " '-pk kokkos cuda/aware off' if getting segmentation faults");
+                   " '-pk kokkos gpu/aware off' if getting segmentation faults");
 
 #endif
     } // if (-1 == have_gpu_aware)
@@ -340,12 +348,18 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
+        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
+        forward_pair_comm_classic = forward_fix_comm_classic = 0;
+
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
@@ -373,9 +387,25 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else error->all(FLERR,"Illegal package kokkos command");
       forward_comm_changed = 0;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/pair/forward") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) forward_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) forward_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) forward_pair_comm_classic = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      forward_pair_comm_changed = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/fix/forward") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) forward_fix_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) forward_fix_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) forward_fix_comm_classic = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      forward_fix_comm_changed = 0;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"comm/reverse") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"no") == 0) reverse_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) reverse_comm_classic = 1;
       else if (strcmp(arg[iarg+1],"host") == 0) {
         reverse_comm_classic = 0;
         reverse_comm_on_host = 1;
@@ -385,7 +415,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else error->all(FLERR,"Illegal package kokkos command");
       reverse_comm_changed = 0;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"cuda/aware") == 0) {
+    } else if ((strcmp(arg[iarg],"gpu/aware") == 0)
+               || (strcmp(arg[iarg],"cuda/aware") == 0)) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) gpu_aware_flag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;
@@ -425,7 +456,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
-  // if "cuda/aware off" or "pair/only on", and "comm device", change to "comm no"
+  // if "gpu/aware off" or "pair/only on", and "comm device", change to "comm no"
 
   if ((!gpu_aware_flag && nmpi > 1) || pair_only_flag) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
@@ -436,13 +467,21 @@ void KokkosLMP::accelerator(int narg, char **arg)
       forward_comm_classic = 1;
       forward_comm_changed = 1;
     }
+    if (forward_pair_comm_classic == 0) {
+      forward_pair_comm_classic = 1;
+      forward_pair_comm_changed = 1;
+    }
+    if (forward_fix_comm_classic == 0) {
+      forward_fix_comm_classic = 1;
+      forward_fix_comm_changed = 1;
+    }
     if (reverse_comm_classic == 0 && reverse_comm_on_host == 0) {
       reverse_comm_classic = 1;
       reverse_comm_changed = 1;
     }
   }
 
-  // if "cuda/aware on" and "pair/only off", and comm flags were changed previously, change them back
+  // if "gpu/aware on" and "pair/only off", and comm flags were changed previously, change them back
 
   if (gpu_aware_flag && !pair_only_flag) {
     if (exchange_comm_changed) {
@@ -452,6 +491,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (forward_comm_changed) {
       forward_comm_classic = 0;
       forward_comm_changed = 0;
+    }
+    if (forward_pair_comm_changed) {
+      forward_pair_comm_classic = 0;
+      forward_pair_comm_changed = 0;
+    }
+    if (forward_fix_comm_changed) {
+      forward_fix_comm_classic = 0;
+      forward_fix_comm_changed = 0;
     }
     if (reverse_comm_changed) {
       reverse_comm_classic = 0;
@@ -490,25 +537,15 @@ int KokkosLMP::neigh_count(int m)
   if (nk->lists[m]->execution_space == Host) {
     NeighListKokkos<LMPHostType>* nlistKK = (NeighListKokkos<LMPHostType>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
     Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
     Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   } else if (nk->lists[m]->execution_space == Device) {
     NeighListKokkos<LMPDeviceType>* nlistKK = (NeighListKokkos<LMPDeviceType>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
     Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
     Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   }

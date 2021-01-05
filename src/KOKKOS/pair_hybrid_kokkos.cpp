@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 
 PairHybridKokkos::PairHybridKokkos(LAMMPS *lmp) : PairHybrid(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
 
  // prevent overlapping host/device computation, which isn't

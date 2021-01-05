@@ -1131,7 +1131,7 @@ void AtomVecChargeKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    if ((mask & MOLECULE_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
@@ -1148,7 +1148,7 @@ void AtomVecChargeKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    if ((mask & MOLECULE_MASK) && atomKK->k_q.need_sync<LMPHostType>())
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
   }
 }

@@ -415,7 +415,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else error->all(FLERR,"Illegal package kokkos command");
       reverse_comm_changed = 0;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"gpu/aware") == 0) {
+    } else if ((strcmp(arg[iarg],"gpu/aware") == 0)
+               || (strcmp(arg[iarg],"cuda/aware") == 0)) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"off") == 0) gpu_aware_flag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;

@@ -457,6 +457,23 @@ example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
 
+By default, all constraints must be satisfied for the reaction to
+occur. In other words, constraints are evaluated as a series of
+logical values using the logical AND operator "&&". More complex logic
+can be achieved by explicitly adding the logical AND operator "&&" or
+the logical OR operator "||" after a given constraint command. If a
+logical operator is specified after a constraint, it must be placed
+after all constraint parameters, on the same line as the constraint
+(one per line). Similarly, parentheses can be used to group
+constraints. The expression that results from concatenating all
+constraints should be a valid logical expression that can be read by
+the :doc:`variable <variable>` command after converting each
+constraint to a logical value. Because exactly one constraint is
+allowed per line, having a valid logical expression implies that left
+parentheses "(" should only appear before a constraint, and right
+parentheses ")" should only appear after a constraint and before any
+logical operator.
+
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
 post-reacted molecule template. All force fields with fixed bonds,
@@ -599,8 +616,8 @@ reset_mol_ids = yes, custom_charges = no, molecule = off
 
 .. _Gissinger:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
+**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
 
 .. _Gissinger2020:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Macromolecules (2020, in press).
+**(Gissinger)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953–9961 (2020).

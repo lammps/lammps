@@ -941,7 +941,7 @@ void PairKIM::set_argument_pointers()
 
   // Set KIM pointer appropriately for particleVirial
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_required) 
+                              KIM_SUPPORT_STATUS_required)
       && (vflag_atom == 0)) {
     // reallocate per-atom virial array if necessary
     if (atom->nmax > maxvatom) {

@@ -115,8 +115,8 @@ The optional keyword *chunksize* is only applicable when using the
 the KOKKOS package and is ignored otherwise. This keyword controls
 the number of atoms in each pass used to compute the bond-orientational
 order parameters and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the parameter calculation will be broken up
+if there are 32768 atoms in the simulation and the *chunksize*
+is set to 16384, the parameter calculation will be broken up
 into two passes.
 
 The value of :math:`Q_l` is set to zero for atoms not in the
@@ -193,7 +193,7 @@ Default
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
 *degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
-*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 2000
+*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 16384
 
 ----------
 

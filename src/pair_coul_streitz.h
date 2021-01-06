@@ -36,7 +36,7 @@ class PairCoulStreitz : public Pair {
   double memory_usage();
   virtual void *extract(const char *, int &);
 
-  static const int NPARAMS_PER_LINE = 6;
+  static constexpr int NPARAMS_PER_LINE = 6;
 
  protected:
   struct Param {

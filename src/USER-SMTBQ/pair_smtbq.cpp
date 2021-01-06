@@ -72,17 +72,6 @@ using namespace MathSpecial;
 #define PGDELTA 1
 #define MAXNEIGH 24
 
-/* ------------------------------------------------------------------------------------
-
-   Calculates the factorial of an integer n via recursion.
-
-   ------------------------------------------------------------------------------------ */
-static double factorial(int n)
-{
-  if (n <= 1) return 1.0;
-  else return static_cast<double>(n)*factorial(n-1);
-}
-
 /* ---------------------------------------------------------------------- */
 
 PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)

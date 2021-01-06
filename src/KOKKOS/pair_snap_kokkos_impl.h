@@ -740,10 +740,10 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_ui;
 
   // extract neighbor index, iatom_div
-  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1));
+  int iatom_div = flattened_idx / (max_neighs * (twojmax + 1)); // removed "const" to work around GCC 7 bug
   const int jj_jbend = flattened_idx - iatom_div * (max_neighs * (twojmax + 1));
   const int jbend = jj_jbend / max_neighs;
-  const int jj = jj_jbend - jbend * max_neighs;
+  int jj = jj_jbend - jbend * max_neighs; // removed "const" to work around GCC 7 bug
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, vector_length),
     [&] (const int iatom_mod) {
@@ -861,10 +861,10 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_fused_deidrj;
 
   // extract neighbor index, iatom_div
-  const int iatom_div = flattened_idx / (max_neighs * (twojmax + 1));
+  int iatom_div = flattened_idx / (max_neighs * (twojmax + 1)); // removed "const" to work around GCC 7 bug
   const int jj_jbend = flattened_idx - iatom_div * (max_neighs * (twojmax + 1));
   const int jbend = jj_jbend / max_neighs;
-  const int jj = jj_jbend - jbend * max_neighs;
+  int jj = jj_jbend - jbend * max_neighs; // removed "const" to work around GCC 7 bug
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, vector_length),
     [&] (const int iatom_mod) {

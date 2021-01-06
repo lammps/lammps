@@ -217,7 +217,7 @@ void PairMDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
+  if (seed <= 0) {
     struct timespec time;
     clock_gettime( CLOCK_REALTIME, &time );
     seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
@@ -241,7 +241,7 @@ void PairMDPD::settings(int narg, char **arg)
 
 void PairMDPD::coeff(int narg, char **arg)
 {
-  if(narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients\n itype jtype A B gamma cutA cutB");
+  if (narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients\n itype jtype A B gamma cutA cutB");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -254,7 +254,7 @@ void PairMDPD::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   double cut_two = utils::numeric(FLERR,arg[6],false,lmp);
 
-  if(cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
+  if (cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

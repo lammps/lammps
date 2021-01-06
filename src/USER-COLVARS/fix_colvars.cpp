@@ -132,7 +132,7 @@ static void rebuild_table_int(inthash_t *tptr) {
   inthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=inthash(tptr, tmp->key);

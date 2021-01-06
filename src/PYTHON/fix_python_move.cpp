@@ -109,7 +109,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
 FixPythonMove::~FixPythonMove()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  if(py_move) Py_DECREF((PyObject*) py_move);
+  if (py_move) Py_DECREF((PyObject*) py_move);
   PyGILState_Release(gstate);
 }
 

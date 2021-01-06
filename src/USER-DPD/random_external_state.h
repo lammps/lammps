@@ -141,9 +141,9 @@ namespace random_external_state {
   // RNGs with k calls to genNextParallelState()
   LAMMPS_INLINE
   void es_init(es_RNG_t &serial_state, uint64_t seed) {
-    if(seed==0) seed = uint64_t(1318319);
+    if (seed==0) seed = uint64_t(1318319);
     serial_state = seed;
-    for(int i = 0; i < 17; i++) es_rand(serial_state);
+    for (int i = 0; i < 17; i++) es_rand(serial_state);
   }
 
   // Call genNextParallelState() once for each RNG to generate

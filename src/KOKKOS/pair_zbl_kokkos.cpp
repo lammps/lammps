@@ -304,7 +304,7 @@ double PairZBLKokkos<DeviceType>::init_one(int i, int j)
   k_sw4.modify<LMPHostType>();
   k_sw5.modify<LMPHostType>();
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_cutsq[i][j] = m_cutsq[j][i] = cutone*cutone;
   }
 

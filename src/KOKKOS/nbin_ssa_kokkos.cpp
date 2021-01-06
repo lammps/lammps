@@ -146,7 +146,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
   // actually bin the ghost atoms
   {
-    if(ghosts_per_gbin > (int) gbins.extent(1)) {
+    if (ghosts_per_gbin > (int) gbins.extent(1)) {
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
       gbins = k_gbins.view<DeviceType>();
     }
@@ -283,7 +283,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
       child = parent*2+1; /* Find the next child */
     }
     gbins(ibin, parent) = t; /* We save t in the heap */
-  } while(1);
+  } while (1);
 }
 
 namespace LAMMPS_NS {

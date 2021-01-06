@@ -738,7 +738,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
     const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if(rsq < cutforcesq) {
+    if (rsq < cutforcesq) {
       const F_FLOAT r = sqrt(rsq);
       F_FLOAT p = r*rdr + 1.0;
       int m = static_cast<int> (p);
@@ -998,7 +998,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
     // transparently convert units for supported conversions

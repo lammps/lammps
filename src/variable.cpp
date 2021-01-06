@@ -2755,7 +2755,7 @@ double Variable::collapse_tree(Tree *tree)
         ivalue3-ivalue1+1 < ivalue2 )
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
-    //else if (update->ntimestep <= ivalue3){
+    //else if (update->ntimestep <= ivalue3) {
     else {
       tree->value = ivalue1;
       double logsp = ivalue1;
@@ -3664,7 +3664,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
-      //else if (update->ntimestep <= ivalue3){
+      //else if (update->ntimestep <= ivalue3) {
       else {
         value = ivalue1;
         double logsp = ivalue1;

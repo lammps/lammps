@@ -217,7 +217,7 @@ void AngleGaussian::coeff(int narg, char **arg)
     alpha[i] = new double [n];
     width[i] = new double [n];
     theta0[i] = new double [n];
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);
       width[i][j] = utils::numeric(FLERR,arg[4+3*j],false,lmp);
       theta0[i][j] = utils::numeric(FLERR,arg[5+3*j],false,lmp)* MY_PI / 180.0;
@@ -244,7 +244,7 @@ void AngleGaussian::write_restart(FILE *fp)
 {
   fwrite(&angle_temperature[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&nterms[1],sizeof(int),atom->nangletypes,fp);
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     fwrite(alpha[i],sizeof(double),nterms[i],fp);
     fwrite(width[i],sizeof(double),nterms[i],fp);
     fwrite(theta0[i],sizeof(double),nterms[i],fp);
@@ -267,21 +267,21 @@ void AngleGaussian::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->nangletypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     alpha[i] = new double [nterms[i]];
     width[i] = new double [nterms[i]];
     theta0[i] = new double [nterms[i]];
   }
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->nangletypes; i++) {
+    for (int i = 1; i <= atom->nangletypes; i++) {
       utils::sfread(FLERR,alpha[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,width[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,theta0[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(theta0[i],nterms[i],MPI_DOUBLE,0,world);

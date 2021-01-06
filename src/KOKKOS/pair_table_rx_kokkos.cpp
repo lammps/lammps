@@ -71,7 +71,7 @@ void getMixingWeights(
   nTotalOld = 0.0;
   assert(id >= 0);
   assert(id < (int)dvector.extent(1));
-  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies) {
     assert(ispecies < (int)dvector.extent(0));
     nTotal += dvector(ispecies,id);
     assert(ispecies+nspecies < (int)dvector.extent(0));
@@ -82,39 +82,39 @@ void getMixingWeights(
   assert(isite1 < nspecies);
   assert(isite2 >= 0);
   assert(isite2 < nspecies);
-  if (isOneFluid(isite1) == false){
+  if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = dvector(isite1+nspecies,id);
     nMolecules1 = dvector(isite1,id);
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
-  if (isOneFluid(isite2) == false){
+  if (isOneFluid(isite2) == false) {
     nMoleculesOld2 = dvector(isite2+nspecies,id);
     nMolecules2 = dvector(isite2,id);
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
 
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
+  if (isOneFluid(isite1) || isOneFluid(isite2)) {
     nMoleculesOFAold  = 0.0;
     nMoleculesOFA  = 0.0;
     fractionOFAold  = 0.0;
     fractionOFA  = 0.0;
 
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
       nMoleculesOFAold += dvector(ispecies+nspecies,id);
       nMoleculesOFA += dvector(ispecies,id);
       fractionOFAold += dvector(ispecies+nspecies,id)/nTotalOld;
       fractionOFA += dvector(ispecies,id)/nTotal;
     }
-    if(isOneFluid(isite1)){
+    if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
-    if(isOneFluid(isite2)){
+    if (isOneFluid(isite2)) {
       nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
@@ -122,7 +122,7 @@ void getMixingWeights(
     }
   }
 
-  if(fractionalWeighting){
+  if (fractionalWeighting) {
     mixWtSite1old = fractionOld1;
     mixWtSite1 = fraction1;
     mixWtSite2old = fractionOld2;
@@ -184,15 +184,15 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
 template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  if(update_table)
+  if (update_table)
     create_kokkos_tables();
-  if(tabstyle == LOOKUP)
+  if (tabstyle == LOOKUP)
     compute_style<LOOKUP>(eflag_in,vflag_in);
-  if(tabstyle == LINEAR)
+  if (tabstyle == LINEAR)
     compute_style<LINEAR>(eflag_in,vflag_in);
-  if(tabstyle == SPLINE)
+  if (tabstyle == SPLINE)
     compute_style<SPLINE>(eflag_in,vflag_in);
-  if(tabstyle == BITMAP)
+  if (tabstyle == BITMAP)
     compute_style<BITMAP>(eflag_in,vflag_in);
 }
 
@@ -457,7 +457,7 @@ compute_item(
     auto rsq = delx*delx + dely*dely + delz*delz;
     auto jtype = type(j);
 
-    if(rsq < (STACKPARAMS ? m_cutsq[itype][jtype] : d_cutsq(itype,jtype))) {
+    if (rsq < (STACKPARAMS ? m_cutsq[itype][jtype] : d_cutsq(itype,jtype))) {
       auto mixWtSite1old_j = mixWtSite1old(j);
       auto mixWtSite2old_j = mixWtSite2old(j);
       auto mixWtSite1_j = mixWtSite1(j);
@@ -670,7 +670,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     dynamic_cast<NeighListKokkos<DeviceType>*>(list);
 
   EV_FLOAT ev;
-  if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
+  if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == HALFTHREAD) {
       if (newton_pair) {
         compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE,1>(
@@ -806,12 +806,12 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
   memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
   memoryKK->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
 
-  if(tabstyle == LOOKUP) {
+  if (tabstyle == LOOKUP) {
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
     memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
   }
 
-  if(tabstyle == LINEAR) {
+  if (tabstyle == LINEAR) {
     memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
     memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
@@ -819,7 +819,7 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
   }
 
-  if(tabstyle == SPLINE) {
+  if (tabstyle == SPLINE) {
     memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
     memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
@@ -827,7 +827,7 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     memoryKK->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
   }
 
-  if(tabstyle == BITMAP) {
+  if (tabstyle == BITMAP) {
     int ntable = 1 << tablength;
     memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
@@ -839,7 +839,7 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
 
 
 
-  for(int i=0; i < ntables; i++) {
+  for (int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
 
     h_table->nshiftbits[i] = tb->nshiftbits;
@@ -848,21 +848,21 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->invdelta[i] = tb->invdelta;
     h_table->deltasq6[i] = tb->deltasq6;
 
-    for(int j = 0; j < (int)h_table->rsq.extent(1); j++)
+    for (int j = 0; j < (int)h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j < (int)h_table->drsq.extent(1); j++)
+    for (int j = 0; j < (int)h_table->drsq.extent(1); j++)
       h_table->drsq(i,j) = tb->drsq[j];
-    for(int j = 0; j < (int)h_table->e.extent(1); j++)
+    for (int j = 0; j < (int)h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j < (int)h_table->de.extent(1); j++)
+    for (int j = 0; j < (int)h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j < (int)h_table->f.extent(1); j++)
+    for (int j = 0; j < (int)h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j < (int)h_table->df.extent(1); j++)
+    for (int j = 0; j < (int)h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
-    for(int j = 0; j < (int)h_table->e2.extent(1); j++)
+    for (int j = 0; j < (int)h_table->e2.extent(1); j++)
       h_table->e2(i,j) = tb->e2[j];
-    for(int j = 0; j < (int)h_table->f2.extent(1); j++)
+    for (int j = 0; j < (int)h_table->f2.extent(1); j++)
       h_table->f2(i,j) = tb->f2[j];
   }
 
@@ -878,14 +878,14 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
   Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
   d_table_const.deltasq6 = d_table->deltasq6;
 
-  if(tabstyle == LOOKUP) {
+  if (tabstyle == LOOKUP) {
     Kokkos::deep_copy(d_table->e,h_table->e);
     d_table_const.e = d_table->e;
     Kokkos::deep_copy(d_table->f,h_table->f);
     d_table_const.f = d_table->f;
   }
 
-  if(tabstyle == LINEAR) {
+  if (tabstyle == LINEAR) {
     Kokkos::deep_copy(d_table->rsq,h_table->rsq);
     d_table_const.rsq = d_table->rsq;
     Kokkos::deep_copy(d_table->e,h_table->e);
@@ -898,7 +898,7 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     d_table_const.df = d_table->df;
   }
 
-  if(tabstyle == SPLINE) {
+  if (tabstyle == SPLINE) {
     Kokkos::deep_copy(d_table->rsq,h_table->rsq);
     d_table_const.rsq = d_table->rsq;
     Kokkos::deep_copy(d_table->e,h_table->e);
@@ -911,7 +911,7 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
     d_table_const.f2 = d_table->f2;
   }
 
-  if(tabstyle == BITMAP) {
+  if (tabstyle == BITMAP) {
     Kokkos::deep_copy(d_table->rsq,h_table->rsq);
     d_table_const.rsq = d_table->rsq;
     Kokkos::deep_copy(d_table->e,h_table->e);
@@ -1039,14 +1039,14 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
+  if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
   int n;
   n = strlen(arg[4]) + 1;
   site1 = new char[n];
   strcpy(site1,arg[4]);
 
   int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
@@ -1056,7 +1056,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   site2 = new char[n];
   strcpy(site2,arg[5]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
@@ -1118,13 +1118,13 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if ( strcmp(site1,"1fluid") == 0 )
+     if (strcmp(site1,"1fluid") == 0)
        isite1 = OneFluidValue;
      else {
        isite1 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site1, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site1, atom->dname[k]) == 0) {
            isite1 = k;
            break;
          }
@@ -1133,13 +1133,13 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
        if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
      }
 
-     if ( strcmp(site2,"1fluid") == 0 )
+     if (strcmp(site2,"1fluid") == 0)
        isite2 = OneFluidValue;
      else {
        isite2 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site2, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site2, atom->dname[k]) == 0) {
            isite2 = ispecies;
            break;
          }
@@ -1163,7 +1163,7 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 
   tabindex[j][i] = tabindex[i][j];
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_cutsq[j][i] = m_cutsq[i][j] = tables[tabindex[i][j]].cut*tables[tabindex[i][j]].cut;
   }
 

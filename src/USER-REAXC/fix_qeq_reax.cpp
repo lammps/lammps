@@ -811,16 +811,16 @@ int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
   int m;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = d[list[m]];
+    for (m = 0; m < n; m++) buf[m] = d[list[m]];
   else if (pack_flag == 2)
-    for(m = 0; m < n; m++) buf[m] = s[list[m]];
+    for (m = 0; m < n; m++) buf[m] = s[list[m]];
   else if (pack_flag == 3)
-    for(m = 0; m < n; m++) buf[m] = t[list[m]];
+    for (m = 0; m < n; m++) buf[m] = t[list[m]];
   else if (pack_flag == 4)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else if (pack_flag == 5) {
     m = 0;
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       int j = 2 * list[i];
       buf[m++] = d[j  ];
       buf[m++] = d[j+1];
@@ -837,17 +837,17 @@ void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
   else if (pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
   else if (pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
   else if (pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
   else if (pack_flag == 5) {
     int last = first + n;
     m = 0;
-    for(i = first; i < last; i++) {
+    for (i = first; i < last; i++) {
       int j = 2 * i;
       d[j  ] = buf[m++];
       d[j+1] = buf[m++];
@@ -863,7 +863,7 @@ int FixQEqReax::pack_reverse_comm(int n, int first, double *buf)
   if (pack_flag == 5) {
     m = 0;
     int last = first + n;
-    for(i = first; i < last; i++) {
+    for (i = first; i < last; i++) {
       int indxI = 2 * i;
       buf[m++] = q[indxI  ];
       buf[m++] = q[indxI+1];
@@ -881,7 +881,7 @@ void FixQEqReax::unpack_reverse_comm(int n, int *list, double *buf)
 {
   if (pack_flag == 5) {
     int m = 0;
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       int indxI = 2 * list[i];
       q[indxI  ] += buf[m++];
       q[indxI+1] += buf[m++];

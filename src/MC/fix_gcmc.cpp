@@ -485,8 +485,7 @@ void FixGCMC::init()
         (force->pair->single_enable == 0) ||
         (force->pair_match("^hybrid",0)) ||
         (force->pair_match("^eam",0)) ||
-        (force->pair->tail_flag)
-        ) {
+        (force->pair->tail_flag)) {
       full_flag = true;
       if (comm->me == 0)
         error->warning(FLERR,"Fix gcmc using full_energy option");

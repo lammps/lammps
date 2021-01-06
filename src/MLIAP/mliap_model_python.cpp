@@ -73,7 +73,7 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS* lmp, char* coefffilename) :
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelPython::~MLIAPModelPython(){
+MLIAPModelPython::~MLIAPModelPython() {
   MLIAPPY_unload_model(this);
 }
 

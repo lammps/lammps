@@ -138,8 +138,8 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
   k_shield = DAT::tdual_ffloat_2d("qeq/kk:shield",ntypes+1,ntypes+1);
   d_shield = k_shield.template view<DeviceType>();
 
-  for( i = 1; i <= ntypes; ++i )
-    for( j = 1; j <= ntypes; ++j )
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j)
       k_shield.h_view(i,j) = pow( gamma[i] * gamma[j], -1.5 );
 
   k_shield.template modify<LMPHostType>();
@@ -1042,7 +1042,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_s[j];
       a_o[j] += d_val(jj) * d_s[i];
@@ -1095,7 +1095,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_d[j];
       a_o[j] += d_val(jj) * d_d[i];
@@ -1155,7 +1155,7 @@ void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_t[j];
       a_o[j] += d_val(jj) * d_t[i];
@@ -1360,11 +1360,11 @@ void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxPackForwardComm, cons
 
   if (pack_flag == 1)
     d_buf[i] = d_d[j];
-  else if( pack_flag == 2 )
+  else if (pack_flag == 2)
     d_buf[i] = d_s[j];
-  else if( pack_flag == 3 )
+  else if (pack_flag == 3)
     d_buf[i] = d_t[j];
-  else if( pack_flag == 4 )
+  else if (pack_flag == 4)
     d_buf[i] = q[j];
 }
 
@@ -1386,11 +1386,11 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxUnpackForwardComm, const int &i) const {
   if (pack_flag == 1)
     d_d[i + first] = d_buf[i];
-  else if( pack_flag == 2)
+  else if ( pack_flag == 2)
     d_s[i + first] = d_buf[i];
-  else if( pack_flag == 3)
+  else if ( pack_flag == 3)
     d_t[i + first] = d_buf[i];
-  else if( pack_flag == 4)
+  else if ( pack_flag == 4)
     q[i + first] = d_buf[i];
 
 }
@@ -1454,7 +1454,7 @@ int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *bu
   k_o.sync_host();
 
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) {
+  for (m = 0, i = first; m < n; m++, i++) {
     buf[m] = h_o[i];
   }
   return n;

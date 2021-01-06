@@ -35,7 +35,7 @@ MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
+MLIAPModelQuadratic::~MLIAPModelQuadratic() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters

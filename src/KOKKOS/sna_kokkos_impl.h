@@ -67,7 +67,7 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
     auto h_bzero = Kokkos::create_mirror_view(bzero);
 
     double www = wself*wself*wself;
-    for(int j = 0; j <= twojmax; j++)
+    for (int j = 0; j <= twojmax; j++)
       if (bnorm_flag)
         h_bzero[j] = www;
       else
@@ -95,9 +95,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxcg_block = Kokkos::create_mirror_view(idxcg_block);
 
   int idxcg_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         h_idxcg_block(j1,j2,j) = idxcg_count;
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
@@ -114,10 +114,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
 
   int idxu_count = 0;
 
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_block[j] = idxu_count;
-    for(int mb = 0; mb <= j; mb++)
-      for(int ma = 0; ma <= j; ma++)
+    for (int mb = 0; mb <= j; mb++)
+      for (int ma = 0; ma <= j; ma++)
         idxu_count++;
   }
   idxu_max = idxu_count;
@@ -128,10 +128,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxu_half_block = Kokkos::create_mirror_view(idxu_half_block);
 
   int idxu_half_count = 0;
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_half_block[j] = idxu_half_count;
-    for(int mb = 0; 2*mb <= j; mb++)
-      for(int ma = 0; ma <= j; ma++)
+    for (int mb = 0; 2*mb <= j; mb++)
+      for (int ma = 0; ma <= j; ma++)
         idxu_half_count++;
   }
   idxu_half_max = idxu_half_count;
@@ -142,10 +142,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxu_full_half = Kokkos::create_mirror_view(idxu_full_half);
 
   idxu_count = 0;
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     int jju_half = h_idxu_half_block[j];
-    for(int mb = 0; mb <= j; mb++) {
-      for(int ma = 0; ma <= j; ma++) {
+    for (int mb = 0; mb <= j; mb++) {
+      for (int ma = 0; ma <= j; ma++) {
         FullHalfMapper mapper;
         if (2*mb <= j) {
           mapper.idxu_half = jju_half + mb * (j + 1) + ma;
@@ -169,9 +169,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxu_cache_block = Kokkos::create_mirror_view(idxu_cache_block);
 
   int idxu_cache_count = 0;
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_cache_block[j] = idxu_cache_count;
-    for(int mb = 0; mb < ((j+3)/2); mb++)
+    for (int mb = 0; mb < ((j+3)/2); mb++)
       for (int ma = 0; ma <= j; ma++)
         idxu_cache_count++;
   }
@@ -181,9 +181,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   // index list for beta and B
 
   int idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
 
   idxb_max = idxb_count;
@@ -191,9 +191,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxb = Kokkos::create_mirror_view(idxb);
 
   idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) {
           h_idxb(idxb_count,0) = j1;
           h_idxb(idxb_count,1) = j2;
@@ -208,9 +208,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxb_block = Kokkos::create_mirror_view(idxb_block);
 
   idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
           h_idxb_block(j1,j2,j) = idxb_count;
           idxb_count++;
@@ -222,9 +222,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
 
   int idxz_count = 0;
 
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
@@ -237,9 +237,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
 
   idxz_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         h_idxz_block(j1,j2,j) = idxz_count;
 
         // find right beta(ii,jjb) entry
@@ -286,7 +286,7 @@ template<class DeviceType, typename real_type, int vector_length>
 inline
 void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int newnmax)
 {
-  if(newnatom <= natom && newnmax <= nmax) return;
+  if (newnatom <= natom && newnmax <= nmax) return;
   natom = newnatom;
   nmax = newnmax;
 
@@ -644,7 +644,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi(const int& iato
       #ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
       #endif
-      for(int ib = 0; ib < nb; ib++) {
+      for (int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
@@ -653,7 +653,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi(const int& iato
         #ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
         #endif
-        for(int ia = 0; ia < na; ia++) {
+        for (int ia = 0; ia < na; ia++) {
           const auto utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
           const auto utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
           const auto cgcoeff_a = cgblock[icga];
@@ -717,8 +717,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
         double sumzu = 0.0;
         double sumzu_temp = 0.0;
 
-        for(int mb = 0; 2*mb < j; mb++) {
-          for(int ma = 0; ma <= j; ma++) {
+        for (int mb = 0; 2*mb < j; mb++) {
+          for (int ma = 0; ma <= j; ma++) {
             const int jju_index = jju+mb*(j+1)+ma;
             const int jjz_index = jjz+mb*(j+1)+ma;
             if (2*mb == j) return; // I think we can remove this?
@@ -734,7 +734,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
           sumzu_temp = 0.;
 
           const int mb = j/2;
-          for(int ma = 0; ma < mb; ma++) {
+          for (int ma = 0; ma < mb; ma++) {
             const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
             const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
@@ -1161,7 +1161,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi_cpu(const int& 
       int jju1 = idxu_block[j1] + (j1+1)*mb1min;
       int jju2 = idxu_block[j2] + (j2+1)*mb2max;
       int icgb = mb1min*(j2+1) + mb2max;
-      for(int ib = 0; ib < nb; ib++) {
+      for (int ib = 0; ib < nb; ib++) {
 
         real_type suma1_r = static_cast<real_type>(0.0);
         real_type suma1_i = static_cast<real_type>(0.0);
@@ -1169,7 +1169,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi_cpu(const int& 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min * (j2 + 1) + ma2max;
-        for(int ia = 0; ia < na; ia++) {
+        for (int ia = 0; ia < na; ia++) {
           suma1_r += cgblock[icga] * (ulisttot_full(jju1+ma1, elem1, iatom).re * ulisttot_full(jju2+ma2, elem2, iatom).re -
                                       ulisttot_full(jju1+ma1, elem1, iatom).im * ulisttot_full(jju2+ma2, elem2, iatom).im);
           suma1_i += cgblock[icga] * (ulisttot_full(jju1+ma1, elem1, iatom).re * ulisttot_full(jju2+ma2, elem2, iatom).im +
@@ -1222,7 +1222,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
       for (int elem3 = 0; elem3 < nelements; elem3++) {
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
           [&] (const int& jjb) {
-        //for(int jjb = 0; jjb < idxb_max; jjb++) {
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
           const int j = idxb(jjb, 2);
@@ -1234,8 +1233,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
           const int bound = (j+2)/2;
           Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,(j+1)*bound),
               [&] (const int mbma, real_type& sum) {
-              //for(int mb = 0; 2*mb < j; mb++)
-                //for(int ma = 0; ma <= j; ma++) {
               const int ma = mbma % (j + 1);
               const int mb = mbma / (j + 1);
               const int jju_index = jju + mb * (j + 1) + ma;
@@ -1253,7 +1250,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
             const int mb = j/2;
             Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
                 [&] (const int ma, real_type& sum) {
-            //for(int ma = 0; ma < mb; ma++) {
               const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
               const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
               sum +=
@@ -1275,7 +1271,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
 
             // apply bzero shift
 
-            if (bzero_flag){
+            if (bzero_flag) {
               if (!wselfall_flag) {
                 if (elem1 == elem2 && elem1 == elem3) {
                   sumzu -= bzero[j];
@@ -1449,14 +1445,13 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_deidrj_cpu(const t
   t_scalar3<real_type> final_sum;
   const int jelem = element(iatom, jnbor);
 
-  //for(int j = 0; j <= twojmax; j++) {
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j, t_scalar3<real_type>& sum_tmp) {
     int jju_half = idxu_half_block[j];
     int jju_cache = idxu_cache_block[j];
 
-    for(int mb = 0; 2*mb < j; mb++)
-      for(int ma = 0; ma <= j; ma++) {
+    for (int mb = 0; 2*mb < j; mb++)
+      for (int ma = 0; ma <= j; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
         sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
@@ -1471,7 +1466,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_deidrj_cpu(const t
     if (j%2 == 0) {
 
       int mb = j/2;
-      for(int ma = 0; ma < mb; ma++) {
+      for (int ma = 0; ma < mb; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
         sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
@@ -2015,9 +2010,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::init_clebsch_gordan()
   int ifac;
 
   int idxcg_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         for (int m1 = 0; m1 <= j1; m1++) {
           aa2 = 2 * m1 - j1;
 
@@ -2028,7 +2023,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::init_clebsch_gordan()
             bb2 = 2 * m2 - j2;
             m = (aa2 + bb2 + j) / 2;
 
-            if(m < 0 || m > j) {
+            if (m < 0 || m > j) {
               h_cglist[idxcg_count] = 0.0;
               idxcg_count++;
               continue;
@@ -2120,8 +2115,8 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_typ
   constexpr real_type onehalf = static_cast<real_type>(0.5);
   if (switch_flag == 0) return one;
   if (switch_flag == 1) {
-    if(r <= rmin0) return one;
-    else if(r > rcut) return zero;
+    if (r <= rmin0) return one;
+    else if (r > rcut) return zero;
     else {
       auto rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       return onehalf * (cos((r - rmin0) * rcutfac) + one);
@@ -2140,8 +2135,8 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
   constexpr real_type onehalf = static_cast<real_type>(0.5);
   if (switch_flag == 0) return zero;
   if (switch_flag == 1) {
-    if(r <= rmin0) return zero;
-    else if(r > rcut) return zero;
+    if (r <= rmin0) return zero;
+    else if (r > rcut) return zero;
     else {
       auto rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       return -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;

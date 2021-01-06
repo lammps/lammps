@@ -245,7 +245,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       gpu_aware_flag = 0;
       char* str;
       if ((str = getenv("OMPI_MCA_pml_pami_enable_cuda")))
-        if((strcmp(str,"1") == 0)) {
+        if ((strcmp(str,"1") == 0)) {
           have_gpu_aware = 1;
           gpu_aware_flag = 1;
         }

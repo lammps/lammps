@@ -256,12 +256,12 @@ class Device {
   inline int max_bio_shared_types() const { return _max_bio_shared_types; }
   /// Architecture gpu code compiled for (returns 0 for OpenCL)
   inline double ptx_arch() const { return _ptx_arch; }
-  /// Number of threads executing concurrently on same multiproc
+  /// Retrun the number of threads executing concurrently on same multiproc
   inline int warp_size() const { return _warp_size; }
-  /// API
+  /// Return the API in use
   enum{CUDA_API, OPENCL_API, HIP_API};
   inline int api() { return _api; }
-  /// Precision mode
+  /// Return the precision mode with which the library is built
   enum{SINGLE_SINGLE, SINGLE_DOUBLE, DOUBLE_DOUBLE};
   inline int precision_mode() { return _precision_mode; }
 

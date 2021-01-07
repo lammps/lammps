@@ -35,6 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+enum{CUDA_API, OPENCL_API, HIP_API};
+enum{SINGLE_SINGLE, SINGLE_DOUBLE, DOUBLE_DOUBLE};
 enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
@@ -43,6 +45,8 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int nthreads, const int t_per_atom,
                            const double cell_size, char *opencl_flags,
                            const int block_pair);
+extern int lmp_get_api();
+extern int lmp_get_precision_mode();
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);

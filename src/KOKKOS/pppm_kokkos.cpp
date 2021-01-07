@@ -1653,7 +1653,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik1>(0,nfft),*this);
   copymode = 0;
 
-  fft1->compute(d_work1,d_work1,FFT3d::FORWARD);
+  fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
 
   // global energy and virial contribution
 
@@ -1716,7 +1716,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik5>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1730,7 +1730,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik7>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1743,7 +1743,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik9>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1882,7 +1882,7 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for2
@@ -1897,7 +1897,7 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for4
@@ -1916,7 +1916,7 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for6
@@ -1999,7 +1999,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom1>(0,nfft),*this);
     copymode = 0;
 
-    fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+    fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
     copymode = 1;
@@ -2016,7 +2016,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom3>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2028,7 +2028,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom5>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2040,7 +2040,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom7>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2051,7 +2051,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom9>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2063,7 +2063,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom11>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2075,7 +2075,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom13>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,FFT3d::BACKWARD);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2817,10 +2817,10 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(d_work1,nfft_both,FFT3d::FORWARD);
-    fft2->timing1d(d_work1,nfft_both,FFT3d::BACKWARD);
-    fft2->timing1d(d_work1,nfft_both,FFT3d::BACKWARD);
-    fft2->timing1d(d_work1,nfft_both,FFT3d::BACKWARD);
+    fft1->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::FORWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
   }
 
   MPI_Barrier(world);
@@ -2854,10 +2854,10 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(d_work1,d_work1,FFT3d::FORWARD);
-    fft2->compute(d_work1,d_work1,FFT3d::BACKWARD);
-    fft2->compute(d_work1,d_work1,FFT3d::BACKWARD);
-    fft2->compute(d_work1,d_work1,FFT3d::BACKWARD);
+    fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
   }
 
   MPI_Barrier(world);

@@ -223,7 +223,7 @@ void FixSMD::smd_tether()
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
   if (styleflag & SMD_CVEL) {
-    if(r > SMALL) {
+    if (r > SMALL) {
       dr = r - r0 - r_old;
       fx = k_smd*dx*dr/r;
       fy = k_smd*dy*dr/r;

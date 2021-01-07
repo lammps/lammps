@@ -192,9 +192,9 @@ void PairMultiLucy::compute(int eflag, int vflag)
       error->one(FLERR,"Density < table inner cutoff");
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
-    else if (tabstyle == LINEAR){
+    else if (tabstyle == LINEAR) {
       if (itable >= tlm1) error->one(FLERR,"Density > table outer cutoff");
-      if(itable==0) fraction_i=0.0;
+      if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy");

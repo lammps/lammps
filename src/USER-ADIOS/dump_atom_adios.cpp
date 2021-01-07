@@ -39,7 +39,7 @@ class DumpAtomADIOSInternal
 {
 
 public:
-    DumpAtomADIOSInternal(){};
+    DumpAtomADIOSInternal() {};
     ~DumpAtomADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml

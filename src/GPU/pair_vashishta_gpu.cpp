@@ -141,7 +141,7 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
 
 void PairVashishtaGPU::allocate()
 {
-  if(!allocated) {
+  if (!allocated) {
     PairVashishta::allocate();
   }
   int n = atom->ntypes;
@@ -260,7 +260,7 @@ void PairVashishtaGPU::init_style()
 
 double PairVashishtaGPU::init_one(int i, int j)
 {
-  if(!gpu_allocated) {
+  if (!gpu_allocated) {
     allocate();
   }
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");

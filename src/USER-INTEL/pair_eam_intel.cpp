@@ -95,7 +95,7 @@ void PairEAMIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;

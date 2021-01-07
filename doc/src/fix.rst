@@ -364,6 +364,8 @@ accelerated styles exist.
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by velocity rescaling
 * :doc:`temp/rescale/eff <fix_temp_rescale_eff>` - temperature control by velocity rescaling in the electron force field model
 * :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method
+* :doc:`tgnvt/drude <fix_tgnh_drude>` - NVT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
+* :doc:`tgnpt/drude <fix_tgnh_drude>` - NPT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 * :doc:`ti/spring <fix_ti_spring>` -
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration

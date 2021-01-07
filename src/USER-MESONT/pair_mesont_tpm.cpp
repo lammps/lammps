@@ -510,33 +510,28 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
       buckling[idx] = b_sort[i];
   }
   if (eflag_global) {
-    eng_vdwl = 0.0; energy_s = 0.0;
-    energy_b = 0.0; energy_t = 0.0;
+    energy_s = energy_b = energy_t = 0.0;
     for (int i = 0; i < nall; i++) {
-      int idx = ntlist.get_idx(i);
       energy_s += u_ts_sort[i];
       energy_b += u_tb_sort[i];
       energy_t += u_tt_sort[i];
     }
-    eng_vdwl = energy_s + energy_b + energy_t;
+    eng_vdwl += energy_s + energy_b + energy_t;
   }
   if (eflag_atom) {
-    for (int i = 0; i < ntot; i++) {
-      eatom[i] = 0.0; eatom_s[i] = 0.0;
-      eatom_b[i] = 0.0; eatom_t[i] = 0.0;
-    }
+    for (int i = 0; i < ntot; i++)
+      eatom_s[i] = eatom_b[i] = eatom_t[i] = 0.0;
+
     for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
-      eatom_s[idx] = u_ts_sort[i];
-      eatom_b[idx] = u_tb_sort[i];
-      eatom_t[idx] = u_tt_sort[i];
-      eatom[idx] = u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
+      eatom_s[idx] += u_ts_sort[i];
+      eatom_b[idx] += u_tb_sort[i];
+      eatom_t[idx] += u_tt_sort[i];
+      eatom[idx] += u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
     }
   }
   if (vflag_global) {
-    for (int i = 0; i < 6; i++) virial[i] = 0.0;
     for (int i = 0; i < nall; i++) {
-      int idx = ntlist.get_idx(i);
       virial[0] += s_sort[9*i+0]; //xx
       virial[1] += s_sort[9*i+4]; //yy
       virial[2] += s_sort[9*i+8]; //zz
@@ -546,16 +541,14 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
     }
   }
   if (vflag_atom) {
-    for (int i = 0; i < ntot; i++)
-      for (int j = 0; j < 6; j++) vatom[i][j] = 0.0;
     for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
-      vatom[idx][0] = s_sort[9*i+0]; //xx
-      vatom[idx][1] = s_sort[9*i+4]; //yy
-      vatom[idx][2] = s_sort[9*i+8]; //zz
-      vatom[idx][3] = s_sort[9*i+1]; //xy
-      vatom[idx][4] = s_sort[9*i+2]; //xz
-      vatom[idx][5] = s_sort[9*i+5]; //yz
+      vatom[idx][0] += s_sort[9*i+0]; //xx
+      vatom[idx][1] += s_sort[9*i+4]; //yy
+      vatom[idx][2] += s_sort[9*i+8]; //zz
+      vatom[idx][3] += s_sort[9*i+1]; //xy
+      vatom[idx][4] += s_sort[9*i+2]; //xz
+      vatom[idx][5] += s_sort[9*i+5]; //yz
     }
   }
 

@@ -107,7 +107,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       dlimit_path = new char[len];
       // strip off quotes, if present
       if ( ((arg[iarg][0] == '"') || (arg[iarg][0] == '\''))
-           && (arg[iarg][0] == arg[iarg][len-2]) ) {
+           && (arg[iarg][0] == arg[iarg][len-2])) {
         strcpy(dlimit_path,&arg[iarg][1]);
         dlimit_path[len-3] = '\0';
       } else strcpy(dlimit_path,arg[iarg]);

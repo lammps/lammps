@@ -222,12 +222,12 @@ void FixTISpring::initial_integrate(int /*vflag*/)
   const bigint t = update->ntimestep - (t0+t_equil);
   const double r_switch = 1.0/t_switch;
 
-  if ( (t >= 0) && (t <= t_switch) ) {
+  if ((t >= 0) && (t <= t_switch)) {
     lambda  =  switch_func(t*r_switch);
     dlambda = dswitch_func(t*r_switch);
   }
 
-  if ( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
+  if ((t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch))) {
     lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
     dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
@@ -380,7 +380,7 @@ double FixTISpring::switch_func(double t)
 
 double FixTISpring::dswitch_func(double t)
 {
-  if(sf == 1) return 1.0/t_switch;
+  if (sf == 1) return 1.0/t_switch;
 
   double t2 = t*t;
   double t4 = t2*t2;

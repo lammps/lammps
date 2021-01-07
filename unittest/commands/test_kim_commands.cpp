@@ -326,7 +326,8 @@ TEST_F(KimCommandsTest, kim_property)
                      "3 >= 3.6 support.*",
                      lmp->input->one("kim_property"););
     } else {
-        TEST_FAILURE(".*ERROR: Invalid kim_property command.*", lmp->input->one("kim_property"););
+        TEST_FAILURE(".*ERROR: Invalid kim_property command.*", 
+                     lmp->input->one("kim_property"););
         TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
                      lmp->input->one("kim_property create"););
         TEST_FAILURE(".*ERROR: Incorrect arguments in kim_property command.\n"
@@ -334,6 +335,29 @@ TEST_F(KimCommandsTest, kim_property)
                      "is mandatory.*",
                      lmp->input->one("kim_property unknown 1 atomic-mass"););
     }
+#if defined(KIM_EXTRA_UNITTESTS)
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property create' command.*",
+                     lmp->input->one("kim_property create 1"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property destroy' command.*",
+                     lmp->input->one("kim_property destroy 1 cohesive-potential-energy-cubic-crystal"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property modify' command.*",
+                     lmp->input->one("kim_property modify 1 key short-name"););
+        TEST_FAILURE(".*ERROR: There is no property instance to modify the content.*",
+                     lmp->input->one("kim_property modify 1 key short-name source-value 1 fcc"););
+        TEST_FAILURE(".*ERROR: Invalid 'kim_property remove' command.*",
+                     lmp->input->one("kim_property remove 1 key"););
+        TEST_FAILURE(".*ERROR: There is no property instance to remove the content.*",
+                     lmp->input->one("kim_property remove 1 key short-name"););
+        TEST_FAILURE(".*ERROR: There is no property instance to dump the content.*",
+                     lmp->input->one("kim_property dump results.edn"););
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lmp->input->one("clear");
+        lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+        lmp->input->one("kim_property create 1 cohesive-potential-energy-cubic-crystal");
+        lmp->input->one("kim_property modify 1 key short-name source-value 1 fcc");
+        lmp->input->one("kim_property destroy 1");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+#endif
 }
 
 TEST_F(KimCommandsTest, kim_query)
@@ -420,48 +444,50 @@ TEST_F(KimCommandsTest, kim_query)
              "units=[\"angstrom\"]";
     TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("clear");
-    // lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
+#if defined(KIM_EXTRA_UNITTESTS)
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
     
-    // squery = "kim_query latconst split get_lattice_constant_hexagonal ";
-    // squery += "crystal=[\"hcp\"] species=[\"Zr\"] units=[\"angstrom\"]";
-    // lmp->input->one(squery);
-    // if (!verbose) ::testing::internal::GetCapturedStdout();
+    squery = "kim_query latconst split get_lattice_constant_hexagonal ";
+    squery += "crystal=[\"hcp\"] species=[\"Zr\"] units=[\"angstrom\"]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) == 
-    //              std::string("3.234055244384789")));
-    // ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) == 
-    //              std::string("5.167650199630013")));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) == 
+                 std::string("3.234055244384789")));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) == 
+                 std::string("5.167650199630013")));
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("clear");
-    // lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
     
-    // squery = "kim_query latconst list get_lattice_constant_hexagonal ";
-    // squery += "crystal=[hcp] species=[Zr] units=[angstrom]";
-    // lmp->input->one(squery);
-    // if (!verbose) ::testing::internal::GetCapturedStdout();
+    squery = "kim_query latconst list get_lattice_constant_hexagonal ";
+    squery += "crystal=[hcp] species=[Zr] units=[angstrom]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) == 
-    //              std::string("3.234055244384789  5.167650199630013")));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) == 
+                 std::string("3.234055244384789  5.167650199630013")));
 
-    // squery = "kim_query latconst list get_lattice_constant_hexagonal ";
-    // squery += "crystal=[bcc] species=[Zr] units=[angstrom]";
-    // TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+    squery = "kim_query latconst list get_lattice_constant_hexagonal ";
+    squery += "crystal=[bcc] species=[Zr] units=[angstrom]";
+    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
 
-    // if (!verbose) ::testing::internal::CaptureStdout();
-    // lmp->input->one("clear");
-    // lmp->input->one("kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
     
-    // squery = "kim_query alpha get_linear_thermal_expansion_coefficient_cubic ";
-    // squery += "crystal=[fcc] species=[Al] units=[1/K] temperature=[293.15] ";
-    // squery += "temperature_units=[K]";
-    // lmp->input->one(squery);
-    // if (!verbose) ::testing::internal::GetCapturedStdout();
+    squery = "kim_query alpha get_linear_thermal_expansion_coefficient_cubic ";
+    squery += "crystal=[fcc] species=[Al] units=[1/K] temperature=[293.15] ";
+    squery += "temperature_units=[K]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // ASSERT_TRUE((std::string(lmp->input->variable->retrieve("alpha")) == 
-    //              std::string("1.654960564704273e-05")));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("alpha")) == 
+                 std::string("1.654960564704273e-05")));
+#endif
 }
 } // namespace LAMMPS_NS
 

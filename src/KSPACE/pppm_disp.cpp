@@ -2175,7 +2175,7 @@ void PPPMDisp::allocate_peratom()
   }
 
   if (function[2]) {
-    if (differentiation_flag != 1 ) {
+    if (differentiation_flag != 1) {
       memory->create3d_offset(u_brick_a0,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_a0");
       memory->create3d_offset(u_brick_a1,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,

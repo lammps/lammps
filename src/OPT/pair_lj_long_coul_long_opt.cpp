@@ -616,7 +616,7 @@ void PairLJLongCoulLongOpt::eval()
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
         if (ORDER6) {                                        // long-range lj
-          if(!LJTABLE || rsq <= tabinnerdispsq) {               // series real space
+          if (!LJTABLE || rsq <= tabinnerdispsq) {               // series real space
             double rn = r2inv*r2inv*r2inv;
             double x2 = g2*rsq, a2 = 1.0/x2;
             x2 = a2*exp(-x2)*lj4i[typej];

@@ -533,6 +533,7 @@ cuda
 Cuda
 CUDA
 CuH
+Cui
 cuFFT
 Cummins
 Curk
@@ -557,6 +558,7 @@ Cygwin
 cylindrically
 Cyrot
 cyrstals
+cython
 Daivis
 Dammak
 dampflag
@@ -869,6 +871,7 @@ equilibrating
 equilibration
 Equilibria
 equilization
+equipartitioning
 Ercolessi
 Erdmann
 eradius
@@ -1916,6 +1919,7 @@ mK
 mkdir
 mkv
 mliap
+mliappy
 mlparks
 Mniszewski
 mnt
@@ -2506,6 +2510,7 @@ Pstart
 Pstop
 pstyle
 Ptarget
+pth
 pthread
 pthreads
 ptm
@@ -2534,6 +2539,7 @@ pymodule
 pymol
 pypar
 pythonic
+pytorch
 Pyy
 pz
 Pz
@@ -3001,6 +3007,7 @@ Sukumaran
 Sulc
 sumsq
 Sunderland
+supercell
 superset
 supersphere
 Supinski
@@ -3070,9 +3077,11 @@ tex
 tfac
 tfmc
 tfMC
-th
+tgnpt
+tgnvt
 Thakkar
 Thaokar
+th
 thb
 thei
 Theodorou
@@ -3478,6 +3487,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+Yethiraj
 yflag
 yhi
 yi

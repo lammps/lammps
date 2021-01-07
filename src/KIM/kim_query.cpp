@@ -252,7 +252,7 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
           }
         } else {
           query += fmt::format("&{}=[", key);
-          while (n != std::string::npos){
+          while (n != std::string::npos) {
             std::string sval = val.substr(0, n);
             if (utils::is_integer(sval) ||
                 utils::is_double(sval) ||

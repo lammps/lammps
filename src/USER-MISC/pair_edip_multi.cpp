@@ -32,12 +32,10 @@
 #include "error.h"
 #include "citeme.h"
 
-
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
-
 
 static const char cite_pair_edip[] =
   "@article{cjiang2012\n"
@@ -56,7 +54,9 @@ static const char cite_pair_edip[] =
   " year      = {2010},\n"
   "}\n\n";
 
+// max number of interaction per atom for f(Z) environment potential
 
+static constexpr int leadDimInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 
@@ -94,7 +94,6 @@ PairEDIPMulti::~PairEDIPMulti()
     memory->destroy(cutsq);
     delete [] map;
 
-//XXX    deallocateGrids();
     deallocatePreLoops();
   }
 }
@@ -366,14 +365,14 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
   double x;
   double v1, v2;
 
-  if(r < c + 1E-6)
+  if (r < c + 1E-6)
   {
     f=1.0;
     fdr=0.0;
     return;
   }
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -395,7 +394,7 @@ void PairEDIPMulti::edip_fcut2(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -467,7 +466,7 @@ void PairEDIPMulti::edip_fcut3(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;

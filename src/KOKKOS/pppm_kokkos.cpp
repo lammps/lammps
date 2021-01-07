@@ -1793,8 +1793,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik5, const int &ii) cons
   const int k = ii/(numy_fft*numx_fft);
   const int j = (ii - k*numy_fft*numx_fft) / numx_fft;
   const int i = ii - k*numy_fft*numx_fft - j*numx_fft;
-  d_work2[n] = d_fkx[i]*d_work1[n+1];
-  d_work2[n+1] = -d_fkx[i]*d_work1[n];
+  d_work2[n] = -d_fkx[i]*d_work1[n+1];
+  d_work2[n+1] = d_fkx[i]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1818,8 +1818,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik7, const int &ii) cons
   const int n = ii*2;
   const int k = ii/(numy_fft*numx_fft);
   const int j = (ii - k*numy_fft*numx_fft) / numx_fft;
-  d_work2[n] = d_fky[j]*d_work1[n+1];
-  d_work2[n+1] = -d_fky[j]*d_work1[n];
+  d_work2[n] = -d_fky[j]*d_work1[n+1];
+  d_work2[n+1] = d_fky[j]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1842,8 +1842,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik9, const int &ii) cons
 {
   const int n = ii*2;
   const int k = ii/(numy_fft*numx_fft);
-  d_work2[n] = d_fkz[k]*d_work1[n+1];
-  d_work2[n+1] = -d_fkz[k]*d_work1[n];
+  d_work2[n] = -d_fkz[k]*d_work1[n+1];
+  d_work2[n+1] = d_fkz[k]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1877,8 +1877,8 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for1
-//    d_work2[n] = d_fkx[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fkx[i]*d_work1[n];
+//    d_work2[n] = -d_fkx[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fkx[i]*d_work1[n];
 //    n += 2;
 //  }
 //
@@ -1892,8 +1892,8 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for3
-//    d_work2[n] = d_fky[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fky[i]*d_work1[n];
+//    d_work2[n] = -d_fky[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fky[i]*d_work1[n];
 //    n += 2;
 //  }
 //
@@ -1911,8 +1911,8 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for5
-//    d_work2[n] = d_fkz[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fkz[i]*d_work1[n];
+//    d_work2[n] = -d_fkz[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fkz[i]*d_work1[n];
 //    n += 2;
 //  }
 //

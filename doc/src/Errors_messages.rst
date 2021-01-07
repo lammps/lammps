@@ -5860,6 +5860,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must not have multiple fixes change box parameter ...*
    Self-explanatory.
 
+*Must read Angle Type Labels before Angles*
+   An Angle Type Labels section of a data file must come before the Angles section.
+
+*Must read Atom Type Labels before Atoms*
+   An Atom Type Labels section of a data file must come before the Atoms section.
+
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
 
@@ -5889,6 +5895,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must read Atoms before Velocities*
    The Atoms section of a data file must come before a Velocities
    section.
+
+*Must read Bond Type Labels before Bonds*
+   A Bond Type Labels section of a data file must come before the Bonds section.
+
+*Must read Dihedral Type Labels before Dihedrals*
+   An Dihedral Type Labels section of a data file must come before the Dihedrals section.
+
+*Must read Improper Type Labels before Impropers*
+   An Improper Type Labels section of a data file must come before the Impropers section.
 
 *Must re-specify non-restarted pair style (xxx) after read_restart*
    For pair styles, that do not store their settings in a restart file,

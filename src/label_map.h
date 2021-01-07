@@ -29,6 +29,7 @@ class LabelMap : protected Pointers {
    ~LabelMap();
 
    void allocate_type_labels();
+   void copy_lmap(class LabelMap *, class LabelMap *);
    int find_type(char *, char **, int);
 
  protected:

@@ -79,6 +79,43 @@ void LabelMap::allocate_type_labels()
 }
 
 /* ----------------------------------------------------------------------
+   copy lmap1 to lmap2
+------------------------------------------------------------------------- */
+
+void LabelMap::copy_lmap(LabelMap *lmap1, LabelMap *lmap2)
+{
+  int ncopy;
+
+  ncopy = min(lmap1->natomtypes, lmap2->natomtypes);
+  for (int i = 0; i < ncopy; i++)
+    lmap2->typelabel[i] = lmap1->typelabel[i];
+
+  if (force->bond) {
+    ncopy = min(lmap1->nbondtypes, lmap2->nbondtypes);
+    for (int i = 0; i < ncopy; i++)
+      lmap1->btypelabel[i] = lmap2->btypelabel[i];
+  }
+
+  if (force->angle) {
+    ncopy = min(lmap1->nangletypes, lmap2->nangletypes);
+    for (int i = 0; i < ncopy; i++)
+      lmap1->atypelabel[i] = lmap2->atypelabel[i];
+  }
+
+  if (force->dihedral) {
+    ncopy = min(lmap1->ndihedraltypes, lmap2->ndihedraltypes);
+    for (int i = 0; i < ncopy; i++)
+      lmap1->dtypelabel[i] = lmap2->dtypelabel[i];
+  }
+
+  if (force->improper) {
+    ncopy = min(lmap1->nimpropertypes, lmap2->nimpropertypes);
+    for (int i = 0; i < ncopy; i++)
+      lmap1->itypelabel[i] = lmap2->itypelabel[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
    find integer type given a type label
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */

@@ -55,6 +55,10 @@ class ReadData : protected Pointers {
   bigint nbodies;
   class AtomVecBody *avec_body;
 
+  // type labels
+
+  class LabelMap *lmap;
+
   // box info
 
   double boxlo[3],boxhi[3];
@@ -397,6 +401,26 @@ E: Must define improper_style before AngleAngle Coeffs
 
 Must use an improper_style command before reading a data file that
 defines AngleAngle Coeffs.
+
+E: Must read Atom Type Labels before Atoms
+
+An Atom Type Labels section of a data file must come before the Atoms section.
+
+E: Must read Bond Type Labels before Bonds
+
+A Bond Type Labels section of a data file must come before the Bonds section.
+
+E: Must read Angle Type Labels before Angles
+
+An Angle Type Labels section of a data file must come before the Angles section.
+
+E: Must read Dihedral Type Labels before Dihedrals
+
+An Dihedral Type Labels section of a data file must come before the Dihedrals section.
+
+E: Must read Improper Type Labels before Impropers
+
+An Improper Type Labels section of a data file must come before the Impropers section.
 
 E: Unknown identifier in data file: %s
 

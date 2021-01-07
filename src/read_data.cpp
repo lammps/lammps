@@ -490,6 +490,18 @@ void ReadData::command(int narg, char **arg)
       domain->set_local_box();
     }
 
+    // allocate space for type label map
+
+    if (firstpass) {
+      lmap = new LabelMap(lmp);
+      lmap->natomtypes = ntypes;
+      lmap->nbondtypes = nbondtypes;
+      lmap->nangletypes = nangletypes;
+      lmap->ndihedraltypes = ndihedraltypes;
+      lmap->nimpropertypes = nimpropertypes;
+      lmap->allocate_type_labels();
+    }
+
     // customize for new sections
     // read rest of file in free format
 
@@ -715,28 +727,47 @@ void ReadData::command(int narg, char **arg)
         else skip_lines(nimpropertypes);
 
       } else if (strcmp(keyword,"Atom Type Labels") == 0) {
-        if (firstpass) typelabels(atom->lmap->typelabel,ntypes);
-        else skip_lines(ntypes);
+        if (firstpass) {
+          if (atomflag == 1)
+            error->all(FLERR,"Must read Atom Type Labels before Atoms");
+          typelabels(lmap->typelabel,ntypes);
+        } else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
-        if (nbondtypes)
-          if (firstpass) typelabels(atom->lmap->btypelabel,nbondtypes);
-          else skip_lines(nbondtypes);
+        if (nbondtypes) {
+          if (firstpass) {
+            if (bondflag == 1)
+              error->all(FLERR,"Must read Bond Type Labels before Bonds");
+            typelabels(lmap->btypelabel,nbondtypes);
+          } else skip_lines(nbondtypes);
+        }
 
       } else if (strcmp(keyword,"Angle Type Labels") == 0) {
-        if (nangletypes)
-          if (firstpass) typelabels(atom->lmap->atypelabel,nangletypes);
-          else skip_lines(nangletypes);
+        if (nangletypes) {
+          if (firstpass) {
+            if (angleflag == 1)
+              error->all(FLERR,"Must read Angle Type Labels before Angles");
+            typelabels(lmap->atypelabel,nangletypes);
+          } else skip_lines(nangletypes);
+        }
 
       } else if (strcmp(keyword,"Dihedral Type Labels") == 0) {
-        if (ndihedraltypes)
-          if (firstpass) typelabels(atom->lmap->dtypelabel,ndihedraltypes);
-          else skip_lines(ndihedraltypes);
+        if (ndihedraltypes) {
+          if (firstpass) {
+            if (dihedralflag == 1)
+              error->all(FLERR,"Must read Dihedral Type Labels before Dihedrals");
+            typelabels(lmap->dtypelabel,ndihedraltypes);
+          } else skip_lines(ndihedraltypes);
+        }
 
       } else if (strcmp(keyword,"Improper Type Labels") == 0) {
-        if (nimpropertypes)
-          if (firstpass) typelabels(atom->lmap->itypelabel,nimpropertypes);
-          else skip_lines(nimpropertypes);
+        if (nimpropertypes) {
+          if (firstpass) {
+            if (improperflag == 1)
+              error->all(FLERR,"Must read Improper Type Labels before Impropers");
+            typelabels(lmap->itypelabel,nimpropertypes);
+          } else skip_lines(nimpropertypes);
+        }
 
       } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
                                           keyword));
@@ -1949,6 +1980,15 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes)
     buf = next + 1;
   }
   delete [] typelabel;
+
+  // if first data file, assign this label map to atom class
+  // else, determine mapping to let labels override numeric types
+
+  if (addflag == NONE) {
+    lmap->copy_lmap(lmap,atom->lmap);
+  } else {
+    ; // get lmap2lmap mapping. ...in progress...
+  }
 }
 
 /* ----------------------------------------------------------------------

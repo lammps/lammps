@@ -37,6 +37,21 @@ template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
                     _gpu_mode(GPU_FORCE), _first_device(0),
                     _last_device(0), _platform_id(-1), _compiled(false) {
+  #if defined(USE_OPENCL)
+  _api=OPENCL_API;
+  #elif defined(USE_HIP)
+  _api=HIP_API;
+  #else
+  _api=CUDA_API;
+  #endif
+
+  if (sizeof(numtyp)==4) {
+    if (sizeof(acctyp)==4)
+      _precision_mode=SINGLE_SINGLE;
+    else
+      _precision_mode=SINGLE_DOUBLE;
+  } else
+    _precision_mode=DOUBLE_DOUBLE;
 }
 
 template <class numtyp, class acctyp>
@@ -773,6 +788,14 @@ int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   return global_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
                                    particle_split,nthreads,t_per_atom,
                                    cell_size,opencl_vendor,block_pair);
+}
+
+int lmp_get_api() {
+  return global_device.api();
+}
+
+int lmp_get_precision_mode() {
+  return global_device.precision_mode();
 }
 
 void lmp_clear_device() {

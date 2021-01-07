@@ -258,6 +258,12 @@ class Device {
   inline double ptx_arch() const { return _ptx_arch; }
   /// Number of threads executing concurrently on same multiproc
   inline int warp_size() const { return _warp_size; }
+  /// API
+  enum{CUDA_API, OPENCL_API, HIP_API};
+  inline int api() { return _api; }
+  /// Precision mode
+  enum{SINGLE_SINGLE, SINGLE_DOUBLE, DOUBLE_DOUBLE};
+  inline int precision_mode() { return _precision_mode; }
 
   // -------------------- SHARED DEVICE ROUTINES --------------------
   // Perform asynchronous zero of integer array
@@ -333,6 +339,9 @@ class Device {
 
   std::string _ocl_vendor_name, _ocl_vendor_string, _ocl_compile_string;
   int set_ocl_params(char *);
+
+  int _api;
+  int _precision_mode;
 
   template <class t>
   inline std::string toa(const t& in) {

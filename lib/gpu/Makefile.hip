@@ -144,6 +144,9 @@ $(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(ALL_H)
 $(LIB_DIR)/libgpu.a: $(OBJS)
 	$(AR) -crs $@ $(OBJS)
 	printf "export HIP_PLATFORM := %s\n%s\n" "$(HIP_PLATFORM)" "$(HIP_LIBS_TARGET)" > Makefile.lammps
+	@echo "api = HIP_API" > configure.options
+	@echo "precision = $(HIP_PRECISION)" >> configure.options
+	@echo "arch = $(HIP_ARCH)" >> configure.options
 
 # test app building
 

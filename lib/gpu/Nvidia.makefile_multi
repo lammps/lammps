@@ -902,6 +902,9 @@ $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
 	@cp $(EXTRAMAKE) Makefile.lammps
+	@echo "api = CUDA_API" > configure.options
+	@echo "precision = $(CUDA_PRECISION)" >> configure.options
+	@echo "arch = $(CUDA_ARCH)" >> configure.options
 
 clean:
 	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CBNS) *.linkinfo

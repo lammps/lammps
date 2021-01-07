@@ -660,6 +660,9 @@ $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp $(OCL_H)
 $(OCL_LIB): $(OBJS) $(PTXS)
 	$(AR) -crusv $(OCL_LIB) $(OBJS)
 	@cp $(EXTRAMAKE) Makefile.lammps
+	@echo "api = OPENCL_API" > configure.options
+	@echo "precision = $(OCL_PREC)" >> configure.options
+	@echo "arch = $(OCL_TUNE)" >> configure.options
 
 opencl: $(OCL_EXECS)
 

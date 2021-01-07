@@ -322,3 +322,17 @@ double FixGPU::memory_usage()
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
+
+int FixGPU::get_api()
+{
+  return lmp_get_api();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixGPU::get_precision_mode()
+{
+  return lmp_get_precision_mode();
+}
+

@@ -46,6 +46,8 @@ using namespace FixConst;
 #define INVOKED_VECTOR 2
 #define MAXLINE 512
 
+enum{FORWARD=-1,BACKWARD=1};
+
 static const char cite_fix_phonon[] =
   "fix phonon command:\n\n"
   "@Article{Kong11,\n"
@@ -381,7 +383,7 @@ void FixPhonon::end_of_step()
       fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
-    fft->compute(fft_data, fft_data, -1);
+    fft->compute(fft_data,fft_data,FORWARD);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq) {
@@ -650,7 +652,7 @@ void FixPhonon::postprocess( )
       fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
-    fft->compute(fft_data,fft_data,-1);
+    fft->compute(fft_data,fft_data,FORWARD);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq) {

@@ -1214,7 +1214,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     energy_1 *= 0.5*volume;
     energy_6 *= 0.5*volume;
- 
+
     energy_1 -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +
@@ -3186,7 +3186,7 @@ double PPPMDisp::compute_qopt_ad()
     sum2 *= sum2;
     qopt += sum1 - sum2/(sum3*sum4);
   }
- 
+
   return qopt;
 }
 
@@ -4842,7 +4842,7 @@ void PPPMDisp::poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT3
       }
 
   // v2 & v3 term
- 
+
   n = 0;
   for (i = 0; i < nft; i++) {
     wk2[n] = wk1[n]*vcoeff[i][2] + wk1[n+1]*vcoeff2[i][0];

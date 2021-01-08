@@ -17,19 +17,22 @@
 
 using namespace LAMMPS_NS;
 
-static const char cite_header[] =
-  "This LAMMPS simulation made specific use of work described in the\n"
-  "following references.  See https://lammps.sandia.gov/cite.html\n"
-  "for details.\n\n";
-
-static const char cite_nagline[] = "Please see the log.cite file "
-  "for references relevant to this simulation\n\n";
-
-static const char cite_seefile[] = "Please see the citation file "
-  "for references relevant to this simulation\n\n";
-
 static const char cite_separator[] =
   "\nCITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE\n\n";
+
+static const char cite_nagline[] =
+  "Your LAMMPS simulation uses code contributions which should be cited.\n"
+  "Please see https://lammps.sandia.gov/doc/Intro_citing.html for more\n"
+  "information on citing LAMMPS itself.\n";
+
+static const char cite_short[] =
+  "A short list of the features is given below.\n\n";
+
+static const char cite_full[] =
+  "Below is a list of the full references in BibTeX format.\n\n";
+
+static const char cite_file[] = "Please see the {} {} "
+  "for detailed references in BibTeX format.\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,12 +48,14 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file)
   logbuffer.clear();
 
   if (_file && universe->me == 0) {
+    citefile = _file;
     fp = fopen(_file,"w");
     if (fp) {
-      fputs(cite_header,fp);
+      fputs(cite_nagline,fp);
+      fputs(cite_full,fp);
       fflush(fp);
     } else {
-      utils::logmesg(lmp, "Unable to open citation file '" + std::string(_file)
+      utils::logmesg(lmp, "Unable to open citation file '" + citefile
                      + "': " + utils::getsyserror() + "\n");
     }
   }
@@ -85,13 +90,25 @@ void CiteMe::add(const char *ref)
 
   if (scrbuffer.empty()) {
     scrbuffer += cite_separator;
-    if (screen_flag == VERBOSE) scrbuffer += cite_header;
-    if (screen_flag == TERSE) scrbuffer += cite_nagline;
+    scrbuffer += cite_nagline;
+    if (!citefile.empty()) scrbuffer += fmt::format(cite_file,"file",citefile);
+    if (screen_flag == VERBOSE) scrbuffer += cite_full;
+    if (screen_flag == TERSE) {
+      if (logfile_flag == VERBOSE)
+        scrbuffer += fmt::format(cite_file,"log","file");
+      scrbuffer += cite_short;
+    }
   }
   if (logbuffer.empty()) {
     logbuffer += cite_separator;
-    if (logfile_flag == VERBOSE) logbuffer += cite_header;
-    if (logfile_flag == TERSE) logbuffer += cite_nagline;
+    logbuffer += cite_nagline;
+    if (!citefile.empty()) logbuffer += fmt::format(cite_file,"file",citefile);
+    if (logfile_flag == VERBOSE) logbuffer += cite_full;
+    if (logfile_flag == TERSE) {
+      if (screen_flag == VERBOSE)
+        scrbuffer += fmt::format(cite_file,"screen","output");
+      logbuffer += cite_short;
+    }
   }
 
   std::string reference = ref;
@@ -111,7 +128,7 @@ void CiteMe::flush()
       if (screen) fputs(scrbuffer.c_str(),screen);
       scrbuffer.clear();
     }
-    if (!scrbuffer.empty()) {
+    if (!logbuffer.empty()) {
       logbuffer += cite_separator;
       if (logfile) fputs(logbuffer.c_str(),logfile);
       logbuffer.clear();

@@ -29,6 +29,7 @@ class CiteMe : protected Pointers {
 
  private:
   FILE *fp;                    // explicit citation file pointer or NULL
+  std::string citefile;        // name of the explicit citation file.
   int screen_flag;             // determine whether verbose or terse output
   int logfile_flag;            // determine whether verbose or terse output
   std::string scrbuffer;       // output buffer for screen

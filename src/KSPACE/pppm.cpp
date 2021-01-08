@@ -2059,7 +2059,7 @@ void PPPM::poisson_ik()
     return;
   }
 
-  // compute gradients of V(r) in each of 3 dims by transformimg ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
@@ -2135,7 +2135,7 @@ void PPPM::poisson_ik_triclinic()
 {
   int i,j,k,n;
 
-  // compute gradients of V(r) in each of 3 dims by transformimg ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 

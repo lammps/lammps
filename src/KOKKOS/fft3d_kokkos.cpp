@@ -127,7 +127,7 @@ void FFT3dKokkos<DeviceType>::timing1d(typename FFT_AT::t_FFT_SCALAR_1d d_in, in
    in           starting address of input data on this proc
    out          starting address of where output data for this proc
                   will be placed (can be same as in)
-   flag         1 for forward FFT, -1 for inverse FFT
+   flag         1 for forward FFT, -1 for backward FFT
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
@@ -805,7 +805,7 @@ void FFT3dKokkos<DeviceType>::bifactor(int n, int *factor1, int *factor2)
    Arguments:
    in           starting address of input data on this proc, all set to 0.0
    nsize        size of in
-   flag         1 for forward FFT, -1 for inverse FFT
+   flag         1 for forward FFT, -1 for backward FFT
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 

@@ -24,6 +24,7 @@
 #include "fix.h"
 #include "force.h"
 #include "improper.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
@@ -187,6 +188,10 @@ void WriteData::write(const std::string &file)
     type_arrays();
     if (coeffflag) force_fields();
   }
+
+  // label map before Atoms, Bonds, etc.
+
+  if (me == 0) atom->lmap->write_data(fp); // NOTE: always write for now, for testing
 
   // per atom info in Atoms and Velocities sections
 

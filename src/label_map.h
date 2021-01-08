@@ -43,8 +43,9 @@ class LabelMap : protected Pointers {
    void allocate_type_labels();
    void merge_lmap(class LabelMap *); // copy another lmap into this one
    void create_lmap2lmap(class LabelMap *); // index mapping between two lmaps
-   int find_or_create(std::string, std::vector<std::string>, int); // look up type or create new type
+   int find_or_create(std::string, std::vector<std::string> &, int); // look up type or create new type
    int find(std::string, std::vector<std::string>, int); // look up type index
+   void write_data(FILE *);
 
  protected:
 };

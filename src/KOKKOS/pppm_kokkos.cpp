@@ -579,7 +579,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   ev_init(eflag,vflag,0);
-         eflag_atom = vflag_atom = 0;
 
   // reallocate per-atom arrays if necessary
 

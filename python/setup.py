@@ -22,5 +22,5 @@ setup(
     url = "https://lammps.sandia.gov",
     description = "LAMMPS Molecular Dynamics Python package",
     license = "GPL",
-    packages=["lammps"]
+    packages=["lammps","lammps.mliap"],
 )

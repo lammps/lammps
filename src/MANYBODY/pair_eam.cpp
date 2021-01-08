@@ -466,7 +466,7 @@ void PairEAM::read_file(char *filename)
   Funcfl *file = &funcfl[nfuncfl-1];
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
     // transparently convert units for supported conversions
@@ -518,7 +518,7 @@ void PairEAM::read_file(char *filename)
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     memory->create(file->frho, (file->nrho+1), "pair:frho");
     memory->create(file->rhor, (file->nr+1), "pair:rhor");
     memory->create(file->zr, (file->nr+1), "pair:zr");

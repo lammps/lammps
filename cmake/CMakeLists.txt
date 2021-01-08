@@ -25,7 +25,7 @@ set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
 endif()
 
@@ -33,7 +33,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 # make sure LIBRARY_PATH is set if environment variable is set
-if (DEFINED ENV{LIBRARY_PATH})
+if(DEFINED ENV{LIBRARY_PATH})
   list(APPEND CMAKE_LIBRARY_PATH "$ENV{LIBRARY_PATH}")
   message(STATUS "Appending $ENV{LIBRARY_PATH} to CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
 endif()
@@ -373,7 +373,7 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
+foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
         USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
@@ -580,7 +580,7 @@ add_dependencies(lammps gitversion)
 ############################################
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
@@ -737,14 +737,14 @@ if(OPTIONS)
 endif()
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   message(STATUS "Fortran Compiler: ${CMAKE_Fortran_COMPILER}
       Type:          ${CMAKE_Fortran_COMPILER_ID}
       Version:       ${CMAKE_Fortran_COMPILER_VERSION}
       Fortran Flags:${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
 list (FIND LANGUAGES "C" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   message(STATUS "C compiler:       ${CMAKE_C_COMPILER}
       Type:          ${CMAKE_C_COMPILER_ID}
       Version:       ${CMAKE_C_COMPILER_VERSION}

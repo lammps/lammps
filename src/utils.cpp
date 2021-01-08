@@ -618,7 +618,7 @@ size_t utils::count_words(const std::string &text, const std::string &separators
     size_t end = text.find_first_of(separators, start);
     ++count;
 
-    if(end == std::string::npos) {
+    if (end == std::string::npos) {
       return count;
     } else {
       start = text.find_first_not_of(separators, end + 1);
@@ -806,7 +806,7 @@ std::string utils::path_join(const std::string &a, const std::string &b) {
 
 bool utils::file_is_readable(const std::string &path) {
   FILE * fp = fopen(path.c_str(), "r");
-  if(fp) {
+  if (fp) {
     fclose(fp);
     return true;
   }
@@ -828,13 +828,13 @@ std::string utils::get_potential_file_path(const std::string &path) {
   std::string filepath = path;
   std::string filename = utils::path_basename(path);
 
-  if(utils::file_is_readable(filepath)) {
+  if (utils::file_is_readable(filepath)) {
     return filepath;
   } else {
     // try the environment variable directory
     const char *var = getenv("LAMMPS_POTENTIALS");
 
-    if (var != nullptr){
+    if (var != nullptr) {
       Tokenizer dirs(var,OS_PATH_VAR_SEP);
 
       while (dirs.has_next()) {
@@ -935,12 +935,12 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
 
   std::string filepath = get_potential_file_path(name);
 
-  if(!filepath.empty()) {
+  if (!filepath.empty()) {
     std::string unit_style = lmp->update->unit_style;
     std::string date       = get_potential_date(filepath, "potential");
     std::string units      = get_potential_units(filepath, "potential");
 
-    if(!date.empty() && (me == 0)) {
+    if (!date.empty() && (me == 0)) {
       logmesg(lmp, fmt::format("Reading potential file {} "
                                "with DATE: {}\n", name, date));
     }
@@ -1091,7 +1091,7 @@ void utils::merge_sort(int *index, int num, void *ptr,
 
     // copy all indices not handled by the chunked merge sort loop
 
-    for ( ; i < num ; i++ ) dest[i] = hold[i];
+    for (; i < num ; i++) dest[i] = hold[i];
     chunk *= 2;
   }
 

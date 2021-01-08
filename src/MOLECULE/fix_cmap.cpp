@@ -1376,7 +1376,7 @@ void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_crossterm[j] = num_crossterm[i];
 
-  for (int k = 0; k < num_crossterm[j]; k++){
+  for (int k = 0; k < num_crossterm[j]; k++) {
     crossterm_type[j][k] = crossterm_type[i][k];
     crossterm_atom1[j][k] = crossterm_atom1[i][k];
     crossterm_atom2[j][k] = crossterm_atom2[i][k];

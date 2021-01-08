@@ -779,11 +779,11 @@ void FixNH::setup(int /*vflag*/)
     // if it was read in from a restart file, leave it be
 
     if (t0 == 0.0) {
-      if(p_temp_flag) {
+      if (p_temp_flag) {
         t0 = p_temp;
       } else {
         t0 = temperature->compute_scalar();
-        if(t0 < EPSILON)
+        if (t0 < EPSILON)
           error->all(FLERR, "Current temperature too close to zero, consider using ptemp setting");
       }
     }

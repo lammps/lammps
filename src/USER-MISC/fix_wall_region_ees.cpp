@@ -190,14 +190,14 @@ void FixWallRegionEES::post_force(int /*vflag*/)
       double* shape = bonus[ellipsoid[i]].shape;;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
 
-      for(int which = 0 ; which < 3; which ++){//me
+      for (int which = 0 ; which < 3; which ++) {//me
         nhat[which]=1;
         nhat[(which+1)%3] = 0 ;
         nhat[(which+2)%3] = 0 ;
         sn2 = 0 ;
         MathExtra::transpose_matvec(A,nhat,tempvec);
-        for(int k = 0; k<3; k++) tempvec[k] *= shape[k];
-        for(int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
+        for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
+        for (int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
         sn = sqrt(sn2);
         tooclose[which] = sn;
       }
@@ -206,13 +206,13 @@ void FixWallRegionEES::post_force(int /*vflag*/)
 
       for (m = 0; m < n; m++) {
 
-        if (region->contact[m].delx != 0 && region->contact[m].r <= tooclose[0]){
+        if (region->contact[m].delx != 0 && region->contact[m].r <= tooclose[0]) {
           onflag = 1;
           continue;
-        } else if (region->contact[m].dely != 0 && region->contact[m].r <= tooclose[1]){
+        } else if (region->contact[m].dely != 0 && region->contact[m].r <= tooclose[1]) {
           onflag = 1;
           continue;
-        } else if (region->contact[m].delz !=0 && region->contact[m].r <= tooclose[2]){
+        } else if (region->contact[m].delz !=0 && region->contact[m].r <= tooclose[2]) {
           onflag = 1;
           continue;
         } else rinv = 1.0/region->contact[m].r;
@@ -323,9 +323,9 @@ void FixWallRegionEES::ees(int m, int i)
 
   sigman2 = 0.0;
   MathExtra::transpose_matvec(A,nhat,tempvec);
-  for(int k = 0; k<3; k++) tempvec[k] *= shape[k];
-  for(int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
-  for(int k = 0; k<3; k++) SAn[k] = tempvec[k];
+  for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
+  for (int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
+  for (int k = 0; k<3; k++) SAn[k] = tempvec[k];
 
   sigman = sqrt(sigman2);
   delta = fabs(region->contact[m].r);
@@ -362,19 +362,19 @@ void FixWallRegionEES::ees(int m, int i)
 
   MathExtra::matvec(Lx,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
   that[0] = MathExtra::dot3(SAn,tempvec2);
 
   MathExtra::matvec(Ly,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
   that[1] = MathExtra::dot3(SAn,tempvec2);
 
   MathExtra::matvec(Lz,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
   that[2] = MathExtra::dot3(SAn,tempvec2);
 
-  for(int j = 0; j<3 ; j++)
+  for (int j = 0; j<3 ; j++)
     torque[j] = twall * that[j];
 }

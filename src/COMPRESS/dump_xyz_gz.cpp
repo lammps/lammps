@@ -147,7 +147,7 @@ void DumpXYZGZ::write()
 int DumpXYZGZ::modify_param(int narg, char **arg)
 {
   int consumed = DumpXYZ::modify_param(narg, arg);
-  if(consumed == 0) {
+  if (consumed == 0) {
     if (strcmp(arg[0],"compression_level") == 0) {
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
       int min_level = Z_DEFAULT_COMPRESSION;

@@ -39,6 +39,7 @@ PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
   respa_enable = 0;
   single_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -163,9 +164,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      k_rho.template sync<LMPHostType>();
       comm->reverse_comm_pair(this);
-      k_rho.template modify<LMPHostType>();
       k_rho.template sync<DeviceType>();
     }
 
@@ -191,9 +190,11 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev.evdwl = 0.0;
   }
 
-  // communicate derivative of embedding function (on the device)
+  // communicate derivative of embedding function
 
+  k_fp.template modify<DeviceType>();
   comm->forward_comm_pair(this);
+  k_fp.template sync<DeviceType>();
 
   // compute kernel C
 
@@ -465,6 +466,8 @@ template<class DeviceType>
 int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                                  int /*pbc_flag*/, int * /*pbc*/)
 {
+  k_fp.sync_host();
+
   int i,j;
 
   for (i = 0; i < n; i++) {
@@ -479,9 +482,13 @@ int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
+  k_fp.sync_host();
+
   for (int i = 0; i < n; i++) {
     h_fp[i + first] = buf[i];
   }
+
+  k_fp.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -489,6 +496,8 @@ void PairEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *bu
 template<class DeviceType>
 int PairEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  k_rho.sync_host();
+
   int i,m,last;
 
   m = 0;
@@ -502,6 +511,8 @@ int PairEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  k_rho.sync_host();
+
   int i,j,m;
 
   m = 0;
@@ -509,6 +520,8 @@ void PairEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *bu
     j = list[i];
     h_rho[j] += buf[m++];
   }
+
+  k_rho.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -721,7 +734,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if(rsq < cutforcesq) {
+    if (rsq < cutforcesq) {
       const F_FLOAT r = sqrt(rsq);
       F_FLOAT p = r*rdr + 1.0;
       int m = static_cast<int> (p);

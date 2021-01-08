@@ -365,14 +365,14 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
   double x;
   double v1, v2;
 
-  if(r < c + 1E-6)
+  if (r < c + 1E-6)
   {
     f=1.0;
     fdr=0.0;
     return;
   }
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -394,7 +394,7 @@ void PairEDIPMulti::edip_fcut2(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -466,7 +466,7 @@ void PairEDIPMulti::edip_fcut3(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;

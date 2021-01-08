@@ -616,8 +616,8 @@ reset_mol_ids = yes, custom_charges = no, molecule = off
 
 .. _Gissinger:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
+**(Gissinger2017)** Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
 
 .. _Gissinger2020:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953–9961 (2020).
+**(Gissinger2020)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).

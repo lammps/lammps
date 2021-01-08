@@ -209,13 +209,13 @@ packages in the src directory for examples. If you are uncertain, please ask.
   A LaTeX citation is stored in a variable at the top of the file and a
   single line of code that references the variable is added to the
   constructor of the class.  Whenever a user invokes your feature from
-  their input script, this will cause LAMMPS to output the citation to a
-  log.cite file and prompt the user to examine the file.  Note that you
-  should only use this for a paper you or your group authored.
-  E.g. adding a cite in the code for a paper by Nose and Hoover if you
-  write a fix that implements their integrator is not the intended
-  usage.  That kind of citation should just be in the doc page you
-  provide.
+  their input script, this will cause LAMMPS to output a reminder to
+  cite that reference.  Note that you should only use this for the most
+  relevant paper for a feature and a publication that you or your group
+  authored.  E.g. adding a citation in the code for a paper by Nose and
+  Hoover if you write a fix that implements their integrator is not the
+  intended usage.  That kind of citation should just be in the
+  documentation page you provide describing your contribution.
 
 Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the

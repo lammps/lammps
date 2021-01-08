@@ -66,9 +66,10 @@ For many systems this is an efficient algorithm, but for systems with
 widely varying cutoffs for different type pairs, the *multi* mode can
 be faster.  In this case, each atom type is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
-communicated.  See the :doc:`neighbor multi <neighbor>` command for a
+communicated. See the :doc:`neighbor multi <neighbor>` command for a
 neighbor list construction option that may also be beneficial for
-simulations of this kind.
+simulations of this kind. The *multi* mode is compatable with both the
+*multi* and *multi/old* neighbor styles.
 
 The *cutoff* keyword allows you to extend the ghost cutoff distance
 for communication mode *single*\ , which is the distance from the borders
@@ -95,11 +96,12 @@ using the usual asterisk notation can be given. For granular pair styles,
 the default cutoff is set to the sum of the current maximum atomic radii
 for each type.
 
-The *cutoff/bytype* option applies to *multi* and automtically sets communication 
-cutoffs for each particle type based on the largest interaction distance
-between two particles of the same type. This method is only compatible 
-with Newton on and the *bytype* neighbor style. See the :doc:`neighbor bytype <neighbor>` 
-command for more information.
+The *multi/reduce* option applies to *multi* and automatically sets communication 
+cutoffs for different sized particles based on the largest interaction distance 
+between two particles in the same multi grouping. This reduces the number of
+ghost that need to be communicated This method is only compatible with the 
+*multi* neighbor style and requires only half neighbor lists and Newton on. 
+See the :doc:`neighbor multi <neighbor>` command for more information.
 
 These are simulation scenarios in which it may be useful or even
 necessary to set a ghost cutoff > neighbor cutoff:

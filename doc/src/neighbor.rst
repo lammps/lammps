@@ -11,7 +11,7 @@ Syntax
    neighbor skin style
 
 * skin = extra distance beyond force cutoff (distance units)
-* style = *bin* or *nsq* or *multi* or *bytype*
+* style = *bin* or *nsq* or *multi* or *multi/old*
 
 Examples
 """"""""
@@ -55,22 +55,24 @@ For the *bin* style, the bin size is set to 1/2 of
 the largest cutoff distance between any pair of atom types and a
 single set of bins is defined to search over for all atom types.  This
 can be inefficient if one pair of types has a very long cutoff, but
-other type pairs have a much shorter cutoff.  For style *multi* the
-bin size is set to 1/2 of the shortest cutoff distance and multiple
-sets of bins are defined to search over for different atom types.
+other type pairs have a much shorter cutoff. The *multi* style uses
+different sized bins for groups of different sized particles. Different
+sets of bins are then used to construct the neighbor lists as as further 
+described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`. 
 This imposes some extra setup overhead, but the searches themselves
-may be much faster for the short-cutoff cases.
-See the :doc:`comm_modify mode multi <comm_modify>` command for a
-communication option that may also be beneficial for simulations of
-this kind.
+may be much faster. By default, separate groups of particles are defined 
+for each atom type. For systems with two or more types with similar 
+cutoffs, one can reduce the extra overhead by defining custom groupings 
+using the :doc:`neigh_modify <neigh_modify>` command. See the 
+:doc:`comm_modify mode bytype <comm_modify>` command for compatible 
+communication options that may be beneficial for simulations of this kind.
 
-The *bytype* style is an extension of the *multi* style that was 
-presented by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`. 
-For style *bytype*, different bin lists are created for each different 
-type and separate bin sizes are generated. Whether *bytype* or *multi* 
-is faster may depend on the specifics of your system. See the 
-:doc:`comm_modify mode bytype <comm_modify>` command for a compatible 
-communication option.
+An alternate style, *multi/old*, sets the bin size to 1/2 of the shortest 
+cutoff distance and multiple sets of bins are defined to search over for 
+different atom types. This algorithm used to be the default *multi* 
+algorithm in LAMMPS but was found to be significantly slower than the new
+approach. Although, there may be instances where the *multi/old* style 
+could outperform the new style. 
 
 The :doc:`neigh_modify <neigh_modify>` command has additional options
 that control how often neighbor lists are built and which pairs are

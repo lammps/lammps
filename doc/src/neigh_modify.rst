@@ -14,7 +14,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize*
+     keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize* or *multi/custom*
        *delay* value = N
          N = delay building until this many steps since last build
        *every* value = M
@@ -47,6 +47,9 @@ Syntax
          N = max number of neighbors of one atom
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
+       *multi/custom* values = N types
+         N = number of custom groups
+         types = N separate types or groups of types (see below)
 
 Examples
 """"""""
@@ -58,6 +61,7 @@ Examples
    neigh_modify exclude group frozen frozen check no
    neigh_modify exclude group residue1 chain3
    neigh_modify exclude molecule/intra rigid
+   neigh_modify multi/custom 2 1*2 3*4
 
 Description
 """""""""""
@@ -196,6 +200,20 @@ looping over bins, but more atoms are checked.  If you make it too
 small, the optimal number of atoms is checked, but bin overhead goes
 up.  If you set the binsize to 0.0, LAMMPS will use the default
 binsize of 1/2 the cutoff.
+
+The *multi/custom* option allows you to define custom groups of atom 
+types for the *multi* neighbor mode. By grouping atom types with 
+similar cutoffs, one may be able to improve performance by reducing
+overhead. You must first specify the number of custom groups N to be
+defined followed by N ranges of types. The range can be specified as a 
+single numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
+example, if N = the number of atom types, then an asterisk with no numeric 
+values means all types from 1 to N.  A leading asterisk means all types 
+from 1 to n (inclusive).  A trailing asterisk means all types from n to N 
+(inclusive).  A middle asterisk means all types from m to n (inclusive). 
+Note that any atom types not included in a custom group will be automatically
+placed within a new, separate group.
 
 Restrictions
 """"""""""""

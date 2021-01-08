@@ -248,6 +248,8 @@ void Comm::init()
       error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
     if (neighbor->any_full())
       error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
+    if (neighbor->style != Neighbor::MULTI)
+      error->all(FLERR,"Cannot use multi/reduce communication without multi-style neighbor lists");
   }
 }
 

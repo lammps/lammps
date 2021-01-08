@@ -25,12 +25,26 @@ class LabelMap : protected Pointers {
    std::vector<std::string> typelabel,btypelabel,atypelabel;
    std::vector<std::string> dtypelabel,itypelabel;
 
+   // per-type data struct mapping this label map to another
+
+   struct Lmap2Lmap {
+     int *atom;
+     int *bond;
+     int *angle;
+     int *dihedral;
+     int *improper;
+   };
+
+   Lmap2Lmap lmap2lmap;
+
    LabelMap(LAMMPS *lmp);
    ~LabelMap();
 
    void allocate_type_labels();
-   void copy_lmap(class LabelMap *, class LabelMap *);
-   int find_type(char *, char **, int);
+   void merge_lmap(class LabelMap *); // copy another lmap into this one
+   void create_lmap2lmap(class LabelMap *); // index mapping between two lmaps
+   int find_or_create(std::string, std::vector<std::string>, int); // look up type or create new type
+   int find(std::string, std::vector<std::string>, int); // look up type index
 
  protected:
 };
@@ -41,5 +55,9 @@ class LabelMap : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Topology type exceeds system topology type
+
+The number of bond, angle, etc types exceeds the system setting. See
+the create_box or read_data command for how to specify these values.
 
 */

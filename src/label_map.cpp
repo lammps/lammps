@@ -15,6 +15,7 @@
 
 #include "force.h"
 #include "memory.h"
+#include "error.h"
 
 #include <cstring>
 
@@ -39,6 +40,12 @@ LabelMap::~LabelMap()
   atypelabel.clear();
   dtypelabel.clear();
   itypelabel.clear();
+
+  delete [] lmap2lmap.atom;
+  delete [] lmap2lmap.bond;
+  delete [] lmap2lmap.angle;
+  delete [] lmap2lmap.dihedral;
+  delete [] lmap2lmap.improper;
 }
 
 /* ----------------------------------------------------------------------
@@ -76,43 +83,116 @@ void LabelMap::allocate_type_labels()
     for (int i = 0; i < nimpropertypes; i++)
       itypelabel[i] = fmt::format("{}",i);
   }
+
+  // allocate space for lmap2lmap
+
+  lmap2lmap.atom = new int[natomtypes];
+  lmap2lmap.bond = new int[nbondtypes];
+  lmap2lmap.angle = new int[nangletypes];
+  lmap2lmap.dihedral = new int[ndihedraltypes];
+  lmap2lmap.improper = new int[nimpropertypes];
 }
 
 /* ----------------------------------------------------------------------
-   copy lmap1 to lmap2
+   copy another map (lmap2) into this one
+   if label already exists, leave in place
+   else, put new label in next available slot
 ------------------------------------------------------------------------- */
 
-void LabelMap::copy_lmap(LabelMap *lmap1, LabelMap *lmap2)
+void LabelMap::merge_lmap(class LabelMap *lmap2)
 {
-  int ncopy;
-
-  ncopy = min(lmap1->natomtypes, lmap2->natomtypes);
-  for (int i = 0; i < ncopy; i++)
-    lmap2->typelabel[i] = lmap1->typelabel[i];
+  for (int i = 0; i < lmap2->natomtypes; i++)
+    find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
 
   if (force->bond) {
-    ncopy = min(lmap1->nbondtypes, lmap2->nbondtypes);
-    for (int i = 0; i < ncopy; i++)
-      lmap1->btypelabel[i] = lmap2->btypelabel[i];
+    for (int i = 0; i < lmap2->nbondtypes; i++)
+      find_or_create(lmap2->btypelabel[i],btypelabel,nbondtypes);
   }
 
   if (force->angle) {
-    ncopy = min(lmap1->nangletypes, lmap2->nangletypes);
-    for (int i = 0; i < ncopy; i++)
-      lmap1->atypelabel[i] = lmap2->atypelabel[i];
+    for (int i = 0; i < lmap2->nangletypes; i++)
+      find_or_create(lmap2->atypelabel[i],atypelabel,nangletypes);
   }
 
   if (force->dihedral) {
-    ncopy = min(lmap1->ndihedraltypes, lmap2->ndihedraltypes);
-    for (int i = 0; i < ncopy; i++)
-      lmap1->dtypelabel[i] = lmap2->dtypelabel[i];
+    for (int i = 0; i < lmap2->ndihedraltypes; i++)
+      find_or_create(lmap2->dtypelabel[i],dtypelabel,ndihedraltypes);
   }
 
   if (force->improper) {
-    ncopy = min(lmap1->nimpropertypes, lmap2->nimpropertypes);
-    for (int i = 0; i < ncopy; i++)
-      lmap1->itypelabel[i] = lmap2->itypelabel[i];
+    for (int i = 0; i < lmap2->nimpropertypes; i++)
+      find_or_create(lmap2->itypelabel[i],itypelabel,nimpropertypes);
   }
+}
+
+/* ----------------------------------------------------------------------
+   get mapping between this label map and another (lmap2)
+   values of lmap2lmap point to equivalent indices in lmap2
+------------------------------------------------------------------------- */
+
+void LabelMap::create_lmap2lmap(class LabelMap *lmap2)
+{
+  int type;
+
+  for (int i = 0; i < natomtypes; i++) {
+    type = find(typelabel[i],lmap2->typelabel,lmap2->natomtypes);
+    lmap2lmap.atom[i] = type - 1;
+  }
+
+  if (force->bond) {
+    lmap2lmap.bond = new int[nbondtypes];
+    for (int i = 0; i < nbondtypes; i++) {
+      type = find(btypelabel[i],lmap2->btypelabel,lmap2->nbondtypes);
+      lmap2lmap.bond[i] = type - 1;
+    }
+  }
+
+  if (force->angle) {
+    for (int i = 0; i < nangletypes; i++) {
+      type = find(atypelabel[i],lmap2->atypelabel,lmap2->nangletypes);
+      lmap2lmap.angle[i] = type - 1;
+    }
+  }
+
+  if (force->dihedral) {
+    for (int i = 0; i < ndihedraltypes; i++) {
+      type = find(dtypelabel[i],lmap2->dtypelabel,lmap2->ndihedraltypes);
+      lmap2lmap.dihedral[i] = type - 1;
+    }
+  }
+
+  if (force->improper) {
+    for (int i = 0; i < nimpropertypes; i++) {
+      type = find(itypelabel[i],lmap2->itypelabel,lmap2->nimpropertypes);
+      lmap2lmap.improper[i] = type - 1;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   find type label with name or create type if it doesn't exist
+   return numeric type
+------------------------------------------------------------------------- */
+
+int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> labels, int ntypes)
+{
+  for (int i = 0; i < ntypes; i++)
+    if (labels[i] == mylabel) return i+1;
+
+  // if no match found, create new label at next available index
+  // label map assumed to be intialized with numeric index
+  // user labels are assumed to be alphanumeric (not a number)
+
+  for (int i = 0; i < ntypes; i++) {
+    if (stoi(labels[i]) != i+1) {
+      labels[i] = mylabel;
+      return i+1;
+    }
+  }
+
+  // if label cannot be found or created, need more space reserved
+
+  error->all(FLERR,"Topology type exceeds system topology type");
 }
 
 /* ----------------------------------------------------------------------
@@ -120,10 +200,10 @@ void LabelMap::copy_lmap(LabelMap *lmap1, LabelMap *lmap2)
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::find_type(char *mytypelabel, char **typelabelarray, int num_types)
+int LabelMap::find(std::string mylabel, std::vector<std::string> labels, int ntypes)
 {
-  for (int i = 0; i < num_types; i++) {
-    if (typelabelarray[i] && strcmp(mytypelabel,typelabelarray[i]) == 0) return i+1;
-  }
+  for (int i = 0; i < ntypes; i++)
+    if (labels[i] == mylabel) return i+1;
+
   return -1;
 }

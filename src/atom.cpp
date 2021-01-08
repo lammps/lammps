@@ -313,6 +313,7 @@ Atom::~Atom()
   memory->sfree(molecules);
 
   // delete label map
+
   delete lmap;
 
   // delete per-type arrays

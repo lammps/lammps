@@ -1981,13 +1981,13 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes)
   }
   delete [] typelabel;
 
-  // if first data file, assign this label map to atom class
+  // if first data file, assign this read_data label map to atom class
   // else, determine mapping to let labels override numeric types
 
   if (addflag == NONE) {
-    lmap->copy_lmap(lmap,atom->lmap);
+    atom->lmap->merge_lmap(lmap);
   } else {
-    ; // get lmap2lmap mapping. ...in progress...
+    lmap->create_lmap2lmap(atom->lmap);
   }
 }
 

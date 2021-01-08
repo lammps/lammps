@@ -1884,7 +1884,7 @@ void Atom::add_molecule(int narg, char **arg)
 
 int Atom::find_molecule(char *id)
 {
-  if(id == nullptr) return -1;
+  if (id == nullptr) return -1;
   int imol;
   for (imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
@@ -2330,7 +2330,7 @@ void Atom::update_callback(int ifix)
 
 int Atom::find_custom(const char *name, int &flag)
 {
-  if(name == nullptr) return -1;
+  if (name == nullptr) return -1;
 
   for (int i = 0; i < nivector; i++)
     if (iname[i] && strcmp(iname[i],name) == 0) {

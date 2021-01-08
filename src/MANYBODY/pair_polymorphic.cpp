@@ -646,7 +646,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&npair, 1, MPI_INT, 0, world);
   MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     delete [] match;
     match = new int[nelements];
     delete [] pairParameters;

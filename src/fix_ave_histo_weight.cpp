@@ -138,7 +138,7 @@ void FixAveHistoWeight::end_of_step()
   if (which[i] == X) {
     weights = &atom->x[0][j];
     stride = 3;
-  } else if (which[i] == V){
+  } else if (which[i] == V) {
     weights = &atom->v[0][j];
     stride = 3;
     bin_atoms(&atom->v[0][j],3);

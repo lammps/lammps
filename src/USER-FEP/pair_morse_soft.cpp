@@ -35,7 +35,7 @@ using namespace MathSpecial;
 
 PairMorseSoft::~PairMorseSoft()
 {
-  if(allocated){
+  if (allocated) {
     memory->destroy(lambda);
   }
 }
@@ -108,7 +108,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
         V0 = D * dexp * ( dexp - 2.0 );
         B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-        if (l >= shift_range){
+        if (l >= shift_range) {
           s1  = (l - 1.0) / (shift_range - 1.0);
           phi = V0 + B*dexp3 * s1;
 
@@ -121,7 +121,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           phi *= llf;
 
           // Force computation:
-          if (r == 0.0){
+          if (r == 0.0) {
             fpair = 0.0;
           } else {
             fpair = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
@@ -256,7 +256,7 @@ double PairMorseSoft::init_one(int i, int j)
     V0 = D * dexp * ( dexp - 2.0 );
     B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-    if (l >= shift_range){
+    if (l >= shift_range) {
       s1  = (l - 1.0) / (shift_range - 1.0);
       offset[i][j] = V0 + B*dexp3 * s1;
     } else {
@@ -415,7 +415,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
   V0 = D * dexp * ( dexp - 2.0 );
   B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-  if (l >= shift_range){
+  if (l >= shift_range) {
     s1  = (l - 1.0) / (shift_range - 1.0);
     phi = V0 + B*dexp3 * s1;
 
@@ -428,7 +428,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
     phi *= llf;
 
     // Force computation:
-    if (r == 0.0){
+    if (r == 0.0) {
       fforce = 0.0;
     } else {
       fforce = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);

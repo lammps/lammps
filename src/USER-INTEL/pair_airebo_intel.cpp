@@ -308,7 +308,7 @@ void PairAIREBOIntel::compute(
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -450,7 +450,7 @@ void PairAIREBOIntel::eval(
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
 
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \

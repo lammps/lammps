@@ -88,7 +88,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
   h_resize() = 1;
 
-  while(h_resize() > 0) {
+  while (h_resize() > 0) {
     h_resize() = 0;
     deep_copy(d_resize, h_resize);
 
@@ -107,7 +107,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
 
     deep_copy(h_resize, d_resize);
-    if(h_resize()) {
+    if (h_resize()) {
 
       atoms_per_bin += 16;
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
@@ -131,7 +131,7 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 
   atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
-  if(ac < (int)bins.extent(1)) {
+  if (ac < (int)bins.extent(1)) {
     bins(ibin, ac) = i;
   } else {
     d_resize() = 1;

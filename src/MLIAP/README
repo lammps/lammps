@@ -9,13 +9,13 @@ and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
 or many different descriptors with a given model. The pair_style
-supports the following models: *linear*, *quadratic*, and 
+supports the following models: *linear*, *quadratic*, and
 *mliappy* (general Python interface to things like PyTorch, see below
 for build instructions).
-It currently supports only one class of descriptors, 
+It currently supports only one class of descriptors,
 *sna*, the SNAP descriptors, including the
-linear, quadratic, and chem variants. 
-It is straightforward to add new descriptor and model 
+linear, quadratic, and chem variants.
+It is straightforward to add new descriptor and model
 styles.
 
 The mliap compute style provides gradients of the energy, force,
@@ -37,7 +37,7 @@ potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP.
 The *mliappy* energy model requires that the MLIAP package
 be compiled with Python support enabled.
 This extension, written by Nick Lubbers (LANL),
-provides a coupling to PyTorch and other Python modules. 
+provides a coupling to PyTorch and other Python modules.
 This should be automatically
 enabled by default if the prerequisite software is installed.  It can be
 enforced during CMake configuration by setting the variable

@@ -25,7 +25,7 @@ else()
   find_package(Python3 COMPONENTS Interpreter)
 endif()
 
-if (Python_EXECUTABLE)
+if(Python_EXECUTABLE)
   # prepare to augment the environment so that the LAMMPS python module and the shared library is found.
   set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
   if(APPLE)

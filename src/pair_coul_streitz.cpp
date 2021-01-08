@@ -113,10 +113,10 @@ void PairCoulStreitz::settings(int narg, char **arg)
 
   cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
-  if (strcmp(arg[1],"wolf") == 0){
+  if (strcmp(arg[1],"wolf") == 0) {
     kspacetype = 1;
     g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
-  } else if (strcmp(arg[1],"ewald") == 0){
+  } else if (strcmp(arg[1],"ewald") == 0) {
     ewaldflag = pppmflag = 1;
     kspacetype = 2;
   } else {
@@ -247,7 +247,7 @@ void PairCoulStreitz::read_file(char *file)
     PotentialFileReader reader(lmp, file, "coul/streitz");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -297,7 +297,7 @@ void PairCoulStreitz::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -318,7 +318,7 @@ void PairCoulStreitz::setup_params()
   for (i = 0; i < nelements; i++) {
     n = -1;
     for (m = 0; m < nparams; m++) {
-      if (i == params[m].ielement ) {
+      if (i == params[m].ielement) {
         if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
         n = m;
       }

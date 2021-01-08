@@ -265,7 +265,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   fnoneq=0; gle_every=1; gle_step=0;
   for (int iarg=8; iarg<narg; iarg+=2) {
-    if(strcmp(arg[iarg],"noneq") == 0) {
+    if (strcmp(arg[iarg],"noneq") == 0) {
       fnoneq = 1;
       if (iarg+2>narg)
         error->all(FLERR,"Did not specify C matrix for non-equilibrium GLE");

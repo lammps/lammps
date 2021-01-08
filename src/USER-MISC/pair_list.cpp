@@ -216,7 +216,7 @@ void PairList::settings(int narg, char **arg)
 
   // count lines in file for upper limit of storage needed
   int num = 1;
-  while(fgets(line,1024,fp)) ++num;
+  while (fgets(line,1024,fp)) ++num;
   rewind(fp);
   memory->create(style,num,"pair_list:style");
   memory->create(params,num,"pair_list:params");
@@ -227,7 +227,7 @@ void PairList::settings(int narg, char **arg)
   tagint id1, id2;
   int nharm=0, nmorse=0, nlj126=0;
 
-  while(fgets(line,1024,fp)) {
+  while (fgets(line,1024,fp)) {
     ptr = strtok(line," \t\n\r\f");
 
     // skip empty lines

@@ -679,7 +679,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
                 } // end loop over jj neighbors of i
 
                 // avoid division by zero and overflow
-                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)){
+                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)) {
                         hourglass_error[i] /= shepardWeight;
                 }
 

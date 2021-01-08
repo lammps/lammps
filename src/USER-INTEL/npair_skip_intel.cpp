@@ -95,7 +95,7 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
     packthreads = 1;
 
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     int tid, ifrom, ito;

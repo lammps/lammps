@@ -12,9 +12,9 @@ namespace user_manifold {
   class manifold_supersphere : public manifold {
    public:
     enum { NPARAMS = 2 };
-    manifold_supersphere( LAMMPS *lmp, int, char ** ) : manifold(lmp){}
+    manifold_supersphere( LAMMPS *lmp, int, char ** ) : manifold(lmp) {}
 
-    virtual ~manifold_supersphere(){}
+    virtual ~manifold_supersphere() {}
 
     double my_sign( double a )
     {
@@ -46,10 +46,10 @@ namespace user_manifold {
       nn[2] = q * my_sign(x[2])*pow(zz,q-1);
     }
 
-    static const char* type(){ return "supersphere"; }
-    virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }
+    static const char* type() { return "supersphere"; }
+    virtual const char *id() { return type(); }
+    static int expected_argc() { return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
   };
 }
 

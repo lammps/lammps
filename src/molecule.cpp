@@ -796,7 +796,7 @@ void Molecule::fragments(char *line)
 
       fragmentnames[i] = values.next_string();
 
-      while(values.has_next()) {
+      while (values.has_next()) {
         int atomID = values.next_int();
         if (atomID <= 0 || atomID > natoms)
           error->one(FLERR,"Invalid atom ID in Fragments section of molecule file");
@@ -1630,11 +1630,11 @@ void Molecule::body(int flag, int pflag, char *line)
 
       if (flag) {
         if (pflag == 0) {
-          while(values.has_next()) {
+          while (values.has_next()) {
             ibodyparams[nword++] = values.next_int();
           }
         } else {
-          while(values.has_next()) {
+          while (values.has_next()) {
             dbodyparams[nword++] = values.next_double();
           }
         }

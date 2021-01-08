@@ -137,7 +137,7 @@ void PairAGNIOMP::eval(int iifrom, int iito, ThrData * const thr)
       double ky = 0.0;
       double kz = 0.0;
 
-      for(int k = 0; k < iparam.numeta; ++k) {
+      for (int k = 0; k < iparam.numeta; ++k) {
         const double xu = iparam.xU[k][j];
         kx += square(Vx[k] - xu);
         ky += square(Vy[k] - xu);

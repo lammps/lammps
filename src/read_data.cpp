@@ -124,7 +124,7 @@ void ReadData::command(int narg, char **arg)
   addflag = NONE;
   coeffflag = 1;
   id_offset = mol_offset = 0;
-  offsetflag = shiftflag = 0;
+  offsetflag = shiftflag = labelflag = 0;
   toffset = boffset = aoffset = doffset = ioffset = 0;
   shift[0] = shift[1] = shift[2] = 0.0;
   extra_atom_types = extra_bond_types = extra_angle_types =
@@ -730,7 +730,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (atomflag == 1)
             error->all(FLERR,"Must read Atom Type Labels before Atoms");
-          typelabels(lmap->typelabel,ntypes);
+          typelabels(lmap->typelabel,ntypes,lmap->ATOM);
         } else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
@@ -738,7 +738,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (bondflag == 1)
               error->all(FLERR,"Must read Bond Type Labels before Bonds");
-            typelabels(lmap->btypelabel,nbondtypes);
+            typelabels(lmap->btypelabel,nbondtypes,lmap->BOND);
           } else skip_lines(nbondtypes);
         }
 
@@ -747,7 +747,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (angleflag == 1)
               error->all(FLERR,"Must read Angle Type Labels before Angles");
-            typelabels(lmap->atypelabel,nangletypes);
+            typelabels(lmap->atypelabel,nangletypes,lmap->ANGLE);
           } else skip_lines(nangletypes);
         }
 
@@ -756,7 +756,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (dihedralflag == 1)
               error->all(FLERR,"Must read Dihedral Type Labels before Dihedrals");
-            typelabels(lmap->dtypelabel,ndihedraltypes);
+            typelabels(lmap->dtypelabel,ndihedraltypes,lmap->DIHEDRAL);
           } else skip_lines(ndihedraltypes);
         }
 
@@ -765,7 +765,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (improperflag == 1)
               error->all(FLERR,"Must read Improper Type Labels before Impropers");
-            typelabels(lmap->itypelabel,nimpropertypes);
+            typelabels(lmap->itypelabel,nimpropertypes,lmap->IMPROPER);
           } else skip_lines(nimpropertypes);
         }
 
@@ -1280,7 +1280,8 @@ void ReadData::atoms()
     nchunk = MIN(natoms-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
+    atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,
+                     shiftflag,shift,labelflag,lmap->lmap2lmap.atom);
     nread += nchunk;
   }
 
@@ -1798,7 +1799,7 @@ void ReadData::mass()
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    atom->set_mass(FLERR,buf,toffset);
+    atom->set_mass(FLERR,buf,toffset,labelflag,lmap->lmap2lmap.atom);
     buf = next + 1;
   }
   delete [] original;
@@ -1818,7 +1819,7 @@ void ReadData::paircoeffs()
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    parse_coeffs(buf,nullptr,1,2,toffset);
+    parse_coeffs(buf,nullptr,1,2,toffset,lmap->lmap2lmap.atom);
     if (narg == 0)
       error->all(FLERR,"Unexpected empty line in PairCoeffs section");
     force->pair->coeff(narg,arg);
@@ -1845,7 +1846,7 @@ void ReadData::pairIJcoeffs()
     for (j = i; j < ntypes; j++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      parse_coeffs(buf,nullptr,0,2,toffset);
+      parse_coeffs(buf,nullptr,0,2,toffset,lmap->lmap2lmap.atom);
       if (narg == 0)
         error->all(FLERR,"Unexpected empty line in PairCoeffs section");
       force->pair->coeff(narg,arg);
@@ -1870,7 +1871,7 @@ void ReadData::bondcoeffs()
   for (int i = 0; i < nbondtypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    parse_coeffs(buf,nullptr,0,1,boffset);
+    parse_coeffs(buf,nullptr,0,1,boffset,lmap->lmap2lmap.bond);
     if (narg == 0)
       error->all(FLERR,"Unexpected empty line in BondCoeffs section");
     force->bond->coeff(narg,arg);
@@ -1895,9 +1896,9 @@ void ReadData::anglecoeffs(int which)
   for (int i = 0; i < nangletypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    if (which == 0) parse_coeffs(buf,nullptr,0,1,aoffset);
-    else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
-    else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
+    if (which == 0) parse_coeffs(buf,nullptr,0,1,aoffset,lmap->lmap2lmap.angle);
+    else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset,lmap->lmap2lmap.angle);
+    else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset,lmap->lmap2lmap.angle);
     if (narg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
     force->angle->coeff(narg,arg);
     buf = next + 1;
@@ -1921,12 +1922,12 @@ void ReadData::dihedralcoeffs(int which)
   for (int i = 0; i < ndihedraltypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    if (which == 0) parse_coeffs(buf,nullptr,0,1,doffset);
-    else if (which == 1) parse_coeffs(buf,"mbt",0,1,doffset);
-    else if (which == 2) parse_coeffs(buf,"ebt",0,1,doffset);
-    else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
-    else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
-    else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
+    if (which == 0) parse_coeffs(buf,nullptr,0,1,doffset,lmap->lmap2lmap.dihedral);
+    else if (which == 1) parse_coeffs(buf,"mbt",0,1,doffset,lmap->lmap2lmap.dihedral);
+    else if (which == 2) parse_coeffs(buf,"ebt",0,1,doffset,lmap->lmap2lmap.dihedral);
+    else if (which == 3) parse_coeffs(buf,"at",0,1,doffset,lmap->lmap2lmap.dihedral);
+    else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset,lmap->lmap2lmap.dihedral);
+    else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset,lmap->lmap2lmap.dihedral);
     if (narg == 0)
       error->all(FLERR,"Unexpected empty line in DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
@@ -1951,8 +1952,8 @@ void ReadData::impropercoeffs(int which)
   for (int i = 0; i < nimpropertypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    if (which == 0) parse_coeffs(buf,nullptr,0,1,ioffset);
-    else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
+    if (which == 0) parse_coeffs(buf,nullptr,0,1,ioffset,lmap->lmap2lmap.improper);
+    else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset,lmap->lmap2lmap.improper);
     if (narg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
     force->improper->coeff(narg,arg);
     buf = next + 1;
@@ -1962,11 +1963,13 @@ void ReadData::impropercoeffs(int which)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes)
+void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
 {
   int n;
   char *next;
   char *buf = new char[myntypes*MAXLINE];
+
+  labelflag = 1;
 
   int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1981,14 +1984,12 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes)
   }
   delete [] typelabel;
 
-  // if first data file, assign this read_data label map to atom class
-  // else, determine mapping to let labels override numeric types
+  // merge this read_data label map to atom class
+  // determine mapping to let labels override numeric types
+  // valid operations for first or subsequent data files
 
-  if (addflag == NONE) {
-    atom->lmap->merge_lmap(lmap);
-  } else {
-    lmap->create_lmap2lmap(atom->lmap);
-  }
+  atom->lmap->merge_lmap(lmap,mode);
+  lmap->create_lmap2lmap(atom->lmap,mode);
 }
 
 /* ----------------------------------------------------------------------
@@ -2151,10 +2152,11 @@ void ReadData::skip_lines(bigint n)
      else add addstr before 2nd word
    if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
    if noffset, add offset to first noffset args, which are atom/bond/etc types
+   if labelflag, use ilabel to find the correct remapping of numeric type
 ------------------------------------------------------------------------- */
 
-void ReadData::parse_coeffs(char *line, const char *addstr,
-                            int dupflag, int noffset, int offset)
+void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag,
+                            int noffset, int offset, int *ilabel)
 {
   char *ptr;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';
@@ -2180,10 +2182,12 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
 
   if (noffset) {
     int value = utils::inumeric(FLERR,arg[0],false,lmp);
+    if (labelflag) value = ilabel[value-1];
     sprintf(argoffset1,"%d",value+offset);
     arg[0] = argoffset1;
     if (noffset == 2) {
       value = utils::inumeric(FLERR,arg[1],false,lmp);
+      if (labelflag) value = ilabel[value-1];
       sprintf(argoffset2,"%d",value+offset);
       arg[1] = argoffset2;
     }

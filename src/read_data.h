@@ -67,7 +67,7 @@ class ReadData : protected Pointers {
 
   // optional args
 
-  int addflag,offsetflag,shiftflag,coeffflag;
+  int addflag,offsetflag,shiftflag,coeffflag,labelflag;
   tagint addvalue;
   int toffset,boffset,aoffset,doffset,ioffset;
   double shift[3];
@@ -88,7 +88,7 @@ class ReadData : protected Pointers {
   void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int, int, int);
+  void parse_coeffs(char *, const char *, int, int, int, int *);
   int style_match(const char *, const char *);
 
   void atoms();
@@ -110,7 +110,7 @@ class ReadData : protected Pointers {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
-  void typelabels(std::vector<std::string> &, int);
+  void typelabels(std::vector<std::string> &, int, int);
 
   void fix(int, char *);
 };

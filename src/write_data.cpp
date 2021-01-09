@@ -182,16 +182,14 @@ void WriteData::write(const std::string &file)
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
+  // label map must come before coeffs
 
   if (me == 0) {
     header();
+    atom->lmap->write_data(fp); // NOTE: always write for now, for testing
     type_arrays();
     if (coeffflag) force_fields();
   }
-
-  // label map before Atoms, Bonds, etc.
-
-  if (me == 0) atom->lmap->write_data(fp); // NOTE: always write for now, for testing
 
   // per atom info in Atoms and Velocities sections
 

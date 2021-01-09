@@ -20,6 +20,7 @@ namespace LAMMPS_NS {
 
 class LabelMap : protected Pointers {
  public:
+   enum{ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER};
    int natomtypes,nbondtypes,nangletypes;
    int ndihedraltypes,nimpropertypes;
    std::vector<std::string> typelabel,btypelabel,atypelabel;
@@ -41,8 +42,8 @@ class LabelMap : protected Pointers {
    ~LabelMap();
 
    void allocate_type_labels();
-   void merge_lmap(class LabelMap *); // copy another lmap into this one
-   void create_lmap2lmap(class LabelMap *); // index mapping between two lmaps
+   void merge_lmap(class LabelMap *, int); // copy another lmap into this one
+   void create_lmap2lmap(class LabelMap *, int); // index mapping between two lmaps
    int find_or_create(std::string, std::vector<std::string> &, int); // look up type or create new type
    int find(std::string, std::vector<std::string>, int); // look up type index
    void write_data(FILE *);

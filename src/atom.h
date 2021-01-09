@@ -301,7 +301,8 @@ class Atom : protected Pointers {
 
   void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *,
+                  int, int *);
   void data_vels(int, char *, tagint);
   void data_bonds(int, char *, int *, tagint, int);
   void data_angles(int, char *, int *, tagint, int);
@@ -312,7 +313,7 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int, const char *, int);
+  void set_mass(const char *, int, const char *, int, int, int *);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);
   void set_mass(double *);

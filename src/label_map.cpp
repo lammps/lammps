@@ -97,74 +97,60 @@ void LabelMap::allocate_type_labels()
    else, put new label in next available slot
 ------------------------------------------------------------------------- */
 
-void LabelMap::merge_lmap(class LabelMap *lmap2)
+void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
-  for (int i = 0; i < lmap2->natomtypes; i++)
-    find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
+  if (mode == ATOM)
+    for (int i = 0; i < lmap2->natomtypes; i++)
+      find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
 
-  if (force->bond) {
+  if (mode == BOND)
     for (int i = 0; i < lmap2->nbondtypes; i++)
       find_or_create(lmap2->btypelabel[i],btypelabel,nbondtypes);
-  }
 
-  if (force->angle) {
+  if (mode == ANGLE)
     for (int i = 0; i < lmap2->nangletypes; i++)
       find_or_create(lmap2->atypelabel[i],atypelabel,nangletypes);
-  }
 
-  if (force->dihedral) {
+  if (mode == DIHEDRAL)
     for (int i = 0; i < lmap2->ndihedraltypes; i++)
       find_or_create(lmap2->dtypelabel[i],dtypelabel,ndihedraltypes);
-  }
 
-  if (force->improper) {
+  if (mode == IMPROPER)
     for (int i = 0; i < lmap2->nimpropertypes; i++)
       find_or_create(lmap2->itypelabel[i],itypelabel,nimpropertypes);
-  }
 }
 
 /* ----------------------------------------------------------------------
    get mapping between this label map and another (lmap2)
-   values of lmap2lmap point to equivalent indices in lmap2
+   values of lmap2lmap point to equivalent types in lmap2
 ------------------------------------------------------------------------- */
 
-void LabelMap::create_lmap2lmap(class LabelMap *lmap2)
+void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
 {
-  int type;
+  if (mode == ATOM)
+    for (int i = 0; i < natomtypes; i++)
+      lmap2lmap.atom[i] = find(typelabel[i],lmap2->typelabel,
+                               lmap2->natomtypes);
 
-  for (int i = 0; i < natomtypes; i++) {
-    type = find(typelabel[i],lmap2->typelabel,lmap2->natomtypes);
-    lmap2lmap.atom[i] = type - 1;
-  }
+  if (mode == BOND)
+    for (int i = 0; i < nbondtypes; i++)
+      lmap2lmap.bond[i] = find(btypelabel[i],lmap2->btypelabel,
+                               lmap2->nbondtypes);
 
-  if (force->bond) {
-    lmap2lmap.bond = new int[nbondtypes];
-    for (int i = 0; i < nbondtypes; i++) {
-      type = find(btypelabel[i],lmap2->btypelabel,lmap2->nbondtypes);
-      lmap2lmap.bond[i] = type - 1;
-    }
-  }
+  if (mode == ANGLE)
+    for (int i = 0; i < nangletypes; i++)
+      lmap2lmap.angle[i] = find(atypelabel[i],lmap2->atypelabel,
+                                lmap2->nangletypes);
 
-  if (force->angle) {
-    for (int i = 0; i < nangletypes; i++) {
-      type = find(atypelabel[i],lmap2->atypelabel,lmap2->nangletypes);
-      lmap2lmap.angle[i] = type - 1;
-    }
-  }
+  if (mode == DIHEDRAL)
+    for (int i = 0; i < ndihedraltypes; i++)
+      lmap2lmap.dihedral[i] = find(dtypelabel[i],lmap2->dtypelabel,
+                                   lmap2->ndihedraltypes);
 
-  if (force->dihedral) {
-    for (int i = 0; i < ndihedraltypes; i++) {
-      type = find(dtypelabel[i],lmap2->dtypelabel,lmap2->ndihedraltypes);
-      lmap2lmap.dihedral[i] = type - 1;
-    }
-  }
-
-  if (force->improper) {
-    for (int i = 0; i < nimpropertypes; i++) {
-      type = find(itypelabel[i],lmap2->itypelabel,lmap2->nimpropertypes);
-      lmap2lmap.improper[i] = type - 1;
-    }
-  }
+  if (mode == IMPROPER)
+    for (int i = 0; i < nimpropertypes; i++)
+      lmap2lmap.improper[i] = find(itypelabel[i],lmap2->itypelabel,
+                                   lmap2->nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------

@@ -1029,7 +1029,8 @@ void Atom::deallocate_topology()
 ------------------------------------------------------------------------- */
 
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
-                      int type_offset, int shiftflag, double *shift)
+                      int type_offset, int shiftflag, double *shift,
+                      int labelflag, int *ilabel)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -1164,6 +1165,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
       if (mol_offset) molecule[nlocal-1] += mol_offset;
+      if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)
@@ -1707,7 +1709,8 @@ void Atom::allocate_type_arrays()
    type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *file, int line, const char *str, int type_offset)
+void Atom::set_mass(const char *file, int line, const char *str, int type_offset,
+                    int labelflag, int *ilabel)
 {
   if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
 
@@ -1715,6 +1718,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
   if (n != 2) error->all(file,line,"Invalid mass line in data file");
+  if (labelflag) itype = ilabel[itype-1];
   itype += type_offset;
 
   if (itype < 1 || itype > ntypes)

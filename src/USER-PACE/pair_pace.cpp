@@ -237,13 +237,32 @@ void PairPACE::allocate() {
 ------------------------------------------------------------------------- */
 
 void PairPACE::settings(int narg, char **arg) {
-    if (narg > 0)
+    if (narg > 1)
         error->all(FLERR,
-                   "Illegal pair_style command. Correct form:\npair_style pace");
+                   "Illegal pair_style command. Correct form:\n\tpair_style pace\nor\n\tpair_style pace recursive");
+
+    if (narg > 0) {
+        if (strcmp(arg[0], "recursive") == 0)
+            recursive = true;
+        else {
+            error->all(FLERR,
+                       "Illegal pair_style command: pair_style pace ");
+            error->all(FLERR, arg[0]);
+            error->all(FLERR, "\nCorrect form:\n\tpair_style pace\nor\n\tpair_style pace recursive");
+        }
+    }
 
     if (comm->me == 0) {
         if (screen) fprintf(screen, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
         if (logfile) fprintf(logfile, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+
+        if (recursive) {
+            if (screen) fprintf(screen, "Recursive evaluator version are used\n");
+            if (logfile) fprintf(logfile, "Recursive evaluator version are used\n");
+        } else {
+            if (screen) fprintf(screen, "Product evaluator version are used\n");
+            if (logfile) fprintf(logfile, "Product evaluator version are used\n");
+        }
     }
 
 
@@ -308,7 +327,7 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[0] is not used
 
     ace = new ACERecursiveEvaluator();
-    ace->set_recursive(true);
+    ace->set_recursive(recursive);
     ace->element_type_mapping.init(atom->ntypes + 1);
 
     for (int i = 1; i <= atom->ntypes; i++) {
@@ -358,7 +377,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
     if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
-    ace->set_basis(*basis_set);
+    ace->set_basis(*basis_set, 1);
 }
 
 /* ----------------------------------------------------------------------

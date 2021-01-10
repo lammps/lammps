@@ -61,6 +61,8 @@ namespace LAMMPS_NS {
         int *jlist_local;
         int *type_local;
         double **scale;
+
+        bool recursive = false;       // "recursive" option for ACERecursiveEvaluator
     };
 
 }

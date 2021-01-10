@@ -12,16 +12,27 @@
  *        (just the DAG construction, not the traversal)
  * ------------------------------------------------------------ */
 
+/* Notes on different Tags: 
+ *   rec1 - first basic implementation
+ *   rec2 - avoid index arithmetic, contiguous layout, 
+ *          canonical evaluator in ACE.jl format
+ *   rec3 - split nodes into interior and leaf nodes
+ */
+
 void ACEDAG::init(Array2D<int> xAspec,
                   Array2D<int> AAspec,
                   Array1D<int> orders,
-                  Array2D<ACEComplex> jl_coeffs) {
+                  Array2D<ACEComplex> jl_coeffs,
+                  int _heuristic) {
+
+    // remember which heuristic we want to use!
+    heuristic = _heuristic;
+
     /* stage one of the graph is just extracting the A basis from 
      * the tensor product format into the linear list; all information 
      * for that is already stored in Aspec, and the only thing to do here is 
      * to construct zero-coefficients. Still we have to copy Aspec, since 
      * the one we have here will (may?) be deleted. */
-
     int num1 = xAspec.get_dim(0);
     Aspec.resize(num1, 4);
     for (int i = 0; i < num1; i++)
@@ -43,12 +54,14 @@ void ACEDAG::init(Array2D<int> xAspec,
        recursion info will be stored in DAGspec, while the 
        coefficients go into DAGcoeffs. These arrays are initialized to 
        length `num2`, but they will have to grow as we add additional 
-        artificial nodes into the graph. */
-
+        artificial nodes into the graph. 
+        
+        initially we treat all nodes as having children, but then in a 
+        second stage below we reorganize. */
     int num2 = AAspec.get_dim(0);
     int ndensity = jl_coeffs.get_dim(1);
-    nodes.resize(2 * num2, 2);
-    coeffs.resize(2 * num2, ndensity);
+    nodes_pre.resize(2 * num2, 2);
+    coeffs_pre.resize(2 * num2, ndensity);
 
     /* the first basis function we construct will get index num1, 
      * since there are already num1 one-particle basis functions 
@@ -65,12 +78,84 @@ void ACEDAG::init(Array2D<int> xAspec,
         insert_node(DAGmap, aa, c);
     }
 
-    // TODO : free up some memory...
+    /* convert to 3-stage format through reordering
+     * interior nodes first, then leaf nodes  */
 
-    /* finalize dag  */
-    num_nodes = dag_idx;   // store size of dag (array might be larger)
-    AAbuf.resize(num_nodes);
+    // allocate storage 
+    num_nodes = dag_idx;   // store total size of dag
+    // num_nodes - num1 = number of many-body nodes.
+    nodes.resize(num_nodes - num1, 2);
+    coeffs.resize(num_nodes - num1, ndensity);
+
+    // find out which nodes have children 
+    haschild.resize(num_nodes - num1);
+    haschild.fill(false);
+    for (int iAA = 0; iAA < num_nodes - num1; iAA++) {
+        if (nodes_pre(iAA, 0) >= num1)
+            haschild(nodes_pre(iAA, 0) - num1) = true;
+        if (nodes_pre(iAA, 1) >= num1)
+            haschild(nodes_pre(iAA, 1) - num1) = true;
+    }
+
+    // to reorder the graph we need a fresh map from preordered indices  to 
+    // postordered indices; for the 1-particle basis the order remains the same. 
+    // TODO: doesn't need to be a map, could be a vector.
+    map<int, int> neworder;
+    for (int iA = 0; iA < num1; iA++)
+        neworder[iA] = iA;
+
+    // insert all interior nodes 
+    num2_int = 0;
+    num2_leaf = 0;
+    dag_idx = num1;
+    int i1, i2, i1pre, i2pre;
+    for (int iAA = 0; iAA < num_nodes - num1; iAA++) {
+        if (haschild(iAA)) {
+            num2_int += 1;
+            // indices into AAbuf before reordering
+            i1pre = nodes_pre(iAA, 0);
+            i2pre = nodes_pre(iAA, 1);
+            // indices into AAbuf after reordering 
+            i1 = neworder[i1pre];
+            i2 = neworder[i2pre];
+            // insert the current node : iAA is old order, dag_idx is new order
+            neworder[num1 + iAA] = dag_idx;
+            nodes(dag_idx - num1, 0) = i1;
+            nodes(dag_idx - num1, 1) = i2;
+            for (int t = 0; t < ndensity; t++)
+                coeffs(dag_idx - num1, t) = coeffs_pre(iAA, t);
+            dag_idx++;
+        }
+    }
+
+    // insert all leaf nodes
+    for (int iAA = 0; iAA < num_nodes - num1; iAA++) {
+        if (!haschild(iAA)) {
+            num2_leaf += 1;
+            // indices into AAbuf before reordering
+            i1pre = nodes_pre(iAA, 0);
+            i2pre = nodes_pre(iAA, 1);
+            // insert the current node : no need to remember the new order now
+            nodes(dag_idx - num1, 0) = neworder[i1pre];
+            nodes(dag_idx - num1, 1) = neworder[i2pre];
+            for (int t = 0; t < ndensity; t++)
+                coeffs(dag_idx - num1, t) = coeffs_pre(iAA, t);
+            dag_idx++;
+        }
+    }
+
+    cout << "num2_int = " << num2_int << "; num2_leaf = " << num2_leaf << "\n";
+
+    // free up memory that is no longer needed
+    nodes_pre.resize(0, 0);
+    coeffs_pre.resize(0, 0);
+    haschild.resize(0);
+
+    /* finalize dag: allocate buffer storage  */
+    AAbuf.resize(num1 + num2_int);
     w.resize(num_nodes);
+    // TODO: technically only need num1 + num2_int for w, this can save  one
+    //       memory access later, probably not worth the crazy code duplication.
 }
 
 void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
@@ -80,21 +165,25 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
     int ndensity = c.size();
     int num1 = get_num1();
 
+    // TODO: first try to find partitions into nodes that are already parents
+    //       that way we will get more leaf nodes!
     for (TPARTITION const &p : partitions) {
         /* this is the good case; the parent nodes are both already in the 
          * graph; add the new node and return. This is also the only place in the 
          * code where an actual insert happens. */
         if (DAGmap.count(p.first) && DAGmap.count(p.second)) {
-            if (nodes.get_dim(0) < dag_idx + 1) {
+            if (nodes_pre.get_dim(0) < dag_idx + 1) {
                 int newsize = (dag_idx * 3) / 2;
-                nodes.resize(newsize, 2);
-                coeffs.resize(newsize, ndensity);
+                nodes_pre.resize(newsize, 2);
+                coeffs_pre.resize(newsize, ndensity);
             }
-            nodes(dag_idx - num1, 0) = DAGmap[p.first];
-            nodes(dag_idx - num1, 1) = DAGmap[p.second];
+            int i1 = DAGmap[p.first];
+            int i2 = DAGmap[p.second];
+            nodes_pre(dag_idx - num1, 0) = i1;
+            nodes_pre(dag_idx - num1, 1) = i2;
             DAGmap[a] = dag_idx;
             for (int p = 0; p < ndensity; p++)
-                coeffs(dag_idx - num1, p) = c[p];
+                coeffs_pre(dag_idx - num1, p) = c[p];
             dag_idx += 1;
             return;
         }
@@ -106,7 +195,7 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
      *    try to find a partition where one of the two nodes are already 
      *    in the graph, if there are several, then we remember the longest
      *    (this is a very greedy heuristic!!)
-     *  .... (continnue below) ....
+     *  .... (continue below) ....
      */
     TPARTITION longest;
     int longest_length = 0;
@@ -123,36 +212,75 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
         }
     }
 
+    /* sanity check */
+    if (longest_length == 0) {
+        cout << "WARNING : something has gone horribly wrong! `longest_length == 0`! \n";
+        cout << "a = [";
+        for (int t = 0; t < a.size(); t++)
+            cout << a[t] << ", ";
+        cout << "]\n";
+        //  TODO: Throw and error here?!?
+        return;
+    }
+
     /* If there is a partition with one component already in the graph, 
      * then we only need to add in the other component. Note that there will 
      * always be at least one such partition, namely all those containing 
      * a one-element node e.g. (1,2,3,4) -> (1,) (2,3,4)  then (1,) is 
-     * a one-particle basis function and hence always in the graph.
+     * a one-particle basis function and hence always in the graph. 
+     * If heuristic == 0, then we just take one of those partitionas and move on.
+     * 
+     * We also accept the found partition if longest_length > 1.
+     * And we also accept it if we have a 2- or 3-correlation. 
      */
 
-    /* sanity check */
-    if (longest_length == 0) {
+    if ((heuristic == 0)
+        || (longest_length > 1)
+        || (a.size() <= 3)) {
+        /* insert the other node that isn't in the DAG yet 
+        * this is an artificial node so it gets zero-coefficients 
+        * This step is recursive, so more than one node might be inserted here */
+        vector<ACEComplex> cz(ndensity);
+        for (int i = 0; i < ndensity; i++) cz[i] = 0.0;
+        TPARTITION p = longest;
+        if (DAGmap.count(p.first))
+            insert_node(DAGmap, p.second, cz);
+        else
+            insert_node(DAGmap, p.first, cz);
+        // if (heuristic == 1) {
+        //     cout << "-";
+        // }
+    }
+
+        /* Second heuristic : heuristic == 1
+         * Focus on inserting artificial 2-correlations
+         */
+    else if (heuristic == 1) {
+        // cout << "+";
+        // and we also know that longest_length == 1 and nu = a.size >= 4.
+        int nu = a.size();
+        // generate an artificial partition
+        vector<int> a1(2);
+        for (int i = 0; i < 2; i++) a1[i] = a[i];
+        vector<int> a2(nu - 2);
+        for (int i = 0; i < nu - 2; i++) a2[i] = a[2 + i];
+        vector<ACEComplex> cz(ndensity);
+        // and insert both (we know neither are in the DAG yet)
+        insert_node(DAGmap, a1, cz);
+        insert_node(DAGmap, a2, cz);
+    } else {
         cout << "WARNING : something has gone horribly wrong! \n";
+        //  TODO: Throw and error here?!?
         return;
     }
 
-    /* insert the other node that isn't in the DAG yet 
-     * this is an artificial node so it gets zero-coefficients */
-    vector<ACEComplex> cz(ndensity);
-    for (int i = 0; i < ndensity; i++)
-        cz[i] = 0.0;
-    TPARTITION p = longest;
-    if (DAGmap.count(p.first)) {
-        insert_node(DAGmap, p.second, cz);
-    } else {
-        insert_node(DAGmap, p.first, cz);
-    }
-    /* now we should be ready to insert the entire tuple `a` 
-        * since there is now an eligible parent pair 
-        * Here we recompute the partition of `a`, but that's a small 
-        * price to pay for a clearer code. Maybe this can be optimized a bit
-        * by wrapping it all into a while loop or having a secon d
-        * version of `inser_node` ... */
+
+
+    /* now we should be ready to insert the entire tuple `a` since there is now 
+     * an eligible parent pair. Here we recompute the partition of `a`, but 
+     * that's a small price to pay for a clearer code. Maybe this can be 
+     * optimized a bit by wrapping it all into a while loop or having a second
+     * version of `insert_node` ... */
     insert_node(DAGmap, a, c);
     return;
 }
@@ -223,12 +351,12 @@ void ACEDAG::print() {
  * ------------------------------------------------------------ */
 
 
-void ACERecursiveEvaluator::set_basis(ACECTildeBasisSet &bas) {
+void ACERecursiveEvaluator::set_basis(ACECTildeBasisSet &bas, int heuristic) {
     basis_set = &bas;
-    init(basis_set);
+    init(basis_set, heuristic);
 }
 
-void ACERecursiveEvaluator::init(ACECTildeBasisSet *basis_set) {
+void ACERecursiveEvaluator::init(ACECTildeBasisSet *basis_set, int heuristic) {
 
     ACEEvaluator::init(basis_set);
 
@@ -267,7 +395,7 @@ void ACERecursiveEvaluator::init(ACECTildeBasisSet *basis_set) {
     // test_acejlformat(); 
 
     // now pass this info into the DAG 
-    dag.init(jl_Aspec, jl_AAspec, jl_orders, jl_coeffs);
+    dag.init(jl_Aspec, jl_AAspec, jl_orders, jl_coeffs, heuristic);
 
     // finally empty the temporary arrays to clear up the memory...
     // TODO 
@@ -304,13 +432,8 @@ void ACERecursiveEvaluator::acejlformat() {
     RANK_TYPE maxorder = basis_set->rankmax;
     const DENSITY_TYPE ndensity = basis_set->ndensitymax;
 
-    int num2 = 0;
     int num1 = 0;
 
-    /* count number of basis functions */
-    for (func_ind = 0; func_ind < total_basis_size; ++func_ind)
-        for (ms_ind = 0; ms_ind < (&basis[func_ind])->num_ms_combs; ++ms_ind, ++func_ms_ind)
-            num2 += 1;
 
     /* create a 4D lookup table for the 1-p basis 
      * TODO: replace with a map??
@@ -359,6 +482,90 @@ void ACERecursiveEvaluator::acejlformat() {
                     }
                 }
 
+    /* ============ HALF-BASIS TRICK START ============ */
+    for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
+        ACECTildeBasisFunction *func = &basis[func_ind];
+        order = func->rank;
+        mus = func->mus;
+        ns = func->ns;
+        ls = func->ls;
+        if (!((mus[0] <= maxmu) && (ns[0] <= maxn) && (ls[0] <= maxl)))
+            continue;
+
+        for (ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind, ++func_ms_ind) {
+            ms = &func->ms_combs[ms_ind * order];
+
+            // find first positive and negative index
+            int pos_idx = order + 1;
+            int neg_idx = order + 1;
+            for (t = order - 1; t >= 0; t--)
+                if (ms[t] > 0) pos_idx = t;
+                else if (ms[t] < 0) neg_idx = t;
+
+            // if neg_idx < pos_idx then this means that ms is non-zero 
+            // and that the first non-zero index is negative, hence this is 
+            // a negative-sign tuple which we want to combine into 
+            // its opposite.
+            if (neg_idx < pos_idx) {
+                // find the opposite tuple
+                int ms_ind2 = 0;
+                MS_TYPE *ms2;
+                bool found_opposite = false;
+                for (ms_ind2 = 0; ms_ind2 < func->num_ms_combs; ++ms_ind2) {
+                    ms2 = &func->ms_combs[ms_ind2 * order];
+                    bool isopposite = true;
+                    for (t = 0; t < order; t++)
+                        if (ms[t] != -ms2[t]) {
+                            isopposite = false;
+                            break;
+                        }
+                    if (isopposite) {
+                        found_opposite = true;
+                        break;
+                    }
+                }
+
+                if (ms_ind == ms_ind2) {
+                    cout << "WARNING - ms_ind == ms_ind2 \n";
+                }
+
+                // cout << "order = " << int(order) << " || " << "ms_ind, ms_ind2 = " << ms_ind << ", " << ms_ind2 << "\n";
+
+                // now we need to overwrite the coefficients
+                if (found_opposite) {
+                    // cout << "+";
+                    int sig = 1;
+                    for (t = 0; t < order; t++)
+                        if (ms[t] < 0)
+                            sig *= -1;
+                    for (int p = 0; p < ndensity; ++p) {
+                        func->ctildes[ms_ind2 * ndensity + p] +=
+                                func->ctildes[ms_ind * ndensity + p];
+                        func->ctildes[ms_ind * ndensity + p] = 0.0;
+                    }
+                }
+            }
+        }
+    }
+
+    // /* ============ HALF-BASIS TRICK END ============ */
+
+
+    /* count number of basis functions, keep only non-zero!!  */
+    int num2 = 0;
+    for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
+        ACECTildeBasisFunction *func = &basis[func_ind];
+        for (ms_ind = 0; ms_ind < (&basis[func_ind])->num_ms_combs; ++ms_ind, ++func_ms_ind) {
+            // check that the coefficients are actually non-zero 
+            bool isnonzero = false;
+            for (DENSITY_TYPE p = 0; p < ndensity; ++p)
+                if (func->ctildes[ms_ind * ndensity + p] != 0.0)
+                    isnonzero = true;
+            if (isnonzero)
+                num2++;
+        }
+    }
+
 
     /* Now create the AA basis links into the A basis */
     num1 = A_idx;   // total number of A-basis functions that we keep
@@ -377,21 +584,30 @@ void ACERecursiveEvaluator::acejlformat() {
         mus = func->mus;
         ns = func->ns;
         ls = func->ls;
-        if ((mus[0] <= maxmu) && (ns[0] <= maxn) && (ls[0] <= maxl)) {
-            for (ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind, ++func_ms_ind) {
-                ms = &func->ms_combs[ms_ind * order];
-                AAorders(AAidx) = order;
-                for (t = 0; t < order; t++) {
-                    int Ait = A_lookup(int(mus[t]), int(ns[t] - 1), int(ls[t]), int(ms[t]) + int(ls[t]));
-                    AAspec(AAidx, t) = Ait;
-                    len_flat += 1;
-                }
-                for (t = order; t < maxorder; t++) AAspec(AAidx, t) = -1;
-                /* copy over the coefficients */
-                for (DENSITY_TYPE p = 0; p < ndensity; ++p)
-                    jl_coeffs(AAidx, p) = func->ctildes[ms_ind * ndensity + p];
-                AAidx += 1;
+        if (!((mus[0] <= maxmu) && (ns[0] <= maxn) && (ls[0] <= maxl)))
+            continue;
+
+        for (ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind, ++func_ms_ind) {
+            ms = &func->ms_combs[ms_ind * order];
+
+            // check that the coefficients are actually non-zero 
+            bool iszero = true;
+            for (DENSITY_TYPE p = 0; p < ndensity; ++p)
+                if (func->ctildes[ms_ind * ndensity + p] != 0.0)
+                    iszero = false;
+            if (iszero) continue;
+
+            AAorders(AAidx) = order;
+            for (t = 0; t < order; t++) {
+                int Ait = A_lookup(int(mus[t]), int(ns[t] - 1), int(ls[t]), int(ms[t]) + int(ls[t]));
+                AAspec(AAidx, t) = Ait;
+                len_flat += 1;
             }
+            for (t = order; t < maxorder; t++) AAspec(AAidx, t) = -1;
+            /* copy over the coefficients */
+            for (DENSITY_TYPE p = 0; p < ndensity; ++p)
+                jl_coeffs(AAidx, p) = func->ctildes[ms_ind * ndensity + p];
+            AAidx += 1;
         }
     }
 
@@ -776,27 +992,22 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         /* STAGE 2: FORWARD PASS
         * Forward pass: go through the dag and store all intermediate results
         */
+
         // rhos.fill(0); note the rhos are already reset and started filling above!
         ACEComplex AAcur{0.0};
         int i1, i2;
 
-        // for (int idx = 0; idx < dag.get_num2(); idx++) {    
-        //     i1 = dag.nodes(idx, 0);
-        //     i2 = dag.nodes(idx, 1);
-        //     AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
-        //     dag.AAbuf(num1 + idx) = AAcur;
-        //     for (int p = 0; p < ndensity; p++)            
-        //         rhos(p) += AAcur.real_part_product(dag.coeffs(idx, p));
-        // }
-
-        // linear access version 
         int *dag_nodes = dag.nodes.get_data();
         int idx_nodes = 0;
 
         ACEComplex *dag_coefs = dag.coeffs.get_data();
         int idx_coefs = 0;
 
-        for (int idx = num1; idx < num1 + dag.get_num2(); idx++) {
+        int num2_int = dag.get_num2_int();
+        int num2_leaf = dag.get_num2_leaf();
+
+        // interior nodes (save AA)
+        for (int idx = num1; idx < num1 + num2_int; idx++) {
             i1 = dag_nodes[idx_nodes];
             idx_nodes++;
             i2 = dag_nodes[idx_nodes];
@@ -807,23 +1018,22 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
                 rhos(p) += AAcur.real_part_product(dag_coefs[idx_coefs]);
         }
 
+        // leaf nodes -> no need to store in AAbuf
+        for (int _idx = 0; _idx < num2_leaf; _idx++) {
+            i1 = dag_nodes[idx_nodes];
+            idx_nodes++;
+            i2 = dag_nodes[idx_nodes];
+            idx_nodes++;
+            AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
+            for (int p = 0; p < ndensity; p++, idx_coefs++)
+                rhos(p) += AAcur.real_part_product(dag_coefs[idx_coefs]);
+        }
+
     } else {
 
         /* non-recursive Julia-style evaluator implementation */
-        // TODO: flatten the coefficients for faster access!!!
-
+        // TODO: fix array access to enable bounds checking again???
         ACEComplex AAcur{1.0};
-
-        // (nonlinear access version)
-        // for (int idx = 0; idx < jl_AAspec.get_dim(0); idx ++ ) {
-        //     AAcur = 1.0;
-        //     for (int r = 0; r < jl_orders(idx); r++)
-        //         AAcur *= dag.AAbuf( jl_AAspec(idx, r) );
-        //     for (int p = 0; p < ndensity; p++) 
-        //         rhos(p) += AAcur.real_part_product(jl_coeffs(idx, p));
-        // }
-
-        // (linear access version - i.e. using flattened arrays)
         int *AAspec = jl_AAspec_flat.get_data();
         ACEComplex *coeffs = jl_coeffs.get_data();
         int idx_spec = 0;
@@ -902,45 +1112,38 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         ACEComplex AA1{0.0};
         ACEComplex AA2{0.0};
         ACEComplex wcur{0.0};
+        int num2_int = dag.get_num2_int();
+        int num2_leaf = dag.get_num2_leaf();
         /* to prepare for the backward we first need to zero the weights */
         dag.w.fill({0.0});
 
-        // // simple version
-        // for (int idx = dag.get_num2()-1; idx >= 0; idx--) {
-        //     i1 = dag.nodes(idx, 0);
-        //     i2 = dag.nodes(idx, 1);
-        //     AA1 = dag.AAbuf(i1);
-        //     AA2 = dag.AAbuf(i2);
-        //     wcur = dag.w(num1+idx);
-        //     for (int p = 0; p < ndensity; p++) 
-        //         wcur += dF_drho(p) * dag.coeffs(idx, p);
-        //     dag.w(i1) += wcur * AA2;   // TODO: replace with explicit muladd? 
-        //     dag.w(i2) += wcur * AA1;
-        //     // dag.w(idx) = 0 ... we could now zero the current w since we no 
-        //     //                    longer need it.
-        // }
-
-        // linear access version
         int *dag_nodes = dag.nodes.get_data();
-        int idx_nodes = 2 * dag.get_num2() - 1;
+        int idx_nodes = 2 * (num2_int + num2_leaf) - 1;
 
         ACEComplex *dag_coefs = dag.coeffs.get_data();
-        int idx_coefs = ndensity * dag.get_num2() - 1;
+        int idx_coefs = ndensity * (num2_int + num2_leaf) - 1;
 
-        for (int idx = num1 + dag.get_num2() - 1; idx >= num1; idx--) {
+        for (int idx = num1 + num2_int + num2_leaf - 1; idx >= num1; idx--) {
             i2 = dag_nodes[idx_nodes];
             idx_nodes--;
             i1 = dag_nodes[idx_nodes];
             idx_nodes--;
             AA1 = dag.AAbuf(i1);
             AA2 = dag.AAbuf(i2);
-            wcur = dag.w(idx);
+            wcur = dag.w(idx);   // [***]
             for (int p = ndensity - 1; p >= 0; p--, idx_coefs--)
                 wcur += dF_drho(p) * dag_coefs[idx_coefs];
             dag.w(i1) += wcur * AA2;   // TODO: replace with explicit muladd? 
             dag.w(i2) += wcur * AA1;
         }
 
+        /*  [***]
+         * Note that these weights don't really need to be stored for the 
+         * leaf nodes. We tested splitting this for loop into two where 
+         * for the leaf nodes the weight would just be initialized to 0.0
+         * instead of reading from an array. The improvement was barely 
+         * measurable, ca 3%, so we reverted to this simpler algorithm
+         */
 
     } else {
 
@@ -951,32 +1154,6 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         dag.w.fill({0.0});
         ACEComplex AAf{1.0}, AAb{1.0}, theta{0.0};
 
-        // (nonlinear access version)
-        // for (int idx = 0; idx < jl_AAspec.get_dim(0); idx ++ ) {
-        //     int order = jl_orders(idx);
-        //     theta = 0.0; 
-        //     for (int p = 0; p < ndensity; p++) 
-        //         theta += dF_drho(p) * jl_coeffs(idx, p);
-        //     dA[0] = 1.0; 
-        //     AAf = 1.0; 
-        //     for (int t = 0; t < order-1; t++) {
-        //         spec[t] = jl_AAspec(idx, t);
-        //         A_cache[t] = dag.AAbuf(spec[t]);
-        //         AAf *= A_cache[t]; 
-        //         dA[t+1] = AAf; 
-        //     }
-        //     spec[order-1] = jl_AAspec(idx, order-1);
-        //     A_cache[order-1] = dag.AAbuf(spec[order-1]);
-        //     AAb = 1.0;
-        //     for (int t = order-1; t >= 1; t--) {
-        //         AAb *= A_cache[t]; 
-        //         dA[t-1] *= AAb; 
-        //         dag.w(spec[t]) += theta * dA[t];
-        //     }
-        //     dag.w(spec[0]) += theta * dA[0];
-        // }
-
-        // (linear access version - i.e. using flattened arrays)
         int *AAspec = jl_AAspec_flat.get_data();
         ACEComplex *coeffs = jl_coeffs.get_data();
         int idx_spec = 0;
@@ -1020,15 +1197,15 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
     for (int idx = 0; idx < num1; idx++) {
         int m = dag.Aspec(idx, 3);
         if (m >= 0) {
-            weights(dag.Aspec(idx, 0),  // mu
+            weights(dag.Aspec(idx, 0),      // mu
                     dag.Aspec(idx, 1) - 1,  // n
-                    dag.Aspec(idx, 2),  // l
+                    dag.Aspec(idx, 2),      // l
                     m) += dag.w(idx);
         } else {
             int factor = (m % 2 == 0 ? 1 : -1);
-            weights(dag.Aspec(idx, 0),  // mu
+            weights(dag.Aspec(idx, 0),      // mu
                     dag.Aspec(idx, 1) - 1,  // n
-                    dag.Aspec(idx, 2),  // l
+                    dag.Aspec(idx, 2),      // l
                     -m) += factor * dag.w(idx).conjugated();
         }
     }

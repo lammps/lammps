@@ -35,33 +35,55 @@ class ACEDAG {
                      vector<int> node,
                      vector<ACEComplex> c);
 
-    int dag_idx;    // current index for dag construction
+    // the following fields are used only for *construction*, not evalution
+    int dag_idx;     // current index of dag node 
+    Array2D<int> nodes_pre;
+    Array2D<ACEComplex> coeffs_pre;
+    Array1D<bool> haschild;
 
+    /* which heuristic to choose for DAG construction? 
+     *   0 : the simple original heuristic
+     *   1 : prioritize 2-correlation nodes and build the rest from those
+     */
+    int heuristic = 0;
 
 public:
 
     ACEDAG() = default;
 
     void init(Array2D<int> Aspec, Array2D<int> AAspec,
-              Array1D<int> orders, Array2D<ACEComplex> coeffs);
+              Array1D<int> orders, Array2D<ACEComplex> coeffs,
+              int heuristic);
 
     Array1D<ACEComplex> AAbuf;
     Array1D<ACEComplex> w;
 
-    Array2D<int> nodes;    // TODO: split into dependent and independent nodes
     Array2D<int> Aspec;
+
+    // nodes in the graph 
+    Array2D<int> nodes;
     Array2D<ACEComplex> coeffs;
 
+    // total number of nodes in the dag
+    int num_nodes;
+    // number of interior nodes (with children)
+    int num2_int;
+    // number of leaf nodes (nc = no child)
+    int num2_leaf;
 
+
+    // number of 1-particle basis functions 
+    // (these will be stored in the first num1 entries of AAbuf)
     int get_num1() { return Aspec.get_dim(0); };
 
+    // total number of n-correlation basis functions n > 1.
     int get_num2() { return num_nodes - get_num1(); };
 
+    int get_num2_int() { return num2_int; };   // with children
+    int get_num2_leaf() { return num2_leaf; };     // without children
 
-    int num_nodes;  // store number of nodes in dag 
-
+    // debugging tool
     void print();
-
 };
 
 
@@ -131,7 +153,7 @@ class ACERecursiveEvaluator : public ACEEvaluator {
      * Initialize internal arrays according to basis set sizes
      * @param basis_set
      */
-    void init(ACECTildeBasisSet *basis_set);
+    void init(ACECTildeBasisSet *basis_set, int heuristic);
 
     /* convert the PACE to the ACE.jl format to prepare for DAG construction*/
     Array2D<int> jl_Aspec;
@@ -152,20 +174,17 @@ public:
 
     ACERecursiveEvaluator() = default;
 
-    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas) {
-        ACERecursiveEvaluator(bas, true);
-    }
-
-    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas, bool recursive) {
-        set_basis(bas);
+    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas,
+                                   bool recursive = true) {
         set_recursive(recursive);
+        set_basis(bas);
     }
 
     /**
      * set the basis function to the ACE evaluator
      * @param bas
      */
-    void set_basis(ACECTildeBasisSet &bas);
+    void set_basis(ACECTildeBasisSet &bas, int heuristic = 0);
 
     /**
      * The key method to compute energy and forces for atom 'i'.

@@ -611,6 +611,7 @@ void Atom::set_atomflag_defaults()
   // 3rd customization section: customize by adding new flag
   // identical list as 2nd customization in atom.h
 
+  labelmapflag = 0;
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
@@ -1247,7 +1248,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 ------------------------------------------------------------------------- */
 
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
-                      int type_offset)
+                      int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2;
@@ -1265,6 +1266,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
       atom1 += id_offset;
       atom2 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1302,7 +1304,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
-                       int type_offset)
+                       int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3;
@@ -1321,6 +1323,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
       atom2 += id_offset;
       atom3 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1374,7 +1377,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset)
+                          int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
@@ -1395,6 +1398,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1465,7 +1469,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset)
+                          int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
@@ -1486,6 +1490,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||

@@ -124,7 +124,7 @@ void ReadData::command(int narg, char **arg)
   addflag = NONE;
   coeffflag = 1;
   id_offset = mol_offset = 0;
-  offsetflag = shiftflag = labelflag = 0;
+  offsetflag = shiftflag = settypeflag = labelflag = 0;
   toffset = boffset = aoffset = doffset = ioffset = 0;
   shift[0] = shift[1] = shift[2] = 0.0;
   extra_atom_types = extra_bond_types = extra_angle_types =
@@ -1379,7 +1379,8 @@ void ReadData::bonds(int firstpass)
     nchunk = MIN(nbonds-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
+    atom->data_bonds(nchunk,buffer,count,id_offset,boffset,
+                     labelflag,lmap->lmap2lmap.bond);
     nread += nchunk;
   }
 
@@ -1453,7 +1454,8 @@ void ReadData::angles(int firstpass)
     nchunk = MIN(nangles-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_angles(nchunk,buffer,count,id_offset,aoffset);
+    atom->data_angles(nchunk,buffer,count,id_offset,aoffset,
+                      labelflag,lmap->lmap2lmap.angle);
     nread += nchunk;
   }
 
@@ -1527,7 +1529,8 @@ void ReadData::dihedrals(int firstpass)
     nchunk = MIN(ndihedrals-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset);
+    atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset,
+                         labelflag,lmap->lmap2lmap.dihedral);
     nread += nchunk;
   }
 
@@ -1601,7 +1604,8 @@ void ReadData::impropers(int firstpass)
     nchunk = MIN(nimpropers-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    atom->data_impropers(nchunk,buffer,count,id_offset,ioffset);
+    atom->data_impropers(nchunk,buffer,count,id_offset,ioffset,
+                         labelflag,lmap->lmap2lmap.improper);
     nread += nchunk;
   }
 
@@ -1789,6 +1793,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
 void ReadData::mass()
 {
+  settypeflag = 1;
   char *next;
   char *buf = new char[ntypes*MAXLINE];
 
@@ -1965,11 +1970,13 @@ void ReadData::impropercoeffs(int which)
 
 void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
 {
+  if (settypeflag) error->all(FLERR,"Must read Type Labels before any section involving types");
   int n;
   char *next;
   char *buf = new char[myntypes*MAXLINE];
 
   labelflag = 1;
+  atom->labelmapflag = 1;
 
   int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -2158,6 +2165,7 @@ void ReadData::skip_lines(bigint n)
 void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag,
                             int noffset, int offset, int *ilabel)
 {
+  settypeflag = 1;
   char *ptr;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';
 

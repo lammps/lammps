@@ -67,7 +67,7 @@ class ReadData : protected Pointers {
 
   // optional args
 
-  int addflag,offsetflag,shiftflag,coeffflag,labelflag;
+  int addflag,offsetflag,shiftflag,coeffflag,settypeflag,labelflag;
   tagint addvalue;
   int toffset,boffset,aoffset,doffset,ioffset;
   double shift[3];
@@ -263,6 +263,11 @@ Atom style does not allow bodies.
 E: Must read Atoms before Bodies
 
 The Atoms section of a data file must come before a Bodies section.
+
+E: Must read Type Labels before any section involving types
+
+All Type Labels sections of a data file must come before any
+section that uses per-type values (Masses, Coeffs, etc.).
 
 E: Must define pair_style before Pair Coeffs
 

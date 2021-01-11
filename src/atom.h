@@ -166,6 +166,7 @@ class Atom : protected Pointers {
   // most are existence flags for per-atom vectors and arrays
   // 1 if variable is used, 0 if not
 
+  int labelmapflag;              // type labels
   int sphere_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
   int peri_flag,electron_flag;
   int wavepacket_flag,sph_flag;
@@ -304,10 +305,10 @@ class Atom : protected Pointers {
   void data_atoms(int, char *, tagint, tagint, int, int, double *,
                   int, int *);
   void data_vels(int, char *, tagint);
-  void data_bonds(int, char *, int *, tagint, int);
-  void data_angles(int, char *, int *, tagint, int);
-  void data_dihedrals(int, char *, int *, tagint, int);
-  void data_impropers(int, char *, int *, tagint, int);
+  void data_bonds(int, char *, int *, tagint, int, int, int *);
+  void data_angles(int, char *, int *, tagint, int, int, int *);
+  void data_dihedrals(int, char *, int *, tagint, int, int, int *);
+  void data_impropers(int, char *, int *, tagint, int, int, int *);
   void data_bonus(int, char *, AtomVec *, tagint);
   void data_bodies(int, char *, AtomVec *, tagint);
   void data_fix_compute_variable(int, int);

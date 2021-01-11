@@ -1120,12 +1120,49 @@ bool Info::has_exceptions() {
 #endif
 }
 
-bool Info::has_package(const char * package_name) {
+bool Info::has_package(const std::string &package_name) {
   for (int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
-    if (strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
+    if (package_name == LAMMPS::installed_packages[i]) {
       return true;
     }
   }
+  return false;
+}
+
+bool Info::has_accelerator_feature(const std::string &package,
+                                   const std::string &category,
+                                   const std::string &setting)
+{
+#if defined(LMP_KOKKOS)
+  if (package == "KOKKOS") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+  }
+#endif
+#if defined(LMP_GPU)
+  if (package == "GPU") {
+  }
+#endif
+#if defined(LMP_USER_OMP)
+  if (package == "OPENMP") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+  }
+#endif
+#if defined(LMP_USER_INTEL)
+  if (package == "INTEL") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else if (setting == "mixed") return true;
+      else if (setting == "single")return true;
+      else return false;
+    }
+  }
+#endif
   return false;
 }
 

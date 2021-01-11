@@ -795,19 +795,19 @@ void PairILPGrapheneHBN::calc_normal()
     i = ilist[ii];
 
     //   Initialize the arrays
-    for (id = 0; id < 3; id++){
+    for (id = 0; id < 3; id++) {
       pv12[id] = 0.0;
       pv31[id] = 0.0;
       pv23[id] = 0.0;
       n1[id] = 0.0;
       dni[id] = 0.0;
       normal[i][id] = 0.0;
-      for (ip = 0; ip < 3; ip++){
+      for (ip = 0; ip < 3; ip++) {
         vet[ip][id] = 0.0;
         dnn[ip][id] = 0.0;
         dpvdri[ip][id] = 0.0;
         dnormdri[ip][id][i] = 0.0;
-        for (m = 0; m < 3; m++){
+        for (m = 0; m < 3; m++) {
           dpv12[ip][id][m] = 0.0;
           dpv31[ip][id][m] = 0.0;
           dpv23[ip][id][m] = 0.0;
@@ -841,10 +841,10 @@ void PairILPGrapheneHBN::calc_normal()
       normal[i][0] = 0.0;
       normal[i][1] = 0.0;
       normal[i][2] = 1.0;
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = 0.0;
-          for (m = 0; m < 3; m++){
+          for (m = 0; m < 3; m++) {
             dnormal[id][ip][m][i] = 0.0;
           }
         }
@@ -890,8 +890,8 @@ void PairILPGrapheneHBN::calc_normal()
 
       // derivatives respect to the third neighbor, atom n
       // derivatives of pv12 to rn is zero
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv12[id][ip][2] = 0.0;
         }
       }
@@ -912,15 +912,15 @@ void PairILPGrapheneHBN::calc_normal()
       dni[1] = (n1[0]*dpvdri[0][1] + n1[1]*dpvdri[1][1] + n1[2]*dpvdri[2][1])/nn;
       dni[2] = (n1[0]*dpvdri[0][2] + n1[1]*dpvdri[1][2] + n1[2]*dpvdri[2][2])/nn;
       // derivatives of unit vector ni respect to ri, the result is 3x3 matrix
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = dpvdri[id][ip]/nn - n1[id]*dni[ip]/nn2;
         }
       }
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
-          for (m = 0; m < 3; m++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
+          for (m = 0; m < 3; m++) {
             dn1[id][ip][m] = dpv12[id][ip][m];
           }
         }
@@ -928,16 +928,16 @@ void PairILPGrapheneHBN::calc_normal()
       // derivatives of nn, dnn:3x3 vector
       // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
       // r[id][m]: the id's component of atom m
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
           dnn[id][m] = (n1[0]*dn1[0][id][m] + n1[1]*dn1[1][id][m] + n1[2]*dn1[2][id][m])/nn;
         }
       }
       // dnormal[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
       // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
-          for (ip = 0; ip < 3; ip++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
             dnormal[id][ip][m][i] = dn1[id][ip][m]/nn - n1[id]*dnn[ip][m]/nn2;
           }
         }
@@ -945,7 +945,7 @@ void PairILPGrapheneHBN::calc_normal()
     }
 //##############################################################################################
 
-    else if(cont == 3) {
+    else if (cont == 3) {
       pv12[0] = vet[0][1]*vet[1][2] - vet[1][1]*vet[0][2];
       pv12[1] = vet[0][2]*vet[1][0] - vet[1][2]*vet[0][0];
       pv12[2] = vet[0][0]*vet[1][1] - vet[1][0]*vet[0][1];
@@ -971,8 +971,8 @@ void PairILPGrapheneHBN::calc_normal()
       dpv12[2][2][1] =  0.0;
 
       // derivatives respect to the third neighbor, atom n
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv12[id][ip][2] = 0.0;
         }
       }
@@ -1001,8 +1001,8 @@ void PairILPGrapheneHBN::calc_normal()
       dpv31[2][1][2] = -vet[0][0];
       dpv31[2][2][2] =  0.0;
       // derivatives respect to the second neighbor, atom l
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv31[id][ip][1] = 0.0;
         }
       }
@@ -1011,8 +1011,8 @@ void PairILPGrapheneHBN::calc_normal()
       pv23[1] = vet[1][2]*vet[2][0] - vet[2][2]*vet[1][0];
       pv23[2] = vet[1][0]*vet[2][1] - vet[2][0]*vet[1][1];
       // derivatives respect to the second neighbor, atom k
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv23[id][ip][0] = 0.0;
         }
       }
@@ -1052,16 +1052,16 @@ void PairILPGrapheneHBN::calc_normal()
       normal[i][2] = n1[2]/nn;
 
       // for the central atoms, dnormdri is always zero
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = 0.0;
         }
       }
 
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
-          for (m = 0; m < 3; m++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
+          for (m = 0; m < 3; m++) {
             dn1[id][ip][m] = (dpv12[id][ip][m] + dpv23[id][ip][m] + dpv31[id][ip][m])/cont;
           }
         }
@@ -1069,16 +1069,16 @@ void PairILPGrapheneHBN::calc_normal()
       // derivatives of nn, dnn:3x3 vector
       // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
       // r[id][m]: the id's component of atom m
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
           dnn[id][m] = (n1[0]*dn1[0][id][m] + n1[1]*dn1[1][id][m] + n1[2]*dn1[2][id][m])/nn;
         }
       }
       // dnormal[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
       // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
-          for (ip = 0; ip < 3; ip++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
             dnormal[id][ip][m][i] = dn1[id][ip][m]/nn - n1[id]*dnn[ip][m]/nn2;
           }
         }

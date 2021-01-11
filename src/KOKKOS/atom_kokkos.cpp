@@ -230,9 +230,9 @@ void AtomKokkos::sort()
    reallocate memory to the pointer selected by the mask
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::grow(unsigned int mask){
+void AtomKokkos::grow(unsigned int mask) {
 
-  if (mask & SPECIAL_MASK){
+  if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);
     modified(Device, mask);

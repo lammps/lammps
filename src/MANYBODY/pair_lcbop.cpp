@@ -535,12 +535,12 @@ void PairLCBOP::FLR(int eflag, int /*vflag*/)
    forces for Nij and Mij
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom ) {
+void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom) {
   int atomi = i;
   int atomj = j;
   int *SR_neighs = SR_firstneigh[i];
   double **x = atom->x;
-  for( int k=0; k<SR_numneigh[i]; k++ ) {
+  for (int k=0; k<SR_numneigh[i]; k++) {
     int atomk = SR_neighs[k];
     if (atomk != atomj) {
       double rik[3];
@@ -572,12 +572,12 @@ void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom ) 
 
 /* ---------------------------------------------------------------------- */
 
-void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom ) {
+void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom) {
   int atomi = i;
   int atomj = j;
   int *SR_neighs = SR_firstneigh[i];
   double **x = atom->x;
-  for( int k=0; k<SR_numneigh[i]; k++ ) {
+  for (int k=0; k<SR_numneigh[i]; k++) {
     int atomk = SR_neighs[k];
     if (atomk != atomj) {
       double rik[3];
@@ -866,9 +866,9 @@ double PairLCBOP::b(int i, int j, double rij[3],
    spline interpolation for G
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::g_decompose_x( double x, size_t *field_idx, double *offset ) {
+void PairLCBOP::g_decompose_x( double x, size_t *field_idx, double *offset) {
   size_t i=0;
-  while( i<(6-1) && !( x<gX[i+1] ) )
+  while ((i<(6-1)) && !(x<gX[i+1]))
     i++;
   *field_idx = i;
   *offset = ( x - gX[i] );
@@ -876,14 +876,14 @@ void PairLCBOP::g_decompose_x( double x, size_t *field_idx, double *offset ) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairLCBOP::gSpline( double x, double *dgdc ) {
+double PairLCBOP::gSpline( double x, double *dgdc) {
   size_t i;
   double x_n;
   g_decompose_x( x, &i, &x_n );
   double sum = 0;
   *dgdc = 0;
   double pow_x_n = 1.0;
-  for( size_t j=0; j<5; j++ ) {
+  for (size_t j=0; j<5; j++) {
       sum += gC[j][i]*pow_x_n;
       *dgdc += gC[j+1][i]*(j+1)*pow_x_n;
       pow_x_n *= x_n;
@@ -894,7 +894,7 @@ double PairLCBOP::gSpline( double x, double *dgdc ) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairLCBOP::hSpline( double x, double *dhdx ) {
+double PairLCBOP::hSpline( double x, double *dhdx) {
   if (x < -d) {
       double z = kappa*( x+d );
       double y = pow(z, 10.0);
@@ -924,7 +924,7 @@ double PairLCBOP::hSpline( double x, double *dhdx ) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dFN_ij, double *dFN_ji, double *dFN_ij_conj ) {
+double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dFN_ij, double *dFN_ji, double *dFN_ij_conj) {
   size_t N_ij_int         = MIN( static_cast<size_t>( floor( N_ij ) ), 2 ); // 2 is the highest number of field
   size_t N_ji_int         = MIN( static_cast<size_t>( floor( N_ji ) ), 2 ); // cast to suppress warning
   double x                = N_ij - N_ij_int;
@@ -1096,9 +1096,9 @@ void PairLCBOP::read_file(char *filename)
 ------------------------------------------------------------------------- */
 
 void PairLCBOP::spline_init() {
-  for( size_t N_conj_ij=0; N_conj_ij<2; N_conj_ij++ ) // N_conj_ij
-  for( size_t N_ij=0; N_ij<4-1; N_ij++ )
-  for( size_t N_ji=0; N_ji<4-1; N_ji++ ) {
+  for (size_t N_conj_ij=0; N_conj_ij<2; N_conj_ij++) // N_conj_ij
+  for (size_t N_ij=0; N_ij<4-1; N_ij++)
+  for (size_t N_ji=0; N_ji<4-1; N_ji++) {
     TF_conj_field &field = F_conj_field[N_ij][N_ji][N_conj_ij];
     field.f_00 = F_conj_data[N_ij  ][N_ji  ][N_conj_ij][0];
     field.f_01 = F_conj_data[N_ij  ][N_ji+1][N_conj_ij][0];
@@ -1126,7 +1126,7 @@ void PairLCBOP::spline_init() {
 //          << gX[4] << " "
 //          << gX[5] << std::endl;
 //    file << "gC:\n";
-//    for( int i=0; i<6; i++ )
+//    for (int i=0; i<6; i++)
 //      file  << gC[i][0] << " "
 //            << gC[i][1] << " "
 //            << gC[i][2] << " "
@@ -1170,7 +1170,7 @@ void PairLCBOP::spline_init() {
 //    double x_1 = 1, x_0 = -1;
 //    int n=1000;
 //    double dx = (x_1-x_0)/n;
-//    for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
+//    for (double x=x_0; x<=x_1+0.0001; x+=dx) {
 //      double g, dg;
 //      g = gSpline(x, &dg);
 //      file << x << " " << g << " " << dg << std::endl;
@@ -1181,7 +1181,7 @@ void PairLCBOP::spline_init() {
 //  double x_1 = 1, x_0 = -1;
 //  int n=1000;
 //  double dx = (x_1-x_0)/n;
-//  for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
+//  for (double x=x_0; x<=x_1+0.0001; x+=dx) {
 //    double h, dh;
 //    h = hSpline(x, &dh);
 //    file << x << " " << h << " " << dh << std::endl;
@@ -1193,7 +1193,7 @@ void PairLCBOP::spline_init() {
 //  double x_1 = 4, x_0 = 0;
 //  int n=1000;
 //  double dx = (x_1-x_0)/n;
-//  for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
+//  for (double x=x_0; x<=x_1+0.0001; x+=dx) {
 //    double f, df;
 //    f = f_c(x, r_1, r_2, &df);
 //    file << x << " " << f << " " << df << std::endl;
@@ -1217,23 +1217,23 @@ void PairLCBOP::spline_init() {
 //
 //  file << "F_conj_0 ";
 //  double dummy;
-//  for( double y=0; y<=3.0+0.0001; y+=0.1 )
+//  for (double y=0; y<=3.0+0.0001; y+=0.1)
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for (double x=0; x<=3.0+0.0001; x+=0.1) {
 //    file << x << " ";
-//    for( double y=0; y<=3.0+0.0001; y+=0.1 )
+//    for (double y=0; y<=3.0+0.0001; y+=0.1)
 //      file << F_conj( x, y, 0, &dummy, &dummy, &dummy ) << " ";
 //    file << std::endl;
 //  }
 //
 //  file << "dF0_dx ";
-//  for( double y=0; y<=3.0+0.0001; y+=0.1 )
+//  for (double y=0; y<=3.0+0.0001; y+=0.1)
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for (double x=0; x<=3.0+0.0001; x+=0.1) {
 //    file << x << " ";
-//    for( double y=0; y<=3.0+0.0001; y+=0.1 ) {
+//    for (double y=0; y<=3.0+0.0001; y+=0.1) {
 //      double dF_dx;
 //      F_conj( x, y, 0, &dF_dx, &dummy, &dummy );
 //      file << dF_dx << " ";
@@ -1244,12 +1244,12 @@ void PairLCBOP::spline_init() {
 //
 //
 //  file << "F_conj_1 ";
-//  for( double y=0; y<=3.0+0.0001; y+=0.1 )
+//  for (double y=0; y<=3.0+0.0001; y+=0.1)
 //    file << y << " ";
 //  file << std::endl;
-//  for( double x=0; x<=3.0+0.0001; x+=0.1 ){
+//  for (double x=0; x<=3.0+0.0001; x+=0.1) {
 //    file << x << " ";
-//    for( double y=0; y<=3.0+0.0001; y+=0.1 )
+//    for (double y=0; y<=3.0+0.0001; y+=0.1)
 //      file << F_conj( x, y, 0, &dummy, &dummy, &dummy ) << " ";
 //    file << std::endl;
 //  }

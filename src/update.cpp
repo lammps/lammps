@@ -324,7 +324,7 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
 
   int sflag;
 
-  if(narg-1 > 0) {
+  if (narg-1 > 0) {
     new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
   } else {
     new_integrate(arg[0],0,nullptr,trysuffix,sflag);

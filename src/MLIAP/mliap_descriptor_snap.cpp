@@ -171,7 +171,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -245,7 +245,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
 
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -318,7 +318,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 
     ij = ij0;
     for (int jj = 0; jj < ninside; jj++) {
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -500,7 +500,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     cut = 2.0*radelem[ielem]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[ielem][ielem] = cut*cut;
-    for(int jelem = ielem+1; jelem < nelements; jelem++) {
+    for (int jelem = ielem+1; jelem < nelements; jelem++) {
       cut = (radelem[ielem]+radelem[jelem])*rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut*cut;
     }

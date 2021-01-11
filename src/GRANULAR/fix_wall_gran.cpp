@@ -1303,7 +1303,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     relrot2 = omega[1];
     relrot3 = omega[2];
   }
-  if (roll_model != ROLL_NONE){
+  if (roll_model != ROLL_NONE) {
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,

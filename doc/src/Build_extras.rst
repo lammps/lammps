@@ -807,7 +807,7 @@ compiling LAMMPS with Python version 3.6 or later.
       the ``cythonize`` command in case the corresponding .pyx file(s) were
       modified.  You may need to modify ``lib/python/Makefile.lammps``
       if the LAMMPS build fails.
-      To manually enforce building MLIAP with Python support enabled, 
+      To manually enforce building MLIAP with Python support enabled,
       you can add
       ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in your machine makefile.
       You may have to manually run the ``cythonize`` command on .pyx file(s)

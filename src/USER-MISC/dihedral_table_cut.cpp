@@ -221,7 +221,7 @@ static int cyc_spline(double const *xa,
   // The for loop sets up the equations we need to solve.
   // Later we invoke the GSL tridiagonal matrix solver to solve them.
 
-  for(int i=0; i < n; i++) {
+  for (int i=0; i < n; i++) {
 
     // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
     // periodic boundary conditions.  We handle that now.

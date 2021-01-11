@@ -32,7 +32,7 @@ MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::~MLIAPModelLinear(){}
+MLIAPModelLinear::~MLIAPModelLinear() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters

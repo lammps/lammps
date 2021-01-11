@@ -187,7 +187,7 @@ void FixNVESphere::initial_integrate(int /*vflag*/)
           // Q = I + vx + vx^2 * (1-c)/s^2
 
           s2 = a[0]*a[0] + a[1]*a[1];
-          if (s2 != 0.0){ // i.e. the vectors are not parallel
+          if (s2 != 0.0) { // i.e. the vectors are not parallel
             scale = (1.0 - a[2])/s2;
 
             Q[0][0] = 1.0 - scale*a[0]*a[0];

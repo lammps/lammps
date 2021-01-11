@@ -993,7 +993,7 @@ void FixSRD::reset_velocities()
   if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
 
   if (tstat) {
-    for (i = 0; i < nbins; i++){
+    for (i = 0; i < nbins; i++) {
       n = vbin[i].n;
       if (n <= 1) continue;
 
@@ -1034,7 +1034,7 @@ void FixSRD::reset_velocities()
     if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
   }
 
-  for (i = 0; i < nbins; i++){
+  for (i = 0; i < nbins; i++) {
     if (vbin[i].owner) {
       if (vbin[i].n > 1) {
         srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);

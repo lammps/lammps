@@ -136,7 +136,7 @@ void FixQEqSlater::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -353,17 +353,17 @@ void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
   double r = cutoff;
   double woself = 0.50*erfc(alpha*r)/r + alpha/MY_PIS;
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = (eta[atom->type[i]] - 2.0*force->qqr2e*woself) * x[i];
   }
 
-  for( i = nlocal; i < nall; ++i ) {
+  for (i = nlocal; i < nall; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
       for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];

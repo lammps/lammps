@@ -520,7 +520,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         else d2 = dr2 + dx*dx;
         if (d2 < d2prev) {
           xp = hi;
-          if (r < radius){
+          if (r < radius) {
             yp = x[1];
             zp = x[2];
           }
@@ -572,7 +572,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
 
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         xp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         if (x[1] < lo) {

@@ -512,7 +512,7 @@ void PairEAMCD::read_h_coeff(char *filename)
     // h coefficients are stored at the end of the file.
     // Skip to last line of file.
 
-    while(fgets(nextline, MAXLINE, fptr) != nullptr) {
+    while (fgets(nextline, MAXLINE, fptr) != nullptr) {
       strcpy(line, nextline);
     }
 
@@ -527,7 +527,7 @@ void PairEAMCD::read_h_coeff(char *filename)
     hcoeff = new double[nhcoeff];
 
     int i = 0;
-    while(values.has_next()) {
+    while (values.has_next()) {
       hcoeff[i++] = values.next_double();
     }
 

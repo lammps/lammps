@@ -273,7 +273,7 @@ void FixEHEX::rescale() {
   vsub[1] = (scale-1.0) * vcm[1];
   vsub[2] = (scale-1.0) * vcm[2];
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
 
     if (scalingmask[i]) {
 

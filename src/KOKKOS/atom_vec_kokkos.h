@@ -178,7 +178,7 @@ class AtomVecKokkos : public AtomVec {
     }
     mirror_type tmp_view((typename ViewType::value_type*)buffer, src.d_view.layout());
 
-    if(space == Device) {
+    if (space == Device) {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.h_view),
       Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
       src.clear_sync_state();
@@ -191,7 +191,7 @@ class AtomVecKokkos : public AtomVec {
   #else
   template<class ViewType>
   void perform_async_copy(ViewType& src, unsigned int space) {
-    if(space == Device)
+    if (space == Device)
       src.template sync<LMPDeviceType>();
     else
       src.template sync<LMPHostType>();

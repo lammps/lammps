@@ -95,7 +95,7 @@ void PairTersoffZBLOMP::read_file(char *file)
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 

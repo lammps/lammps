@@ -734,7 +734,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 
 // fftw3 and Dfti in MKL encode the number of transforms
 // into the plan, so we cannot operate on a smaller data set
-  
+
 #if defined(FFT_MKL) || defined(FFT_FFTW3)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;

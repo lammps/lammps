@@ -686,8 +686,10 @@ void PairTersoff::attractive(Param *param, double prefactor,
   // correct 1/r for shift in rsq
 
   if (shift_flag == 1) {
-    rijinv *= sqrt((rsqij + shift*shift + 2*sqrt(rsqij)*shift)/rsqij);
-    rikinv *= sqrt((rsqik + shift*shift + 2*sqrt(rsqik)*shift)/rsqik);
+    rijinv = 1.0/(rij - shift);
+    rikinv = 1.0/(rik - shift);
+    //rijinv *= sqrt(rsqij/(rsqij + shift*shift - 2*sqrt(rsqij)*shift));
+    //rikinv *= sqrt(rsqik/(rsqik + shift*shift - 2*sqrt(rsqik)*shift));
   }
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rijinv,rik_hat,rik,rikinv,fi,fj,fk,param);

@@ -55,22 +55,36 @@ void PairTersoffOMP::compute(int eflag, int vflag)
     thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
-    if (evflag) {
-      if (eflag) {
-        if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
-        else eval<1,1,0>(ifrom, ito, thr);
-      } else {
-        if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
-        else eval<1,0,0>(ifrom, ito, thr);
-      }
-    } else eval<0,0,0>(ifrom, ito, thr);
+    if (shift_flag) {
+      if (evflag) {
+        if (eflag) {
+          if (vflag_atom) eval<1,1,1,1>(ifrom, ito, thr);
+          else eval<1,1,1,0>(ifrom, ito, thr);
+        } else {
+          if (vflag_atom) eval<1,1,0,1>(ifrom, ito, thr);
+          else eval<1,1,0,0>(ifrom, ito, thr);
+        }
+      } else eval<1,0,0,0>(ifrom, ito, thr);
+
+    } else {
+
+      if (evflag) {
+        if (eflag) {
+          if (vflag_atom) eval<0,1,1,1>(ifrom, ito, thr);
+          else eval<0,1,1,0>(ifrom, ito, thr);
+        } else {
+          if (vflag_atom) eval<0,1,0,1>(ifrom, ito, thr);
+          else eval<0,1,0,0>(ifrom, ito, thr);
+        }
+      } else eval<0,0,0,0>(ifrom, ito, thr);
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 
-template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum,maxshort_thr;
@@ -131,7 +145,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // shift rsq and store correction for force
 
-      if (shift_flag) {
+      if (SHIFT_FLAG) {
         double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
         forceshiftfac = sqrt(rsqtmp/rsq);
         rsq = rsqtmp;
@@ -164,7 +178,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // correct force for shift in rsq
 
-      if (shift_flag) fpair *= forceshiftfac;
+      if (SHIFT_FLAG) fpair *= forceshiftfac;
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
@@ -191,7 +205,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (shift_flag)
+      if (SHIFT_FLAG)
         rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
 
       if (rsq1 >= params[iparam_ij].cutsq) continue;
@@ -215,7 +229,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (shift_flag)
+        if (SHIFT_FLAG)
           rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
@@ -255,7 +269,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (shift_flag)
+        if (SHIFT_FLAG)
           rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;

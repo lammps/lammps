@@ -89,6 +89,36 @@ PairTersoff::~PairTersoff()
 
 void PairTersoff::compute(int eflag, int vflag)
 {
+  ev_init(eflag,vflag);
+
+  if (shift_flag) {
+    if (evflag) {
+      if (eflag) {
+        if (vflag_atom) eval<1,1,1,1>();
+        else eval<1,1,1,0>();
+      } else {
+        if (vflag_atom) eval<1,1,0,1>();
+        else eval<1,1,0,0>();
+      }
+    } else eval<1,0,0,0>();
+
+  } else {
+
+    if (evflag) {
+      if (eflag) {
+        if (vflag_atom) eval<0,1,1,1>();
+        else eval<0,1,1,0>();
+      } else {
+        if (vflag_atom) eval<0,1,0,1>();
+        else eval<0,1,0,0>();
+      }
+    } else eval<0,0,0,0>();
+  }
+}
+
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+void PairTersoff::eval()
+{
   int i,j,k,ii,jj,kk,inum,jnum;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   tagint itag,jtag;
@@ -102,7 +132,6 @@ void PairTersoff::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -147,7 +176,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
       // shift rsq and store correction for force
 
-      if (shift_flag) {
+      if (SHIFT_FLAG) {
         double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
         forceshiftfac = sqrt(rsqtmp/rsq);
         rsq = rsqtmp;
@@ -176,11 +205,11 @@ void PairTersoff::compute(int eflag, int vflag)
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq >= params[iparam_ij].cutsq) continue;
 
-      repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
+      repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
       // correct force for shift in rsq
 
-      if (shift_flag) fpair *= forceshiftfac;
+      if (SHIFT_FLAG) fpair *= forceshiftfac;
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
@@ -189,7 +218,7 @@ void PairTersoff::compute(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+      if (EVFLAG) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
 
@@ -207,7 +236,7 @@ void PairTersoff::compute(int eflag, int vflag)
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-      if (shift_flag)
+      if (SHIFT_FLAG)
         rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
 
       if (rsq1 >= params[iparam_ij].cutsq) continue;
@@ -231,7 +260,7 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (shift_flag)
+        if (SHIFT_FLAG)
           rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
@@ -244,7 +273,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
       // pairwise force due to zeta
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fforce,prefactor,eflag,evdwl);
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fforce,prefactor,EFLAG,evdwl);
 
       fpair = fforce*r1inv;
 
@@ -255,7 +284,7 @@ void PairTersoff::compute(int eflag, int vflag)
       fjytmp -= delr1[1]*fpair;
       fjztmp -= delr1[2]*fpair;
 
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+      if (EVFLAG) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
 
       // attractive term via loop over k
@@ -271,7 +300,7 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (shift_flag)
+        if (SHIFT_FLAG)
           rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
@@ -292,7 +321,7 @@ void PairTersoff::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (VFLAG_ATOM) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;
@@ -681,14 +710,15 @@ void PairTersoff::attractive(Param *param, double prefactor,
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  rijinv = 1.0/rij;
-  rikinv = 1.0/rik;
 
   // correct 1/r for shift in rsq
 
   if (shift_flag == 1) {
     rijinv = 1.0/(rij - shift);
     rikinv = 1.0/(rik - shift);
+  } else {
+    rijinv = 1.0/rij;
+    rikinv = 1.0/rik;
   }
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rijinv,rik_hat,rik,rikinv,fi,fj,fk,param);

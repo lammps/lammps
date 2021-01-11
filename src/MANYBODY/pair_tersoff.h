@@ -34,6 +34,9 @@ class PairTersoff : public Pair {
   virtual void init_style();
   double init_one(int, int);
 
+  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+  void eval();
+
   static constexpr int NPARAMS_PER_LINE = 17;
 
  protected:

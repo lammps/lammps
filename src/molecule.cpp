@@ -610,7 +610,8 @@ void Molecule::read(int flag)
       dbodyflag = 1;
       body(flag,1,line);
 
-    } else error->one(FLERR,"Unknown section in molecule file");
+    } else error->one(FLERR,fmt::format("Unknown section '{}' in molecule "
+                                        "file", keyword));
 
     parse_keyword(1,line,keyword);
   }
@@ -2004,10 +2005,10 @@ void Molecule::parse_keyword(int flag, char *line, char *keyword)
     MPI_Bcast(line,n,MPI_CHAR,0,world);
   }
 
-  // copy non-whitespace portion of line into keyword
+  // copy non-whitespace and non-comment portion of line into keyword
 
   int start = strspn(line," \t\n\r");
-  int stop = strlen(line) - 1;
+  int stop = strcspn(line,"#") - 1;
   while (line[stop] == ' ' || line[stop] == '\t'
          || line[stop] == '\n' || line[stop] == '\r') stop--;
   line[stop+1] = '\0';

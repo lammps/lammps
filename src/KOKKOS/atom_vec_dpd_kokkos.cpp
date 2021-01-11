@@ -1157,9 +1157,9 @@ void AtomVecDPDKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
+  while (last > nmax) grow(0);
 
+  for (i = first; i < last; i++) {
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1192,9 +1192,9 @@ void AtomVecDPDKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
+  while (last > nmax) grow(0);
 
+  for (i = first; i < last; i++) {
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];

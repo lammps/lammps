@@ -94,6 +94,7 @@ enum {COMPUTES=1<<0,
       REGION_STYLES=1<<23,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
+      ACCELERATOR=1<<26,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
@@ -197,6 +198,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"coeffs",3) == 0) {
       flags |= COEFFS;
+      ++idx;
+    } else if (strncmp(arg[idx],"accelerator",3) == 0) {
+      flags |= ACCELERATOR;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
       if (idx+1 < narg) {
@@ -312,6 +316,22 @@ void Info::command(int narg, char **arg)
       ncline += ncword + 1;
     }
     fputs("\n",out);
+  }
+
+  if (flags & ACCELERATOR) {
+    fputs("\nAccelerator configuration:\n\n",out);
+    std::string mesg;
+    if (has_package("GPU")) {
+      mesg = "GPU package API: ";
+      if (has_accelerator_feature("GPU","api","cuda"))   mesg += "CUDA\n";
+      if (has_accelerator_feature("GPU","api","hip"))    mesg += "HIP\n";
+      if (has_accelerator_feature("GPU","api","opencl")) mesg += "OpenCL\n";
+      mesg +=  "GPU package precision: ";
+      if (has_accelerator_feature("GPU","precision","single")) mesg += "single\n";
+      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += "mixed\n";
+      if (has_accelerator_feature("GPU","precision","double")) mesg += "double\n";
+      fputs(mesg.c_str(),out);
+    }
   }
 
   if (flags & MEMORY) {
@@ -1129,6 +1149,10 @@ bool Info::has_package(const std::string &package_name) {
   return false;
 }
 
+#if defined(LMP_GPU)
+extern bool lmp_gpu_config(const std::string &, const std::string &);
+#endif
+
 bool Info::has_accelerator_feature(const std::string &package,
                                    const std::string &category,
                                    const std::string &setting)
@@ -1143,6 +1167,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #endif
 #if defined(LMP_GPU)
   if (package == "GPU") {
+    return lmp_gpu_config(category,setting);
   }
 #endif
 #if defined(LMP_USER_OMP)

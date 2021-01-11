@@ -1,4 +1,5 @@
 .. index:: fix drude/transform/direct
+.. index:: fix drude/transform/inverse
 
 fix drude/transform/direct command
 ==================================

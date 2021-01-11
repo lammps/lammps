@@ -255,7 +255,7 @@ public:
   }
 
   //e Create NormDeriv object and calculate the derivatived for the given WP
-  void set2(const WavePacket& w2_, const cdouble *I0_=NULL){
+  void set2(const WavePacket& w2_, const cdouble *I0_=nullptr){
     w2=w2_;
     d2.set(w2);
     w12=conj(w1)*w2;
@@ -558,13 +558,13 @@ public:
   //e if PBCs are used, the corresponding coordinates of electrons and ions
   //e in periodic directions must be within the range  [0, cell[per_dir])
   //e @returns 1 if OK
-  int set_pbc(const Vector_3P pcell=NULL, int pbc_=0x7);
+  int set_pbc(const Vector_3P pcell=nullptr, int pbc_=0x7);
 
   ///\en Setup electrons: forms internal wave packet representations.
   ///    If PBCs are used the coords must be within a range [0, cell).
   ///    Default electron mass is AWPMD::me.
-  ///    Default (q=NULL )electron charges are -1.
-  int set_electrons(int spin, int n, Vector_3P x, Vector_3P v, double* w, double* pw, double mass=-1, double *q=NULL);
+  ///    Default (q=nullptr )electron charges are -1.
+  int set_electrons(int spin, int n, Vector_3P x, Vector_3P v, double* w, double* pw, double mass=-1, double *q=nullptr);
 
   //e setup ion charges and coordinates
   //e if PBCs are used the coords must be within a range [0, cell)
@@ -593,16 +593,16 @@ public:
   // 0x2 -- add ion forces to the existing set
   // 0x4 -- calculate derivatives for electronic time step (NOT IMPLEMENTED)
   //e if PBCs are used the coords must be within a range [0, cell)
-  virtual int interaction(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL,
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  virtual int interaction(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr,
+                                      Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   //e same as interaction, but using Hartee factorization (no antisymmetrization)
-  virtual int interaction_hartree(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL,
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  virtual int interaction_hartree(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr,
+                                      Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   ///\en Calculates ion-ion interactions and updates Eii and ion forces if requested. This function
   ///    is called form intaraction() and interaction_hartree if calc_ii is set.
-  virtual int interaction_ii(int flag,Vector_3P fi=NULL);
+  virtual int interaction_ii(int flag,Vector_3P fi=nullptr);
 
   //e Calculates Norm matrix
   //e The result is saved in AWPMD::Norm[s]
@@ -643,7 +643,7 @@ public:
 
   ///\en Prepares force arrays according to \a flag setting for interaction()
   virtual void clear_forces(int flagi,Vector_3P fi, Vector_3P fe_x,
-                    Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c=NULL);
+                    Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c=nullptr);
 
 
   ///\en Creates wave packet according to the given physical parameters.

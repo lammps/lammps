@@ -26,7 +26,7 @@ struct RandWrap {
 
   KOKKOS_INLINE_FUNCTION
   RandWrap() {
-    rng = NULL;
+    rng = nullptr;
   }
 
   KOKKOS_INLINE_FUNCTION

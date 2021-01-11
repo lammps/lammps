@@ -1,13 +1,11 @@
 .. index:: pair_style lj96/cut
+.. index:: pair_style lj96/cut/gpu
+.. index:: pair_style lj96/cut/omp
 
 pair_style lj96/cut command
 ===========================
 
-pair_style lj96/cut/gpu command
-===============================
-
-pair_style lj96/cut/omp command
-===============================
+Accelerator Variants: *lj96/cut/gpu*, *lj96/cut/omp*
 
 Syntax
 """"""

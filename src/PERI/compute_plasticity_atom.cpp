@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,7 +44,7 @@ ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  plasticity = NULL;
+  plasticity = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

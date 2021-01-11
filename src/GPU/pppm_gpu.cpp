@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -91,7 +91,7 @@ void PPPM_GPU_API(forces)(double **f);
 
 PPPMGPU::PPPMGPU(LAMMPS *lmp) : PPPM(lmp)
 {
-  density_brick_gpu = vd_brick = NULL;
+  density_brick_gpu = vd_brick = nullptr;
   kspace_split = false;
   im_real_space = false;
 
@@ -117,11 +117,11 @@ void PPPMGPU::init()
   //      thru its deallocate(), allocate()
   // NOTE: could free density_brick and vdxyz_brick after PPPM allocates them,
   //       before allocating db_gpu and vd_brick down below, if don't need,
-  //       if do this, make sure to set them to NULL
+  //       if do this, make sure to set them to a null pointer
 
   destroy_3d_offset(density_brick_gpu,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
-  density_brick_gpu = vd_brick = NULL;
+  density_brick_gpu = vd_brick = nullptr;
 
   PPPM::init();
 
@@ -255,11 +255,11 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (triclinic == 0) {
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_GPU,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     brick2fft_gpu();
   } else {
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     PPPM::brick2fft();
   }
 
@@ -274,20 +274,20 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (differentiation_flag == 1)
     gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
     gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
       gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
       gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   poisson_time += MPI_Wtime()-t3;
@@ -707,7 +707,7 @@ FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
 void PPPMGPU::destroy_3d_offset(FFT_SCALAR ***array, int n1_offset,
                                  int n2_offset)
 {
-  if (array == NULL) return;
+  if (array == nullptr) return;
   memory->sfree(&array[n1_offset][n2_offset]);
   memory->sfree(array + n1_offset);
 }
@@ -797,7 +797,7 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   // extend size of per-atom arrays if necessary
   // part2grid needs to be allocated
 
-  if (atom->nmax > nmax || part2grid == NULL) {
+  if (atom->nmax > nmax || part2grid == nullptr) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
@@ -831,7 +831,7 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_fft = density_A_fft;
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -840,7 +840,7 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_fft = density_B_fft;
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

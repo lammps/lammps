@@ -23,21 +23,22 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_valence_angles_omp.h"
-#include <mpi.h>
-#include <cmath>
-#include "pair_reaxc_omp.h"
-#include "fix_omp.h"
+
 #include "error.h"
+#include "fix_omp.h"
+#include "pair_reaxc_omp.h"
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_valence_angles.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -176,7 +177,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);
     class ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);
 
-    // Run through a minimal for(j<N) loop once to precompute offsets with safe number of threads
+    // Run through a minimal for (j<N) loop once to precompute offsets with safe number of threads
 
     const int per_thread = thb_intrs->num_intrs / nthreads;
 
@@ -186,7 +187,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     for (j = 0; j < system->N; ++j) {
       type_j = system->my_atoms[j].type;
       _my_offset[j] = 0;
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
 
       start_j = Start_Index(j, bonds);
       end_j = End_Index(j, bonds);
@@ -219,7 +220,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                 ++my_offset;
                 break;
               }
-          } // for(pk)
+          } // for (pk)
 
           /* and this is the second for loop mentioned above */
           for (pk = pi+1; pk < end_j; ++pk) {
@@ -232,14 +233,14 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
             p_ijk->thb = k;
 
             ++my_offset; // add this  to the list of 3-body interactions
-          } // for(pk)
-        } // if()
+          } // for (pk)
+        } // if ()
 
         Set_End_Index(pi, my_offset, thb_intrs );
-      } // for(pi)
+      } // for (pi)
 
       // Confirm that thb_intrs->num_intrs / nthreads is enough to hold all angles from a single atom
-      if(my_offset >= (tid+1)*per_thread) {
+      if (my_offset >= (tid+1)*per_thread) {
         char errmsg[512];
         snprintf( errmsg, 512, "step%d-ran out of space on angle_list for atom %i:\n"
         " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n"
@@ -250,7 +251,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
       // Number of angles owned by this atom
       _my_offset[j] = my_offset - tid * per_thread;
-    } // for(j)
+    } // for (j)
 
     // Wait for all threads to finish counting angles
 #if defined(_OPENMP) && !defined(__NVCC__)
@@ -265,7 +266,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       int current_count = 0;
       int m = _my_offset[0];
       _my_offset[0] = current_count;
-      for(j=1; j<system->N; j++) {
+      for (j=1; j<system->N; j++) {
         current_count+= m;
         m = _my_offset[j];
         _my_offset[j] = current_count;
@@ -285,10 +286,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 #endif
     for (j = 0; j < system->N; ++j) {         // Ray: the first one with system->N
       type_j = system->my_atoms[j].type;
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
 
       // Skip if no angles for this atom
-      if(_my_offset[j] == _my_offset[j+1]) continue;
+      if (_my_offset[j] == _my_offset[j+1]) continue;
 
       start_j = Start_Index(j, bonds);
       end_j = End_Index(j, bonds);
@@ -372,7 +373,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                 ++num_thb_intrs;
                 break;
               }
-          } // for(pk)
+          } // for (pk)
 
 
           /* and this is the second for loop mentioned above */
@@ -586,15 +587,15 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                       system->pair_ptr->v_tally3( i, j, k, fi_tmp, fk_tmp, delij, delkj);
                   }
 
-                } // if(p_val1>0.001)
-              } // for(cnt)
-            } // if(j<n && BOA_jk>0)
-          } // for(pk)
-        } // if(BOA_ij>0)
+                } // if (p_val1>0.001)
+              } // for (cnt)
+            } // if (j<n && BOA_jk>0)
+          } // for (pk)
+        } // if (BOA_ij>0)
 
         Set_End_Index(pi, my_offset, thb_intrs );
-      } // for(pi)
-    } // for(j)
+      } // for (pi)
+    } // for (j)
   } // end omp parallel
 
   data->my_en.e_ang = total_Eang;

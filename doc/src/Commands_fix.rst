@@ -62,6 +62,7 @@ OPT.
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electron/stopping <fix_electron_stopping>`
+   * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
    * :doc:`eos/table <fix_eos_table>`
@@ -150,6 +151,7 @@ OPT.
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
+   * :doc:`pafi <fix_pafi>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -194,7 +196,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
-   * :doc:`shake <fix_shake>`
+   * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
    * :doc:`smd/adjust_dt <fix_smd_adjust_dt>`
@@ -219,6 +221,8 @@ OPT.
    * :doc:`temp/rescale <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
+   * :doc:`tgnpt/drude <fix_tgnh_drude>`
+   * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
    * :doc:`ti/spring <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`

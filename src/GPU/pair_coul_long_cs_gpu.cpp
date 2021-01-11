@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_coul_long_cs_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -154,7 +154,7 @@ void PairCoulLongCSGPU::compute(int eflag, int vflag)
 
 void PairCoulLongCSGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/long/cs/gpu requires atom attribute q");
@@ -175,7 +175,7 @@ void PairCoulLongCSGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 

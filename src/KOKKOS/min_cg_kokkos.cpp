@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,6 +67,8 @@ int MinCGKokkos::iterate(int maxiter)
       l_g[i] = l_fvec[i];
     });
   }
+  if (nextra_global)
+    for (int i = 0; i < nextra_global; i++) hextra[i] = gextra[i] = fextra[i];
 
   gg = fnorm_sqr();
 
@@ -111,6 +113,11 @@ int MinCGKokkos::iterate(int maxiter)
     dot[0] = sdot.d0;
     dot[1] = sdot.d1;
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra_global)
+      for (int i = 0; i < nextra_global; i++) {
+        dotall[0] += fextra[i]*fextra[i];
+        dotall[1] += fextra[i]*gextra[i];
+      }
 
     fdotf = 0.0;
     if (update->ftol > 0.0) {
@@ -142,6 +149,11 @@ int MinCGKokkos::iterate(int maxiter)
         l_h[i] = l_g[i] + beta*l_h[i];
       });
     }
+    if (nextra_global)
+      for (int i = 0; i < nextra_global; i++) {
+        gextra[i] = fextra[i];
+        hextra[i] = gextra[i] + beta*hextra[i];
+      }
 
     // reinitialize CG if new search direction h is not downhill
 
@@ -159,6 +171,9 @@ int MinCGKokkos::iterate(int maxiter)
     }
     dot[0] = dot_0;
     MPI_Allreduce(dot,dotall,1,MPI_DOUBLE,MPI_SUM,world);
+    if (nextra_global)
+      for (int i = 0; i < nextra_global; i++)
+        dotall[0] += gextra[i]*hextra[i];
 
     if (dotall[0] <= 0.0) {
       // local variables for lambda capture
@@ -169,6 +184,8 @@ int MinCGKokkos::iterate(int maxiter)
       Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
          l_h[i] = l_g[i];
       });
+      if (nextra_global)
+        for (int i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
     }
 
     // output for thermo, dump, restart files

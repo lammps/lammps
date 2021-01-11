@@ -99,14 +99,15 @@ files do not match the specified output frequency.
 ----------
 
 If more than one dump file is specified, the dump files are read one
-after the other.  It is assumed that snapshot timesteps will be in
-ascending order.  If a snapshot is encountered that is not in
-ascending order, it will skip the snapshot until it reads one that is.
+after the other in the order specified.  It is assumed that snapshot
+timesteps will be in ascending order.  If a snapshot is encountered that
+is not in ascending order, it will skip the snapshot until it reads one
+that is.
 This allows skipping of a duplicate snapshot (same timestep),
 e.g. that appeared at the end of one file and beginning of the next.
 However if you specify a series of dump files in an incorrect order
 (with respect to the timesteps they contain), you may skip large
-numbers of snapshots
+numbers of snapshots.
 
 Note that the dump files specified as part of the *dump* keyword can be
 parallel files, i.e. written as multiple files either per processor
@@ -118,17 +119,24 @@ and write parallel dump files.
 
 The *first*\ , *last*\ , *every*\ , *skip* keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until
-they have a timestamp >= *Nfirst*\ .  When a snapshot with a timestamp >
-*Nlast* is encountered, the rerun command finishes.  Note below that
+they have a timestep >= *Nfirst*\ .  When a snapshot with a timestep >
+*Nlast* is encountered, the rerun command finishes.  Note that
 the defaults for *first* and *last* are to read all snapshots.  If the
 *every* keyword is set to a value > 0, then only snapshots with
-timestamps that are a multiple of *Nevery* are read (the first
+timesteps that are a multiple of *Nevery* are read (the first
 snapshot is always read).  If *Nevery* = 0, then this criterion is
 ignored, i.e. every snapshot is read that meets the other criteria.
 If the *skip* keyword is used, then after the first snapshot is read,
 every Nth snapshot is read, where N = *Nskip*\ .  E.g. if *Nskip* = 3,
 then only 1 out of every 3 snapshots is read, assuming the snapshot
-timestamp is also consistent with the other criteria.
+timestep is also consistent with the other criteria.
+
+.. note::
+
+   Not all dump formats contain the timestep and not all dump readers
+   support reading it.  In that case individual snapshots are assigned
+   consecutive timestep numbers starting at 1.
+
 
 The *start* and *stop* keywords do not affect which snapshots are read
 from the dump file(s).  Rather, they have the same meaning that they
@@ -205,9 +213,8 @@ thermodynamic output or new dump file output.
 Restrictions
 """"""""""""
 
-To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+The *rerun* command is subject to all restrictions of
+the :doc:`read_dump <read_dump>` command.
 
 Related commands
 """"""""""""""""

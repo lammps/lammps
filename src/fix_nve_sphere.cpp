@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_sphere.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "atom_vec.h"
-#include "force.h"
 #include "error.h"
-#include "math_vector.h"
+#include "force.h"
 #include "math_extra.h"
+#include "math_vector.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -186,7 +187,7 @@ void FixNVESphere::initial_integrate(int /*vflag*/)
           // Q = I + vx + vx^2 * (1-c)/s^2
 
           s2 = a[0]*a[0] + a[1]*a[1];
-          if (s2 != 0.0){ // i.e. the vectors are not parallel
+          if (s2 != 0.0) { // i.e. the vectors are not parallel
             scale = (1.0 - a[2])/s2;
 
             Q[0][0] = 1.0 - scale*a[0]*a[0];

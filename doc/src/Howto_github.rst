@@ -20,7 +20,7 @@ work required by the LAMMPS developers. Consequently, creating a pull
 request will increase your chances to have your contribution included
 and will reduce the time until the integration is complete. For more
 information on the requirements to have your code included into LAMMPS
-please see the :doc:`Modify contribute <Modify_contribute>` doc page.
+please see :doc:`this page <Modify_contribute>`.
 
 ----------
 
@@ -72,7 +72,7 @@ explained in more detail here: `feature branch workflow <https://www.atlassian.c
 
 **Feature branches**
 
-First of all, create a clone of your version on github on your local
+First of all, create a clone of your version on GitHub on your local
 machine via HTTPS:
 
 .. code-block:: bash
@@ -155,7 +155,7 @@ useful message that explains the change.
 
 .. code-block:: bash
 
-     $ git commit -m 'Finally updated the github tutorial'
+     $ git commit -m 'Finally updated the GitHub tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
 

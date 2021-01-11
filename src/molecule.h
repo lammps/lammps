@@ -15,7 +15,7 @@
 #define LMP_ONE_MOLECULE_H
 
 #include "pointers.h"
-#include <string>
+
 #include <vector>
 
 namespace LAMMPS_NS {
@@ -241,6 +241,10 @@ E: Molecule file has impropers but no nimpropers setting
 
 Self-explanatory.
 
+E: Molecule file has fragments but no nfragments setting
+
+Self-explanatory.
+
 E: Molecule file shake flags not before shake atoms
 
 The order of the two sections is important.
@@ -274,6 +278,10 @@ E: Molecule file has no Body Integers section
 Self-explanatory.
 
 E: Molecule file has no Body Doubles section
+
+Self-explanatory.
+
+E: Molecule file has no Fragments section
 
 Self-explanatory.
 

@@ -24,8 +24,8 @@ namespace ATC {
     atomType_(atomType),
     nCols_(nCols),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsScalar_(NULL),
-    lammpsVector_(NULL)
+    lammpsScalar_(nullptr),
+    lammpsVector_(nullptr)
   {
     // do nothing
   }
@@ -452,7 +452,7 @@ namespace ATC {
     lammpsInterface_(LammpsInterface::instance()),
     atomType_(atomType),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsScalar_(NULL)
+    lammpsScalar_(nullptr)
   {
     // do nothing
   }
@@ -610,8 +610,8 @@ namespace ATC {
     nCols_(nCols),
     maxEntriesPerRow_(maxEntriesPerRow),
     quantityToLammps_(atc_.atc_to_lammps_map()),
-    lammpsVector_(NULL),
-    lammpsColIndices_(NULL)
+    lammpsVector_(nullptr),
+    lammpsColIndices_(nullptr)
   {
     // do nothing
   }

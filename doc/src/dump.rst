@@ -36,8 +36,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/mpiio* or *cfg* or *cfg/gz* or
-  *cfg/mpiio* or *custom* or *custom/gz* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/mpiio*
+* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -46,17 +45,19 @@ Syntax
 
        *atom* args = none
        *atom/gz* args = none
+       *atom/zstd* args = none
        *atom/mpiio* args = none
        *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` doc page
        *cfg* args = same as *custom* args, see below
        *cfg/gz* args = same as *custom* args, see below
+       *cfg/zstd* args = same as *custom* args, see below
        *cfg/mpiio* args = same as *custom* args, see below
-       *custom*\ , *custom/gz*\ , *custom/mpiio* args = see below
+       *custom*\ , *custom/gz*\ , *custom/zstd* , *custom/mpiio* args = see below
        *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` doc page
        *dcd* args = none
        *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` doc page
        *image* args = discussed on :doc:`dump image <dump_image>` doc page
-       *local* args = see below
+       *local*, *local/gz*, *local/zstd* args = see below
        *molfile* args = discussed on :doc:`dump molfile <dump_molfile>` doc page
        *movie* args = discussed on :doc:`dump image <dump_image>` doc page
        *netcdf* args = discussed on :doc:`dump netcdf <dump_netcdf>` doc page
@@ -65,9 +66,10 @@ Syntax
        *xtc* args = none
        *xyz* args = none
        *xyz/gz* args = none
+       *xyz/zstd* args = none
        *xyz/mpiio* args = none
 
-* *custom* or *custom/gz* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
 
   .. parsed-literal::
 
@@ -114,7 +116,7 @@ Syntax
            i2_name[I] = Ith column of custom integer array with name, I can include wildcard (see below)
            d2_name[I] = Ith column of custom floating point vector with name, I can include wildcard (see below)
 
-* *local* args = list of local attributes
+* *local* or *local/gz* or *local/zstd* args = list of local attributes
 
   .. parsed-literal::
 
@@ -133,6 +135,7 @@ Examples
    dump myDump all atom 100 dump.atom
    dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
+   dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
    dump 2 subgroup atom 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
@@ -190,7 +193,7 @@ default.  For the *dcd*\ , *xtc*\ , *xyz*\ , and *molfile* styles, sorting by
 atom ID is on by default. See the :doc:`dump_modify <dump_modify>` doc
 page for details.
 
-The *atom/gz*\ , *cfg/gz*\ , *custom/gz*\ , and *xyz/gz* styles are identical
+The *atom/gz*\ , *cfg/gz*\ , *custom/gz*\ , *local/gz*, and *xyz/gz* styles are identical
 in command syntax to the corresponding styles without "gz", however,
 they generate compressed files using the zlib library. Thus the filename
 suffix ".gz" is mandatory. This is an alternative approach to writing
@@ -200,6 +203,12 @@ disallows using the fork() library call (which is needed for a pipe).
 For the remainder of this doc page, you should thus consider the *atom*
 and *atom/gz* styles (etc) to be inter-changeable, with the exception
 of the required filename suffix.
+
+Similarly, the *atom/zstd*\ , *cfg/zstd*\ , *custom/zstd*\ , *local/zstd*,
+and *xyz/zstd* styles are identical to the gz styles, but use the Zstd
+compression library instead and require the ".zst" suffix. See the
+:doc:`dump_modify <dump_modify>` doc page for details on how to control
+the compression level in both variants.
 
 As explained below, the *atom/mpiio*\ , *cfg/mpiio*\ , *custom/mpiio*\ , and
 *xyz/mpiio* styles are identical in command syntax and in the format

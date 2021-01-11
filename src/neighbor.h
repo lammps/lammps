@@ -123,7 +123,7 @@ class Neighbor : protected Pointers {
   int exclude_setting();            // return exclude value to accelerator pkg
   class NeighRequest *find_request(void *);  // find a neighbor request
 
-  bigint memory_usage();
+  double memory_usage();
 
   bigint last_setup_bins;          // step of last neighbor::setup_bins() call
 
@@ -235,49 +235,55 @@ class Neighbor : protected Pointers {
 };
 
 namespace NeighConst {
-  static const int NB_INTEL         = 1<<0;
-  static const int NB_KOKKOS_DEVICE = 1<<1;
-  static const int NB_KOKKOS_HOST   = 1<<2;
-  static const int NB_SSA           = 1<<3;
+  enum {
+    NB_INTEL         = 1<<0,
+    NB_KOKKOS_DEVICE = 1<<1,
+    NB_KOKKOS_HOST   = 1<<2,
+    NB_SSA           = 1<<3
+  };
 
-  static const int NS_BIN     = 1<<0;
-  static const int NS_MULTI   = 1<<1;
-  static const int NS_HALF    = 1<<2;
-  static const int NS_FULL    = 1<<3;
-  static const int NS_2D      = 1<<4;
-  static const int NS_3D      = 1<<5;
-  static const int NS_NEWTON  = 1<<6;
-  static const int NS_NEWTOFF = 1<<7;
-  static const int NS_ORTHO   = 1<<8;
-  static const int NS_TRI     = 1<<9;
-  static const int NS_GHOST   = 1<<10;
-  static const int NS_SSA     = 1<<11;
+  enum {
+    NS_BIN           = 1<<0,
+    NS_MULTI         = 1<<1,
+    NS_HALF          = 1<<2,
+    NS_FULL          = 1<<3,
+    NS_2D            = 1<<4,
+    NS_3D            = 1<<5,
+    NS_NEWTON        = 1<<6,
+    NS_NEWTOFF       = 1<<7,
+    NS_ORTHO         = 1<<8,
+    NS_TRI           = 1<<9,
+    NS_GHOST         = 1<<10,
+    NS_SSA           = 1<<11
+  };
 
-  static const int NP_NSQ           = 1<<0;
-  static const int NP_BIN           = 1<<1;
-  static const int NP_MULTI         = 1<<2;
-  static const int NP_HALF          = 1<<3;
-  static const int NP_FULL          = 1<<4;
-  static const int NP_ORTHO         = 1<<5;
-  static const int NP_TRI           = 1<<6;
-  static const int NP_ATOMONLY      = 1<<7;
-  static const int NP_MOLONLY       = 1<<8;
-  static const int NP_NEWTON        = 1<<9;
-  static const int NP_NEWTOFF       = 1<<10;
-  static const int NP_GHOST         = 1<<11;
-  static const int NP_SIZE          = 1<<12;
-  static const int NP_ONESIDE       = 1<<13;
-  static const int NP_RESPA         = 1<<14;
-  static const int NP_BOND          = 1<<15;
-  static const int NP_OMP           = 1<<16;
-  static const int NP_INTEL         = 1<<17;
-  static const int NP_KOKKOS_DEVICE = 1<<18;
-  static const int NP_KOKKOS_HOST   = 1<<19;
-  static const int NP_SSA           = 1<<20;
-  static const int NP_COPY          = 1<<21;
-  static const int NP_SKIP          = 1<<22;
-  static const int NP_HALF_FULL     = 1<<23;
-  static const int NP_OFF2ON        = 1<<24;
+  enum {
+    NP_NSQ           = 1<<0,
+    NP_BIN           = 1<<1,
+    NP_MULTI         = 1<<2,
+    NP_HALF          = 1<<3,
+    NP_FULL          = 1<<4,
+    NP_ORTHO         = 1<<5,
+    NP_TRI           = 1<<6,
+    NP_ATOMONLY      = 1<<7,
+    NP_MOLONLY       = 1<<8,
+    NP_NEWTON        = 1<<9,
+    NP_NEWTOFF       = 1<<10,
+    NP_GHOST         = 1<<11,
+    NP_SIZE          = 1<<12,
+    NP_ONESIDE       = 1<<13,
+    NP_RESPA         = 1<<14,
+    NP_BOND          = 1<<15,
+    NP_OMP           = 1<<16,
+    NP_INTEL         = 1<<17,
+    NP_KOKKOS_DEVICE = 1<<18,
+    NP_KOKKOS_HOST   = 1<<19,
+    NP_SSA           = 1<<20,
+    NP_COPY          = 1<<21,
+    NP_SKIP          = 1<<22,
+    NP_HALF_FULL     = 1<<23,
+    NP_OFF2ON        = 1<<24
+  };
 }
 
 }

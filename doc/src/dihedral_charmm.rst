@@ -1,16 +1,13 @@
 .. index:: dihedral_style charmm
+.. index:: dihedral_style charmm/intel
+.. index:: dihedral_style charmm/kk
+.. index:: dihedral_style charmm/omp
+.. index:: dihedral_style charmmfsw
 
 dihedral_style charmm command
 =============================
 
-dihedral_style charmm/intel command
-===================================
-
-dihedral_style charmm/kk command
-================================
-
-dihedral_style charmm/omp command
-=================================
+Accelerator Variants: *charmm/intel*, *charmm/kk*, *charmm/omp*
 
 dihedral_style charmmfsw command
 ================================

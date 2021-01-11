@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,6 +44,8 @@ ImproperHarmonicKokkos<DeviceType>::ImproperHarmonicKokkos(LAMMPS *lmp) : Improp
   k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */

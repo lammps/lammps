@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,25 +18,24 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb3.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "my_page.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "group.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -52,41 +51,43 @@ PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
   nmax = 0;
-  NCo = NULL;
-  bbij = NULL;
-  map = NULL;
-  esm = NULL;
+  NCo = nullptr;
+  bbij = nullptr;
+  map = nullptr;
+  esm = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
-  intype = NULL;
-  afb = NULL;
-  dafb = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  ddfafb = NULL;
-  phin = NULL;
-  dphin = NULL;
-  erpaw = NULL;
-  vvdw = NULL;
-  vdvdw = NULL;
-  dpl = NULL;
-  xcctmp = NULL;
-  xchtmp = NULL;
-  xcotmp = NULL;
+  intype = nullptr;
+  afb = nullptr;
+  dafb = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  ddfafb = nullptr;
+  phin = nullptr;
+  dphin = nullptr;
+  erpaw = nullptr;
+  vvdw = nullptr;
+  vdvdw = nullptr;
+  dpl = nullptr;
+  xcctmp = nullptr;
+  xchtmp = nullptr;
+  xcotmp = nullptr;
 
-  sht_num = NULL;
-  sht_first = NULL;
+  sht_num = nullptr;
+  sht_first = nullptr;
 
-  ipage = NULL;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
   cflag = 0;
@@ -193,7 +194,7 @@ void PairComb3::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -202,7 +203,7 @@ void PairComb3::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -278,7 +279,7 @@ void PairComb3::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -345,7 +346,7 @@ void PairComb3::read_lib()
 
       ntab = reader.next_int();
 
-      for (i = 0; i < (ntab + 1); i++){
+      for (i = 0; i < (ntab + 1); i++) {
         values = reader.next_values(4);
         values.skip(1);
         pang[i]   = values.next_double();
@@ -380,7 +381,7 @@ void PairComb3::read_lib()
               jj = values.next_int();
               kk = values.next_int();
 
-              for(iii = 0; iii < 2; iii++) {
+              for (iii = 0; iii < 2; iii++) {
                 mm = iii*32;
                 reader.next_dvector(&pcn_cubs[ll][ii][jj][kk][mm], 32);
               }
@@ -445,15 +446,15 @@ void PairComb3::read_lib()
               ii = values.next_int();
               jj = values.next_int();
               kk = values.next_int() - 1;
-              for(iii=0; iii<2; iii++) {
+              for (iii=0; iii<2; iii++) {
                 mm=iii*32;
                 reader.next_dvector(&tor_spl[ll][ii][jj][kk][mm], 32);
               }
             }
 
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -530,7 +531,7 @@ void PairComb3::read_file(char *file)
     PotentialFileReader reader(lmp, file, "COMB3");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -641,7 +642,7 @@ void PairComb3::read_file(char *file)
         params[nparams].addrep     = values.next_double();
         params[nparams].pcross     = values.next_double();
         params[nparams].powermint = int(params[nparams].powerm);
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 
@@ -671,7 +672,7 @@ void PairComb3::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -1084,7 +1085,7 @@ void PairComb3::compute(int eflag, int vflag)
       sht_lnum = sht_num[j];
 
       jtag = tag[j];
-      if ( jtag <= itag ) continue ;
+      if (jtag <= itag) continue ;
       ycn = NCo[j];
 
       jtype = map[type[j]];
@@ -1142,11 +1143,11 @@ void PairComb3::compute(int eflag, int vflag)
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
-          if(srmu > 0.1) {
+          if (srmu > 0.1) {
             for (ll = 0; ll < sht_lnum; ll++) { // ll is neighbor of jj
               l = sht_llist[ll];
 
-              if(l==i || l==j || l==k) continue;
+              if (l==i || l==j || l==k) continue;
 
               ltype = map[type[l]];
 
@@ -1198,7 +1199,7 @@ void PairComb3::compute(int eflag, int vflag)
                         , rsq1, rsq2, delrl, delrk, j, ycn);
 
         // radical initialization: apply only to CC,CO,OC bonds
-        if(params[iparam_ji].rad_flag > 0
+        if (params[iparam_ji].rad_flag > 0
           && params[iparam_jl].ielementgp == 1
           && params[iparam_jl].jelementgp == 1) {
           iparam_lj = elem2param[ltype][jtype][jtype];
@@ -1274,7 +1275,7 @@ void PairComb3::compute(int eflag, int vflag)
           srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
-          if(srmu > 0.1) {
+          if (srmu > 0.1) {
             for (ll = 0; ll < sht_lnum; ll++) { // ll is neighbor of jj
               l = sht_llist[ll];
               if (l==i||l==j||l==k) continue;
@@ -1303,7 +1304,7 @@ void PairComb3::compute(int eflag, int vflag)
           }
         }
 
-        if( params[iparam_ijk].rad_flag>=1 &&
+        if ( params[iparam_ijk].rad_flag>=1 &&
           params[iparam_ijk].ielementgp==1 &&
           params[iparam_ijk].kelementgp==1) {
           iparam_ki = elem2param[ktype][itype][itype];
@@ -1399,9 +1400,9 @@ void PairComb3::compute(int eflag, int vflag)
         }
 
         // radical i-j-l-p: apply to all CC,CO,OC bonds
-        if( params[iparam_jil].rad_flag >= 1 &&
+        if ( params[iparam_jil].rad_flag >= 1 &&
           params[iparam_jil].ielementgp == 1 &&
-          params[iparam_jil].kelementgp == 1 ) {
+          params[iparam_jil].kelementgp == 1) {
             iparam_lj = elem2param[ltype][jtype][jtype];
             lcn=NCo[l];
             double rjl=sqrt(rsq2);
@@ -1666,7 +1667,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
 
   // radical energy
 
-  if ( parami->rad_flag>0 ) {
+  if (parami->rad_flag>0) {
     rad_calc( r, parami, paramj, kconjug, lconjug, i, j, xcn, ycn);
     bij +=  brad[0];
     pradx = brad[1]*att_eng;
@@ -1700,7 +1701,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   prefac_ji5 = -0.5*att_eng*dbji5;      // prefac_ji5 = -pfji4
 
   // combines com6 & com7 below
-  if ( parami->rad_flag>0 || parami->tor_flag!=0 ) {
+  if (parami->rad_flag>0 || parami->tor_flag!=0) {
     prefac_ij2-=pradx;
     prefac_ji2-=prady;
   }
@@ -1858,7 +1859,7 @@ void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
   YYBn = (parami->aB-fabs(pow(parami->bB*(qi-parami->Qo),10)));
   YYBj = (paramj->aB-fabs(pow(paramj->bB*(qj-paramj->Qo),10)));
 
-  if (YYBn*YYBj > 0.0 ) {
+  if (YYBn*YYBj > 0.0) {
     AlfDiAlfDj = exp(0.5*(parami->alfi*Di+paramj->alfi*Dj));
     Bsi = (pbij1*exp(-alfij1*r)+pbij2*exp(-alfij2*r)+pbij3*exp(-alfij3*r))*
       sqrt(YYBn*YYBj)*AlfDiAlfDj;                               // Bsi is cbj
@@ -1893,7 +1894,7 @@ void PairComb3::comb_bij_d(double zet, Param *param, double r, int i,
   zeta = pow(zetang,pow_n)+pcorn;
   tmp_tbij=pow_n*pow(zetang,(pow_n-1.0));
 
-  if ((1.0 + zeta) < 0.1 ){
+  if ((1.0 + zeta) < 0.1) {
     zeta=0.1-1.0;
     tbij = pow(1.0 + zeta, -0.5/pow_n);
     tbij1=0.0;
@@ -1947,22 +1948,22 @@ void PairComb3::coord(Param *param, double r, int i,
   pcorn = dpcorn = dxccij = dxchij = dxcoij = 0.0;
   pcorn = 0.0; dpcorn = 0.0;
 
-  if(xcntot  < 0.0) xcntot  = 0.0;
+  if (xcntot  < 0.0) xcntot  = 0.0;
 
   if (tri_flag>0) {
-    if(jele_gp==1) xcccn = xcccn-comb_fc(r,param)*param->pcross;
-    if(jele_gp==2) xchcn = xchcn-comb_fc(r,param)*param->pcross;
-    if(jele_gp==3) xcocn = xcocn-comb_fc(r,param)*param->pcross;
-    if(xcccn < 0.0) xcccn = 0.0;
-    if(xchcn < 0.0) xchcn = 0.0;
-    if(xcocn < 0.0) xcocn = 0.0;
-    if(xcccn > maxx) xcccn = maxx;
-    if(xchcn > maxy) xchcn = maxy;
-    if(xcocn > maxz) xcocn = maxz;
+    if (jele_gp==1) xcccn = xcccn-comb_fc(r,param)*param->pcross;
+    if (jele_gp==2) xchcn = xchcn-comb_fc(r,param)*param->pcross;
+    if (jele_gp==3) xcocn = xcocn-comb_fc(r,param)*param->pcross;
+    if (xcccn < 0.0) xcccn = 0.0;
+    if (xchcn < 0.0) xchcn = 0.0;
+    if (xcocn < 0.0) xcocn = 0.0;
+    if (xcccn > maxx) xcccn = maxx;
+    if (xchcn > maxy) xchcn = maxy;
+    if (xcocn > maxz) xcocn = maxz;
 
     double xcntritot=xcccn+xchcn+xcocn;
 
-    if(xcntritot > maxxcn[tri_flag-1]) {
+    if (xcntritot > maxxcn[tri_flag-1]) {
       pcorn  = vmaxxcn[tri_flag-1]+(xcntot-maxxcn[tri_flag-1])*dvmaxxcn[tri_flag-1];
       dxccij = dxchij = dxcoij = dvmaxxcn[tri_flag-1];
     }
@@ -1997,17 +1998,17 @@ void PairComb3::cntri_int(int tri_flag, double xval, double yval,
 {
   double x;
   vval = 0.0; dvalx = 0.0; dvaly = 0.0; dvalz = 0.0;
-  if(ixmin >= maxx-1) { ixmin=maxx-1; }
-  if(iymin >= maxy-1) { iymin=maxy-1; }
-  if(izmin >= maxz-1) { izmin=maxz-1; }
+  if (ixmin >= maxx-1) { ixmin=maxx-1; }
+  if (iymin >= maxy-1) { iymin=maxy-1; }
+  if (izmin >= maxz-1) { izmin=maxz-1; }
   for (int j=0; j<64; j++) {
       x = pcn_cubs[tri_flag-1][ixmin][iymin][izmin][j]
           *pow(xval,iin3[j][0])*pow(yval,iin3[j][1])
           *pow(zval,iin3[j][2]);
     vval += x;
-    if(xval>1.0e-8) {dvalx += x*iin3[j][0]/xval;}
-    if(yval>1.0e-8) {dvaly += x*iin3[j][1]/yval;}
-    if(zval>1.0e-8) {dvalz += x*iin3[j][2]/zval;}
+    if (xval>1.0e-8) {dvalx += x*iin3[j][0]/xval;}
+    if (yval>1.0e-8) {dvaly += x*iin3[j][1]/yval;}
+    if (zval>1.0e-8) {dvalz += x*iin3[j][2]/zval;}
   }
 }
 
@@ -2044,7 +2045,7 @@ double PairComb3::comb_gijk(double costheta, Param *param, double nco_tmp)
     gmu = gmu2+qtheta*(gmu1-gmu2);
     return gmu*pcross;
 
-  } else if (param->ang_flag==2){
+  } else if (param->ang_flag==2) {
     double qtheta, gmu1, gmu2;
     double ch6 = ch_a[6]*rmu6;
     double ch5 = ch_a[5]*rmu5;
@@ -2103,7 +2104,7 @@ void PairComb3::comb_gijk_d(double costheta, Param *param, double nco_tmp,
     dgmu2 = dpang[k]+(dpang[k+1]-dpang[k])*(rrmu-k);
     gijk_d = pcross*(dgmu2+qtheta*(dgmu1-dgmu2));
     com3jk = dqtheta * (gmu1-gmu2);
-  } else if(param->ang_flag==2) {
+  } else if (param->ang_flag==2) {
     double qtheta, dqtheta, gmu1, gmu2, dgmu1,dgmu2;
     double ch6 = ch_a[6];
     double ch5 = ch_a[5];
@@ -2190,11 +2191,11 @@ void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
   // com6 & com7
-  if(icontrol > 0){
-    if(parami->kelementgp==1) {com6 = prefac_ij3*pcrossk*dfc_k;}
-    if(parami->kelementgp==2) {com6 = prefac_ij4*pcrossk*dfc_k;}
-    if(parami->kelementgp==3) {com6 = prefac_ij5*pcrossk*dfc_k;}
-    if(parami->rad_flag>=1 || parami->tor_flag!=0)
+  if (icontrol > 0) {
+    if (parami->kelementgp==1) {com6 = prefac_ij3*pcrossk*dfc_k;}
+    if (parami->kelementgp==2) {com6 = prefac_ij4*pcrossk*dfc_k;}
+    if (parami->kelementgp==3) {com6 = prefac_ij5*pcrossk*dfc_k;}
+    if (parami->rad_flag>=1 || parami->tor_flag!=0)
             {com6+=prefac_ij2*pcrossk*dfc_k;}
   } else {
     com6 = prefac_ij2*pcrossi*dfc_k;
@@ -2474,9 +2475,9 @@ void PairComb3::tables()
       iparam_ij = elem2param[itype][jtype][jtype];
 
       // parameter check: eps > 0
-      if(params[iparam_ij].vdwflag > 0) {
+      if (params[iparam_ij].vdwflag > 0) {
 
-        if(params[iparam_ij].vdwflag==1){
+        if (params[iparam_ij].vdwflag==1) {
           rvdw[0][inty] = params[iparam_ij].bigr + params[iparam_ij].bigd;
         }
         else {
@@ -2529,8 +2530,8 @@ void PairComb3::tables()
         vepst = params[iparam_ij].veps;
         vsigt = vsigt*vsigt*vsigt*vsigt*vsigt*vsigt;
 
-        if(params[iparam_ij].vdwflag>0) {
-          if(r <= rvdw[0][inty]) {
+        if (params[iparam_ij].vdwflag>0) {
+          if (r <= rvdw[0][inty]) {
             vvdw[k][inty] = 0.0;
             vdvdw[k][inty] = 0.0;
           }
@@ -2655,27 +2656,27 @@ void PairComb3::direct(Param *parami, Param *paramj, int mr1,
   pot_tmp = for_tmp = 0.0;
   icurl=jcurl=0;
 
-  if(ielegp==2 && curli>curlij0) {
+  if (ielegp==2 && curli>curlij0) {
     icurl=1;
     curlij1=curli;
   }
 
-  if(jelegp==2 && curlj>curlji0) {
+  if (jelegp==2 && curlj>curlji0) {
     jcurl=1;
     curlji1=curlj;
   }
 
-  if(icurl==1 || jcurl ==1) {
+  if (icurl==1 || jcurl ==1) {
     xcoij = xcotmp[i];
     xcoji = xcotmp[j];
     fcp1j = comb_fc_d(r,parami);
 
-    if(icurl==1) {
+    if (icurl==1) {
       curli=curlij1+(curlij0-curlij1)*comb_fc_curl(xcoij,parami);
       dcurlij=fcp1j*(curlij0-curlij1)*comb_fc_curl_d(xcoij,parami);
     }
 
-    if(jcurl==1) {
+    if (jcurl==1) {
       curlj=curlji1+(curlji0-curlji1)*comb_fc_curl(xcoji,paramj);
       dcurlji=fcp1j*(curlji0-curlji1)*comb_fc_curl_d(xcoji,paramj);
     }
@@ -2704,10 +2705,10 @@ void PairComb3::direct(Param *parami, Param *paramj, int mr1,
   smf1n = iq * curlj * (dafbn-dfafbnl)*esucon/r;
   smf1j = jq * curli * (dafbj-dfafbnl)*esucon/r;
 
-  if(jcurl==1 && ielegp == 3 && dcurlji != 0.0){
+  if (jcurl==1 && ielegp == 3 && dcurlji != 0.0) {
    smf1n += dcurlji*iq*(afbn-fafbnl)*esucon/r;
   }
-  if(icurl==1 && jelegp == 3 && dcurlij != 0.0){
+  if (icurl==1 && jelegp == 3 && dcurlij != 0.0) {
    smf1j += dcurlij*jq*(afbj-fafbnl)*esucon/r;
   }
 
@@ -2797,12 +2798,12 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
   yrad = -comb_fc(r,paramj)*paramj->pcross + ycn;
   zcon = 1.0 + pow(kconjug,2) + pow(lconjug,2);
 
-  if(xrad < 0.0) xrad = 0.0;
-  if(yrad < 0.0) yrad = 0.0;
-  if(zcon < 1.0) zcon = 1.0;
-  if(xrad > maxxc) xrad = maxxc;
-  if(yrad > maxyc) yrad = maxyc;
-  if(zcon > maxconj) zcon = maxconj;
+  if (xrad < 0.0) xrad = 0.0;
+  if (yrad < 0.0) yrad = 0.0;
+  if (zcon < 1.0) zcon = 1.0;
+  if (xrad > maxxc) xrad = maxxc;
+  if (yrad > maxyc) yrad = maxyc;
+  if (zcon > maxconj) zcon = maxconj;
   ixmin = int(xrad+1.0e-12);
   iymin = int(yrad+1.0e-12);
   izmin = int(zcon+1.0e-12);
@@ -2834,17 +2835,17 @@ void PairComb3::rad_int(int radindx,double xrad, double yrad, double zcon, int l
   int j;
   double x;
   vrad = pradx = prady = pradz = 0.0;
-  if(l >= maxxc-1) { l=maxxc-1;}
-  if(m >= maxyc-1) { m=maxyc-1; }
-  if(n >= maxconj-1) { n=maxconj-1;}
+  if (l >= maxxc-1) { l=maxxc-1;}
+  if (m >= maxyc-1) { m=maxyc-1; }
+  if (n >= maxconj-1) { n=maxconj-1;}
 
   for (j=0; j<64; j++) {
     x = rad_spl[radindx][l][m][n-1][j] * pow(xrad,iin3[j][0])
           * pow(yrad,iin3[j][1]) * pow(zcon,iin3[j][2]);
     vrad  += x;
-    if(xrad > 1.0e-8) pradx += x*iin3[j][0]/xrad;
-    if(yrad > 1.0e-8) prady += x*iin3[j][1]/yrad;
-    if(zcon > 1.0e-8) pradz += x*iin3[j][2]/zcon;
+    if (xrad > 1.0e-8) pradx += x*iin3[j][0]/xrad;
+    if (yrad > 1.0e-8) prady += x*iin3[j][1]/yrad;
+    if (zcon > 1.0e-8) pradz += x*iin3[j][2]/zcon;
   }
 }
 
@@ -2932,7 +2933,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
   vec3_scale(-1.0,delrl,delrl);
   rmul = sqrt(1.0-rmul*rmul);
 
-  if(rmul > 0.1 ) {
+  if (rmul > 0.1) {
     double fc1k, fc1l, TT1, TT2, rmut, btt, tork[3], torl[3];
 
     fc1k = comb_fc(rik,paramk);
@@ -2947,7 +2948,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
     torl[2] = delrj[0]*delrl[1] - delrj[1]*delrl[0];
     TT2 = vec3_dot(tork,torl);
     rmut = pow((TT2/TT1),2);
-    if(torindx>=1) {
+    if (torindx>=1) {
       btt = 1.0 - rmut;
       return btt * fc1k * fc1l;
     }
@@ -2975,7 +2976,7 @@ void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
   vtor = dtorx = dtory = dtorz = 0.0;
   torindx=parami->tor_flag;
 
-  if(torindx<0){
+  if (torindx<0) {
     vtor=1.0;
     dtorx=0.0;
     dtory=0.0;
@@ -3025,18 +3026,18 @@ void PairComb3::tor_int(int torindx,double xtor, double ytor, double zcon, int l
   double x;
 
   vtor = dtorx = dtory = dtorz = 0.0;
-  if(l >= maxxc-1) { l=maxxc-1; }  //boundary condition changed
-  if(m >= maxyc-1) { m=maxyc-1; }
-  if(n >= maxconj-1) { n=maxconj-1; }
+  if (l >= maxxc-1) { l=maxxc-1; }  //boundary condition changed
+  if (m >= maxyc-1) { m=maxyc-1; }
+  if (n >= maxconj-1) { n=maxconj-1; }
 
   for (j=0; j<64; j++) {
     x = tor_spl[torindx][l][m][n-1][j] * pow(xtor,iin3[j][0])
           * pow(ytor,iin3[j][1]) * pow(zcon,iin3[j][2]);
     vtor += x;
 
-  if(xtor > 1.0e-8 ) dtorx += x*iin3[j][0]/xtor;
-  if(ytor > 1.0e-8 ) dtory += x*iin3[j][1]/ytor;
-  if(zcon > 1.0e-8 ) dtorz += x*iin3[j][2]/zcon;
+  if (xtor > 1.0e-8 ) dtorx += x*iin3[j][0]/xtor;
+  if (ytor > 1.0e-8 ) dtory += x*iin3[j][1]/ytor;
+  if (zcon > 1.0e-8 ) dtorz += x*iin3[j][2]/zcon;
   }
 }
 
@@ -3062,9 +3063,9 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
   rmul = vec3_dot(delrj,delrl)/(rij*rjl);
   vec3_scale(-1.0,delrl,delrl);
   srmul = sqrt(1.0-rmul*rmul);
-  if(acos(rmul) > MY_PI) srmul = -srmul;
+  if (acos(rmul) > MY_PI) srmul = -srmul;
 
-  if(srmul > 0.1 ) {
+  if (srmul > 0.1) {
     double fc1k, fcp1k, fc1l, fcp1l, srmul2, dt1dik, dt1djl;
     double TT1, TT2, rmut, btt, tork[3], torl[3];
     double dt2dik[3], dt2djl[3], dt2dij[3], AA, AA2;
@@ -3103,7 +3104,7 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
 
     rmut = TT2/TT1;
 
-    if(torindx>=1) {
+    if (torindx>=1) {
         btt = 1.0 - pow(rmut,2);
         AA = -2.0 * ptorr * rmut * fc1k * fc1l / TT1;
     }
@@ -3324,7 +3325,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   double eneg = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       eneg += qf[i];
           itag=tag[i];
     }
@@ -3385,23 +3386,23 @@ void PairComb3::qfo_direct(Param *parami, Param *paramj, int mr1,
   esucon=force->qqr2e;
 
   icurl = jcurl = 0;
-  if(ielegp==2 && curli>curlij0) {
+  if (ielegp==2 && curli>curlij0) {
     icurl=1;
     curlij1=curli;
   }
 
-  if(jelegp==2 && curlj>curlji0) {
+  if (jelegp==2 && curlj>curlji0) {
     jcurl=1;
     curlji1=curlj;
   }
-  if(icurl==1 || jcurl ==1) {
+  if (icurl==1 || jcurl ==1) {
     double xcoij= xcotmp[i];
     double xcoji= xcotmp[j];
 
-    if(icurl==1) {
+    if (icurl==1) {
       curli=curlij1+(curlij0-curlij1)*comb_fc_curl(xcoij,parami);
     }
-    if(jcurl==1) {
+    if (jcurl==1) {
       curlj=curlji1+(curlji0-curlji1)*comb_fc_curl(xcoji,paramj);
     }
   }
@@ -3583,7 +3584,7 @@ void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
   int intj = paramj->ielement;
   int inty = intype[inti][intj];
 
-  for(nm=0; nm<3; nm++) Qext[nm] = 0.0;
+  for (nm=0; nm<3; nm++) Qext[nm] = 0.0;
 
   r = sqrt(rsq);
   r3 = r * rsq;

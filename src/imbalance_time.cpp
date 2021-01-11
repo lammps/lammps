@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_time.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "force.h"
-#include "timer.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +30,7 @@ ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
 int ImbalanceTime::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  factor = force->numeric(FLERR,arg[0]);
+  factor = utils::numeric(FLERR,arg[0],false,lmp);
   if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }

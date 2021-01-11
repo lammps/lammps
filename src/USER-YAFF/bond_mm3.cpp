@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_mm3.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -135,10 +135,10 @@ void BondMM3::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k2_one = force->numeric(FLERR,arg[1]);
-  double r0_one = force->numeric(FLERR,arg[2]);
+  double k2_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -179,8 +179,8 @@ void BondMM3::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k2[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);

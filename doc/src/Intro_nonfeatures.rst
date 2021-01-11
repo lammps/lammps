@@ -1,5 +1,5 @@
 LAMMPS non-features
-===================
+-------------------
 
 LAMMPS is designed to be a fast, parallel engine for molecular
 dynamics (MD) simulations.  It provides only a modest amount of
@@ -66,8 +66,10 @@ Here are suggestions on how to perform these tasks:
   on-the-fly via its :doc:`dump image <dump_image>` command and pass
   them to an external program, `FFmpeg <https://www.ffmpeg.org>`_ to generate
   movies from them.  For high-quality, interactive visualization there are
-  many excellent and free tools available.  See the `Other Codes page <https://lammps.sandia.gov/viz.html>`_ page of the LAMMPS website for
-  visualization packages that can use LAMMPS output data.
+  many excellent and free tools available.  See the
+  `Visualization Tools <https://lammps.sandia.gov/viz.html>`_ page of the
+  LAMMPS website for
+  visualization packages that can process LAMMPS output data.
 * **Plotting:** See the next bullet about Pizza.py as well as the
   :doc:`Python <Python_head>` doc page for examples of plotting LAMMPS
   output.  Scripts provided with the *python* tool in the tools

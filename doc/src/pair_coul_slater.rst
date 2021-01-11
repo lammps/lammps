@@ -1,4 +1,9 @@
 .. index:: pair_style coul/slater
+.. index:: pair_style coul/slater/cut
+.. index:: pair_style coul/slater/long
+
+pair_style coul/slater command
+==============================
 
 pair_style coul/slater/cut command
 ==================================
@@ -95,7 +100,7 @@ Restrictions
 
 The  *coul/slater/long* style requires the long-range solvers included in the KSPACE package.
 
-These styles are part of the "USER-MISC" package.  They are only enabled if
+These styles are part of the USER-MISC package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

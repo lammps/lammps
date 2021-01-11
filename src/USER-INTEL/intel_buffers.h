@@ -211,7 +211,7 @@ class IntelBuffers {
         _x[i].z = lmp->atom->x[i][2];
         _x[i].w = lmp->atom->type[i];
       }
-      if (lmp->atom->q != NULL)
+      if (lmp->atom->q != nullptr)
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
         #pragma ivdep
@@ -296,7 +296,7 @@ class IntelBuffers {
     _host_x[nall].y = INTEL_BIGP;
     _host_x[nall].z = INTEL_BIGP;
     _host_x[nall].w = 1;
-    if (lmp->atom->q != NULL) {
+    if (lmp->atom->q != nullptr) {
       memcpy(_host_q + host_min_local, _q + host_min_local,
              used_local * sizeof(flt_t));
       memcpy(_host_q + host_min_local + used_local, _q + host_min_ghost,

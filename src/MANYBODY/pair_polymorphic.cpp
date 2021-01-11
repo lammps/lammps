@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_polymorphic.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "neighbor.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -45,6 +44,8 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   nelements = 0;
   elements = nullptr;
@@ -480,7 +481,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -613,7 +614,7 @@ void PairPolymorphic::read_file(char *file)
 
         if ((ng == 0) || (nr == 0) || (nx == 0))
           error->one(FLERR,"Error reading potential file header");
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR,"Potential file incompatible with this pair style version");
       }
 
@@ -632,7 +633,7 @@ void PairPolymorphic::read_file(char *file)
         p.cutsq = p.cut*p.cut;
         p.xi = values.next_double();
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -645,7 +646,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&npair, 1, MPI_INT, 0, world);
   MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     delete [] match;
     match = new int[nelements];
     delete [] pairParameters;
@@ -910,7 +911,7 @@ void PairPolymorphic::write_tables(int npts)
 {
   char tag[6] = "";
   if (comm->me != 0) sprintf(tag,"%d",comm->me);
-  FILE* fp =  NULL;
+  FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,pf,gf,ff,ufp,vfp,wfp,pfp,gfp,ffp;
   char line[MAXLINE];
   for (int i = 0; i < nelements; i++) {

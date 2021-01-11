@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,37 +16,36 @@
 //   before lmptype.h can set flags to insure it is done correctly
 
 #include "thermo.h"
-#include <mpi.h>
+
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "input.h"
+#include "kspace.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "timer.h"
+#include "tokenizer.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "comm.h"
-#include "domain.h"
-#include "universe.h"
-#include "lattice.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "output.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
-#include "utils.h"
-#include "fmt/format.h"
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -126,7 +125,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     int expand = 0;
     char **earg;
-    int nvalues = input->expand_args(narg-1,&arg[1],0,earg);
+    int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
     line = new char[256+nvalues*64];
@@ -148,9 +147,9 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // ptrs, flags, IDs for compute objects thermo may use or create
 
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -180,10 +179,10 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
   sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
 
-  format_line_user = NULL;
-  format_float_user = NULL;
-  format_int_user = NULL;
-  format_bigint_user = NULL;
+  format_line_user = nullptr;
+  format_float_user = nullptr;
+  format_int_user = nullptr;
+  format_bigint_user = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -564,13 +563,13 @@ void Thermo::modify_params(int narg, char **arg)
         delete [] format_int_user;
         delete [] format_bigint_user;
         delete [] format_float_user;
-        format_line_user = NULL;
-        format_int_user = NULL;
-        format_bigint_user = NULL;
-        format_float_user = NULL;
+        format_line_user = nullptr;
+        format_int_user = nullptr;
+        format_bigint_user = nullptr;
+        format_float_user = nullptr;
         for (int i = 0; i < nfield_initial+1; i++) {
           delete [] format_column_user[i];
-          format_column_user[i] = NULL;
+          format_column_user[i] = nullptr;
         }
         iarg += 2;
         continue;
@@ -594,7 +593,7 @@ void Thermo::modify_params(int narg, char **arg)
         // replace "d" in format_int_user with bigint format specifier
         // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
-        if (ptr == NULL)
+        if (ptr == nullptr)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
         char str[8];
@@ -608,7 +607,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_float_user = new char[n];
         strcpy(format_float_user,arg[iarg+2]);
       } else {
-        int i = force->inumeric(FLERR,arg[iarg+1]) - 1;
+        int i = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
         if (i < 0 || i >= nfield_initial+1)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_column_user[i]) delete [] format_column_user[i];
@@ -633,14 +632,14 @@ void Thermo::allocate()
   int n = nfield_initial + 1;
 
   keyword = new char*[n];
-  for (int i = 0; i < n; i++) keyword[i] = NULL;
+  for (int i = 0; i < n; i++) keyword[i] = nullptr;
   vfunc = new FnPtr[n];
   vtype = new int[n];
 
   format = new char*[n];
   for (int i = 0; i < n; i++) format[i] = new char[32];
   format_column_user = new char*[n];
-  for (int i = 0; i < n; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < n; i++) format_column_user[i] = nullptr;
 
   field2index = new int[n];
   argindex1 = new int[n];
@@ -894,7 +893,7 @@ void Thermo::parse_fields(char *str)
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
       char *ptr = strchr(id,'[');
-      if (ptr == NULL) argindex1[nfield] = argindex2[nfield] = 0;
+      if (ptr == nullptr) argindex1[nfield] = argindex2[nfield] = 0;
       else {
         *ptr = '\0';
         argindex1[nfield] =

@@ -1,10 +1,10 @@
 .. index:: fix property/atom
+.. index:: fix property/atom/kk
 
 fix property/atom command
 =========================
 
-fix property/atom/kk command
-============================
+Accelerator Variants: *property/atom/kk*
 
 Syntax
 """"""
@@ -115,7 +115,8 @@ keyword with a value of *yes*\ .  This will invoke extra communication
 when ghost atoms are created (at every re-neighboring) to insure the
 new properties are also defined for the ghost atoms.
 
-.. note::
+.. admonition:: Properties on ghost atoms
+   :class: note
 
    If you use the *mol*\ , *q* or *rmass* names, you most likely want
    to set *ghost* yes, since these properties are stored with ghost
@@ -125,7 +126,8 @@ new properties are also defined for the ghost atoms.
    these values.  LAMMPS will issue a warning it you define those
    vectors but do not set *ghost* yes.
 
-.. note::
+.. admonition:: Limitations on ghost atom properties
+   :class: note
 
    The specified properties for ghost atoms are not updated every
    timestep, but only once every few steps when neighbor lists are

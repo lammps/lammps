@@ -1,10 +1,10 @@
 .. index:: fix reax/c/species
+.. index:: fix reax/c/species/kk
 
 fix reax/c/species command
 ==========================
 
-fix reax/c/species/kk command
-=============================
+Accelerator Variants: *reax/c/species/kk*
 
 Syntax
 """"""

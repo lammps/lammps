@@ -1,25 +1,20 @@
 .. index:: pair_style lj/gromacs
+.. index:: pair_style lj/gromacs/gpu
+.. index:: pair_style lj/gromacs/kk
+.. index:: pair_style lj/gromacs/omp
+.. index:: pair_style lj/gromacs/coul/gromacs
+.. index:: pair_style lj/gromacs/coul/gromacs/kk
+.. index:: pair_style lj/gromacs/coul/gromacs/omp
 
 pair_style lj/gromacs command
 =============================
 
-pair_style lj/gromacs/gpu command
-=================================
-
-pair_style lj/gromacs/kk command
-================================
-
-pair_style lj/gromacs/omp command
-=================================
+Accelerator Variants: *lj/gromacs/gpu*, *lj/gromacs/kk*, *lj/gromacs/omp*
 
 pair_style lj/gromacs/coul/gromacs command
 ==========================================
 
-pair_style lj/gromacs/coul/gromacs/kk command
-=============================================
-
-pair_style lj/gromacs/coul/gromacs/omp command
-==============================================
+Accelerator Variants: *lj/gromacs/coul/gromacs/kk*, *lj/gromacs/coul/gromacs/omp*
 
 Syntax
 """"""

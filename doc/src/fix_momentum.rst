@@ -1,10 +1,11 @@
 .. index:: fix momentum
+.. index:: fix momentum/kk
+.. index:: fix momentum/chunk
 
 fix momentum command
 ====================
 
-fix momentum/kk command
-=======================
+Accelerator Variants: *momentum/kk*
 
 fix momentum/chunk command
 ==========================

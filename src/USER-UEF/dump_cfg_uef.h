@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class DumpCFGUef : public DumpCFG {
  public:
   DumpCFGUef(LAMMPS *lmp, int narg, char **arg) :
-    DumpCFG(lmp, narg, arg){}
+    DumpCFG(lmp, narg, arg) {}
   void init_style();
   void write_header(bigint);
 

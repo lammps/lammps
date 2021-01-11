@@ -205,6 +205,7 @@ accelerated styles exist.
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
+* :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
 * :doc:`eos/cv <fix_eos_cv>` -
 * :doc:`eos/table <fix_eos_table>` -
@@ -293,6 +294,7 @@ accelerated styles exist.
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
+* :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
@@ -362,6 +364,8 @@ accelerated styles exist.
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by velocity rescaling
 * :doc:`temp/rescale/eff <fix_temp_rescale_eff>` - temperature control by velocity rescaling in the electron force field model
 * :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method
+* :doc:`tgnvt/drude <fix_tgnh_drude>` - NVT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
+* :doc:`tgnpt/drude <fix_tgnh_drude>` - NPT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 * :doc:`ti/spring <fix_ti_spring>` -
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration

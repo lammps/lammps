@@ -1,10 +1,10 @@
 .. index:: fix wall/reflect
+.. index:: fix wall/reflect/kk
 
 fix wall/reflect command
 ========================
 
-fix wall/reflect/kk command
-===========================
+Accelerator Variants: *wall/reflect/kk*
 
 Syntax
 """"""

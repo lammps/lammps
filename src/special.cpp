@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "special.h"
-#include <mpi.h>
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "comm.h"
-#include "modify.h"
-#include "fix.h"
+
 #include "accelerator_kokkos.h"  // IWYU pragma: export
+#include "atom.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "fix.h"
+#include "force.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +34,7 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  onetwo = onethree = onefour = NULL;
+  onetwo = onethree = onefour = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

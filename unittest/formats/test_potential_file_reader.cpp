@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,6 @@
 
 #include "MANYBODY/pair_comb.h"
 #include "MANYBODY/pair_comb3.h"
-#include "MANYBODY/pair_eim.h"
 #include "MANYBODY/pair_gw.h"
 #include "MANYBODY/pair_gw_zbl.h"
 #include "MANYBODY/pair_nb3b_harmonic.h"
@@ -26,14 +25,14 @@
 #include "USER-MISC/pair_tersoff_table.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "potential_file_reader.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cstring>
+#include <iostream>
 #include <mpi.h>
+#include <vector>
 
 #if defined(OMPI_MAJOR_VERSION)
 const bool have_openmpi = true;

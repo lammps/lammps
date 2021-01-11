@@ -1,7 +1,7 @@
 ---
-lammps_version: 21 Jul 2020
-date_generated: Thu Aug 20 10:19:50 202
-epsilon: 1e-14
+lammps_version: 24 Aug 2020
+date_generated: Tue Sep 15 09:44:40 202
+epsilon: 5e-14
 prerequisites: ! |
   atom full
   fix drag

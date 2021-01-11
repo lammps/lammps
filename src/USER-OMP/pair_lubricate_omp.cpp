@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,24 +12,22 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_lubricate_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "fix_wall.h"
 #include "force.h"
 #include "input.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "update.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "fix_wall.h"
-#include "fix_deform.h"
 #include "math_const.h"
-
+#include "neigh_list.h"
 #include "suffix.h"
+#include "variable.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -67,20 +65,20 @@ void PairLubricateOMP::compute(int eflag, int vflag)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (int j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -118,7 +116,7 @@ void PairLubricateOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (flaglog) {
       if (evflag) {

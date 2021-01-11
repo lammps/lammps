@@ -2696,8 +2696,8 @@ struct ViewDataHandle<
 #endif
                 && (!Traits::memory_traits::is_atomic))>::type> {
   using value_type  = typename Traits::value_type;
-  using handle_type = typename Traits::value_type*;
-  using return_type = typename Traits::value_type&;
+  using handle_type = typename Traits::value_type* KOKKOS_RESTRICT;
+  using return_type = typename Traits::value_type& KOKKOS_RESTRICT;
   using track_type  = Kokkos::Impl::SharedAllocationTracker;
 
   KOKKOS_INLINE_FUNCTION
@@ -2725,8 +2725,12 @@ struct ViewDataHandle<
                                    Kokkos::CudaUVMSpace>::value))
 #endif
                 && (!Traits::memory_traits::is_atomic))>::type> {
-  using value_type  = typename Traits::value_type;
-  using handle_type = typename Traits::value_type*;
+  using value_type = typename Traits::value_type;
+  // typedef work-around for intel compilers error #3186: expected typedef
+  // declaration
+  // NOLINTNEXTLINE(modernize-use-using)
+  typedef value_type* KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT)
+      handle_type;
   using return_type = typename Traits::value_type&;
   using track_type  = Kokkos::Impl::SharedAllocationTracker;
 
@@ -2766,9 +2770,13 @@ struct ViewDataHandle<
                            Kokkos::CudaUVMSpace>::value))
 #endif
         && (!Traits::memory_traits::is_atomic))>::type> {
-  using value_type  = typename Traits::value_type;
-  using handle_type = typename Traits::value_type*;
-  using return_type = typename Traits::value_type&;
+  using value_type = typename Traits::value_type;
+  // typedef work-around for intel compilers error #3186: expected typedef
+  // declaration
+  // NOLINTNEXTLINE(modernize-use-using)
+  typedef value_type* KOKKOS_IMPL_ALIGN_PTR(KOKKOS_MEMORY_ALIGNMENT)
+      handle_type;
+  using return_type = typename Traits::value_type& KOKKOS_RESTRICT;
   using track_type  = Kokkos::Impl::SharedAllocationTracker;
 
   KOKKOS_INLINE_FUNCTION

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,6 +30,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -87,7 +88,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       klist = special[i];
       knum = nspecial[i][0];
     } else {
@@ -115,7 +116,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        if (molecular == 1) k = atom->map(klist[kk]);
+        if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
         else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
@@ -241,31 +242,31 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
   else error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double d0_one = force->numeric(FLERR,arg[4]);
-  double alpha_one = force->numeric(FLERR,arg[5]);
-  double r0_one = force->numeric(FLERR,arg[6]);
+  double d0_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int ap_one = ap_global;
-  if (narg > 7) ap_one = force->inumeric(FLERR,arg[7]);
+  if (narg > 7) ap_one = utils::inumeric(FLERR,arg[7],false,lmp);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 9) {
-    cut_inner_one = force->numeric(FLERR,arg[8]);
-    cut_outer_one = force->numeric(FLERR,arg[9]);
+    cut_inner_one = utils::numeric(FLERR,arg[8],false,lmp);
+    cut_outer_one = utils::numeric(FLERR,arg[9],false,lmp);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg > 10) cut_angle_one = force->numeric(FLERR,arg[10]) * MY_PI/180.0;
+  if (narg > 10) cut_angle_one = utils::numeric(FLERR,arg[10],false,lmp) * MY_PI/180.0;
 
   // grow params array if necessary
 
@@ -320,11 +321,11 @@ void PairHbondDreidingMorse::init_style()
   // pair newton on required since are looping over D atoms
   //   and computing forces on A,H which may be on different procs
 
-  if (atom->molecular == 0)
+  if (atom->molecular == Atom::ATOMIC)
     error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
@@ -396,7 +397,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
   if (!acceptor[jtype]) return 0.0;
 
   int molecular = atom->molecular;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     klist = atom->special[i];
     knum = atom->nspecial[i][0];
   } else {
@@ -412,7 +413,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
   factor_hb = special_lj[sbmask(j)];
 
   for (kk = 0; kk < knum; kk++) {
-    if (molecular == 1) k = atom->map(klist[kk]);
+    if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
     else k = atom->map(klist[kk]+tagprev);
 
     if (k < 0) continue;

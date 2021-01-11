@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_harmonic_shift.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -128,11 +128,11 @@ void BondHarmonicShift::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double Umin = force->numeric(FLERR,arg[1]);   // energy at minimum
-  double r0_one = force->numeric(FLERR,arg[2]); // position of minimum
-  double r1_one = force->numeric(FLERR,arg[3]);  // position where energy = 0
+  double Umin = utils::numeric(FLERR,arg[1],false,lmp);   // energy at minimum
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp); // position of minimum
+  double r1_one = utils::numeric(FLERR,arg[3],false,lmp);  // position where energy = 0
   if (r0_one == r1_one)
     error->all(FLERR,"Bond harmonic/shift r0 and r1 must be different");
 
@@ -177,9 +177,9 @@ void BondHarmonicShift::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r1[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r1[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);

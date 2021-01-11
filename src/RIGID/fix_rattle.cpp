@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rattle.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -59,7 +59,7 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for unconstrained velocity update
 
-  vp = NULL;
+  vp = nullptr;
   grow_arrays(atom->nmax);
 
   // default communication mode

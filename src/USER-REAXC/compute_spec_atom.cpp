@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Labo0ratories
+   https://lammps.sandia.gov/, Sandia National Labo0ratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -117,8 +117,8 @@ ComputeSpecAtom::ComputeSpecAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
 
 }
 

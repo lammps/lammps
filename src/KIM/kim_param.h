@@ -65,7 +65,6 @@ CommandStyle(kim_param, KimParam)
 #define LMP_KIM_PARAM_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS
 {
@@ -78,9 +77,6 @@ public:
   ~KimParam();
 
   void command(int, char **);
-
-private:
-  void echo_var_assign(const std::string &name, const std::string &value) const;
 };
 
 } // namespace LAMMPS_NS

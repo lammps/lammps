@@ -184,8 +184,8 @@ namespace ATC {
     displacement_(atc_->field(DISPLACEMENT)),
     nodalAtomicDisplacementOut_(atc_->nodal_atomic_field(DISPLACEMENT)),
     nodalAtomicForceFiltered_(momentumTimeIntegrator->nodal_atomic_force_filtered()),
-    nodalAtomicDisplacement_(NULL),
-    nodalAtomicForce_(NULL)
+    nodalAtomicDisplacement_(nullptr),
+    nodalAtomicForce_(nullptr)
   {
     // do nothing
   }
@@ -410,9 +410,9 @@ namespace ATC {
     displacement_(atc_->field(DISPLACEMENT)),
     nodalAtomicDisplacementOut_(atc_->nodal_atomic_field(DISPLACEMENT)),
     nodalAtomicForceFiltered_(momentumTimeIntegrator->nodal_atomic_force_filtered()),
-    nodalAtomicMomentum_(NULL),
+    nodalAtomicMomentum_(nullptr),
     nodalAtomicMomentumFiltered_(momentumTimeIntegrator->nodal_atomic_momentum_filtered()),
-    nodalAtomicDisplacement_(NULL),
+    nodalAtomicDisplacement_(nullptr),
     nodalAtomicMomentumOld_(atc_->num_nodes(),atc_->nsd()), 
     nodalAtomicVelocityOld_(atc_->num_nodes(),atc_->nsd())
   {
@@ -633,7 +633,7 @@ namespace ATC {
   FluidsTimeIntegratorGear::FluidsTimeIntegratorGear(MomentumTimeIntegrator * momentumTimeIntegrator) :
     MomentumIntegrationMethod(momentumTimeIntegrator),
     nodalAtomicForceFiltered_(momentumTimeIntegrator->nodal_atomic_force_filtered()),
-    nodalAtomicMomentum_(NULL),
+    nodalAtomicMomentum_(nullptr),
     nodalAtomicMomentumFiltered_(momentumTimeIntegrator->nodal_atomic_momentum_filtered()),
     atomicVelocityDelta_(atc_->num_nodes(),atc_->nsd()),
     nodalAtomicMomentumOld_(atc_->num_nodes(),atc_->nsd()),

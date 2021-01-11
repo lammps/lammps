@@ -1,4 +1,5 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csld
 
 fix temp/csvr command
 =====================
@@ -122,6 +123,19 @@ this case, the thermostat works in the following manner: the current
 temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
+
+An important feature of these thermostats is that they have an
+associated effective energy that is a constant of motion.
+The effective energy is the total energy (kinetic + potential) plus
+the accumulated kinetic energy changes due to the thermostat. The
+latter quantity is the global scalar computed by these fixes. This
+feature is useful to check the integration of the equations of motion
+against discretization errors. In other words, the conservation of
+the effective energy can be used to choose an appropriate integration
+:doc:`timestep <timestep>`. This is similar to the usual paradigm of
+checking the conservation of the total energy in the microcanonical
+ensemble.
+
 
 ----------
 

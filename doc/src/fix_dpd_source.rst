@@ -1,4 +1,5 @@
 .. index:: fix edpd/source
+.. index:: fix tdpd/source
 
 fix edpd/source command
 =======================

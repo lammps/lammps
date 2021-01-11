@@ -1,10 +1,10 @@
 .. index:: fix rx
+.. index:: fix rx/kk
 
 fix rx command
 ==============
 
-fix rx/kk command
-=================
+Accelerator Variants: *rx/kk*
 
 Syntax
 """"""
@@ -90,10 +90,10 @@ accepted, *h* is increased by a proportional amount, and the next ODE step is be
 Otherwise, *h* is shrunk and the ODE step is repeated.
 
 Run-time diagnostics are available for the rkf45 ODE solver. The frequency
-(in time-steps) that diagnostics are reported is controlled by the last (optional)
+(in timesteps) that diagnostics are reported is controlled by the last (optional)
 12th argument. A negative frequency means that diagnostics are reported once at the
 end of each run. A positive value N means that the diagnostics are reported once
-per N time-steps.
+per N timesteps.
 
 The diagnostics report the average # of integrator steps and RHS function evaluations
 and run-time per ODE as well as the average/RMS/min/max per process. If the

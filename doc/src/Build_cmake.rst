@@ -1,5 +1,5 @@
 Build LAMMPS with CMake
-=======================
+-----------------------
 
 This page describes how to use `CMake <https://cmake.org>`_ in general
 to build LAMMPS.  Details for specific compile time settings and options

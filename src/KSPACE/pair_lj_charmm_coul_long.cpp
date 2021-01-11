@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +29,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -47,11 +47,11 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;
-  ftable = NULL;
+  ftable = nullptr;
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -631,10 +631,10 @@ void PairLJCharmmCoulLong::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(FLERR,arg[0]);
-  cut_lj = force->numeric(FLERR,arg[1]);
+  cut_lj_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -647,16 +647,16 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = force->numeric(FLERR,arg[4]);
-    sigma14_one = force->numeric(FLERR,arg[5]);
+    eps14_one = utils::numeric(FLERR,arg[4],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   int count = 0;
@@ -738,11 +738,11 @@ void PairLJCharmmCoulLong::init_style()
       error->all(FLERR,"Pair cutoff < Respa interior cutoff");
     if (cut_lj_inner < cut_respa[1])
       error->all(FLERR,"Pair inner cutoff < Respa interior cutoff");
-  } else cut_respa = NULL;
+  } else cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -824,14 +824,14 @@ void PairLJCharmmCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -863,13 +863,13 @@ void PairLJCharmmCoulLong::write_restart_settings(FILE *fp)
 void PairLJCharmmCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_inner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_lj,1,MPI_DOUBLE,0,world);
@@ -994,5 +994,5 @@ void *PairLJCharmmCoulLong::extract(const char *str, int &dim)
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
 
-  return NULL;
+  return nullptr;
 }

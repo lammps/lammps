@@ -99,7 +99,7 @@ class UCL_Texture {
       else
         CU_SAFE_CALL(hipTexRefSetFormat(_tex,HIP_AD_FORMAT_SIGNED_INT32,numel*2));
     }
-    CU_SAFE_CALL(hipTexRefSetAddress(NULL, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
+    CU_SAFE_CALL(hipTexRefSetAddress(nullptr, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
 #else
     void* data_ptr = (void*)vec.cbegin();
     CU_SAFE_CALL(hipMemcpyHtoD(hipDeviceptr_t(_device_ptr_to_global_var), &data_ptr, sizeof(void*)));

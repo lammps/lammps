@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_table_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -165,8 +165,8 @@ void PairTableGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   // pack tables and send them to device
-  double ***table_coeffs = NULL;
-  double **table_data = NULL;
+  double ***table_coeffs = nullptr;
+  double **table_data = nullptr;
   memory->create(table_coeffs, ntypes+1, ntypes+1, 6, "table:coeffs");
 
   Table *tb;

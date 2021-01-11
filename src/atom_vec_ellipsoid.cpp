@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,16 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_ellipsoid.h"
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,7 +34,7 @@ using namespace MathConst;
 
 AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 4;
@@ -46,7 +46,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -414,9 +414,9 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecEllipsoid::memory_usage_bonus()
+double AtomVecEllipsoid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += nmax_bonus*sizeof(Bonus);
   return bytes;
 }
@@ -484,7 +484,7 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus ellipsoid info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
@@ -533,8 +533,7 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
    this may create or delete entry in bonus data
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::
-set_shape(int i, double shapex, double shapey, double shapez)
+void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double shapez)
 {
   if (ellipsoid[i] < 0) {
     if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) return;

@@ -1,13 +1,11 @@
 .. index:: pair_style resquared
+.. index:: pair_style resquared/gpu
+.. index:: pair_style resquared/omp
 
 pair_style resquared command
 ============================
 
-pair_style resquared/gpu command
-================================
-
-pair_style resquared/omp command
-================================
+Accelerator Variants: *resquared/gpu*, *resquared/omp*
 
 Syntax
 """"""
@@ -175,7 +173,7 @@ equation for the Hamaker constant presented here.  Mixing of sigma and
 epsilon followed by calculation of the energy prefactors using the
 equations above is recommended.
 
-This pair styles supports the :doc:`pair_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic
@@ -233,4 +231,4 @@ none
 
 .. _Babadi:
 
-**(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
+**(Babadi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).

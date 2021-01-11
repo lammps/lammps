@@ -74,7 +74,7 @@ namespace user_manifold { class manifold; }
     virtual void reset_dt();
     virtual void end_of_step();
     virtual int dof(int);
-    virtual void setup(int){}  // Not needed for fixNVE but is for fixNVT
+    virtual void setup(int) {}  // Not needed for fixNVE but is for fixNVT
     virtual double memory_usage();
 
    protected:
@@ -125,7 +125,7 @@ E: There is no manifold named ...
 Self-explanatory.  You requested a manifold whose name was not
 registered at the factory.
 
-E: Manifold pointer was NULL for some reason!
+E: Manifold pointer was nullptr for some reason!
 
 This indicates a bug.  The factory was unable to properly create
 the requested manifold even though it was registered. Send the
@@ -136,7 +136,7 @@ E: Manifold ... needs at least ... argument(s)!
 Self-explanatory.  Provide enough arguments for the proper
 creating of the requested manifold.
 
-E: Parameter pointer was NULL!
+E: Parameter pointer was nullptr!
 
 This indicates a bug.  The array that contains the parameters
 could not be allocated. Send the maintainer an e-mail.

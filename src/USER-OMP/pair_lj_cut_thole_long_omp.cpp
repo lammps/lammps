@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,25 +15,21 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "pair_lj_cut_thole_long_omp.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "fix_drude.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
-#include "error.h"
+#include "neigh_list.h"
 #include "suffix.h"
-#include "timer.h"
 
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -57,7 +53,7 @@ PairLJCutTholeLongOMP::PairLJCutTholeLongOMP(LAMMPS *lmp) :
 {
     suffix_flag |= Suffix::OMP;
     respa_enable = 0;
-    cut_respa = NULL;
+    cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +75,7 @@ void PairLJCutTholeLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -150,7 +146,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.;
 
-    if (drudetype[type[i]] != NOPOL_TYPE){
+    if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
@@ -206,9 +202,9 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
 
           if (drudetype[type[i]] != NOPOL_TYPE &&
-              drudetype[type[j]] != NOPOL_TYPE){
-            if (j != di_closest){
-              if (drudetype[type[j]] == CORE_TYPE){
+              drudetype[type[j]] != NOPOL_TYPE) {
+            if (j != di_closest) {
+              if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
@@ -250,7 +246,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
-                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;

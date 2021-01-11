@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "utils.h"
-#include <cstring>
-#include <cstdlib>
-#include <cerrno>
-#include "lammps.h"
+
+#include "comm.h"
+#include "compute.h"
 #include "error.h"
-#include "tokenizer.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
 #include "text_file_reader.h"
-#include "fmt/format.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <cctype>
+#include <cerrno>
+#include <cstring>
 
 #if defined(__linux__)
 #include <unistd.h>  // for readlink
@@ -65,13 +71,23 @@ extern "C"
   static int  re_match(const char *text, const char *pattern);
 }
 
+////////////////////////////////////////////////////////////////////////
+// Merge sort support functions
+
+static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi,
+                     void *ptr, int (*comp)(int, int, void *));
+static void insertion_sort(int *index, int num, void *ptr,
+                           int (*comp)(int, int, void*));
+
+////////////////////////////////////////////////////////////////////////
+
 using namespace LAMMPS_NS;
 
 /** More flexible and specific matching of a string against a pattern.
  *  This function is supposed to be a more safe, more specific and
  *  simple to use API to find pattern matches. The purpose is to replace
  *  uses of either strncmp() or strstr() in the code base to find
- *  substrings safely. With strncmp() finding prefixes, the number of
+ *  sub-strings safely. With strncmp() finding prefixes, the number of
  *  characters to match must be counted, which can lead to errors,
  *  while using "^pattern" will do the same with less problems.
  *  Matching for suffixes using strstr() is not as specific as 'pattern$',
@@ -88,7 +104,7 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
-/* This simplifies the repetitive task of outputting some
+/** This function simplifies the repetitive task of outputting some
  * message to both the screen and/or the log file. In combination
  * with using fmt::format(), which returns the formatted text
  * in a std::string() instance, this can be used to reduce
@@ -109,9 +125,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/*
- * On Linux the folder /proc/self/fd holds symbolic links to the actual
+/** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
+ *
+ * This function is used to provide a filename with error messages in functions
+ * where the filename is not passed as an argument, but the FILE * pointer.
  */
 const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
@@ -134,7 +152,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
                    FILE *fp, const char *filename, Error *error)
 {
   char *rv = fgets(s,size,fp);
-  if (rv == NULL) { // something went wrong
+  if (rv == nullptr) { // something went wrong
     char buf[MAXPATHLENBUF];
     std::string errmsg;
 
@@ -153,7 +171,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += "'";
 
     if (error) error->one(srcname,srcline,errmsg);
-    if (s) *s = '\0'; // truncate string to empty in case error is NULL
+    if (s) *s = '\0'; // truncate string to empty in case error is null pointer
   }
   return;
 }
@@ -349,6 +367,214 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterisk
+------------------------------------------------------------------------- */
+template<typename TYPE>
+void utils::bounds(const char *file, int line, const std::string &str,
+                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
+{
+  size_t found = str.find_first_of("*");
+
+  nlo = nhi = -1;
+  if (found == std::string::npos) {    // contains no '*'
+    nlo = nhi = strtol(str.c_str(),nullptr,10);
+  } else if (str.size() == 1) {        // is only '*'
+    nlo = nmin;
+    nhi = nmax;
+  } else if (found == 0) {             // is '*j'
+    nlo = nmin;
+    nhi = strtol(str.substr(1).c_str(),nullptr,10);
+  } else if (str.size() == found+1) {  // is 'i*'
+    nlo = strtol(str.c_str(),nullptr,10);
+    nhi = nmax;
+  } else {                             // is 'i*j'
+    nlo = strtol(str.c_str(),nullptr,10);
+    nhi = strtol(str.substr(found+1).c_str(),nullptr,10);
+  }
+
+  if (error) {
+    if (nlo < nmin)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nmax));
+    else if (nhi > nmax)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nhi,nmin,nmax));
+    else if (nlo > nhi)
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+                                       "({}-{})",nlo,nmin,nhi));
+  }
+}
+
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, int &, int &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long &, long &, Error *);
+template void utils::bounds<>(const char *, int, const std::string &,
+                              bigint, bigint, long long &, long long &, Error *);
+
+/* -------------------------------------------------------------------------
+   Expand list of arguments in arg to earg if arg contains wildcards
+------------------------------------------------------------------------- */
+
+int utils::expand_args(const char *file, int line, int narg, char **arg,
+                       int mode, char **&earg, LAMMPS *lmp)
+{
+  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
+  char *ptr1,*ptr2,*str;
+
+  ptr1 = nullptr;
+  for (iarg = 0; iarg < narg; iarg++) {
+    ptr1 = strchr(arg[iarg],'*');
+    if (ptr1) break;
+  }
+
+  if (!ptr1) {
+    earg = arg;
+    return narg;
+  }
+
+  // maxarg should always end up equal to newarg, so caller can free earg
+
+  int maxarg = narg-iarg;
+  earg = (char **) lmp->memory->smalloc(maxarg*sizeof(char *),"input:earg");
+
+  int newarg = 0;
+  for (iarg = 0; iarg < narg; iarg++) {
+    expandflag = 0;
+
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0) {
+
+      ptr1 = strchr(&arg[iarg][2],'[');
+      if (ptr1) {
+        ptr2 = strchr(ptr1,']');
+        if (ptr2) {
+          *ptr2 = '\0';
+          if (strchr(ptr1,'*')) {
+            if (arg[iarg][0] == 'c') {
+              *ptr1 = '\0';
+              icompute = lmp->modify->find_compute(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (icompute >= 0) {
+                if (mode == 0 && lmp->modify->compute[icompute]->vector_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->compute[icompute]->array_flag) {
+                  nmax = lmp->modify->compute[icompute]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->peratom_flag &&
+                           lmp->modify->compute[icompute]->size_peratom_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->compute[icompute]->local_flag &&
+                           lmp->modify->compute[icompute]->size_local_cols) {
+                  nmax = lmp->modify->compute[icompute]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+            } else if (arg[iarg][0] == 'f') {
+              *ptr1 = '\0';
+              ifix = lmp->modify->find_fix(&arg[iarg][2]);
+              *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+              if (ifix >= 0) {
+                if (mode == 0 && lmp->modify->fix[ifix]->vector_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_vector;
+                  expandflag = 1;
+                } else if (mode == 1 && lmp->modify->fix[ifix]->array_flag) {
+                  nmax = lmp->modify->fix[ifix]->size_array_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->peratom_flag &&
+                           lmp->modify->fix[ifix]->size_peratom_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_peratom_cols;
+                  expandflag = 1;
+                } else if (lmp->modify->fix[ifix]->local_flag &&
+                           lmp->modify->fix[ifix]->size_local_cols) {
+                  nmax = lmp->modify->fix[ifix]->size_local_cols;
+                  expandflag = 1;
+                }
+              }
+	      
+	    } else if (arg[iarg][0] == 'i') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+
+	      // check for custom per-atom integer array
+
+	      if (icustom >= 0) {
+		if (mode == 1 && !flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    
+	    } else if (arg[iarg][0] == 'd') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+	      
+	      // check for custom per-atom floating point array
+	      
+	      if (icustom >= 0) {
+		if (mode == 1 && flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    }
+          }
+          *ptr2 = ']';
+        }
+      }
+    }
+
+    if (expandflag) {
+      *ptr2 = '\0';
+      bounds(file,line,ptr1+1,1,nmax,nlo,nhi,lmp->error);
+      *ptr2 = ']';
+      if (newarg+nhi-nlo+1 > maxarg) {
+        maxarg += nhi-nlo+1;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      for (index = nlo; index <= nhi; index++) {
+        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+        str = earg[newarg] = new char[n];
+        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+        strcat(str,ptr2);
+        newarg++;
+      }
+
+    } else {
+      if (newarg == maxarg) {
+        maxarg++;
+        earg = (char **)
+          lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      n = strlen(arg[iarg]) + 1;
+      earg[newarg] = new char[n];
+      strcpy(earg[newarg],arg[iarg]);
+      newarg++;
+    }
+  }
+
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
+
+  return newarg;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
@@ -422,7 +648,7 @@ size_t utils::count_words(const std::string &text, const std::string &separators
     size_t end = text.find_first_of(separators, start);
     ++count;
 
-    if(end == std::string::npos) {
+    if (end == std::string::npos) {
       return count;
     } else {
       start = text.find_first_not_of(separators, end + 1);
@@ -577,6 +803,22 @@ std::string utils::path_basename(const std::string &path) {
 }
 
 /* ----------------------------------------------------------------------
+   Return only the leading part of a path, return just the directory
+------------------------------------------------------------------------- */
+
+std::string utils::path_dirname(const std::string &path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of("/\\");
+#else
+  size_t start = path.find_last_of("/");
+#endif
+
+  if (start == std::string::npos) return ".";
+
+  return path.substr(0,start);
+}
+
+/* ----------------------------------------------------------------------
    join two paths
 ------------------------------------------------------------------------- */
 
@@ -594,7 +836,7 @@ std::string utils::path_join(const std::string &a, const std::string &b) {
 
 bool utils::file_is_readable(const std::string &path) {
   FILE * fp = fopen(path.c_str(), "r");
-  if(fp) {
+  if (fp) {
     fclose(fp);
     return true;
   }
@@ -606,28 +848,39 @@ bool utils::file_is_readable(const std::string &path) {
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
+#if defined(_WIN32)
+#define OS_PATH_VAR_SEP ";"
+#else
+#define OS_PATH_VAR_SEP ":"
+#endif
 
 std::string utils::get_potential_file_path(const std::string &path) {
   std::string filepath = path;
   std::string filename = utils::path_basename(path);
 
-  if(utils::file_is_readable(filepath)) {
+  if (utils::file_is_readable(filepath)) {
     return filepath;
   } else {
     // try the environment variable directory
-    const char *path = getenv("LAMMPS_POTENTIALS");
+    const char *var = getenv("LAMMPS_POTENTIALS");
 
-    if (path != nullptr){
-      std::string pot = utils::path_basename(filepath);
-      filepath = utils::path_join(path, pot);
+    if (var != nullptr) {
+      Tokenizer dirs(var,OS_PATH_VAR_SEP);
 
-      if (utils::file_is_readable(filepath)) {
-        return filepath;
+      while (dirs.has_next()) {
+        auto pot = utils::path_basename(filepath);
+        auto path = dirs.next();
+        filepath = utils::path_join(path, pot);
+
+        if (utils::file_is_readable(filepath)) {
+          return filepath;
+        }
       }
     }
   }
   return "";
 }
+#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file
@@ -639,14 +892,11 @@ std::string utils::get_potential_date(const std::string &path, const std::string
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "DATE:") {
-      if (values.has_next()) {
-        std::string date = values.next_string();
-        return date;
-      }
+  if (line == nullptr) return "";
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "DATE:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";
@@ -662,14 +912,11 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
   reader.ignore_comments = false;
 
   char *line = reader.next_line();
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "UNITS:") {
-      if (values.has_next()) {
-        std::string units = values.next_string();
-        return units;
-      }
+  if (line == nullptr) return "";
+  Tokenizer words(line);
+  while (words.has_next()) {
+    if (words.next() == "UNITS:") {
+      if (words.has_next()) return words.next();
     }
   }
   return "";
@@ -706,6 +953,63 @@ double utils::get_conversion_factor(const int property, const int conversion)
 }
 
 /* ----------------------------------------------------------------------
+   open a potential file as specified by name
+   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
+------------------------------------------------------------------------- */
+
+FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
+                            int *auto_convert)
+{
+  auto error = lmp->error;
+  auto me = lmp->comm->me;
+
+  std::string filepath = get_potential_file_path(name);
+
+  if (!filepath.empty()) {
+    std::string unit_style = lmp->update->unit_style;
+    std::string date       = get_potential_date(filepath, "potential");
+    std::string units      = get_potential_units(filepath, "potential");
+
+    if (!date.empty() && (me == 0)) {
+      logmesg(lmp, fmt::format("Reading potential file {} "
+                               "with DATE: {}\n", name, date));
+    }
+
+    if (auto_convert == nullptr) {
+      if (!units.empty() && (units != unit_style) && (me == 0)) {
+        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                      "but {} units are in use", name, units,
+                                      unit_style));
+        return nullptr;
+      }
+    } else {
+      if (units.empty() || units == unit_style) {
+        *auto_convert = NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real")
+            && (*auto_convert & METAL2REAL)) {
+          *auto_convert = METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal")
+            && (*auto_convert & REAL2METAL)) {
+          *auto_convert = REAL2METAL;
+        } else {
+          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                        "but {} units are in use", name,
+                                        units, unit_style));
+          return nullptr;
+        }
+      }
+      if ((*auto_convert != NOCONVERT) && (me == 0))
+        error->warning(FLERR, fmt::format("Converting potential file in "
+                                          "{} units to {} units",
+                                          units, unit_style));
+    }
+    return fopen(filepath.c_str(), "r");
+  }
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
    convert a timespec ([[HH:]MM:]SS) to seconds
    the strings "off" and "unlimited" result in -1.0;
 ------------------------------------------------------------------------- */
@@ -735,6 +1039,141 @@ double utils::timespec2seconds(const std::string &timespec)
   if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
   else if (i == 2) return vals[0]*60 + vals[1];
   return vals[0];
+}
+
+/* ----------------------------------------------------------------------
+   convert a LAMMPS version date (1Jan01) to a number
+------------------------------------------------------------------------- */
+
+int utils::date2num(const std::string &date)
+{
+  std::size_t found = date.find_first_not_of("0123456789 ");
+  int num = strtol(date.substr(0,found).c_str(),nullptr,10);
+  auto month = date.substr(found);
+  found = month.find_first_of("0123456789 ");
+  num += strtol(month.substr(found).c_str(),nullptr,10)*10000;
+  if (num < 1000000) num += 20000000;
+
+  if (strmatch(month,"^Jan")) num += 100;
+  else if (strmatch(month,"^Feb")) num += 200;
+  else if (strmatch(month,"^Mar")) num += 300;
+  else if (strmatch(month,"^Apr")) num += 400;
+  else if (strmatch(month,"^May")) num += 500;
+  else if (strmatch(month,"^Jun")) num += 600;
+  else if (strmatch(month,"^Jul")) num += 700;
+  else if (strmatch(month,"^Aug")) num += 800;
+  else if (strmatch(month,"^Sep")) num += 900;
+  else if (strmatch(month,"^Oct")) num += 1000;
+  else if (strmatch(month,"^Nov")) num += 1100;
+  else if (strmatch(month,"^Dec")) num += 1200;
+  return num;
+}
+
+/* ----------------------------------------------------------------------
+ * Merge sort part 1: Loop over sublists doubling in size with each iteration.
+ * Pre-sort small sublists with insertion sort for better overall performance.
+------------------------------------------------------------------------- */
+
+void utils::merge_sort(int *index, int num, void *ptr,
+                       int (*comp)(int, int, void *))
+{
+  if (num < 2) return;
+
+  int chunk,i,j;
+
+  // do insertion sort on chunks of up to 64 elements
+
+  chunk = 64;
+  for (i=0; i < num; i += chunk) {
+    j = (i+chunk > num) ? num-i : chunk;
+    insertion_sort(index+i,j,ptr,comp);
+  }
+
+  // already done?
+
+  if (chunk >= num) return;
+
+  // continue with merge sort on the pre-sorted chunks.
+  // we need an extra buffer for temporary storage and two
+  // pointers to operate on, so we can swap the pointers
+  // rather than copying to the hold buffer in each pass
+
+  int *buf = new int[num];
+  int *dest = index;
+  int *hold = buf;
+
+  while (chunk < num) {
+    int m;
+
+    // swap hold and destination buffer
+
+    int *tmp = dest; dest = hold; hold = tmp;
+
+    // merge from hold array to destination array
+
+    for (i=0; i < num-1; i += 2*chunk) {
+      j = i + 2*chunk;
+      if (j > num) j=num;
+      m = i+chunk;
+      if (m > num) m=num;
+      do_merge(dest,hold,i,m,m,j,ptr,comp);
+    }
+
+    // copy all indices not handled by the chunked merge sort loop
+
+    for (; i < num ; i++) dest[i] = hold[i];
+    chunk *= 2;
+  }
+
+  // if the final sorted data is in buf, copy back to index
+
+  if (dest == buf) memcpy(index,buf,sizeof(int)*num);
+
+  delete[] buf;
+}
+
+/* ------------------------------------------------------------------ */
+
+/* ----------------------------------------------------------------------
+ * Merge sort part 2: Insertion sort for pre-sorting of small chunks
+------------------------------------------------------------------------- */
+
+void insertion_sort(int *index, int num, void *ptr,
+                           int (*comp)(int, int, void*))
+{
+  if (num < 2) return;
+  for (int i=1; i < num; ++i) {
+    int tmp = index[i];
+    for (int j=i-1; j >= 0; --j) {
+      if ((*comp)(index[j],tmp,ptr) > 0) {
+        index[j+1] = index[j];
+      } else {
+        index[j+1] = tmp;
+        break;
+      }
+      if (j == 0) index[0] = tmp;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+ * Merge sort part 3: Merge two sublists
+------------------------------------------------------------------------- */
+
+static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi,
+                     void *ptr, int (*comp)(int, int, void *))
+{
+  int i = llo;
+  int l = llo;
+  int r = rlo;
+  while ((l < lhi) && (r < rhi)) {
+    if ((*comp)(buf[l],buf[r],ptr) < 0)
+      idx[i++] = buf[l++];
+    else idx[i++] = buf[r++];
+  }
+
+  while (l < lhi) idx[i++] = buf[l++];
+  while (r < rhi) idx[i++] = buf[r++];
 }
 
 /* ------------------------------------------------------------------ */

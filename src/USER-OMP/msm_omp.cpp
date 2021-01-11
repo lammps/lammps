@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,14 +15,15 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "msm_omp.h"
-#include <cstring>
+
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "timer.h"
 
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

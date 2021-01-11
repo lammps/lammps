@@ -1,7 +1,7 @@
 ---
-lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 16:30:21 202
-epsilon: 2e-13
+lammps_version: 24 Aug 2020
+date_generated: Tue Sep 15 09:44:41 202
+epsilon: 1e-10
 prerequisites: ! |
   atom full
   fix rattle

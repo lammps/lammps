@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,19 +12,18 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
-#include <cstring>
-
 #include "pair_meam_spline_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
+#include "error.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +65,7 @@ void PairMEAMSplineOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     thr->init_eam(nall,Uprime_values);
 
@@ -94,9 +93,9 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   // Determine the maximum number of neighbors a single atom has.
   int myMaxNeighbors = 0;
-  for(int ii = iifrom; ii < iito; ii++) {
+  for (int ii = iifrom; ii < iito; ii++) {
     int jnum = numneigh_full[ilist_full[ii]];
-    if(jnum > myMaxNeighbors) myMaxNeighbors = jnum;
+    if (jnum > myMaxNeighbors) myMaxNeighbors = jnum;
   }
 
   // Allocate array for temporary bond info.
@@ -114,7 +113,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double cutforcesq = cutoff*cutoff;
 
   // Sum three-body contributions to charge density and compute embedding energies.
-  for(int ii = iifrom; ii < iito; ii++) {
+  for (int ii = iifrom; ii < iito; ii++) {
 
     const int i = ilist_full[ii];
     const double xtmp = x[i][0];
@@ -126,7 +125,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
     int numBonds = 0;
     MEAM2Body* nextTwoBodyInfo = myTwoBodyInfo;
 
-    for(int jj = 0; jj < jnum; jj++) {
+    for (int jj = 0; jj < jnum; jj++) {
       const int j = jlist[jj] & NEIGHMASK;
 
       const double jdelx = x[j][0] - xtmp;
@@ -146,7 +145,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
         nextTwoBodyInfo->del[1] = jdely / rij;
         nextTwoBodyInfo->del[2] = jdelz / rij;
 
-        for(int kk = 0; kk < numBonds; kk++) {
+        for (int kk = 0; kk < numBonds; kk++) {
           const MEAM2Body& bondk = myTwoBodyInfo[kk];
           double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
                               nextTwoBodyInfo->del[1]*bondk.del[1] +
@@ -174,7 +173,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
     double forces_i[3] = {0.0, 0.0, 0.0};
 
     // Compute three-body contributions to force.
-    for(int jj = 0; jj < numBonds; jj++) {
+    for (int jj = 0; jj < numBonds; jj++) {
       const MEAM2Body bondj = myTwoBodyInfo[jj];
       const double rij = bondj.r;
       const int j = bondj.tag;
@@ -186,7 +185,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
       double forces_j[3] = {0.0, 0.0, 0.0};
 
       MEAM2Body const* bondk = myTwoBodyInfo;
-      for(int kk = 0; kk < jj; kk++, ++bondk) {
+      for (int kk = 0; kk < jj; kk++, ++bondk) {
         const double rik = bondk->r;
 
         const double cos_theta = (bondj.del[0]*bondk->del[0]
@@ -227,7 +226,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
         forces[k][1] += fk[1];
         forces[k][2] += fk[2];
 
-        if(EVFLAG) {
+        if (EVFLAG) {
           double delta_ij[3];
           double delta_ik[3];
           delta_ij[0] = bondj.del[0] * rij;
@@ -278,7 +277,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int* const * const firstneigh_half = listhalf->firstneigh;
 
   // Compute two-body pair interactions.
-  for(int ii = iifrom; ii < iito; ii++) {
+  for (int ii = iifrom; ii < iito; ii++) {
     const int i = ilist_half[ii];
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
@@ -287,7 +286,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
     const int jnum = numneigh_half[i];
     const int itype = atom->type[i];
 
-    for(int jj = 0; jj < jnum; jj++) {
+    for (int jj = 0; jj < jnum; jj++) {
       const int j = jlist[jj] & NEIGHMASK;
 
       double jdel[3];
@@ -296,7 +295,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
       jdel[2] = x[j][2] - ztmp;
       double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
 
-      if(rij_sq < cutforcesq) {
+      if (rij_sq < cutforcesq) {
         double rij = sqrt(rij_sq);
         const int jtype = atom->type[j];
 

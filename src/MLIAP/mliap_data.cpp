@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,24 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_data.h"
-#include "mliap_model_linear.h"
-#include "mliap_model_quadratic.h"
-#include "mliap_descriptor_snap.h"
-#include "compute_mliap.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
 #include "memory.h"
-#include "error.h"
+#include "mliap_descriptor.h"
+#include "mliap_model.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,10 +29,11 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
                      class MLIAPModel* model_in,
                      class MLIAPDescriptor* descriptor_in,
                      class PairMLIAP* pairmliap_in) :
-  Pointers(lmp), gradforce(NULL), betas(NULL), descriptors(NULL), gamma(NULL),
-  gamma_row_index(NULL), gamma_col_index(NULL), egradient(NULL),
-  numneighs(NULL), iatoms(NULL), ielems(NULL), jatoms(NULL), jelems(NULL),
-  rij(NULL), graddesc(NULL), model(NULL), descriptor(NULL), list(NULL)
+  Pointers(lmp), gradforce(nullptr), betas(nullptr),
+  descriptors(nullptr), eatoms(nullptr), gamma(nullptr),
+  gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
+  numneighs(nullptr), iatoms(nullptr), ielems(nullptr), jatoms(nullptr), jelems(nullptr),
+  rij(nullptr), graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;
@@ -75,6 +69,7 @@ MLIAPData::~MLIAPData()
 {
   memory->destroy(betas);
   memory->destroy(descriptors);
+  memory->destroy(eatoms);
   memory->destroy(gamma_row_index);
   memory->destroy(gamma_col_index);
   memory->destroy(gamma);
@@ -144,6 +139,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   if (natoms_max < natoms) {
     memory->grow(betas,natoms,ndescriptors,"MLIAPData:betas");
     memory->grow(descriptors,natoms,ndescriptors,"MLIAPData:descriptors");
+    memory->grow(eatoms,natoms,"MLIAPData:eatoms");
     natoms_max = natoms;
   }
 
@@ -278,6 +274,7 @@ double MLIAPData::memory_usage()
 
   bytes += natoms*ndescriptors*sizeof(int);      // betas
   bytes += natoms*ndescriptors*sizeof(int);      // descriptors
+  bytes += natoms*sizeof(double);                // eatoms
 
   bytes += natomneigh_max*sizeof(int);               // iatoms
   bytes += natomneigh_max*sizeof(int);               // ielems

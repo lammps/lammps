@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_zbl.h"
+
 #include <cmath>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+
+#include "pair_zbl_const.h"
 
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.
@@ -183,8 +186,8 @@ void PairZBL::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (cut_inner <= 0.0 )
     error->all(FLERR,"Illegal pair_style command");
@@ -206,13 +209,13 @@ void PairZBL::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
 
   int jlo,jhi;
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  z_one = force->numeric(FLERR,arg[2]);
-  z_two = force->numeric(FLERR,arg[3]);
+  z_one = utils::numeric(FLERR,arg[2],false,lmp);
+  z_two = utils::numeric(FLERR,arg[3],false,lmp);
 
   // set flag for each i-j pair
   // set z-parameter only for i-i pairs
@@ -285,10 +288,10 @@ void PairZBL::read_restart(FILE *fp)
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
-    if (me == 0) utils::sfread(FLERR,&setflag[i][i],sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&setflag[i][i],sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&setflag[i][i],1,MPI_INT,0,world);
     if (setflag[i][i]) {
-      if (me == 0) utils::sfread(FLERR,&z[i],sizeof(double),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&z[i],sizeof(double),1,fp,nullptr,error);
       MPI_Bcast(&z[i],1,MPI_DOUBLE,0,world);
     }
   }
@@ -319,11 +322,11 @@ void PairZBL::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_inner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_inner,1,MPI_DOUBLE,0,world);

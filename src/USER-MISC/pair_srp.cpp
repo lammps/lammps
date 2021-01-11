@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,9 +26,9 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */
 
 #include "pair_srp.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -44,7 +44,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "thermo.h"
 #include "output.h"
 #include "citeme.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +76,7 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_srp);
 
   nextra = 1;
-  segment = NULL;
+  segment = nullptr;
 
   // generate unique fix-id for this pair style instance
 
@@ -174,9 +174,9 @@ void PairSRP::compute(int eflag, int vflag)
 
     // mapping global to local for atoms inside bond particles
     // exclude 1-2 neighs if requested
-    if (neighbor->ago == 0){
+    if (neighbor->ago == 0) {
       remapBonds(nall);
-      if(exclude) onetwoexclude(ilist, inum, jlist, numneigh, firstneigh);
+      if (exclude) onetwoexclude(ilist, inum, jlist, numneigh, firstneigh);
     }
 
   // this pair style only used with hybrid
@@ -185,7 +185,7 @@ void PairSRP::compute(int eflag, int vflag)
   // each neigh j is type bptype
 
   // using midpoint distance option
-  if(midpoint){
+  if (midpoint) {
 
     for (ii = 0; ii < inum; ii++) {
 
@@ -215,7 +215,7 @@ void PairSRP::compute(int eflag, int vflag)
         dz = 0.5*(x[i0][2] - x[i1][2] + x[j0][2] - x[j1][2]);
         dijsq = dx*dx + dy*dy + dz*dz;
 
-        if (dijsq < cutsq[bptype][bptype]){
+        if (dijsq < cutsq[bptype][bptype]) {
         dij = sqrt(dijsq);
 
         if (dij < SMALL)
@@ -248,11 +248,11 @@ void PairSRP::compute(int eflag, int vflag)
 
         // ************************************************* //
 
-        if (eflag){
+        if (eflag) {
           evdwl = 0.5 * a0[bptype][bptype] * cut[bptype][bptype] * wd * wd;
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally(i0,i1,nlocal,1,0.5*evdwl,0.0,fpair,dx,dy,dz);
           ev_tally(j0,j1,nlocal,1,0.5*evdwl,0.0,fpair,dx,dy,dz);
         }
@@ -289,7 +289,7 @@ void PairSRP::compute(int eflag, int vflag)
         getMinDist(x, dx, dy, dz, ti, tj, i0, j0, i1, j1);
         dijsq = dx*dx + dy*dy + dz*dz;
 
-        if (dijsq < cutsq[bptype][bptype]){
+        if (dijsq < cutsq[bptype][bptype]) {
 
         dij = sqrt(dijsq);
 
@@ -333,11 +333,11 @@ void PairSRP::compute(int eflag, int vflag)
 
         // ************************************************* //
 
-        if (eflag){
+        if (eflag) {
           evdwl = 0.5 * a0[bptype][bptype] * cut[bptype][bptype] * wd * wd;
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally(i0,i1,nlocal,1,0.5*evdwl,0.0,0.5*fpair,dx,dy,dz);
           ev_tally(j0,j1,nlocal,1,0.5*evdwl,0.0,0.5*fpair,dx,dy,dz);
         }
@@ -362,12 +362,12 @@ void PairSRP::settings(int narg, char **arg)
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair_style srp requires atom IDs");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   // wildcard
   if (strcmp(arg[1],"*") == 0) {
     btype = 0;
   } else {
-    btype = force->inumeric(FLERR,arg[1]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");
   }
@@ -394,14 +394,14 @@ void PairSRP::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
       if (strcmp(arg[iarg+1],"yes") == 0)
         exclude = 1;
-      if (strcmp(arg[iarg+1],"no") == 0){
+      if (strcmp(arg[iarg+1],"no") == 0) {
         if (min) error->all(FLERR,"Illegal exclude option in pair srp command");
         exclude = 0;
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      bptype = force->inumeric(FLERR,arg[iarg+1]);
+      bptype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if ((bptype < 1) || (bptype > atom->ntypes))
         error->all(FLERR,"Illegal bond particle type for srp");
       iarg += 2;
@@ -429,12 +429,12 @@ void PairSRP::coeff(int narg, char **arg)
 
     // set ij bond-bond cutoffs
     int ilo, ihi, jlo, jhi;
-    force->bounds(FLERR,arg[0], bptype, ilo, ihi);
-    force->bounds(FLERR,arg[1], bptype, jlo, jhi);
+    utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
+    utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
 
-    double a0_one = force->numeric(FLERR,arg[2]);
+    double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
     double cut_one = cut_global;
-    if (narg == 4)  cut_one = force->numeric(FLERR,arg[3]);
+    if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++)
@@ -552,8 +552,8 @@ inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz,
 
     // handle case of parallel lines
     // reduce to midpt distance
-    if (fabs(denom) < SMALL){
-        if(denom < 0) denom = -BIG;
+    if (fabs(denom) < SMALL) {
+        if (denom < 0) denom = -BIG;
         else denom = BIG;
     }
 
@@ -586,7 +586,7 @@ map global id of atoms in stored by each bond particle
  ------------------------------------------------------- */
 inline void PairSRP::remapBonds(int &nall)
 {
-  if(nall > maxcount){
+  if (nall > maxcount) {
     memory->grow(segment, nall, 2, "pair:segment");
     maxcount = nall;
   }
@@ -600,7 +600,7 @@ inline void PairSRP::remapBonds(int &nall)
   srp = f_srp->array_atom;
 
     for (int i = 0; i < nall; i++) {
-      if(atom->type[i] == bptype){
+      if (atom->type[i] == bptype) {
         // tmp is local id
         // tmp == -1 is ok
         tmp = atom->map((int)srp[i][0]);
@@ -643,7 +643,7 @@ inline void PairSRP::onetwoexclude(int* &ilist, int &inum, int* &jlist, int* &nu
         j1 = segment[j][1];
 
         // check for a 1-2 neigh
-        if(i0 == i1 || i0 == j1 || i1 == j0 || j0 == j1){
+        if (i0 == i1 || i0 == j1 || i1 == j0 || j0 == j1) {
           j |= ONETWOBIT;
           jlist[jj] = j;
         }
@@ -704,12 +704,12 @@ void PairSRP::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -737,12 +737,12 @@ void PairSRP::write_restart_settings(FILE *fp)
 void PairSRP::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&bptype,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&btype,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&min,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&midpoint,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&exclude,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&bptype,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&btype,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&min,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&midpoint,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&exclude,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }

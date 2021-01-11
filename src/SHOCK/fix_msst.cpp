@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_msst.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -32,8 +32,8 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,9 +41,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL),
-  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL),
-  pressure(NULL), pe(NULL)
+  Fix(lmp, narg, arg), old_velocity(nullptr), rfix(nullptr),
+  id_temp(nullptr), id_press(nullptr), id_pe(nullptr), temperature(nullptr),
+  pressure(nullptr), pe(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 
@@ -90,7 +90,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     box_change |= BOX_CHANGE_Z;
   } else error->all(FLERR,"Illegal fix msst command");
 
-  velocity = force->numeric(FLERR,arg[4]);
+  velocity = utils::numeric(FLERR,arg[4],false,lmp);
   if (velocity < 0) error->all(FLERR,"Illegal fix msst command");
 
   // optional args
@@ -99,30 +99,30 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      qmass = force->numeric(FLERR,arg[iarg+1]);
+      qmass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      mu = force->numeric(FLERR,arg[iarg+1]);
+      mu = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"p0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      p0 = force->numeric(FLERR,arg[iarg+1]);
+      p0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"v0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      v0 = force->numeric(FLERR,arg[iarg+1]);
+      v0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       v0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"e0") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      e0 = force->numeric(FLERR,arg[iarg+1]);
+      e0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       e0_set = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"tscale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      tscale = force->numeric(FLERR,arg[iarg+1]);
+      tscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (tscale < 0.0 || tscale > 1.0)
         error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg += 2;
@@ -134,7 +134,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      beta = force->numeric(FLERR,arg[iarg+1]);
+      beta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (beta < 0.0 || beta > 1.0)
         error->all(FLERR,"Illegal fix msst command");
       iarg += 2;
@@ -206,10 +206,10 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   omega[0] = omega[1] = omega[2] = 0.0;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   maxold = -1;
-  old_velocity = NULL;
+  old_velocity = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +246,7 @@ int FixMSST::setmask()
 
 void FixMSST::init()
 {
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix msst without per-type mass defined");
 
   // set compute ptrs
@@ -287,7 +287,7 @@ void FixMSST::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^rigid")  ||
@@ -306,7 +306,7 @@ void FixMSST::init()
     for (int i = 0; i < modify->nfix; i++)
       if (utils::strmatch(modify->fix[i]->style,"^external$"))
         fix_external = (FixExternal *) modify->fix[i];
-    if (fix_external == NULL)
+    if (fix_external == nullptr)
       error->all(FLERR,"Fix msst dftb cannot be used w/out fix external");
   }
 }
@@ -324,33 +324,33 @@ void FixMSST::setup(int /*vflag*/)
   couple();
   velocity_sum = compute_vsum();
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST v0 = {:.8g}\n", v0));
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0 = p_current[direction];
     p0_set = 1;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST p0 = {:.8g}\n", p0));
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST e0 = {:.8g}\n", e0));
   }
 
   temperature->compute_vector();
   double *ke_tensor = temperature->vector;
   double ke_temp = ke_tensor[0]+ke_tensor[1]+ke_tensor[2];
-  if (ke_temp > 0.0 && tscale > 0.0 ) {
+  if (ke_temp > 0.0 && tscale > 0.0) {
 
     // transfer energy from atom velocities to cell volume motion
     // to bias initial compression
@@ -371,7 +371,7 @@ void FixMSST::setup(int /*vflag*/)
                                      fac2,tscale));
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
-        for (int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           v[i][k]*=sqrt_initial_temperature_scaling;
         }
       }
@@ -453,7 +453,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
 
   // use Taylor expansion to avoid singularity at B = 0
 
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B )
       * exp(-B * dthalf);
   } else {
@@ -469,7 +469,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -478,8 +478,8 @@ void FixMSST::initial_integrate(int /*vflag*/)
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
           old_velocity[i][k] = v[i][k];
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -492,15 +492,15 @@ void FixMSST::initial_integrate(int /*vflag*/)
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           old_velocity[i][k] = v[i][k];
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -529,7 +529,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -537,8 +537,8 @@ void FixMSST::initial_integrate(int /*vflag*/)
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -551,14 +551,14 @@ void FixMSST::initial_integrate(int /*vflag*/)
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -647,7 +647,7 @@ void FixMSST::final_integrate()
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -655,8 +655,8 @@ void FixMSST::final_integrate()
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -669,14 +669,14 @@ void FixMSST::final_integrate()
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -707,11 +707,11 @@ void FixMSST::final_integrate()
 
   // prevent blow-up of the volume
 
-  if ( vol > v0 && A > 0.0 ) A = -A;
+  if (vol > v0 && A > 0.0) A = -A;
 
   // use taylor expansion to avoid singularity at B == 0.
 
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A *
                   ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
@@ -766,7 +766,7 @@ void FixMSST::remap(int flag)
   // reset global and local box to new size/shape
 
   for (i = 0; i < 3; i++) {
-    if ( direction == i ) {
+    if (direction == i) {
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);

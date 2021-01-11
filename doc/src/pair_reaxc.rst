@@ -1,13 +1,11 @@
 .. index:: pair_style reax/c
+.. index:: pair_style reax/c/kk
+.. index:: pair_style reax/c/omp
 
 pair_style reax/c command
 =========================
 
-pair_style reax/c/kk command
-============================
-
-pair_style reax/c/omp command
-=============================
+Accelerator Variants: *reax/c/kk*, *reax/c/omp*
 
 Syntax
 """"""
@@ -94,13 +92,11 @@ tested).
    create a suitable ReaxFF parameterization.
 
 The *cfile* setting can be specified as NULL, in which case default
-settings are used. A control file can be specified which defines
-values of control variables. Some control variables are
-global parameters for the ReaxFF potential. Others define certain
-performance and output settings.
-Each line in the control file specifies the value for
-a control variable.  The format of the control file is described
-below.
+settings are used. A control file can be specified which defines values
+of control variables. Some control variables are global parameters for
+the ReaxFF potential. Others define certain performance and output
+settings.  Each line in the control file specifies the value for a
+control variable.  The format of the control file is described below.
 
 .. note::
 
@@ -226,7 +222,10 @@ H, you would use the following pair_coeff command:
 
    pair_coeff * * ffield.reax C C N H
 
-----------
+-------------
+
+Control file
+""""""""""""
 
 The format of a line in the control file is as follows:
 
@@ -240,60 +239,73 @@ If the value of a control variable is not specified, then default
 values are used.  What follows is the list of variables along with a
 brief description of their use and default values.
 
-simulation_name: Output files produced by *pair_style reax/c* carry
-this name + extensions specific to their contents.  Partial energies
-are reported with a ".pot" extension, while the trajectory file has
-".trj" extension.
 
-tabulate_long_range: To improve performance, long range interactions
-can optionally be tabulated (0 means no tabulation). Value of this
-variable denotes the size of the long range interaction table.  The
-range from 0 to long range cutoff (defined in the *ffield* file) is
-divided into *tabulate_long_range* points.  Then at the start of
-simulation, we fill in the entries of the long range interaction table
-by computing the energies and forces resulting from van der Waals and
-Coulomb interactions between every possible atom type pairs present in
-the input system.  During the simulation we consult to the long range
-interaction table to estimate the energy and forces between a pair of
-atoms. Linear interpolation is used for estimation. (default value =
-0)
+*simulation_name*
+   Output files produced by *pair_style reax/c* carry
+   this name + extensions specific to their contents.  Partial energies
+   are reported with a ".pot" extension, while the trajectory file has
+   ".trj" extension.
 
-energy_update_freq: Denotes the frequency (in number of steps) of
-writes into the partial energies file. (default value = 0)
+*tabulate_long_range*
+   To improve performance, long range interactions can optionally be
+   tabulated (0 means no tabulation). Value of this variable denotes the
+   size of the long range interaction table.  The range from 0 to long
+   range cutoff (defined in the *ffield* file) is divided into
+   *tabulate_long_range* points.  Then at the start of simulation, we
+   fill in the entries of the long range interaction table by computing
+   the energies and forces resulting from van der Waals and Coulomb
+   interactions between every possible atom type pairs present in the
+   input system.  During the simulation we consult to the long range
+   interaction table to estimate the energy and forces between a pair of
+   atoms. Linear interpolation is used for estimation. (default value = 0)
 
-nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
-regarding the bonded interactions. (default value = 5.0)
+*energy_update_freq*
+   Denotes the frequency (in number of steps) of writes into the partial
+   energies file. (default value = 0)
 
-hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. A value of 0.0 turns off
-hydrogen bonds)
+*nbrhood_cutoff*
+   Denotes the near neighbors cutoff (in Angstroms)
+   regarding the bonded interactions. (default value = 5.0)
 
-bond_graph_cutoff: is the threshold used in determining what is a
-physical bond, what is not. Bonds and angles reported in the
-trajectory file rely on this cutoff. (default value = 0.3)
+*hbond_cutoff*
+   Denotes the cutoff distance (in Angstroms) for hydrogen
+   bond interactions.(default value = 7.5. A value of 0.0 turns off
+   hydrogen bonds)
 
-thb_cutoff: cutoff value for the strength of bonds to be considered in
-three body interactions. (default value = 0.001)
+*bond_graph_cutoff*
+   is the threshold used in determining what is a
+   physical bond, what is not. Bonds and angles reported in the
+   trajectory file rely on this cutoff. (default value = 0.3)
 
-thb_cutoff_sq: cutoff value for the strength of bond order products
-to be considered in three body interactions. (default value = 0.00001)
+*thb_cutoff*
+   cutoff value for the strength of bonds to be considered in
+   three body interactions. (default value = 0.001)
 
-write_freq: Frequency of writes into the trajectory file. (default
-value = 0)
+*thb_cutoff_sq*
+   cutoff value for the strength of bond order products
+   to be considered in three body interactions. (default value = 0.00001)
 
-traj_title: Title of the trajectory - not the name of the trajectory
-file.
+*write_freq*
+   Frequency of writes into the trajectory file. (default
+   value = 0)
 
-atom_info: 1 means print only atomic positions + charge (default = 0)
+*traj_title*
+   Title of the trajectory - not the name of the trajectory file.
 
-atom_forces: 1 adds net forces to atom lines in the trajectory file
-(default = 0)
+*atom_info*
+   1 means print only atomic positions + charge (default = 0)
 
-atom_velocities: 1 adds atomic velocities to atoms line (default = 0)
+*atom_forces*
+   1 adds net forces to atom lines in the trajectory file (default = 0)
 
-bond_info: 1 prints bonds in the trajectory file (default = 0)
+*atom_velocities*
+   1 adds atomic velocities to atoms line (default = 0)
 
-angle_info: 1 prints angles in the trajectory file (default = 0)
+*bond_info*
+   1 prints bonds in the trajectory file (default = 0)
+
+*angle_info*
+   1 prints angles in the trajectory file (default = 0)
 
 ----------
 

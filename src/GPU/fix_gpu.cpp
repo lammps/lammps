@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 #include "fix_gpu.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -30,7 +30,7 @@
 #include "neighbor.h"
 #include "citeme.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -118,8 +118,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int newtonflag = 0;
   int threads_per_atom = -1;
   double binsize = 0.0;
-  char *opencl_flags = NULL;
+  char *opencl_flags = nullptr;
   int block_pair = -1;
+  int pair_only_flag = 0;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -138,27 +139,27 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      binsize = force->numeric(FLERR,arg[iarg+1]);
+      binsize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      _particle_split = force->numeric(FLERR,arg[iarg+1]);
+      _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,"Illegal package GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
-      first_gpu = force->inumeric(FLERR,arg[iarg+1]);
-      last_gpu = force->inumeric(FLERR,arg[iarg+2]);
+      first_gpu = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      last_gpu = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"tpa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      threads_per_atom = force->inumeric(FLERR,arg[iarg+1]);
+      threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nthreads") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      nthreads = force->inumeric(FLERR,arg[iarg+1]);
+      nthreads = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"device") == 0) {
@@ -167,7 +168,13 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"blocksize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      block_pair = force->inumeric(FLERR,arg[iarg+1]);
+      block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/only") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
+      else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else error->all(FLERR,"Illegal package gpu command");
   }
@@ -185,6 +192,16 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  if (pair_only_flag) {
+    lmp->suffixp = lmp->suffix;
+    lmp->suffix = nullptr;
+  } else {
+    if (lmp->suffixp) {
+      lmp->suffix = lmp->suffixp;
+      lmp->suffixp = nullptr;
+    }
+  }
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib
@@ -221,7 +238,7 @@ void FixGPU::init()
 {
   // GPU package cannot be used with atom_style template
 
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
 
@@ -232,7 +249,7 @@ void FixGPU::init()
 
   // make sure fdotr virial is not accumulated multiple times
 
-  if (force->pair_match("^hybrid",0) != NULL) {
+  if (force->pair_match("^hybrid",0) != nullptr) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))

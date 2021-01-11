@@ -144,6 +144,7 @@ accelerated styles exist.
 * :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulomb
 * :doc:`coul/shield <pair_coul_shield>` - Coulomb for boron nitride for use with :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` potential
 * :doc:`coul/streitz <pair_coul>` - Coulomb via Streitz/Mintmire Slater orbitals
+* :doc:`coul/tt <pair_coul_tt>` - damped charge-dipole Coulomb for Drude dipoles
 * :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
@@ -304,6 +305,7 @@ accelerated styles exist.
 * :doc:`spin/dipole/long <pair_spin_dipole>` -
 * :doc:`spin/dmi <pair_spin_dmi>` -
 * :doc:`spin/exchange <pair_spin_exchange>` -
+* :doc:`spin/exchange/biquadratic <pair_spin_exchange>` -
 * :doc:`spin/magelec <pair_spin_magelec>` -
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_comb.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -53,32 +53,33 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   nmax = 0;
-  NCo = NULL;
-  bbij = NULL;
-  map = NULL;
-  esm = NULL;
+  NCo = nullptr;
+  bbij = nullptr;
+  map = nullptr;
+  esm = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 
-  intype = NULL;
-  fafb = NULL;
-  dfafb = NULL;
-  ddfafb = NULL;
-  phin = NULL;
-  dphin = NULL;
-  erpaw = NULL;
+  intype = nullptr;
+  fafb = nullptr;
+  dfafb = nullptr;
+  ddfafb = nullptr;
+  phin = nullptr;
+  dphin = nullptr;
+  erpaw = nullptr;
 
-  sht_num = NULL;
-  sht_first = NULL;
+  sht_num = nullptr;
+  sht_first = nullptr;
 
-  ipage = NULL;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
   // set comm size needed by this Pair
@@ -282,7 +283,7 @@ void PairComb::compute(int eflag, int vflag)
         jtype = map[type[j]];
         iparam_ij = elem2param[itype][jtype][jtype];
 
-        if(params[iparam_ij].hfocor > 0.0 ) {
+        if (params[iparam_ij].hfocor > 0.0) {
           delr1[0] = x[j][0] - xtmp;
           delr1[1] = x[j][1] - ytmp;
           delr1[2] = x[j][2] - ztmp;
@@ -456,7 +457,7 @@ void PairComb::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -465,7 +466,7 @@ void PairComb::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -542,7 +543,7 @@ void PairComb::init_style()
   //for (i = 0; i < modify->nfix; i++)
   //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
   //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = NULL;
+  //else fixqeq = nullptr;
 
   // need a full neighbor list
 
@@ -554,7 +555,7 @@ void PairComb::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -594,7 +595,7 @@ void PairComb::read_file(char *file)
     PotentialFileReader reader(lmp, file, "comb");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -679,7 +680,7 @@ void PairComb::read_file(char *file)
         params[nparams].cml2     = values.next_double();
         params[nparams].coulcut  = values.next_double();
         params[nparams].hfocor   = values.next_double();
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 
@@ -726,7 +727,7 @@ void PairComb::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -841,7 +842,7 @@ void PairComb::repulsive(Param *param, double rsq, double &fforce,
   Asi = param->biga1 * exp(param->lam11*Di);
   Asj = param->biga2 * exp(param->lam12*Dj);
 
-  if ( Asi > 0.0 && Asj > 0.0 )
+  if (Asi > 0.0 && Asj > 0.0)
     bigA = sqrt(Asi*Asj)*param->romiga;
   else
     bigA = 0.0;

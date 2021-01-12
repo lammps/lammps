@@ -36,27 +36,16 @@ LabelMap::~LabelMap()
   // delete type labels
 
   typelabel.clear();
+  btypelabel.clear();
+  atypelabel.clear();
+  dtypelabel.clear();
+  itypelabel.clear();
+
   delete [] lmap2lmap.atom;
-
-  if (force->bond) {
-    btypelabel.clear();
-    delete [] lmap2lmap.bond;
-  }
-
-  if (force->angle) {
-    atypelabel.clear();
-    delete [] lmap2lmap.angle;
-  }
-
-  if (force->dihedral) {
-    dtypelabel.clear();
-    delete [] lmap2lmap.dihedral;
-  }
-
-  if (force->improper) {
-    itypelabel.clear();
-    delete [] lmap2lmap.improper;
-  }
+  delete [] lmap2lmap.bond;
+  delete [] lmap2lmap.angle;
+  delete [] lmap2lmap.dihedral;
+  delete [] lmap2lmap.improper;
 }
 
 /* ----------------------------------------------------------------------

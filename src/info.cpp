@@ -322,14 +322,51 @@ void Info::command(int narg, char **arg)
     fputs("\nAccelerator configuration:\n\n",out);
     std::string mesg;
     if (has_package("GPU")) {
-      mesg = "GPU package API: ";
-      if (has_accelerator_feature("GPU","api","cuda"))   mesg += "CUDA\n";
-      if (has_accelerator_feature("GPU","api","hip"))    mesg += "HIP\n";
-      if (has_accelerator_feature("GPU","api","opencl")) mesg += "OpenCL\n";
-      mesg +=  "GPU package precision: ";
-      if (has_accelerator_feature("GPU","precision","single")) mesg += "single\n";
-      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += "mixed\n";
-      if (has_accelerator_feature("GPU","precision","double")) mesg += "double\n";
+      mesg = "GPU package API:";
+      if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
+      if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
+      if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
+      mesg +=  "\nGPU package precision:";
+      if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
+      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("KOKKOS")) {
+      mesg = "KOKKOS package API:";
+      if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
+      if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+      if (has_accelerator_feature("KOKKOS","api","knl"))      mesg += " KNL";
+      if (has_accelerator_feature("KOKKOS","api","opencl"))   mesg += " OpenCL";
+      if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
+      mesg +=  "\nKOKKOS package precision:";
+      if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
+      if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-OMP")) {
+      mesg = "USER-OMP package API:";
+      if (has_accelerator_feature("OPENMP","api","openmp"))   mesg += " OpenMP";
+      mesg +=  "\nUSER-OMP package precision:";
+      if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
+      if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-INTEL")) {
+      mesg = "USER-INTEL package API:";
+      if (has_accelerator_feature("INTEL","api","knl"))      mesg += " KNL";
+      if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
+      mesg +=  "\nUSER-INTEL package precision:";
+      if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
+      if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
+      mesg += "\n";
       fputs(mesg.c_str(),out);
     }
   }
@@ -1176,6 +1213,13 @@ bool Info::has_accelerator_feature(const std::string &package,
       if (setting == "double") return true;
       else return false;
     }
+    if (category == "api") {
+#if defined(_OPENMP)
+      if (setting == "openmp") return true;
+      else return false;
+#endif
+      return false;
+    }
   }
 #endif
 #if defined(LMP_USER_INTEL)
@@ -1184,6 +1228,10 @@ bool Info::has_accelerator_feature(const std::string &package,
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
       else if (setting == "single")return true;
+      else return false;
+    }
+    if (category == "api") {
+      if (setting == "openmp") return true;
       else return false;
     }
   }

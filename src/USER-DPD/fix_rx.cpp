@@ -410,7 +410,7 @@ void FixRX::initSparse()
 
   if (comm->me == 0 and Verbosity > 1) {
     for (int k = 0; k < nspecies; ++k)
-      printf("atom->dname[%d]= %s\n", k, atom->dname[k]);
+      printf("atom->dvname[%d]= %s\n", k, atom->dvname[k]);
 
     printf("stoich[][]\n");
     for (int i = 0; i < nreactions; ++i) {
@@ -470,7 +470,7 @@ void FixRX::initSparse()
 
         char digit[6];
         sprintf(digit, "%4.1f ", stoichReactants[i][k]); rstr += digit;
-        rstr += atom->dname[k];
+        rstr += atom->dvname[k];
       }
       if (stoichProducts[i][k] > 0.0) {
         allAreIntegral &= (std::fmod( stoichProducts[i][k], 1.0 ) == 0.0);
@@ -482,7 +482,7 @@ void FixRX::initSparse()
         char digit[6];
         sprintf(digit, "%4.1f ", stoichProducts[i][k]); pstr += digit;
 
-        pstr += atom->dname[k];
+        pstr += atom->dvname[k];
       }
     }
     if (comm->me == 0 and Verbosity > 1)
@@ -596,7 +596,7 @@ void FixRX::initSparse()
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
           rstr += digit;
-          rstr += atom->dname[k];
+          rstr += atom->dvname[k];
         }
       }
 
@@ -612,7 +612,7 @@ void FixRX::initSparse()
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
           pstr += digit;
-          pstr += atom->dname[k];
+          pstr += atom->dvname[k];
         }
       }
       if (comm->me == 0 and Verbosity > 1)
@@ -950,7 +950,7 @@ void FixRX::read_file(char *file)
       tmpStoich = atof(word);
       word = strtok(nullptr, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++) {
-        if (strcmp(word,&atom->dname[ispecies][0]) == 0) {
+        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
           stoich[nreactions][ispecies] += sign*tmpStoich;
           if (sign<0.0)
             stoichReactants[nreactions][ispecies] += tmpStoich;

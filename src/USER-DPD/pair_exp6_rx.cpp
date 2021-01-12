@@ -602,7 +602,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   int ispecies;
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
@@ -612,7 +612,7 @@ void PairExp6rx::coeff(int narg, char **arg)
   strcpy(site2,arg[4]);
 
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -626,7 +626,7 @@ void PairExp6rx::coeff(int narg, char **arg)
       {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
-          if (strcmp(site1, &atom->dname[isp][0]) == 0) break;
+          if (strcmp(site1, &atom->dvname[isp][0]) == 0) break;
 
         if (isp == nspecies)
           error->all(FLERR,"Site1 name not recognized in pair coefficients");
@@ -640,7 +640,7 @@ void PairExp6rx::coeff(int narg, char **arg)
       {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
-        if (strcmp(site2, &atom->dname[isp][0]) == 0) break;
+        if (strcmp(site2, &atom->dvname[isp][0]) == 0) break;
 
         if (isp == nspecies)
           error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -788,7 +788,7 @@ void PairExp6rx::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
     if (ispecies == nspecies) continue;
 
     // load up parameter settings and error check their values
@@ -806,9 +806,9 @@ void PairExp6rx::read_file(char *file)
 
     params[nparams].ispecies = ispecies;
 
-    n = strlen(&atom->dname[ispecies][0]) + 1;
+    n = strlen(&atom->dvname[ispecies][0]) + 1;
     params[nparams].name = new char[n];
-    strcpy(params[nparams].name,&atom->dname[ispecies][0]);
+    strcpy(params[nparams].name,&atom->dvname[ispecies][0]);
 
     n = strlen(words[1]) + 1;
     params[nparams].potential = new char[n];

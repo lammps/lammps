@@ -117,7 +117,7 @@ uninterrupted fashion.
 
 .. warning::
 
-   When reading data from a restart, the fix command has to be specified
+   When reading data from a restart file, this fix command has to be specified
    **exactly** the same way as before. LAMMPS will only check whether a
    fix is of the same style and has the same fix ID and in case of a match
    will then try to initialize the fix with the data stored in the binary

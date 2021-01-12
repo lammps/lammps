@@ -633,12 +633,14 @@ of analysis.
      - atom-ID molecule-ID atom-type lineflag density x y z
    * - mdpd
      - atom-ID atom-type rho x y z
+   * - mesont
+     - atom-ID molecule-ID atom-type bond_nt mass mradius mlength buckling x y z
    * - molecular
      - atom-ID molecule-ID atom-type x y z
    * - peri
      - atom-ID atom-type volume density x y z
    * - smd
-     - atom-ID atom-type molecule volume mass kernel-radius contact-radius x0 y0 z0 x y z
+     - atom-ID atom-type molecule volume mass kradius cradius x0 y0 z0 x y z
    * - sph
      - atom-ID atom-type rho esph cv x y z
    * - sphere
@@ -661,8 +663,10 @@ The per-atom values have these meanings and units, listed alphabetically:
 * atom-ID = integer ID of atom
 * atom-type = type of atom (1-Ntype)
 * bodyflag = 1 for body particles, 0 for point particles
+* bond_nt = bond NT factor for MESONT particles (?? units)
+* buckling = buckling factor for MESONT particles (?? units)
 * ccN = chemical concentration for tDPD particles for each species (mole/volume units)
-* contact-radius = ??? (distance units)
+* cradius = contact radius for SMD particles (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
@@ -673,10 +677,12 @@ The per-atom values have these meanings and units, listed alphabetically:
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
 * etag = integer ID of electron that each wave packet belongs to
-* kernel-radius = ??? (distance units)
+* kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
+* mlength = ?? length for MESONT particles (distance units)
 * molecule-ID = integer ID of molecule the atom belongs to
+* mradius = ?? radius for MESONT particles (distance units)
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles

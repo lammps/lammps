@@ -2599,6 +2599,22 @@ length of the data area, and a short description.
      - int
      - 1
      - 1 if the particle is a body particle, 0 if not
+   * - i_name
+     - int
+     - 1
+     - single integer value defined by fix property/atom vector name
+   * - d_name
+     - double
+     - 1
+     - single double value defined by fix property/atom vector name
+   * - i2_name
+     - int
+     - n
+     - N integer values defined by fix property/atom array name
+   * - d2_name
+     - double
+     - n
+     - N double values defined by fix property/atom array name
 
 *See also*
    :cpp:func:`lammps_extract_atom`
@@ -2660,29 +2676,6 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // custom vectors and arrays
-  
-  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
-      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
-    int which = 0;
-    if (name[0] == 'd') which = 1;
-    int array = 0;
-    if (name[1] == '2') array = 1;
-    
-    int index,flag,cols;
-    if (!array) index = find_custom(&name[2],flag,cols);
-    else index = find_custom(&name[3],flag,cols);
-    
-    if (index < 0) return NULL;
-    if (which != flag) return NULL;
-    if ((!array && cols) || (array && !cols)) return NULL;
-	
-    if (!which && !array) return (void *) ivector[index];
-    if (which && !array) return (void *) dvector[index];
-    if (!which && array) return (void *) iarray[index];
-    if (which && array) return (void *) darray[index];
-  }
-
   // USER-SMD package
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
@@ -2708,12 +2701,34 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"buckling") == 0) return (void *) buckling;
   if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
 
+  // custom vectors and arrays
+  
+  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
+      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
+    int which = 0;
+    if (name[0] == 'd') which = 1;
+    int array = 0;
+    if (name[1] == '2') array = 1;
+    
+    int index,flag,cols;
+    if (!array) index = find_custom(&name[2],flag,cols);
+    else index = find_custom(&name[3],flag,cols);
+    
+    if (index < 0) return NULL;
+    if (which != flag) return NULL;
+    if ((!array && cols) || (array && !cols)) return NULL;
+	
+    if (!which && !array) return (void *) ivector[index];
+    if (which && !array) return (void *) dvector[index];
+    if (!which && array) return (void *) iarray[index];
+    if (which && array) return (void *) darray[index];
+  }
+
   // end of customization section
   // --------------------------------------------------------------------
 
   return nullptr;
 }
-
 
 /** Provide data type info about internal data of the Atom class
  *
@@ -2776,11 +2791,8 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
 
-  // USER-MESONT package
-  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
-  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
-
+  // USER-SMD package
+  
   if (strcmp(name, "contact_radius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE_2D;
@@ -2788,9 +2800,41 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name, "eff_plastic_strain_rate") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "damage") == 0) return LAMMPS_DOUBLE;
 
+  // USER-DPD package
+
   if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
+
+  // USER-MESO package
+
   if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
 
+  // USER-MESONT package
+
+  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
+  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
+
+  // custom vectors and arrays
+  
+  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
+      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
+    int which = 0;
+    if (name[0] == 'd') which = 1;
+    int array = 0;
+    if (name[1] == '2') array = 1;
+    
+    int index,flag,cols;
+    if (!array) index = find_custom(&name[2],flag,cols);
+    else index = find_custom(&name[3],flag,cols);
+
+    if (index < 0) return -1;
+    if (which != flag) return -1;
+    if ((!array && cols) || (array && !cols)) return -1;
+
+    if (which == 0) return LAMMPS_INT;
+    else return LAMMPS_DOUBLE;
+  }
+  
   // end of customization section
   // --------------------------------------------------------------------
 

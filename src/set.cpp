@@ -579,8 +579,8 @@ void Set::command(int narg, char **arg)
       int which = 0;
       if (arg[iarg][0] == 'd') which = 1;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else if (!which) ivalue = force->inumeric(FLERR,arg[iarg+1]);
-      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      else if (!which) ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       
       int flag,cols;
       index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
@@ -599,8 +599,8 @@ void Set::command(int narg, char **arg)
       int which = 0;
       if (arg[iarg][0] == 'd') which = 1;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else if (!which) ivalue = force->inumeric(FLERR,arg[iarg+1]);
-      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      else if (!which) ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];

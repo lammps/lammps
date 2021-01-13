@@ -227,15 +227,14 @@ links with from the lib/message directory.  See the
 
 Select how and where to output a reminder about citing contributions
 to the LAMMPS code that were used during the run. Available styles are
-"both", "none", "screen", or "log". Any flag will be considered a file
-name to write the citation info to.  Default is the "log" style where
-there is a short summary in the screen output and detailed citations
-in BibTeX format in the logfile. The option "both" selects the detailed
+"both", "none", "screen", or "log".  Any flag will be considered a file
+name to write the detailed citation info to.  Default is the "log" style
+where there is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
 output for both, "none", the short output for both, and "screen" will
 write the detailed info to the screen and the short version to the log
-file.  Any other option will be taken as a file name to which the detailed
-citation info is written and screen and log file output will be short
-(same as with "none").
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
 
 See the :doc:`citation page <Intro_citing>` for more details on
 how to correctly reference and cite LAMMPS.

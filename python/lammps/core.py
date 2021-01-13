@@ -1452,7 +1452,7 @@ class lammps(object):
     for p in [b'GPU', b'KOKKOS', b'USER-INTEL', b'USER-OMP']:
       c = b'api'
       result[p.decode()] = {}
-      for s in [b'cuda', b'hip', b'pthreads', b'opencl', b'openmp']:
+      for s in [b'cuda', b'hip', b'pthreads', b'opencl', b'openmp', b'serial']:
         if self.lib.lammps_config_accelerator(p,c,s):
           result[p.decode()][c.decode()] = s.decode()
       c = b'precision'

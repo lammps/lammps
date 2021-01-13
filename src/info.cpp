@@ -1208,7 +1208,7 @@ bool Info::has_accelerator_feature(const std::string &package,
   }
 #endif
 #if defined(LMP_USER_OMP)
-  if (package == "OPENMP") {
+  if (package == "USER-OMP") {
     if (category == "precision") {
       if (setting == "double") return true;
       else return false;
@@ -1216,14 +1216,15 @@ bool Info::has_accelerator_feature(const std::string &package,
     if (category == "api") {
 #if defined(_OPENMP)
       if (setting == "openmp") return true;
-      else return false;
+#else
+      if (setting == "serial") return true;
 #endif
       return false;
     }
   }
 #endif
 #if defined(LMP_USER_INTEL)
-  if (package == "INTEL") {
+  if (package == "USER-INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
@@ -1231,8 +1232,12 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
+#if defined(_OPENMP)
       if (setting == "openmp") return true;
-      else return false;
+#else
+      if (setting == "serial") return true;
+#endif
+      return false;
     }
   }
 #endif

@@ -202,7 +202,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
               //tan_ijk_i = 1. / tan( theta_ijk );
               if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
                 tan_ijk_i = cos_ijk / MIN_SINE;
-              else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE )
+              else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
                 tan_ijk_i = cos_ijk / -MIN_SINE;
               else tan_ijk_i = cos_ijk / sin_ijk;
 
@@ -241,7 +241,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   //tan_jkl_i = 1. / tan( theta_jkl );
                   if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                     tan_jkl_i = cos_jkl / MIN_SINE;
-                  else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
+                  else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE)
                     tan_jkl_i = cos_jkl / -MIN_SINE;
                   else tan_jkl_i = cos_jkl /sin_jkl;
 

@@ -59,13 +59,6 @@ class PPPMDisp : public KSpace {
   virtual double memory_usage();
 
  protected:
-
-/* ----------------------------------------------------------------------
-Variables needed for calculating the 1/r and 1/r^6 potential
-------------------------------------------------------------------------- */
-
-  int function[EWALD_FUNCS];
-
   int me,nprocs;
   int nfactors;
   int *factors;
@@ -83,6 +76,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
 
   int nsplit;
   int nsplit_alloc;
+  int function[EWALD_FUNCS];
 
   double delxinv,delyinv,delzinv,delvolinv;
   double delxinv_6,delyinv_6,delzinv_6,delvolinv_6;
@@ -101,7 +95,8 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   int nlower_6,nupper_6;
   int ngrid_6,nfft_6,nfft_both_6;
 
-  //// the following variables are needed for every structure factor
+  // the following variables are needed for every structure factor
+  
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
   FFT_SCALAR *density_fft;

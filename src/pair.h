@@ -115,6 +115,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int kokkosable; // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
   virtual ~Pair();

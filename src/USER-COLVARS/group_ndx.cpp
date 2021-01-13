@@ -115,7 +115,7 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
 
   if (me == 0) {
     int i, j;
-    for(i=0, j=0; i < num; ++i) {
+    for (i=0, j=0; i < num; ++i) {
       fprintf(fp,fmt,recvlist[i]);
       ++j;
       if (j == cols) {

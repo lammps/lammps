@@ -242,7 +242,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         jtype = map[type[j]];
         iparam_ij = elem2param[itype][jtype][jtype];
 
-        if(params[iparam_ij].hfocor > 0.0 ) {
+        if (params[iparam_ij].hfocor > 0.0) {
           delr1[0] = x[j][0] - xtmp;
           delr1[1] = x[j][1] - ytmp;
           delr1[2] = x[j][2] - ztmp;

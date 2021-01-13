@@ -271,7 +271,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
         Gcore  = mi / t_period_core  / ftm2v;
         Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
         if (temperature) temperature->remove_bias(i, v[i]);
-        for(int k = 0; k < dim; k++){
+        for (int k = 0; k < dim; k++) {
             fcore[k] = Ccore  * random_core->gaussian()  - Gcore  * v[i][k];
             if (zero) fcoreloc[k] += fcore[k];
             f[i][k] += fcore[k];
@@ -326,7 +326,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
     }
   }
 
-  if(zero) { // Remove the drift
+  if (zero) { // Remove the drift
     MPI_Allreduce(fcoreloc, fcoresum, dim, MPI_DOUBLE, MPI_SUM, world);
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {

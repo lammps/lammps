@@ -131,7 +131,7 @@ void ComputeHeatFluxTally::pair_tally_callback(int i, int j, int nlocal, int new
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     const double epairhalf = 0.5 * (evdwl + ecoul);
     fpair *= 0.5;

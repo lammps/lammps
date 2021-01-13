@@ -56,7 +56,7 @@ target_link_libraries(test_library_config PRIVATE lammps GTest::GTest GTest::GMo
 target_compile_definitions(test_library_config PRIVATE ${TEST_CONFIG_DEFS})
 add_test(LibraryConfig test_library_config)
 
-if (BUILD_MPI)
+if(BUILD_MPI)
   add_executable(test_library_mpi test_library_mpi.cpp)
   target_link_libraries(test_library_mpi PRIVATE lammps GTest::GTest GTest::GMock)
   target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})

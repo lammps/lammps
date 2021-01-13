@@ -285,7 +285,7 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
 
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
-  for( i = 0; i < system->n; ++i ) {
+  for (i = 0; i < system->n; ++i) {
     p_atom = &( system->my_atoms[i] );
     sprintf( out_control->line, INIT_DESC,
              p_atom->orig_id, p_atom->type, p_atom->name,
@@ -299,7 +299,7 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
               np * INIT_DESCS + me, mpi_data->world );
   } else {
     buffer_len = system->n * INIT_DESC_LEN;
-    for( i = 0; i < np; ++i )
+    for (i = 0; i < np; ++i)
       if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*INIT_DESCS+i, mpi_data->world, &status );
@@ -508,10 +508,10 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
   /* fill in buffer */
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
-  for( i = 0; i < system->n; ++i ) {
+  for (i = 0; i < system->n; ++i) {
     p_atom = &( system->my_atoms[i] );
 
-    switch( out_control->atom_info ) {
+    switch (out_control->atom_info) {
     case OPT_ATOM_BASIC:
       sprintf( out_control->line, ATOM_BASIC,
                p_atom->orig_id, p_atom->x[0], p_atom->x[1], p_atom->x[2],
@@ -545,7 +545,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
               np*ATOM_LINES+me, mpi_data->world );
   } else {
     buffer_len = system->n * line_len;
-    for( i = 0; i < np; ++i )
+    for (i = 0; i < np; ++i)
       if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*ATOM_LINES+i, mpi_data->world, &status );
@@ -575,10 +575,10 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
 
   /* count the number of bonds I will write */
   my_bonds = 0;
-  for( i=0; i < system->n; ++i )
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+  for (i=0; i < system->n; ++i)
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
       j = bonds->select.bond_list[pj].nbr;
-      if( system->my_atoms[i].orig_id <= system->my_atoms[j].orig_id &&
+      if ( system->my_atoms[i].orig_id <= system->my_atoms[j].orig_id &&
           bonds->select.bond_list[pj].bo_data.BO >= control->bg_cut )
         ++my_bonds;
     }
@@ -600,14 +600,14 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
   out_control->buffer[0] = 0;
 
   my_bonds = 0;
-  for( i=0; i < system->n; ++i ) {
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+  for (i=0; i < system->n; ++i) {
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
       bo_ij = &( bonds->select.bond_list[pj] );
       j = bo_ij->nbr;
 
-      if( system->my_atoms[i].orig_id <= system->my_atoms[j].orig_id &&
-          bo_ij->bo_data.BO >= control->bg_cut ) {
-        switch( out_control->bond_info ) {
+      if ( system->my_atoms[i].orig_id <= system->my_atoms[j].orig_id &&
+          bo_ij->bo_data.BO >= control->bg_cut) {
+        switch (out_control->bond_info) {
         case OPT_BOND_BASIC:
           sprintf( out_control->line, BOND_BASIC,
                    system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
@@ -634,7 +634,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
               np*BOND_LINES+me, mpi_data->world );
   } else {
     buffer_len = my_bonds * line_len;
-    for( i = 0; i < np; ++i )
+    for (i = 0; i < np; ++i)
       if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*BOND_LINES+i, mpi_data->world, &status );
@@ -666,19 +666,19 @@ int Write_Angles( reax_system *system, control_params *control,
 
   /* count the number of valence angles I will output */
   my_angles = 0;
-  for( j = 0; j < system->n; ++j )
-    for( pi = Start_Index(j, bonds); pi < End_Index(j, bonds); ++pi ) {
+  for (j = 0; j < system->n; ++j)
+    for (pi = Start_Index(j, bonds); pi < End_Index(j, bonds); ++pi) {
       bo_ij = &(bonds->select.bond_list[pi]);
       i     = bo_ij->nbr;
 
       if (bo_ij->bo_data.BO >= control->bg_cut) // physical j&i bond
-        for( pk = Start_Index( pi, thb_intrs );
-             pk < End_Index( pi, thb_intrs ); ++pk ) {
+        for (pk = Start_Index( pi, thb_intrs);
+             pk < End_Index( pi, thb_intrs ); ++pk) {
           angle_ijk = &(thb_intrs->select.three_body_list[pk]);
           k       = angle_ijk->thb;
           bo_jk   = &(bonds->select.bond_list[ angle_ijk->pthb ]);
 
-          if( system->my_atoms[i].orig_id < system->my_atoms[k].orig_id &&
+          if ( system->my_atoms[i].orig_id < system->my_atoms[k].orig_id &&
               bo_jk->bo_data.BO >= control->bg_cut ) // physical j&k bond
             ++my_angles;
         }
@@ -699,20 +699,20 @@ int Write_Angles( reax_system *system, control_params *control,
   my_angles = 0;
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
-  for( j = 0; j < system->n; ++j )
-    for( pi = Start_Index(j, bonds); pi < End_Index(j, bonds); ++pi ) {
+  for (j = 0; j < system->n; ++j)
+    for (pi = Start_Index(j, bonds); pi < End_Index(j, bonds); ++pi) {
       bo_ij = &(bonds->select.bond_list[pi]);
       i     = bo_ij->nbr;
 
       if (bo_ij->bo_data.BO >= control->bg_cut) // physical j&i bond
-        for( pk = Start_Index( pi, thb_intrs );
-             pk < End_Index( pi, thb_intrs ); ++pk ) {
+        for (pk = Start_Index( pi, thb_intrs);
+             pk < End_Index( pi, thb_intrs ); ++pk) {
           angle_ijk = &(thb_intrs->select.three_body_list[pk]);
           k       = angle_ijk->thb;
           bo_jk   = &(bonds->select.bond_list[ angle_ijk->pthb ]);
 
-          if( system->my_atoms[i].orig_id < system->my_atoms[k].orig_id &&
-              bo_jk->bo_data.BO >= control->bg_cut ) { // physical j&k bond
+          if ( system->my_atoms[i].orig_id < system->my_atoms[k].orig_id &&
+              bo_jk->bo_data.BO >= control->bg_cut) { // physical j&k bond
             sprintf( out_control->line, ANGLE_BASIC,
                      system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
                      system->my_atoms[k].orig_id, RAD2DEG( angle_ijk->theta ) );
@@ -729,7 +729,7 @@ int Write_Angles( reax_system *system, control_params *control,
               np*ANGLE_LINES+me, mpi_data->world );
   } else {
     buffer_len = my_angles * line_len;
-    for( i = 0; i < np; ++i )
+    for (i = 0; i < np; ++i)
       if (i != MASTER_NODE) {
         MPI_Recv( out_control->buffer + buffer_len, buffer_req - buffer_len,
                   MPI_CHAR, i, np*ANGLE_LINES+i, mpi_data->world, &status );

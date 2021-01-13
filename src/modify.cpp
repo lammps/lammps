@@ -1329,7 +1329,7 @@ void Modify::delete_compute(const std::string &id)
 
 int Modify::find_compute(const std::string &id)
 {
-  if(id.empty()) return -1;
+  if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (id == compute[icompute]->id) return icompute;
   return -1;

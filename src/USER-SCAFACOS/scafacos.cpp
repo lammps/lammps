@@ -226,7 +226,7 @@ void Scafacos::compute(int eflag, int vflag)
   memcpy(xpbc,&x[0][0],3*nlocal*sizeof(double));
 
 
-  if (domain->xperiodic || domain -> yperiodic || domain -> zperiodic){
+  if (domain->xperiodic || domain -> yperiodic || domain -> zperiodic) {
   int j = 0;
     for (int i = 0; i < nlocal; i++) {
       domain->remap(&xpbc[j]);
@@ -321,7 +321,7 @@ int Scafacos::modify_param(int narg, char **arg)
     else error->all(FLERR,
                 "Illegal kspace_modify command (tolerance argument)");
     // check if method is compatatible to chosen tolerance type
-    if(
+    if (
         (
           strcmp(method,"fmm") == 0 &&
           (

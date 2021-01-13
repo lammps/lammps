@@ -2754,23 +2754,23 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   uv(5,1)=1; uv(5,2)=3;
   uv(6,1)=1; uv(6,2)=2;
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
     deltastress(ii)=setcauchy(i,j)-cauchy(i,j);
-    if(ii>3) deltastress(ii)=deltastress(ii)*2.0;
+    if (ii>3) deltastress(ii)=deltastress(ii)*2.0;
     fdotvec(ii)=Fdot(i,j)*deltat;
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
-    for(int jj = 1;jj <= 6;jj++) {
+    for (int jj = 1;jj <= 6;jj++) {
       m=uv(jj,1);
       n=uv(jj,2);
       dsds(ii,jj) = Fi(i,m)*Fi(j,n) + Fi(i,n)*Fi(j,m) + Fi(j,m)*Fi(i,n) + Fi(j,n)*Fi(i,m);
-      for(int l = 1;l <= 3;l++) {
-        for(int k = 1;k <= 3;k++) {
+      for (int l = 1;l <= 3;l++) {
+        for (int k = 1;k <= 3;k++) {
           dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
             ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
         }
@@ -2779,21 +2779,21 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   }
 
   jac=volume/volume0;
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       dsds(ii,jj)=dsds(ii,jj)*jac/4.0;
       dsdf(ii,jj)=dsdf(ii,jj)*jac;
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaF(ii)=deltaF(ii)+dsdf(ii,jj)*fdotvec(jj);
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaPK(ii)=deltaPK(ii)+alpha*dsds(ii,jj)*deltastress(jj);
     }
     deltaPK(ii)=deltaPK(ii)+alpha*deltaF(ii);

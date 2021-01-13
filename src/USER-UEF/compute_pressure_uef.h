@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class ComputePressureUef : public ComputePressure {
  public:
   ComputePressureUef(class LAMMPS *, int, char **);
-  virtual ~ComputePressureUef(){}
+  virtual ~ComputePressureUef() {}
   virtual void init();
   virtual void compute_vector();
   virtual double compute_scalar();

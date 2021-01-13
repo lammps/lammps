@@ -204,7 +204,7 @@ static int cyc_spline(double const *xa,
   // The for loop sets up the equations we need to solve.
   // Later we invoke the GSL tridiagonal matrix solver to solve them.
 
-  for(int i=0; i < n; i++) {
+  for (int i=0; i < n; i++) {
 
     // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
     // periodic boundary conditions.  We handle that now.
@@ -675,7 +675,7 @@ void DihedralTable::compute(int eflag, int vflag)
     //          d U          d U      d phi
     // -f  =   -----   =    -----  *  -----
     //          d x         d phi      d x
-    for(int d=0; d < g_dim; ++d) {
+    for (int d=0; d < g_dim; ++d) {
       f1[d] = m_du_dphi * dphi_dx1[d];
       f2[d] = m_du_dphi * dphi_dx2[d];
       f3[d] = m_du_dphi * dphi_dx3[d];

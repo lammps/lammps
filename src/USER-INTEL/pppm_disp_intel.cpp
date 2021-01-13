@@ -148,7 +148,7 @@ void PPPMDispIntel::init()
     memory->create(rho6_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
                    "pppmdispintel:rho6_lookup");
 
-    if(differentiation_flag == 1) {
+    if (differentiation_flag == 1) {
       memory->destroy(drho_lookup);
       memory->create(drho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
                      "pppmdispintel:drho_lookup");
@@ -198,7 +198,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       memory->destroy(particle_ekx);
       memory->destroy(particle_eky);
       memory->destroy(particle_ekz);
-      if (function[2] == 1){
+      if (function[2] == 1) {
         memory->destroy(particle_ekx0);
         memory->destroy(particle_eky0);
         memory->destroy(particle_ekz0);
@@ -231,7 +231,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       memory->create(particle_ekx, nmax, "pppmdispintel:pekx");
       memory->create(particle_eky, nmax, "pppmdispintel:peky");
       memory->create(particle_ekz, nmax, "pppmdispintel:pekz");
-      if (function[2] == 1){
+      if (function[2] == 1) {
         memory->create(particle_ekx0, nmax, "pppmdispintel:pekx0");
         memory->create(particle_eky0, nmax, "pppmdispintel:peky0");
         memory->create(particle_ekz0, nmax, "pppmdispintel:pekz0");
@@ -752,7 +752,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr, delx, dely, delz, sft, p2g, nup, nlow, nxlo,\
-           nylo, nzlo, nxhi, nyhi, nzhi) reduction(+:flag) if(!_use_lrt)
+           nylo, nzlo, nxhi, nyhi, nzhi) reduction(+:flag) if (!_use_lrt)
   #endif
   {
     double **x = atom->x;
@@ -825,7 +825,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, nlocal, global_density) if(!_use_lrt)
+    shared(nthr, nlocal, global_density) if (!_use_lrt)
   #endif
   {
   double *q = atom->q;
@@ -877,7 +877,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
           rho[2][k] = rho_lookup[idz][k];
@@ -931,7 +931,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, global_density) if(!_use_lrt)
+    shared(nthr, global_density) if (!_use_lrt)
   #endif
   {
     int ifrom, ito, tid;
@@ -941,7 +941,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #pragma simd
     #endif
     for (int i = ifrom; i < ito; i++) {
-      for(int j = 1; j < nthr; j++) {
+      for (int j = 1; j < nthr; j++) {
         global_density[i] += perthread_density[j-1][i];
       }
     }
@@ -973,7 +973,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, nlocal, global_density) if(!_use_lrt)
+    shared(nthr, nlocal, global_density) if (!_use_lrt)
   #endif
   {
     int type;
@@ -1026,7 +1026,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -1081,7 +1081,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, global_density) if(!_use_lrt)
+    shared(nthr, global_density) if (!_use_lrt)
   #endif
   {
     int ifrom, ito, tid;
@@ -1091,7 +1091,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #pragma simd
     #endif
     for (int i = ifrom; i < ito; i++) {
-      for(int j = 1; j < nthr; j++) {
+      for (int j = 1; j < nthr; j++) {
         global_density[i] += perthread_density[j-1][i];
       }
     }
@@ -1174,7 +1174,7 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -1256,7 +1256,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, nlocal, global_density) if(!_use_lrt)
+    shared(nthr, nlocal, global_density) if (!_use_lrt)
   #endif
   {
     int type;
@@ -1308,7 +1308,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -1354,7 +1354,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           for (int l = 0; l < order; l++) {
             int mzyx = l + mzy;
             FFT_SCALAR w0 = x0*rho[0][l];
-            for(int k = 0; k < nsplit; k++)
+            for (int k = 0; k < nsplit; k++)
               my_density[mzyx + k*ngrid_6] += x0*rho[0][l];
           }
         }
@@ -1365,7 +1365,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, global_density) if(!_use_lrt)
+    shared(nthr, global_density) if (!_use_lrt)
   #endif
   {
     int ifrom, ito, tid;
@@ -1375,7 +1375,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #pragma simd
     #endif
     for (int i = ifrom; i < ito; i++) {
-      for(int j = 1; j < nthr; j++) {
+      for (int j = 1; j < nthr; j++) {
         global_density[i] += perthread_density[j-1][i];
       }
     }
@@ -1408,7 +1408,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -1558,7 +1558,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -1625,7 +1625,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
           rho[2][k] = rho_lookup[idz][k];
@@ -1694,7 +1694,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < order; l++){
+      for (int l = 0; l < order; l++) {
         particle_ekx[i] += ekx[l];
         particle_eky[i] += eky[l];
         particle_ekz[i] += ekz[l];
@@ -1756,7 +1756,7 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -1903,7 +1903,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -1968,7 +1968,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -2037,7 +2037,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < order; l++){
+      for (int l = 0; l < order; l++) {
         particle_ekx[i] += ekx[l];
         particle_eky[i] += eky[l];
         particle_ekz[i] += ekz[l];
@@ -2100,7 +2100,7 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
     double **x = atom->x;
@@ -2334,7 +2334,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -2399,7 +2399,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -2515,7 +2515,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < order; l++){
+      for (int l = 0; l < order; l++) {
         particle_ekx0[i] += ekx0[l];
         particle_eky0[i] += eky0[l];
         particle_ekz0[i] += ekz0[l];
@@ -2625,7 +2625,7 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
 
@@ -2784,7 +2784,7 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
    #if defined(_OPENMP)
    #pragma omp parallel LMP_DEFAULT_NONE           \
-     shared(nlocal, nthr) if(!_use_lrt)
+     shared(nlocal, nthr) if (!_use_lrt)
    #endif
   {
 
@@ -2849,7 +2849,7 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
           rho[1][k] = rho6_lookup[idy][k];
           rho[2][k] = rho6_lookup[idz][k];
@@ -2934,7 +2934,7 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < order; l++){
+      for (int l = 0; l < order; l++) {
         for (int k = 0; k < nsplit; k++) {
           ekx_tot[k] += ekx[k*INTEL_P3M_ALIGNED_MAXORDER+l];
           eky_tot[k] += eky[k*INTEL_P3M_ALIGNED_MAXORDER+l];
@@ -2993,9 +2993,9 @@ void PPPMDispIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
-      for (int k=nlower; k<=nupper;k++){
+      for (int k=nlower; k<=nupper;k++) {
         FFT_SCALAR r1 = ZEROF;
-        for(int l=order-1; l>=0; l--){
+        for (int l=order-1; l>=0; l--) {
           r1 = rho_coeff[l][k] + r1*dx;
         }
         rho_lookup[i][k-nlower] = r1;
@@ -3007,9 +3007,9 @@ void PPPMDispIntel::precompute_rho()
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k=nlower; k<=nupper;k++){
+        for (int k=nlower; k<=nupper;k++) {
           FFT_SCALAR r1 = ZEROF;
-          for(int l=order-2; l>=0; l--){
+          for (int l=order-2; l>=0; l--) {
             r1 = drho_coeff[l][k] + r1*dx;
           }
           drho_lookup[i][k-nlower] = r1;
@@ -3027,9 +3027,9 @@ void PPPMDispIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
-      for (int k=nlower_6; k<=nupper_6;k++){
+      for (int k=nlower_6; k<=nupper_6;k++) {
         FFT_SCALAR r1 = ZEROF;
-        for(int l=order_6-1; l>=0; l--){
+        for (int l=order_6-1; l>=0; l--) {
           r1 = rho_coeff_6[l][k] + r1*dx;
         }
         rho6_lookup[i][k-nlower_6] = r1;
@@ -3041,9 +3041,9 @@ void PPPMDispIntel::precompute_rho()
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k=nlower_6; k<=nupper_6;k++){
+        for (int k=nlower_6; k<=nupper_6;k++) {
           FFT_SCALAR r1 = ZEROF;
-          for(int l=order_6-2; l>=0; l--){
+          for (int l=order_6-2; l>=0; l--) {
             r1 = drho_coeff_6[l][k] + r1*dx;
           }
           drho6_lookup[i][k-nlower_6] = r1;

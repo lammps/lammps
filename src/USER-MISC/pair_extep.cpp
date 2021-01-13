@@ -362,7 +362,7 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][0] -= fc_prefac_ik * delr2[0];
         f[k][1] -= fc_prefac_ik * delr2[1];
         f[k][2] -= fc_prefac_ik * delr2[2];
-        if ( itype != ktype ) {
+        if (itype != ktype) {
           fc_prefac_ik = dFc_dNdij * fc_prefac_ik_0;
           f[i][0] += fc_prefac_ik * delr2[0];
           f[i][1] += fc_prefac_ik * delr2[1];
@@ -1094,8 +1094,8 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 void PairExTeP::spline_init() {
   for ( int iel=0; iel<nelements; iel++) {
     for ( int jel=0; jel<nelements; jel++) {
-      for ( int N_ij=0; N_ij<4; N_ij++ ) {
-        for ( int N_ji=0; N_ji<4; N_ji++ ) {
+      for (int N_ij=0; N_ij<4; N_ij++) {
+        for (int N_ji=0; N_ji<4; N_ji++) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1163,7 +1163,7 @@ double PairExTeP::envelop_function(double x, double y, double *func_der) {
   return func_val;
 }
 
-double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN_x, double *dFN_y ) {
+double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN_x, double *dFN_y) {
 
   // compute F_XY
 

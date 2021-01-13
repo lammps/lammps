@@ -320,11 +320,11 @@ double ComputePressureBocs::compute_scalar()
     volume = (domain->xprd * domain->yprd * domain->zprd);
 
     /* MRD NJD if block */
-    if ( p_basis_type == BASIS_ANALYTIC )
+    if (p_basis_type == BASIS_ANALYTIC)
     {
       correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
     }
-    else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+    else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
     {
       correction = get_cg_p_corr(splines, p_basis_type, volume);
     }

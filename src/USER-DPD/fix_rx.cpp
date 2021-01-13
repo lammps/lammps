@@ -1343,7 +1343,7 @@ void FixRX::odeDiagnostics(void)
         averageNumNeighbors /= inum;
      }
 
-     printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
+     //printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
 
      firstStep = false;
      oldTimeStamp = now;

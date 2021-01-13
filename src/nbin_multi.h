@@ -35,10 +35,6 @@ class NBinMulti : public NBin {
   void setup_bins(int);
   void bin_atoms();
   double memory_usage();
-
- private:
-
-  int igroup_min();
 };
 
 }

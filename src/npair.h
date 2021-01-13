@@ -115,7 +115,7 @@ class NPair : protected Pointers {
   int coord2bin(double *);                     // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int coord2bin(double *, int);                // mapping atom coord to type bin
+  int coord2bin(double *, int);                // mapping atom coord to group bin
 
 
   // find_special: determine if atom j is in special list of atom i

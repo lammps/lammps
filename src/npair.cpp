@@ -304,9 +304,9 @@ int NPair::coord2bin(double *x, int ig)
   } else
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ig]) - 1;
 
-  
-  ibin = (iz-mbinzlo_multi[ig])*mbiny_multi[ig]*mbinx_multi[ig]
-       + (iy-mbinylo_multi[ig])*mbinx_multi[ig]
-       + (ix-mbinxlo_multi[ig]);
+  ix -= mbinxlo_multi[ig];
+  iy -= mbinylo_multi[ig];
+  iz -= mbinzlo_multi[ig];
+  ibin = iz*mbiny_multi[ig]*mbinx_multi[ig] + iy*mbinx_multi[ig] + ix;
   return ibin;
 }

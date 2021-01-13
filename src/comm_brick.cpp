@@ -167,54 +167,55 @@ void CommBrick::setup()
     error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
                    "will be generated. Atoms may get lost.");
 
+
+  if (mode == Comm::MULTI) {
+    if (multi_reduce) {
+      // If using multi/reduce, communicate itype particles a distance equal
+      // to the max of itype-jtype group interaction 
+      // only consider smaller jtype groups 
+      int igroup, jgroup;
+      double **cutmultisq = neighbor->cutmultisq;
+      int *map_type_multi = neighbor->map_type_multi;
+      for (i = 1; i <= ntypes; i++) {
+
+        if (cutusermulti) {
+          cutghostmulti[i][0] = cutusermulti[i];
+          cutghostmulti[i][1] = cutusermulti[i];
+          cutghostmulti[i][2] = cutusermulti[i];
+        } else {
+          cutghostmulti[i][0] = 0.0;
+          cutghostmulti[i][1] = 0.0;
+          cutghostmulti[i][2] = 0.0;
+        }
+        
+        igroup = map_type_multi[i];
+        for (j = 1; j <= ntypes; j++){
+          jgroup = map_type_multi[j];
+          
+          if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
+          cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
+          cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
+          cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
+        }
+      }
+    } else {
+      // otherwise, communicate a distance equal to the maximum interaction distance for each type
+      double *cuttype = neighbor->cuttype;
+      for (i = 1; i <= ntypes; i++) {
+        double tmp = 0.0;
+        if (cutusermulti) tmp = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(tmp,cuttype[i]);
+        cutghostmulti[i][1] = MAX(tmp,cuttype[i]);
+        cutghostmulti[i][2] = MAX(tmp,cuttype[i]);
+      }
+    }
+  }
+
   if (triclinic == 0) {
     prd = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
-
-    if (mode == Comm::MULTI) {
-      if (multi_reduce) {
-        // If using multi/reduce, communicate itype particles a distance equal
-        // to the max of itype-jtype group interaction given smaller jtype group 
-        int igroup, jgroup;
-        double **cutmultisq = neighbor->cutmultisq;
-        int *map_type_multi = neighbor->map_type_multi;
-        for (i = 1; i <= ntypes; i++) {
-
-          if (cutusermulti) {
-            cutghostmulti[i][0] = cutusermulti[i];
-            cutghostmulti[i][1] = cutusermulti[i];
-            cutghostmulti[i][2] = cutusermulti[i];
-          } else {
-            cutghostmulti[i][0] = 0.0;
-            cutghostmulti[i][1] = 0.0;
-            cutghostmulti[i][2] = 0.0;
-          }
-          
-          igroup = map_type_multi[i];
-          for (j = 1; j <= ntypes; j++){
-            jgroup = map_type_multi[j];
-            
-            if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
-            cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
-          }
-        }
-      } else {
-        // If using a single binlist, use the max itype-jtype interaction distance for communication
-        double *cuttype = neighbor->cuttype;
-        for (i = 1; i <= ntypes; i++) {
-          cut = 0.0;
-          if (cutusermulti) cut = cutusermulti[i];
-          cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-          cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-          cutghostmulti[i][2] = MAX(cut,cuttype[i]);
-        }
-      }
-    }
-
   } else {
     prd = domain->prd_lamda;
     sublo = domain->sublo_lamda;
@@ -227,46 +228,11 @@ void CommBrick::setup()
     cutghost[1] = cut * length1;
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
-
-    if (mode == Comm::MULTI) {
-      if (multi_reduce) {
-        // If using multi/reduce, communicate itype particles a distance equal
-        // to the max of itype-jtype group interaction given smaller jtype group 
-        int igroup, jgroup;
-        double **cutmultisq = neighbor->cutmultisq;
-        int *map_type_multi = neighbor->map_type_multi;
-        for (i = 1; i <= ntypes; i++) {
-
-          if (cutusermulti) {
-            cutghostmulti[i][0] = cutusermulti[i];
-            cutghostmulti[i][1] = cutusermulti[i];
-            cutghostmulti[i][2] = cutusermulti[i];
-          } else {
-            cutghostmulti[i][0] = 0.0;
-            cutghostmulti[i][1] = 0.0;
-            cutghostmulti[i][2] = 0.0;
-          }
-          
-          igroup = map_type_multi[i];
-          for (j = 1; j <= ntypes; j++){
-            jgroup = map_type_multi[j];
-            
-            if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
-            cutghostmulti[i][0] = length0 * MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][1] = length1 * MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
-            cutghostmulti[i][2] = length2 * MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
-          }
-        }
-      } else {
-        // If using a single binlist, use the max itype-jtype interaction distance for communication
-        double *cuttype = neighbor->cuttype;
-        for (i = 1; i <= ntypes; i++) {
-          cut = 0.0;
-          if (cutusermulti) cut = cutusermulti[i];
-          cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
-          cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
-          cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
-        }
+    if (mode == Comm::MULTI){
+      for (i = 1; i <= ntypes; i++) {
+        cutghostmulti[i][0] *= length0;
+        cutghostmulti[i][1] *= length1;
+        cutghostmulti[i][2] *= length2;
       }
     }
   }

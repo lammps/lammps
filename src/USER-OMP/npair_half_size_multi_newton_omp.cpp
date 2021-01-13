@@ -89,80 +89,46 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
       if(igroup == jgroup) jbin = ibin;
 	  else jbin = coord2bin(x[i], jgroup);
 
+      // if same size: uses half stencil so check central bin
       if(cutmultisq[igroup][igroup] == cutmultisq[jgroup][jgroup]){
-      
-        // if same size: use half stencil
-        if(igroup == jgroup){
-	      
-          // if same group, implement with:
-          // loop over rest of atoms in i's bin, ghosts are at end of linked list
-          //   if j is owned atom, store it, since j is beyond i in linked list
-          //   if j is ghost, only store if j coords are "above and to the right" of i          
-          
-          js = bins[i];
-        
-	      for (j = js; j >= 0; j = bins[j]) {
-	        if (j >= nlocal) {
-	          if (x[j][2] < ztmp) continue;
-	          if (x[j][2] == ztmp) {
-	            if (x[j][1] < ytmp) continue;
-	            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	          }
-	        }
-            
-            jtype = type[j];
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-	        radsum = radi + radius[j];
-	        cutdistsq = (radsum+skin) * (radsum+skin);
+        if(igroup == jgroup) js = bins[i];
+        else js = binhead_multi[jgroup][jbin];
+        
+        // if same group, 
+        //   if j is owned atom, store it, since j is beyond i in linked list
+        //   if j is ghost, only store if j coords are "above and to the right" of i          
+        
+        // if different groups,
+        //   if j is owned atom, store it if j > i
+        //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-	        if (rsq <= cutdistsq) {
-	          if (history && rsq < radsum*radsum) 
-	            neighptr[n++] = j ^ mask_history;
-	          else 
-	            neighptr[n++] = j;
+	    for (j = js; j >= 0; j = bins[j]) {
+          if(igroup != jgroup and j < i) continue;	        
+            
+	      if (j >= nlocal) {
+	        if (x[j][2] < ztmp) continue;
+	        if (x[j][2] == ztmp) {
+	          if (x[j][1] < ytmp) continue;
+	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	        }
 	      }
-        } else {	
-
-          // if different groups, implement with:
-          // loop over all atoms in jgroup bin
-          //   if j is owned atom, store it if j > i
-          //   if j is ghost, only store if j coords are "above and to the right" of i          
+          
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
         
-          js = binhead_multi[jgroup][jbin];
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+	      radsum = radi + radius[j];
+	      cutdistsq = (radsum+skin) * (radsum+skin);
           
-	      for (j = js; j >= 0; j = bins[j]) {
-            if(j < i) continue;	        
-            
-            if (j >= nlocal) {
-	          if (x[j][2] < ztmp) continue;
-	          if (x[j][2] == ztmp) {
-	            if (x[j][1] < ytmp) continue;
-	            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	          }
-	        }
-            
-            jtype = type[j];
-	        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-	        radsum = radi + radius[j];
-	        cutdistsq = (radsum+skin) * (radsum+skin);
-          
-	        if (rsq <= cutdistsq) {
-	          if (history && rsq < radsum*radsum) 
-	            neighptr[n++] = j ^ mask_history;
-	          else 
-	            neighptr[n++] = j;
-	        }
+	      if (rsq <= cutdistsq) {
+	        if (history && rsq < radsum*radsum) 
+	          neighptr[n++] = j ^ mask_history;
+	        else 
+	          neighptr[n++] = j;
 	      }
         }
       }  

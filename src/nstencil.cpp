@@ -55,7 +55,7 @@ using namespace LAMMPS_NS;
      create one stencil for each igroup-jgroup pairing
      the full/half stencil label refers to the same-group stencil
      a half list with newton on has a half same-group stencil
-     a full list or half list with newton of has a full same-group stencil
+     a full list or half list with newton off has a full same-group stencil
      cross group stencils are always full to allow small-to-large lookups
      for orthogonal boxes, a half stencil includes bins to the "upper right" of central bin 
      for triclinic, a half stencil includes bins in the z (3D) or y (2D) plane of self and above
@@ -76,7 +76,7 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   distsq_multi_old = nullptr;
  
   nstencil_multi = nullptr;
-  stencil_multi = nullptr;  
+  stencil_multi = nullptr;
   maxstencil_multi = nullptr;
  
   flag_half_multi = nullptr;
@@ -230,7 +230,7 @@ void NStencil::create_setup()
     int smax = (2*sx+1) * (2*sy+1) * (2*sz+1);
     
     // reallocate stencil structs if necessary
-    // for BIN and MULTI styles
+    // for BIN and MULTI_OLD styles
     
     if (neighstyle == Neighbor::BIN) {
       if (smax > maxstencil) {
@@ -315,9 +315,8 @@ void NStencil::create_setup()
     set_stencil_properties(); 
     
     // Allocate arrays to store stencils
-    
     if (!maxstencil_multi) {
-      memory->create(maxstencil_multi, n, n, "neighstencil::stencil_multi");
+      memory->create(maxstencil_multi, n, n, "neighstencil::maxstencil_multi");
       memory->create(nstencil_multi, n, n, "neighstencil::nstencil_multi");
       stencil_multi = new int**[n]();
       for (i = 0; i < n; ++i) {
@@ -325,6 +324,7 @@ void NStencil::create_setup()
         for (j = 0; j < n; ++j) {
 	      maxstencil_multi[i][j] = 0;
           nstencil_multi[i][j] = 0;
+          stencil_multi[i][j] = nullptr;
         }
       }
     }    
@@ -400,21 +400,21 @@ double NStencil::bin_distance(int i, int j, int k)
    compute closest distance for a given atom grouping
 ------------------------------------------------------------------------- */
 
-double NStencil::bin_distance_multi(int i, int j, int k, int group)
+double NStencil::bin_distance_multi(int i, int j, int k, int ig)
 {
   double delx,dely,delz;
 
-  if (i > 0) delx = (i-1)*binsizex_multi[group];
+  if (i > 0) delx = (i-1)*binsizex_multi[ig];
   else if (i == 0) delx = 0.0;
-  else delx = (i+1)*binsizex_multi[group];
+  else delx = (i+1)*binsizex_multi[ig];
 
-  if (j > 0) dely = (j-1)*binsizey_multi[group];
+  if (j > 0) dely = (j-1)*binsizey_multi[ig];
   else if (j == 0) dely = 0.0;
-  else dely = (j+1)*binsizey_multi[group];
+  else dely = (j+1)*binsizey_multi[ig];
 
-  if (k > 0) delz = (k-1)*binsizez_multi[group];
+  if (k > 0) delz = (k-1)*binsizez_multi[ig];
   else if (k == 0) delz = 0.0;
-  else delz = (k+1)*binsizez_multi[group];
+  else delz = (k+1)*binsizez_multi[ig];
 
   return (delx*delx + dely*dely + delz*delz);
 }
@@ -435,13 +435,8 @@ double NStencil::memory_usage()
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         bytes += maxstencil_multi[i][j] * sizeof(int);
-        bytes += maxstencil_multi[i][j] * sizeof(int);
-        bytes += maxstencil_multi[i][j] * sizeof(double);
       }
     }
-    bytes += 2 * n * n * sizeof(bool);
-    bytes += 6 * n * n * sizeof(int);
-    bytes += 4 * n * n * sizeof(double);
   }
   return bytes;
 }

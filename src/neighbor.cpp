@@ -83,6 +83,11 @@ static const char cite_neigh_multi[] =
   " volume =  179,\n"
   " pages =   {320--329}\n"
   "}\n\n"
+  "@article{Stratford2018,\n"
+  " author = {Stratford, Kevin and Shire, Tom and Hanley, Kevin},\n"
+  " title = {Implementation of multi-level contact detection in LAMMPS},\n"
+  " year = {2018}\n"  
+  "}\n\n"
   "@article{Shire2020,\n"
   " author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},\n"
   " title = {DEM simulations of polydisperse media: efficient contact\n"
@@ -348,7 +353,8 @@ void Neighbor::init()
   // multi cutoffs
   if(style == Neighbor::MULTI){
     int igroup, jgroup;
-    // If not defined, create default mapping
+    
+    // If not defined from custom grouping, create default map
     if(not map_type_multi) {
       n_multi_groups = n;
       memory->create(map_type_multi,n+1,"neigh:map_type_multi");  
@@ -1678,12 +1684,11 @@ int Neighbor::choose_bin(NeighRequest *rq)
     if (!rq->kokkos_device != !(mask & NB_KOKKOS_DEVICE)) continue;
     if (!rq->kokkos_host != !(mask & NB_KOKKOS_HOST)) continue;
 
-    // neighbor style is BIN or MULTI or MULTI_OLD and must match
-
-    if (style == Neighbor::BIN || style == Neighbor::MULTI_OLD) {
-      if (!(mask & NB_STANDARD)) continue;
-    } else if (style == Neighbor::MULTI) {
+    // multi neighbor style require multi bin style
+    if (style == Neighbor::MULTI) {
       if (!(mask & NB_MULTI)) continue;
+    } else {
+      if (!(mask & NB_STANDARD)) continue;
     }
 
     return i+1;
@@ -1719,7 +1724,6 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 2) newtflag = 0;
 
   // request a full stencil if building full neighbor list or newton is off
-
   int fullflag = 0;
   if (rq->full) fullflag = 1;
   if (!newtflag) fullflag = 1;
@@ -1972,7 +1976,6 @@ NPair *Neighbor::pair_creator(LAMMPS *lmp)
 /* ----------------------------------------------------------------------
    setup neighbor binning and neighbor stencils
    called before run and every reneighbor if box size/shape changes
-   initialize default settings for multi before run   
    only operates on perpetual lists
    build_one() operates on occasional lists
 ------------------------------------------------------------------------- */
@@ -2458,7 +2461,7 @@ void Neighbor::modify_params(int narg, char **arg)
         n_multi_groups += 1;
       }   
 
-      // Create seprate group for each undefined atom type 
+      // Create separate group for each undefined atom type 
       for(i = 1; i <= ntypes; i++){
         if(map_type_multi[i] == -1){
           map_type_multi[i] = n_multi_groups;

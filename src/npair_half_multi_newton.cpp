@@ -88,96 +88,55 @@ void NPairHalfMultiNewton::build(NeighList *list)
       if(igroup == jgroup) jbin = ibin;
 	  else jbin = coord2bin(x[i], jgroup);
 
+      // if same size: uses half stencil so check central bin
       if(cutmultisq[igroup][igroup] == cutmultisq[jgroup][jgroup]){
       
-        // if same size: use half stencil
-        if(igroup == jgroup){
-	      
-          // if same group, implement with:
-          // loop over rest of atoms in i's bin, ghosts are at end of linked list
-          //   if j is owned atom, store it, since j is beyond i in linked list
-          //   if j is ghost, only store if j coords are "above and to the right" of i          
-          
-          js = bins[i];
+        if(igroup == jgroup) js = bins[i];
+        else js = binhead_multi[jgroup][jbin];
         
-	      for (j = js; j >= 0; j = bins[j]) {
-	        if (j >= nlocal) {
-	          if (x[j][2] < ztmp) continue;
-	          if (x[j][2] == ztmp) {
-	            if (x[j][1] < ytmp) continue;
-	            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	          }
-	        }
-            
-            jtype = type[j];
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-            
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	    	    if (!moltemplate)
-	    	      which = find_special(special[i],nspecial[i],tag[j]);
-	    	    else if (imol >= 0)
-	    	      which = find_special(onemols[imol]->special[iatom],
-	    			       onemols[imol]->nspecial[iatom],
-	    			       tag[j]-tagprev);
-	    	    else which = 0;
-	    	    if (which == 0) neighptr[n++] = j;
-	    	    else if (domain->minimum_image_check(delx,dely,delz))
-	    	      neighptr[n++] = j;
-	    	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
-	        }
-	      }  
-        } else {	
-
-          // if different groups, implement with:
-          // loop over all atoms in jgroup bin
-          //   if j is owned atom, store it if j > i
-          //   if j is ghost, only store if j coords are "above and to the right" of i          
+        // if same group, 
+        //   if j is owned atom, store it, since j is beyond i in linked list
+        //   if j is ghost, only store if j coords are "above and to the right" of i          
         
-          js = binhead_multi[jgroup][jbin];
+        // if different groups,
+        //   if j is owned atom, store it if j > i
+        //   if j is ghost, only store if j coords are "above and to the right" of i          
           
-	      for (j = js; j >= 0; j = bins[j]) {
-            if(j < i) continue;	        
+	    for (j = js; j >= 0; j = bins[j]) {
+          if(igroup != jgroup and j < i) continue;	        
             
-            if (j >= nlocal) {
-	          if (x[j][2] < ztmp) continue;
-	          if (x[j][2] == ztmp) {
-	            if (x[j][1] < ytmp) continue;
-	            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	          }
+	      if (j >= nlocal) {
+	        if (x[j][2] < ztmp) continue;
+	        if (x[j][2] == ztmp) {
+	          if (x[j][1] < ytmp) continue;
+	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	        }
-            
-            jtype = type[j];
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	      }
           
-	        delx = xtmp - x[j][0];
-	        dely = ytmp - x[j][1];
-	        delz = ztmp - x[j][2];
-	        rsq = delx*delx + dely*dely + delz*delz;
-            
-	        if (rsq <= cutneighsq[itype][jtype]) {
-	          if (molecular) {
-	  	      if (!moltemplate)
-	  	        which = find_special(special[i],nspecial[i],tag[j]);
-	  	      else if (imol >= 0)
-	  	        which = find_special(onemols[imol]->special[iatom],
-	  	  		       onemols[imol]->nspecial[iatom],
-	  	  		       tag[j]-tagprev);
-	  	      else which = 0;
-	  	      if (which == 0) neighptr[n++] = j;
-	  	      else if (domain->minimum_image_check(delx,dely,delz))
-	  	        neighptr[n++] = j;
-	  	      else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	          } else neighptr[n++] = j;
-	        }
-	      } 
-        }          
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+	      delx = xtmp - x[j][0];
+	      dely = ytmp - x[j][1];
+	      delz = ztmp - x[j][2];
+	      rsq = delx*delx + dely*dely + delz*delz;
+          
+	      if (rsq <= cutneighsq[itype][jtype]) {
+	        if (molecular) {
+	          if (!moltemplate)
+	            which = find_special(special[i],nspecial[i],tag[j]);
+	          else if (imol >= 0)
+	            which = find_special(onemols[imol]->special[iatom],
+	    		       onemols[imol]->nspecial[iatom],
+	    		       tag[j]-tagprev);
+	          else which = 0;
+	          if (which == 0) neighptr[n++] = j;
+	          else if (domain->minimum_image_check(delx,dely,delz))
+	            neighptr[n++] = j;
+	          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+	        } else neighptr[n++] = j;
+	      }
+	    }  
       }
        
       // for all groups, loop over all atoms in other bins in stencil, store every pair 

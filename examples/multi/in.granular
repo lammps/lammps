@@ -1,4 +1,4 @@
-# Big colloid particles and small LJ particles
+# Bidisperse set of grains
 
 units		lj
 atom_style	sphere

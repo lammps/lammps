@@ -77,7 +77,6 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       if(igroup == jgroup) jbin = ibin;
 	  else jbin = coord2bin(x[i], jgroup);
 
-
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
       // stencil is half if i same size as j

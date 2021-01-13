@@ -242,7 +242,6 @@ void Comm::init()
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
-  // Can't used multi/reduce communication with Newton off or full neighbor lits
   if(multi_reduce){
     if (force->newton == 0)
       error->all(FLERR,"Cannot use multi/reduce communication with Newton off");

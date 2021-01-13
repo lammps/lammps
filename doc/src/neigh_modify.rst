@@ -47,9 +47,9 @@ Syntax
          N = max number of neighbors of one atom
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
-       *multi/custom* values = N types
+       *multi/custom* values = N arg1 ... argN
          N = number of custom groups
-         types = N separate types or groups of types (see below)
+         arg = N separate types or ranges of types (see below)
 
 Examples
 """"""""
@@ -208,12 +208,12 @@ overhead. You must first specify the number of custom groups N to be
 defined followed by N ranges of types. The range can be specified as a 
 single numeric value, or a wildcard asterisk can be used to specify a range
 of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, if N = the number of atom types, then an asterisk with no numeric 
-values means all types from 1 to N.  A leading asterisk means all types 
-from 1 to n (inclusive).  A trailing asterisk means all types from n to N 
+example, if M = the number of atom types, then an asterisk with no numeric 
+values means all types from 1 to M.  A leading asterisk means all types 
+from 1 to n (inclusive).  A trailing asterisk means all types from n to M 
 (inclusive).  A middle asterisk means all types from m to n (inclusive). 
 Note that any atom types not included in a custom group will be automatically
-placed within a new, separate group.
+placed within a separate group.
 
 Restrictions
 """"""""""""

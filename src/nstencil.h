@@ -30,7 +30,7 @@ class NStencil : protected Pointers {
   int *nstencil_multi_old;         // # bins in each type-based old multi stencil
   int **stencil_multi_old;         // list of bin offsets in each stencil
   double **distsq_multi_old;       // sq distances to bins in each stencil
-  int ** nstencil_multi;           // # bins bins in each itype-jtype multi stencil
+  int ** nstencil_multi;           // # bins bins in each igroup-jgroup multi stencil
   int *** stencil_multi;           // list of bin offsets in each multi stencil
   int ** maxstencil_multi;         // max stencil size for each multi stencil
   
@@ -42,8 +42,8 @@ class NStencil : protected Pointers {
   double cutoff_custom;            // cutoff set by requestor  
   
   // Arrays to store options for multi itype-jtype stencils
-  bool **flag_half_multi;          // flag creation of a half stencil for itype-jtype
-  bool **flag_skip_multi;          // skip creation of itype-jtype stencils (for newton on)  
+  bool **flag_half_multi;          // flag creation of a half stencil for igroup-jgroup
+  bool **flag_skip_multi;          // skip creation of igroup-jgroup stencils (for newton on)  
   int **bin_group_multi;           // what group to use for bin information
 
   NStencil(class LAMMPS *);

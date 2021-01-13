@@ -175,10 +175,10 @@ void CommTiled::setup()
   // check that cutoff < any periodic box length
 
   if (mode == Comm::MULTI) {
-    double cut;
     if (multi_reduce) {
       // If using multi/reduce, communicate itype particles a distance equal
-      // to the max of itype-jtype group interaction given smaller jtype group 
+      // to the max of itype-jtype group interaction 
+      // only consider smaller jtype groups 
       int igroup, jgroup;
       double **cutmultisq = neighbor->cutmultisq;
       int *map_type_multi = neighbor->map_type_multi;
@@ -205,14 +205,14 @@ void CommTiled::setup()
         }
       }
     } else {
-      // If using a single binlist, use the max itype-jtype interaction distance for communication
+      // otherwise, communicate a distance equal to the maximum interaction distance for each type
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+        double tmp = 0.0;
+        if (cutusermulti) tmp = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(tmp,cuttype[i]);
+        cutghostmulti[i][1] = MAX(tmp,cuttype[i]);
+        cutghostmulti[i][2] = MAX(tmp,cuttype[i]);
       }
     }
   }

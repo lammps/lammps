@@ -11,7 +11,7 @@ Syntax
    comm_modify keyword value ...
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mode* or *cutoff* or *cutoff/multi* or *cutoff/bytype* or *group* or *vel*
+* keyword = *mode* or *cutoff* or *cutoff/multi* or *multi/reduce* or *group* or *vel*
 
   .. parsed-literal::
 
@@ -20,7 +20,7 @@ Syntax
        *cutoff/multi* type value
           type = atom type or type range (supports asterisk notation)
           value = Rcut (distance units) = communicate atoms for selected types from this far away
-       *cutoff/byptype* arg = none = communicate atoms for each type by a distance equal to the largest interaction distance for that type
+       *multi/reduce* arg = none = reduce number of communicated ghost atoms for multi style
        *group* value = group-ID = only communicate atoms in the group
        *vel* value = *yes* or *no* = do or do not communicate velocity info with ghost atoms
 
@@ -96,10 +96,10 @@ using the usual asterisk notation can be given. For granular pair styles,
 the default cutoff is set to the sum of the current maximum atomic radii
 for each type.
 
-The *multi/reduce* option applies to *multi* and automatically sets communication 
+The *multi/reduce* option applies to *multi* and sets communication 
 cutoffs for different sized particles based on the largest interaction distance 
 between two particles in the same multi grouping. This reduces the number of
-ghost that need to be communicated This method is only compatible with the 
+ghost atoms that need to be communicated. This method is only compatible with the 
 *multi* neighbor style and requires only half neighbor lists and Newton on. 
 See the :doc:`neighbor multi <neighbor>` command for more information.
 

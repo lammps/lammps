@@ -59,41 +59,41 @@ void NBinMulti::bin_atoms_setup(int nall)
   }
 }
 
-/* ---------------------------------------------------------------------
-   Identify index of group with smallest cutoff
------------------------------------------------------------------------- */
-
-int NBinMulti::igroup_min() 
-{
-  int imin = 0;
-  for (int n = 0; n < maxgroups; n++)
-    if (cutmultisq[n][n] < cutmultisq[imin][imin])  imin = n;
-
-  return imin;
-}
-
 /* ----------------------------------------------------------------------
    setup neighbor binning geometry
-   ---------------------------------------------------------------------- */
+   bin numbering in each dimension is global:
+     0 = 0.0 to binsize, 1 = binsize to 2*binsize, etc
+     nbin-1,nbin,etc = bbox-binsize to bbox, bbox to bbox+binsize, etc
+     -1,-2,etc = -binsize to 0.0, -2*binsize to -binsize, etc
+   code will work for any binsize
+     since next(xyz) and stencil extend as far as necessary
+     binsize = 1/2 of cutoff is roughly optimal
+   for orthogonal boxes:
+     a dim must be filled exactly by integer # of bins
+     in periodic, procs on both sides of PBC must see same bin boundary
+     in non-periodic, coord2bin() still assumes this by use of nbin xyz
+   for triclinic boxes:
+     tilted simulation box cannot contain integer # of bins
+     stencil & neigh list built differently to account for this
+   mbinlo_multi = lowest global bin any of my ghost atoms could fall into for each grouping
+   mbinhi_multi = highest global bin any of my ghost atoms could fall into for each grouping
+   mbin_multi = number of bins I need in a dimension for each grouping
+------------------------------------------------------------------------- */
 
 void NBinMulti::setup_bins(int style)
 {
   int n;
-  int igroupmin;
 
   // Initialize arrays
-  
   if (n_multi_groups > maxgroups) {
 
-    // Clear any/all memory for existing types
-
+    // Clear any/all memory for existing groupings
     for (n = 0; n < maxgroups; n++)
       memory->destroy(binhead_multi[n]);
     
     delete [] binhead_multi;
 
-    // Realloacte at updated maxtypes
-
+    // Realloacte at updated maxgroups
     maxgroups = n_multi_groups;
 
     binhead_multi = new int*[maxgroups]();
@@ -138,14 +138,18 @@ void NBinMulti::setup_bins(int style)
     memory->destroy(maxbins_multi);
     memory->create(maxbins_multi, maxgroups, "neigh:maxbins_multi");
     
-    // make sure reallocation occurs in bin_atoms_setup()
+    // ensure reallocation occurs in bin_atoms_setup()
     for (n = 0; n < maxgroups; n++) {
       maxbins_multi[n] = 0;
     }
     maxatom = 0;
   }
 
-  igroupmin = igroup_min();
+  // Identify smallest group
+  int igroupmin = 0;
+  for (n = 0; n < maxgroups; n++)
+    if (cutmultisq[n][n] < cutmultisq[igroupmin][igroupmin]) 
+      igroupmin = n;
 
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by comm->cutghost
@@ -182,16 +186,18 @@ void NBinMulti::setup_bins(int style)
 
   // For each grouping...
 
+  double binsize_optimal, binsizeinv, coord;
+  int mbinxhi,mbinyhi,mbinzhi;
+
   for (n = 0; n < maxgroups; n++) {
-    // binsize_user only relates to smallest type
-    // optimal bin size is roughly 1/2 the type-type cutoff
+    // binsize_user only relates to smallest group
+    // optimal bin size is roughly 1/2 the group-group cutoff
     // special case of all cutoffs = 0.0, binsize = box size
 
-    double binsize_optimal;
     if (n == igroupmin && binsizeflag) binsize_optimal = binsize_user;
     else binsize_optimal = 0.5*sqrt(cutmultisq[n][n]);
     if (binsize_optimal == 0.0) binsize_optimal = bbox[0];
-    double binsizeinv = 1.0/binsize_optimal;
+    binsizeinv = 1.0/binsize_optimal;
 
     // test for too many global bins in any dimension due to huge global domain
 
@@ -216,7 +222,7 @@ void NBinMulti::setup_bins(int style)
     // error if actual bin size << cutoff, since will create a zillion bins
     // this happens when nbin = 1 and box size << cutoff
     // typically due to non-periodic, flat system in a particular dim
-    // in that extreme case, should use NSQ not BIN neighbor style
+    // in that extreme case, cannot use multi, should use NSQ not BIN neighbor style
 
     binsizex_multi[n] = bbox[0]/nbinx_multi[n];
     binsizey_multi[n] = bbox[1]/nbiny_multi[n];
@@ -235,9 +241,6 @@ void NBinMulti::setup_bins(int style)
     // coord = lowest and highest values of coords for my ghost atoms
     // static_cast(-1.5) = -1, so subract additional -1
     // add in SMALL for round-off safety
-
-    int mbinxhi,mbinyhi,mbinzhi;
-    double coord;
 
     coord = bsubboxlo[0] - SMALL*bbox[0];
     mbinxlo_multi[n] = static_cast<int> ((coord-bboxlo[0])*bininvx_multi[n]);
@@ -340,10 +343,8 @@ void NBinMulti::bin_atoms()
 double NBinMulti::memory_usage()
 {
   double bytes = 0;
-  
-  for (int m = 0; m < maxgroups; m++) {
+  for (int m = 0; m < maxgroups; m++)
     bytes += maxbins_multi[m]*sizeof(int);
-    bytes += 2*maxatom*sizeof(int);
-  }
+  bytes += 2*maxatom*sizeof(int);  
   return bytes;
 }

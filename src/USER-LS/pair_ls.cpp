@@ -256,6 +256,9 @@ void PairLS::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  map = new int[n+1];
+  for (int i = 1; i <= n; i++) map[i] = -1;
+
   memory->create(shag_sp_fi,mi,mi,"PairLS:shag_sp_fi");
   memory->create(shag_sp_ro,mi,mi,"PairLS:shag_sp_ro");
   memory->create(shag_sp_emb,mi,"PairLS:shag_sp_emb");
@@ -361,7 +364,12 @@ void PairLS::coeff(int narg, char **arg)
   std::cout << "!!!!! PairLS debug mode !!!!! " << " Number of atomtypes is " << n_sort << std::endl;
 
   // spelling that the number of arguments (files with potentials) is correspond to the number of atom types in the system
-  if (narg != n_pot) error->all(FLERR,"Incorrect number of args for pair coefficients");
+  if (narg != 2 + n_pot) error->all(FLERR,"Incorrect number of args for pair coefficients");
+
+  // insure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // Start reading monoatomic potentials
 
@@ -373,13 +381,59 @@ void PairLS::coeff(int narg, char **arg)
   // enddo
   std::cout << "!!!!! PairLS debug mode !!!!! " << " Number of potentials is " << n_pot << std::endl;
 
+  // setting length and energy conversion factors
+  double lcf = 1.0; // default length conversion factor
+  double ecf = 1.0; // default energy conversion factor
+  if (lmp->update->unit_style == "metal")
+  {
+    std::cout << "\m/ Unit style is " << lmp->update->unit_style << std::endl;
+    lcf = 1.0;
+    ecf = 1.0;
+  }
+  else if (lmp->update->unit_style == "si")
+  {
+    std::cout << "Unit style is " << lmp->update->unit_style << std::endl;
+    lcf = 10000000000.0;
+    ecf = 96000.0;
+  }
+  else if (lmp->update->unit_style == "cgs")
+  {
+    std::cout << "Unit style is " << lmp->update->unit_style << std::endl;
+    lcf = 100000000.0;
+    ecf = 0.0000000000016;
+  }
+  else if (lmp->update->unit_style == "electron")
+  {
+    std::cout << "Unit style is " << lmp->update->unit_style << std::endl;
+    lcf = 1.88973;
+    ecf = 0.0367493;
+  }    
+  // else if (lmp->update->unit_style == "micro")
+  // {
+  //   std::cout << "Unit style is micro" << std::endl;
+  //   lcf = 0.0001;
+  //   ecf = 0.0367493;
+  // }    
+  // else if (lmp->update->unit_style == "nano")
+  // {
+  //   std::cout << "Unit style is nano" << std::endl;
+  //   lcf = 0.1;
+  //   ecf = 0.0367493;
+  // }     
+  else
+  {
+    // lmp->error->one(FLERR, fmt::format("{} unit style is not supported by this type of potential ", lmp->update->unit_style));
+    error->all(FLERR, fmt::format("{} unit style is not supported by this type of potential ", lmp->update->unit_style));
+  }
+
+
   for (i = 1; i <= (n_sort); i++)
     {
       std::cout << "!!!!! PairLS debug mode !!!!! " << " Start reading potential for atom " << i << std::endl;
       // name_32 = arg[i];
       // r_pot_ls_is(name_32, i);
       std::cout << "!!!!! PairLS debug mode !!!!! " << " The arg with potential name is " << arg[i-1] << std::endl;
-      r_pot_ls_is(arg[i-1], i);
+      r_pot_ls_is(arg[i+1], i, lcf, ecf);
       std::cout << "!!!!! PairLS debug mode !!!!! " << " End reading potential for atom " << i << std::endl;
       par2pot_is(i);
       std::cout << "!!!!! PairLS debug mode !!!!! " << " End parametrizing potential for atom " << i << std::endl;
@@ -444,7 +498,7 @@ void PairLS::coeff(int narg, char **arg)
           // r_pot_ls_is1_is2(name_32, i, j);
           std::cout << "!!!!! PairLS debug mode !!!!! " << " Start reading cross potential for atoms " << i << " and " << j << std::endl;
           std::cout << "!!!!! PairLS debug mode !!!!! " << " The arg with potential name is " << arg[ij-1] << std::endl;
-          r_pot_ls_is1_is2(arg[ij-1], i, j);
+          r_pot_ls_is1_is2(arg[ij+1], i, j, lcf, ecf);
           std::cout << "!!!!! PairLS debug mode !!!!! " << " End reading cross potential for atoms " << i << " and " << j << std::endl;
           par2pot_is1_is2(i,j);
           std::cout << "!!!!! PairLS debug mode !!!!! " << " End parametrizing cross potential for atoms " << i << " and " << j << std::endl;
@@ -457,7 +511,39 @@ void PairLS::coeff(int narg, char **arg)
     }
 
 
+  // for (int i = 4 + nelements; i < narg; i++) {
+  //   m = i - (4+nelements) + 1;
+  //   int j;
+  //   for (j = 0; j < nelements; j++)
+  //     if (strcmp(arg[i],elements[j]) == 0) break;
+  //   if (j < nelements) map[m] = j;
+  //   else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
+  //   else error->all(FLERR,"Incorrect args for pair coefficients");
+  // }
 
+  // // clear setflag since coeff() called once with I,J = * *
+
+  // n = atom->ntypes;
+  // for (int i = 1; i <= n; i++)
+  //   for (int j = i; j <= n; j++)
+  //     setflag[i][j] = 0;
+
+  // // set setflag i,j for type pairs where both are mapped to elements
+  // // set mass for i,i in atom class
+
+  // int count = 0;
+  // for (int i = 1; i <= n; i++) {
+  //   for (int j = i; j <= n; j++) {
+  //     if (map[i] >= 0 && map[j] >= 0) {
+  //       setflag[i][j] = 1;
+  //       if (i == j) atom->set_mass(FLERR,i,mass[map[i]]);
+  //       count++;
+  //     }
+  //     scale[i][j] = 1.0;
+  //   }
+  // }
+
+  // if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
 
 
@@ -480,7 +566,46 @@ void PairLS::init_style()
 
   neighbor->request(this,instance_me);
   // embedstep = -1;
+
+// void PairMEAMC::init_style()
+// {
+//   if (force->newton_pair == 0)
+//     error->all(FLERR,"Pair style MEAM requires newton pair on");
+
+//   // need full and half neighbor list
+
+//   int irequest_full = neighbor->request(this,instance_me);
+//   neighbor->requests[irequest_full]->id = 1;
+//   neighbor->requests[irequest_full]->half = 0;
+//   neighbor->requests[irequest_full]->full = 1;
+//   int irequest_half = neighbor->request(this,instance_me);
+//   neighbor->requests[irequest_half]->id = 2;
+
+// void PairTersoff::init_style()
+// {
+//   if (atom->tag_enable == 0)
+//     error->all(FLERR,"Pair style Tersoff requires atom IDs");
+//   if (force->newton_pair == 0)
+//     error->all(FLERR,"Pair style Tersoff requires newton pair on");
+
+//   // need a full neighbor list
+
+//   int irequest = neighbor->request(this,instance_me);
+//   neighbor->requests[irequest]->half = 0;
+//   neighbor->requests[irequest]->full = 1;
 }
+
+/* ----------------------------------------------------------------------
+   neighbor callback to inform pair style of neighbor list to use
+   half or full
+------------------------------------------------------------------------- */
+
+void PairLS::init_list(int id, NeighList *ptr)
+{
+  if (id == 1) listfull = ptr;
+  else if (id == 2) listhalf = ptr;
+}
+
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
@@ -511,21 +636,14 @@ double PairLS::init_one(int i, int j)
 
 // Specific functions for this pair style
 
-void PairLS::r_pot_ls_is(char *name_32, int is)
+void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
 {
-  // FILE *potfile;
 
-  // potfile = fopen(name_32, "r")
-
-  // char info_pot;
-  // getline(potfile, info_pot);
-  // getline(potfile, if_g3_pot);
-  // getline(potfile, if_g4_pot);
   std::cout << "!!!!! PairLS debug mode !!!!! " << " I am in a void PairLS::r_pot_ls_is" << std::endl;
   std::cout << "!!!!! PairLS debug mode !!!!! " << " name_32 is " << name_32 << std::endl;
 
-  if(comm->me == 0) {
-  //  {
+  if(comm->me == 0) 
+  {
     std::cout << "!!!!! PairLS debug mode !!!!! " << " if(comm->me == 0) condition is valid " << std::endl;
     PotentialFileReader reader(lmp, name_32, "ls");
     std::cout << "!!!!! PairLS debug mode !!!!! " << " PotentialFileReader instance is created" << std::endl;
@@ -562,8 +680,8 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       for (int n = 0; n < n_sp_fi[is][is]; n++)
       {
         ValueTokenizer sp_fi_values = reader.next_values(2);
-        R_sp_fi[n][is][is] = sp_fi_values.next_double();
-        a_sp_fi[n][is][is] = sp_fi_values.next_double();
+        R_sp_fi[n][is][is] = lcf*sp_fi_values.next_double();
+        a_sp_fi[n][is][is] = ecf*sp_fi_values.next_double();
         std::cout << " R_sp_fi[" << n << "][" << is << "][" << is << "] = " << R_sp_fi[n][is][is] << "   ";
         std::cout << " a_sp_fi[" << n << "][" << is << "][" << is << "] = " << a_sp_fi[n][is][is] << std::endl;
       }
@@ -575,9 +693,9 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
 
       fip_rmin[is][is] = reader.next_double();
       std::cout << " fip_rmin[" << is << "][" << is << "] = " << fip_rmin[is][is] << std::endl;
-      Rmin_fi_ZBL[is][is] = reader.next_double();
+      Rmin_fi_ZBL[is][is] = lcf*reader.next_double();
       std::cout << " Rmin_fi_ZBL[" << is << "][" << is << "] = " << Rmin_fi_ZBL[is][is] << std::endl;
-      e0_ZBL[is][is] = reader.next_double();
+      e0_ZBL[is][is] = ecf*reader.next_double();
       std::cout << " e0_ZBL[" << is << "][" << is << "] = " << e0_ZBL[is][is] << std::endl;
 
 
@@ -592,8 +710,8 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       for (int n = 0; n < n_sp_ro[is][is]; n++)
       {
         ValueTokenizer sp_ro_values = reader.next_values(2);
-        R_sp_ro[n][is][is] = sp_ro_values.next_double();
-        a_sp_ro[n][is][is] = sp_ro_values.next_double();
+        R_sp_ro[n][is][is] = lcf*sp_ro_values.next_double();
+        a_sp_ro[n][is][is] = ecf*sp_ro_values.next_double();
         std::cout << " R_sp_ro[" << n << "][" << is << "][" << is << "] = " << R_sp_ro[n][is][is] << "   ";
         std::cout << " a_sp_ro[" << n << "][" << is << "][" << is << "] = " << a_sp_ro[n][is][is] << std::endl;
       }    
@@ -609,8 +727,8 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       for (int n = 0; n < n_sp_emb[is][is]; n++)
       {
         ValueTokenizer sp_emb_values = reader.next_values(2);
-        R_sp_emb[n][is] = sp_emb_values.next_double();
-        a_sp_emb[n][is] = sp_emb_values.next_double();
+        R_sp_emb[n][is] = lcf*sp_emb_values.next_double();
+        a_sp_emb[n][is] = ecf*sp_emb_values.next_double();
         std::cout << " R_sp_emb[" << n << "][" << is << "] = " << R_sp_emb[n][is] << "   ";
         std::cout << " a_sp_emb[" << n << "][" << is << "] = " << a_sp_emb[n][is] << std::endl;
       }         
@@ -629,11 +747,11 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       for (int n = 0; n < n_sp_f[is][is]; n++)
       {
         ValueTokenizer sp_f_values = reader.next_values(n_f3[is]+1);
-        R_sp_f[n][is][is] = sp_f_values.next_double();
+        R_sp_f[n][is][is] = lcf*sp_f_values.next_double();
         std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[n][is][is] << "   ";
         for (int n1 = 0; n1 < n_f3[is]; n1++)
         {
-          a_sp_f3[n][n1][is][is] = sp_f_values.next_double();
+          a_sp_f3[n][n1][is][is] = ecf*sp_f_values.next_double();
           std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[n][n1][is][is] << "  ";
         }
         std::cout << std::endl;
@@ -654,7 +772,7 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       values = reader.next_values(n_sp_g[is][is]);
       for (int n = 0; n < n_sp_g[is][is]; n++)
       {
-        R_sp_g[n] = values.next_double();  // R_sp_g actually are the values of cos(ijk) from -1 (180 grad) to 1 (0 grad)
+        R_sp_g[n] = lcf*values.next_double();  // R_sp_g actually are the values of cos(ijk) from -1 (180 grad) to 1 (0 grad)
         std::cout << " R_sp_g[" << n << "] = " << R_sp_g[n]<< "   ";
       }
       std::cout << std::endl;
@@ -666,7 +784,7 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
           ValueTokenizer sp_g_values = reader.next_values(n_sp_g[is][is]);
           for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
           {
-            a_sp_g3[n2][n][n1][is] = sp_g_values.next_double();
+            a_sp_g3[n2][n][n1][is] = ecf*sp_g_values.next_double();
             std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[n2][n][n1][is] << "  ";
           }
           std::cout << std::endl;
@@ -686,14 +804,14 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
       std::cout << " z_ion[" << is << "] = " << z_ion[is]<< std::endl;
       for (int n = 0; n < 4; n++)
       {
-        c_ZBL[n] = reader.next_double();
+        c_ZBL[n] = ecf*reader.next_double();
         std::cout << " c_ZBL[" << n << "] = " << c_ZBL[n]<< std::endl;
       }
 
       for (int n = 0; n < 4; n++)
       {
         // d_ZBL[n][is][is] = reader.next_double();
-        d_ZBL[n] = reader.next_double();
+        d_ZBL[n] = ecf*reader.next_double();
         // std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[n][is][is]<< std::endl;
         std::cout << " d_ZBL[" << n <<  "] = " << d_ZBL[n]<< std::endl;
       }
@@ -701,12 +819,96 @@ void PairLS::r_pot_ls_is(char *name_32, int is)
     catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
+
   }
+ 
+  // broadcasting potential information to other procs
+  // MPI_Bcast(&n_sp_fi[is][is], 1, MPI_INT, 0, world);
+  // for (int n = 0; n < n_sp_fi[is][is]; n++)
+  // MPI_Bcast(R_sp_fi[is][is], n_sp_fi[is][is], MPI_DOUBLE, 0, world);
+  // MPI_Bcast(a_sp_fi[is][is], n_sp_fi[is][is], MPI_DOUBLE, 0, world);
+
+  // MPI_Bcast(&fip_rmin[is][is], 1, MPI_DOUBLE, 0, world);
+  // MPI_Bcast(&Rmin_fi_ZBL[is][is], 1, MPI_DOUBLE, 0, world);
+  // MPI_Bcast(&e0_ZBL[is][is], 1, MPI_DOUBLE, 0, world);
+
+  // MPI_Bcast(&n_sp_ro[is][is], 1, MPI_INT, 0, world);
+  // MPI_Bcast(R_sp_ro[is][is], n_sp_ro[is][is], MPI_DOUBLE, 0, world);
+  // MPI_Bcast(a_sp_ro[is][is], n_sp_ro[is][is], MPI_DOUBLE, 0, world);
+
+  // MPI_Bcast(&n_emb[is][is], 1, MPI_INT, 0, world);
+  // MPI_Bcast(R_sp_emb[is][is], n_emb[is][is], MPI_DOUBLE, 0, world);
+  // MPI_Bcast(a_sp_emb[is][is], n_emb[is][is], MPI_DOUBLE, 0, world);  
+
+  // MPI_Bcast(&n_sp_f[is][is], 1, MPI_INT, 0, world);
+  // MPI_Bcast(&n_f3[is], 1, MPI_INT, 0, world);
+  // MPI_Bcast(R_sp_f[is][is], n_sp_f[is][is], MPI_DOUBLE, 0, world);
+  // for (int n1 = 0; n1 < n_f3[is]; n1++)
+  // {
+  //   MPI_Bcast(a_sp_f3[n1][is][is], n_sp_f[is][is], MPI_DOUBLE, 0, world);
+  // }  
+  // End broadcasting potential information to other procs
+  
+  // Start broadcasting unary potential information to other procs using cycles
+  MPI_Bcast(&n_sp_fi[is][is], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_fi[is][is]; n++)
+  {
+    MPI_Bcast(&R_sp_fi[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[n][is][is], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&fip_rmin[is][is], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&Rmin_fi_ZBL[is][is], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&e0_ZBL[is][is], 1, MPI_DOUBLE, 0, world);
+
+  MPI_Bcast(&n_sp_ro[is][is], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_ro[is][is]; n++)
+  {
+    MPI_Bcast(&R_sp_ro[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[n][is][is], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&n_emb[is][is], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_emb[is][is]; n++)
+  {  
+    MPI_Bcast(&R_sp_emb[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_emb[n][is][is], 1, MPI_DOUBLE, 0, world);  
+  }
+
+  MPI_Bcast(&n_sp_f[is][is], 1, MPI_INT, 0, world);
+  MPI_Bcast(&n_f3[is], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_f[is][is]; n++)
+  {
+    MPI_Bcast(R_sp_f[n][is][is], 1, MPI_DOUBLE, 0, world);
+    for (int n1 = 0; n1 < n_f3[is]; n1++)
+    {
+      MPI_Bcast(a_sp_f3[n][n1][is][is], 1, MPI_DOUBLE, 0, world);
+    }    
+  }
+
+  MPI_Bcast(&n_sp_g[is][is], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_g[is][is]; n++)
+  {
+    MPI_Bcast(R_sp_g[n], 1, MPI_DOUBLE, 0, world);
+  }
+
+  for (int n = 0; n < n_f3[is]; n++)
+  {
+    for (int n1 = 0; n1 <= n; n1++)
+    {
+      for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
+      {
+        MPI_Bcast(a_sp_g3[n2][n][n1][is], 1, MPI_DOUBLE, 0, world);
+      }
+    }
+  }  
+  // End broadcasting unary potential information to other procs using cycles
+
 }
 
 
 
-void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
+void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, double ecf)
 {
   // FILE *potfile;
 
@@ -719,8 +921,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
   std::cout << "!!!!! PairLS debug mode !!!!! " << " I am in a void PairLS::r_pot_ls_is1_is2" << std::endl;
   std::cout << "!!!!! PairLS debug mode !!!!! " << " name_32 is " << name_32 << std::endl;
 
-  if(comm->me == 0) {
-  //  {
+  if(comm->me == 0) 
+  {
     std::cout << "!!!!! PairLS debug mode !!!!! " << " if(comm->me == 0) condition is valid " << std::endl;
     PotentialFileReader reader(lmp, name_32, "ls");
     std::cout << "!!!!! PairLS debug mode !!!!! " << " PotentialFileReader instance is created" << std::endl;
@@ -744,8 +946,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       for (int n = 0; n < n_sp_fi[is1][is2]; n++)
       {
         ValueTokenizer sp_fi_values = reader.next_values(2);
-        R_sp_fi[n][is1][is2] = sp_fi_values.next_double();
-        a_sp_fi[n][is1][is2] = sp_fi_values.next_double();
+        R_sp_fi[n][is1][is2] = lcf*sp_fi_values.next_double();
+        a_sp_fi[n][is1][is2] = ecf*sp_fi_values.next_double();
         std::cout << " R_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[n][is1][is2] << "   ";
         std::cout << " a_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[n][is1][is2] << std::endl;
       }
@@ -757,9 +959,9 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
 
       fip_rmin[is1][is2] = reader.next_double();
       std::cout << " fip_rmin[" << is1 << "][" << is2 << "] = " << fip_rmin[is1][is2] << std::endl;
-      Rmin_fi_ZBL[is1][is2] = reader.next_double();
+      Rmin_fi_ZBL[is1][is2] = lcf*reader.next_double();
       std::cout << " Rmin_fi_ZBL[" << is1 << "][" << is2 << "] = " << Rmin_fi_ZBL[is1][is2] << std::endl;
-      e0_ZBL[is1][is2] = reader.next_double();
+      e0_ZBL[is1][is2] = ecf*reader.next_double();
       std::cout << " e0_ZBL[" << is1 << "][" << is2 << "] = " << e0_ZBL[is1][is2] << std::endl;
 
       // wr_pot_ls_is1_is2.f (65-73):
@@ -776,17 +978,17 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       n_sp_fi[is2][is1] = n_sp_fi[is1][is2];
       for (int n = 0; n < n_sp_fi[is1][is2]; n++)
       {
-        R_sp_fi[n][is2][is1] = R_sp_fi[n][is1][is2];
-        a_sp_fi[n][is2][is1] = a_sp_fi[n][is1][is2];
+        R_sp_fi[n][is2][is1] = lcf*R_sp_fi[n][is1][is2];
+        a_sp_fi[n][is2][is1] = ecf*a_sp_fi[n][is1][is2];
         std::cout << " R_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_fi[n][is2][is1] << "   ";
         std::cout << " a_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_fi[n][is2][is1] << std::endl;
       }
 
       fip_rmin[is2][is1] = fip_rmin[is1][is2];
       std::cout << " fip_rmin[" << is2 << "][" << is1 << "] = " << fip_rmin[is2][is1] << std::endl;
-      Rmin_fi_ZBL[is2][is1] = Rmin_fi_ZBL[is1][is2];
+      Rmin_fi_ZBL[is2][is1] = lcf*Rmin_fi_ZBL[is1][is2];
       std::cout << " Rmin_fi_ZBL[" << is2 << "][" << is1 << "] = " << Rmin_fi_ZBL[is2][is1] << std::endl;
-      e0_ZBL[is2][is1] = e0_ZBL[is1][is2];
+      e0_ZBL[is2][is1] = ecf*e0_ZBL[is1][is2];
       std::cout << " e0_ZBL[" << is2 << "][" << is1 << "] = " << e0_ZBL[is2][is1] << std::endl;
 
       // wr_pot_ls_is1_is2.f (76-82):
@@ -804,8 +1006,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       for (int n = 0; n < n_sp_ro[is1][is2]; n++)
       {
         ValueTokenizer sp_ro_is1_values = reader.next_values(2);
-        R_sp_ro[n][is1][is2] = sp_ro_is1_values.next_double();
-        a_sp_ro[n][is1][is2] = sp_ro_is1_values.next_double();
+        R_sp_ro[n][is1][is2] = lcf*sp_ro_is1_values.next_double();
+        a_sp_ro[n][is1][is2] = ecf*sp_ro_is1_values.next_double();
         std::cout << " R_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[n][is1][is2] << "   ";
         std::cout << " a_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[n][is1][is2] << std::endl;
       }    
@@ -813,8 +1015,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       for (int n = 0; n < n_sp_ro[is2][is1]; n++)
       {
         ValueTokenizer sp_ro_is2_values = reader.next_values(2);
-        R_sp_ro[n][is2][is1] = sp_ro_is2_values.next_double();
-        a_sp_ro[n][is2][is1] = sp_ro_is2_values.next_double();
+        R_sp_ro[n][is2][is1] = lcf*sp_ro_is2_values.next_double();
+        a_sp_ro[n][is2][is1] = ecf*sp_ro_is2_values.next_double();
         std::cout << " R_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_ro[n][is2][is1] << "   ";
         std::cout << " a_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_ro[n][is2][is1] << std::endl;
       }   
@@ -833,11 +1035,11 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       for (int n = 0; n < n_sp_f[is2][is1]; n++)
       {
         ValueTokenizer sp_f_is1_values = reader.next_values(n_f3[is1]+1);
-        R_sp_f[n][is2][is1] = sp_f_is1_values.next_double();
+        R_sp_f[n][is2][is1] = lcf*sp_f_is1_values.next_double();
         std::cout << " R_sp_f[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_f[n][is2][is1] << "   ";
         for (int n1 = 0; n1 < n_f3[is1]; n1++)
         {
-          a_sp_f3[n][n1][is2][is1] = sp_f_is1_values.next_double();
+          a_sp_f3[n][n1][is2][is1] = ecf*sp_f_is1_values.next_double();
           std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is2 << "][" << is1 << "] = " << a_sp_f3[n][n1][is2][is1] << "  ";
         }
         std::cout << std::endl;
@@ -858,11 +1060,11 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       for (int n = 0; n < n_sp_f[is1][is2]; n++)
       {
         ValueTokenizer sp_f_is2_values = reader.next_values(n_f3[is2]+1);
-        R_sp_f[n][is1][is2] = sp_f_is2_values.next_double();
+        R_sp_f[n][is1][is2] = lcf*sp_f_is2_values.next_double();
         std::cout << " R_sp_f[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_f[n][is1][is2] << "   ";
         for (int n1 = 0; n1 < n_f3[is2]; n1++)
         {
-          a_sp_f3[n][n1][is1][is2] = sp_f_is2_values.next_double();
+          a_sp_f3[n][n1][is1][is2] = ecf*sp_f_is2_values.next_double();
           std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is1 << "][" << is2 << "] = " << a_sp_f3[n][n1][is1][is2] << "  ";
         }
         std::cout << std::endl;
@@ -874,6 +1076,67 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2)
       error->one(FLERR, e.what());
     }
   }
+
+  // Start broadcasting binary potential information to other procs using cycles
+  MPI_Bcast(&n_sp_fi[is1][is2], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_fi[is1][is2]; n++)
+  {
+    MPI_Bcast(&R_sp_fi[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&fip_rmin[is1][is2], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&Rmin_fi_ZBL[is1][is2], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&e0_ZBL[is1][is2], 1, MPI_DOUBLE, 0, world);
+
+  MPI_Bcast(&n_sp_fi[is2][is1], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_fi[is2][is1]; n++)
+  {
+    MPI_Bcast(&R_sp_fi[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&fip_rmin[is2][is1], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&Rmin_fi_ZBL[is2][is1], 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&e0_ZBL[is2][is1], 1, MPI_DOUBLE, 0, world);
+
+  MPI_Bcast(&n_sp_ro[is1][is2], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_ro[is1][is2]; n++)
+  {
+    MPI_Bcast(&R_sp_ro[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&n_sp_ro[is2][is1], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_ro[is2][is1]; n++)
+  {
+    MPI_Bcast(&R_sp_ro[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+  }
+
+  MPI_Bcast(&n_sp_f[is2][is1], 1, MPI_INT, 0, world);
+  MPI_Bcast(&n_f3[is1], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_f[is2][is1]; n++)
+  {
+    MPI_Bcast(R_sp_f[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    for (int n1 = 0; n1 < n_f3[is1]; n1++)
+    {
+      MPI_Bcast(a_sp_f3[n][n1][is2][is1], 1, MPI_DOUBLE, 0, world);
+    }    
+  }
+
+  MPI_Bcast(&n_sp_f[is1][is2], 1, MPI_INT, 0, world);
+  MPI_Bcast(&n_f3[is2], 1, MPI_INT, 0, world);
+  for (int n = 0; n < n_sp_f[is1][is2]; n++)
+  {
+    MPI_Bcast(R_sp_f[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    for (int n1 = 0; n1 < n_f3[is]; n1++)
+    {
+      MPI_Bcast(a_sp_f3[n][n1][is1][is2], 1, MPI_DOUBLE, 0, world);
+    }    
+  }
+
+  // End broadcasting potential information to other procs using cycles  
 }
 
 
@@ -1765,7 +2028,6 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
 
   // Local Arrays
   double *rosum;
-  memory->create(rosum, max_at, "PairLS:rosum");
 
   // pointers to LAMMPS arrays 
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -1774,17 +2036,23 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   // int *type = atom->type; // Atom types must range from 1 to specified # of types.
   // int nlocal = atom->nlocal;
   // int newton_pair = force->newton_pair;
-  int inum = list->inum; // # of I atoms neighbors are stored for
+  int inum = list->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
+  int gnum = list->gnum; // # of ghost atoms neighbors are stored for
 
-  ilist = list->ilist;           // local indices of I atoms
-  numneigh = list->numneigh;     // # of J neighbors for each I atom
-  firstneigh = list->firstneigh; // ptr to 1st J int value of each I atom
+  ilist = list->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
+  numneigh = list->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
+  firstneigh = list->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
 
-  // time1 = timesec(idum);
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int newton_pair = force->newton_pair;
 
-  sizex05 = sizex*0.5D0;
-  sizey05 = sizey*0.5D0;
-  sizez05 = sizez*0.5D0;
+  memory->create(rosum, nall, "PairLS:rosum");
+ 
+
+  sizex05 = sizex*0.5;
+  sizey05 = sizey*0.5;
+  sizez05 = sizez*0.5;
 
   for (is = 1; is <= n_sort; is++)
   {
@@ -1794,8 +2062,23 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
     }
   }
   
-  e_at = {0.0};
-  rosum = {0.0};
+ // set rosum = {0.0}; and e_at = {0.0};
+  if (newton_pair) 
+  {
+    for (i = 0; i < nall; i++) 
+    {
+      rosum[i] = 0.0;
+      e_at[i] = 0.0;
+    }
+  } 
+  else 
+  {
+    for (i = 0; i < nlocal; i++) 
+    {
+      rosum[i] = 0.0;
+      e_at[i] = 0.0;
+    }
+  }
 
   // == calc rosum(n_at) =========================>
 
@@ -1856,8 +2139,8 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
     y = r_at[i][1];
     z = r_at[i][2];
     is = i_sort_at[i];
-    jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
     jnum = numneigh[i];    // # of J neighbors for the atom i
+    jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
 
     for (jj = 0; jj < jnum; jj++) 
     {
@@ -1936,7 +2219,7 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   // == calc energies: e_at(n_at) ==>
   for (i = 0; i < n_at; i++)
   {
-    if (.not.if_true_i(i)) cycle;
+    // if (.not.if_true_i(i)) cycle;
     w = fun_emb(rosum[i], i_sort_at(i)) + 0.5D0*e_at(i);
     e_at(i) = w;
   }
@@ -2056,7 +2339,7 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   return;
 }
 
-void PairLS::e_force_g3(double *, double *, double *, double *, double *,  double **, int *, int, double *, double *, double *)
+void PairLS::e_force_g3(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
 
 }

@@ -66,6 +66,8 @@ class PairLS : public Pair {
 
  protected:
  
+  int *map;                   // which element each atom type maps to
+
   // Begin max_at.h (may be it is not needed in the LAMMPS implementation)
   const int  n_mark_at=10;
   const long  max_at=100000;
@@ -149,8 +151,8 @@ class PairLS : public Pair {
   */
 
   // subroutines for reading potential files
-  void r_pot_ls_is(char *, int);
-  void r_pot_ls_is1_is2(char *, int, int);
+  void r_pot_ls_is(char *, int, double, double);
+  void r_pot_ls_is1_is2(char *, int, int, double, double);
   void allocate();
 
   void par2pot_is(int);

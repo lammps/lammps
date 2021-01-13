@@ -243,6 +243,7 @@ class lammps(object):
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
 
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
+    self.lib.lammps_config_accelerator.argtypes = [c_char_p, c_char_p, c_char_p]
 
     self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
 
@@ -1432,6 +1433,33 @@ class lammps(object):
     :rtype: bool
     """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
+
+  # -------------------------------------------------------------------------
+
+  @property
+  def accelerator_config(self):
+    """ Return table with available accelerator configuration settings.
+
+    This is a wrapper around the :cpp:func:`lammps_config_accelerator`
+    function of the library interface which loops over all known packages
+    and settings and returns enabled features as a nested dictionary.
+
+    :return: nested dictionary with all known enabled settings
+    :rtype: dictionary
+    """
+
+    result = {}
+    for p in [b'GPU', b'KOKKOS', b'USER-INTEL', b'USER-OMP']:
+      c = b'api'
+      result[p.decode()] = {}
+      for s in [b'cuda', b'hip', b'pthreads', b'opencl', b'openmp']:
+        if self.lib.lammps_config_accelerator(p,c,s):
+          result[p.decode()][c.decode()] = s.decode()
+      c = b'precision'
+      for s in [b'double', b'mixed', b'single']:
+        if self.lib.lammps_config_accelerator(p,c,s):
+          result[p.decode()][c.decode()] = s.decode()
+    return result
 
   # -------------------------------------------------------------------------
 

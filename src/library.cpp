@@ -4303,6 +4303,31 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
   return 1;
 }
 
+/** Check for compile time settings in accelerator packages included in LAMMPS.
+ *
+\verbatim embed:rst
+This function checks availability of compile time settings of included
+:doc:`accelerator packages <Speed_packages>` in LAMMPS.
+Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
+Supported categories are "api" with possible settings "cuda", "hip", "knl",
+"pthreads", "opencl", "openmp", and "none", and "precision" with
+possible settings "double", "mixed", and "single".  If the combination
+of package, category, and setting is available, the function returns 1,
+otherwise 0.
+\endverbatim
+ *
+ * \param  package   string with the name of the accelerator package
+ * \param  category  string with the category name of the setting
+ * \param  setting   string with the name of the specific setting
+ * \return 1 if available, 0 if not.
+ */
+int lammps_config_accelerator(const char *package,
+                              const char *category,
+                              const char *setting)
+{
+  return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** Check if a specific style has been included in LAMMPS

@@ -13,29 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(eam/fs,PairEAMFS)
+PairStyle(eam/he,PairEAMHE)
 
 #else
 
-#ifndef LMP_PAIR_EAM_FS_H
-#define LMP_PAIR_EAM_FS_H
+#ifndef LMP_PAIR_EAM_HE_H
+#define LMP_PAIR_EAM_HE_H
 
-#include "pair_eam.h"
+#include "pair_eam_fs.h"
 
 namespace LAMMPS_NS {
 
-// need virtual public b/c of how eam/fs/opt inherits from it
-
-class PairEAMFS : virtual public PairEAM {
+class PairEAMHE : public PairEAMFS {
  public:
-  PairEAMFS(class LAMMPS *);
-  virtual ~PairEAMFS() {}
-  void coeff(int, char **);
+  PairEAMHE(class LAMMPS *);
+  virtual ~PairEAMHE() {}
 
  protected:
-  void read_file(char *);
-  void file2array();
-  int he_flag;
+  void compute(int, int);
 };
 
 }

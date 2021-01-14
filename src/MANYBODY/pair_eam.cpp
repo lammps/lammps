@@ -63,6 +63,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   z2r = nullptr;
   scale = nullptr;
 
+  rhomax = rhomin = 0.0;
+
   frho_spline = nullptr;
   rhor_spline = nullptr;
   z2r_spline = nullptr;

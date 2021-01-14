@@ -18,6 +18,7 @@
 .. index:: pair_style eam/fs/kk
 .. index:: pair_style eam/fs/omp
 .. index:: pair_style eam/fs/opt
+.. index:: pair_style eam/he
 
 pair_style eam command
 ======================

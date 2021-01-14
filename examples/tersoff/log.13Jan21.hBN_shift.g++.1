@@ -1,4 +1,6 @@
-LAMMPS (30 Nov 2020)
+LAMMPS (24 Dec 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
 # Initialization
 units           metal
 boundary        p p p
@@ -9,13 +11,13 @@ processors      * * 1     # domain decomposition over x and y
 # we use different molecule ids for each layer of hBN
 # so that inter- and intra-layer
 # interactions can be specified separately
-read_data       hBN-momolayer-5nm.data
+read_data       hBN-monolayer-5nm.data
 Reading data file ...
   orthogonal box = (0.0000000 0.0000000 0.0000000) to (46.152980 48.443364 100.00000)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   880 atoms
-  read_data CPU = 0.014 seconds
+  read_data CPU = 0.003 seconds
 mass            1 10.8110   # boron mass (g/mole) | membrane
 mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
 
@@ -32,13 +34,14 @@ neigh_modify    check yes
 
 #### Simulation settings ####
 timestep  	0.001
-#velocity  	all create 300.0 12345 loop geom
+velocity  	all create 300.0 4928459 loop geom
 fix       	thermostat all nve
 
 ############# Output ###############
 thermo          100
 thermo_style    custom step etotal pe ke temp
-thermo_modify   lost warn
+#thermo_modify   lost warn
+thermo_modify   line one format float %20.16g lost warn
 
 ###### Run molecular dynamics ######
 run 		1000
@@ -54,33 +57,33 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 3.670 | 3.670 | 3.670 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.545 | 3.545 | 3.545 Mbytes
 Step TotEng PotEng KinEng Temp 
-       0   -6604.6119   -6604.6119            0            0 
-     100   -6604.6148    -6604.831   0.21618057    1.9026686 
-     200   -6604.6142    -6604.812   0.19780992    1.7409831 
-     300   -6604.6147   -6604.8411   0.22645852    1.9931278 
-     400   -6604.6143   -6604.7988    0.1844863     1.623718 
-     500   -6604.6141   -6604.7823   0.16817044    1.4801174 
-     600   -6604.6145   -6604.8172   0.20269951    1.7840178 
-     700   -6604.6149   -6604.8489   0.23401257    2.0596132 
-     800   -6604.6142   -6604.8089   0.19466676    1.7133192 
-     900   -6604.6146   -6604.8186   0.20395195    1.7950409 
-    1000    -6604.614    -6604.778    0.1640674    1.4440053 
-Loop time of 1.62583 on 1 procs for 1000 steps with 880 atoms
+       0   -6570.525999324201     -6604.6118995607        34.0859002365                  300 
+     100   -6570.310828576855   -6584.788128201216    14.47729962436115    127.4189579026448 
+     200   -6570.372315727984    -6587.98140230295    17.60908657496611    154.9827329140911 
+     300   -6570.341402414283   -6587.005611017601    16.66420860331832    146.6665849019345 
+     400   -6570.373381655075   -6587.812074340169    17.43869268509366      153.48304633967 
+     500   -6570.357279692746   -6587.139105628337    16.78182593559217    147.7017695218898 
+     600   -6570.364533408486   -6588.199043380888    17.83450997240158    156.9667503160497 
+     700   -6570.362000654088   -6587.514376495223    17.15237584113499    150.9630878644169 
+     800   -6570.358394689025   -6587.200486866491    16.84209217746576    148.2321903832028 
+     900   -6570.372035122432   -6588.096861613308    17.72482649087559    156.0013938422734 
+    1000   -6570.355748883583   -6587.399428461676    17.04367957809225    150.0064201899072 
+Loop time of 0.998048 on 1 procs for 1000 steps with 880 atoms
 
-Performance: 53.142 ns/day, 0.452 hours/ns, 615.069 timesteps/s
-99.0% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 86.569 ns/day, 0.277 hours/ns, 1001.956 timesteps/s
+98.3% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.5875     | 1.5875     | 1.5875     |   0.0 | 97.64
+Pair    | 0.98001    | 0.98001    | 0.98001    |   0.0 | 98.19
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.013392   | 0.013392   | 0.013392   |   0.0 |  0.82
-Output  | 0.00091558 | 0.00091558 | 0.00091558 |   0.0 |  0.06
-Modify  | 0.014704   | 0.014704   | 0.014704   |   0.0 |  0.90
-Other   |            | 0.009355   |            |       |  0.58
+Comm    | 0.006538   | 0.006538   | 0.006538   |   0.0 |  0.66
+Output  | 0.000224   | 0.000224   | 0.000224   |   0.0 |  0.02
+Modify  | 0.00781    | 0.00781    | 0.00781    |   0.0 |  0.78
+Other   |            | 0.003467   |            |       |  0.35
 
 Nlocal:        880.000 ave         880 max         880 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

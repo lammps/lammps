@@ -439,7 +439,7 @@ rhomin = rhomax - (Nrho - 1)drho.  The embedding energies F(rho) are
 listed for rho = rhomin, rhomin + drho, rhomin + 2drho, ..., rhomax.
 This gives users additional flexibility to define a negative rhomin and
 therefore an embedding energy function that works for both positive and
-negative electron densities. 
+negative electron densities.
 
 Following the header are Nelements sections, one for each element :math:`\beta`,
 each with the following format:

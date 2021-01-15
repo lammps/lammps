@@ -200,6 +200,7 @@ barostatted
 barostatting
 Barostatting
 Barrat
+Bartelt
 Bartels
 barycenter
 barye
@@ -2678,6 +2679,8 @@ rhodo
 Rhodo
 rhodopsin
 rhok
+rhomax
+rhomin
 rhorho
 rhosum
 ri

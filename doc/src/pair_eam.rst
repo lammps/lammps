@@ -430,8 +430,8 @@ have an ".eam.he" suffix.  They are formatted as follows:
 * line 4: Nelements Element1 Element2 ... ElementN
 * line 5: Nrho, drho, Nr, dr, cutoff, rhomax
 
-The 5-line header section is mostly identical to an EAM *setfl* file
-except that line 5 lists an additional value rhomax. Unlike *setfl*
+The 5-line header section is identical to an FS EAM file
+except that line 5 lists an additional value, rhomax. Unlike in FS EAM
 files where embedding energies F(rho) are always defined between rho = 0
 and rho = (Nrho -1)drho, F(rho) in HE EAM files are defined between
 rho = rhomin and rho = rhomax.  Since drho = (rhomax - rhomin)/(Nrho - 1),
@@ -439,28 +439,8 @@ rhomin = rhomax - (Nrho - 1)drho.  The embedding energies F(rho) are
 listed for rho = rhomin, rhomin + drho, rhomin + 2drho, ..., rhomax.
 This gives users additional flexibility to define a negative rhomin and
 therefore an embedding energy function that works for both positive and
-negative electron densities.
-
-Following the header are Nelements sections, one for each element :math:`\beta`,
-each with the following format:
-
-* line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
-* embedding function F(rho) (Nrho values)
-* density function :math:`\rho_{1\beta} (r)` for element :math:`\beta` at element 1 (Nr values)
-* density function :math:`\rho_{2\beta} (r)` for element :math:`\beta` at element 2
-* ...
-* density function :math:`\rho_{N_{elem}\beta} (r)` for element :math:`\beta` at element :math:`N_{elem}`
-
-The units of these quantities in line 1 are the same as for *setfl*
-files.  Note that the rho(r) arrays in Finnis/Sinclair can be
-asymmetric (:math:`\rho_{\alpha\beta} (r) \neq \rho_{\beta\alpha} (r)` )
-so there are Nelements\^2 of them listed in the file.
-
-Following the Nelements sections, Nr values for each pair potential
-phi(r) array are listed in the same manner (r\*phi, units of
-eV-Angstroms) as in EAM *setfl* files.  Note that in Finnis/Sinclair,
-the phi(r) arrays are still symmetric, so only phi arrays for i >= j
-are listed.
+negative electron densities.  The format and units of these sections are
+identical to the FS EAM files (see above).
 
 ----------
 

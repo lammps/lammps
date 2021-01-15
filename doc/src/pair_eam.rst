@@ -507,7 +507,7 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 .. _Zhou6:
 
-**(Zhou6)** Zhou, Bartelt, Sills, Physical Review B, 38, 1 (2021).
+**(Zhou6)** Zhou, Bartelt, Sills, Physical Review B, 103, 014108 (2021).
 
 .. _Stukowski:
 

@@ -525,7 +525,7 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
     ngrid = MAX(ngrid,swap[i].npack);
     ngrid = MAX(ngrid,swap[i].nunpack);
   }
-  
+
   nbuf1 = nbuf2 = ngrid;
 }
 

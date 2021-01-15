@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 
 using namespace LAMMPS_NS;
@@ -42,12 +43,24 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 #define PGDELTA 1
 
+static const char cite_kc[] =
+  "@Article{Ouyang2018\n"
+  " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+  " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
+  " journal = {Nano Letters},\n"
+  " volume =  18,\n"
+  " pages =   {6009}\n"
+  " year =    2018,\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   one_coeff = 1;
+
+  if (lmp->citeme) lmp->citeme->add(cite_kc);
 
   nextra = 2;
   pvector = new double[nextra];

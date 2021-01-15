@@ -330,6 +330,7 @@ Buyl
 Bybee
 bz
 cadetblue
+Cagin
 calc
 calibre
 caltech
@@ -1219,6 +1220,7 @@ Herrmann
 Hertizian
 hertzian
 Hertzsch
+heterostructures
 hexahedrons
 hexatic
 hexorder
@@ -2729,6 +2731,7 @@ rNEMD
 ro
 Rochus
 Rockett
+rocksalt
 Rodrigues
 Rohart
 Ronchetti
@@ -3548,6 +3551,7 @@ zz
 Zm
 PowerShell
 filesystems
+zincblende
 Zstandard
 Zstd
 zstd

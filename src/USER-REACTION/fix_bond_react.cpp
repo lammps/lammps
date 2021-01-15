@@ -12,7 +12,7 @@ See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_react.h"

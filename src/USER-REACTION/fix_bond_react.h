@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS

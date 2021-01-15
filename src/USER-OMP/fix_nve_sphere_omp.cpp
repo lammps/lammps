@@ -13,11 +13,12 @@
 
 #include "omp_compat.h"
 #include "fix_nve_sphere_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "force.h"
-#include "math_vector.h"
 #include "math_extra.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -100,8 +101,8 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
 #endif
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
       for (int i = 0; i < nlocal; i++) {
-        vector w, w_temp, a;
-        matrix Q, Q_temp, R;
+        double w[3], w_temp[3], a[3];
+        double Q[3][3], Q_temp[3][3], R[3][3];
 
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
 

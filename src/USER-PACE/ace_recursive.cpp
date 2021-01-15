@@ -22,7 +22,7 @@
 void ACEDAG::init(Array2D<int> xAspec,
                   Array2D<int> AAspec,
                   Array1D<int> orders,
-                  Array2D<ACEComplex> jl_coeffs,
+                  Array2D<DOUBLE_TYPE> jl_coeffs,
                   int _heuristic) {
 
     // remember which heuristic we want to use!
@@ -73,7 +73,7 @@ void ACEDAG::init(Array2D<int> xAspec,
         int ord = orders(iAA);
         vector<int> aa(ord);
         for (int t = 0; t < ord; t++) aa[t] = AAspec(iAA, t);
-        vector<ACEComplex> c(ndensity);
+        vector<DOUBLE_TYPE> c(ndensity);
         for (int p = 0; p < ndensity; p++) c[p] = jl_coeffs(iAA, p);
         insert_node(DAGmap, aa, c);
     }
@@ -158,7 +158,7 @@ void ACEDAG::init(Array2D<int> xAspec,
     //       memory access later, probably not worth the crazy code duplication.
 }
 
-void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
+void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<DOUBLE_TYPE> c) {
     /* start with a list of all possible partitions into 2 groups 
      * and check whether any of these nodes are already in the dag */
     auto partitions = find_2partitions(a);
@@ -240,7 +240,7 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
         /* insert the other node that isn't in the DAG yet 
         * this is an artificial node so it gets zero-coefficients 
         * This step is recursive, so more than one node might be inserted here */
-        vector<ACEComplex> cz(ndensity);
+        vector<DOUBLE_TYPE> cz(ndensity);
         for (int i = 0; i < ndensity; i++) cz[i] = 0.0;
         TPARTITION p = longest;
         if (DAGmap.count(p.first))
@@ -264,7 +264,8 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<ACEComplex> c) {
         for (int i = 0; i < 2; i++) a1[i] = a[i];
         vector<int> a2(nu - 2);
         for (int i = 0; i < nu - 2; i++) a2[i] = a[2 + i];
-        vector<ACEComplex> cz(ndensity);
+        vector<DOUBLE_TYPE> cz(ndensity);
+        for (int i = 0; i < cz.size(); i++) cz[i] = 0.0;
         // and insert both (we know neither are in the DAG yet)
         insert_node(DAGmap, a1, cz);
         insert_node(DAGmap, a2, cz);
@@ -1000,7 +1001,7 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         int *dag_nodes = dag.nodes.get_data();
         int idx_nodes = 0;
 
-        ACEComplex *dag_coefs = dag.coeffs.get_data();
+        DOUBLE_TYPE *dag_coefs = dag.coeffs.get_data();
         int idx_coefs = 0;
 
         int num2_int = dag.get_num2_int();
@@ -1019,14 +1020,15 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         }
 
         // leaf nodes -> no need to store in AAbuf
+        DOUBLE_TYPE AAcur_re = 0.0;
         for (int _idx = 0; _idx < num2_leaf; _idx++) {
             i1 = dag_nodes[idx_nodes];
             idx_nodes++;
             i2 = dag_nodes[idx_nodes];
             idx_nodes++;
-            AAcur = dag.AAbuf(i1) * dag.AAbuf(i2);
+            AAcur_re = dag.AAbuf(i1).real_part_product(dag.AAbuf(i2));
             for (int p = 0; p < ndensity; p++, idx_coefs++)
-                rhos(p) += AAcur.real_part_product(dag_coefs[idx_coefs]);
+                rhos(p) += AAcur_re * dag_coefs[idx_coefs];
         }
 
     } else {
@@ -1035,7 +1037,7 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         // TODO: fix array access to enable bounds checking again???
         ACEComplex AAcur{1.0};
         int *AAspec = jl_AAspec_flat.get_data();
-        ACEComplex *coeffs = jl_coeffs.get_data();
+        DOUBLE_TYPE *coeffs = jl_coeffs.get_data();
         int idx_spec = 0;
         int idx_coefs = 0;
         int order = 0;
@@ -1120,7 +1122,7 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         int *dag_nodes = dag.nodes.get_data();
         int idx_nodes = 2 * (num2_int + num2_leaf) - 1;
 
-        ACEComplex *dag_coefs = dag.coeffs.get_data();
+        DOUBLE_TYPE *dag_coefs = dag.coeffs.get_data();
         int idx_coefs = ndensity * (num2_int + num2_leaf) - 1;
 
         for (int idx = num1 + num2_int + num2_leaf - 1; idx >= num1; idx--) {
@@ -1145,6 +1147,7 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
          * measurable, ca 3%, so we reverted to this simpler algorithm
          */
 
+
     } else {
 
         // non-recursive ACE.jl style implemenation of gradients, but with 
@@ -1155,7 +1158,7 @@ ACERecursiveEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *
         ACEComplex AAf{1.0}, AAb{1.0}, theta{0.0};
 
         int *AAspec = jl_AAspec_flat.get_data();
-        ACEComplex *coeffs = jl_coeffs.get_data();
+        DOUBLE_TYPE *coeffs = jl_coeffs.get_data();
         int idx_spec = 0;
         int idx_coefs = 0;
         int order = 0;

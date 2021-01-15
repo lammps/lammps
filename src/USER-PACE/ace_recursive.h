@@ -22,7 +22,7 @@
 
 using namespace std;
 
-typedef list <pair<vector<int>, vector<int> >> TPARTITIONS;
+typedef list<pair<vector<int>, vector<int> > > TPARTITIONS;
 typedef pair<vector<int>, vector<int> > TPARTITION;
 typedef map<vector<int>, int> TDAGMAP;
 
@@ -33,12 +33,12 @@ class ACEDAG {
 
     void insert_node(TDAGMAP &dagmap,
                      vector<int> node,
-                     vector<ACEComplex> c);
+                     vector<DOUBLE_TYPE> c);
 
     // the following fields are used only for *construction*, not evalution
     int dag_idx;     // current index of dag node 
     Array2D<int> nodes_pre;
-    Array2D<ACEComplex> coeffs_pre;
+    Array2D<DOUBLE_TYPE> coeffs_pre;
     Array1D<bool> haschild;
 
     /* which heuristic to choose for DAG construction? 
@@ -52,7 +52,7 @@ public:
     ACEDAG() = default;
 
     void init(Array2D<int> Aspec, Array2D<int> AAspec,
-              Array1D<int> orders, Array2D<ACEComplex> coeffs,
+              Array1D<int> orders, Array2D<DOUBLE_TYPE> coeffs,
               int heuristic);
 
     Array1D<ACEComplex> AAbuf;
@@ -62,7 +62,7 @@ public:
 
     // nodes in the graph 
     Array2D<int> nodes;
-    Array2D<ACEComplex> coeffs;
+    Array2D<DOUBLE_TYPE> coeffs;
 
     // total number of nodes in the dag
     int num_nodes;
@@ -160,7 +160,7 @@ class ACERecursiveEvaluator : public ACEEvaluator {
     Array2D<int> jl_AAspec;
     Array1D<int> jl_AAspec_flat;
     Array1D<int> jl_orders;
-    Array2D<ACEComplex> jl_coeffs;
+    Array2D<DOUBLE_TYPE> jl_coeffs;
 
     void acejlformat();
 

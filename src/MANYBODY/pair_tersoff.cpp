@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -38,6 +39,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
+using namespace MathExtra;
 
 #define DELTA 4
 
@@ -241,8 +243,8 @@ void PairTersoff::eval()
 
       if (rsq1 >= params[iparam_ij].cutsq) continue;
 
-      double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
-      vec3_scale(r1inv, delr1, r1_hat);
+      double r1inv = 1.0/sqrt(dot3(delr1, delr1));
+      scale3(r1inv, delr1, r1_hat);
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -265,8 +267,8 @@ void PairTersoff::eval()
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
-        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
-        vec3_scale(r2inv, delr2, r2_hat);
+        double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,r2_hat);
       }
@@ -305,8 +307,8 @@ void PairTersoff::eval()
 
         if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
-        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
-        vec3_scale(r2inv, delr2, r2_hat);
+        double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
 
         attractive(&params[iparam_ijk],prefactor,
                    rsq1,rsq2,r1_hat,r2_hat,fi,fj,fk);
@@ -666,7 +668,7 @@ double PairTersoff::zeta(Param *param, double rsqij, double rsqik,
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  costheta = vec3_dot(rij_hat,rik_hat);
+  costheta = dot3(rij_hat,rik_hat);
 
   if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
@@ -823,7 +825,7 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
     ex_delr_d = 3.0*cube(param->lam3) * square(rij-rik)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = ters_gijk(cos_theta,param);
   gijk_d = ters_gijk_d(cos_theta,param);
   costheta_d(rij_hat,rijinv,rik_hat,rikinv,dcosdri,dcosdrj,dcosdrk);
@@ -833,29 +835,29 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d,rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
   // drj = fc*gijk_d*ex_delr*dcosdrj;
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
   // drk = dfc*gijk*ex_delr*rik_hat;
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -866,12 +868,12 @@ void PairTersoff::costheta_d(double *rij_hat, double rijinv,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(rijinv,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(rikinv,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(rijinv,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(rikinv,drk,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }

@@ -17,12 +17,14 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_extra.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
@@ -148,8 +150,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
-      double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
-      vec3_scale(r1inv, delr1, r1_hat);
+      double r1inv = 1.0/sqrt(dot3(delr1, delr1));
+      scale3(r1inv, delr1, r1_hat);
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
@@ -188,8 +190,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
 
-      double r1inv = 1.0/sqrt(vec3_dot(delr1, delr1));
-      vec3_scale(r1inv, delr1, r1_hat);
+      double r1inv = 1.0/sqrt(dot3(delr1, delr1));
+      scale3(r1inv, delr1, r1_hat);
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -213,8 +215,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
-        vec3_scale(r2inv, delr2, r2_hat);
+        double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,r2_hat);
       }
@@ -254,8 +256,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-        double r2inv = 1.0/sqrt(vec3_dot(delr2, delr2));
-        vec3_scale(r2inv, delr2, r2_hat);
+        double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
 
         attractive(&params[iparam_ijk],prefactor,
                    rsq1,rsq2,r1_hat,r2_hat,fi,fj,fk);

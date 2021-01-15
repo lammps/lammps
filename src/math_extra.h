@@ -31,6 +31,7 @@ namespace MathExtra {
   inline void snormalize3(const double, const double *v, double *ans);
   inline void negate3(double *v);
   inline void scale3(double s, double *v);
+  inline void scale3(double s, const double *v, double *ans);
   inline void add3(const double *v1, const double *v2, double *ans);
   inline void scaleadd3(double s, const double *v1, const double *v2,
                         double *ans);
@@ -228,6 +229,17 @@ inline void MathExtra::scale3(double s, double *v)
   v[0] *= s;
   v[1] *= s;
   v[2] *= s;
+}
+
+/* ----------------------------------------------------------------------
+   scale vector v by s and store in ans
+------------------------------------------------------------------------- */
+
+inline void MathExtra::scale3(double s, const double *v, double *ans)
+{
+  ans[0] = s*v[0];
+  ans[1] = s*v[1];
+  ans[2] = s*v[2];
 }
 
 /* ----------------------------------------------------------------------

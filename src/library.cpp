@@ -4309,8 +4309,8 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 This function checks availability of compile time settings of included
 :doc:`accelerator packages <Speed_packages>` in LAMMPS.
 Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
-Supported categories are "api" with possible settings "cuda", "hip", "knl",
-"pthreads", "opencl", "openmp", and "none", and "precision" with
+Supported categories are "api" with possible settings "cuda", "hip", "phi",
+"pthreads", "opencl", "openmp", and "serial", and "precision" with
 possible settings "double", "mixed", and "single".  If the combination
 of package, category, and setting is available, the function returns 1,
 otherwise 0.

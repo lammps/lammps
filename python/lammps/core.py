@@ -1442,9 +1442,10 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_config_accelerator`
     function of the library interface which loops over all known packages
-    and settings and returns enabled features as a nested dictionary.
+    and categories and returns enabled features as a nested dictionary
+    with all enabled settings as list of strings.
 
-    :return: nested dictionary with all known enabled settings
+    :return: nested dictionary with all known enabled settings as list of strings
     :rtype: dictionary
     """
 
@@ -1453,7 +1454,7 @@ class lammps(object):
       result[p] = {}
       c = 'api'
       result[p][c] = []
-      for s in ['cuda', 'hip', 'pthreads', 'opencl', 'openmp', 'serial']:
+      for s in ['cuda', 'hip', 'phi', 'pthreads', 'opencl', 'openmp', 'serial']:
         if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
           result[p][c].append(s)
       c = 'precision'

@@ -360,7 +360,7 @@ void Info::command(int narg, char **arg)
     }
     if (has_package("USER-INTEL")) {
       mesg = "USER-INTEL package API:";
-      if (has_accelerator_feature("USER-INTEL","api","knl"))      mesg += " KNL";
+      if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
       if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
       mesg +=  "\nUSER-INTEL package precision:";
       if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
@@ -1254,7 +1254,9 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
-#if defined(_OPENMP)
+#if defined(LMP_INTEL_OFFLOAD)
+      if (setting == "phi") return true;
+#elif defined(_OPENMP)
       if (setting == "openmp") return true;
 #else
       if (setting == "serial") return true;

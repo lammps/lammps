@@ -29,6 +29,7 @@
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
+#include "label_map.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -738,6 +739,7 @@ int Input::execute_command()
   else if (!strcmp(command,"improper_style")) improper_style();
   else if (!strcmp(command,"kspace_modify")) kspace_modify();
   else if (!strcmp(command,"kspace_style")) kspace_style();
+  else if (!strcmp(command,"labelmap")) labelmap();
   else if (!strcmp(command,"lattice")) lattice();
   else if (!strcmp(command,"mass")) mass();
   else if (!strcmp(command,"min_modify")) min_modify();
@@ -1551,6 +1553,14 @@ void Input::kspace_style()
 {
   force->create_kspace(arg[0],1);
   if (force->kspace) force->kspace->settings(narg-1,&arg[1]);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::labelmap()
+{
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Labelmap command before simulation box is defined");
+  atom->lmap->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

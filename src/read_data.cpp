@@ -1971,7 +1971,6 @@ void ReadData::impropercoeffs(int which)
 void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
 {
   if (settypeflag) error->all(FLERR,"Must read Type Labels before any section involving types");
-  int n;
   char *next;
   char *buf = new char[myntypes*MAXLINE];
 

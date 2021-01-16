@@ -81,6 +81,42 @@ void LabelMap::allocate_type_labels()
 }
 
 /* ----------------------------------------------------------------------
+   labelmap command in input script
+------------------------------------------------------------------------- */
+
+void LabelMap::modify_lmap(int narg, char **arg)
+{
+  if (narg < 3 || narg % 2 == 0) error->all(FLERR,"Illegal labelmap command");
+
+  int ntypes;
+  std::vector<std::string> *labels;
+  if (!strcmp(arg[0],"atom")) {
+    ntypes = natomtypes;
+    labels = &typelabel;
+  } else if (!strcmp(arg[0],"bond")) {
+    ntypes = nbondtypes;
+    labels = &btypelabel;
+  } else if (!strcmp(arg[0],"angle")) {
+    ntypes = nangletypes;
+    labels = &atypelabel;
+  } else if (!strcmp(arg[0],"dihedral")) {
+    ntypes = ndihedraltypes;
+    labels = &dtypelabel;
+  } else if (!strcmp(arg[0],"improper")) {
+    ntypes = nimpropertypes;
+    labels = &itypelabel;
+  } else error->all(FLERR,"Illegal labelmap command");
+
+  int itype;
+  int iarg = 1;
+  while (iarg < narg) {
+    itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    if (itype > ntypes) error->all(FLERR,"Topology type exceeds system topology type");
+    (*labels)[itype-1] = arg[iarg++];
+  }
+}
+
+/* ----------------------------------------------------------------------
    copy another map (lmap2) into this one
    if label already exists, leave in place
    else, put new label in next available slot

@@ -113,6 +113,7 @@ class Input : protected Pointers {
   void improper_style();
   void kspace_modify();
   void kspace_style();
+  void labelmap();
   void lattice();
   void mass();
   void min_modify();

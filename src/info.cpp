@@ -337,9 +337,8 @@ void Info::command(int narg, char **arg)
       mesg = "KOKKOS package API:";
       if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
       if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
-      if (has_accelerator_feature("KOKKOS","api","knl"))      mesg += " KNL";
-      if (has_accelerator_feature("KOKKOS","api","opencl"))   mesg += " OpenCL";
       if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
       if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
       mesg +=  "\nKOKKOS package precision:";
       if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
@@ -350,22 +349,23 @@ void Info::command(int narg, char **arg)
     }
     if (has_package("USER-OMP")) {
       mesg = "USER-OMP package API:";
-      if (has_accelerator_feature("OPENMP","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
       mesg +=  "\nUSER-OMP package precision:";
-      if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
-      if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
+      if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
       mesg += "\n";
       fputs(mesg.c_str(),out);
     }
     if (has_package("USER-INTEL")) {
       mesg = "USER-INTEL package API:";
-      if (has_accelerator_feature("INTEL","api","knl"))      mesg += " KNL";
-      if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("USER-INTEL","api","knl"))      mesg += " KNL";
+      if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
       mesg +=  "\nUSER-INTEL package precision:";
-      if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
-      if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
+      if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
       mesg += "\n";
       fputs(mesg.c_str(),out);
     }
@@ -1190,6 +1190,10 @@ bool Info::has_package(const std::string &package_name) {
 extern bool lmp_gpu_config(const std::string &, const std::string &);
 #endif
 
+#if defined(LMP_KOKKOS)
+#include "Kokkos_Macros.hpp"
+#endif
+
 bool Info::has_accelerator_feature(const std::string &package,
                                    const std::string &category,
                                    const std::string &setting)
@@ -1199,6 +1203,24 @@ bool Info::has_accelerator_feature(const std::string &package,
     if (category == "precision") {
       if (setting == "double") return true;
       else return false;
+    }
+    if (category == "api") {
+#if defined(KOKKOS_ENABLE_OPENMP)
+      if (setting == "openmp") return true;
+#endif
+#if defined(KOKKOS_ENABLE_SERIAL)
+      if (setting == "serial") return true;
+#endif
+#if defined(KOKKOS_ENABLE_THREADS)
+      if (setting == "pthreads") return true;
+#endif
+#if defined(KOKKOS_ENABLE_CUDA)
+      if (setting == "cuda") return true;
+#endif
+#if defined(KOKKOS_ENABLE_HIP)
+      if (setting == "hip") return true;
+#endif
+      return false;
     }
   }
 #endif
